@@ -87,7 +87,8 @@ static const ParamOption k_tcp_proto[] = {
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_dmr1[] = {
-    { "ram", PK_BOOL, "RAM 128 KB", "RAM 128 KB", "true", nullptr, 0, 0 },
+    { "ram", PK_BOOL, "RAM 128 KB (off = serial port only)", "RAM 128 KB (vypnuto = jen sériový port)", "true",
+      nullptr, 0, 0 },
     { "battery", PK_BOOL, "JP7: battery backup of the SRAM", "JP7: zálohování SRAM baterií", "true", nullptr, 0, 0 },
     { "sram_file", PK_FILE, "SRAM content kept by the battery", "Obsah SRAM držený baterií",
       "\"work/dmr-1/sram.bin\"", k_none, 0, 0 },
@@ -116,6 +117,20 @@ static const CardParam k_dmr1[] = {
     { "serial.com", PK_SECTION, "PC side: COM port", "Strana PC: COM port", "false", nullptr, 0, 0 },
     { "serial.com.port", PK_TEXT, "Port (COM5, /dev/ttyUSB0)", "Port (COM5, /dev/ttyUSB0)", "\"COM1\"", nullptr, 0, 0 },
     { "serial.com.baud", PK_INT, "Baud rate", "Rychlost", "9600", nullptr, 50, 921600 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// DSM-1 (not emulated yet): what the configurator should remember
+static const ParamOption k_dsm_baud[] = {
+    { "50", "50 Bd", "50 Bd" }, { "75", "75 Bd", "75 Bd" }, { "150", "150 Bd", "150 Bd" },
+    { "300", "300 Bd", "300 Bd" }, { "600", "600 Bd (factory)", "600 Bd (z výroby)" },
+    { "1200", "1200 Bd", "1200 Bd" }, { "2400", "2400 Bd", "2400 Bd" }, { "4800", "4800 Bd", "4800 Bd" },
+    { "9600", "9600 Bd", "9600 Bd" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dsm1[] = {
+    { "base", PK_CHOICE, "Jumpers 16-12..16-15: ports", "Propojky 16-12 až 16-15: porty", "\"10h\"", k_dmr_base, 0, 0 },
+    { "baud", PK_CHOICE, "Jumper: terminal baud rate", "Propojka: rychlost terminálu", "600", k_dsm_baud, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -245,7 +260,7 @@ CARD(c_dgd1, "DGD-1", "DGD", "Graphic display", "Grafický displej", CC_DISPLAY,
 CARD(c_dbs1a, "DBS-1A", "DBS", "Colour semigraphics", "Barevná semigrafika", CC_DISPLAY, 1, false, nullptr)
 // serial
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,
-     false, nullptr)
+     false, k_dsm1)
 CARD(c_dsp1, "DSP-1", "DSP", "Serial ports", "Sériové porty", CC_SERIAL, 1, false, nullptr)
 // disks
 CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič pružných disků (desky A + B)", CC_DISK,
@@ -303,6 +318,14 @@ const BusInfo* bus_info(const std::string& type)
 {
     for (const BusInfo* b : bus_catalog())
         if (type == b->type) return b;
+    return nullptr;
+}
+
+const char* card_port_param(const CardInfo* ci)
+{
+    if (!ci) return nullptr;
+    if (!strcmp(ci->type, "DMR-1")) return "uart_base";
+    if (!strcmp(ci->type, "DSM-1")) return "base";
     return nullptr;
 }
 

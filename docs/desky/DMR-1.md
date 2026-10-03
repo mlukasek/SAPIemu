@@ -61,3 +61,6 @@ Emulátor řeší konfiguraci jumperem `ram_config` 0–7, případně připojen
 emulátoru, drží se v souboru `sram_file` (výchozí `work/dmr-1/sram.bin`, uloží se při vypnutí a ukončení). Bez baterie
 je RAM po zapnutí vynulovaná. Více sestav se stejným souborem se chová jako jedna fyzická karta přenášená mezi nimi.
 Reset (/RES) obsah RAM nemění.
+
+Karet DMR-1 může být v sestavě víc. Další se používají jako sériové porty: RAM se vypne (parametr `ram`) a UART se
+nastaví na jiný port (JP2). Sériový kanál se jmenuje podle portu, např. „DMR-1 #14“.

@@ -14,6 +14,11 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
     BGP a CGA (K2 VGA uprostřed), MPH (K4 OVL, K3 ZVUK, K2 MYŠ), ZRD-1V (LED ZAM, DSK). Ostatní karty mají
     zatím jen zkratku.
   - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
+  - Sériové karty (DMR-1, DSM-1) bývají v sestavě víckrát, proto mají pod zkratkou nahoře i dole port, např.
+    `#10`, `#14`. Stejně se jmenují i v seznamech, bublinách a v okně Sériový terminál („DMR-1 #10“).
+  - Dvě karty na stejném portu jsou chyba (sestava se nezapne). Dvě DMR-1 se zapnutou RAM nebo se stejným
+    souborem baterie jsou varování. Druhá DMR-1 se obvykle používá jen jako sériový port: RAM vypnout
+    (parametr „RAM 128 KB“) a JP2 nastavit na jiný port.
   - X1 je procesorová karta (výjimkou je ARB-1C s JP3 = 1-2 pro PKT-1).
   - Počet slotů určuje typ sběrnice.
   - Karty, které zatím nejsou emulované, jsou šedé. Červená tečka znamená chybu (např. karta mimo X1).

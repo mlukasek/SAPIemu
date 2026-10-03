@@ -72,3 +72,6 @@ const CardInfo* card_info(const std::string& type);
 const std::vector<const BusInfo*>& bus_catalog(void);
 const BusInfo* bus_info(const std::string& type);
 const char* card_class_name(int cls, bool czech);
+// Parameter holding the I/O base shown on the front panel ("#10") of cards that
+// often appear more than once (serial cards), nullptr if none.
+const char* card_port_param(const CardInfo* ci);

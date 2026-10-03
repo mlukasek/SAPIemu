@@ -37,6 +37,10 @@ bool machine_cfg_cpu_in_x1(const nlohmann::json& cfg);
 // Index in cfg["cards"] of the card covering `slot`, -1 if empty.
 int machine_cfg_card_at(const nlohmann::json& cfg, int slot);
 int card_cfg_width(const nlohmann::json& card);
+// Port of a serial card for the panel and lists: "#10"; empty if none / port disabled.
+std::string card_port_label(const nlohmann::json& card);
+// "DMR-1 #10" or just the type.
+std::string card_display_name(const nlohmann::json& card);
 
 struct CfgProblem {
     int slot;          // 0 = whole machine

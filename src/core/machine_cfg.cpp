@@ -243,6 +243,33 @@ int card_cfg_width(const json& card)
     return ci ? ci->width : 1;
 }
 
+std::string card_port_label(const json& card)
+{
+    const CardInfo* ci = card_info(card.value("type", std::string()));
+    const char* pp = card_port_param(ci);
+    if (!pp) return std::string();
+    if (!strcmp(ci->type, "DMR-1")) {   // UART switched off: no port
+        const json* u = cfg_find(card, "uart");
+        if (u && u->is_boolean() && !u->get<bool>()) return std::string();
+    }
+    for (const CardParam* p = ci->params; p && p->path; p++) {
+        if (strcmp(p->path, pp) != 0) continue;
+        long long v;
+        if (!as_number(card_param_value(card, p), v)) return std::string();
+        char buf[8];
+        snprintf(buf, sizeof(buf), "#%02llX", v & 0xFF);
+        return buf;
+    }
+    return std::string();
+}
+
+std::string card_display_name(const json& card)
+{
+    std::string n = card.value("type", std::string("?"));
+    std::string port = card_port_label(card);
+    return port.empty() ? n : n + " " + port;
+}
+
 static int card_slot(const json& card)
 {
     long long v = 0;
@@ -305,6 +332,36 @@ std::vector<CfgProblem> machine_cfg_problems(const json& cfg)
                 if (!ci->emulated)
                     out.push_back({ s, false, type + ": not emulated yet (passive)",
                                     type + ": zatím neemulovaná (neodpovídá)" });
+            }
+        }
+    }
+    // serial cards on the same ports, battery files shared by two cards
+    if (cfg.contains("cards") && cfg["cards"].is_array()) {
+        const json& cards = cfg["cards"];
+        for (size_t i = 0; i < cards.size(); i++) {
+            for (size_t j = i + 1; j < cards.size(); j++) {
+                std::string a = card_port_label(cards[i]), b = card_port_label(cards[j]);
+                if (!a.empty() && a == b) {
+                    std::string t = card_display_name(cards[i]) + " (X" + std::to_string(card_slot(cards[i])) + "), " +
+                                    card_display_name(cards[j]) + " (X" + std::to_string(card_slot(cards[j])) + ")";
+                    out.push_back({ card_slot(cards[j]), true, "same ports " + a + ": " + t,
+                                    "stejné porty " + a + ": " + t });
+                }
+                if (cards[i].value("type", std::string()) == "DMR-1" && cards[j].value("type", std::string()) == "DMR-1") {
+                    auto on = [](const json& c, const char* k) {
+                        const json* v = cfg_find(c, k);
+                        return !v || !v->is_boolean() || v->get<bool>();
+                    };
+                    if (on(cards[i], "ram") && on(cards[j], "ram")) {
+                        out.push_back({ card_slot(cards[j]), false, "two DMR-1 with RAM: switch the RAM off on one of them",
+                                        "dvě DMR-1 s RAM: na jedné RAM vypněte" });
+                        std::string fa = cards[i].value("sram_file", std::string("work/dmr-1/sram.bin"));
+                        std::string fb = cards[j].value("sram_file", std::string("work/dmr-1/sram.bin"));
+                        if (fa == fb && on(cards[i], "battery") && on(cards[j], "battery"))
+                            out.push_back({ card_slot(cards[j]), false, "two DMR-1 keep their SRAM in the same file " + fa,
+                                            "dvě DMR-1 drží SRAM ve stejném souboru " + fa });
+                    }
+                }
             }
         }
     }

@@ -156,7 +156,7 @@ int main(void)
     json mc = json::parse(text_of(r));
     CHECK(mc["runnable"] == true);
     json cfg = mc["config"];
-    cfg["cards"].push_back({ { "slot", 4 }, { "type", "DSM-1" } });
+    cfg["cards"].push_back({ { "slot", 4 }, { "type", "DSM-1" }, { "base", "14h" } });
     r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/test_mcp_machine.sapi" } });
     json sr = json::parse(text_of(r));
     CHECK(sr["started"] == true);

@@ -128,6 +128,9 @@ bool Machine::load_json(const json& cfg, std::string& err)
         cards.emplace_back(card);
         card->bus = &bus;
         card->name = cc.value("name", type);
+        for (auto& other : cards)   // two cards of a type: tell them apart by the slot
+            if (other.get() != card && other->name == card->name && !cc.contains("name"))
+                card->name = type + " X" + std::to_string(cc.value("slot", 0));
         long long slot;
         if (!cfg_number(cc, "slot", slot, 0, err)) return false;
         int width = info ? info->width : 1;

@@ -120,7 +120,15 @@ static void test_placeholders(void)
     cfg["cards"].push_back({ { "slot", 5 }, { "type", "RPD-1" } });   // two boards: X5 and X6
     CHECK(machine_cfg_card_at(cfg, 6) == 4);
     CHECK(machine_cfg_card_at(cfg, 7) == -1);
+    // DSM-1 from the factory sits on 10h like the DMR-1: a port conflict
+    CHECK(card_port_label(cfg["cards"][3]) == "#10");
     std::vector<CfgProblem> pr = machine_cfg_problems(cfg);
+    bool clash = false;
+    for (const CfgProblem& p : pr) clash = clash || (p.error && p.en.find("same ports #10") != std::string::npos);
+    CHECK(clash);
+    cfg["cards"][3]["base"] = "14h";
+    CHECK(card_display_name(cfg["cards"][3]) == "DSM-1 #14");
+    pr = machine_cfg_problems(cfg);
     CHECK(pr.size() == 2);
     for (const CfgProblem& p : pr) CHECK(!p.error);
     {
@@ -178,6 +186,29 @@ static void test_battery(void)
     battery_files_enable(false);
 }
 
+// Two DMR-1: the second one only as a serial port on 14h
+static void test_two_dmr(void)
+{
+    std::string text, err;
+    CHECK(file_read_text(data_path("machines/mikromon.sapi"), text));
+    json cfg = json::parse(text, nullptr, false, true);
+    cfg["cards"].push_back({ { "slot", 4 }, { "type", "DMR-1" }, { "uart_base", "14h" } });
+    std::vector<CfgProblem> pr = machine_cfg_problems(cfg);
+    CHECK(pr.size() == 2);   // warnings: two RAMs, one battery file
+    for (const CfgProblem& p : pr) CHECK(!p.error);
+    cfg["cards"][3]["ram"] = false;
+    CHECK(machine_cfg_problems(cfg).empty());
+    Machine m;
+    CHECK(m.load_json(cfg, err));
+    CHECK(m.serials.size() == 2);
+    if (m.serials.size() == 2) {
+        CHECK(m.serials[0]->name == "DMR-1 #10");
+        CHECK(m.serials[1]->name == "DMR-1 #14");
+    }
+    CHECK(m.find_card("DMR-1 X4") != nullptr);
+    CHECK(run_until_text(m, "MikroMon 2kB V1.3", 2.0));   // RAM of the first DMR-1 only
+}
+
 int main(int argc, char** argv)
 {
     test_init();
@@ -193,5 +224,6 @@ int main(int argc, char** argv)
     test_edit();
     test_placeholders();
     test_battery();
+    test_two_dmr();
     return TEST_RESULT();
 }

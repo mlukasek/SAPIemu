@@ -267,3 +267,15 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **DMR-1 JP7 baterie** (rozhodnutí autora). Parametr `battery` je ve výchozím stavu zapnutý, obsah SRAM se drží
   v `work/dmr-1/sram.bin` a přežije vypnutí i ukončení emulátoru. Testy zápis vypínají
   (`battery_files_enable(false)` v `test_init()`), aby nepřepisovaly soubory uživatele.
+
+## 2026-10-03 – Více sériových karet, port na panelu
+
+- **DMR-1 i DSM-1 může být v sestavě víc** (autor). Druhá DMR-1 má vypnutou RAM (parametr `ram`) a UART na
+  jiném portu. Karty stejného typu dostanou jméno podle slotu („DMR-1 X4“), sériové kanály podle portu
+  („DMR-1 #14“, dřív „DMR-1@10h“).
+- **Port na panelu** (autor): sériové karty mají pod zkratkou `#10`, `#14`… (nahoře i dole), stejně v seznamech
+  a bublinách. Port udává parametr v katalogu (`card_port_param`: DMR-1 `uart_base`, DSM-1 `base`).
+- **Kontrola sestavy:** dvě karty na stejném portu jsou chyba. Dvě DMR-1 s RAM nebo se společným souborem baterie
+  jsou varování.
+- DSM-1 (zatím neemulovaná) má v katalogu porty (propojky 16-12 až 16-15, z výroby 10h) a rychlost terminálu
+  (z výroby 600 Bd).

@@ -55,7 +55,7 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     rts_flow = (flow == "rts_cts");
 
     char buf[64];
-    snprintf(buf, sizeof(buf), "%s@%02Xh", name.c_str(), base);
+    snprintf(buf, sizeof(buf), "%s #%02X", type.c_str(), base);   // as on the front panel
     serial.reset(new SerialChannel(buf));
     serial->connected = connected_default;
     serial->cts = cts_default;

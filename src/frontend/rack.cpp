@@ -385,7 +385,8 @@ void panel_plate(const Panel& P, float w, bool dim)
 }
 
 // A narrow card panel: holes, the label at the top and the bottom, connectors.
-void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type, bool error, bool show_type)
+void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type, const std::string& port, bool error,
+                     bool show_type)
 {
     bool dim = !ci || !ci->emulated;
     panel_plate(P, PANEL_W, dim);
@@ -395,6 +396,10 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
     const char* label = ci ? ci->panel : "?";
     pt_text(P, 28.5f, 33.6f, 20.0f, tc, label, 0, false, 50.0f);
     pt_text(P, 28.5f, 461.6f, 20.0f, tc, label, 0, false, 50.0f);
+    if (!port.empty()) {   // serial cards are often there more than once: their port under the label
+        pt_text(P, 28.5f, 53.5f, 13.0f, tc, port.c_str(), 0, false, 50.0f);
+        pt_text(P, 28.5f, 441.5f, 13.0f, tc, port.c_str(), 0, false, 50.0f);
+    }
     for (const PanelItem* it = panel_layout(ci); it && it->kind != PI_END; it++) {
         switch (it->kind) {
         case PI_TEXT: pt_text(P, it->x, it->y, 14.0f, tc, it->text); break;
@@ -406,7 +411,7 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
     }
     if (show_type) {
         // the exact card type across the panel, in the largest free gap between the panel items
-        float lo = 50.0f, hi = 445.0f;   // below the top label, above the bottom one
+        float lo = port.empty() ? 50.0f : 62.0f, hi = port.empty() ? 445.0f : 432.0f;   // between the labels
         float best_a = lo, best_b = hi;
         float occ[32][2];
         int no = 0;
@@ -417,17 +422,22 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
             no++;
         }
         if (no > 0) {
+            // walk the occupied intervals in order of their start, merging overlaps
+            for (int i = 1; i < no; i++)
+                for (int j = i; j > 0 && occ[j][0] < occ[j - 1][0]; j--) {
+                    float t0 = occ[j][0], t1 = occ[j][1];
+                    occ[j][0] = occ[j - 1][0];
+                    occ[j][1] = occ[j - 1][1];
+                    occ[j - 1][0] = t0;
+                    occ[j - 1][1] = t1;
+                }
             best_b = best_a;
-            float y = lo;
-            while (y < hi) {
-                float next = hi;   // end of the free run starting at y
-                for (int i = 0; i < no; i++)
-                    if (occ[i][0] >= y && occ[i][0] < next) next = occ[i][0];
-                if (next - y > best_b - best_a) { best_a = y; best_b = next; }
-                float skip = next;   // jump over the item starting there
-                for (int i = 0; i < no; i++)
-                    if (occ[i][0] <= next && occ[i][1] > skip) skip = occ[i][1];
-                y = skip > next ? skip : next + 1.0f;
+            float y = lo;   // start of the current free run
+            for (int i = 0; i <= no; i++) {
+                float start = i < no ? occ[i][0] : hi;
+                if (start > hi) start = hi;
+                if (start - y > best_b - best_a) { best_a = y; best_b = start; }
+                if (i < no && occ[i][1] > y) y = occ[i][1];
             }
         }
         ImFont* f = ImGui::GetFont();
@@ -554,9 +564,11 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             if (s < 1 || s + wd - 1 > n) continue;
             std::string type = c.value("type", std::string("?"));
             const CardInfo* ci = card_info(type);
+            std::string port = card_port_label(c);
+            std::string shown = port.empty() ? type : type + " " + port;
             for (int b = 0; b < wd; b++) {
                 Panel P = { dl, ImVec2(slot_x(s + b) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
-                draw_card_panel(P, ci, type, slot_has_error(problems, s + b), r.show_types && b == 0);
+                draw_card_panel(P, ci, shown, port, slot_has_error(problems, s + b), r.show_types && b == 0);
             }
         }
     }
@@ -574,7 +586,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             if (idx >= 0) {
                 const json& c = cfg["cards"][(size_t)idx];
                 const CardInfo* ci = card_info(c.value("type", std::string()));
-                ImGui::SetTooltip("X%d: %s\n%s%s", first, c.value("type", std::string("?")).c_str(),
+                ImGui::SetTooltip("X%d: %s\n%s%s", first, card_display_name(c).c_str(),
                                   ci ? loc(ci->en, ci->cs) : tr("unknown card"),
                                   ci && !ci->emulated ? loc("\n(not emulated yet)", "\n(zatím neemulováno)") : "");
             } else {
@@ -906,7 +918,7 @@ void draw_slot_props(UiState& ui, int slot)
 
     ImGui::SetNextItemWidth(30.0f * u);
     char preview[200];
-    if (card) snprintf(preview, sizeof(preview), "%s  %s", type.c_str(), ci ? loc(ci->en, ci->cs) : "");
+    if (card) snprintf(preview, sizeof(preview), "%s  %s", card_display_name(*card).c_str(), ci ? loc(ci->en, ci->cs) : "");
     else snprintf(preview, sizeof(preview), "%s", tr("(empty)"));
     char lab[32];
     snprintf(lab, sizeof(lab), "X%d", slot);
