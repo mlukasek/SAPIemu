@@ -83,14 +83,20 @@ Kompozitní video na X2 pin 30. Pro terminál AZJ-462 navíc /HS, VS a /VID s ot
 - Funkčně stejná jako AND-1Z-89 (4× 2114 místo 6116). Návod: AND-1Z na F800 je „pro ELIS (ZPS-4) a CP/M“.
 - **Dumpy z desky ELIS** v `H:\SAPI-1\Petr_repliky_k_vyrobe\AND-1Z-89\`:
   - PROM D1 `AND-1Z_ELIS_PROM-D1-00/FF.HEX`, `PROM_AND-1Z_D1_ELIS.HEX`: vše 1, 0x3F = 0, 0xBF = 8. Standardní
-    dump má místo toho 0x7F/0xFF, takže ELIS vybere F800–FFFF při **A6 (nepopsaný vstup DA1) = L**, standardní
-    při A6 = H.
+    dump má místo toho 0x7F/0xFF, takže ELIS vybere F800–FFFF při **A6 = L**, standardní při A6 = H.
+  - **Vstup A6 DA1 nastavuje přepínač S1** (schéma
+    `H:\SAPI-1\SAPI_DOKU_2019-10-09\sapi_eagle\SAPI-1\REPLIKY\AND-1Z\AND-1Z.pdf`), stejně jako u RAM-1Z:
+    - obě poloviny vypnuté: pull-up R2 4k7, tedy H (standardní PROM bez mapování);
+    - S1/2 zapnutý: zem, tedy L (PROM ELIS);
+    - S1/1 zapnutý: MAP1 ze sběrnice.
+    Nejde o rozpor, jen o jiné nastavení přepínače.
+  - Další vstupy DA1: A0 = A15, A1 = A11, A2 = /RES, A3 = A14, A4 = A13, A5 = A12, A7 = A10, CE = GND.
   - Znakový generátor `AND-1Z_ELIS_EPROM.BIN` (4 KB) se od `AND-1Z_CharGen.bin` liší ve 3 bajtech (znaky 17h,
     3Ch, CBh).
 
 ## Nejasnosti (ověřit na HW)
 
-- AND-1Z: co budí vstup A6 DA1 (ELIS PROM vs standardní)?
+- AND-1Z: vstup A6 DA1 je vyřešený, nastavuje ho přepínač S1 (viz výše).
 
 - 20 nebo 24 řádků: PROM a manuál říkají 20, dokumentace CP/M 24 („poslední znak na FDFFh“).
 - Délka řádku 107 nebo 108 znaků.

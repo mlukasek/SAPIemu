@@ -179,13 +179,14 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Má AND-1A 1 KB, nebo 2 KB video RAM?
     - Pro 62K a 64K: PROM D3A pro F800 a F000 a jak se dvě RAM-1A vyhnou displeji.
 
-20. **ZPS-4:**
-    - RMD-1 PROM: bit 2 (O3) = port 40 (řada), bit 3 (O4) = 43 (příprava čtení)? Schéma má popisky obráceně.
-    - Originální boot EPROM Tesla IMA a systémová disketa ZPS-4?
-    - AND-1Z: co budí vstup A6 PROM DA1 (ELIS PROM chce L, standardní H)?
-    - Která ROM ELIS (v3.00 nebo v7.01) patří k disketě ELIS?
-    - RMD-1: časové limity (INIR při 2/4 MHz, NOP po `OUT 43`).
-    - Pořadí karet ve slotech ZPS-4, Consul 259.11 nebo 262.3?
+20. **ZPS-4** (odpovědi autora 2026-10-04):
+    - **RMD-1 PROM:** bit 2 (O3) = port 40 (řada), bit 3 (O4) = 43 (příprava čtení)? Schéma má popisky
+      obráceně. Autor desku nemá, zeptá se kamaráda. Emulace zatím: bit 2 řada, bit 3 příprava čtení.
+    - **Originální boot EPROM Tesla IMA a systémová disketa ZPS-4:** autor je nemá, zeptá se po nich.
+    - AND-1Z vstup A6 DA1: vyřešeno ze schématu, nastavuje ho přepínač S1 (`docs/desky/AND-1Z-89.md`).
+    - Která ROM ELIS (v3.00/v7.01) patří k disketě: autor neví, vyzkoušet v emulátoru.
+    - RMD-1 časové limity: autor neví.
+    - Pořadí karet je celkem jedno. Klávesnice spíš **Consul 262.3** (ZPS-4 je novější).
 
 ## Jak pokračovat
 
