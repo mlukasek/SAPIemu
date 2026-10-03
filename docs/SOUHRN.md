@@ -208,6 +208,16 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
 4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-04): F9 desky V.** Probíhá rozbor schémat. Výsledek
    a otázky pro autora se zapíšou do `docs/desky/JPR-1V.md`, `RAM-1V.md`, `AND-1V.md`, `DSM-1V.md` a
-   `ZRMD-1.md` (ZRD-1V). ZPS-1 až ZPS-4 běží (2026-10-04). Otevřené otázky ke ZPS-3/4 jsou v bodech
+   `ZRMD-1.md` (ZRD-1V). ZPS-1 až ZPS-4 běží (2026-10-04).
+   - Pokud se rozbor ztratí, zopakovat ho:
+     - schémata `..\JPR-1V\JPR-1V.pdf`, `..\AND-1V\AND-1V_sch.pdf` (+ `rev2.3\Popis-AND-1V-rev.-2.3.pdf`,
+       `FontROM\`), `..\RAM-1V\RAM-1V.pdf` (+ `Popis-RAM-1V-rev.-1.1.pdf`), `..\DSM-1V\DSM-1V.pdf` (+ xlsx
+       s rychlostmi);
+     - `..\ZRD-1V\DESCRIPTION` (PDF chybí, Eagle je binární);
+     - stránka https://www.pmd85.cz/?page_id=292.
+   - Porovnat s emulovanými JPR-1ZI/1Z, AND-1Z-89, RAM-1/1A, DSM-1 a ZRMD-1. Výsledek a otázky zapsat do
+     `docs/desky/`.
+   - Autor: na deskách V běží systém ze ZRMD-1 (ECMON + CP/M) a funguje s nimi boot ROM i IDE-1. Mapování
+     dělá RAM-1V, ZRD-1V ho nemá. Otevřené otázky ke ZPS-3/4 jsou v bodech
    19 a 20. Zbývá originální IMA CP/M 48K, k tomu chybí
    disketa (bod 19), a varianty 62K/64K. Podklady jsou v `docs/software/CPM_ZPS-3.md`.

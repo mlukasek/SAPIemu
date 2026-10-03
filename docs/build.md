@@ -62,3 +62,28 @@ sapiemu-cli --machine machines/zps/ZPS-2_MIKOS_V5.sapi --run-ms 1000 --load-hex 
 ```
 
 Úplný seznam akcí vypíše `sapiemu-cli --help`.
+
+## Tipy pro vývoj (postupy, které se osvědčily)
+
+- **Nová sestava z JSON:** `test_machine_cfg <soubor.json> > machines/....sapi` převede prostý JSON na
+  komentovaný `.sapi`. Komentáře se doplní z katalogu karet.
+- **Skriptování přes MCP:** `sapiemu-cli --machine X --mcp --mcp-port 8591` (na pozadí). Nástroje se volají
+  JSON-RPC POSTem na `http://127.0.0.1:8591/mcp`:
+  - `pause` a `run_for` pro deterministický běh;
+  - `type_text` s `run_ms`, `run_until`, `screen_text`;
+  - `tape_insert`, `tape_control`, `load_hex`;
+  - `io_log`: záznam I/O, kruhový buffer 4096 přístupů, takže polling ho rychle zaplní;
+  - `io_read`, `io_write`: přímý přístup na porty karet, např. obsah RAM disku.
+- **`sapiemu-cli`:** `--timeout-ms` musí být **před** `--wait-text`, kterého se týká. `--load-hex` nahraje
+  program, `--display DGD-1` určí obrazovku pro `--screenshot`.
+- **Pracovní kopie médií** (`work/rpd-1/…`, `work/…`) po zkouškách z příkazové řádky smazat. Zápisy na disketu
+  se do nich uloží a příště by se načetly místo originálu.
+- **Úpravy souborů skriptem:** na Windows v Bash heredocu se `\n`, `\r` a `\\` v Python řetězcích mění na
+  skutečné znaky. Skripty proto psát nástrojem pro zápis souborů do dočasného `.py`, pro cesty používat raw
+  řetězce, nebo upravovat soubory přímo editorem.
+- **Rozbor schémat v PDF:** Python PyMuPDF (`pymupdf.open`, `page.get_pixmap(dpi=..., clip=...)`)
+  vyrenderuje výřez schématu do PNG. Eagle `.sch` z let kolem 2011 je binární a nečte se.
+- **RAR archivy ze sapi.cz** rozbalí `C:\Windows\System32\tar.exe -xf soubor.rar`.
+- **Testy se skutečnými nahrávkami nebo disketami mimo repo** (`H:\SAPI-1\…`) se při chybějícím souboru
+  přeskočí. Testy pracují s kopiemi ve `work/test/`.
+
