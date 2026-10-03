@@ -161,18 +161,25 @@ void Ide1::outputs_changed(int port, uint8_t value)
 
 int Ide1::decode_io(uint8_t port, const char** what)
 {
-    if (ide_enabled && (port & 0xFC) == base_ide) { *what = "IDE (8255)"; return DEC_READ | DEC_WRITE; }
-    if (pmd_enabled && (port & 0xFC) == base_pmd) { *what = "PMD32-SD (8255)"; return DEC_READ | DEC_WRITE; }
+    // both 8255 are on the card: they answer whether a disk / PMD32-SD is connected or not
+    if ((port & 0xFC) == base_ide) {
+        *what = ide_enabled ? "IDE (8255)" : "IDE (8255, no disk)";
+        return DEC_READ | DEC_WRITE;
+    }
+    if ((port & 0xFC) == base_pmd) {
+        *what = pmd_enabled ? "PMD32-SD (8255)" : "PMD32-SD (8255, not connected)";
+        return DEC_READ | DEC_WRITE;
+    }
     return 0;
 }
 
 bool Ide1::io_read(uint8_t port, uint8_t& data)
 {
-    if (ide_enabled && (port & 0xFC) == base_ide) {
+    if ((port & 0xFC) == base_ide) {
         data = ppi_ide.read(port & 3);
         return true;
     }
-    if (pmd_enabled && (port & 0xFC) == base_pmd) {
+    if ((port & 0xFC) == base_pmd) {
         data = ppi_pmd.read(port & 3);
         return true;
     }
@@ -181,13 +188,13 @@ bool Ide1::io_read(uint8_t port, uint8_t& data)
 
 bool Ide1::io_write(uint8_t port, uint8_t data)
 {
-    if (ide_enabled && (port & 0xFC) == base_ide) {
+    if ((port & 0xFC) == base_ide) {
         ppi_ide.write(port & 3, data);
         return true;
     }
-    if (pmd_enabled && (port & 0xFC) == base_pmd) {
+    if ((port & 0xFC) == base_pmd) {
         ppi_pmd.write(port & 3, data);
-        pmd.advance(bus->now, bus->cpu_hz);   // the ATmega reacts within microseconds
+        if (pmd_enabled) pmd.advance(bus->now, bus->cpu_hz);   // the ATmega reacts within microseconds
         return true;
     }
     return false;

@@ -133,6 +133,8 @@ Buffery dat jsou povolené jen při /DIOR nebo /DIOW a směr určuje /DIOR. JP4 
   - `ide`: `image`, `create_mb` (vytvoří obraz vyplněný E5h, když chybí), `readonly`, `working_copy`;
   - `pmd32sd`: `sd_card` (adresář jako SD karta, výchozí `media/pmd32sd`, kopie ve `work/pmd32sd`),
     `drives` [A..D] (jméno obrazu nebo `{image, wp}`), `card_locked`, `startup_ms`.
+- **Oba 8255 odpovídají vždy**, i když není připojený disk nebo PMD32-SD (stejně jako skutečná deska). Bez disku
+  čte IDE datová sběrnice FFh, bez PMD32-SD čtou vstupy 8255 FFh.
 - **8255 IDE:** signály IDE jsou aktivní jen při CW 80h/92h, kdy je port C výstup.
   - Čtení registru se provede na náběžné hraně PC6 (/DIOR). Data jsou pak na vstupech PA a PB.
     U 8bitových registrů je D8–D15 FFh.

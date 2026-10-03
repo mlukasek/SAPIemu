@@ -23,6 +23,8 @@ static const Translation k_table[] = {
     { "Open file...", "Otevřít soubor…" },
     { "Machine and bus", "Sestava a sběrnice" },
     { "BOOT off", "vypnutí BOOT" },
+    { "IDE (8255, no disk)", "IDE (8255, bez disku)" },
+    { "PMD32-SD (8255, not connected)", "PMD32-SD (8255, nepřipojeno)" },
     { "P0 (keyboard)", "P0 (klávesnice)" },
     { "P1 (keyboard)", "P1 (klávesnice)" },
     { "P2 (printer)", "P2 (tiskárna)" },
