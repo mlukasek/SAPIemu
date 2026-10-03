@@ -3,7 +3,7 @@
 // in work/ (the original in media/ is never modified).
 {
     "name": "CP/M 2.2 z RAM disku (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1)",
-    "bus": { "type": "ARB-1C", "slots": 8, "jp3": "2-3" },
+    "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
     "cards": [
         {
             "slot": 1,

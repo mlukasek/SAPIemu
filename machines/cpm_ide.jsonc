@@ -3,7 +3,7 @@
 // Disk images are working copies in work/ (originals in media/ stay untouched).
 {
     "name": "CP/M 2.2 s IDE-1 (JPR-1ZI ECMON IDE, DMR-1, AND-1Z-89, ZRMD-1, IDE-1 + PMD32-SD)",
-    "bus": { "type": "ARB-1C", "slots": 8, "jp3": "2-3" },
+    "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
     "cards": [
         {
             "slot": 1,

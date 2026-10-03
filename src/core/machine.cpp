@@ -1,4 +1,6 @@
 #include "core/machine.h"
+#include "cards/catalog.h"
+#include "cards/placeholder.h"
 #include "core/card.h"
 #include "core/charset.h"
 #include "core/ihex.h"
@@ -75,18 +77,30 @@ bool Machine::load_json(const json& cfg, std::string& err)
     config = cfg;
     name = cfg.value("name", std::string("SAPI-1"));
 
+    // bus: number of positions from its type, ARB-1C JP3 decides where the CPU may sit
     int slots = 8;
     bool slot1_cpu_only = true;
     if (cfg.contains("bus")) {
         const json& b = cfg["bus"];
+        std::string btype;
+        if (!cfg_string(b, "type", btype, "ARB-1C-8", err)) return false;
+        const BusInfo* bi = bus_info(btype);
+        if (!bi) {
+            err = "unknown bus type '" + btype + "'";
+            return false;
+        }
         long long n;
-        if (!cfg_number(b, "slots", n, 8, err)) return false;
+        if (!cfg_number(b, "slots", n, bi->slots, err)) return false;
+        if (n < 1 || n > 32) {
+            err = "bus slots must be 1..32";
+            return false;
+        }
         slots = (int)n;
         std::string jp3;
         if (!cfg_string(b, "jp3", jp3, "2-3", err)) return false;
         // JP3 1-2: address buffers of slot 1 disabled (PKT-1 / SAPI-1.5 style),
         // the CPU card may then sit in any slot.
-        slot1_cpu_only = (jp3 != "1-2");
+        slot1_cpu_only = !(bi->has_jp3 && jp3 == "1-2");
     }
 
     if (!cfg.contains("cards") || !cfg["cards"].is_array()) {
@@ -97,25 +111,37 @@ bool Machine::load_json(const json& cfg, std::string& err)
     std::vector<bool> used(slots + 1, false);
     for (const json& cc : cfg["cards"]) {
         std::string type = cc.value("type", std::string());
+        const CardInfo* info = card_info(type);
         Card* card = card_create(type);
         if (!card) {
-            err = "unknown card type '" + type + "'";
-            return false;
+            if (!info) {
+                err = "unknown card type '" + type + "'";
+                return false;
+            }
+            if (info->cls == CC_CPU) {
+                err = type + ": this CPU card is not emulated yet";
+                return false;
+            }
+            LOGW("%s is not emulated yet, the slot stays passive", type.c_str());
+            card = new PlaceholderCard(type);
         }
         cards.emplace_back(card);
         card->bus = &bus;
         card->name = cc.value("name", type);
         long long slot;
         if (!cfg_number(cc, "slot", slot, 0, err)) return false;
-        if (slot < 1 || slot > slots) {
-            err = card->name + ": slot must be 1.." + std::to_string(slots);
+        int width = info ? info->width : 1;
+        if (slot < 1 || slot + width - 1 > slots) {
+            err = card->name + ": slot must be 1.." + std::to_string(slots - width + 1);
             return false;
         }
-        if (used[slot]) {
-            err = card->name + ": slot " + std::to_string(slot) + " is already occupied";
-            return false;
+        for (int i = 0; i < width; i++) {
+            if (used[slot + i]) {
+                err = card->name + ": slot " + std::to_string(slot + i) + " is already occupied";
+                return false;
+            }
+            used[slot + i] = true;
         }
-        used[slot] = true;
         card->slot = (int)slot;
         std::string cerr;
         if (!card->configure(cc, cerr)) {
@@ -126,10 +152,13 @@ bool Machine::load_json(const json& cfg, std::string& err)
         if (c) {
             if (cpu) { err = "more than one CPU card"; return false; }
             if (slot1_cpu_only && slot != 1) {
-                err = card->name + ": CPU card must be in slot 1 (ARB-1C JP3 = 2-3)";
+                err = card->name + ": CPU card must be in slot 1 (X1)";
                 return false;
             }
             cpu = c;
+        } else if (slot == 1 && slot1_cpu_only) {
+            err = card->name + ": slot 1 (X1) is reserved for the CPU card";
+            return false;
         }
         DisplayDevice* d = dynamic_cast<DisplayDevice*>(card);
         if (d && !display) display = d;
