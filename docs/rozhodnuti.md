@@ -215,3 +215,14 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **RPD-1 zabírá dva sloty** (desky RPD-1A a RPD-1B spojené kabelem KB-17). V souboru se uvádí první slot.
 - **Kontrola GUI bez snímku plochy:** `sapiemu --ui-snapshot` vykreslí okno skrytě a uloží obsah vlastního
   rendereru do PNG.
+
+## 2026-10-03 – Rychlost 2 / 4 MHz / max
+
+- **TURBO a F8 přepínají dokola:** takt CPU sestavy → 4 MHz (jen když je takt nižší) → maximum. Volba je i
+  v menu Stroj → Rychlost a v MCP (`resume` s `speed_mhz`).
+- **„4 MHz“ zrychluje celou emulaci** (emulované takty za sekundu), ne jen procesor. Proti skutečné JPR-1ZI
+  s CPU na 4 MHz se tím zrychlí i UART a časování karet, které běží na vlastním krystalu. U terminálu a TCP
+  na tom nezáleží. Skutečné přepnutí taktu CPU (jumper JP2/JP3, TURBO u JPR-1V) by potřebovalo přepočet
+  časování všech karet, zatím není.
+- **Výběr sestavy z menu Soubor padal:** menu dál používalo ukazatel na právě zrušený stroj (podmenu
+  Klávesnice). Po načtení sestavy se teď ukazatel načte znovu, stejně u tlačítka NAPÁJENÍ.

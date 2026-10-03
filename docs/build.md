@@ -14,7 +14,7 @@ tools\build.cmd local-debug test    # lokální preset (výstup mimo repo)
 tools\build.cmd release             # release build, zahrnuje pomalé testy ZEXDOC/ZEXALL
 ```
 
-Klávesy v GUI: F5 běh/pauza, F8 turbo, F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
+Klávesy v GUI: F5 běh/pauza, F8 rychlost (takt CPU → 4 MHz → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
 
 ## Lokální preset (necommituje se)
 

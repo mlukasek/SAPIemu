@@ -128,6 +128,13 @@ int main(void)
     r = tool(s, "read_memory", { { "address", "zz" } });
     CHECK(r["isError"] == true);
 
+    // speed: CPU clock -> 4 MHz -> max -> CPU clock
+    r = tool(s, "resume", { { "speed_mhz", 4 } });
+    CHECK(json::parse(text_of(r))["speed_hz"] == 4000000);
+    r = tool(s, "resume", { { "speed_mhz", 0 } });
+    CHECK(json::parse(text_of(r))["speed_hz"] == 2000000);
+    r = tool(s, "pause", json::object());
+
     // machine configuration
     r = tool(s, "card_catalog", { { "type", "DMR-1" } });
     CHECK(text_of(r).find("ram_config") != std::string::npos);

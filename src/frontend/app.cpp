@@ -90,7 +90,7 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     Machine* m = app.host.machine();
     switch (ev.key) {
     case SDLK_F5: app.host.paused = !app.host.paused; return;
-    case SDLK_F8: app.host.turbo = !app.host.turbo; return;
+    case SDLK_F8: app.host.cycle_speed(); return;
     case SDLK_F10: debug_step(app, true); return;
     case SDLK_F11: debug_step(app, false); return;
     case SDLK_F12:   // under a debugger Windows takes F12 as the break hotkey, F9 still works
@@ -133,7 +133,10 @@ void draw_menu(App& app)
     if (ImGui::BeginMenu(tr("File"))) {
         if (ImGui::BeginMenu(tr("Open machine"))) {
             for (const std::string& f : list_machine_files())
-                if (ImGui::MenuItem(f.c_str(), nullptr, f == app.host.machine_file())) load_machine(app, f);
+                if (ImGui::MenuItem(f.c_str(), nullptr, f == app.host.machine_file())) {
+                    load_machine(app, f);
+                    m = app.host.machine();   // the old machine is gone
+                }
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem(tr("Open file..."))) rack_open_and_run(app.ui);
@@ -144,7 +147,21 @@ void draw_menu(App& app)
     if (ImGui::BeginMenu(tr("Machine"))) {
         if (ImGui::MenuItem(tr("Reset"), "F12 / F9") && m) m->reset();
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
-        ImGui::MenuItem(tr("Turbo"), "F8", &app.host.turbo);
+        if (ImGui::BeginMenu(tr("Speed"))) {
+            char nominal[64];
+            snprintf(nominal, sizeof(nominal), "%s (%.2f MHz)", tr("CPU clock"), m ? m->bus.cpu_hz / 1e6 : 0.0);
+            bool at_nominal = !app.host.turbo && app.host.speed_hz == 0;
+            if (ImGui::MenuItem(nominal, nullptr, at_nominal)) { app.host.turbo = false; app.host.speed_hz = 0; }
+            if (m && m->bus.cpu_hz < 4000000 &&
+                ImGui::MenuItem("4 MHz", nullptr, !app.host.turbo && app.host.speed_hz == 4000000)) {
+                app.host.turbo = false;
+                app.host.speed_hz = 4000000;
+            }
+            if (ImGui::MenuItem(tr("Maximum (turbo)"), nullptr, app.host.turbo)) app.host.turbo = true;
+            ImGui::Separator();
+            if (ImGui::MenuItem(tr("Next"), "F8")) app.host.cycle_speed();
+            ImGui::EndMenu();
+        }
         ImGui::Separator();
         ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
         KeyboardDevice* kb = m ? m->keyboard() : nullptr;
@@ -189,7 +206,7 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
-        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 turbo, F10 step over, F11 step, F12 or F9 reset"));
+        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 speed 2 / 4 MHz / max, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
         if (app.mcp && app.mcp->running()) {
@@ -207,8 +224,10 @@ void draw_menu(App& app)
     char st[200];
     st[0] = 0;
     if (m) {
+        char pace[32] = "";
+        if (app.host.speed_hz) snprintf(pace, sizeof(pace), "%s %.0f MHz", tr("Speed"), app.host.speed_hz / 1e6);
         const char* state = app.host.paused ? (app.host.status.empty() ? tr("Paused") : app.host.status.c_str())
-                                            : (app.host.turbo ? tr("Turbo") : "");
+                                            : (app.host.turbo ? tr("Turbo") : pace);
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
         snprintf(st, sizeof(st), "%s  %s  %s  %.2f MHz  %3.0f %%", ks.c_str(), state,

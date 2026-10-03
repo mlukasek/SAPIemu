@@ -64,6 +64,7 @@ bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::
     m = std::move(nm);
     file = f;
     generation++;
+    speed_hz = 0;   // the new machine starts at its own clock
     paused = false;
     status.clear();
     speed_t0 = host_time_ns();
@@ -104,11 +105,32 @@ void EmuHost::frame(uint64_t elapsed_ns)
             }
         } else {
             if (elapsed_ns > 100000000ull) elapsed_ns = 100000000ull;   // don't catch up after stalls
-            m->run_cycles((uint64_t)((double)elapsed_ns * m->bus.cpu_hz / 1e9));
+            m->run_cycles((uint64_t)((double)elapsed_ns * target_hz() / 1e9));
         }
         handle_stop();
     }
     update_speed();
+}
+
+uint32_t EmuHost::target_hz(void) const
+{
+    if (turbo) return 0;
+    if (speed_hz) return speed_hz;
+    return m ? m->bus.cpu_hz : 0;
+}
+
+void EmuHost::cycle_speed(void)
+{
+    uint32_t nominal = m ? m->bus.cpu_hz : 2000000;
+    if (turbo) {
+        turbo = false;
+        speed_hz = 0;
+    } else if (speed_hz == 0 && nominal < 4000000) {
+        speed_hz = 4000000;
+    } else {
+        turbo = true;
+        speed_hz = 0;
+    }
 }
 
 void EmuHost::poll(void)

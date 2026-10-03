@@ -22,7 +22,7 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   mimo karty ukáže název a popis sestavy a nastavení sběrnice.
 - **Panel ZDR:**
   - NAPÁJENÍ vypne a zapne počítač s upravenou sestavou (stejně jako tlačítko „Zapnout s touto sestavou“);
-  - RESET a TURBO fungují jako F12 a F8;
+  - RESET funguje jako F12, TURBO jako F8 a přepíná dokola takt CPU (2 MHz) → 4 MHz → maximum;
   - displej FREKVENCE CPU ukazuje skutečnou rychlost emulace.
 - **Změny se projeví až po vypnutí a zapnutí** (rozhodnutí autora). Obsah RAM se ztratí, RAM disky se před
   vypnutím uloží, pracovní kopie médií ve `work/` zůstávají.

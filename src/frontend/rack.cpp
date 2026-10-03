@@ -629,7 +629,8 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     const Btn btns[4] = {
         { "NAPÁJENÍ", IM_COL32(64, 196, 120, 255) },
         { "RESET", IM_COL32(214, 52, 48, 255) },
-        { "TURBO", host.turbo ? IM_COL32(255, 228, 110, 255) : IM_COL32(236, 236, 236, 255) },
+        { "TURBO", host.turbo ? IM_COL32(255, 160, 60, 255)
+                   : host.speed_hz ? IM_COL32(255, 228, 110, 255) : IM_COL32(236, 236, 236, 255) },
         { "BIOS", IM_COL32(236, 236, 236, 255) },
     };
     for (int i = 0; i < 4; i++) {
@@ -642,14 +643,17 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         char id[16];
         snprintf(id, sizeof(id), "btn%d", i);
         if (panel_button(id, ba, bb)) {
-            if (i == 0) editor_apply(ui);
+            if (i == 0) {
+                editor_apply(ui);
+                m = host.machine();   // the old machine is gone
+            }
             else if (i == 1 && m) m->reset();
-            else if (i == 2) host.turbo = !host.turbo;
+            else if (i == 2) host.cycle_speed();
         }
         if (ImGui::IsItemHovered()) {
             const char* tip = i == 0 ? tr("Switch off and on with the edited configuration")
                             : i == 1 ? tr("Reset (F12)")
-                            : i == 2 ? tr("Turbo (F8)")
+                            : i == 2 ? tr("Speed: CPU clock, 4 MHz, maximum (F8)")
                                      : tr("BIOS: EPROM bank switch of JPR-1V (no function yet)");
             ImGui::SetTooltip("%s", tip);
         }

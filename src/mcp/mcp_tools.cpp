@@ -212,6 +212,7 @@ json t_machine_info(EmuHost& h, const json&)
     j["machine_file"] = h.machine_file();
     j["cpu_hz"] = m.bus.cpu_hz;
     j["turbo"] = h.turbo;
+    j["speed_hz"] = h.target_hz();
     j["cards"] = cards;
     j["serial_channels"] = serials;
     j["keyboard"] = m.keyboard() ? m.keyboard()->type_name() : "none";
@@ -364,9 +365,14 @@ json t_resume(EmuHost& h, const json& a)
 {
     need_machine(h);
     if (a.contains("turbo")) h.turbo = arg_bool(a, "turbo", false);
+    if (a.contains("speed_mhz")) {
+        double mhz = a["speed_mhz"].is_number() ? a["speed_mhz"].get<double>() : 0.0;
+        if (mhz < 0 || mhz > 100) throw ToolError{ "speed_mhz must be 0 (CPU clock) .. 100" };
+        h.speed_hz = (uint32_t)(mhz * 1e6);
+    }
     h.paused = false;
     h.status.clear();
-    return json_result(json{ { "state", "running" }, { "turbo", h.turbo } });
+    return json_result(json{ { "state", "running" }, { "turbo", h.turbo }, { "speed_hz", h.target_hz() } });
 }
 
 json t_step(EmuHost& h, const json& a)
@@ -841,8 +847,8 @@ const Tool k_tools[] = {
     { "reset", "Press the reset button (/RES): CPU card BOOT flag set, cards reset. RAM content is kept.",
       S_NONE, t_reset },
     { "pause", "Pause real-time emulation.", S_NONE, t_pause },
-    { "resume", "Resume real-time emulation (optionally in turbo mode = as fast as possible).",
-      R"({"type":"object","properties":{"turbo":{"type":"boolean"}}})", t_resume },
+    { "resume", "Resume real-time emulation; optionally turbo = as fast as possible, or speed_mhz = emulated cycles per real second in MHz (0 = the CPU clock of the machine; e.g. 4 on a 2 MHz machine runs everything twice as fast).",
+      R"({"type":"object","properties":{"turbo":{"type":"boolean"},"speed_mhz":{"type":"number"}}})", t_resume },
     { "step", "Execute instructions one by one (pauses the emulation). over=true steps over CALL/RST/DJNZ/LDIR. Returns the executed instructions and registers.",
       R"({"type":"object","properties":{"count":{"type":"integer","default":1},"over":{"type":"boolean","default":false}}})", t_step },
     { "run_for", "Run the machine synchronously (as fast as possible) for the given emulated time in milliseconds or until a breakpoint.",
