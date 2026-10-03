@@ -150,7 +150,7 @@ static void test_placeholders(void)
     }
     // CPU cards that are not emulated cannot run
     cfg["cards"][4]["slot"] = 5;
-    cfg["cards"][0]["type"] = "JPR-1A";
+    cfg["cards"][0]["type"] = "JPR-1Z";
     {
         Machine m;
         CHECK(!m.load_json(cfg, err));

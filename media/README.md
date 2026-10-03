@@ -45,4 +45,5 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 
 | Soubor | Obsah |
 |---|---|
+| `CPM22P_48A_Perina.img` | CP/M 2.2/P 48K (R. Peřina 1988) pro ZPS-3 s AND-1A a RPD-1, bootovatelná. Zdroj sapi.cz `data2/cpm48a_img.rar` (`CPM48A.img`). Obsahuje BIOS.MAC, BOOT.MAC, MOR24.MAC, SYSGEN, CPM.DOC a další. |
 | `MIKOS_D_V5.0_system.img` | Systémová disketa MIKOS/D V5.0 („ZALOZNI“), 77 × 26 × 128 B v logickém pořadí. Zdroj `H:\SAPI-1\Klasika\mikos5\m5mid_img.rar` = sapi.cz `data2/m5mid_img.rar`, shodná s daty v `m5mid.IMD`. Obsahuje BAS5C, TEDIT, TOOL, BASIMS4, KONVERT, COPYSYS, X2 a dokumentaci (.DOC). |

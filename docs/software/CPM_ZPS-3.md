@@ -1,6 +1,15 @@
 # CP/M a monitory pro ZPS-3 (JPR-1A + RPD-1)
 
-Soupis z 2026-10-03. Emulace zatím není, viz `docs/desky/JPR-1A.md`, `AND-1A.md`, `RAM-1.md`.
+**Stav (2026-10-03): ZPS-3 běží.** Sestava `machines/zps/ZPS-3.sapi`:
+- **MON V1.0-C1 zavede z diskety Peřinův CP/M 2.2/P** (`media/rpd-1/CPM22P_48A_Perina.img`): banner
+  `JPR-1A 48K MON V1.0-C1`, `CPM V2.2 V/P1`, `A>`.
+- DIR, TYPE, SAVE a ERA fungují. Totéž s ROM MOR48A (`SAPI-1 ZPS3-48K`).
+- S připojeným terminálem na DSM-1 (DCD) jde konzole na sériovou linku.
+- AND-1A zobrazuje jen velká písmena a české znaky KOI-8 ukazuje jako jiné znaky MHB 2501 (např. W místo
+  É). Tak to vypadá i na skutečném stroji.
+- Test `tests/test_zps3.cpp`.
+
+Desky: `docs/desky/JPR-1A.md`, `AND-1A.md`, `RAM-1.md`.
 
 ## Sestava ZPS-3 (manuál `BKP\pdf\zps3.pdf`, příloha 2 a 3)
 
@@ -31,7 +40,8 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
 - **Originální Tesla IMA CP/M 64K, bootovatelný** („CCP V2.2-A1 TESLA ELTOS IMA PARDUBICE 15/11/1984“):
   `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3–03.8SD`. Volá F821, patří
   k `JPR1A_BOOT_64k`.
-- **48K zdrojové diskety** bez systémových stop: `...\IMAGE_8\ZDROJ_STARE_a/b_zps3_48k.8sd`.
+- **48K zdrojové diskety** bez systémových stop: `...\IMAGE_8\ZDROJ_STARE
+_a/b_zps3_48k.8sd`.
 - `BKP\dataios_lst.php` je BIOS MIKOS/D, ne CP/M ZPS-3. Zdroje CP/M BIOS: BIOS48C1.MAC, BIOS64C2.MAC,
   BIOS.MAC.
 

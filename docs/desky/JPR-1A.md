@@ -1,6 +1,6 @@
 # JPR-1A – procesorová deska 8080 pro ZPS-3
 
-Stav: **podklady sebrané, emulace zatím není.** Soupis z 2026-10-03.
+Stav: **emulovaná** (varianta karty JPR-1 v `src/cards/jpr1.*`), ověřeno v ZPS-3 (`tests/test_zps3.cpp`).
 
 `BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI_DOKU_2011-09-10` (stejné soubory jsou
 i ve snapshotech 2012-05-23, 2012-09-03, 2019-01-04).
@@ -57,6 +57,22 @@ i ve snapshotech 2012-05-23, 2012-09-03, 2019-01-04).
 2. Podle DCD na DSM-1 zvolí konzoli: terminál, jinak AND-1A na E800 a klávesnici Consul.
 3. Ovladačem RPD-1 (porty 20–25, 3C–3E) načte stopu 0, sektor 1 na 0080h a skočí tam. Boot sektor pak volá
    monitor+21h/24h.
+
+## Emulace
+
+- Typ `JPR-1A` je stejné 8080 jako JPR-1, liší se dekodérem a periferiemi karty.
+- **Parametry:**
+  - `rom` (D3B + D4B od 0000, až 4 KB);
+  - `decoder` (PROM D2C jako soubor, výchozí `roms/jpr-1a/JPR-1A_D2C_74S571.bin`, přepis z návodu);
+  - `jp1` (`1-2` RST 7, `1-3` vektor ze sběrnice), `crystal_hz`, `keyboard`.
+- **Dekodér:** kód z PROM jen čte výstupy podle zapojení ze schématu (vstupy A15, A9, A8, A12, A13, A14, A10,
+  A11, BOOT). Jiná adresace = jiný soubor PROM.
+- **BOOT:** RESET ho nastaví. Čtení s aktivním OE1/OE2 jde z EPROM, zápisy vždy na sběrnici (do RAM pod
+  EPROM). `OUT 00h` v režimu BOOT (PORTY pro port 00) ho vypne.
+- **Porty** 01–03 (PORTY) jsou P0–P2: klávesnice na P0/P1 stejně jako u JPR-1ZI. P2-IN (tiskárna) čte FFh.
+- **Přerušení:** INT0 nebo INT1 ze sběrnice, bez priorit.
+- **ROM v repu:** `roms/jpr-1a/JPR-1A_MON_V1.0-C1.bin` (originál ZPS-3) a `roms/jpr-1a/MOR48A.bin` (Peřina CP/M
+  2.2/P 48K, 2060 B, podpis „1988 PERINA“ přesahuje do D4B).
 
 ## Nejasnosti
 

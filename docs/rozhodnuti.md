@@ -387,3 +387,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   s návrhy). Výchozí je dump nebo tabulka z návodu. Kód karty z PROM jen čte vstupy a výstupy podle zapojení
   ze schématu a nemá v sobě natvrdo rozsahy adres. Týká se JPR-1A D2C, AND-1A D3A, RAM-1/RAM-1A D1A
   (RAM-1 se z generované tabulky převede na soubor) a dalších karet.
+
+## 2026-10-03 – ZPS-3
+
+- **JPR-1A je varianta třídy Jpr1** (stejné 8080, jiný dekodér a periferie), AND-1A a RAM-1A jsou typy tříd
+  And1 a Ram1. Dekodéry jsou soubory PROM podle zásady výše.
+- **RAM-1 převedena z generované tabulky na soubor PROM** z návodu. Obsah je shodný.
+- **Sestava ZPS-3 má DSM-1 bez připojeného terminálu** (`connected: false`), aby MON V1.0-C1 zvolil AND-1A
+  a klávesnici. S připojeným terminálem jde konzole na sériovou linku jako na skutečném stroji.
+- **První CP/M na ZPS-3 je Peřinův CP/M 2.2/P** (bootovatelná disketa ze sapi.cz). Originální IMA 48K čeká na
+  disketu od autora. Originální monitor V1.0-C1 Peřinovu disketu zavede.

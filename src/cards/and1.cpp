@@ -11,9 +11,10 @@ static const int FRAME_LINES = 320;
 static const double INT_PULSE_US = 640.0;
 static const int BLINK_FRAMES = 16;   // half period of blinking (assumption, ~0.65 s period)
 
-And1::And1() : Card("AND-1")
+And1::And1(const char* type) : Card(type)
 {
     memset(vram, 0x20, sizeof(vram));
+    for (int b = 0; b < 32; b++) sel_2k[b] = b == 7;   // AND-1: 3800-3FFF (D3A = 3205)
 }
 
 bool And1::configure(const json& cfg, std::string& err)
@@ -30,6 +31,19 @@ bool And1::configure(const json& cfg, std::string& err)
     if (r != 20 && r != 24) { err = "rows must be 24 (jumper 47-48) or 20 (46-47)"; return false; }
     rows = (int)r;
     if (!cfg_bool(cfg, "int1", int1, true, err)) return false;
+    if (type == "AND-1A") {
+        if (!cfg_bool(cfg, "s1", s1_closed, false, err)) return false;
+        if (!cfg_string(cfg, "decoder", decoder_file, "roms/and-1a/AND-1A_D3A_74S287.bin", err)) return false;
+        std::vector<uint8_t> p;
+        if (!rom_load(decoder_file, p, 256, 0xFF, 0, err)) return false;
+        if (p.size() != 256) { err = decoder_file + ": the D3A PROM (74S287) has 256 entries"; return false; }
+        for (int b = 0; b < 32; b++) {
+            unsigned a = (unsigned)b << 11;
+            unsigned i = ((a >> 15) & 1) | ((a >> 13) & 1) << 1 | (s1_closed ? 0u : 1u) << 2 | ((a >> 14) & 1) << 3 |
+                         ((a >> 11) & 1) << 4 | ((a >> 12) & 1) << 5 | 0xC0u;
+            sel_2k[b] = !(p[i] & 0x08);
+        }
+    }
     return true;
 }
 
@@ -44,21 +58,21 @@ int And1::vram_index(uint16_t a)
 
 bool And1::mem_read(uint16_t a, uint8_t& data)
 {
-    if ((a & 0xF800) != 0x3800) return false;
+    if (!sel_2k[a >> 11]) return false;
     data = vram[vram_index(a)];
     return true;
 }
 
 bool And1::mem_write(uint16_t a, uint8_t data)
 {
-    if ((a & 0xF800) != 0x3800) return false;
+    if (!sel_2k[a >> 11]) return false;
     vram[vram_index(a)] = data;
     return true;
 }
 
 int And1::decode_mem(uint16_t a, int, const char** what)
 {
-    if ((a & 0xF800) != 0x3800) return 0;
+    if (!sel_2k[a >> 11]) return 0;
     *what = "VRAM";
     return DEC_READ | DEC_WRITE;
 }

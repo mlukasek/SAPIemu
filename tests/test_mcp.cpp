@@ -162,7 +162,7 @@ int main(void)
     CHECK(sr["started"] == true);
     CHECK(sr["problems"].empty());   // DSM-1 on 14h, emulated
     CHECK(file_exists(data_path("work/test/test_mcp_machine.sapi")));
-    r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-3.sapi" } });
+    r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-4.sapi" } });
     json zps = json::parse(text_of(r));
     CHECK(zps["runnable"] == false);
     r = tool(s, "set_machine_config", { { "config", zps["config"] } });

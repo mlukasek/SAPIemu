@@ -16,8 +16,10 @@ static void cb_write(void* u, uint16_t a, uint8_t v) { ((Jpr1*)u)->cpu_write(a, 
 static uint8_t cb_in(void* u, uint8_t p) { return ((Jpr1*)u)->cpu_in(p); }
 static void cb_out(void* u, uint8_t p, uint8_t v) { ((Jpr1*)u)->cpu_out(p, v); }
 
-Jpr1::Jpr1() : CpuCard("JPR-1")
+Jpr1::Jpr1(const char* type) : CpuCard(type)
 {
+    model_a = strcmp(type, "JPR-1A") == 0;
+    memset(d2c_prom, 0xFF, sizeof(d2c_prom));
     memset(ram, 0, sizeof(ram));
     i8080_init(&cpu);
     cpu.read_byte = cb_read;
@@ -35,6 +37,27 @@ bool Jpr1::configure(const json& cfg, std::string& err)
     if (!cfg_number(cfg, "crystal_hz", crystal, 18000000, err)) return false;
     cpu_hz = (uint32_t)(crystal / 9);   // 8224
     std::string type, rom;
+    if (model_a) {
+        if (!cfg_string(cfg, "rom", rom, "", err)) return false;
+        eprom.clear();
+        if (!rom.empty() && !rom_load(rom, eprom, 0x1000, 0xFF, 0, err)) return false;   // 2x 2716
+        if (!cfg_string(cfg, "decoder", d2c_file, "roms/jpr-1a/JPR-1A_D2C_74S571.bin", err)) return false;
+        std::vector<uint8_t> p;
+        if (!rom_load(d2c_file, p, 512, 0xFF, 0, err)) return false;
+        if (p.size() != 512) { err = d2c_file + ": the D2C PROM (74S571) has 512 entries"; return false; }
+        memcpy(d2c_prom, p.data(), 512);
+        std::string jp1;
+        if (!cfg_string(cfg, "jp1", jp1, "1-2", err)) return false;
+        if (jp1 != "1-2" && jp1 != "1-3") { err = "jp1 must be 1-2 (RST 7) or 1-3 (vector from the bus)"; return false; }
+        rst7_jumper = jp1 == "1-2";
+        int_key_jumper = false;
+        ram_fitted = false;
+        if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
+            kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
+            if (!kbd) return false;
+        }
+        return true;
+    }
     if (!cfg_string(cfg, "eprom_type", type, "2708", err)) return false;
     if (type != "2708" && type != "2716") { err = "eprom_type must be 2708 or 2716"; return false; }
     eprom_page = type == "2708" ? 0x400 : 0x800;
@@ -72,6 +95,7 @@ void Jpr1::reset()
     cpu.port_out = cb_out;
     cpu.userdata = this;
     p0_out = p1_out = p2_out = 0;
+    boot = true;
     irq_enabled = false;
     irq_status = 0;
     irq_sgs = false;
@@ -92,8 +116,22 @@ void Jpr1::advance(uint64_t now)
 
 // D10 decodes the EPROM sockets (MR, A14 = A15 = 0); D9 the 1 KB blocks of
 // 2000-3FFF (A13 = 1, A14 = A15 = 0) without MR/MW gating.
+// JPR-1A: D2C inputs A0..A8 = A15, A9, A8, A12, A13, A14, A10, A11, BOOT
+uint8_t Jpr1::d2c(uint8_t hi) const
+{
+    unsigned i = (unsigned)((hi >> 7) & 1) | (unsigned)((hi >> 1) & 1) << 1 | (unsigned)(hi & 1) << 2 |
+                 (unsigned)((hi >> 4) & 1) << 3 | (unsigned)((hi >> 5) & 1) << 4 | (unsigned)((hi >> 6) & 1) << 5 |
+                 (unsigned)((hi >> 2) & 1) << 6 | (unsigned)((hi >> 3) & 1) << 7 | (boot ? 0x100u : 0u);
+    return d2c_prom[i] & 0x0F;
+}
+
 int Jpr1::local(uint16_t a) const
 {
+    if (model_a) {   // memory: only the EPROM while BOOT is set (OE1, OE2 active low)
+        if (!boot) return L_NONE;
+        uint8_t o = d2c((uint8_t)(a >> 8));
+        return (!(o & 4) || !(o & 8)) ? L_EPROM : L_NONE;
+    }
     if (a < (uint16_t)(eprom_page * 4) && a < 0x2000) {
         size_t off = a;
         return off < eprom.size() ? L_EPROM : L_NONE;   // empty sockets: the bus
@@ -123,7 +161,7 @@ uint8_t Jpr1::cpu_read(uint16_t a)
 {
     if (wait_jumper) extra++;
     switch (local(a)) {
-    case L_EPROM: return eprom[a];
+    case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
     case L_RAM: return ram[a & 0x3FF];
     case L_P0: return kbd ? kbd->p0_in() : 0xFF;
     case L_P1: return kbd ? kbd->p1_in() : 0xFF;
@@ -140,7 +178,7 @@ uint8_t Jpr1::cpu_read(uint16_t a)
 void Jpr1::cpu_write(uint16_t a, uint8_t v)
 {
     if (wait_jumper) extra++;
-    switch (local(a)) {
+    switch (model_a ? (int)L_NONE : local(a)) {   // JPR-1A: writes under the EPROM go to the RAM
     case L_EPROM: return;
     case L_RAM: ram[a & 0x3FF] = v; return;
     case L_P0:
@@ -168,11 +206,32 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
 
 uint8_t Jpr1::cpu_in(uint8_t port)
 {
+    if (model_a && !(d2c(port) & 1)) {   // PORTY: the 3212 ports of the card
+        switch (port & 3) {
+        case 1: return kbd ? kbd->p0_in() : 0xFF;
+        case 2: return kbd ? kbd->p1_in() : 0xFF;
+        default: return 0xFF;   // P2-IN: printer (AC on D6), not connected
+        }
+    }
     return bus->io_read(port);
 }
 
 void Jpr1::cpu_out(uint8_t port, uint8_t v)
 {
+    if (model_a && !(d2c(port) & 1)) {
+        switch (port & 3) {
+        case 0:
+            if (boot) LOGD("JPR-1A: BOOT off, RAM from 0000");
+            boot = false;
+            return;
+        case 1:
+            p0_out = v;
+            if (kbd) kbd->p0_out(v);
+            return;
+        case 2: p1_out = v; return;
+        default: p2_out = v; return;   // printer data
+        }
+    }
     bus->io_write(port, v);
 }
 
@@ -181,6 +240,11 @@ void Jpr1::cpu_out(uint8_t port, uint8_t v)
 // 3212 then puts RST (7 - level) on the data bus.
 void Jpr1::update_interrupt(void)
 {
+    if (model_a) {   // INT0 or INT1, no priority logic
+        cpu.interrupt_pending = bus_irq != 0;
+        if (bus_irq) cpu.interrupt_vector = rst7_jumper ? 0xFF : bus->inta();
+        return;
+    }
     uint8_t req = (uint8_t)~p2_in();
     int level = -1;
     for (int i = 7; i >= 0; i--)
@@ -278,7 +342,7 @@ void Jpr1::set_regs(const CpuRegs& r)
 uint8_t Jpr1::peek(uint16_t a)
 {
     switch (local(a)) {
-    case L_EPROM: return eprom[a];
+    case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
     case L_RAM: return ram[a & 0x3FF];
     case L_P0: return kbd ? kbd->p0_in() : 0xFF;
     case L_P1: return kbd ? kbd->p1_in() : 0xFF;
@@ -301,8 +365,20 @@ int Jpr1::decode_mem(uint16_t addr, int, const char** what)
     }
 }
 
+int Jpr1::decode_io(uint8_t port, const char** what)
+{
+    if (!model_a || (d2c(port) & 1)) return 0;
+    switch (port & 3) {
+    case 0: *what = "BOOT off (EPROM -> RAM)"; return DEC_WRITE;
+    case 1: *what = "P0 (keyboard)"; return DEC_READ | DEC_WRITE;
+    case 2: *what = "P1 (keyboard, printer)"; return DEC_READ | DEC_WRITE;
+    default: *what = "P2 (printer)"; return DEC_READ | DEC_WRITE;
+    }
+}
+
 void Jpr1::describe(json& out)
 {
+    if (model_a) out["boot"] = boot;
     out["cpu"] = "8080";
     out["cpu_hz"] = cpu_hz;
     out["eprom_bytes"] = eprom.size();

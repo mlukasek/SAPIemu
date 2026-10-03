@@ -26,7 +26,12 @@ RAM-1A se liší jen obsahem PROM D1A.
 ## Emulace (`src/cards/ram1.*`)
 
 - Parametry: `fitted_kb` (16/32/48 = osazené řady), `s1`, `s2`.
-- **PROM D1A není dumpnutá.** Obsah se generuje z tabulky 1.
+- **PROM D1A jako soubor** (`prom`): `roms/ram-1/RAM-1_D1A_74S287.bin` (výchozí, z návodu RAM-1),
+  `RAM-1_16K_D1A_74S287.bin` (druhá tabulka z návodu, RAM-1/16K: C000–E7FF + F000–FFFF, C000–FFFF…),
+  `roms/ram-1a/RAM-1A_D1A_74S287.bin` (výchozí pro typ RAM-1A). Tabulky jsou přepsané z návodů, ne dumpy.
+  Obsah RAM-1 se shoduje s tím, co emulace dřív generovala z tab. 1.
+- Vstupy A10–A15, S1, S2 (sepnutá = 0), výstupy D0 SEL, D1 CA0 (řada 1), D3 CA1 (řada 2), D2 CA2 (řada 3).
+  Adresa v řadě = A13–A0.
 - Řada bez obvodů čte FFh (předpoklad), deska ale v dekódovaném rozsahu odpovídá (SEL je jen z PROM).
 - Refresh se neemuluje (paměť nezapomíná).
 
@@ -52,8 +57,7 @@ Hardware je stejný jako RAM-1, liší se jen obsah D1A:
 
 HEX se přesně shoduje se strojopisnou tabulkou. Nejspíš je z ní přepsaný, fyzický dump to není.
 
-**Pozor:** `BKP\ram-1.php` obsahuje i dvě tabulky D1A pro RAM-1 (48K a 16K). Emulace RAM-1 je zatím
-generuje z tab. 1 a s těmito tabulkami se musí porovnat.
+Emulace: typ `RAM-1A` (stejná třída jako RAM-1), výchozí S1 rozpojená, S2 sepnutá = 0000–BFFF.
 
 ## Nejasnosti
 

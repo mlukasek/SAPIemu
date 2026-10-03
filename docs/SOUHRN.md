@@ -4,6 +4,14 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
+**Hotové: ZPS-3** (`machines/zps/ZPS-3.sapi`).
+- Nové karty JPR-1A (varianta JPR-1: BOOT, porty 01–03, D2C), AND-1A (D3A, E800) a RAM-1A (D1A,
+  0000–BFFF).
+- Originální 48K MON V1.0-C1 zavede z diskety CP/M 2.2/P (Peřina) a funguje DIR, TYPE, SAVE, ERA.
+- Dekodéry RAM-1, RAM-1A, JPR-1A a AND-1A jsou soubory PROM v `roms/`, jiná adresace = jiný soubor
+  (rozhodnutí autora).
+- Test `test_zps3`, celkem 22 testů. Popis v `docs/software/CPM_ZPS-3.md`.
+
 **Hotové: řadič pružných disků RPD-1 a MIKOS/D V5.0** (`machines/zps/ZPS-2_MIKOS_D.sapi`).
 - Systém se zavede z diskety, funguje DIR, SAVE/LOAD a BASIC z diskety.
 - Diskety 8" jako `.img` v okně Média (vložit, nová, vysunout, ochrana proti zápisu).
@@ -114,7 +122,7 @@ Dřív hotové fáze:
 | F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo |
 | F5 | Sériová linka přes TCP a COM; klávesnice Consul 262.3, Consul 259.11, ANK-1; konfigurátor sestav a mapa portů | ✅ hotovo |
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
-| F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M z diskety přes RPD-1 (obrazy `BKP\sapi\data2\cpmzps3*`, `cpm48a*`, `cpm62a*`) | ⏳ průzkum podkladů |
+| F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
 | F8+ | ZPS-4 (JPR-1Z, RAM-1Z, AND-1Z), RMD-1, JPR-1V, PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -176,9 +184,5 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-03):** F7 ZPS-3.
-   - Soupis podkladů je hotový: `docs/desky/JPR-1A.md`, `AND-1A.md`, `RAM-1.md` (RAM-1A) a
-     `docs/software/CPM_ZPS-3.md`.
-   - Máme tabulky dekodérů všech tří desek, boot ROM MON V1.0-C1 se zdrojem a bootovatelné CP/M cpm48a (Peřina
-     s ROM MOR48A) a IMA 64K.
-   - Chybí bootovatelná IMA 48K disketa. Otázky jsou v bodě 19.
+4. Pokračovat další fází z tabulky. ZPS-3 je hotová (2026-10-03). Zbývá originální IMA CP/M 48K, k tomu chybí
+   disketa (bod 19), a varianty 62K/64K. Podklady jsou v `docs/software/CPM_ZPS-3.md`.

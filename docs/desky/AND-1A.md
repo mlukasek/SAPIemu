@@ -1,6 +1,6 @@
 # AND-1A – alfanumerický displej pro ZPS-3
 
-Stav: **podklady sebrané, emulace zatím není.** Soupis z 2026-10-03.
+Stav: **emulovaná** (typ `AND-1A` třídy AND-1 v `src/cards/and1.*`), ověřeno v ZPS-3.
 
 ## Podklady
 
@@ -32,6 +32,15 @@ Stav: **podklady sebrané, emulace zatím není.** Soupis z 2026-10-03.
     nejspíš chyba překreslení.
 - **Domácí varianta 3800/F800** (FFh → F800) pro CP/M 62K:
   `D11\..\SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\FDC\FDC_AND1A130711_RMD\dekoder AND1ACPM.txt`.
+
+## Emulace
+
+- Stejný obraz, font a režimy jako AND-1. Video RAM 1 KB se stejným skládáním sloupců 32–63 jako u AND-1.
+- **Parametry:** `charset`, `rows`, `int1`, `s1` (propojka 44-45), `decoder` (PROM D3A, výchozí
+  `roms/and-1a/AND-1A_D3A_74S287.bin`).
+- Výběr 2 KB bloků se počítá z PROM: vstupy A15, A13, S1 (sepnutá = 0), A14, A11, A12, A6/A7 = 1, výstup D3 =
+  /SEL. Standardní obsah dává E800, s S1 sepnutou 3800.
+- U AND-1 (typ `AND-1`) zůstává pevně 3800–3FFF (dekodér 3205).
 
 ## Nejasnosti
 

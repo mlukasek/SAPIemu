@@ -11,12 +11,16 @@
 //   (cyrillic) character generator.
 // - No wait states (RDY not connected). INT1 at the end of every frame
 //   (jumper 49-50).
+// AND-1A (ZPS-3) is the same display with the decoder D3A as an exchangeable
+// PROM 74S287 (2 KB steps): inputs A15, A13, S1, A14, A11, A12, A6/A7 tied high,
+// output O4 (D3) = /SEL. Standard content: E800-EFFF, jumper 44-45 (S1)
+// closed = 3800-3FFF (MIKROBASIC, MIKOS).
 #include <vector>
 #include "core/devices.h"
 
 class And1 : public Card, public DisplayDevice {
 public:
-    And1();
+    explicit And1(const char* type = "AND-1");
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
     bool mem_read(uint16_t addr, uint8_t& data) override;
@@ -47,4 +51,7 @@ private:
     bool cyrillic = false;          // MHB 2502
     int rows = 24;                  // jumpers 47-48 (24) / 46-47 (20)
     bool int1 = true;               // jumper 49-50: INT1 at the end of the frame
+    bool sel_2k[32];                // the decoder: selected 2 KB blocks
+    bool s1_closed = false;         // AND-1A jumper 44-45
+    std::string decoder_file;       // AND-1A D3A PROM
 };

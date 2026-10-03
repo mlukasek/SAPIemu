@@ -28,6 +28,13 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `mikos/MONITOR_V5.0F_MIKOS_V5.0.bin` | REM-1 EPROM 0000–13FF (5× 2708) | Monitor V5.0F + MIKOS V5.0 (ELTOS DIZ 1987/88), klávesnice Consul. Prvních 5 KB `H:\SAPI-1\_ROM\MIKOS v5\MIKOS5.BIN` (8 KB, za tím ovladač XY 4130). Shodné s výpisy `m5f`/`mi5` na sapi.cz kromě výplně 0BFD–0BFF. |
 | `mikos/MONITOR_V5.0E_MIKOS_V5.0.bin` | REM-1 EPROM 0000–13FF | Monitor V5.0E + MIKOS V5.0. Zdroj `_ROM\MIKOS v5\MONITOR5.BIN`, MD5 af17aef0…, shodný s výpisy `m5e`/`mi5` kromě výplně na 0801. |
 | `mikos/MONITOR_V5.0F_MIKOS_D_V5.0.bin` | REM-1 EPROM 0000–1FFF (8× 2708) | Monitor V5.0F + MIKOS/D V5.0 + EBIOS (ovladač RPD-1) pro diskety. Z `H:\SAPI-1\Klasika\mikos5\m5mid.hex` (= sapi.cz `m5mid_hex`), MD5 428eb954…. EBIOS 1300–17DA shodný s výpisem `ebios_lst`. |
+| `jpr-1a/JPR-1A_MON_V1.0-C1.bin` | JPR-1A EPROM D3B (0000–07FF) | JPR-1A 48K MON V1.0-C1 (Tesla Eltos IMA 2/86), boot CP/M ZPS-3 z RPD-1. Zdroj `H:\SAPI-1\SAPI_DOKU_2011-09-10\SAPI_EPROM\BOOT_pro_CPM\B_V10_JPR-1A_RPD-1_ZPS-3.BIN` (shodné s `Foto\Jiri_Slansky\SW\JPR-1A 48K MON V1.0-C1`), MD5 2eb1690d…. Zdrojový kód MON48C1.MAC je v `cpmzps3_soubory.rar` na sapi.cz. |
+| `jpr-1a/MOR48A.bin` | JPR-1A EPROM 0000–080B | CP/M 2.2/P 48K boot (R. Peřina 1988), z sapi.cz `data/mor48a_hex.php` (= `rpd_soubory\MOR48A.HEX`), zdroj MOR24.MAC. |
+| `jpr-1a/JPR-1A_D2C_74S571.bin` | JPR-1A PROM D2C (74S571, 512 × 4) | Dekodér EPROM a portů. **Přepis tabulky** z návodu (sapi.cz `jpr-1a.php`), ne dump. |
+| `and-1a/AND-1A_D3A_74S287.bin` | AND-1A PROM D3A (74S287) | Dekodér video RAM (E800, s S1 3800). Přepis z návodu (`and-1a.php`). D3C AND-1A je shodná s `and-1/AND-1_D3C_74188.bin`. |
+| `ram-1/RAM-1_D1A_74S287.bin` | RAM-1 PROM D1A | Standardní dekodér RAM-1 (4000–…, tab. 1). Přepis z návodu (`ram-1.php`, 1. tabulka). |
+| `ram-1/RAM-1_16K_D1A_74S287.bin` | RAM-1/16K PROM D1A | Druhá tabulka z `ram-1.php` (RAM-1/16K: C000–E7FF + F000–FFFF, C000–FFFF, C000–E7FF, 0000–BFFF). |
+| `ram-1a/RAM-1A_D1A_74S287.bin` | RAM-1A PROM D1A | Dekodér RAM-1A (ZPS-3: 0000–BFFF). Přepis z návodu (`ram-1a.php`), shodný se strojopisnou tabulkou `ram-1a_pri.png`. |
 | `and-1/MHB2501.bin` | AND-1 znakový generátor MHB 2501 (latinka) | **Překreslený**, ne dump (p-MOS ROM, dump neexistuje). Podle tabulky v katalogu MHB250x (`Foto\Jiri_Slansky\Dokumentace\AND-1 a 1A\MHB250x.png`), automaticky převedeno, několik vad skenu opraveno ručně. 64 znaků × 8 řádků, bity 4–0 = sloupce zleva, řádek 8 nevyužit. |
 | `and-1/MHB2502.bin` | AND-1 MHB 2502 (azbuka) | Překreslený stejně. Kódy 20–3Fh převzaté z MHB 2501. |
 | `and-1/AND-1_D3C_74188.bin` | AND-1 D3C (74188) | Kurzor, blikání a dvojitá šířka, 32 B z výpisu na sapi.cz (`and-1.php`). |
