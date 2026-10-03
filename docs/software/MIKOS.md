@@ -37,6 +37,17 @@ Sestava `machines/zps/ZPS-2.sapi`: JPR-1, REM-1 (EPROM 0000–0FFF, RAM odpojen�
   - **Nahrání programu:** `.K` `L`, jméno nebo `*` (první soubor), `PLAY  DONE?` → `Y`, po nalezení hlavičky
     `TOOL 80 --(Y/N)?` → `Y`. Na prvním řádku se ukazuje jméno a číslo bloku. Potom `.J` program spustí.
   - **Uložení bloku paměti:** `.K` `A` (`RECORD  DONE?` → `Y`, jméno), pak `.K` `S` a `5000 52FF` + CR.
+- **BASIC EX a kazeta** (ověřeno v emulátoru přes MCP):
+  - `SAVE` uloží program jako text (ASCII, bloky typu `A`, na konci ^Z), `LOAD` ho načte. LOAD nemaže starý
+    program (přepisuje řádky se stejnými čísly), čistí se příkazem `NEW`.
+  - IOBYTE po startu je A9h (`.Q` ukáže `C=C R=1 P=1 L=L`), čtečka i děrovač jsou už na magnetofonu.
+  - **Prázdná kazeta:** `SAVE` se ptá `LAST NAME` a hledal by konec předchozího souboru. Výstupní soubor se proto
+    otevře v monitoru: `BYE`, `.K` `A`, `RECORD  DONE?` → `Y`, jméno, `.B` (program zůstane), `SAVE`.
+  - **Kazeta s předchozím souborem:** `SAVE`, `LAST NAME` = jméno posledního souboru, PŘEHRÁT a `Y` (přečte
+    ho), `RECORD  DONE?` → NAHRÁT a `Y`, `NEW  NAME` = jméno nového souboru.
+  - **Načtení:** PŘEHRÁT, `LOAD`, jméno, `PLAY  DONE?` → `Y`.
+  - Jméno v rámci bloku je uložené v kódech obrazovky AND-1 (AND 3Fh), v datech hlavičky v ASCII. Skutečná
+    nahrávka TOOL 80 ho má stejně.
 - MIKOS bere klávesu až chvíli po vypsání otázky. Klávesa stisknutá dřív se ztratí (ověřeno v emulátoru).
 
 ## Formát pásky
