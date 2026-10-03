@@ -96,3 +96,32 @@ Zdroje:
 - Nulují /RES adresní čítače a latch portu 63h? Emulátor předpokládá, že ano.
 - Které bity portu 63h vedou přes JP2 na MAP1 a MAP2: emulátor předpokládá b6 → MAP1, b7 → MAP2.
 - Zamykání ZRD-1V z MikroMonu (viz výše).
+
+## ZRD-1V – doplnění z rozboru 2026-10-04
+
+Zdroje:
+- `..\ZRD-1V\DESCRIPTION`, rozpiska, řetězce v binárním `ZRD-1V.sch` (PDF schéma chybí);
+- https://www.pmd85.cz/?page_id=2245;
+- rev 2.0-alpha v `H:\SAPI-1\LiborLasota\ZRD-1V\ZRD-1V_2-0-alpha_2025-10-16\`.
+
+**Bez PROM a GAL.**
+
+- **Proti ZRMD-1:** bez RTC, bez ochrany zápisu jednotlivých SRAM a **bez výstupů MAP1/MAP2** (web: „bez
+  výstupních signálů MAP1/MAP2“, ve schématu nejsou signály MAP). Mapování dělá RAM-1V. **Parametr `map_jp2` je
+  u ZRD-1V v emulátoru navíc a musí pryč**, u ZRMD-1 ho prověřit zvlášť. Přerušení nemá.
+- **Adresa:** 74LS688 na A2–A7, **propojky S1 = /A7…/A2, osazená = 0**. Potisk „DEFAULT 60h“ = osazené /A7,
+  /A4, /A3, /A2 (rev 1.0 měla chybně 70h). Základ je vždy násobek 4. 74LS138 dává /RAM (60h) a /AD1–/AD3
+  (61h–63h).
+- **Registry:**
+  - 61h: dva 74LS193 pro MA0–7, zvyšují se a přetékají po 256 B;
+  - 62h: 74LS374 pro MA8–15;
+  - 63h: 74HCT374 pro MA16–21, bity 6–7 se neukládají.
+  - 74AC138 dekóduje MA19–21 na /SEL0–7 přes cestu /CE obvodu MAX808L (ochrana zápisu při výpadku).
+  - 8× AS6C4008 (512 KB).
+  - 64h–6Fh a 70h–7Fh se nedekódují.
+- **Zálohování:** 2× alkalický článek AAA v držáku a vnější svorky +BAT/− (K2/K3) přes R2 100R. D1/D2 BAT41,
+  dohled MAX808L. Web odhaduje výdrž přes 2 roky. Propojka S2: STDBY = napájení z +5V/S4 sběrnice, nebo NO
+  STDBY.
+- **Rev 2.0-alpha:** list „NAPAJENI, ZAMEK ZAPISU, INDIKACE“ přidává zámek zápisu a LED přístupu
+  (monostabilní obvody 74LS123, 20 ms). To může vysvětlit „zamykací“ sekvenci MikroMonu.
+

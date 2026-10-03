@@ -213,6 +213,18 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká? Visí DGD-1 při BOOT opravdu?
     - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
 
+22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
+    - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). Nuluje /RES čítače a
+      registry adresy? Jsou 61h–63h opravdu nečitelné? Má hlídání MAX808 nějaký vliv viditelný pro software?
+    - ZRD-1V: kterou revizi máš (fotka 1.1)? Co dělá zámek zápisu v rev 2.0 a souvisí s ním sekvence MikroMonu
+      `OUT 61/62/63 = FF/FF/3F` + `OUT 60`?
+    - RAM-1V: revize 1.1, nebo 1.2? Emulovat podle schématu 1.1 (1.2 nemá MAP2 u díry 16 KB)?
+    - RAM-1V, patice C: je prázdná. Jaký Timekeeper se tam dává (M48T35/DS1644?) a emulovat jeho RTC?
+    - DSM-1V: propojky na tvé desce (adresy A = 10h, B = 14h?, rychlosti obou kanálů).
+    - DSM-1V b5 („START“): nemá funkci? Čte +3 FFh?
+    - DGD-1/BGP-1S „paralelně s RAM-1V“: obě karty odpovídají na stejné adresy. Emulátor to dnes hlásí jako
+      kolizi, bude potřeba výjimka.
+
 ## Jak pokračovat
 
 1. `git pull`.
