@@ -9,7 +9,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 00–03 | JPR-1Z/ZI (00 = BOOT off, 01–03 = P0–P2) |
 | 04–0F | FDC-1 |
 | 10–13, 14–17, 18–1B, 1C–1F | DSM-1 / DMR-1, kanály #1–#4 |
-| 20–21 | RPD-1A |
+| 20–25 | RPD-1A (8253 20–23, data 24, řízení/stav 25; ověřeno z EBIOS) |
 | 22–29 | DPP-1/6 (ECMON používá 28–2Fh) |
 | 30–37 | DPP-1/7 |
 | 38–3B | BWP-1 |

@@ -16,10 +16,12 @@ struct SDL_Window;
 // Cassette dialogs of the Media window (answer from another thread).
 struct TapeDialog {
     std::mutex mtx;
-    int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory
+    int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory,
+                             // 4 insert floppy, 5 new floppy
     bool done = false;
     std::string result;      // chosen file, empty = cancelled
-    std::string card;        // DSM-1 card name
+    std::string card;        // DSM-1 / RPD-1 card name
+    int drive = 0;           // RPD-1 drive (0 = A)
     std::string last_dir;    // where the last tape came from
 };
 

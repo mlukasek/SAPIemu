@@ -366,3 +366,14 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **BASIC EXP jako Intel HEX v `media/mikos/`**, protože nahrávky na kazetě nemáme. Do GUI přibylo nahrání HEX do
   paměti (Soubor → Nahrát program do paměti) a do `sapiemu-cli` akce `--load-hex`.
 - **Sestava `ZPS-2_MIKOS_V5.sapi` má DGD-1** a RAM-1 přepnutou na 4000–BFFF, jak předepisuje návod DGD-1.
+
+## 2026-10-03 – RPD-1 a MIKOS/D
+
+- **RPD-1 jako rotující stopa FM** generovaná z `.img`. Bajty přicházejí podle emulovaného času (32 µs),
+  software (EBIOS) si značky, CRC i prokládání dělá sám jako na skutečném HW. Žádné zkratky na úrovni
+  sektorů, aby fungovaly i jiné ovladače (CP/M na ZPS-3).
+- **Obrazy v logickém pořadí (.img)**, ne IMD. Disketa MIKOS/D má fyzicky sektory 1..26 po sobě, IMD nepřináší
+  nic navíc.
+- **HLR nezávisí na vložené disketě** (monostabilní obvod po 3Dh). EBIOS na HLR čeká bez limitu a bez diskety
+  by systém zamrzl místo hlášky „NELZE ZAVEST DISKOVY SYSTEM“.
+- **Nová disketa = celá E5h** (naformátovaná, prázdný adresář CP/M). Formátování přes RPD-1 EBIOS neumí.

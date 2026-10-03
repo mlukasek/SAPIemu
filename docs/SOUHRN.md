@@ -4,6 +4,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
+**Hotové: řadič pružných disků RPD-1 a MIKOS/D V5.0** (`machines/zps/ZPS-2_MIKOS_D.sapi`).
+- Systém se zavede z diskety, funguje DIR, SAVE/LOAD a BASIC z diskety.
+- Diskety 8" jako `.img` v okně Média (vložit, nová, vysunout, ochrana proti zápisu).
+- Registry RPD-1 vycházejí z obrázků návodu a z rozboru EBIOS. Popis v `docs/desky/RPD-1.md`, test
+  `test_rpd1`, celkem 21 testů.
+- V záloze sapi.cz jsou i obrazy CP/M disket pro ZPS-3/4 (`data2/cpm48*`, `cpm62*`, `cpm64k*`).
+
 **Hotové: BASIC EXP V5.0 a V5.0/G pod MIKOSem V5, nová karta DGD-1 (grafika 320×240).**
 - `media/mikos/*.hex`, v GUI Soubor → Nahrát program do paměti (Intel HEX), `.B`.
 - DGD-1 má vlastní okno „Grafika DGD-1“, snímek přes MCP `screenshot display=DGD-1` a `sapiemu-cli --display`.
@@ -147,6 +154,10 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - MIKOS V5: kterou verzi monitoru (V5.0E nebo F) a kterou klávesnici máš? Byl v EPROM i ovladač XY 4130?
 
 17. **DGD-1:** zapojení vstupů PROM D1A, okno CPU (čekací stavy), mapování. Máš desku nebo fotku grafiky?
+
+18. **RPD-1 a MIKOS/D:** čítač 2 a OVFL, doba ustálení hlavy, 4 nebo 5 nul před datovou značkou, TOUT.
+    Jak rychle se na skutečném stroji nahraje BAS5C.SYS (emulace 17 s)? Funguje LOAD bez přípony?
+    Máš 8" mechaniku a disketu MIKOS/D?
 
 ## Jak pokračovat
 

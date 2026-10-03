@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
+#include "cards/rpd1.h"
 #include "core/host.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -17,6 +18,7 @@
 static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3)", "wav;mp3" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
+static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa 8\" (IMG)", "img" } };
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
 {
@@ -26,7 +28,7 @@ static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, i
     d->done = true;
 }
 
-static void tape_dialog(UiState& ui, int kind, const std::string& card)
+static void tape_dialog(UiState& ui, int kind, const std::string& card, int drive = 0)
 {
     TapeDialog& d = ui.tape_dlg;
     {
@@ -35,6 +37,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card)
         d.kind = kind;
         d.done = false;
         d.card = card;
+        d.drive = drive;
     }
     std::string where = d.last_dir.empty() ? data_path("work") : d.last_dir;
 #ifdef _WIN32
@@ -42,6 +45,8 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card)
 #endif
     if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 1, where.c_str(), false);
     else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 1, where.c_str(), false);
+    else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str(), false);
+    else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
@@ -50,12 +55,14 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     TapeDialog& d = ui.tape_dlg;
     int kind;
     std::string path, card;
+    int drive;
     {
         std::lock_guard<std::mutex> lk(d.mtx);
         if (!d.kind || !d.done) return;
         kind = d.kind;
         path = d.result;
         card = d.card;
+        drive = d.drive;
         d.kind = 0;
     }
     if (path.empty() || !m) return;
@@ -66,6 +73,23 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         if (!file_read_text(path, text)) LOGE("cannot read %s", path.c_str());
         else if (!m->load_ihex_text(text, err, &n)) LOGE("%s: %s", path.c_str(), err.c_str());
         else LOGI("%s: %d bytes loaded into memory", path.c_str(), n);
+        return;
+    }
+    if (kind == 4 || kind == 5) {   // a floppy for an RPD-1 drive
+        Rpd1* r = dynamic_cast<Rpd1*>(m->find_card(card));
+        if (!r) return;
+        std::string err;
+        if (kind == 5) {   // a new disk, formatted: every byte E5h (empty CP/M directory)
+            size_t slash = path.find_last_of("/\\");
+            if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".img";
+            std::vector<uint8_t> blank(Rpd1::IMAGE_SIZE, 0xE5);
+            if (!file_write_all(path, blank.data(), blank.size())) {
+                LOGE("cannot write %s", path.c_str());
+                return;
+            }
+        }
+        // a disk from media/ is used through its working copy
+        if (!r->insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
         return;
     }
     Dsm1* dsm = dynamic_cast<Dsm1*>(m->find_card(card));
@@ -184,6 +208,37 @@ void hex_load_dialog(UiState& ui)
     tape_dialog(ui, 3, std::string());
 }
 
+// ---------------------------------------------------------------- floppy drives of RPD-1
+
+static void draw_rpd1(UiState& ui, Rpd1* r)
+{
+    ImGui::PushID(r);
+    for (int i = 0; i < Rpd1::DRIVES; i++) {
+        Rpd1::Drive& d = r->drives[i];
+        ImGui::PushID(i);
+        ImGui::Text("%s %c:", tr("Drive"), 'A' + i);
+        ImGui::SameLine();
+        if (d.data.empty()) ImGui::TextDisabled("%s", tr("(no disk)"));
+        else {
+            ImGui::TextUnformatted(d.path.c_str());
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", d.path.c_str());
+        }
+        if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 4, r->name, i);
+        ImGui::SameLine();
+        if (ImGui::Button(tr("New disk..."))) tape_dialog(ui, 5, r->name, i);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(d.data.empty());
+        if (ImGui::Button(tr("Eject"))) r->eject(i);
+        ImGui::SameLine();
+        ImGui::Checkbox(tr("Write protect"), &d.write_protect);
+        ImGui::SameLine();
+        ImGui::Text("%s %d%s", tr("track"), d.track, d.dirty ? tr(", modified") : "");
+        ImGui::EndDisabled();
+        ImGui::PopID();
+    }
+    ImGui::PopID();
+}
+
 void draw_media(UiState& ui)
 {
     tape_dialog_result(ui, ui.host->machine());   // also the HEX dialog of the File menu
@@ -202,6 +257,14 @@ void draw_media(UiState& ui)
             snprintf(title, sizeof(title), "%s #%02X %s", c->type.c_str(), dsm->base_port(), tr("cassette recorder"));
             ImGui::SeparatorText(title);
             draw_tape(ui, dsm);
+            continue;
+        }
+        if (Rpd1* rpd = dynamic_cast<Rpd1*>(c.get())) {
+            any = true;
+            char title[96];
+            snprintf(title, sizeof(title), "%s %s", c->name.c_str(), tr("floppy drives 8\""));
+            ImGui::SeparatorText(title);
+            draw_rpd1(ui, rpd);
             continue;
         }
         Ide1* ide = dynamic_cast<Ide1*>(c.get());

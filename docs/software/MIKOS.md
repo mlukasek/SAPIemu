@@ -96,6 +96,32 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
 - **Ověřeno** (`test_mikos`): V5.0 naběhne, REPEAT/UNTIL a WHILE/WEND. V5.0/G: CLSG, PLOT na správné body
   v paměti DGD-1.
 
+## MIKOS/D V5.0 (diskety, RPD-1)
+
+- Zdroj: `BKP\sapi\doku2\v5.php` (výpisy `mi5d_*`, `ebios_*`, `bios_*`, `bdos_*`), EPROM `m5mid_hex` = 8 KB
+  (Monitor V5.0F 0000–0BFF, MIKOS/D 0C00–12FF, EBIOS 1300–17DA), systémová disketa `m5mid_img.rar`
+  (záložní kopie, IMD 4/2018). Dokumentace z diskety: `MIKOS_D.DOC`, `MONIT.DOC`, `BAS5.DOC`, `TEDIT.DOC`…
+- V repu: `roms/mikos/MONITOR_V5.0F_MIKOS_D_V5.0.bin`, `media/rpd-1/MIKOS_D_V5.0_system.img`, sestava
+  `machines/zps/ZPS-2_MIKOS_D.sapi` (ZPS-2 + RPD-1 + 8" mechanika, RAM-1/48K, Consul).
+- Po resetu: `MIKOS/D V5.0 (C) TESLA DIZ 1988`, `ZAVEDEN DISKOVY SYSTEM`, `VOLNA RAM OD ADRESY 4400H DO EFFFH`.
+  Bez diskety `NELZE ZAVEST DISKOVY SYSTEM`. Systém (BDOS a BIOS v RAM F000–FFFF) se zavádí ze stop 0 a 1.
+- **Disketa:** formát CP/M 2.2 (8" SS SD, 2 systémové stopy, bloky 1 KB, 64 položek adresáře, 241 KB, skew 6).
+- **Ovládání:** `K` otevře MENU, příkaz se volí prvním písmenem. Pak následuje `NAZEV:` (jméno 8.3, `A:`/`B:`,
+  hvězdičky):
+  - DIR (Enter = vše), IDIR, ERA, TYPE, RENAME;
+  - LOAD a `.J` spustí;
+  - SAVE (jméno s příponou, pak `začátek konec`);
+  - FIND, OPEN, CLOSE.
+- **Pozorování v emulátoru:**
+  - LOAD bez přípony hlásí `CP/M.. ERROR` (soubor nenalezen), s příponou (`BAS5C.SYS`) funguje. Návod
+    přitom slibuje výchozí `.SYS`.
+  - Načítání je pomalé, 10 KB asi 17 s (viz `docs/desky/RPD-1.md`).
+  - Stisk klávesy během LOAD čtení přeruší.
+- **Programy na disketě:**
+  - `BAS5C.SYS` (BASIC EXP V5.0), `TEDIT.SYS`, `TOOL.SYS`;
+  - `BASIMS4.SYS` (BASIC s IMS-2), `KONVERT.SYS` (převod kazeta ↔ disketa);
+  - `COPYSYS.SYS`, `X2.SYS`.
+
 ## Formát pásky
 
 - Bloky: 3× 10h, typ, 255 bajtů dat, jméno 11 znaků, číslo bloku, číslo souboru (BCD), kontrolní součet

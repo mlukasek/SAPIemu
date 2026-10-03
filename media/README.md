@@ -40,3 +40,9 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 |---|---|---|
 | `BASIC_EXP_V5.0.hex` | BASIC EXP V5.0 (TESLA DIZ 1986), `BASIC5.HEX` | 4400–6B00 |
 | `BASIC_EXP_V5.0G.hex` | BASIC EXP V5.0/G s grafikou pro DGD-1, `BASIC5G.HEX` | 4400–7400 |
+
+## `rpd-1/` – diskety 8" pro RPD-1
+
+| Soubor | Obsah |
+|---|---|
+| `MIKOS_D_V5.0_system.img` | Systémová disketa MIKOS/D V5.0 („ZALOZNI“), 77 × 26 × 128 B v logickém pořadí. Zdroj `H:\SAPI-1\Klasika\mikos5\m5mid_img.rar` = sapi.cz `data2/m5mid_img.rar`, shodná s daty v `m5mid.IMD`. Obsahuje BAS5C, TEDIT, TOOL, BASIMS4, KONVERT, COPYSYS, X2 a dokumentaci (.DOC). |
