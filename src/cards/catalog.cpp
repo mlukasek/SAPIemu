@@ -135,6 +135,32 @@ static const CardParam k_and1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+static const ParamOption k_rpd1_step[] = {
+    { "8", "8 ms (Consul 7213)", "8 ms (Consul 7213)" },
+    { "12", "12 ms (Consul 7212)", "12 ms (Consul 7212)" },
+    { "3", "3 ms (Momflex)", "3 ms (Momflex)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_rpd1_disks[] = {
+    { "\"media/rpd-1/MIKOS_D_V5.0_system.img\"", "MIKOS/D V5.0 system disk", "Systémová disketa MIKOS/D V5.0" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_rpd1[] = {
+    { "drive_a", PK_SECTION, "Drive A (8\" SS SD)", "Mechanika A (8\" SS SD)", "true", nullptr, 0, 0 },
+    { "drive_a.image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",
+      k_rpd1_disks, 0, 0 },
+    { "drive_a.write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+    { "drive_b", PK_SECTION, "Drive B (8\" SS SD)", "Mechanika B (8\" SS SD)", "false", nullptr, 0, 0 },
+    { "drive_b.image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",
+      k_rpd1_disks, 0, 0 },
+    { "drive_b.write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+    { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
+    { "step_ms", PK_CHOICE, "Drive: step period", "Mechanika: perioda kroku", "8", k_rpd1_step, 0, 0 },
+    { "settle_ms", PK_INT, "Drive: head load settle time (ms)", "Mechanika: ustálení přiklopené hlavy (ms)", "35",
+      nullptr, 0, 500 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 static const ParamOption k_dgd1_base[] = {
     { "\"C000\"", "C000H (switch SP1-2 open, ZPS-2, ZPS-3)", "C000H (přepínač SP1-2 rozepnutý, ZPS-2, ZPS-3)" },
     { "\"0000\"", "0000H (switch SP1-2 closed, ZPS-4, SAPI-1Z)", "0000H (přepínač SP1-2 sepnutý, ZPS-4, SAPI-1Z)" },
@@ -389,7 +415,7 @@ CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový mod
 CARD(c_dsp1, "DSP-1", "DSP", "Serial ports", "Sériové porty", CC_SERIAL, 1, false, nullptr)
 // disks
 CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič pružných disků (desky A + B)", CC_DISK,
-     2, false, nullptr)
+     2, true, k_rpd1)
 CARD(c_rpd1z, "RPD-1Z", "RPD", "Floppy disk controller \"Z\"", "Řadič pružných disků \"Z\"", CC_DISK, 1, false,
      nullptr)
 CARD(c_mfc1a, "MFC-1A", "MFC", "Mini floppy controller", "Řadič minidisket", CC_DISK, 1, false, nullptr)

@@ -133,7 +133,8 @@ static void test_placeholders(void)
     cfg["cards"][3]["base"] = "14h";
     CHECK(card_display_name(cfg["cards"][3]) == "DSM-1 #14");
     pr = machine_all_problems(cfg);
-    CHECK(pr.size() == 1);   // RPD-1 not emulated (DSM-1 is)
+    for (const CfgProblem& p : pr) fprintf(stderr, "problem: %s\n", p.en.c_str());
+    CHECK(pr.empty());   // DSM-1 and RPD-1 are emulated, no clash
     for (const CfgProblem& p : pr) CHECK(!p.error);
     {
         Machine m;
