@@ -111,7 +111,7 @@ static void test_and1z_window(void)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     test_jpr_boot_rom();
     test_jpr_io();
     test_dmr_configs();

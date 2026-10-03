@@ -255,3 +255,15 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Sestavy mají příponu `.sapi`** (přání autora), obsah zůstává JSON s komentáři. Konfigurátor ukládá `.sapi`,
   dialogy a seznam sestav berou i starší `.jsonc` a `.json`. Uložená „poslední sestava“ s příponou `.jsonc` se
   při startu převede na `.sapi`.
+
+## 2026-10-03 – Vypínač NAPÁJENÍ a baterie DMR-1
+
+- **NAPÁJENÍ je vypínač s aretací** (rozhodnutí autora).
+  - Vypnuto: stroj neexistuje. Obrazovka je tmavá a LED zhasnou. RAM disky a SRAM s baterií se uloží, TCP a COM
+    se zavřou, MCP hlásí „switched off“.
+  - Zapnutí postaví stroj znovu z popisu v konfigurátoru, včetně neuložených změn.
+  - RESET je jen /RES: RAM zůstane, změny konfigurace se nepoužijí.
+  - Rychlost 4 MHz vypnutí přežije, stejně jako přepínač na skutečném rámu.
+- **DMR-1 JP7 baterie** (rozhodnutí autora). Parametr `battery` je ve výchozím stavu zapnutý, obsah SRAM se drží
+  v `work/dmr-1/sram.bin` a přežije vypnutí i ukončení emulátoru. Testy zápis vypínají
+  (`battery_files_enable(false)` v `test_init()`), aby nepřepisovaly soubory uživatele.

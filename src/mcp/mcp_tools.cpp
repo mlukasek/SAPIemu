@@ -102,7 +102,7 @@ bool arg_bool(const json& args, const char* key, bool def)
 
 Machine& need_machine(EmuHost& h)
 {
-    if (!h.machine()) throw ToolError{ "no machine loaded" };
+    if (!h.machine()) throw ToolError{ "the machine is switched off (tool power) or not loaded" };
     return *h.machine();
 }
 
@@ -345,6 +345,20 @@ json t_load_machine(EmuHost& h, const json& a)
     std::string path = arg_str(a, "path", nullptr, true);
     std::string err;
     if (!h.load(path, err)) return error_result(err);
+    return t_machine_info(h, a);
+}
+
+json t_power(EmuHost& h, const json& a)
+{
+    std::string state = arg_str(a, "state", nullptr, true);
+    if (state == "off") {
+        h.power_off();
+        return text_result("switched off");
+    }
+    if (state != "on" && state != "cycle") throw ToolError{ "state must be on, off or cycle" };
+    if (state == "cycle") h.power_off();
+    std::string err;
+    if (!h.machine() && !h.power_on(err)) return error_result(err);
     return t_machine_info(h, a);
 }
 
@@ -842,6 +856,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"path":{"type":"string"},"jsonc":{"type":"boolean","default":false}}})", t_get_machine_config },
     { "set_machine_config", "Use a machine description (as returned by get_machine_config, edited): optionally save it as a commented .sapi file (JSON with comments) (path relative to the data directory, e.g. machines/my.sapi) and power the machine on with it (start=true, default). Cards not emulated yet are passive; a machine whose CPU card is not emulated cannot start.",
       R"({"type":"object","properties":{"config":{"type":"object"},"save_as":{"type":"string"},"start":{"type":"boolean","default":true}},"required":["config"]})", t_set_machine_config },
+    { "power", "Power switch of the machine: off (RAM lost, battery backed SRAM and RAM disks kept, host connections closed), on (with the last machine description), cycle = off and on. Reset (tool reset) keeps the RAM.",
+      R"({"type":"object","properties":{"state":{"type":"string","enum":["on","off","cycle"]}},"required":["state"]})", t_power },
     { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.sapi.",
       R"({"type":"object","properties":{"path":{"type":"string"}},"required":["path"]})", t_load_machine },
     { "reset", "Press the reset button (/RES): CPU card BOOT flag set, cards reset. RAM content is kept.",

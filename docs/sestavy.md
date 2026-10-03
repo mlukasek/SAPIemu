@@ -21,7 +21,10 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   obrazů s nabídkou známých souborů a tlačítkem `…`. Pravé tlačítko otevře rovnou seznam karet. Klik na rám
   mimo karty ukáže název a popis sestavy a nastavení sběrnice.
 - **Panel ZDR:**
-  - NAPÁJENÍ vypne a zapne počítač s upravenou sestavou (stejně jako tlačítko „Zapnout s touto sestavou“);
+  - NAPÁJENÍ je vypínač s aretací. Za chodu počítač vypne: obrazovka a LED zhasnou, RAM se ztratí. SRAM
+    DMR-1 s baterií (JP7) a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se
+    sestavou z konfigurátoru, včetně neuložených změn. Totéž je v menu Stroj → Vypnout/Zapnout a v MCP
+    (`power`). Tlačítko „Zapnout s touto sestavou“ dělá vypnutí a zapnutí jedním krokem;
   - RESET funguje jako F12, TURBO jako F8 a přepíná dokola takt CPU (2 MHz) → 4 MHz → maximum;
   - displej FREKVENCE CPU ukazuje skutečnou rychlost emulace.
 - **Změny se projeví až po vypnutí a zapnutí** (rozhodnutí autora). Obsah RAM se ztratí, RAM disky se před

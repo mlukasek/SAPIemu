@@ -8,7 +8,7 @@ using nlohmann::json;
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     Machine m;
     std::string err;
     json cfg;

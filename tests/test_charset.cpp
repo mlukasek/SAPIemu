@@ -71,7 +71,7 @@ static void test_ihex(void)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     test_semigraphics();
     test_czech();
     test_ihex();

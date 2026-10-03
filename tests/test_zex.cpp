@@ -51,7 +51,7 @@ static int run_zex(const char* file)
 
 int main(int argc, char** argv)
 {
-    data_root_init();
+    test_init();
     const char* which = argc > 1 ? argv[1] : "zexdoc.com";
     return run_zex(which);
 }

@@ -148,7 +148,7 @@ static void test_rtc_map(void)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     test_ports();
     test_protection();
     test_save();

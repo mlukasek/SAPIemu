@@ -86,6 +86,8 @@ void draw_media(UiState& ui);
 void draw_rack(UiState& ui);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);
+// POWER switch: off when the machine runs, else on with the configurator's description.
+void rack_power_switch(UiState& ui);
 // Open a machine description in the configurator without starting it.
 void rack_open_in_editor(UiState& ui, const std::string& path);
 // Keyboard input for the focused terminal; returns true if consumed.

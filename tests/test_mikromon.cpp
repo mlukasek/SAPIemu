@@ -7,7 +7,7 @@
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     Machine m;
     std::string err;
     CHECK(m.load_file("machines/mikromon.sapi", err));

@@ -25,6 +25,12 @@ public:
     // loaded from / saved to (empty for an unsaved one).
     bool load_config(const nlohmann::json& cfg, const std::string& file, std::string& err);
     Machine* machine(void) { return m.get(); }
+    // Power switch: off = the machine is gone (battery backed memories and RAM
+    // disks saved, host connections closed); on = built again from the last
+    // description, like switching the real computer off and on.
+    bool powered(void) const { return m != nullptr; }
+    void power_off(void);
+    bool power_on(std::string& err);
     const std::string& machine_file(void) const { return file; }
     uint64_t machine_generation(void) const { return generation; }   // changes on every load
 
@@ -63,6 +69,7 @@ private:
 
     std::unique_ptr<Machine> m;
     std::string file;
+    nlohmann::json last_cfg;   // description of the machine, for power_on()
     uint64_t generation = 0;
     std::mutex task_mtx;
     std::deque<std::shared_ptr<Task>> tasks;

@@ -12,7 +12,7 @@ using nlohmann::json;
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     std::string text;
     CHECK(file_read_text(data_path("machines/cpm_ide.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);

@@ -21,6 +21,7 @@ public:
     int irq_lines() override;
     SerialChannel* serial_channel(int index) override { return index == 0 ? serial.get() : nullptr; }
     void describe(nlohmann::json& out) override;
+    void flush() override;   // battery backed SRAM -> file
 
 private:
     bool ram_select(uint16_t addr, uint32_t& offset, bool& write_block) const;
@@ -31,6 +32,8 @@ private:
     bool a6_from_map1 = false;    // JP3: A6 driven by MAP1 instead of a fixed level
     bool a7_from_map2 = false;
     std::vector<uint8_t> ram;     // 128 KB
+    bool battery = true;          // JP7: SRAM backed by the battery (MAX691)
+    std::string sram_file;        // where the battery keeps the content
     std::vector<uint8_t> prom;    // D2C, 512 bytes
 
     // serial

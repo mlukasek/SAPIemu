@@ -148,9 +148,39 @@ static void test_placeholders(void)
     CHECK(machine_cfg_problems(bad).size() == 2);   // X1 reserved + no CPU
 }
 
+// DMR-1 JP7: the battery keeps the SRAM across power off / on
+static void test_battery(void)
+{
+    battery_files_enable(true);
+    std::string file = "work/test/dmr_sram_test.bin";
+    file_remove(data_path(file));
+    json cfg = { { "cards", json::array() } };
+    cfg["cards"].push_back({ { "slot", 1 }, { "type", "JPR-1ZI" } });
+    cfg["cards"].push_back({ { "slot", 2 }, { "type", "DMR-1" }, { "ram_config", 0 }, { "sram_file", file } });
+    std::string err;
+    {
+        Machine m;
+        CHECK(m.load_json(cfg, err));
+        m.poke(0x4000, 0x5A);
+    }   // power off: flushed
+    {
+        Machine m;
+        CHECK(m.load_json(cfg, err));
+        CHECK_EQ(m.peek(0x4000), 0x5A);
+    }
+    cfg["cards"][1]["battery"] = false;   // no battery: empty after power on
+    {
+        Machine m;
+        CHECK(m.load_json(cfg, err));
+        CHECK_EQ(m.peek(0x4000), 0x00);
+    }
+    file_remove(data_path(file));
+    battery_files_enable(false);
+}
+
 int main(int argc, char** argv)
 {
-    data_root_init();
+    test_init();
     if (argc > 1) {   // print a machine as written by the configurator
         std::string text;
         file_read_text(data_path(argv[1]), text);
@@ -162,5 +192,6 @@ int main(int argc, char** argv)
     test_round_trip();
     test_edit();
     test_placeholders();
+    test_battery();
     return TEST_RESULT();
 }

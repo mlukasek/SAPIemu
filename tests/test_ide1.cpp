@@ -250,7 +250,7 @@ static void test_safe_path(void)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     test_i8255();
     test_safe_path();
 

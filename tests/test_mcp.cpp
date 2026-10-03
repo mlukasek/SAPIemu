@@ -52,7 +52,7 @@ static void test_request_filter(void)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     test_request_filter();
     EmuHost host;
     std::string err;
@@ -133,6 +133,20 @@ int main(void)
     CHECK(json::parse(text_of(r))["speed_hz"] == 4000000);
     r = tool(s, "resume", { { "speed_mhz", 0 } });
     CHECK(json::parse(text_of(r))["speed_hz"] == 2000000);
+    r = tool(s, "pause", json::object());
+
+    // power switch: off = no machine, on = the same description again, RAM cleared
+    r = tool(s, "write_memory", { { "address", "8000" }, { "data", "AA" } });
+    r = tool(s, "power", { { "state", "off" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "get_registers", json::object());
+    CHECK(r["isError"] == true);
+    r = tool(s, "power", { { "state", "on" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "read_memory", { { "address", "8000" }, { "length", 1 }, { "format", "hex" } });
+    CHECK(text_of(r) == "00");   // tests run without the battery file
+    r = tool(s, "run_until", { { "screen_text", "MikroMon 2kB V1.3" }, { "timeout_ms", 2000 } });
+    CHECK(text_of(r).find("\"success\": true") != std::string::npos);
     r = tool(s, "pause", json::object());
 
     // machine configuration

@@ -1,6 +1,14 @@
 #pragma once
 // Minimal test helpers: CHECK prints the failing expression and counts failures.
 #include <stdio.h>
+#include "core/util.h"
+
+// Data root of the repository; battery backed RAM is not saved (user's work/ files stay untouched).
+static inline void test_init(void)
+{
+    data_root_init();
+    battery_files_enable(false);
+}
 
 static int g_test_failures = 0;
 

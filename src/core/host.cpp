@@ -63,13 +63,37 @@ bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::
     }
     m = std::move(nm);
     file = f;
+    last_cfg = cfg;
     generation++;
-    speed_hz = 0;   // the new machine starts at its own clock
+    if (speed_hz <= m->bus.cpu_hz) speed_hz = 0;   // 4 MHz stays 4 MHz across a power cycle
     paused = false;
     status.clear();
     speed_t0 = host_time_ns();
     speed_c0 = 0;
     return true;
+}
+
+void EmuHost::power_off(void)
+{
+    if (!m) return;
+    m->stop_bridges();
+    m->flush();
+    m.reset();
+    generation++;
+    paused = false;
+    status.clear();
+    speed_percent = 0;
+    LOGI("machine switched off");
+}
+
+bool EmuHost::power_on(std::string& err)
+{
+    if (last_cfg.is_null()) {
+        err = "no machine to switch on";
+        return false;
+    }
+    nlohmann::json cfg = last_cfg;
+    return load_config(cfg, file, err);
 }
 
 void EmuHost::handle_stop(void)

@@ -151,6 +151,18 @@ std::string data_path(const std::string& rel)
     return path_to_u8(u8_to_path(data_root()) / p);
 }
 
+static bool g_battery_files = true;
+
+void battery_files_enable(bool on)
+{
+    g_battery_files = on;
+}
+
+bool battery_files_enabled(void)
+{
+    return g_battery_files;
+}
+
 std::string data_relative(const std::string& path)
 {
     std::error_code ec;

@@ -168,7 +168,7 @@ static void session(bool telnet)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     session(false);
     session(true);
     return TEST_RESULT();

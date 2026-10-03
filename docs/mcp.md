@@ -47,6 +47,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | Nástroj | Popis |
 |---|---|
 | `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry |
+| `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (poslední popis sestavy), `cycle` |
 | `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/` |
 | `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná |
 | `get_machine_config`, `set_machine_config` | Popis sestavy (běžící nebo ze souboru) s kontrolou rozložení; použití upraveného popisu (vypnout a zapnout), volitelně uložení jako komentovaný soubor `.sapi` |

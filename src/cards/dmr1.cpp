@@ -1,6 +1,8 @@
 #include "cards/dmr1.h"
 #include "core/bus.h"
 #include "core/ihex.h"
+#include "core/log.h"
+#include "core/util.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +26,13 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     if (!cfg_string(cfg, "decoder", prom_file, "roms/dmr-1/DMR-1_D2C.bin", err)) return false;
     if (!rom_load(prom_file, prom, 512, 0x01, 0, err)) return false;
     ram.assign(131072, 0x00);
+    if (!cfg_bool(cfg, "battery", battery, true, err)) return false;
+    if (!cfg_string(cfg, "sram_file", sram_file, "work/dmr-1/sram.bin", err)) return false;
+    if (battery && ram_enabled && !sram_file.empty() && battery_files_enabled()) {
+        // power on with the battery: the SRAM still holds what it had at power off
+        std::vector<uint8_t> saved;
+        if (file_read_all(data_path(sram_file), saved) && saved.size() == ram.size()) ram = saved;
+    }
 
     if (!cfg_bool(cfg, "uart", uart_enabled, true, err)) return false;
     if (!cfg_number(cfg, "uart_base", v, 0x10, err)) return false;
@@ -56,6 +65,14 @@ bool Dmr1::configure(const json& cfg, std::string& err)
         serial->pacing = cfg["serial"].value("pacing", true);
     }
     return true;
+}
+
+void Dmr1::flush()
+{
+    if (!battery || !ram_enabled || sram_file.empty() || !battery_files_enabled()) return;
+    std::string path = data_path(sram_file);
+    make_dirs(path_dir(path));
+    if (!file_write_all(path, ram.data(), ram.size())) LOGW("%s: cannot save the SRAM to %s", name.c_str(), path.c_str());
 }
 
 void Dmr1::reset()

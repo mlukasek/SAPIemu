@@ -88,6 +88,9 @@ static const ParamOption k_tcp_proto[] = {
 };
 static const CardParam k_dmr1[] = {
     { "ram", PK_BOOL, "RAM 128 KB", "RAM 128 KB", "true", nullptr, 0, 0 },
+    { "battery", PK_BOOL, "JP7: battery backup of the SRAM", "JP7: zálohování SRAM baterií", "true", nullptr, 0, 0 },
+    { "sram_file", PK_FILE, "SRAM content kept by the battery", "Obsah SRAM držený baterií",
+      "\"work/dmr-1/sram.bin\"", k_none, 0, 0 },
     { "ram_config", PK_CHOICE, "JP3: RAM range", "JP3: rozsah RAM", "1", k_dmr_ram, 0, 0 },
     { "a6_map1", PK_BOOL, "JP3: A6 from MAP1", "JP3: A6 z MAP1", "false", nullptr, 0, 0 },
     { "a7_map2", PK_BOOL, "JP3: A7 from MAP2", "JP3: A7 z MAP2", "false", nullptr, 0, 0 },

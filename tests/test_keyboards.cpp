@@ -181,7 +181,7 @@ static void test_mikromon(void)
 
 int main(void)
 {
-    data_root_init();
+    test_init();
     test_ekl1();
     test_consul25911();
     test_consul2623();

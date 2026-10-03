@@ -288,7 +288,12 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Machine"))) {
-        if (ImGui::MenuItem(tr("Reset"), "F12 / F9") && m) m->reset();
+        if (ImGui::MenuItem(m ? tr("Switch off") : tr("Switch on"))) {
+            rack_power_switch(app.ui);
+            m = app.host.machine();   // the old machine is gone
+            set_title(app);
+        }
+        if (ImGui::MenuItem(tr("Reset"), "F12 / F9", false, m != nullptr) && m) m->reset();
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         if (ImGui::BeginMenu(tr("Speed"))) {
             char nominal[64];
@@ -367,6 +372,7 @@ void draw_menu(App& app)
     // status on the right side of the menu bar
     char st[200];
     st[0] = 0;
+    if (!m) snprintf(st, sizeof(st), "%s", tr("Switched off"));
     if (m) {
         char pace[32] = "";
         if (app.host.speed_hz) snprintf(pace, sizeof(pace), "%s %.0f MHz", tr("Speed"), app.host.speed_hz / 1e6);
@@ -400,6 +406,13 @@ void draw_screen(App& app)
 
     Machine* m = app.host.machine();
     DisplayDevice* d = m ? m->display : nullptr;
+    if (!m) {   // switched off: a dark screen
+        ImVec2 a = ImGui::GetCursorScreenPos(), av = ImGui::GetContentRegionAvail();
+        ImGui::GetWindowDrawList()->AddRectFilled(a, ImVec2(a.x + av.x, a.y + av.y), IM_COL32(8, 8, 8, 255));
+        ImGui::TextDisabled("%s", tr("Switched off (POWER on the ZDR panel, Machine -> Switch on)"));
+        ImGui::End();
+        return;
+    }
     if (!d) {
         ImGui::TextUnformatted(tr("No display card in this machine."));
         ImGui::End();

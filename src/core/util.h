@@ -35,6 +35,11 @@ std::vector<std::string> list_machine_files(void);
 // use and the copy is returned. Other paths are returned resolved.
 bool media_path(const std::string& rel, bool work_copy, std::string& out, std::string& err);
 
+// Battery backed memories (DMR-1 SRAM...) keep their content in files under work/.
+// Tests switch this off so that they never touch the user's files.
+void battery_files_enable(bool on);
+bool battery_files_enabled(void);
+
 // Parse a number given as JSON-ish text: "0x1F", "1Fh", "$1F", "31".
 bool parse_number(const std::string& s, long long& out);
 

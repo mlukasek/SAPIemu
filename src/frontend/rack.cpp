@@ -627,7 +627,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     pt_text(Z, 219.9f, 178.5f, 48.0f, COL_TEXT, "SAPI 1", -1, true);
     struct Btn { const char* label; ImU32 col; };
     const Btn btns[4] = {
-        { "NAPÁJENÍ", IM_COL32(64, 196, 120, 255) },
+        { "NAPÁJENÍ", m ? IM_COL32(80, 230, 130, 255) : IM_COL32(34, 92, 58, 255) },
         { "RESET", IM_COL32(214, 52, 48, 255) },
         { "TURBO", host.turbo ? IM_COL32(255, 160, 60, 255)
                    : host.speed_hz ? IM_COL32(255, 228, 110, 255) : IM_COL32(236, 236, 236, 255) },
@@ -638,20 +638,22 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         pt_text(Z, bx + 25.5f, 349.8f, 14.0f, COL_TEXT, btns[i].label);
         ImVec2 ba = Z.p(bx, 362.2f), bb = Z.p(bx + 51.0f, 413.2f);
         dl->AddRectFilled(ba, bb, IM_COL32(44, 46, 50, 255), 3.0f * k);
-        dl->AddRectFilled(Z.p(bx + 2.8f, 365.0f), Z.p(bx + 48.2f, 410.4f), btns[i].col, 4.0f * k);
+        // the latching POWER button sits deeper while switched on
+        float in = (i == 0 && m) ? 2.2f : 0.0f;
+        dl->AddRectFilled(Z.p(bx + 2.8f + in, 365.0f + in), Z.p(bx + 48.2f - in, 410.4f - in), btns[i].col, 4.0f * k);
         dl->AddRect(Z.p(bx + 2.8f, 365.0f), Z.p(bx + 48.2f, 410.4f), IM_COL32(0, 0, 0, 90), 4.0f * k);
         char id[16];
         snprintf(id, sizeof(id), "btn%d", i);
         if (panel_button(id, ba, bb)) {
             if (i == 0) {
-                editor_apply(ui);
+                rack_power_switch(ui);
                 m = host.machine();   // the old machine is gone
             }
             else if (i == 1 && m) m->reset();
             else if (i == 2) host.cycle_speed();
         }
         if (ImGui::IsItemHovered()) {
-            const char* tip = i == 0 ? tr("Switch off and on with the edited configuration")
+            const char* tip = i == 0 ? (m ? tr("Switch off") : tr("Switch on with this configuration"))
                             : i == 1 ? tr("Reset (F12)")
                             : i == 2 ? tr("Speed: CPU clock, 4 MHz, maximum (F8)")
                                      : tr("BIOS: EPROM bank switch of JPR-1V (no function yet)");
@@ -960,6 +962,16 @@ void new_menu(UiState& ui)
 }
 
 } // namespace
+
+void rack_power_switch(UiState& ui)
+{
+    if (ui.host->powered()) {
+        ui.host->power_off();
+        set_message(ui.rack, tr("Switched off."), false);
+    } else {
+        editor_apply(ui);
+    }
+}
 
 void rack_open_in_editor(UiState& ui, const std::string& path)
 {
