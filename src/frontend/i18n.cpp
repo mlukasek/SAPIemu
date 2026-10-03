@@ -22,6 +22,7 @@ static const Translation k_table[] = {
     { "Keyboard", "Klávesnice" },
     { "Open file...", "Otevřít soubor…" },
     { "Speed", "Rychlost" },
+    { "keys waiting:", "čeká kláves:" },
     { "CPU clock", "Takt CPU" },
     { "Maximum (turbo)", "Maximum (turbo)" },
     { "Next", "Další" },

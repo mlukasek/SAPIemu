@@ -174,6 +174,7 @@ void draw_menu(App& app)
                         app.error_text = std::string(tr("Cannot change the keyboard")) + ":\n" + err;
                         app.show_error = true;
                     }
+                    kb = m->keyboard();   // the old keyboard is gone
                 }
             }
             ImGui::EndMenu();
@@ -230,6 +231,11 @@ void draw_menu(App& app)
                                             : (app.host.turbo ? tr("Turbo") : pace);
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
+        if (kb && kb->pending() > 1) {   // keys typed but not taken by the program
+            char q[48];
+            snprintf(q, sizeof(q), "  %s %d", tr("keys waiting:"), (int)kb->pending());
+            ks += q;
+        }
         snprintf(st, sizeof(st), "%s  %s  %s  %.2f MHz  %3.0f %%", ks.c_str(), state,
                  (app.mcp && app.mcp->running()) ? "MCP" : "", m->bus.cpu_hz / 1e6, app.host.speed_percent);
     }
@@ -405,6 +411,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        // The ImGui SDL3 backend stops SDL text input whenever an ImGui text field
+        // loses focus (debugger, configurator...); the SAPI keyboard and the serial
+        // terminal need it all the time, otherwise no characters arrive.
+        if (!SDL_TextInputActive(app.window)) SDL_StartTextInput(app.window);
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
         draw_menu(app);
         draw_screen(app);

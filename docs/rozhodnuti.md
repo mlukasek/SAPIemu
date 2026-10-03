@@ -226,3 +226,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   časování všech karet, zatím není.
 - **Výběr sestavy z menu Soubor padal:** menu dál používalo ukazatel na právě zrušený stroj (podmenu
   Klávesnice). Po načtení sestavy se teď ukazatel načte znovu, stejně u tlačítka NAPÁJENÍ.
+
+## 2026-10-03 – Zamrzlá klávesnice, pád při změně klávesnice
+
+- **Klávesnice „zamrzla“:** backend ImGui pro SDL3 vypne textový vstup SDL (`SDL_StopTextInput`), jakmile textové
+  pole ImGui (debugger, konfigurátor) ztratí fokus. Pak nechodily znaky, jen klávesy bez textu. Hlavní smyčka
+  teď textový vstup v každém snímku znovu zapne.
+- **Pád v menu Stroj → Klávesnice:** smyčka přes nabídku dál používala ukazatel na právě vyměněnou klávesnici.
+- **Diagnostika:** když program nebere klávesy, stavový řádek ukáže „čeká kláves: n“.
