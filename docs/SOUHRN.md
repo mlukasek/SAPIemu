@@ -53,10 +53,10 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 8. **IDE-1:** stav IDE signálů po resetu, když je PC 8255 nastavený jako vstup.
 9. **MikroMon bez USYNC:** ztrácí ozvěna na UART znaky i na skutečném HW? Emulace: po startu přijde „Z4kn 3“.
 10. **MHB1012:** pořadí bitů délky slova (b3/b2) v řídicím registru.
-12. **IDE disk:** máte obraz (dump) skutečného DOM/CF z vaší sestavy? Emulátor zatím začíná s prázdným
-    diskem vyplněným E5h.
 11. **Reálná sestava CP/M:** je na DMR-1 připojený terminál (DCD), nebo se používá obrazovka? Kterou volbu
     0–3 v ECMON používáte (předpoklad: 3 = HDD)? Kterou EPROM máte v JPR-1ZI (ECMON s IDE-1)?
+12. **IDE disk:** máte obraz (dump) skutečného DOM/CF z vaší sestavy? Emulátor zatím začíná s prázdným
+    diskem vyplněným E5h.
 
 ## Jak pokračovat
 
