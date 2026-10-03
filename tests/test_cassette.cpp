@@ -1,6 +1,7 @@
 // DSM-1 cassette: MIKROBASIC saves a program on a new tape, forgets it and loads
 // it back (record -> WAV -> play); a real recording is decoded when available.
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include "cards/dsm1.h"
 #include "core/headless.h"
@@ -125,7 +126,8 @@ int main(int argc, char** argv)
         int fe;
         std::string b = decode_8n2(t, 100000, fe);
         printf("%d bytes, %d framing errors\n", (int)b.size(), fe);
-        for (size_t i = 0; i < b.size() && i < 64; i++) printf("%02X ", (uint8_t)b[i]);
+        size_t show = getenv("TAPE_DUMP") ? b.size() : 64;
+        for (size_t i = 0; i < b.size() && i < show; i++) printf("%02X%s", (uint8_t)b[i], i % 32 == 31 ? "\n" : " ");
         printf("\n");
         return 0;
     }

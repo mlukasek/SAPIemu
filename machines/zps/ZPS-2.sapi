@@ -1,8 +1,8 @@
 // SAPI-1 machine description, written by the SAPIemu configurator.
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
-    "name": "ZPS-2 (JPR-1, REM-1, RAM-1, AND-1, DSM-1, BDK-1, ANK-1)",
-    "description": "Základní počítačová sestava ZPS-2 podle sapi.cz/sapi/doku2/zps.php. Pořadí karet ve slotech je odhad. Programové vybavení zatím MIKROBASIC 2.4 jako u ZPS-1 (RAM-1 není emulovaná).",
+    "name": "ZPS-2 MIKOS V4.0F (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, BDK-1, ANK-1)",
+    "description": "Základní počítačová sestava ZPS-2 podle sapi.cz/sapi/doku2/zps.php a manuálu Kazetopáskové programové vybavení SAPI-1 V4.0 (1985): Monitor V4.0F + MIKOS 4.0F ve 4 KB EPROM na REM-1 (0000-0FFF, RAM REM-1 odpojená přerušením R-2), RAM-1/48K na 4000-FFFF, AND-1 bez přerušení (propojka 49-50 rozpojená, jak manuál doporučuje), DSM-1 na 10h s magnetofonem. Programy z kazet (TOOL 80, BASIC EX, TOOL 48) se načtou příkazem .K L. Pořadí karet ve slotech je odhad, JPR-1 je v X1.",
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },
@@ -11,32 +11,45 @@
             "slot": 1,                      // position X1
             "type": "JPR-1",                // CPU card 8080, memory mapped ports
             "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (ZPS-1: EPROMs on REM-1)
+            "eprom_type": "2708",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2708 (1 KB)
             "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
-            "keyboard": { "type": "ANK-1" }  // Keyboard (connector X2)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "ANK-1", "software": "mikos" }  // Keyboard (connector X2)
         },
         {
             "slot": 2,                      // position X2
             "type": "REM-1",                // RAM and EPROM card
-            "rom": "roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin",  // EPROMs (from socket 1) - MIKROBASIC 2.4 (ZPS-1)
+            "rom": "roms/mikos/MIKOS_V4.0F_ANK-1.bin",  // EPROMs (from socket 1) - Monitor V4.0F + MIKOS 4.0F (ANK-1)
             "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
             "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
             "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
-            "ram_block": 2,                 // Jumper R: RAM block - 4000-5FFF
-            "ram_kb": 2                     // RAM fitted (KB, 2 per 4x 2114)
+            "ram_block": "none",            // Jumper R: RAM block - not connected
+            "ram_kb": 0                     // RAM fitted (KB, 2 per 4x 2114)
         },
         {
             "slot": 3,                      // position X3
-            "type": "RAM-1"                 // Dynamic RAM up to 48 KB
+            "type": "RAM-1",                // Dynamic RAM up to 48 KB
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": true,                     // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": false                     // S2
         },
         {
             "slot": 4,                      // position X4
-            "type": "AND-1"                 // Alphanumeric display 40x24
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false                   // Jumper 49-50: INT1 at the end of the frame
         },
         {
             "slot": 5,                      // position X5
             "type": "DSM-1",                // Serial modem (cassette, terminal)
             "base": "10h",                  // Jumpers 16-12..16-15: ports
-            "baud": 600                     // Jumper: terminal baud rate - 600 Bd (factory)
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "tape": "",                     // Cassette in the recorder (WAV, MP3)
+            "tape_write_protect": true      // Cassette write protected
         },
         {
             "slot": 6,                      // position X6

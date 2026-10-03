@@ -16,6 +16,8 @@ Zdroje: `BKP\rem-1.php` (OCR manuálu), `BKP\pdf\rem-1.pdf`, `BKP\obrazky\rempri
 - **Výrobní nastavení:** R-2 (RAM 4000–5FFF), E-0 (EPROM 0000–1FFF), A-M, B-N, C-P, H-U, J-U, I-V, G-V.
 - **Osazení v ZPS-1:** 4× MHB 8708C s MIKROBASICem a Mikromonitorem (0000–0FFF), 4× 2114 = RAM 2 KB
   (4000–47FF).
+- **Osazení v ZPS-2 (MIKOS):** EPROM s Monitorem V4.0 a MIKOSem (0000–0FFF), RAM na REM-1 odpojená
+  přerušením R-2, paměť je na RAM-1 (4000–FFFF).
 - Volitelný generátor čekání pro pomalé EPROM (74121) se neosazoval.
 
 ## Emulace (`src/cards/rem1.*`)

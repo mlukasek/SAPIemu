@@ -36,6 +36,9 @@ Zdroje:
 - **KAZ = 1:** UART pracuje s magnetofonem na 2400 Bd, terminál je odpojený. RD = 1 čte z pásky, RD = 0 nahrává.
   Bit 4 stavu modemu je surová úroveň dekódované linky.
 - **Záznam:** linka UART (start, data, parita, stop, klid = 1) XOR hodiny 2400 Hz, obdélník do WAV 44,1 kHz.
+- **Rozběh motoru:** po každém zapnutí motoru při nahrávání se prvních 50 ms zapíše ticho. Bez toho na sebe dva
+  záznamy (třeba hlavička z `.K_A` a data z `.K_S` v MIKOSu) navazovaly fázovým skokem hodin 2400 Hz. Dekodér
+  ho bral jako start bit a další blok četl posunutý.
 - **Čtení** (demodulace celé pásky předem):
   - Průchody nulou se Schmittovým klopným obvodem (25 % obálky) po odstranění stejnosměrné složky.
   - První interval kolem 416 µs po úvodním tónu je začátek start bitu. Tím je dána mřížka bitů i polarita

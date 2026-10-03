@@ -55,5 +55,7 @@ private:
     TapeDeck deck;
     uint64_t tape_time = 0;        // bus time the tape position belongs to
     double rx_scan = 0;            // tape position where the next start bit is looked for
+    bool moving = false;           // the motor ran at the last tape_run
+    double runup = 0;              // samples left of the motor run-up (recorded as silence)
     std::vector<Mhb1012::TxChar> tx_chars;   // characters sent to the recorder
 };

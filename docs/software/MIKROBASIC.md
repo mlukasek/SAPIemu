@@ -7,7 +7,7 @@ Zdroje: manuál „Programové vybavení SAPI-1“ (TESLA ELTOS 1983) v `BKP\dok
 
 | Soubor | Verze | Kde | RAM | Sestava |
 |---|---|---|---|---|
-| `roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin` | 2.4 s Mikromonitorem (ELTOS 1983) | REM-1 EPROM 0000–0FFF | REM-1 4000–47FF | `machines/zps/ZPS-1.sapi`, `ZPS-2.sapi` |
+| `roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin` | 2.4 s Mikromonitorem (ELTOS 1983) | REM-1 EPROM 0000–0FFF | REM-1 4000–47FF | `machines/zps/ZPS-1.sapi` |
 | `roms/mikrobasic/MIKROBASIC_AR1983_1k.bin` | starší z AR/B 1983 (bez REWIND) | JPR-1 EPROM 0000–0FFF | JPR-1 2000–23FF | `machines/zps/MIKROBASIC_AR1983.sapi` |
 
 Na sapi.cz je ještě verze 2.4 pro RAM na JPR-1 a verze 3.1 pro klávesnice Consul (jen HEX a výpisy, ne dumpy).

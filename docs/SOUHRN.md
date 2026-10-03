@@ -4,6 +4,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
+**Hotové: ZPS-2 s MIKOSem V4.0F.** Nová karta RAM-1 (16/32/48 KB, S1/S2 podle tabulky 1, `docs/desky/RAM-1.md`),
+ROM Monitor V4.0 + MIKOS 4.0F/4.0D a V4.1 pro Consul v `roms/mikos/`. `machines/zps/ZPS-2.sapi` naběhne
+s `MIKOS-1 V4.0F +`. Z kazety se nahraje TOOL 80 (PEDIT) a BASIC EX (WAV i MP3) a spustí se `.J`. Ukládání `.K_A`
+a `.K_S` funguje a jde zpět načíst. Magnetofon zapisuje při rozběhu motoru krátké ticho. Popis
+v `docs/software/MIKOS.md`, test `test_mikos`, celkem 20 testů.
+
 **Hotové: DSM-1 s magnetofonem.** Terminál jako u DMR-1 (TCP, COM), kazety WAV i MP3 odkudkoli, tlačítka v okně
 Média a v MCP. MIKROBASIC SAVE a LOAD fungují. Fázový dekodér čte skutečné nahrávky TOOL 48, TOOL 80 a BASIC EX ve
 WAV i MP3 bez chyby. Popis v `docs/desky/DSM-1.md`.
@@ -90,7 +96,7 @@ Dřív hotové fáze:
 | F2 | MCP server (Streamable HTTP), okno terminálu, debugger (registry, disassembler, paměť, breakpointy, I/O log) | ✅ hotovo |
 | F3 | ZRMD-1 + RTC, boot CP/M z RAM disku (ECMON) | ✅ hotovo |
 | F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo |
-| F5+ | ~~Sériová linka přes TCP a COM~~ ✅; ~~Consul 262.3, Consul 259.11, ANK-1~~ ✅; DSM-1 s kazetou (WAV), RAM-1Z, ZRD-1V, JPR-1V; 8080, MIKOS, PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; CI | |
+| F5+ | ~~Sériová linka přes TCP a COM~~ ✅; ~~Consul 262.3, Consul 259.11, ANK-1~~ ✅; ~~DSM-1 s kazetou~~ ✅; ~~8080, MIKOS, RAM-1~~ ✅; RAM-1Z, ZRD-1V, JPR-1V; PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; CI | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
@@ -123,6 +129,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     mají ARB-1A/Au (odhad 13) a ARB-1B (odhad 14, ARB-1C má X1–X14)? Mají všechny karty čelní panel se zkratkou
     (DMR, ZRMD, IDE…)? Panely jsou kreslené podle Liborových štítků. AND-1Z-89 má zatím panel AND-1V (K2 VGA),
     jak vypadá panel originálních karet a DMR-1, ZRMD-1, IDE-1?
+
+16. **ZPS-2 a MIKOS:**
+    - Byl MIKOS v ZPS-2 ve 4× 2708 (dump 1. KB tomu odpovídá), nebo ve 2× 2716? Emulace: 2708.
+    - Dump PROM D1A z RAM-1 (emulace generuje obsah z tabulky 1).
+    - Jsou v ZPS-2 opravdu rozpojené propojky přerušení (AND-1 49–50, JPR-1 10–11), jak radí manuál?
+    - Bere MIKOS na skutečném HW klávesu stisknutou hned po vypsání otázky? (Emulace: ztratí se.)
 
 ## Jak pokračovat
 

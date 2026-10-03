@@ -333,3 +333,14 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   nahrávky bez chyby.
 - **UART MHB1012 dostal bitovou úroveň** (`rx_inject`, `tx_log`). Znaková úroveň zůstává pro terminál, kazeta
   skládá znaky z demodulované linky přímo v kartě.
+
+## 2026-10-03 – MIKOS a RAM-1
+
+- **ZPS-2 běží s MIKOSem V4.0F místo MIKROBASICu.** To odpovídá dodávanému programovému vybavení ZPS-2 (manuál
+  Kazetopáskové programové vybavení V4.0). MIKROBASIC zůstává v ZPS-1.
+- **EPROM 2708 (4× 1 KB).** První 1 KB dumpu 2708 od PEPAXe se shoduje s V4.0F.
+- **Přerušení v sestavě vypnutá** (AND-1 `int1`, DSM-1 `int0`, ANK-1 `int_key`), jak radí manuál, protože
+  BASIC EX povolí přerušení a vektory RST v RAM nejsou připravené.
+- **PROM D1A z RAM-1 se generuje z tabulky 1 manuálu.** Dump zatím nemáme.
+- **Rozběh motoru magnetofonu = 50 ms ticha při nahrávání.** Navazující záznamy (`.K_A` a `.K_S`) jinak
+  dělaly fázový skok, který fázový dekodér četl jako start bit. Skutečný magnetofon se také chvíli rozbíhá.

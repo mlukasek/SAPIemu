@@ -82,6 +82,9 @@ static const ParamOption k_block[] = {
 static const ParamOption k_rem1_roms[] = {
     { "\"roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin\"", "MIKROBASIC 2.4 (ZPS-1)", "MIKROBASIC 2.4 (ZPS-1)" },
     { "\"roms/mikrobasic/MIKROBASIC_AR1983_1k.bin\"", "MIKROBASIC AR/B 1983", "MIKROBASIC AR/B 1983" },
+    { "\"roms/mikos/MIKOS_V4.0F_ANK-1.bin\"", "Monitor V4.0F + MIKOS 4.0F (ANK-1)", "Monitor V4.0F + MIKOS 4.0F (ANK-1)" },
+    { "\"roms/mikos/MIKOS_V4.0D_ANK-1.bin\"", "Monitor V4.0C + MIKOS 4.0D (ANK-1)", "Monitor V4.0C + MIKOS 4.0D (ANK-1)" },
+    { "\"roms/mikos/MIKOS_V4.1F_Consul.bin\"", "Monitor V4.1F + MIKOS 4.0F (Consul)", "Monitor V4.1F + MIKOS 4.0F (Consul)" },
     { "\"\"", "empty sockets", "prázdné patice" },
     { nullptr, nullptr, nullptr },
 };
@@ -93,6 +96,21 @@ static const CardParam k_rem1[] = {
       k_block, 0, 0 },
     { "ram_block", PK_CHOICE, "Jumper R: RAM block", "Propojka R: blok RAM", "2", k_block, 0, 0 },
     { "ram_kb", PK_INT, "RAM fitted (KB, 2 per 4x 2114)", "Osazená RAM (KB, 2 na 4x 2114)", "2", nullptr, 0, 8 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// RAM-1
+static const ParamOption k_ram1_kb[] = {
+    { "16", "RAM-1/16K (one row of 4116)", "RAM-1/16K (jedna řada 4116)" },
+    { "32", "RAM-1/32K", "RAM-1/32K" },
+    { "48", "RAM-1/48K", "RAM-1/48K" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_ram1[] = {
+    { "fitted_kb", PK_CHOICE, "Fitted memory", "Osazená paměť", "48", k_ram1_kb, 0, 0 },
+    { "s1", PK_BOOL, "S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)",
+      "S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)", "true", nullptr, 0, 0 },
+    { "s2", PK_BOOL, "S2", "S2", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -326,7 +344,7 @@ CARD(c_jpr1zi, "JPR-1ZI", "JPR", "CPU card Z80 (new design)", "Procesorová desk
 CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, false, k_cpu_basic)
 // memory
 CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM", CC_MEMORY, 1, true, k_rem1)
-CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 KB", CC_MEMORY, 1, false, nullptr)
+CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 KB", CC_MEMORY, 1, true, k_ram1)
 CARD(c_ram1a, "RAM-1A", "RAM", "Dynamic RAM up to 48 KB \"A\"", "Dynamická RAM až 48 KB \"A\"", CC_MEMORY, 1, false,
      nullptr)
 CARD(c_ram1z, "RAM-1Z", "RAM", "Dynamic RAM up to 64 KB", "Dynamická RAM až 64 KB", CC_MEMORY, 1, false, nullptr)

@@ -9,6 +9,7 @@ using nlohmann::json;
 
 static const uint32_t TAPE_BAUD = 2400;
 static const int16_t TAPE_AMPLITUDE = 12000;
+static const double TAPE_RUNUP_S = 0.05;   // the tape gets to speed after the motor starts
 static const uint32_t k_bauds[] = { 50, 75, 110, 150, 300, 600, 1200, 2400, 4800, 9600 };
 
 Dsm1::Dsm1() : Card("DSM-1")
@@ -107,13 +108,22 @@ void Dsm1::tape_run(uint64_t now)
 {
     uint64_t t0 = tape_time;
     tape_time = now;
-    if (now <= t0 || !motor_on()) return;
+    if (!motor_on()) {
+        moving = false;
+        return;
+    }
+    if (!moving) {   // the motor starts: nothing usable is recorded until the tape runs at speed
+        moving = true;
+        runup = deck.rate * TAPE_RUNUP_S;
+    }
+    if (now <= t0) return;
     double cps = (double)deck.rate / bus->cpu_hz;   // tape samples per CPU cycle
     double p0 = deck.pos, p1 = p0 + (double)(now - t0) * cps;
     if (deck.mode == TapeDeck::PLAY) {
         double end = (double)deck.samples.size();
         if (p1 > end) p1 = end;   // the end of the tape: the motor runs, nothing moves
         deck.pos = p1;
+        runup = 0;
         if (cassette() && (modem_ctrl & 0x08)) tape_receive(p0, p1);
         else rx_scan = p1;
     } else if (deck.mode == TapeDeck::RECORD) {
@@ -171,6 +181,11 @@ void Dsm1::tape_record(double p0, double p1, uint64_t t0, uint64_t t1)
     double bitc = uart.bit_cycles();
     double cycles_per_sample = (double)(t1 - t0) / (p1 - p0);
     for (double i = ceil(p0); i < p1; i += 1.0) {
+        if (runup > 0) {   // a splice between two recordings: silence, so the reader starts anew
+            deck.write(i, i + 1, 0);
+            runup -= 1.0;
+            continue;
+        }
         double t = (double)t0 + (i - p0) * cycles_per_sample;
         int level = 1;
         for (const Mhb1012::TxChar& c : tx_chars) {
@@ -226,7 +241,9 @@ bool Dsm1::io_write(uint8_t port, uint8_t data)
     switch (port & 3) {
     case 0:
         if ((data ^ modem_ctrl) & 0x20) LOGD("%s: recorder relay %s", name.c_str(), (data & 0x20) ? "on" : "off");
+        advance(bus->now);    // the tape up to now belongs to the old state
         set_mode(data);
+        tape_run(bus->now);   // notes a motor start
         break;
     case 1: uart.write_control(data); break;
     case 2: uart.write_data(data); break;
