@@ -9,3 +9,10 @@ public:
     void describe(nlohmann::json& out) override { out["emulated"] = false; }
     bool decode_known() override { return false; }
 };
+
+// A board without any function on the bus (BDK-1, the prototyping board left
+// empty for the user's own wiring): it only occupies its slot.
+class BlankCard : public Card {
+public:
+    explicit BlankCard(const std::string& t) : Card(t.c_str()) {}
+};

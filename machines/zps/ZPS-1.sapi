@@ -43,7 +43,7 @@
         },
         {
             "slot": 5,                      // position X5
-            "type": "BDK-1"                 // Universal board
+            "type": "BDK-1"                 // Prototyping board (empty, no function)
         }
     ]
 }

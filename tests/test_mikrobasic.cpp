@@ -34,10 +34,8 @@ static void zps1(void)
     CHECK(file_read_text(data_path("machines/zps/ZPS-1.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);
     std::vector<CfgProblem> pr = machine_all_problems(cfg);
-    for (const CfgProblem& p : pr) {
-        if (p.error) fprintf(stderr, "ZPS-1: %s\n", p.en.c_str());
-        CHECK(!p.error);   // DSM-1, BDK-1 not emulated yet: warnings only
-    }
+    for (const CfgProblem& p : pr) fprintf(stderr, "ZPS-1: %s\n", p.en.c_str());
+    CHECK(pr.empty());   // all cards of ZPS-1 are emulated (BDK-1 has no function)
 }
 
 static void ar1983(void)

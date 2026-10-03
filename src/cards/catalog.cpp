@@ -381,7 +381,8 @@ CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_
 // I/O
 CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports", "Paralelní porty", CC_IO, 1, false, nullptr)
 CARD(c_rtc1, "RTC-1", "RTC", "Real time clock and timer", "Reálný čas a čítač", CC_IO, 1, false, nullptr)
-CARD(c_bdk1, "BDK-1", "BDK", "Universal board", "Univerzální deska", CC_OTHER, 1, false, nullptr)
+CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldeska (prázdná, bez funkce)", CC_OTHER, 1,
+     true, nullptr)
 
 const std::vector<const CardInfo*>& card_catalog(void)
 {

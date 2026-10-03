@@ -344,3 +344,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **PROM D1A z RAM-1 se generuje z tabulky 1 manuálu.** Dump zatím nemáme.
 - **Rozběh motoru magnetofonu = 50 ms ticha při nahrávání.** Navazující záznamy (`.K_A` a `.K_S`) jinak
   dělaly fázový skok, který fázový dekodér četl jako start bit. Skutečný magnetofon se také chvíli rozbíhá.
+
+## 2026-10-03 – BDK-1
+
+- **BDK-1 (bastldeska) je emulovaná jako prázdná karta** (autor). Je to vyvrtaná DPS pro vlastní zapojení
+  uživatele, bez funkce. V ZPS-1 a ZPS-2 zůstává kvůli úplnosti, na sběrnici nic nedělá a jen zabírá slot.
