@@ -377,3 +377,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **HLR nezávisí na vložené disketě** (monostabilní obvod po 3Dh). EBIOS na HLR čeká bez limitu a bez diskety
   by systém zamrzl místo hlášky „NELZE ZAVEST DISKOVY SYSTEM“.
 - **Nová disketa = celá E5h** (naformátovaná, prázdný adresář CP/M). Formátování přes RPD-1 EBIOS neumí.
+
+## 2026-10-03 – Dekodéry z PROM jako vyměnitelné soubory
+
+- **Autor:** PROM dekodérů v SAPI sloužily k tomu, aby si uživatel změnil adresování. Kde nestačily
+  propojky, osadila se jiná PROM. Zatím platí, co najdeme, ale do budoucna může být potřeba kartu adresovat
+  jinde.
+- **Proto:** u každé karty s dekodérem v PROM je obsah PROM parametrem (soubor v `roms/`, `PK_FILE`
+  s návrhy). Výchozí je dump nebo tabulka z návodu. Kód karty z PROM jen čte vstupy a výstupy podle zapojení
+  ze schématu a nemá v sobě natvrdo rozsahy adres. Týká se JPR-1A D2C, AND-1A D3A, RAM-1/RAM-1A D1A
+  (RAM-1 se z generované tabulky převede na soubor) a dalších karet.
