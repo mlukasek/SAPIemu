@@ -200,6 +200,18 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - **Pozorování autora (2026-10-04, GUI, ZPS-4):** jednou se systém zasekl a ve stavovém řádku přibývaly
       neobsloužené klávesy. Mohl to být i software. Zatím nevyhodnocovat, potřebuje to víc testování.
 
+**Odpovědi autora k deskám V (2026-10-04)**, platí pro body 21 a 22:
+- Do složek s podklady (`..\JPR-1V` atd.) doplnil **fotky hotových desek s výchozími propojkami** a do
+  `..\ZRD-1V` **PDF schématu**.
+- **JPR-1V:** 28C64 nemá, programuje si ho dynamicky (PicoROM). Rozhodnutí: **banka 0 = MikroBIOS 3.0,
+  banka 1 = ECMON IDE-1**.
+- **AND-1V:** rev 2.3, font neví. U něj je nastavená na **MAP1 = L** kvůli CGA-1V (deska přijde později).
+- **RAM-1V:** rev 1.1, patice C prázdná. RTC Timekeeperu emulovat **volitelně** (parametr).
+- **DSM-1V:** kanály na **10h a 14h, oba 115200 Bd**.
+- **ECMON ani CP/M mapování nepoužívají.**
+- **MikroBIOS (binárka) a fonty AND-1V smí do repa**, zdroje ne.
+- Drobnosti (TURBO, oscilátor, bit 5 DSM-1V, polovina fontu rev 1.1) neví.
+
 21. **Desky V – JPR-1V a AND-1V** (rozbor `docs/desky/JPR-1V.md`, `AND-1V.md`):
     - Který obraz EEPROM máš v JPR-1V a ve které bance (propojka BIOS osazená/rozpojená) je ECMON IDE-1 a
       MikroBIOS 3.0? Šel by dump 28C64?
@@ -243,6 +255,14 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
    - Porovnat s emulovanými JPR-1ZI/1Z, AND-1Z-89, RAM-1/1A, DSM-1 a ZRMD-1. Výsledek a otázky zapsat do
      `docs/desky/`.
    - Autor: na deskách V běží systém ze ZRMD-1 (ECMON + CP/M) a funguje s nimi boot ROM i IDE-1. Mapování
-     dělá RAM-1V, ZRD-1V ho nemá. Otevřené otázky ke ZPS-3/4 jsou v bodech
+     dělá RAM-1V, ZRD-1V ho nemá.
+   - **Rozbor je hotový** (`docs/desky/JPR-1V.md`, `AND-1V.md`, `RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`) a autor
+     odpověděl (viz „Odpovědi autora k deskám V“ v nejasnostech).
+   - **Další krok:**
+     - z fotek desek přečíst výchozí propojky, z PDF ZRD-1V ověřit reset a čitelnost 61h–63h;
+     - implementovat JPR-1V, AND-1V (rev 2.3), RAM-1V (s generátorem MAP a volitelným RTC v C), DSM-1V,
+       opravit ZRD-1V (pryč `map_jp2`);
+     - sestava V s ECMON a CP/M ze ZRD-1V a IDE-1.
+   - Zdroje MikroBIOSu jsou v `H:\SAPI-1\LiborLasota\JPR-1V\@orig\JPR-1V_monitor.zip` (do repa jen HEX/BIN). Otevřené otázky ke ZPS-3/4 jsou v bodech
    19 a 20. Zbývá originální IMA CP/M 48K, k tomu chybí
    disketa (bod 19), a varianty 62K/64K. Podklady jsou v `docs/software/CPM_ZPS-3.md`.

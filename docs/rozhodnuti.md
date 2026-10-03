@@ -421,3 +421,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Na deskách V běží stejný systém jako se ZRMD-1 (ECMON, CP/M z RAM disku) a funguje s nimi boot ROM i IDE-1.
 - Informace: podklady v `..\JPR-1V`, `..\RAM-1V`, `..\AND-1V`, `..\DSM-1V`, `..\ZRD-1V` a
   https://www.pmd85.cz/?page_id=292. Další doplní autor.
+
+## 2026-10-04 – Desky V: odpovědi autora
+
+- **JPR-1V:** banka 0 EEPROM = MikroBIOS 3.0, banka 1 = ECMON IDE-1 (autor si ROM programuje dynamicky přes
+  PicoROM, skutečný obsah 28C64 nemá).
+- **AND-1V:** emulovat rev 2.3. Autor ji má na MAP1 = L kvůli budoucí CGA-1V. ECMON ani CP/M mapování
+  nepoužívají, výchozí sestava může mít MAP ignorovaný nebo L.
+- **RAM-1V:** rev 1.1, RTC Timekeeperu v patici C volitelně.
+- **DSM-1V:** výchozí kanály 10h a 14h, oba 115200 Bd.
+- **Do repa:** binárka MikroBIOS 3.0 a fonty AND-1V ano, zdroje ne.
