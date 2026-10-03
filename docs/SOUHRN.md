@@ -258,8 +258,10 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
      dělá RAM-1V, ZRD-1V ho nemá.
    - **Rozbor je hotový** (`docs/desky/JPR-1V.md`, `AND-1V.md`, `RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`) a autor
      odpověděl (viz „Odpovědi autora k deskám V“ v nejasnostech).
+   - **Hotovo:** JPR-1V (typ JPR-1ZI, banky EEPROM propojkou BIOS, osc 8 MHz, TURBO), `roms/jpr-1v` (banka 0
+     MikroBIOS 3.0, banka 1 ECMON IDE-1), `roms/and-1v` (fonty). Ověřeno: obě banky naběhnou se ZRMD-1.
    - **Další krok:**
-     - z fotek desek přečíst výchozí propojky, z PDF ZRD-1V ověřit reset a čitelnost 61h–63h;
+     - z fotek desek přečíst výchozí propojky (běží agent), z PDF ZRD-1V ověřit reset a čitelnost 61h–63h;
      - implementovat JPR-1V, AND-1V (rev 2.3), RAM-1V (s generátorem MAP a volitelným RTC v C), DSM-1V,
        opravit ZRD-1V (pryč `map_jp2`);
      - sestava V s ECMON a CP/M ze ZRD-1V a IDE-1.

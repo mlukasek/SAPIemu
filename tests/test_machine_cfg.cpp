@@ -148,13 +148,14 @@ static void test_placeholders(void)
         Machine m;
         CHECK(!m.load_json(cfg, err));
     }
-    // CPU cards that are not emulated cannot run
+    // a machine without a CPU card cannot run (all CPU cards of the catalog are emulated now)
     cfg["cards"][4]["slot"] = 5;
-    cfg["cards"][0]["type"] = "JPR-1V";
     {
+        json nocpu = cfg;
+        nocpu["cards"].erase(0);
         Machine m;
-        CHECK(!m.load_json(cfg, err));
-        CHECK(err.find("not emulated") != std::string::npos);
+        CHECK(!m.load_json(nocpu, err));
+        CHECK(err.find("no CPU card") != std::string::npos);
     }
     // the non-CPU slot X1 rule
     json bad = { { "cards", { { { "slot", 1 }, { "type", "DMR-1" } } } } };

@@ -165,7 +165,7 @@ int main(void)
     r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-4.sapi" } });
     json zps = json::parse(text_of(r));
     CHECK(zps["runnable"] == true);
-    zps["config"]["cards"][0]["type"] = "JPR-1V";   // a CPU card not emulated yet
+    zps["config"]["cards"].erase(0);   // without a CPU card the machine cannot run
     r = tool(s, "set_machine_config", { { "config", zps["config"] } });
     CHECK(json::parse(text_of(r))["started"] == false);
     r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/x.txt" }, { "start", false } });
