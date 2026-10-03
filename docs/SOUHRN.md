@@ -111,7 +111,6 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     Firmware EKL-1 posílá české znaky s prohozenou velikostí, ECMON ji vrací, MikroMon ne.
 15. **JPR-1 a ZPS-1:**
     - Které RST dává 3214 pro kterou úroveň (předpoklad RST 7 − úroveň) a význam bitů zápisu na 3000h.
-    - Který bit P0-OUT svítí LED ERR na ANK-1 (předpoklad D7).
     - Co CPU čte z prázdných patic JPR-1 a REM-1 (emulace: FFh).
     - AND-1: skládání sloupců 32–63 do 1 KB VRAM (D4C), frekvence blikání, fotka obrazovky pro kontrolu
       překresleného fontu MHB 2501.

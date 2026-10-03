@@ -19,7 +19,7 @@ Zdroje (`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI
 | Adresa | Funkce |
 |---|---|
 | 2000–23FF | RAM 1 KB (2× 2114), v ZPS-1 neosazená |
-| 2400–27FF | P0: IN čte sloupce ANK-1, OUT řádky D4–D0, D5 LED SHIFT, D6 bzučák, D7 LED ERR (?) |
+| 2400–27FF | P0: IN čte sloupce ANK-1, OUT řádky D4–D0, D5 LED SHIFT, D6 bzučák, D7 LED ERR (příloha VII manuálu ANK-1) |
 | 2800–2BFF | P1: IN D7 klávesa INT, D6 klávesa T; OUT D7 LED na desce |
 | 2C00–2FFF | P2: IN požadavky přerušení (R0 = /INT0, R1 = /INT1, R7 = klávesa INT), OUT tiskárna |
 | 3000–33FF | zápis do 3214 (/ECS) |
@@ -45,6 +45,5 @@ Zdroje (`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI
 ## Nejasnosti
 
 - Které RST dá která úroveň 3214 (odvozeno `RST 7 − úroveň`) a význam bitů zápisu na 3000h (D0–D2 stav, D3 SGS).
-- Který bit P0-OUT ovládá LED ERR na ANK-1 (předpoklad D7).
 - Manuál uvádí 2. pozici 2708 na 0400, dekodér pro 2716 dává 0800 (emulace: 2708 po 1 KB, 2716 po 2 KB).
 - Co CPU čte z prázdných patic a z 3000h (emulace: prázdné patice = sběrnice, 3000h = FFh).
