@@ -104,7 +104,8 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     case SDLK_F8: app.host.turbo = !app.host.turbo; return;
     case SDLK_F10: debug_step(app, true); return;
     case SDLK_F11: debug_step(app, false); return;
-    case SDLK_F9: if (m) m->reset(); return;   // not F12: Windows reserves it as debugger break key
+    case SDLK_F12:   // under a debugger Windows takes F12 as the break hotkey, F9 still works
+    case SDLK_F9: if (m) m->reset(); return;
     default: break;
     }
     if (!m) return;
@@ -137,7 +138,7 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Machine"))) {
-        if (ImGui::MenuItem(tr("Reset"), "F9") && m) m->reset();
+        if (ImGui::MenuItem(tr("Reset"), "F12 / F9") && m) m->reset();
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         ImGui::MenuItem(tr("Turbo"), "F8", &app.host.turbo);
         ImGui::EndMenu();
@@ -168,7 +169,7 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
-        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 turbo, F10 step over, F11 step, F9 reset"));
+        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 turbo, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
         if (app.mcp && app.mcp->running()) {
