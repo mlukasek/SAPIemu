@@ -152,3 +152,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   Režimy `raw` a `auto` zůstávají volitelné.
 - **TCP server na loopbacku poslouchá i na IPv6 `::1`.** `telnet localhost 2323` ve Windows zkouší nejdřív
   IPv6 a se samotným IPv4 se nepřipojil.
+
+## 2026-10-03 – DCD a CTS zvlášť, doba přenosu přijímaného znaku
+
+- **CTS/DSR jsou samostatné, nezávislé na DCD.** DOPC10.COM (přenos XMODEM s řízením RTS/CTS) čekal
+  na CTS, které bylo svázané s volbou „Terminál připojen (DCD)“. Tu autor měl vypnutou, aby konzole ECMON
+  zůstala na obrazovce. Na skutečné lince jde o dva signály: DCD volí konzoli, CTS povoluje vysílání.
+  CTS je ve výchozím stavu aktivní (`cts` v DMR-1, okno terminálu, MCP).
+- **Přijímaný znak je v SAPI k dispozici až po době svého přenosu po lince** (start, data, stop bity).
+  Dřív se objevil okamžitě. DOPC po odvysílání paketu vyprázdní přijímač, takže okamžité ACK zahodil
+  a čekal do timeoutu. Teď ACK přijde až po 1 ms (9600 Bd), jako na skutečném drátě.

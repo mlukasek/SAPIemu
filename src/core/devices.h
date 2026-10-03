@@ -75,10 +75,13 @@ class SerialChannel {
 public:
     explicit SerialChannel(const std::string& n) : name(n) {}
     std::string name;
-    // A terminal is connected on the host side: drives the modem inputs
-    // (DCD/CTS/DSR active). Software such as MikroMon or ECMON uses DCD to decide
-    // whether to use the serial console.
-    std::atomic<bool> connected{ true };
+    // A terminal is connected on the host side (DCD active). Software such as
+    // MikroMon or ECMON uses DCD to decide whether to use the serial console.
+    std::atomic<bool> connected{ true };   // DCD
+    // The terminal is ready to receive: CTS and DSR active. Independent of DCD:
+    // e.g. ECMON with the console on the screen (DCD inactive) still sends files
+    // with RTS/CTS handshake (DOPC.COM) and waits for CTS.
+    std::atomic<bool> cts{ true };
     // Host side never sends faster than SAPI reads: the next character is
     // delivered only after the previous one was taken (no overrun). Off = like a
     // real terminal sending at full line speed (characters may be lost).

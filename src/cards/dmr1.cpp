@@ -39,6 +39,7 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     baud = (uint32_t)v;
     if (!cfg_bool(cfg, "int0", int_enabled, true, err)) return false;
     if (!cfg_bool(cfg, "connected", connected_default, true, err)) return false;
+    if (!cfg_bool(cfg, "cts", cts_default, true, err)) return false;
     std::string flow;
     if (!cfg_string(cfg, "flow_control", flow, "none", err)) return false;
     if (flow != "none" && flow != "rts_cts") { err = "flow_control must be none or rts_cts"; return false; }
@@ -48,6 +49,7 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     snprintf(buf, sizeof(buf), "%s@%02Xh", name.c_str(), base);
     serial.reset(new SerialChannel(buf));
     serial->connected = connected_default;
+    serial->cts = cts_default;
     serial->baud = (int)baud;
     if (cfg.contains("serial")) {
         serial->bridge_cfg = cfg["serial"];
@@ -117,7 +119,8 @@ bool Dmr1::io_read(uint8_t port, uint8_t& data)
         // modem status: b7 CTS, b6 DSR, b5 DCD (active = 0), b4 RI (raw RxD, idle = 1),
         // b3 PE, b2 FE, b1 OE, b0 INTR
         uint8_t v = 0;
-        if (!serial->connected) v |= 0xE0;   // CTS, DSR, DCD inactive
+        if (!serial->cts) v |= 0xC0;         // CTS, DSR inactive (terminal not ready)
+        if (!serial->connected) v |= 0x20;   // DCD inactive (no terminal)
         v |= 0x10;
         if (uart.pe) v |= 0x08;
         if (uart.fe) v |= 0x04;
@@ -168,4 +171,5 @@ void Dmr1::describe(json& out)
     out["uart_base"] = buf;
     out["baud"] = baud;
     out["terminal_connected"] = (bool)serial->connected;
+    out["cts"] = (bool)serial->cts;
 }

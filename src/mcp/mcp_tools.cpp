@@ -200,7 +200,8 @@ json t_machine_info(EmuHost& h, const json&)
         for (auto& b : m.bridges)
             if (b->channel == m.serials[i]) br.push_back(b->describe());
         serials.push_back(json{ { "channel", i }, { "name", m.serials[i]->name },
-                                { "terminal_connected", (bool)m.serials[i]->connected }, { "host_connections", br } });
+                                { "terminal_connected", (bool)m.serials[i]->connected }, { "cts", (bool)m.serials[i]->cts },
+                                { "host_connections", br } });
     }
     json j = state_json(h);
     j["emulator"] = std::string("SAPIemu ") + sapiemu_version();
@@ -596,10 +597,11 @@ json t_serial_set_connected(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
     SerialChannel* ch = serial_arg(m, a);
-    if (!a.contains("connected")) throw ToolError{ "missing argument 'connected'" };
-    ch->connected = arg_bool(a, "connected", true);
-    return text_result(ch->name + std::string(ch->connected ? ": terminal connected (DCD active)"
-                                                            : ": terminal disconnected (DCD inactive)"));
+    if (!a.contains("connected") && !a.contains("cts")) throw ToolError{ "give 'connected' (DCD) and/or 'cts'" };
+    if (a.contains("connected")) ch->connected = arg_bool(a, "connected", true);
+    if (a.contains("cts")) ch->cts = arg_bool(a, "cts", true);
+    return text_result(ch->name + std::string(ch->connected ? ": DCD active" : ": DCD inactive") +
+                       std::string(ch->cts ? ", CTS/DSR active" : ", CTS/DSR inactive"));
 }
 
 Ide1* find_ide1(Machine& m)
@@ -721,8 +723,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"text":{"type":"string"},"channel":{"type":"integer","default":0}},"required":["text"]})", t_serial_send },
     { "serial_receive", "Read data the SAPI sent on a serial channel since the last serial_receive.",
       R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"max_bytes":{"type":"integer","default":4096},"hex":{"type":"boolean","default":false}}})", t_serial_receive },
-    { "serial_set_connected", "Connect or disconnect the virtual terminal on a serial channel (modem lines DCD/CTS/DSR). Monitors such as ECMON pick the serial console at boot when DCD is active.",
-      R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"connected":{"type":"boolean"}},"required":["connected"]})", t_serial_set_connected },
+    { "serial_set_connected", "Modem input lines of a serial channel: connected = DCD (ECMON and MikroMon pick the serial console at boot when DCD is active), cts = CTS/DSR (terminal ready; programs sending with RTS/CTS handshake such as DOPC.COM wait for it).",
+      R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"connected":{"type":"boolean"},"cts":{"type":"boolean"}}})", t_serial_set_connected },
     { "pmd32_images", "PMD32-SD floppy emulator (on IDE-1): inserted images of drives A-D and image files available on the SD card directory.",
       S_NONE, t_pmd32_images },
     { "pmd32_mount", "Insert an image into a PMD32-SD drive (A-D; in SAPI CP/M A = D:, B = E:), or eject it with an empty image name. The image type must be listed in images.cfg.",

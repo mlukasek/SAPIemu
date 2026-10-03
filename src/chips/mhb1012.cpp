@@ -18,6 +18,7 @@ void Mhb1012::reset(uint64_t now)
     tbre = true;
     pe = fe = oe = false;
     tsr_busy = false;
+    rx_busy = false;   // a character being received is lost
     rx_ready_at = now;
 }
 
@@ -59,16 +60,24 @@ void Mhb1012::advance(uint64_t now, SerialChannel* ch, bool rx_allowed)
         tsr_busy = true;
         tx_done_at = now + (uint64_t)char_cycles();
     }
-    // receiver: one character per character time
-    if (ch && rx_allowed && now >= rx_ready_at && !(ch->pacing && dr)) {
+    // receiver: a character taken from the host is on the line for one character
+    // time (start bit .. stop bits) before DR is set
+    if (rx_busy && now >= rx_done_at) {
+        rx_busy = false;
+        oe = dr;   // previous character not read yet: overrun
+        uint8_t mask = (uint8_t)((1u << word_bits) - 1);
+        rx_data = rx_shift & mask;
+        dr = true;
+        fe = pe = false;
+    }
+    if (!rx_busy && ch && rx_allowed && !(ch->pacing && dr)) {
         uint8_t b;
         if (ch->from_host(b)) {
-            if (dr) oe = true; else oe = false;
-            uint8_t mask = (uint8_t)((1u << word_bits) - 1);
-            rx_data = b & mask;
-            dr = true;
-            fe = pe = false;
-            rx_ready_at = now + (uint64_t)char_cycles();
+            rx_shift = b;
+            rx_busy = true;
+            uint64_t start = now > rx_ready_at ? now : rx_ready_at;
+            rx_done_at = start + (uint64_t)char_cycles();
+            rx_ready_at = rx_done_at;
         }
     }
 }

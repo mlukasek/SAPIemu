@@ -153,6 +153,11 @@ void draw_terminal(UiState& ui)
     ImGui::SameLine();
     bool conn = ch->connected;
     if (ImGui::Checkbox(tr("Terminal connected (DCD)"), &conn)) ch->connected = conn;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("ECMON and MikroMon use the serial console at boot when DCD is active."));
+    ImGui::SameLine();
+    bool cts = ch->cts;
+    if (ImGui::Checkbox(tr("Ready (CTS)"), &cts)) ch->cts = cts;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("CTS/DSR: the terminal is ready to receive. Programs sending with RTS/CTS handshake (DOPC.COM, MikroMon USYNC) wait for it."));
     ImGui::SameLine();
     if (ImGui::Button(tr("Clear"))) { t.lines.clear(); t.row = t.col = 0; }
     const char* emus[] = { tr("SAPI (ECMON/AND-1Z)"), "ANSI/VT100", tr("No emulation (^X)") };

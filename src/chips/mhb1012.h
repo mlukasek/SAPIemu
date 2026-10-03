@@ -37,5 +37,8 @@ private:
     uint8_t tsr = 0;          // transmit shift register
     bool tsr_busy = false;
     uint64_t tx_done_at = 0;
-    uint64_t rx_ready_at = 0; // earliest time the next received character is complete
+    uint64_t rx_ready_at = 0; // end of the last character on the receive line
+    bool rx_busy = false;     // a character is being received
+    uint8_t rx_shift = 0;
+    uint64_t rx_done_at = 0;
 };

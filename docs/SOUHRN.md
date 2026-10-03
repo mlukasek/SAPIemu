@@ -17,7 +17,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **Ovládání** v okně Sériový terminál (spustit/zastavit TCP, otevřít COM). Stav připojení je i v MCP
   `machine_info`.
 - **Sestavy:** CP/M sestavy mají TCP 2323 zapnuté; u MikroMonu je příklad zakomentovaný.
-- **Test:** `test_serial_tcp` (raw i telnet, DCD, MikroMon s USYNC). Celkem 13 testů.
+- **DCD a CTS jsou samostatné** („Terminál připojen (DCD)“ volí konzoli, „Připraven (CTS)“ povoluje
+  vysílání s řízením RTS/CTS). Přijímaný znak má dobu přenosu po lince.
+- **XMODEM:** DOPC10.COM přenese soubor do PC (TeraTerm) i s konzolí na obrazovce.
+- **Testy:** `test_serial_tcp` (raw i telnet přes IPv4/IPv6, DCD, MikroMon s USYNC) a `test_xmodem`
+  (DOPC10 → přijímač XMODEM). Celkem 14 testů.
 - **Návod:** `docs/seriova-linka.md`.
 
 Fáze F4 (IDE-1 s IDE diskem a PMD32-SD, okno Média) je hotová a ověřená autorem.

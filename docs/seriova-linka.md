@@ -58,10 +58,23 @@ Totéž jde v okně terminálu tlačítkem **Otevřít COM port**.
 
 | Volba | Kde | Význam |
 |---|---|---|
-| Terminál připojen (DCD) | okno terminálu, `connected` v DMR-1, MCP `serial_set_connected` | Aktivní DCD/CTS/DSR. Software podle toho volí konzoli. |
+| Terminál připojen (DCD) | okno terminálu, `connected` v DMR-1, MCP `serial_set_connected` | Aktivní DCD. ECMON a MikroMon podle něj při startu volí konzoli (sériová linka, nebo obrazovka). |
+| Připraven (CTS) | okno terminálu, `cts` v DMR-1 (výchozí zapnuto), MCP `serial_set_connected` `cts` | Aktivní CTS a DSR: terminál je připraven přijímat. Programy vysílající s řízením RTS/CTS (DOPC.COM, MikroMon `USYNC`) na něj čekají. Nezávisí na DCD, takže přenos funguje i s konzolí na obrazovce. |
 | DCD = klient připojen | okno terminálu, `serial.tcp.dcd_follows` | DCD sleduje připojení TCP klienta. |
 | Bez přetečení | okno terminálu, `serial.pacing` (výchozí zapnuto) | PC pošle další znak až po přečtení předchozího. Bez toho se při vložení delšího textu znaky ztrácí (overrun), přesně jako na skutečné lince bez řízení toku. |
 | Řízení toku RTS/CTS | `flow_control: "rts_cts"` v DMR-1 | PC posílá, jen když SAPI drží RTS (bit 0 registru modemu) aktivní. |
+
+## Přenos souborů XMODEM (DOPC / DOCPM)
+
+Postup pro přenos ze SAPI do PC s DOPC10.COM a TeraTermem:
+1. Konzole může zůstat na obrazovce (DCD neaktivní). **CTS musí být aktivní** („Připraven (CTS)“, výchozí stav).
+2. V CP/M spustit `DOPC10 SOUBOR.EXT`. Program vypíše „Soubor otevren“ a čeká na přijímač.
+3. V TeraTermu File → Transfer → XMODEM → Receive, protokol Checksum.
+4. Pro binární přenosy je bezpečnější TCP v režimu **raw** (TeraTerm „Other“). Telnet funguje také,
+   emulátor vyjedná BINARY a znak FFh zdvojuje.
+
+Ověřeno testem `test_xmodem`: DOPC10 přenese TD.MAC (40 paketů) bez chyb. První paket se na začátku může
+jednou opakovat, to XMODEM řeší sám.
 
 ## Poznámky k softwaru
 
