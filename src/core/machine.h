@@ -57,9 +57,12 @@ public:
     bool load_ihex_text(const std::string& text, std::string& err, int* bytes = nullptr);
     bool load_binary(const std::string& path, uint16_t addr, std::string& err, int* bytes = nullptr);
 
-    // Keyboard input (host text in UTF-8, converted to SAPI codes).
+    // Keyboard input: host text in UTF-8 (the keyboard converts it to its codes
+    // or key presses), keys without text (HostKey, HostMod).
     bool type_text(const std::string& utf8);
-    bool type_code(uint8_t code);
+    bool host_key(int key, int mods);
+    // Plug another keyboard (name from keyboard_presets()) into the CPU card.
+    bool set_keyboard(const std::string& preset, std::string& err);
 
     void flush(void);   // persist RAM disks etc.
 

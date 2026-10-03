@@ -20,6 +20,8 @@
 #include "core/log.h"
 #include "core/util.h"
 #include "core/version.h"
+#include "input/keyboards.h"
+#include "input/parallel_kbd.h"
 #include "mcp/mcp_server.h"
 
 namespace {
@@ -49,6 +51,7 @@ struct App {
     bool integer_scale = true;
     bool tv_aspect = false;
     bool smooth = false;          // linear filtering of the screen texture
+    char suppress_text = 0;       // text event of a keypad key already sent as a key
     std::string ini_path;
 };
 
@@ -108,17 +111,31 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     case SDLK_F9: if (m) m->reset(); return;
     default: break;
     }
+    app.suppress_text = 0;
     if (!m) return;
-    int code = keymap_special(ev.key, ev.mod);
-    if (code < 0) return;
-    if (terminal_key(app.ui, code)) return;
-    if (app.ui.screen_focused) m->type_code((uint8_t)code);
+    int hk = keymap_host_key(ev.key);
+    int mods = keymap_mods(ev.mod);
+    int ctrl = keymap_ctrl_code(ev.key, ev.mod);
+    // serial terminal: the EKL-1 (WordStar) codes of the cursor keys
+    int tcode = ctrl >= 0 ? ctrl : (hk != HK_NONE ? wordstar_code(hk, mods) : -1);
+    if (tcode >= 0 && terminal_key(app.ui, tcode)) return;
+    if (!app.ui.screen_focused) return;
+    if (ctrl >= 0) {
+        char c[2] = { (char)ctrl, 0 };
+        m->type_text(c);
+    } else if (hk != HK_NONE && m->host_key(hk, mods)) {
+        // a keypad key the keyboard has itself (Consul 262.3): drop its text event
+        app.suppress_text = keymap_keypad_text(ev.key, ev.mod);
+    }
 }
 
 void handle_text(App& app, const char* text)
 {
     Machine* m = app.host.machine();
+    char sup = app.suppress_text;
+    app.suppress_text = 0;
     if (!m) return;
+    if (sup && text[1] == 0 && (text[0] == sup || (sup == '.' && text[0] == ','))) return;
     if (terminal_text(app.ui, text)) return;
     if (app.ui.screen_focused) m->type_text(text);
 }
@@ -141,6 +158,21 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Reset"), "F12 / F9") && m) m->reset();
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         ImGui::MenuItem(tr("Turbo"), "F8", &app.host.turbo);
+        ImGui::Separator();
+        KeyboardDevice* kb = m ? m->keyboard() : nullptr;
+        if (ImGui::BeginMenu(tr("Keyboard"), m != nullptr)) {
+            for (const KeyboardPreset& p : keyboard_presets()) {
+                bool sel = kb && strcmp(kb->type_name(), p.name) == 0;
+                if (ImGui::MenuItem(p.name, nullptr, sel) && !sel) {
+                    std::string err;
+                    if (!m->set_keyboard(p.name, err)) {
+                        app.error_text = std::string(tr("Cannot change the keyboard")) + ":\n" + err;
+                        app.show_error = true;
+                    }
+                }
+            }
+            ImGui::EndMenu();
+        }
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Debug"))) {
@@ -189,7 +221,9 @@ void draw_menu(App& app)
     if (m) {
         const char* state = app.host.paused ? (app.host.status.empty() ? tr("Paused") : app.host.status.c_str())
                                             : (app.host.turbo ? tr("Turbo") : "");
-        snprintf(st, sizeof(st), "%s  %s  %.2f MHz  %3.0f %%", state,
+        KeyboardDevice* kb = m->keyboard();
+        std::string ks = kb ? kb->status() : std::string();
+        snprintf(st, sizeof(st), "%s  %s  %s  %.2f MHz  %3.0f %%", ks.c_str(), state,
                  (app.mcp && app.mcp->running()) ? "MCP" : "", m->bus.cpu_hz / 1e6, app.host.speed_percent);
     }
     float w = ImGui::CalcTextSize(st).x + ImGui::GetStyle().ItemSpacing.x * 2;

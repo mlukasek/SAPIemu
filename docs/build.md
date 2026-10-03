@@ -51,6 +51,7 @@ a nakonec ve zdrojové složce, ze které byl sestaven. Jinou složku lze zadat 
 ```
 sapiemu-cli --wait-text "V1.3" --type "?\r" --run-ms 300 --print-screen
 sapiemu-cli --machine machines/mikromon.jsonc --run-ms 500 --screenshot obrazovka.png
+sapiemu-cli --keyboard "Consul 262.3 (bez 7474)" --wait-text "V1.3" --type "M F000\r" --run-ms 500 --print-screen
 ```
 
 Úplný seznam akcí vypíše `sapiemu-cli --help`.

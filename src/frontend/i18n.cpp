@@ -19,6 +19,8 @@ static const Translation k_table[] = {
     { "Reset", "Reset" },
     { "Pause", "Pauza" },
     { "Turbo", "Turbo" },
+    { "Keyboard", "Klávesnice" },
+    { "Cannot change the keyboard", "Klávesnici nelze změnit" },
     { "Screen", "Obrazovka" },
     { "Log", "Log" },
     { "Phosphor", "Barva luminoforu" },

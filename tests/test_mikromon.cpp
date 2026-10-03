@@ -24,8 +24,10 @@ int main(void)
     // Czech text through the keyboard into memory
     m.type_text("> 9000 \"žluťoučký\"\r");
     CHECK(run_until_text(m, ">9009", 2.0));
-    CHECK_EQ(m.peek(0x9000), 0xDA);   // ž
-    CHECK_EQ(m.peek(0x9003), 0xD4);   // ť
+    // EKL-1 sends Czech letters with swapped case (KOI-8 cs XOR 20h, like its
+    // firmware); MikroMon stores the codes as they come
+    CHECK_EQ(m.peek(0x9000), 0xFA);   // ž -> code of Ž
+    CHECK_EQ(m.peek(0x9003), 0xF4);   // ť -> code of Ť
 
     // execution breakpoint inside the keyboard wait loop is hit
     CpuRegs r;

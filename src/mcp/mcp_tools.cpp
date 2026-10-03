@@ -212,6 +212,7 @@ json t_machine_info(EmuHost& h, const json&)
     j["cards"] = cards;
     j["serial_channels"] = serials;
     j["keyboard"] = m.keyboard() ? m.keyboard()->type_name() : "none";
+    if (m.keyboard() && !m.keyboard()->status().empty()) j["keyboard_status"] = m.keyboard()->status();
     return json_result(j);
 }
 
@@ -523,13 +524,9 @@ json t_load_binary(EmuHost& h, const json& a)
     return text_result("loaded " + std::to_string(n) + " bytes at " + h4((unsigned)addr));
 }
 
-json t_type_text(EmuHost& h, const json& a)
+json keys_result(EmuHost& h, const json& a, const std::string& msg)
 {
     Machine& m = need_machine(h);
-    std::string text = arg_str(a, "text", nullptr, true);
-    if (!m.keyboard()) return error_result("machine has no keyboard");
-    m.type_text(text);
-    std::string msg = "queued " + std::to_string(sapi_codes_from_utf8(text).size()) + " key codes";
     long long run_ms = arg_num(a, "run_ms", 0);
     if (run_ms > 0) {
         // let the program take the keys
@@ -540,6 +537,52 @@ json t_type_text(EmuHost& h, const json& a)
         return json_result(j);
     }
     return text_result(msg);
+}
+
+json t_type_text(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    std::string text = arg_str(a, "text", nullptr, true);
+    if (!m.keyboard()) return error_result("machine has no keyboard");
+    size_t before = m.keyboard()->pending();
+    m.type_text(text);
+    size_t n = m.keyboard()->pending() - std::min(before, m.keyboard()->pending());
+    return keys_result(h, a, std::string(m.keyboard()->type_name()) + ": queued " + std::to_string(n) + " keys");
+}
+
+const struct { const char* name; int key; } k_key_names[] = {
+    { "enter", HK_ENTER }, { "backspace", HK_BACKSPACE }, { "tab", HK_TAB }, { "esc", HK_ESCAPE },
+    { "up", HK_UP }, { "down", HK_DOWN }, { "left", HK_LEFT }, { "right", HK_RIGHT },
+    { "home", HK_HOME }, { "end", HK_END }, { "pgup", HK_PGUP }, { "pgdn", HK_PGDN },
+    { "insert", HK_INSERT }, { "delete", HK_DELETE }, { "pause", HK_PAUSE },
+    { "f1", HK_F1 }, { "f2", HK_F2 }, { "f3", HK_F3 }, { "f4", HK_F4 }, { "f6", HK_F6 }, { "f7", HK_F7 },
+    { "kp0", HK_KP0 }, { "kp1", HK_KP1 }, { "kp2", HK_KP2 }, { "kp3", HK_KP3 }, { "kp4", HK_KP4 },
+    { "kp5", HK_KP5 }, { "kp6", HK_KP6 }, { "kp7", HK_KP7 }, { "kp8", HK_KP8 }, { "kp9", HK_KP9 },
+    { "kp.", HK_KP_DOT }, { "kp_enter", HK_KP_ENTER },
+};
+
+json t_press_key(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    std::string name = arg_str(a, "key", nullptr, true);
+    if (!m.keyboard()) return error_result("machine has no keyboard");
+    int key = HK_NONE;
+    for (const auto& k : k_key_names)
+        if (name == k.name) key = k.key;
+    if (key == HK_NONE) throw ToolError{ "unknown key '" + name + "'" };
+    int mods = (arg_bool(a, "shift", false) ? HM_SHIFT : 0) | (arg_bool(a, "ctrl", false) ? HM_CTRL : 0);
+    if (!m.host_key(key, mods))
+        return error_result(std::string(m.keyboard()->type_name()) + " has no key for '" + name + "'");
+    return keys_result(h, a, std::string(m.keyboard()->type_name()) + ": key " + name);
+}
+
+json t_set_keyboard(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    std::string name = arg_str(a, "name", nullptr, true);
+    std::string err;
+    if (!m.set_keyboard(name, err)) return error_result(err);
+    return text_result("keyboard: " + name);
 }
 
 json t_screen_text(EmuHost& h, const json&)
@@ -714,8 +757,12 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"}}})", t_load_hex },
     { "load_binary", "Load a binary file into memory at the given hex address.",
       R"({"type":"object","properties":{"path":{"type":"string"},"address":{"type":"string"}},"required":["path","address"]})", t_load_binary },
-    { "type_text", "Type text on the SAPI keyboard (EKL-1). Use \\r for Enter, \\u001b for Esc. Czech letters are converted to KOI-8 cs. Optionally run run_ms of emulated time so the program reads the keys.",
+    { "type_text", "Type text on the SAPI keyboard of the machine (see machine_info). Use \\r for Enter, \\u001b for Esc. EKL-1 and Consul 259.11 (KOI-8 cs) type Czech letters, Consul 262.3 and 259.11 (KOI-7) only ASCII, ANK-1 only upper case letters, digits and its symbols. Optionally run run_ms of emulated time so the program reads the keys.",
       R"({"type":"object","properties":{"text":{"type":"string"},"run_ms":{"type":"integer","default":0}},"required":["text"]})", t_type_text },
+    { "press_key", "Press a key without text on the SAPI keyboard, mapped like the host key in the GUI (docs/desky/klavesnice.md): cursor keys, f1-f4/f6/f7 (Consul ROL/COPY/BREAK and keys D0-D2; ANK-1 f6 = INT, f7 = T), pause (Consul 259.11 CLEAR), numeric keypad (Consul 262.3 B0-B9/AE). Optionally run run_ms of emulated time.",
+      R"({"type":"object","properties":{"key":{"type":"string","enum":["enter","backspace","tab","esc","up","down","left","right","home","end","pgup","pgdn","insert","delete","pause","f1","f2","f3","f4","f6","f7","kp0","kp1","kp2","kp3","kp4","kp5","kp6","kp7","kp8","kp9","kp.","kp_enter"]},"shift":{"type":"boolean","default":false},"ctrl":{"type":"boolean","default":false},"run_ms":{"type":"integer","default":0}},"required":["key"]})", t_press_key },
+    { "set_keyboard", "Plug another keyboard into the CPU card (connector X2). The machine keeps running; software must support the keyboard's protocol.",
+      R"J({"type":"object","properties":{"name":{"type":"string","enum":["EKL-1","Consul 262.3","Consul 262.3 (bez 7474)","Consul 259.11","Consul 259.11 (KOI-8 cs)","ANK-1"]}},"required":["name"]})J", t_set_keyboard },
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
     { "screenshot", "PNG image of the display.",
       R"({"type":"object","properties":{"scale":{"type":"integer","default":2}}})", t_screenshot },

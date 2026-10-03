@@ -1,0 +1,138 @@
+#include "input/ank1.h"
+#include "core/log.h"
+
+#include <ctype.h>
+
+// Key index = row * 8 + (7 - column bit); row 0 is selected by P0-OUT D4.
+// Legends from appendix VII (ank-1pri07.png) and the MIKOS V4.0 tables.
+static const char* const k_keys[40] = {
+    "0", "P", "CR", "LF", "1", "Q", "A", "SH",
+    "9", "O", "L", "SP", "2", "W", "S", "Z",
+    "8", "I", "K", "M", "3", "E", "D", "X",
+    "7", "U", "J", "N", "4", "R", "F", "C",
+    "6", "Y", "H", "B", "5", "T", "G", "V",
+};
+
+// Characters produced with SHIFT (MIKOS V4.0 shift table, printed legends).
+struct ShiftChar { uint8_t ch; char key; };
+static const ShiftChar k_shift[] = {
+    { '!', '1' }, { '?', '2' }, { '"', '3' }, { '$', '4' }, { '^', '5' }, { '\'', '6' },
+    { '<', '7' }, { '>', '8' }, { '(', '9' }, { ')', '0' },
+    { 0x08, 'T' }, { '/', 'Y' }, { ':', 'U' }, { '@', 'I' }, { '#', 'O' }, { 0x7F, 'P' },
+    { '+', 'H' }, { '-', 'J' }, { '*', 'K' }, { '=', 'L' }, { ';', 'B' }, { ',', 'N' }, { '.', 'M' },
+    { '_', 'G' }, { '%', 'R' }, { '&', 'D' }, { '\\', 'F' }, { '[', 'C' }, { ']', 'V' },
+    { 0x11, 'Q' }, { 0x17, 'W' }, { 0x10, 'A' }, { 0x13, 'S' }, { 0x03, 'X' },
+};
+
+static int key_index(const char* legend)
+{
+    for (int i = 0; i < 40; i++) {
+        const char* k = k_keys[i];
+        int j = 0;
+        while (k[j] && legend[j] && k[j] == legend[j]) j++;
+        if (!k[j] && !legend[j]) return i;
+    }
+    return -1;
+}
+
+static int char_key(char c)
+{
+    char s[2] = { c, 0 };
+    return key_index(s);
+}
+
+void Ank1::type_char(uint32_t cp)
+{
+    if (cp >= 0x80) return;
+    uint8_t c = (uint8_t)cp;
+    if (c == '\r' || c == '\n') {
+        if (c == '\n') { press(key_index("LF"), true); return; }   // shift LF = 0Ah in MIKOS
+        press(key_index("CR"), false);
+        return;
+    }
+    if (c == 0x1B) { press(key_index("LF"), false); return; }      // LF key = ESC in MIKOS
+    if (c == ' ') { press(key_index("SP"), false); return; }
+    if (c == '\t') { press(key_index("SP"), true); return; }
+    if (isalnum(c)) { press(char_key((char)toupper(c)), false); return; }   // upper case only
+    for (const ShiftChar& s : k_shift)
+        if (s.ch == c) { press(char_key(s.key), true); return; }
+}
+
+bool Ank1::host_key(int key, int mods)
+{
+    switch (key) {
+    case HK_ENTER: case HK_KP_ENTER: press(key_index("CR"), false); return true;
+    case HK_ESCAPE: press(key_index("LF"), false); return true;
+    case HK_BACKSPACE: press(char_key('T'), true); return true;   // shift T = 08h
+    case HK_TAB: press(key_index("SP"), true); return true;
+    case HK_DELETE: press(char_key('P'), true); return true;      // shift P = DEL
+    case HK_F6: int_key = true; int_until = now + hold_cycles; return true;
+    case HK_F7: t_key = true; t_until = now + hold_cycles; return true;
+    default: return false;
+    }
+}
+
+bool Ank1::key_down(int key) const
+{
+    if (cur_key < 0 || releasing) return false;
+    return key == cur_key || (cur_shift && key == SHIFT_KEY);
+}
+
+void Ank1::advance(uint64_t t)
+{
+    now = t;
+    if (int_key && now >= int_until) int_key = false;
+    if (t_key && now >= t_until) t_key = false;
+    if (cur_key >= 0 && now >= phase_end) {
+        if (!releasing) {
+            releasing = true;            // key up, keep a pause for the debouncing
+            phase_end = now + release_cycles;
+        } else {
+            cur_key = -1;
+            releasing = false;
+        }
+    }
+    if (cur_key < 0 && !queue.empty()) {
+        Press p = queue.front();
+        queue.pop_front();
+        if (p.key < 0) return;
+        cur_key = p.key;
+        cur_shift = p.shift;
+        releasing = false;
+        phase_end = now + press_cycles;
+    }
+}
+
+uint8_t Ank1::p0_in()
+{
+    uint8_t cols = 0xFF;
+    uint8_t rows = (uint8_t)(~out & 0x1F);   // active rows (0 on the output)
+    for (int r = 0; r < 5; r++) {
+        if (!(rows & (0x10 >> r))) continue;
+        for (int bit = 0; bit < 8; bit++)
+            if (key_down(r * 8 + 7 - bit)) cols &= (uint8_t)~(1 << bit);
+    }
+    return cols;
+}
+
+uint8_t Ank1::p1_in()
+{
+    uint8_t v = 0xFF;
+    if (int_key) v &= 0x7F;
+    if (t_key) v &= 0xBF;
+    return v;
+}
+
+void Ank1::p0_out(uint8_t value)
+{
+    if ((value ^ out) & 0x40) LOGD("ANK-1 beeper %s", (value & 0x40) ? "on" : "off");
+    out = value;
+}
+
+std::string Ank1::status() const
+{
+    std::string s;
+    if (out & 0x20) s += "SHIFT";
+    if (out & 0x80) s += s.empty() ? "ERR" : " ERR";
+    return s;
+}

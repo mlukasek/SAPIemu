@@ -27,6 +27,7 @@ public:
     void set_regs(const CpuRegs& r) override;
     uint8_t peek(uint16_t addr) override;
     KeyboardDevice* keyboard() override { return kbd.get(); }
+    void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
 
     bool boot = true;

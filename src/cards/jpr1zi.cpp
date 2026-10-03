@@ -50,16 +50,21 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
     if (!rom_load(d6b_file, d6b, 256, 0x0F, 0, err)) return false;
 
     if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
-        const json& k = cfg["keyboard"];
-        std::string ktype = k.value("type", std::string("EKL-1"));
-        kbd.reset(keyboard_create(ktype));
-        if (!kbd) {
-            err = "unknown keyboard type '" + ktype + "'";
-            return false;
-        }
-        if (!keyboard_configure(kbd.get(), k, cpu_hz, err)) return false;
+        kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
+        if (!kbd) return false;
     }
     return true;
+}
+
+void Jpr1zi::set_keyboard(KeyboardDevice* k)
+{
+    // plugging another keyboard into X2: it sees the current P0-OUT latch
+    kbd.reset(k);
+    if (kbd) {
+        kbd->reset();
+        kbd->advance(bus->now);
+        kbd->p0_out(port_out[0]);
+    }
 }
 
 void Jpr1zi::reset()

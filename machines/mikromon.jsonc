@@ -16,6 +16,8 @@
             "bus_mhz": 2,       // JP2/JP3 position 2 (2 MHz) or 1 (4 MHz)
             "rom": "roms/mikromon/MikroMon1_3_f000.txt",
             "decoder": "2k",    // D3C: ROM at 0000-07FF while BOOT=1
+            // EKL-1 | Consul 262.3 ("latch_mod": false = no 7474) | Consul 259.11 ("code": "koi8cs") | ANK-1
+            // (docs/desky/klavesnice.md); can be changed at run time in Machine -> Keyboard
             "keyboard": { "type": "EKL-1" }
         },
         {

@@ -95,6 +95,19 @@ int main(void)
     r = tool(s, "screen_text", json::object());
     CHECK(text_of(r).find(">F000: F301 0008") != std::string::npos);
 
+    // another keyboard, keys without text
+    r = tool(s, "set_keyboard", { { "name", "Consul 262.3" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "machine_info", json::object());
+    CHECK(text_of(r).find("\"keyboard\": \"Consul 262.3\"") != std::string::npos);
+    r = tool(s, "press_key", { { "key", "esc" }, { "run_ms", 300 } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "press_key", { { "key", "pause" } });
+    CHECK(r["isError"] == true);   // only Consul 259.11 has CLEAR
+    r = tool(s, "set_keyboard", { { "name", "Consul 999" } });
+    CHECK(r["isError"] == true);
+    r = tool(s, "set_keyboard", { { "name", "EKL-1" } });
+
     r = tool(s, "disassemble", { { "address", "F000" }, { "count", 3 } });
     CHECK(text_of(r).find("LD BC,0800h") != std::string::npos);
 

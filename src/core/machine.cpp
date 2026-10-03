@@ -4,6 +4,7 @@
 #include "core/ihex.h"
 #include "core/log.h"
 #include "core/util.h"
+#include "input/keyboards.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -315,16 +316,28 @@ bool Machine::type_text(const std::string& utf8)
 {
     KeyboardDevice* k = keyboard();
     if (!k) return false;
-    std::string codes = sapi_codes_from_utf8(utf8);
-    for (char c : codes) k->push_code((uint8_t)c);
+    size_t pos = 0;
+    while (pos < utf8.size()) {
+        int32_t cp = utf8_next(utf8, pos);
+        if (cp >= 0) k->type_char((uint32_t)cp);
+    }
     return true;
 }
 
-bool Machine::type_code(uint8_t code)
+bool Machine::host_key(int key, int mods)
 {
     KeyboardDevice* k = keyboard();
+    return k ? k->host_key(key, mods) : false;
+}
+
+bool Machine::set_keyboard(const std::string& preset, std::string& err)
+{
+    if (!cpu) { err = "no CPU card"; return false; }
+    KeyboardDevice* k = keyboard_from_preset(preset, bus.cpu_hz, err);
     if (!k) return false;
-    k->push_code(code);
+    cpu->set_keyboard(k);
+    if (cpu->keyboard() != k) { err = "this CPU card has no keyboard connector"; return false; }
+    LOGI("keyboard: %s", k->type_name());
     return true;
 }
 

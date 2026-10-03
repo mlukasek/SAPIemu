@@ -21,6 +21,7 @@ sapi_test(test_ide1)
 sapi_test(test_cpm_ide)
 sapi_test(test_serial_tcp)
 sapi_test(test_xmodem)
+sapi_test(test_keyboards)
 
 # Z80 instruction exerciser: takes minutes in a debug build, so it is registered
 # only for optimized builds (label "slow"; ctest -L slow / -LE slow).

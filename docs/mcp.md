@@ -58,7 +58,9 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `disassemble` | Disassembler Z80 |
 | `set_breakpoint`, `clear_breakpoint`, `list_breakpoints` | Druhy `exec`, `mem_read`, `mem_write`, `mem_rw`, `io_in`, `io_out`, `io_rw` |
 | `load_hex`, `load_binary` | Nahrání programu ze souboru nebo z inline Intel HEX |
-| `type_text` | Psaní na klávesnici EKL-1 (`\r` = Enter, čeština → KOI-8čs), volitelně s během `run_ms` |
+| `type_text` | Psaní na připojenou klávesnici (`\r` = Enter; čeština jen u EKL-1 a Consul 259.11 KOI-8 cs), volitelně s během `run_ms` |
+| `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
+| `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1 |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |

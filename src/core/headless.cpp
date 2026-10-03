@@ -53,6 +53,12 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
         if (a == "--run-ms" && has_arg) {
             m.run_seconds(atof(actions[++i].c_str()) / 1000.0);
             if (m.stopped_on_breakpoint()) printf("breakpoint hit\n");
+        } else if (a == "--keyboard" && has_arg) {
+            std::string err;
+            if (!m.set_keyboard(actions[++i], err)) {
+                fprintf(stderr, "%s\n", err.c_str());
+                return 1;
+            }
         } else if (a == "--type" && has_arg) {
             m.type_text(unescape_text(actions[++i]));
         } else if (a == "--timeout-ms" && has_arg) {

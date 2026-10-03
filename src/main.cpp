@@ -44,6 +44,7 @@ static void print_help(void)
            "  --version, --help\n\n"
            "headless actions (executed in order):\n"
            "  --run-ms N         run N ms of emulated time\n"
+           "  --keyboard NAME    plug another keyboard (EKL-1, \"Consul 262.3\", ANK-1...)\n"
            "  --type TEXT        type on the keyboard (escapes \\r \\e \\t \\xNN)\n"
            "  --wait-text TEXT   run until TEXT is on screen (see --timeout-ms)\n"
            "  --timeout-ms N     timeout for --wait-text (emulated ms, default 5000)\n"
@@ -58,7 +59,7 @@ static void print_help(void)
 
 static bool action_has_arg(const std::string& a)
 {
-    return a == "--run-ms" || a == "--type" || a == "--wait-text" || a == "--timeout-ms" ||
+    return a == "--run-ms" || a == "--type" || a == "--keyboard" || a == "--wait-text" || a == "--timeout-ms" ||
            a == "--serial-send" || a == "--break" || a == "--screenshot";
 }
 

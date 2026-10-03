@@ -175,3 +175,21 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **PMD32-SD:** jméno obrazu od programu v emulátoru (příkazy H a N) se nekontrolovalo. Šlo tak přistoupit
   k souborům mimo SD kartu, a přes síťovou cestu dokonce prozradit hash hesla k Windows. Jména jsou teď
   omezená na cesty uvnitř SD karty (`Pmd32Sd::safe_path`). Podadresáře zůstávají povolené.
+
+## 2026-10-03 – Výběr klávesnice
+
+- **Podporované klávesnice:** EKL-1, Consul 262.3, Consul 259.11 a ANK-1. Volí se v sestavě, za běhu
+  v menu Stroj → Klávesnice, v MCP (`set_keyboard`) a v `sapiemu-cli` (`--keyboard`). Výměna za běhu
+  odpovídá přepojení konektoru X2: nová klávesnice hned vidí aktuální stav P0-OUT.
+- **Consul 262.3 je ve výchozím stavu s úpravou 7474** (strobe drží do potvrzení), protože s původním
+  pulzem 1 ms může program při pollingu klávesu přehlédnout. Původní chování je preset „bez 7474“.
+- **Consul 259.11 má dvě varianty v konfiguraci:** KOI-7 s klávesou CLEAR na P1-IN7 (výchozí, podle
+  dokumentace) a KOI-8 cs s osmým bitem na P1-IN7 (ovladač ECMON „CONSUL 259.11 KOI8 CS2“).
+- **ANK-1 je hotová teď a ověřená testem na portech**, přestože pro JPR-1ZI zatím nemá software. Text z PC
+  se převádí na stisky kláves matice (SHIFT podle tabulek MIKOS V4.0), každý stisk trvá 40 ms.
+- **Mapování kláves PC (schváleno autorem):** šipky na šipky, numerika na B0–B9/AE (262.3), Home = 8Dh,
+  F1 ROL, F2 COPY, F3 BREAK, F4/F6/F7 = klávesy 61–63 (D0–D2), Pause = CLEAR (259.11). F5 a F8–F12 zůstávají
+  emulátoru. Rozhraní klávesnice dostává text (Unicode) a klávesy bez textu (`HostKey`) zvlášť, takže
+  frontend nezávisí na typu klávesnice.
+- **EKL-1 posílá češtinu s prohozenou velikostí** (KOI-8 cs XOR 20h) jako jeho firmware. Dřív emulace
+  posílala přímý kód KOI-8 cs. ECMON a CP/M velikost vracejí, MikroMon ne (nejasnost 13 v SOUHRN).
