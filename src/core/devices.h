@@ -48,7 +48,9 @@ public:
 
     const uint8_t* bp_exec = nullptr;   // 64K map of execution breakpoints (owned by Machine)
     bool step_mode = false;             // stop at the next instruction boundary
+    int step_skip = 0;                  // boundaries to pass before a step stops
     bool stop_hit = false;              // run() stopped because of a breakpoint or step
+    bool at_boundary = false;           // stopped right after the opcode fetch of instr_pc
     uint16_t instr_pc = 0;              // address of the instruction being executed
 };
 
@@ -65,7 +67,9 @@ public:
 };
 
 // Byte stream between an emulated serial port and the host (terminal window,
-// TCP, MCP...). Thread safe.
+// TCP, MCP...). Thread safe. Data sent by SAPI is kept in a history buffer so
+// that several host readers (terminal window, MCP) can each read it with their
+// own position.
 class SerialChannel {
 public:
     explicit SerialChannel(const std::string& n) : name(n) {}
@@ -74,13 +78,20 @@ public:
     // emulated side
     void to_host(uint8_t b);
     bool from_host(uint8_t& b);
+
     // host side
     void host_send(const uint8_t* data, size_t n);
-    size_t host_receive(std::string& out, size_t max);   // appends, returns count
-    size_t host_pending_rx() const;
+    // Read data sent by SAPI from stream position `pos` (updated); returns bytes read.
+    size_t host_read(uint64_t& pos, std::string& out, size_t max);
+    // Same with the channel's default reader position (headless runner, MCP).
+    size_t host_receive(std::string& out, size_t max);
+    uint64_t host_end(void) const;          // current end of the stream
+    size_t host_pending_rx() const;         // bytes not yet taken by SAPI
 
 private:
     mutable std::mutex mtx;
-    std::deque<uint8_t> tx_q;   // SAPI -> host
-    std::deque<uint8_t> rx_q;   // host -> SAPI
+    std::deque<uint8_t> history;   // SAPI -> host, positions [base, base+size)
+    uint64_t base = 0;
+    uint64_t default_pos = 0;
+    std::deque<uint8_t> rx_q;      // host -> SAPI
 };

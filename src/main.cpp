@@ -1,15 +1,22 @@
 // SAPIemu entry point. sapiemu (GUI build) opens the window unless --headless is
 // given; sapiemu-cli always runs headless.
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <vector>
 
 #include "core/headless.h"
+#include "core/host.h"
 #include "core/log.h"
 #include "core/machine.h"
 #include "core/util.h"
 #include "core/version.h"
+#include "mcp/mcp_server.h"
+
+#include <atomic>
+#include <memory>
+#include <signal.h>
 
 #ifdef SAPIEMU_GUI
 #include "frontend/app.h"
@@ -30,6 +37,9 @@ static void print_help(void)
            "options:\n"
            "  --machine FILE     machine description (default %s)\n"
            "  --data-root DIR    directory with roms/, media/, machines/\n"
+           "  --mcp-port N       MCP server port (default %d, 127.0.0.1 only)\n"
+           "  --no-mcp           GUI: do not start the MCP server\n"
+           "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"
            "headless actions (executed in order):\n"
@@ -43,7 +53,7 @@ static void print_help(void)
            "  --break ADDR       set an execution breakpoint (hex)\n"
            "  --print-regs       print CPU registers\n"
            "  --screenshot FILE  save the screen as PNG (2x)\n",
-           sapiemu_version(), DEFAULT_MACHINE);
+           sapiemu_version(), DEFAULT_MACHINE, MCP_DEFAULT_PORT);
 }
 
 static bool action_has_arg(const std::string& a)
@@ -85,6 +95,37 @@ static std::vector<std::string> utf8_args(int argc, char** argv)
     return out;
 }
 
+static std::atomic<bool> g_quit(false);
+
+static void on_signal(int)
+{
+    g_quit = true;
+}
+
+// Headless MCP server: real-time emulation without a window.
+static int serve_mcp(const std::string& machine_file, int port)
+{
+    EmuHost host;
+    std::string err;
+    if (!host.load(machine_file, err)) {
+        LOGE("%s", err.c_str());
+        return 1;
+    }
+    McpServer mcp(host);
+    if (!mcp.start(port, err)) {
+        LOGE("%s", err.c_str());
+        return 1;
+    }
+    printf("MCP server: %s  (Ctrl+C to quit)\n", mcp.url().c_str());
+    fflush(stdout);
+    signal(SIGINT, on_signal);
+    signal(SIGTERM, on_signal);
+    host.run_loop(g_quit);
+    host.shutdown();
+    mcp.stop();
+    return 0;
+}
+
 int main(int argc_ansi, char** argv_ansi)
 {
     std::vector<std::string> argv = utf8_args(argc_ansi, argv_ansi);
@@ -96,10 +137,13 @@ int main(int argc_ansi, char** argv_ansi)
     bool headless = true;
 #endif
     std::vector<std::string> actions;
+    int mcp_port = MCP_DEFAULT_PORT;
+    bool mcp_enabled = true;
+    bool mcp_serve = false;
 
 #if defined(SAPIEMU_GUI) && defined(_WIN32)
     for (int i = 1; i < argc; i++)
-        if (argv[i] == "--headless" || argv[i] == "--help" || argv[i] == "--version") {
+        if (argv[i] == "--headless" || argv[i] == "--help" || argv[i] == "--version" || argv[i] == "--mcp") {
             attach_parent_console();
             break;
         }
@@ -116,6 +160,9 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--data-root" && i + 1 < argc) data_root_set(argv[++i]);
         else if (a == "--verbose") log_set_level(LOG_DEBUG);
         else if (a == "--headless") headless = true;
+        else if (a == "--mcp-port" && i + 1 < argc) mcp_port = atoi(argv[++i].c_str());
+        else if (a == "--no-mcp") mcp_enabled = false;
+        else if (a == "--mcp") { mcp_serve = true; headless = true; }
         else {
             actions.push_back(a);
             if (action_has_arg(a) && i + 1 < argc) actions.push_back(argv[++i]);
@@ -125,14 +172,16 @@ int main(int argc_ansi, char** argv_ansi)
     data_root_init();
     LOGD("data root: %s", data_root().c_str());
 
+    if (mcp_serve) return serve_mcp(machine_file, mcp_port);
+
     if (headless) {
-        Machine m;
+        std::unique_ptr<Machine> m(new Machine());   // ~200 KB of debug tables, keep off the stack
         std::string err;
-        if (!m.load_file(machine_file, err)) {
+        if (!m->load_file(machine_file, err)) {
             LOGE("%s", err.c_str());
             return 1;
         }
-        int rc = headless_run(m, actions);
+        int rc = headless_run(*m, actions);
         fflush(stdout);
         return rc;
     }
@@ -142,7 +191,7 @@ int main(int argc_ansi, char** argv_ansi)
         fprintf(stderr, "unknown option '%s' (see --help)\n", actions[0].c_str());
         return 1;
     }
-    return app_run(machine_file);
+    return app_run(machine_file, mcp_enabled ? mcp_port : 0);
 #else
     return 0;
 #endif

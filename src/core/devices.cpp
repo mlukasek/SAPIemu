@@ -1,11 +1,16 @@
 #include "core/devices.h"
 
-static const size_t SERIAL_QUEUE_MAX = 1 << 20;
+static const size_t SERIAL_HISTORY_MAX = 1 << 20;
+static const size_t SERIAL_RX_MAX = 1 << 20;
 
 void SerialChannel::to_host(uint8_t b)
 {
     std::lock_guard<std::mutex> lock(mtx);
-    if (tx_q.size() < SERIAL_QUEUE_MAX) tx_q.push_back(b);
+    history.push_back(b);
+    if (history.size() > SERIAL_HISTORY_MAX) {
+        history.pop_front();
+        base++;
+    }
 }
 
 bool SerialChannel::from_host(uint8_t& b)
@@ -20,19 +25,40 @@ bool SerialChannel::from_host(uint8_t& b)
 void SerialChannel::host_send(const uint8_t* data, size_t n)
 {
     std::lock_guard<std::mutex> lock(mtx);
-    for (size_t i = 0; i < n && rx_q.size() < SERIAL_QUEUE_MAX; i++) rx_q.push_back(data[i]);
+    for (size_t i = 0; i < n && rx_q.size() < SERIAL_RX_MAX; i++) rx_q.push_back(data[i]);
+}
+
+size_t SerialChannel::host_read(uint64_t& pos, std::string& out, size_t max)
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    if (pos < base) pos = base;   // older data was dropped
+    uint64_t end = base + history.size();
+    size_t n = 0;
+    while (pos < end && n < max) {
+        out += (char)history[(size_t)(pos - base)];
+        pos++;
+        n++;
+    }
+    return n;
 }
 
 size_t SerialChannel::host_receive(std::string& out, size_t max)
 {
-    std::lock_guard<std::mutex> lock(mtx);
-    size_t n = 0;
-    while (!tx_q.empty() && n < max) {
-        out += (char)tx_q.front();
-        tx_q.pop_front();
-        n++;
+    uint64_t pos;
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        pos = default_pos;
     }
+    size_t n = host_read(pos, out, max);
+    std::lock_guard<std::mutex> lock(mtx);
+    default_pos = pos;
     return n;
+}
+
+uint64_t SerialChannel::host_end(void) const
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    return base + history.size();
 }
 
 size_t SerialChannel::host_pending_rx() const

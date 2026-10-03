@@ -67,3 +67,28 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **MikroMon je jen jako binárka** (se souhlasem autora L. Lasoty), zdroje ne.
 - **UI česky**, ale přes tabulku řetězců, aby šlo později přepínat. Font DejaVu Sans s diakritikou je vendorovaný.
 - **Lokální commity průběžně, push jen na vyžádání.**
+
+## 2026-10-03 – Implementace F2
+
+- **Jedno emulační vlákno.** Emulace běží v hlavním vlákně GUI, případně ve smyčce `sapiemu-cli --mcp`.
+  MCP server (cpp-httplib) běží ve vlastním vlákně a příkazy předává přes `EmuHost::call()`. Ty se provedou
+  v `EmuHost::poll()` mezi snímky.
+  - Důvod: stroj není potřeba zamykat a stav se nikdy nečte uprostřed instrukce.
+  - Synchronní běhy z MCP (`run_for`, `run_until`) na dobu běhu blokují GUI. To je přijatelné, protože
+    v release buildu jde o desetiny sekundy.
+- **MCP bez SSE.** Na `POST` se odpovídá prostým JSON a `GET` vrací 405. To specifikace Streamable HTTP
+  dovoluje a pro nástroje to stačí.
+  - Server poslouchá jen na 127.0.0.1 a kontroluje hlavičku Origin.
+  - Výchozí port je 8580.
+- **Hodnoty v argumentech MCP:** řetězce jsou hex, čísla v JSON desítková. Odpovídá to zvyklostem
+  při práci se SAPI (adresy se vždy píší hex).
+- **Krokování:** CPU si pamatuje, zda stojí hned po fetchi instrukce (`at_boundary`). Krok pak buď skončí
+  na příští hranici, nebo jednu přeskočí (po resetu a po změně PC). Krok přes CALL, RST, DJNZ a opakovaných
+  blokových instrukcí používá dočasný breakpoint na adrese za instrukcí.
+- **Watchpointy** se vyhodnocují na sběrnici (`Bus::mem_watch`, `io_watch`). Zápisy z debuggeru a MCP
+  (`Machine::poke`) je nespouštějí.
+- **Sériový kanál** si drží historii (1 MB) a každý čtenář (terminál, MCP, režim bez okna) má vlastní pozici.
+- **Klávesy GUI:** F5 běh/pauza, F8 turbo, F10 krok přes, F11 krok, F12 reset. Odpovídá to zvyklostem
+  Visual Studia pro F10/F11. Turbo se kvůli tomu přesunulo na F8.
+- **Screenshot:** dvoubarevné obrazovky se ukládají jako PNG s 1bitovou paletou. Obrázek má desítky kB,
+  bez nutnosti psát kompresor deflate.

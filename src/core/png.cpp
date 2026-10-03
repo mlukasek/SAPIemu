@@ -40,17 +40,45 @@ std::vector<uint8_t> png_encode_argb(const uint32_t* argb, int w, int h, int sx,
     if (sy < 1) sy = 1;
     int W = w * sx, H = h * sy;
 
+    // Two-colour images (text screens) are stored as 1-bit palette images, which
+    // keeps them small without a real deflate compressor.
+    uint32_t c0 = (w * h > 0) ? argb[0] : 0, c1 = c0;
+    bool two_colors = true;
+    for (int i = 0; i < w * h && two_colors; i++) {
+        uint32_t p = argb[i];
+        if (p == c0) continue;
+        if (c1 == c0) c1 = p;
+        else if (p != c1) two_colors = false;
+    }
+
     // raw scanlines with filter byte 0
     std::vector<uint8_t> raw;
-    raw.reserve((size_t)(W * 3 + 1) * H);
-    for (int y = 0; y < H; y++) {
-        raw.push_back(0);
-        const uint32_t* row = argb + (y / sy) * w;
-        for (int x = 0; x < W; x++) {
-            uint32_t p = row[x / sx];
-            raw.push_back((uint8_t)(p >> 16));
-            raw.push_back((uint8_t)(p >> 8));
-            raw.push_back((uint8_t)p);
+    if (two_colors) {
+        int stride = (W + 7) / 8;
+        raw.reserve((size_t)(stride + 1) * H);
+        for (int y = 0; y < H; y++) {
+            raw.push_back(0);
+            const uint32_t* row = argb + (y / sy) * w;
+            for (int bx = 0; bx < stride; bx++) {
+                uint8_t byte = 0;
+                for (int k = 0; k < 8; k++) {
+                    int x = bx * 8 + k;
+                    if (x < W && row[x / sx] != c0) byte |= (uint8_t)(0x80 >> k);
+                }
+                raw.push_back(byte);
+            }
+        }
+    } else {
+        raw.reserve((size_t)(W * 3 + 1) * H);
+        for (int y = 0; y < H; y++) {
+            raw.push_back(0);
+            const uint32_t* row = argb + (y / sy) * w;
+            for (int x = 0; x < W; x++) {
+                uint32_t p = row[x / sx];
+                raw.push_back((uint8_t)(p >> 16));
+                raw.push_back((uint8_t)(p >> 8));
+                raw.push_back((uint8_t)p);
+            }
         }
     }
 
@@ -77,10 +105,17 @@ std::vector<uint8_t> png_encode_argb(const uint32_t* argb, int w, int h, int sx,
     std::vector<uint8_t> ihdr;
     put32(ihdr, (uint32_t)W);
     put32(ihdr, (uint32_t)H);
-    ihdr.push_back(8);  // bit depth
-    ihdr.push_back(2);  // RGB
+    ihdr.push_back(two_colors ? 1 : 8);   // bit depth
+    ihdr.push_back(two_colors ? 3 : 2);   // palette / RGB
     ihdr.push_back(0); ihdr.push_back(0); ihdr.push_back(0);
     chunk(out, "IHDR", ihdr);
+    if (two_colors) {
+        std::vector<uint8_t> plte = {
+            (uint8_t)(c0 >> 16), (uint8_t)(c0 >> 8), (uint8_t)c0,
+            (uint8_t)(c1 >> 16), (uint8_t)(c1 >> 8), (uint8_t)c1,
+        };
+        chunk(out, "PLTE", plte);
+    }
     chunk(out, "IDAT", z);
     chunk(out, "IEND", std::vector<uint8_t>());
     return out;

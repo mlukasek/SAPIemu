@@ -71,6 +71,7 @@ void Jpr1zi::reset()
     memset(port_out, 0, sizeof(port_out));
     next_sync = bus->now;
     stop_hit = false;
+    at_boundary = false;
     instr_pc = 0;
     if (kbd) {
         kbd->reset();
@@ -139,6 +140,7 @@ void Jpr1zi::sync(void)
 int Jpr1zi::run(int cycles)
 {
     stop_hit = false;
+    if (cycles > 0) at_boundary = false;
     int done = 0;
     while (done < cycles) {
         bus->now++;
@@ -162,8 +164,15 @@ int Jpr1zi::run(int cycles)
                 if ((pins & Z80_M1) && !z80.prefix_active) {
                     // opcode fetch of a new instruction
                     instr_pc = addr;
-                    if (step_mode || (bp_exec && bp_exec[addr])) {
+                    bus->pc = addr;
+                    bool step_stop = false;
+                    if (step_mode) {
+                        if (step_skip > 0) step_skip--;
+                        else step_stop = true;
+                    }
+                    if (step_stop || (bp_exec && bp_exec[addr])) {
                         stop_hit = true;
+                        at_boundary = true;
                         return done;
                     }
                 }
@@ -171,6 +180,10 @@ int Jpr1zi::run(int cycles)
                 bus->wait = 0;
                 bus->mem_write(addr, Z80_GET_DATA(pins));
                 stall += bus->wait;
+            }
+            if (bus->break_request) {   // memory watchpoint
+                stop_hit = true;
+                return done;
             }
         } else if (pins & Z80_IORQ) {
             uint8_t port = (uint8_t)Z80_GET_ADDR(pins);
@@ -184,6 +197,10 @@ int Jpr1zi::run(int cycles)
                 Z80_SET_DATA(pins, d);
             } else if (pins & Z80_WR) {
                 bus->io_write(port, Z80_GET_DATA(pins));
+            }
+            if (bus->break_request) {   // I/O watchpoint
+                stop_hit = true;
+                return done;
             }
         }
     }
@@ -212,6 +229,7 @@ void Jpr1zi::set_regs(const CpuRegs& r)
         // restart the instruction fetch at the new address
         pins = z80_prefetch(&z80, r.pc);
         instr_pc = r.pc;
+        at_boundary = false;   // the fetch at the new PC has not happened yet
     }
 }
 

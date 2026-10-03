@@ -1,9 +1,11 @@
 #include "core/machine.h"
 #include "core/card.h"
 #include "core/charset.h"
+#include "core/ihex.h"
 #include "core/log.h"
 #include "core/util.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <algorithm>
 
@@ -121,21 +123,40 @@ bool Machine::load_json(const json& cfg, std::string& err)
 void Machine::reset(void)
 {
     bus.reset();
-    break_hit = false;
+    bus.break_request = false;
+    clear_break();
+}
+
+// Translate a CPU stop into a StopReason.
+static StopReason classify_stop(Bus& bus, CpuCard* cpu, const uint8_t* bp, std::string& msg)
+{
+    char buf[64];
+    if (bus.break_request) {
+        bus.break_request = false;
+        msg = bus.break_reason;
+        return STOP_WATCHPOINT;
+    }
+    if (bp[cpu->instr_pc]) {
+        snprintf(buf, sizeof(buf), "breakpoint %04Xh", cpu->instr_pc);
+        msg = buf;
+        return STOP_BREAKPOINT;
+    }
+    msg = "step";
+    return STOP_STEP;
 }
 
 uint64_t Machine::run_cycles(uint64_t cycles)
 {
     if (!cpu) return 0;
     uint64_t done = 0;
-    break_hit = false;
+    clear_break();
     cpu->step_mode = false;
     while (done < cycles) {
         uint64_t chunk = cycles - done;
         if (chunk > 100000) chunk = 100000;
         done += (uint64_t)cpu->run((int)chunk);
         if (cpu->stop_hit) {
-            break_hit = true;
+            stop = classify_stop(bus, cpu, bp_exec, stop_msg);
             break;
         }
     }
@@ -150,18 +171,48 @@ uint64_t Machine::run_seconds(double seconds)
 bool Machine::step(void)
 {
     if (!cpu) return false;
+    clear_break();
     cpu->step_mode = true;
-    for (int guard = 0; guard < 1000; guard++) {
+    // Stopped right after a fetch: the next boundary ends the step. Otherwise the
+    // first boundary is the start of the instruction to execute.
+    cpu->step_skip = cpu->at_boundary ? 0 : 1;
+    for (int guard = 0; guard < 100000; guard++) {
         cpu->run(64);
         if (cpu->stop_hit) break;
     }
     cpu->step_mode = false;
+    // a watchpoint may fire inside the stepped instruction
+    if (bus.break_request) stop = classify_stop(bus, cpu, bp_exec, stop_msg);
+    else { stop = STOP_STEP; stop_msg = "step"; }
+    return true;
+}
+
+bool Machine::step_over(double max_seconds)
+{
+    if (!cpu) return false;
+    DisasmResult d = disassemble(cpu->instr_pc);
+    if (!d.call_like) return step();
+    uint16_t ret_addr = (uint16_t)(cpu->instr_pc + d.length);
+    bool had_bp = bp_exec[ret_addr] != 0;
+    bp_exec[ret_addr] = 1;
+    step();   // leave the current instruction (it may be a breakpoint itself)
+    if (stop == STOP_STEP && cpu->instr_pc != ret_addr) run_seconds(max_seconds);
+    if (!had_bp) bp_exec[ret_addr] = 0;
+    if (cpu->instr_pc == ret_addr && stop != STOP_WATCHPOINT) {
+        stop = STOP_STEP;
+        stop_msg = "step";
+    }
     return true;
 }
 
 void Machine::set_breakpoint(uint16_t addr, bool enabled)
 {
     bp_exec[addr] = enabled ? 1 : 0;
+}
+
+void Machine::clear_breakpoints(void)
+{
+    memset(bp_exec, 0, sizeof(bp_exec));
 }
 
 std::vector<uint16_t> Machine::breakpoints(void) const
@@ -180,8 +231,53 @@ uint8_t Machine::peek(uint16_t addr)
 void Machine::poke(uint16_t addr, uint8_t value)
 {
     int saved_wait = bus.wait;
+    bool saved_watch = bus.any_mem_watch;
+    bus.any_mem_watch = false;   // debugger writes do not trigger watchpoints
     bus.mem_write(addr, value);
+    bus.any_mem_watch = saved_watch;
     bus.wait = saved_wait;
+}
+
+static uint8_t disasm_peek(void* user, uint16_t addr)
+{
+    return ((Machine*)user)->peek(addr);
+}
+
+DisasmResult Machine::disassemble(uint16_t addr)
+{
+    return z80_disasm(addr, disasm_peek, this);
+}
+
+static void ihex_poke(void* user, uint32_t addr, uint8_t value)
+{
+    void** ctx = (void**)user;
+    ((Machine*)ctx[0])->poke((uint16_t)addr, value);
+    (*(int*)ctx[1])++;
+}
+
+bool Machine::load_ihex_text(const std::string& text, std::string& err, int* bytes)
+{
+    int count = 0;
+    void* ctx[2] = { this, &count };
+    bool ok = ihex_parse(text, ihex_poke, ctx, err);
+    if (bytes) *bytes = count;
+    return ok;
+}
+
+bool Machine::load_binary(const std::string& path, uint16_t addr, std::string& err, int* bytes)
+{
+    std::vector<uint8_t> data;
+    if (!file_read_all(data_path(path), data)) {
+        err = "cannot read " + data_path(path);
+        return false;
+    }
+    if (data.size() > 65536 - (size_t)addr) {
+        err = "file does not fit into memory";
+        return false;
+    }
+    for (size_t i = 0; i < data.size(); i++) poke((uint16_t)(addr + i), data[i]);
+    if (bytes) *bytes = (int)data.size();
+    return true;
 }
 
 bool Machine::type_text(const std::string& utf8)
