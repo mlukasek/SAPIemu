@@ -35,12 +35,20 @@ const uint32_t k_background = 0xFF101010u;
 // PAL TV: pixel aspect = 7.375 MHz square-pixel clock (288 lines) / dot clock of the card
 const double k_tv_square_dot_hz = 7.375e6;   // square pixels of a PAL picture (288 lines)
 
+struct GfxView {
+    SDL_Texture* tex = nullptr;
+    int w = 0, h = 0;
+    std::vector<uint32_t> pixels;
+};
+const int MAX_GFX_VIEWS = 4;
+
 struct App {
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* screen_tex = nullptr;
     int tex_w = 0, tex_h = 0;
     std::vector<uint32_t> pixels;
+    GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
     EmuHost host;
     McpServer* mcp = nullptr;
@@ -286,6 +294,8 @@ void draw_menu(App& app)
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem(tr("Open file..."))) rack_open_and_run(app.ui);
+        if (ImGui::MenuItem(tr("Load program into memory (Intel HEX)..."), nullptr, false, m != nullptr))
+            hex_load_dialog(app.ui);
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Exit"))) app.quit = true;
         ImGui::EndMenu();
@@ -397,6 +407,47 @@ void draw_menu(App& app)
     ImGui::EndMainMenuBar();
 }
 
+// Draw display output `d` into the current window, scaled to fit, through its own texture.
+void draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels)
+{
+    int w = d->screen_width(), h = d->screen_height();
+    if (!tex || w != tex_w || h != tex_h) {
+        if (tex) SDL_DestroyTexture(tex);
+        tex = SDL_CreateTexture(app.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
+        tex_w = w;
+        tex_h = h;
+        pixels.assign((size_t)w * h, 0);
+    }
+    d->render(pixels.data(), k_phosphor[app.phosphor], k_background);
+    SDL_UpdateTexture(tex, nullptr, pixels.data(), w * 4);
+
+    // Scale in physical pixels (window points * framebuffer scale) so that integer
+    // scaling stays sharp with Windows display scaling.
+    float fb = ImGui::GetIO().DisplayFramebufferScale.x;
+    if (fb <= 0) fb = 1.0f;
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    float px_aspect = app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
+    float img_w = (float)w * px_aspect, img_h = (float)h;
+    float scale = avail.x * fb / img_w;
+    if (avail.y * fb / img_h < scale) scale = avail.y * fb / img_h;
+    if (app.integer_scale && scale >= 1.0f) scale = (float)(int)scale;
+    if (scale <= 0.1f) scale = 0.1f;
+    ImVec2 size(img_w * scale / fb, img_h * scale / fb);
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    pos.x += (avail.x - size.x) * 0.5f;
+    pos.y += (avail.y - size.y) * 0.5f;
+    pos.x = (float)(int)(pos.x * fb + 0.5f) / fb;   // align to the pixel grid
+    pos.y = (float)(int)(pos.y * fb + 0.5f) / fb;
+    ImGui::SetCursorScreenPos(pos);
+    // The SDL renderer backend applies the sampler state per draw command and
+    // defaults to linear filtering; switch to nearest for the emulated screen.
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
+    ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), size);
+    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+}
+
 void draw_screen(App& app)
 {
     ImGui::SetNextWindowSize(ImVec2(820, 560), ImGuiCond_FirstUseEver);
@@ -421,43 +472,38 @@ void draw_screen(App& app)
         ImGui::End();
         return;
     }
-    int w = d->screen_width(), h = d->screen_height();
-    if (!app.screen_tex || w != app.tex_w || h != app.tex_h) {
-        if (app.screen_tex) SDL_DestroyTexture(app.screen_tex);
-        app.screen_tex = SDL_CreateTexture(app.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-        SDL_SetTextureScaleMode(app.screen_tex, SDL_SCALEMODE_NEAREST);
-        app.tex_w = w;
-        app.tex_h = h;
-        app.pixels.assign((size_t)w * h, 0);
-    }
-    d->render(app.pixels.data(), k_phosphor[app.phosphor], k_background);
-    SDL_UpdateTexture(app.screen_tex, nullptr, app.pixels.data(), w * 4);
-
-    // Scale in physical pixels (window points * framebuffer scale) so that integer
-    // scaling stays sharp with Windows display scaling.
-    float fb = ImGui::GetIO().DisplayFramebufferScale.x;
-    if (fb <= 0) fb = 1.0f;
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    float px_aspect = app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
-    float img_w = (float)w * px_aspect, img_h = (float)h;
-    float scale = avail.x * fb / img_w;
-    if (avail.y * fb / img_h < scale) scale = avail.y * fb / img_h;
-    if (app.integer_scale && scale >= 1.0f) scale = (float)(int)scale;
-    if (scale <= 0.1f) scale = 0.1f;
-    ImVec2 size(img_w * scale / fb, img_h * scale / fb);
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    pos.x += (avail.x - size.x) * 0.5f;
-    pos.y += (avail.y - size.y) * 0.5f;
-    pos.x = (float)(int)(pos.x * fb + 0.5f) / fb;   // align to the pixel grid
-    pos.y = (float)(int)(pos.y * fb + 0.5f) / fb;
-    ImGui::SetCursorScreenPos(pos);
-    // The SDL renderer backend applies the sampler state per draw command and
-    // defaults to linear filtering; switch to nearest for the emulated screen.
-    ImDrawList* dl = ImGui::GetWindowDrawList();
-    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
-    ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)app.screen_tex), size);
-    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+    draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels);
     ImGui::End();
+}
+
+// Graphic display cards (DGD-1): their own video output, so their own window.
+void draw_graphic_screens(App& app)
+{
+    Machine* m = app.host.machine();
+    if (!m) return;
+    int n = 0;
+    for (DisplayDevice* d : m->displays) {
+        if (d == m->display || n >= MAX_GFX_VIEWS) continue;
+        int k = n++;
+        GfxView& v = app.gfx[k];
+        Card* c = dynamic_cast<Card*>(d);
+        char title[96];
+        snprintf(title, sizeof(title), "%s %s###gfx%d", tr("Graphics"), c ? c->name.c_str() : "", k);
+        // first use: right of the console screen (820 wide from x 60), below it on a narrow desktop
+        ImVec2 vp = ImGui::GetMainViewport()->WorkSize;
+        ImVec2 at = vp.x >= 60 + 820 + 10 + 500 ? ImVec2(890.0f + 30.0f * k, 60.0f + 30.0f * k)
+                                                 : ImVec2(60.0f + 30.0f * k, 630.0f + 30.0f * k);
+        ImGui::SetNextWindowPos(at, ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+        bool open = ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+        ImGui::PopStyleVar();
+        if (open) {
+            if (ImGui::IsWindowFocused()) app.ui.screen_focused = true;   // typing goes to the machine too
+            draw_display(app, d, v.tex, v.w, v.h, v.pixels);
+        }
+        ImGui::End();
+    }
 }
 
 void draw_log(App& app)
@@ -636,6 +682,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
         draw_menu(app);
         draw_screen(app);
+        draw_graphic_screens(app);
         draw_debugger(app.ui);
         draw_memory(app.ui);
         draw_iolog(app.ui);
@@ -680,6 +727,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
     if (app.screen_tex) SDL_DestroyTexture(app.screen_tex);
+    for (GfxView& v : app.gfx)
+        if (v.tex) SDL_DestroyTexture(v.tex);
     SDL_DestroyRenderer(app.renderer);
     SDL_DestroyWindow(app.window);
     delete app_ptr;   // flushes the machine (RAM disks)

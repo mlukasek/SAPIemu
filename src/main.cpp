@@ -57,6 +57,8 @@ static void print_help(void)
            "  --print-serial     print data received on the first serial channel\n"
            "  --break ADDR       set an execution breakpoint (hex)\n"
            "  --print-regs       print CPU registers\n"
+           "  --load-hex FILE    load an Intel HEX file into memory\n"
+           "  --display CARD     --screenshot takes this display output (e.g. DGD-1)\n"
            "  --screenshot FILE  save the screen as PNG (2x)\n",
            sapiemu_version(), DEFAULT_MACHINE, MCP_DEFAULT_PORT);
 }
@@ -64,7 +66,7 @@ static void print_help(void)
 static bool action_has_arg(const std::string& a)
 {
     return a == "--run-ms" || a == "--type" || a == "--keyboard" || a == "--wait-text" || a == "--timeout-ms" ||
-           a == "--serial-send" || a == "--break" || a == "--screenshot";
+           a == "--serial-send" || a == "--break" || a == "--screenshot" || a == "--display" || a == "--load-hex";
 }
 
 static int action_arg_count(const std::string& a)

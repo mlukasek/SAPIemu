@@ -81,6 +81,21 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
   `.K_S @DATA` a `.K_L DATA` zpět, BASIC EX V4.0 ze skutečné nahrávky (MP3) se načte, `.J` → `READY`,
   `PRINT 12*34+5` = 413.
 
+## BASIC EXP V5.0 a V5.0/G (pod Monitorem V5)
+
+- Zdroj: Intel HEX ze sapi.cz (`BKP\sapi\data\bexp_hex.php`, `bexpg_hex.php`), shodné s
+  `H:\SAPI-1\MIKOS_PGM\BASIC5.HEX`, `BASIC5G.HEX`. V repu `media/mikos/BASIC_EXP_V5.0.hex` (4400–6B00) a
+  `BASIC_EXP_V5.0G.hex` (4400–7400). Nahrávky na kazetě nemáme.
+- **Nahrání:** v GUI Soubor → „Nahrát program do paměti (Intel HEX)…“, pak `.B`. Přes MCP `load_hex`, v
+  `sapiemu-cli --load-hex`.
+- BASIC EXP je shora kompatibilní s BASIC EX V4.0, navíc má REPEAT/UNTIL, WHILE/DO/WEND, IF-THEN-ELSE s bloky
+  BEG/BEND, PROC/ENDP s parametry, RENUM, SAVEB/LOADB…
+- **V5.0/G** přidává grafiku na desce DGD-1 (`docs/desky/DGD-1.md`): SCALE, CLSG, COLOR, MOVE, PLOT, DRAW,
+  LABEL, AXES, FILL, GETP… Souřadnice 0–319 × 0–239, y = 0 dole. Sestava `ZPS-2_MIKOS_V5.sapi` má DGD-1 na C000h
+  a RAM-1 omezenou na 4000–BFFF. Grafika se ukazuje v okně „Grafika DGD-1“.
+- **Ověřeno** (`test_mikos`): V5.0 naběhne, REPEAT/UNTIL a WHILE/WEND. V5.0/G: CLSG, PLOT na správné body
+  v paměti DGD-1.
+
 ## Formát pásky
 
 - Bloky: 3× 10h, typ, 255 bajtů dat, jméno 11 znaků, číslo bloku, číslo souboru (BCD), kontrolní součet

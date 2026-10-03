@@ -1,8 +1,8 @@
 // SAPI-1 machine description, written by the SAPIemu configurator.
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
-    "name": "ZPS-2 MIKOS V5.0 (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, BDK-1, Consul 262.3)",
-    "description": "ZPS-2 s Monitorem V5.0F a MIKOSem V5.0 (TESLA ELTOS 1988, sapi.cz/sapi/doku2/v5.php): monitor 0000-0BFF a MIKOS 0C00-13FF v EPROM 2708 na REM-1 (RAM REM-1 odpojená), RAM-1/48K na 4000-FFFF, AND-1 a DSM-1 bez přerušení, klávesnice Consul místo ANK-1 (Monitor V5 nepodporuje ANK-1). Programy z kazet (BASIC EX V4.0, TOOL) se načtou příkazem .K L. Pořadí karet ve slotech je odhad.",
+    "name": "ZPS-2 MIKOS V5.0 (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, BDK-1, DGD-1, Consul 262.3)",
+    "description": "ZPS-2 s Monitorem V5.0F a MIKOSem V5.0 (TESLA ELTOS 1988, sapi.cz/sapi/doku2/v5.php): monitor 0000-0BFF a MIKOS 0C00-13FF v EPROM 2708 na REM-1 (RAM REM-1 odpojená), RAM-1/48K propojkami S1=0 S2=1 omezená na 4000-BFFF kvůli grafickému displeji DGD-1 na C000-FFFF (manuál DGD-1), AND-1 a DSM-1 bez přerušení, klávesnice Consul místo ANK-1 (Monitor V5 nepodporuje ANK-1). Grafiku kreslí BASIC EXP V5.0/G. Programy z kazet se načtou příkazem .K L. Pořadí karet ve slotech je odhad.",
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },
@@ -21,7 +21,7 @@
         {
             "slot": 2,                      // position X2
             "type": "REM-1",                // RAM and EPROM card
-            "rom": "roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin",  // EPROMs (from socket 1)
+            "rom": "roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin",  // EPROMs (from socket 1) - Monitor V5.0F + MIKOS V5.0 (Consul, 5 KB)
             "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
             "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
             "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
@@ -32,8 +32,8 @@
             "slot": 3,                      // position X3
             "type": "RAM-1",                // Dynamic RAM up to 48 KB
             "fitted_kb": 48,                // Fitted memory - RAM-1/48K
-            "s1": true,                     // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
-            "s2": false                     // S2
+            "s1": false,                    // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": true                      // S2
         },
         {
             "slot": 4,                      // position X4
@@ -54,6 +54,13 @@
         {
             "slot": 6,                      // position X6
             "type": "BDK-1"                 // Prototyping board (empty, no function)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "DGD-1",                // Graphic display 320x240
+            "base": "C000",                 // Switch SP1-2: graphics RAM 16 KB from - C000H (switch SP1-2 open, ZPS-2, ZPS-3)
+            "mapping": false,               // Switch SP1-1: with mapping (selected by MAP1)
+            "wait_states": true             // Wait states (CPU waits for its window of the display)
         }
     ]
 }

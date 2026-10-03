@@ -135,6 +135,21 @@ static const CardParam k_and1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+static const ParamOption k_dgd1_base[] = {
+    { "\"C000\"", "C000H (switch SP1-2 open, ZPS-2, ZPS-3)", "C000H (přepínač SP1-2 rozepnutý, ZPS-2, ZPS-3)" },
+    { "\"0000\"", "0000H (switch SP1-2 closed, ZPS-4, SAPI-1Z)", "0000H (přepínač SP1-2 sepnutý, ZPS-4, SAPI-1Z)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dgd1[] = {
+    { "base", PK_CHOICE, "Switch SP1-2: graphics RAM 16 KB from", "Přepínač SP1-2: grafická RAM 16 KB od", "\"C000\"",
+      k_dgd1_base, 0, 0 },
+    { "mapping", PK_BOOL, "Switch SP1-1: with mapping (selected by MAP1)", "Přepínač SP1-1: s mapováním (výběr signálem MAP1)",
+      "false", nullptr, 0, 0 },
+    { "wait_states", PK_BOOL, "Wait states (CPU waits for its window of the display)",
+      "Čekací stavy (CPU čeká na své okno displeje)", "true", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // CPU cards not emulated yet: only what the configurator should remember
 static const CardParam k_cpu_basic[] = {
     { "rom", PK_FILE, "Monitor EPROM", "EPROM monitoru", "\"\"", k_none, 0, 0 },
@@ -366,7 +381,7 @@ CARD(c_and1z, "AND-1Z", "AND", "Alphanumeric display \"Z\"", "Alfanumerický dis
 CARD(c_and1z89, "AND-1Z-89", "AND", "Alphanumeric display \"Z\" 1989", "Alfanumerický displej \"Z\" 1989",
      CC_DISPLAY, 1, true, k_and1z)
 CARD(c_and30c, "AND-30C", "AND", "Display with MC6845", "Displej s MC6845", CC_DISPLAY, 1, false, nullptr)
-CARD(c_dgd1, "DGD-1", "DGD", "Graphic display", "Grafický displej", CC_DISPLAY, 1, false, nullptr)
+CARD(c_dgd1, "DGD-1", "DGD", "Graphic display 320x240", "Grafický displej 320x240", CC_DISPLAY, 1, true, k_dgd1)
 CARD(c_dbs1a, "DBS-1A", "DBS", "Colour semigraphics", "Barevná semigrafika", CC_DISPLAY, 1, false, nullptr)
 // serial
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,

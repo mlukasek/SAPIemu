@@ -784,12 +784,14 @@ json t_screen_text(EmuHost& h, const json&)
 json t_screenshot(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
-    if (!m.display) return error_result("machine has no display card");
+    std::string card = a.value("display", std::string());
+    DisplayDevice* d = m.find_display(card);
+    if (!d) return error_result(card.empty() ? "machine has no display card" : "no display card '" + card + "'");
     long long scale = arg_num(a, "scale", 2);
     if (scale < 1 || scale > 4) throw ToolError{ "scale must be 1..4" };
-    int w = m.display->screen_width(), hh = m.display->screen_height();
+    int w = d->screen_width(), hh = d->screen_height();
     std::vector<uint32_t> px((size_t)w * hh);
-    m.display->render(px.data(), 0xFFE8E8E8u, 0xFF101010u);
+    d->render(px.data(), 0xFFE8E8E8u, 0xFF101010u);
     std::vector<uint8_t> png = png_encode_argb(px.data(), w, hh, (int)scale, (int)scale);
     return json{ { "content", json::array({ json{ { "type", "image" }, { "data", base64(png) }, { "mimeType", "image/png" } } }) },
                  { "isError", false } };
@@ -1046,8 +1048,8 @@ const Tool k_tools[] = {
     { "set_keyboard", "Plug another keyboard into the CPU card (connector X2). The machine keeps running; software must support the keyboard's protocol.",
       R"J({"type":"object","properties":{"name":{"type":"string","enum":["EKL-1","Consul 262.3","Consul 262.3 (bez 7474)","Consul 259.11","Consul 259.11 (KOI-8 cs)","ANK-1"]}},"required":["name"]})J", t_set_keyboard },
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
-    { "screenshot", "PNG image of the display.",
-      R"({"type":"object","properties":{"scale":{"type":"integer","default":2}}})", t_screenshot },
+    { "screenshot", "PNG image of the display: the console screen, or display = card name of another display output (e.g. \"DGD-1\" graphics).",
+      R"({"type":"object","properties":{"scale":{"type":"integer","default":2},"display":{"type":"string"}}})", t_screenshot },
     { "serial_send", "Send text to a serial channel (host -> SAPI), at the configured baud rate.",
       R"({"type":"object","properties":{"text":{"type":"string"},"channel":{"type":"integer","default":0}},"required":["text"]})", t_serial_send },
     { "serial_receive", "Read data the SAPI sent on a serial channel since the last serial_receive.",

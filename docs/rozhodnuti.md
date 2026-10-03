@@ -357,3 +357,12 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **ROM jen 5 KB (monitor + MIKOS).** Ovladač XY 4130 z `MIKOS5.BIN` se nepřidává. Má autostart z 1800h a
   sestava nemá zapisovač.
 - **Výchozí V5.0F** (novější), V5.0E je v katalogu REM-1 jako alternativa.
+
+## 2026-10-03 – DGD-1 a BASIC EXP
+
+- **Grafika DGD-1 ve vlastním okně** (autor). Skutečná sestava měla dva videovýstupy (AND-1 a DGD-1). Konzole
+  (`Machine::display`) je první textový displej, další výstupy jsou v `Machine::displays`.
+- **Výběr DGD-1 podle tabulky SP1, ne podle PROM D1A.** Dump existuje, ale zapojení vstupů neznáme.
+- **BASIC EXP jako Intel HEX v `media/mikos/`**, protože nahrávky na kazetě nemáme. Do GUI přibylo nahrání HEX do
+  paměti (Soubor → Nahrát program do paměti) a do `sapiemu-cli` akce `--load-hex`.
+- **Sestava `ZPS-2_MIKOS_V5.sapi` má DGD-1** a RAM-1 přepnutou na 4000–BFFF, jak předepisuje návod DGD-1.

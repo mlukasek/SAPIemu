@@ -208,6 +208,73 @@ static void v5_real_tape(void)
     printf("%s\n", screen_text(m).c_str());
 }
 
+// BASIC EXP V5.0 and V5.0/G (Intel HEX from sapi.cz, from 4400H) under MIKOS V5;
+// /G draws into the DGD-1 at C000H: line 0 = y 239, bit 7 = the left dot.
+static bool load_basic_exp(Machine& m, Dsm1*& dsm, const char* hex, const char* banner)
+{
+    if (!boot_v5(m, dsm)) return false;
+    std::string text, err;
+    CHECK(file_read_text(data_path(hex), text));
+    int n = 0;
+    CHECK(m.load_ihex_text(text, err, &n));
+    CHECK(n > 9000);
+    m.type_text("B");
+    bool ok = run_until_text(m, banner, 3.0);
+    CHECK(ok);
+    CHECK(run_until_text(m, "READY\n:", 2.0));
+    m.run_seconds(0.5);
+    return ok;
+}
+
+static void type_lines(Machine& m, const char* const* lines)
+{
+    for (int i = 0; lines[i]; i++) {
+        m.type_text(lines[i]);
+        m.run_seconds(0.6);
+    }
+}
+
+static void basic_exp(void)
+{
+    Machine m;
+    Dsm1* dsm;
+    if (!load_basic_exp(m, dsm, "media/mikos/BASIC_EXP_V5.0.hex", "* BASIC - EXP V5.0 *")) return;
+    static const char* const prog[] = {
+        "10 I=0\r", "20 REPEAT\r", "30 I=I+1:PRINT I;\r", "40 UNTIL I=5\r", "50 PRINT\r",
+        "60 WHILE I>2 DO I=I-1:PRINT I;:WEND\r", "RUN\r", nullptr
+    };
+    type_lines(m, prog);
+    CHECK(run_until_text(m, " 1  2  3  4  5\n 4  3  2", 5.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
+static void basic_exp_g(void)
+{
+    Machine m;
+    Dsm1* dsm;
+    if (!load_basic_exp(m, dsm, "media/mikos/BASIC_EXP_V5.0G.hex", "* BASIC - EXP V5.0/G *")) return;
+    DisplayDevice* g = m.find_display("DGD-1");
+    CHECK(g != nullptr && g != m.display);
+    CHECK(m.display && m.display->text_display());
+    m.bus.mem_write(0xC000, 0x55);   // CLSG clears the whole 16 KB
+    m.type_text("CLSG:COLOR 2,255:MOVE 0,0:PLOT 10,0:MOVE 0,0:PLOT 0,5:MOVE 319,239:PLOT 316,239\r");
+    m.run_seconds(3.0);   // the command line wraps on the 40 columns
+    CHECK_EQ(m.bus.mem_peek(0xFBC0), 0xFF);   // y 0, x 0..7
+    CHECK_EQ(m.bus.mem_peek(0xFBC1), 0xE0);   // x 8..10
+    CHECK_EQ(m.bus.mem_peek(0xFA80), 0x80);   // y 5, x 0
+    CHECK_EQ(m.bus.mem_peek(0xC027), 0x0F);   // y 239, x 316..319
+    CHECK_EQ(m.bus.mem_peek(0xC000), 0x00);
+    std::vector<uint32_t> px((size_t)g->screen_width() * g->screen_height());
+    g->render(px.data(), 0xFFFFFFFFu, 0xFF000000u);
+    CHECK_EQ(g->screen_width(), 320);
+    CHECK(px[239 * 320 + 10] == 0xFFFFFFFFu && px[239 * 320 + 11] == 0xFF000000u);
+    CHECK(px[0 * 320 + 319] == 0xFFFFFFFFu);
+    // the program keeps running with the graphics memory full
+    m.type_text("CLSG 255:PRINT 6*7\r");
+    CHECK(run_until_text(m, "\n 42", 5.0));
+    CHECK_EQ(m.bus.mem_peek(0xD234), 0xFF);
+}
+
 int main(void)
 {
     test_init();
@@ -216,5 +283,7 @@ int main(void)
     real_tape("BASIC EX V4.0.mp3", "BASIC", 0x1E, "READY", "PRINT 12*34+5\r", " 413");
     v5_save_load();
     v5_real_tape();
+    basic_exp();
+    basic_exp_g();
     return TEST_RESULT();
 }

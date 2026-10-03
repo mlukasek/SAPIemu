@@ -164,7 +164,10 @@ bool Machine::load_json(const json& cfg, std::string& err)
             return false;
         }
         DisplayDevice* d = dynamic_cast<DisplayDevice*>(card);
-        if (d && !display) display = d;
+        if (d) {
+            displays.push_back(d);
+            if (!display && d->text_display()) display = d;
+        }
         for (int i = 0; SerialChannel* s = card->serial_channel(i); i++) serials.push_back(s);
     }
     if (!cpu) {
@@ -376,6 +379,15 @@ bool Machine::set_keyboard(const std::string& preset, std::string& err)
 void Machine::flush(void)
 {
     for (auto& c : cards) c->flush();
+}
+
+DisplayDevice* Machine::find_display(const std::string& n)
+{
+    if (n.empty()) return display;
+    for (auto& c : cards)
+        if (c->name == n || c->type == n)
+            if (DisplayDevice* d = dynamic_cast<DisplayDevice*>(c.get())) return d;
+    return nullptr;
 }
 
 Card* Machine::find_card(const std::string& n)

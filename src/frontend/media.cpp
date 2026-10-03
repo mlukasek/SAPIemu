@@ -16,6 +16,7 @@
 
 static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3)", "wav;mp3" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
+static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
 {
@@ -40,6 +41,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card)
     for (char& c : where) if (c == '/') c = '\\';
 #endif
     if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 1, where.c_str(), false);
+    else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 1, where.c_str(), false);
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
@@ -57,9 +59,17 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         d.kind = 0;
     }
     if (path.empty() || !m) return;
+    d.last_dir = path_dir(path);
+    if (kind == 3) {   // a program into memory, as if loaded from the tape
+        std::string text, err;
+        int n = 0;
+        if (!file_read_text(path, text)) LOGE("cannot read %s", path.c_str());
+        else if (!m->load_ihex_text(text, err, &n)) LOGE("%s: %s", path.c_str(), err.c_str());
+        else LOGI("%s: %d bytes loaded into memory", path.c_str(), n);
+        return;
+    }
     Dsm1* dsm = dynamic_cast<Dsm1*>(m->find_card(card));
     if (!dsm) return;
-    d.last_dir = path_dir(path);
     std::string err;
     TapeDeck* t = dsm->tape();
     t->eject();
@@ -169,8 +179,14 @@ static void draw_pmd32(Pmd32Sd* p)
     ImGui::Checkbox(tr("SD card locked"), &p->card_locked);
 }
 
+void hex_load_dialog(UiState& ui)
+{
+    tape_dialog(ui, 3, std::string());
+}
+
 void draw_media(UiState& ui)
 {
+    tape_dialog_result(ui, ui.host->machine());   // also the HEX dialog of the File menu
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(560, 300), ImGuiCond_FirstUseEver);
@@ -178,7 +194,6 @@ void draw_media(UiState& ui)
         ImGui::End();
         return;
     }
-    tape_dialog_result(ui, m);
     bool any = false;
     for (auto& c : m->cards) {
         if (Dsm1* dsm = dynamic_cast<Dsm1*>(c.get())) {

@@ -30,3 +30,13 @@ Zdroj: `..\ZRMD-1\SW`.
   - Duplicitní `.hex` verze (10 MB) se do repa nedává.
 - `puvodni_SYS0_3_s_CD.HEX`: systémová oblast (bajty 0–7FFF RAM disku), zaváděná na 4000–BFFF.
 - `ECSYS_zaloha_0-3.hex`: jiná varianta systémové oblasti.
+
+## `mikos/` – programy pro MIKOS (Intel HEX)
+
+Zdroj: `H:\SAPI-1\MIKOS_PGM\` (shodné s výpisy na sapi.cz). Nahrávají se v GUI přes Soubor → Nahrát program do
+paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak se spouští `.B` v monitoru.
+
+| Soubor | Program | Adresy |
+|---|---|---|
+| `BASIC_EXP_V5.0.hex` | BASIC EXP V5.0 (TESLA DIZ 1986), `BASIC5.HEX` | 4400–6B00 |
+| `BASIC_EXP_V5.0G.hex` | BASIC EXP V5.0/G s grafikou pro DGD-1, `BASIC5G.HEX` | 4400–7400 |

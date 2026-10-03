@@ -16,7 +16,7 @@ struct SDL_Window;
 // Cassette dialogs of the Media window (answer from another thread).
 struct TapeDialog {
     std::mutex mtx;
-    int kind = 0;            // 0 none, 1 insert, 2 new tape
+    int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory
     bool done = false;
     std::string result;      // chosen file, empty = cancelled
     std::string card;        // DSM-1 card name
@@ -101,6 +101,8 @@ void draw_memory(UiState& ui);
 void draw_iolog(UiState& ui);
 void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
+// File -> Load program (Intel HEX): native dialog, the file goes into memory.
+void hex_load_dialog(UiState& ui);
 void draw_rack(UiState& ui);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);

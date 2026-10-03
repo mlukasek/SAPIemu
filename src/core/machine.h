@@ -74,10 +74,12 @@ public:
     std::vector<std::unique_ptr<SerialBridge>> bridges;
 
     CpuCard* cpu = nullptr;
-    DisplayDevice* display = nullptr;
+    DisplayDevice* display = nullptr;           // the console screen (first text display)
+    std::vector<DisplayDevice*> displays;       // all display outputs in slot order
     std::vector<SerialChannel*> serials;
     KeyboardDevice* keyboard(void) { return cpu ? cpu->keyboard() : nullptr; }
     Card* find_card(const std::string& name);
+    DisplayDevice* find_display(const std::string& card);   // "" = the console screen
 
     Bus bus;
     std::vector<std::unique_ptr<Card>> cards;

@@ -106,6 +106,8 @@ static const Translation k_table[] = {
     { "  - unsaved changes", "  - neuložené změny" },
     { "Cannot change the keyboard", "Klávesnici nelze změnit" },
     { "Screen", "Obrazovka" },
+    { "Graphics", "Grafika" },
+    { "Load program into memory (Intel HEX)...", "Nahrát program do paměti (Intel HEX)…" },
     { "Log", "Log" },
     { "Phosphor", "Barva luminoforu" },
     { "White", "Bílá" },

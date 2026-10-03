@@ -47,6 +47,7 @@ static void print_regs(Machine& m)
 int headless_run(Machine& m, const std::vector<std::string>& actions)
 {
     double timeout_s = 5.0;
+    std::string shot_display;   // --display CARD: the output --screenshot takes
     for (size_t i = 0; i < actions.size(); i++) {
         const std::string& a = actions[i];
         bool has_arg = i + 1 < actions.size();
@@ -79,6 +80,11 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
             std::string s;
             if (!m.serials.empty()) m.serials[0]->host_receive(s, 1 << 20);
             printf("%s", s.c_str());
+        } else if (a == "--load-hex" && has_arg) {
+            std::string text, err;
+            const std::string& path = actions[++i];
+            if (!file_read_text(data_path(path), text)) { fprintf(stderr, "cannot read %s\n", path.c_str()); return 1; }
+            if (!m.load_ihex_text(text, err)) { fprintf(stderr, "%s: %s\n", path.c_str(), err.c_str()); return 1; }
         } else if (a == "--break" && has_arg) {
             long long addr;
             std::string v = actions[++i];
@@ -108,12 +114,15 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
                 printf(" %s\n", d.text.c_str());
                 pc = (uint16_t)(pc + d.length);
             }
+        } else if (a == "--display" && has_arg) {
+            shot_display = actions[++i];
         } else if (a == "--screenshot" && has_arg) {
             const std::string& path = actions[++i];
-            if (!m.display) { fprintf(stderr, "no display card\n"); return 1; }
-            int w = m.display->screen_width(), h = m.display->screen_height();
+            DisplayDevice* d = m.find_display(shot_display);
+            if (!d) { fprintf(stderr, "no display card %s\n", shot_display.c_str()); return 1; }
+            int w = d->screen_width(), h = d->screen_height();
             std::vector<uint32_t> px((size_t)w * h);
-            m.display->render(px.data(), 0xFFE8E8E8u, 0xFF101010u);
+            d->render(px.data(), 0xFFE8E8E8u, 0xFF101010u);
             if (!png_write_argb(path, px.data(), w, h, 2, 2)) {
                 fprintf(stderr, "cannot write %s\n", path.c_str());
                 return 1;
