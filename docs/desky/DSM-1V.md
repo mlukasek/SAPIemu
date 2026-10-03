@@ -1,6 +1,10 @@
 # DSM-1V – dva sériové kanály (Libor Lasota, podle DSM-1, bez kazety)
 
-Stav: **rozbor hotový (2026-10-04), emulace zatím není.**
+Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/test_sapi1v.cpp`.
+Karta `DSM-1V` (`src/cards/dsm1.*`, dvě instance kanálu DSM-1 bez kazety):
+- parametry `a` a `b` (`enabled`, `base`, `baud`, `connected`, …);
+- výchozí podle fotky (`..\DSM-1V\Foto\mDSM-1V_rev.1.1.jpg`) a autora: **A = 10h, B = 14h, oba 115200 Bd**.
+- Sériové kanály „DSM-1V #10“ a „#14“ jdou připojit přes TCP a COM jako u DMR-1.
 
 Zdroje:
 - schéma `..\DSM-1V\DSM-1V.pdf` (DPLA0089DSM rev 1.1, 27.06.2025);

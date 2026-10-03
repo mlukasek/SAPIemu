@@ -75,6 +75,8 @@ DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno.
 systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 (bastldeska) je prázdná deska pro vlastní zapojení uživatele, na sběrnici nic nedělá a jen zabírá slot.
 **ZPS-3 běží** s originálním monitorem 48K MON V1.0-C1 a CP/M 2.2/P z diskety (`docs/software/CPM_ZPS-3.md`).
+**Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V a IDE-1 s ECMON
+a CP/M z RAM disku. Propojky jsou jako na autorových deskách.
 **ZPS-4 běží** s CP/M 2.2/P od Peřiny (`ZPS-4.sapi`) i se systémem ELIS (`ZPS-4_ELIS.sapi`), včetně RAM disku RMD-1
 (`docs/software/CPM_ZPS-4.md`).
 Navíc je tu `machines/zps/MIKROBASIC_AR1983.sapi`: nejmenší sestava z AR/B 1983 (JPR-1 s EPROM a 1 KB RAM,

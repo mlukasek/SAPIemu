@@ -1,6 +1,13 @@
 # JPR-1V – procesorová deska Z80 (Libor Lasota, upgrade JPR-1Z)
 
-Stav: **rozbor hotový (2026-10-04), emulace zatím není.**
+Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/test_sapi1v.cpp`.
+Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
+- parametry `rom` (8 KB), `bios` (`fitted` = banka 0, `open` = banka 1), `turbo`, `osc_hz`;
+- výchozí obraz `roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin`: banka 0 MikroBIOS 3.0, banka 1 ECMON IDE-1
+  (autorovo rozhodnutí);
+- na autorově desce (fotka `H:\SAPI-1\LiborLasota\JPR-1V\Foto\mJPR1V.jpg`) je propojka BIOS osazená a TURBO
+  rozpojené (2 MHz).
+- **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z) a přepínání TURBO za chodu.
 
 Zdroje:
 - [S1] schéma `..\JPR-1V\JPR-1V.pdf` (rev 1.1, 4 listy);

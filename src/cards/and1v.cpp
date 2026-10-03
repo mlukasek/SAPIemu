@@ -15,7 +15,7 @@ bool And1v::configure(const json& cfg, std::string& err)
     if (b < 0 || b > 0xF800 || (b & 0x7FF)) { err = "base must be a multiple of 800h (jumpers S2 /A11-/A15)"; return false; }
     base = (uint16_t)b;
     std::string m;
-    if (!cfg_string(cfg, "map", m, "always", err)) return false;
+    if (!cfg_string(cfg, "map", m, "map1_l", err)) return false;
     if (m == "always") map_mode = 0;
     else if (m == "map1_h") map_mode = 1;
     else if (m == "map1_l") map_mode = 2;

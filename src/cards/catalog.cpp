@@ -135,10 +135,45 @@ static const ParamOption k_and1v_fonts[] = {
 static const CardParam k_and1v[] = {
     { "base", PK_HEX, "S2 /A11-/A15: VRAM base (2 KB steps)", "S2 /A11-/A15: začátek VRAM (po 2 KB)", "\"F800h\"",
       nullptr, 0, 0xF800 },
-    { "map", PK_CHOICE, "S2 MAP1OFF, H/L", "S2 MAP1OFF, H/L", "\"always\"", k_and1v_map, 0, 0 },
+    { "map", PK_CHOICE, "S2 MAP1OFF, H/L", "S2 MAP1OFF, H/L", "\"map1_l\"", k_and1v_map, 0, 0 },
     { "color", PK_CHOICE, "S1: ink colour", "S1: barva", "\"white\"", k_and1v_color, 0, 0 },
     { "font", PK_FILE, "Character generator 27C256", "Generátor znaků 27C256", "\"roms/and-1v/font_and1v22_1024.bin\"",
       k_and1v_fonts, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// RAM-1V (Libor Lasota)
+static const ParamOption k_ram1v_cond[] = {
+    { "\"off\"", "no hole", "bez díry" },
+    { "\"ignore\"", "MAP ignored", "MAP se ignoruje" },
+    { "\"h\"", "only when MAP = H", "jen při MAP = H" },
+    { "\"l\"", "only when MAP = L", "jen při MAP = L" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_ram1v_c[] = {
+    { "\"none\"", "empty", "prázdná" }, { "\"sram\"", "62256 SRAM", "SRAM 62256" },
+    { "\"m48t35\"", "M48T35 Timekeeper (RTC at 7FF8-7FFF)", "M48T35 Timekeeper (RTC na 7FF8-7FFF)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_ram1v_csel[] = {
+    { "\"never\"", "never", "nikdy" }, { "\"map1\"", "1-2: MAP1 = H", "1-2: MAP1 = H" },
+    { "\"map2\"", "3-4: MAP2 = H", "3-4: MAP2 = H" }, { nullptr, nullptr, nullptr },
+};
+static const CardParam k_ram1v[] = {
+    { "sram_a", PK_BOOL, "SRAM A (0000-7FFF)", "SRAM A (0000-7FFF)", "true", nullptr, 0, 0 },
+    { "sram_b", PK_BOOL, "SRAM B (8000-FFFF)", "SRAM B (8000-FFFF)", "true", nullptr, 0, 0 },
+    { "sram_c", PK_CHOICE, "Socket C (instead of A)", "Patice C (místo A)", "\"none\"", k_ram1v_c, 0, 0 },
+    { "c_select", PK_CHOICE, "S4 CONF: chip C when", "S4 CONF: obvod C při", "\"never\"", k_ram1v_csel, 0, 0 },
+    { "hole16_base", PK_HEX, "S5 /A14 /A15: 16 KB hole at", "S5 /A14 /A15: díra 16 KB na", "\"C000h\"", nullptr, 0, 0xC000 },
+    { "hole16_map1", PK_CHOICE, "S5 MAP1MODE", "S5 MAP1MODE", "\"h\"", k_ram1v_cond, 0, 0 },
+    { "hole16_map2", PK_CHOICE, "S5 MAP2MODE", "S5 MAP2MODE", "\"ignore\"", k_ram1v_cond, 0, 0 },
+    { "hole2_base", PK_HEX, "S6 /A11-/A15: 2 KB hole at", "S6 /A11-/A15: díra 2 KB na", "\"F800h\"", nullptr, 0, 0xF800 },
+    { "hole2_map1", PK_CHOICE, "S6 MAP1MODE", "S6 MAP1MODE", "\"l\"", k_ram1v_cond, 0, 0 },
+    { "map_port", PK_HEX, "S3: MAP register port", "S3: port registru MAP", "\"63h\"", nullptr, 0, 0xFF },
+    { "map1_enable", PK_BOOL, "S1 EN: drive MAP1 (pin 21)", "S1 EN: budit MAP1 (pin 21)", "true", nullptr, 0, 0 },
+    { "map1_bit", PK_INT, "S1 B1/B2/B4: MAP1 data bit", "S1 B1/B2/B4: bit dat pro MAP1", "6", nullptr, 0, 7 },
+    { "map2_enable", PK_BOOL, "S2 EN: drive MAP2 (pin 22)", "S2 EN: budit MAP2 (pin 22)", "true", nullptr, 0, 0 },
+    { "map2_bit", PK_INT, "S2 B1/B2/B4: MAP2 data bit", "S2 B1/B2/B4: bit dat pro MAP2", "7", nullptr, 0, 7 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -591,6 +626,8 @@ CARD(c_jpr1zi, "JPR-1ZI", "JPR", "CPU card Z80 (new design)", "Procesorová desk
 CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, true, k_jpr1v)
 // memory
 CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM", CC_MEMORY, 1, true, k_rem1)
+CARD(c_ram1v, "RAM-1V", "RAM", "Configurable SRAM 64 KB with MAP (V)", "Konfigurovatelná SRAM 64 KB s MAP (V)", CC_MEMORY, 1,
+     true, k_ram1v)
 CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 KB", CC_MEMORY, 1, true, k_ram1)
 CARD(c_ram1a, "RAM-1A", "RAM", "Dynamic RAM up to 48 KB \"A\"", "Dynamická RAM až 48 KB \"A\"", CC_MEMORY, 1, true,
      k_ram1a)
@@ -637,7 +674,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
 {
     static const std::vector<const CardInfo*> list = {
         &c_jpr1zi, &c_jpr1, &c_jpr1a, &c_jpr1z, &c_jpr1v,
-        &c_dmr1, &c_rem1, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
+        &c_dmr1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
         &c_and1z89, &c_and1z, &c_and1v, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,

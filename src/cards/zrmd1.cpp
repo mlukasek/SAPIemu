@@ -103,8 +103,10 @@ bool Zrmd1::configure(const json& cfg, std::string& err)
 void Zrmd1::reset()
 {
     // The SRAM and the RTC are battery backed; the address counters and the
-    // port 63h latch are assumed to be cleared by /RES (to be verified on HW).
-    a_lo = a_mid = a_hi = 0;
+    // port 63h latch are assumed to be cleared by /RES on ZRMD-1 (to be verified
+    // on HW). ZRD-1V: CLR of the 74LS193 tied low, the 374 latches have no
+    // clear, /RES only disables the decoder: the address survives a reset.
+    if (!is_zrd1v) a_lo = a_mid = a_hi = 0;
 }
 
 void Zrmd1::advance(uint64_t now)

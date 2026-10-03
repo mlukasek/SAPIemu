@@ -4,6 +4,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: desky V Libora Lasoty** (`machines/sapi1v.sapi`).
+- JPR-1V (banky EEPROM MikroBIOS 3.0 / ECMON), AND-1V rev 2.3 (VGA 64x20), RAM-1V (generátor MAP na 63h,
+  díry, volitelné RTC M48T35), DSM-1V (10h a 14h, 115200 Bd).
+- ZRD-1V bez MAP, reset nenuluje adresu.
+- ECMON + CP/M z RAM disku běží, MikroBIOS se ohlásí.
+- Test `test_sapi1v`, celkem 24 testů. Propojky podle fotek autorových desek.
+
 **Hotové: ZPS-4** (`machines/zps/ZPS-4.sapi`, `ZPS-4_ELIS.sapi`).
 - Nové karty JPR-1Z (typ JPR-1ZI s 2716), RAM-1Z (dump D3B, přepínače S1) a RAM disk RMD-1 (256 KB / 1 MB).
 - CP/M 2.2/P (Peřina) s RAM diskem E: i ELIS 61k CP/M s RAM diskem C: běží. ELIS v3.00 má nevyjasněnou
@@ -131,7 +138,7 @@ Dřív hotové fáze:
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
-| F9 | **Liborovy desky V:** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ⏳ průzkum podkladů |
+| F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.

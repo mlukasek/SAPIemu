@@ -1,6 +1,12 @@
 # AND-1V – alfanumerický displej s výstupem VGA (Libor Lasota, podle AND-1Z)
 
-Stav: **rozbor hotový (2026-10-04), emulace zatím není.**
+Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/test_sapi1v.cpp`.
+Karta `AND-1V` (`src/cards/and1v.*`), rev 2.3:
+- parametry `base`, `map` (`always`, `map1_h`, `map1_l`, `never`), `color`, `font`;
+- čekací stavy se neemulují.
+- **Výchozí jako autorova deska** (fotka `..\AND-1V\mAND-1V rev. 2.3.jpg`, autor): F800, **MAP1 = L** (kvůli
+  budoucí CGA-1V). Barva podle fotky asi zelená (S1 /BLU a /RED osazené), ale jisté to není. Font vypálený
+  v desce autor neví, výchozí je typ 1.
 
 Zdroje:
 - [S5] https://www.pmd85.cz/?page_id=1924 (rev 2.x);

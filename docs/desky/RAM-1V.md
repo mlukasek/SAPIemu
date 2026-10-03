@@ -1,6 +1,18 @@
 # RAM-1V – konfigurovatelná SRAM s generátorem MAP (Libor Lasota, podle RAM-1A)
 
-Stav: **rozbor hotový (2026-10-04), emulace zatím není.**
+Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/test_sapi1v.cpp`.
+Karta `RAM-1V` (`src/cards/ram1v.*`):
+- parametry pro všechny propojky S1–S6, osazení A/B a patici C (`none`, `sram`, `m48t35`);
+- RTC M48T35 na 7FF8–7FFF obvodu C je volitelné podle autora, čas bere z PC.
+- **Výchozí jako autorova deska** (fotka `..\RAM-1V\mRAM-1V rev. 1.1.jpg`, shodné s potiskem „ZPS-3/4 SETUP“
+  na rev 1.2):
+  - **registr MAP na portu 63h**, MAP1 = bit 6, MAP2 = bit 7, oba buzené. Je to stejný port a stejné bity
+    jako u ZRMD-1, MikroMonovo `OUT 63h,3F` tedy dá MAP1 = MAP2 = 0.
+  - díra 16 KB na C000 jen při MAP1 = H (MAP2 se ignoruje);
+  - díra 2 KB na F800 jen při MAP1 = L (tam je AND-1V);
+  - S4 rozpojené, patice C prázdná.
+- **„ZPS-1/2 SETUP“** z potisku: S1–S4 rozpojené, S5 díra 0000 s ignorovaným MAP1, S6 bez díry.
+- Nejasnost: co je na C000–FFFF při MAP1 = H.
 
 Zdroje:
 - schéma `..\RAM-1V\RAM-1V.pdf` (DPLA0059RAM rev 1.1, 07.04.2024);

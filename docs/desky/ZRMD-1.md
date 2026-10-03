@@ -122,6 +122,15 @@ Zdroje:
 - **Zálohování:** 2× alkalický článek AAA v držáku a vnější svorky +BAT/− (K2/K3) přes R2 100R. D1/D2 BAT41,
   dohled MAX808L. Web odhaduje výdrž přes 2 roky. Propojka S2: STDBY = napájení z +5V/S4 sběrnice, nebo NO
   STDBY.
+- **Schéma** `..\ZRD-1V\ZRD-1V.pdf` (rev 1.1, doplnil autor):
+  - **/RES nic nenuluje.** Čítače 74LS193 mají CLR na zemi, registry 374 nulování nemají, /RES jen vypne
+    dekodér. Emulátor proto u ZRD-1V adresu po resetu ponechá.
+  - Číst jde jen 60h. Čtení 61h–63h je dekódované, ale vnitřní sběrnici nic nebudí: vrací nedefinovanou
+    hodnotu a navíc ji zapíše do registru adresy (vedlejší účinek). Emulace to nedělá.
+  - Čítač se zvyšuje po každém přístupu na 60h a přetéká FF→00 bez přenosu do 62h. MA22/MA23 nejsou (max.
+    4 MB).
+  - MAX808L blokuje přístup jen při podpětí, propojka S2 STDBY je jen napájení.
+  - Autorova deska (fotka rev 1.0): S1 = 60h, S2 osazená.
 - **Rev 2.0-alpha:** list „NAPAJENI, ZAMEK ZAPISU, INDIKACE“ přidává zámek zápisu a LED přístupu
   (monostabilní obvody 74LS123, 20 ms). To může vysvětlit „zamykací“ sekvenci MikroMonu.
 

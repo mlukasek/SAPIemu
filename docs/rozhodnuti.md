@@ -431,3 +431,18 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **RAM-1V:** rev 1.1, RTC Timekeeperu v patici C volitelně.
 - **DSM-1V:** výchozí kanály 10h a 14h, oba 115200 Bd.
 - **Do repa:** binárka MikroBIOS 3.0 a fonty AND-1V ano, zdroje ne.
+
+## 2026-10-04 – Desky V: emulace
+
+- **JPR-1V = typ JPR-1ZI** (pevná logika odpovídá D3C 2k a D6B, banky EEPROM propojkou BIOS).
+- **DSM-1V = dva kanály třídy DSM-1** bez kazety v jedné kartě.
+- **AND-1V a RAM-1V jsou nové karty.** Dekodéry jsou propojky, ne PROM, a všechny jsou parametry.
+- **Výchozí propojky podle fotek autorových desek:**
+  - RAM-1V: registr MAP na 63h (bity 6/7, jako ZRMD-1), díry C000/MAP1 = H a F800/MAP1 = L;
+  - AND-1V: MAP1 = L;
+  - DSM-1V: 10h/14h, 115200 Bd.
+- **ZRD-1V:** reset nenuluje adresu (schéma). Vedlejší účinky čtení 61h–63h se neemulují.
+- **Zjednodušení:**
+  - čekací stavy AND-1V se neemulují;
+  - TURBO JPR-1V jde nastavit jen v sestavě, ne za chodu;
+  - STSTB bez refreshe se neemuluje.
