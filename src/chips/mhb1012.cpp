@@ -45,7 +45,7 @@ uint8_t Mhb1012::read_data(void)
     return rx_data;
 }
 
-void Mhb1012::advance(uint64_t now, SerialChannel* ch)
+void Mhb1012::advance(uint64_t now, SerialChannel* ch, bool rx_allowed)
 {
     // transmitter
     if (tsr_busy && now >= tx_done_at) {
@@ -60,7 +60,7 @@ void Mhb1012::advance(uint64_t now, SerialChannel* ch)
         tx_done_at = now + (uint64_t)char_cycles();
     }
     // receiver: one character per character time
-    if (ch && now >= rx_ready_at) {
+    if (ch && rx_allowed && now >= rx_ready_at && !(ch->pacing && dr)) {
         uint8_t b;
         if (ch->from_host(b)) {
             if (dr) oe = true; else oe = false;

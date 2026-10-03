@@ -23,6 +23,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `input/`: klávesnice;
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
+  - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `main.cpp`.
 - **Sestavy:** `machines/*.jsonc` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.

@@ -25,6 +25,9 @@
             "uart_base": "10h", // JP2
             "baud": 9600,       // JP8
             "connected": true   // terminal on the line (DCD active); can be changed in the terminal window
+            // TCP server for TeraTerm (see docs/seriova-linka.md); with dcd_follows MikroMon
+            // uses the UART only when a client was connected before reset:
+            // , "serial": { "tcp": { "port": 2323, "dcd_follows": false }, "pacing": true }
         },
         {
             "slot": 3,

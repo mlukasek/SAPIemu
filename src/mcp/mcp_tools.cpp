@@ -195,7 +195,13 @@ json t_machine_info(EmuHost& h, const json&)
     }
     json serials = json::array();
     for (size_t i = 0; i < m.serials.size(); i++)
-        serials.push_back(json{ { "channel", i }, { "name", m.serials[i]->name } });
+    {
+        json br = json::array();
+        for (auto& b : m.bridges)
+            if (b->channel == m.serials[i]) br.push_back(b->describe());
+        serials.push_back(json{ { "channel", i }, { "name", m.serials[i]->name },
+                                { "terminal_connected", (bool)m.serials[i]->connected }, { "host_connections", br } });
+    }
     json j = state_json(h);
     j["emulator"] = std::string("SAPIemu ") + sapiemu_version();
     j["machine"] = m.name;

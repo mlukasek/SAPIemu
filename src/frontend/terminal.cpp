@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "imgui.h"
 #include "core/charset.h"
 #include "core/host.h"
@@ -41,6 +42,66 @@ bool terminal_text(UiState& ui, const char* utf8)
     if (!ui.terminal_focused) return false;
     send(ui, sapi_codes_from_utf8(utf8));
     return true;
+}
+
+// Host connections of the channel: TCP server (TeraTerm, telnet) and host COM port.
+static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
+{
+    SerialBridge* tcp = nullptr;
+    SerialBridge* com = nullptr;
+    for (auto& b : m->bridges) {
+        if (b->channel != ch) continue;
+        if (strcmp(b->kind(), "tcp") == 0) tcp = b.get();
+        else com = b.get();
+    }
+    ImGui::PushID("bridges");
+    // TCP
+    if (tcp) {
+        if (ImGui::Button(tr("Stop TCP"))) { m->remove_bridges(ch, "tcp"); tcp = nullptr; }
+        if (tcp) {
+            ImGui::SameLine();
+            ImGui::TextColored(tcp->client_connected() ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(0.8f, 0.8f, 0.8f, 1.0f),
+                               "%s", tcp->describe().c_str());
+        }
+    } else {
+        ImGui::SetNextItemWidth(70);
+        ImGui::InputInt("##tcpport", &ui.tcp_port, 0);
+        ImGui::SameLine();
+        if (ImGui::Button(tr("Start TCP server"))) {
+            std::string err;
+            SerialBridge* b = tcp_bridge_start(ch, "127.0.0.1", ui.tcp_port, ui.tcp_dcd_follows, err);
+            if (b) m->add_bridge(b);
+            else ui.bridge_error = err;
+        }
+        ImGui::SameLine();
+        ImGui::Checkbox(tr("DCD = client connected"), &ui.tcp_dcd_follows);
+    }
+    // COM
+    if (com) {
+        if (ImGui::Button(tr("Close COM"))) { m->remove_bridges(ch, "com"); com = nullptr; }
+        if (com) {
+            ImGui::SameLine();
+            ImGui::TextUnformatted(com->describe().c_str());
+        }
+    } else {
+        ImGui::SetNextItemWidth(70);
+        ImGui::InputText("##comport", ui.com_port, sizeof(ui.com_port));
+        ImGui::SameLine();
+        if (ImGui::Button(tr("Open COM port"))) {
+            std::string err;
+            SerialBridge* b = com_bridge_start(ch, ui.com_port, ch->baud, err);
+            if (b) m->add_bridge(b);
+            else ui.bridge_error = err;
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("%d Bd", ch->baud);
+    }
+    if (!ui.bridge_error.empty()) {
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", ui.bridge_error.c_str());
+        ImGui::SameLine();
+        if (ImGui::SmallButton("x")) ui.bridge_error.clear();
+    }
+    ImGui::PopID();
 }
 
 static std::string line_utf8(const std::string& l)
@@ -97,6 +158,12 @@ void draw_terminal(UiState& ui)
     ImGui::Checkbox(tr("CR = new line"), &t.cr_newline);
     ImGui::SameLine();
     ImGui::Checkbox(tr("Local echo"), &t.local_echo);
+    ImGui::SameLine();
+    bool pacing = ch->pacing;
+    if (ImGui::Checkbox(tr("No overrun"), &pacing)) ch->pacing = pacing;
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Send the next character only after SAPI has read the previous one."));
+    draw_bridges(ui, m, ch);
 
     ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);

@@ -9,6 +9,7 @@
 #include "core/bus.h"
 #include "core/devices.h"
 #include "core/disasm.h"
+#include "serial/bridge.h"
 
 enum StopReason {
     STOP_NONE = 0,
@@ -61,6 +62,13 @@ public:
     bool type_code(uint8_t code);
 
     void flush(void);   // persist RAM disks etc.
+
+    // Host side serial connections (TCP server, COM port).
+    bool start_bridges(std::string& err);   // from the channels' configuration
+    void stop_bridges(void);
+    void add_bridge(SerialBridge* b) { bridges.emplace_back(b); }
+    void remove_bridges(SerialChannel* ch, const char* kind);
+    std::vector<std::unique_ptr<SerialBridge>> bridges;
 
     CpuCard* cpu = nullptr;
     DisplayDevice* display = nullptr;

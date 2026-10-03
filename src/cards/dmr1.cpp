@@ -39,11 +39,20 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     baud = (uint32_t)v;
     if (!cfg_bool(cfg, "int0", int_enabled, true, err)) return false;
     if (!cfg_bool(cfg, "connected", connected_default, true, err)) return false;
+    std::string flow;
+    if (!cfg_string(cfg, "flow_control", flow, "none", err)) return false;
+    if (flow != "none" && flow != "rts_cts") { err = "flow_control must be none or rts_cts"; return false; }
+    rts_flow = (flow == "rts_cts");
 
     char buf[64];
     snprintf(buf, sizeof(buf), "%s@%02Xh", name.c_str(), base);
     serial.reset(new SerialChannel(buf));
     serial->connected = connected_default;
+    serial->baud = (int)baud;
+    if (cfg.contains("serial")) {
+        serial->bridge_cfg = cfg["serial"];
+        serial->pacing = cfg["serial"].value("pacing", true);
+    }
     return true;
 }
 
@@ -57,7 +66,8 @@ void Dmr1::reset()
 
 void Dmr1::advance(uint64_t now)
 {
-    if (uart_enabled) uart.advance(now, serial.get());
+    // with RTS/CTS flow control the host side only sends while SAPI keeps RTS active
+    if (uart_enabled) uart.advance(now, serial.get(), !rts_flow || (modem_ctrl & 0x01));
 }
 
 // D2C inputs: A0..A5 = A10..A15, A6..A8 = JP3 (A6/A7 optionally MAP1/MAP2).

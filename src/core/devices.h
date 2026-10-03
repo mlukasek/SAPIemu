@@ -79,6 +79,14 @@ public:
     // (DCD/CTS/DSR active). Software such as MikroMon or ECMON uses DCD to decide
     // whether to use the serial console.
     std::atomic<bool> connected{ true };
+    // Host side never sends faster than SAPI reads: the next character is
+    // delivered only after the previous one was taken (no overrun). Off = like a
+    // real terminal sending at full line speed (characters may be lost).
+    std::atomic<bool> pacing{ true };
+    // Host side connections from the machine description ("serial" object of the
+    // card: tcp / com), started by Machine::start_bridges().
+    nlohmann::json bridge_cfg;
+    int baud = 9600;   // line speed, default for a host COM port
 
     // emulated side
     void to_host(uint8_t b);

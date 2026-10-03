@@ -25,6 +25,10 @@ struct UiState {
     bool screen_focused = false;
     bool terminal_focused = false;
     int terminal_channel = 0;
+    int tcp_port = 2323;
+    bool tcp_dcd_follows = true;
+    char com_port[32] = "COM1";
+    std::string bridge_error;
 
     // debugger
     bool disasm_follow = true;

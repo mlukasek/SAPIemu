@@ -18,7 +18,38 @@ Machine::Machine()
 
 Machine::~Machine()
 {
+    stop_bridges();   // bridge threads use channels owned by the cards
     flush();
+}
+
+bool Machine::start_bridges(std::string& err)
+{
+    stop_bridges();
+    for (SerialChannel* ch : serials) {
+        std::vector<SerialBridge*> created;
+        bool ok = serial_bridges_from_config(ch, ch->bridge_cfg, ch->baud, created, err);
+        for (SerialBridge* b : created) bridges.emplace_back(b);
+        if (!ok) return false;
+    }
+    return true;
+}
+
+void Machine::stop_bridges(void)
+{
+    for (auto& b : bridges) b->stop();
+    bridges.clear();
+}
+
+void Machine::remove_bridges(SerialChannel* ch, const char* kind)
+{
+    for (size_t i = 0; i < bridges.size();) {
+        if (bridges[i]->channel == ch && strcmp(bridges[i]->kind(), kind) == 0) {
+            bridges[i]->stop();
+            bridges.erase(bridges.begin() + i);
+        } else {
+            i++;
+        }
+    }
 }
 
 bool Machine::load_file(const std::string& path, std::string& err)

@@ -4,24 +4,26 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
-**Hotová fáze F4: IDE-1 s IDE diskem a PMD32-SD.** Čeká se na ověření autorem.
+**Hotové: sériová linka na straně PC (první část F5).** Čeká se na ověření autorem.
 
-- **Karta `IDE-1`:**
-  - dvě 8255 (`src/chips/i8255.*`, módy 0, 1 a 2);
-  - IDE disk s obrazem `.img` (`ide_disk.*`, LBA a CHS), vytvoří se automaticky jako 128 MB vyplněných E5h;
-  - PMD32-SD (`pmd32sd.*`): protokol přepsaný z firmwaru v3.2 jako stavový automat v emulovaném čase,
-    SD karta = adresář s `images.cfg`.
-- **Sestava `machines/cpm_ide.jsonc`:**
-  - ECMON IDE → volba 3 → „PMD32-SD OK“, „INIT HDD SAPIemu IDE disk“, `A>`;
-  - `DIR D:` (VZOR_2M.2MB), `DIR E:` (8" obraz), `PIP B:=D:STAT.COM`, `B:STAT B:` fungují.
-- **Okno Média** (Zobrazení → Média): výběr obrazů PMD32-SD A–D, ochrana zápisu, zamčení karty.
-  MCP: `pmd32_images`, `pmd32_mount`.
-- **Pracovní kopie** (`media_path`) umí i celé adresáře (SD karta → `work/pmd32sd`).
-- **Testy:** `test_ide1` (8255, IDE přes porty jako BIOS, protokol PMD32-SD) a `test_cpm_ide` (boot, DIR D:,
-  PIP na B:). Celkem 12 testů.
-- **Zjištění z firmwaru PMD32-SD:** NAK po chybném CRC hned přepíše prezentace AAh (viz `docs/desky/PMD32-SD.md`).
+- **TCP server pro každý sériový kanál** (`src/serial/bridge.*`):
+  - TeraTerm se připojí přímo (`127.0.0.1:2323`), telnet nebo raw, rozpozná se automaticky;
+  - DCD může sledovat připojení klienta, takže ECMON po resetu běží na TeraTermu;
+  - ověřeno: menu ECMON, boot CP/M a `DIR D:` přes TCP.
+- **COM port PC** (Windows `COMx`, Linux `/dev/tty*`), případně virtuální pár com0com.
+- **Volby kanálu:**
+  - „Bez přetečení“ (`pacing`, výchozí zapnuto): PC posílá až po přečtení předchozího znaku;
+  - řízení toku RTS/CTS (`flow_control`).
+- **Ovládání** v okně Sériový terminál (spustit/zastavit TCP, otevřít COM). Stav připojení je i v MCP
+  `machine_info`.
+- **Sestavy:** CP/M sestavy mají TCP 2323 zapnuté; u MikroMonu je příklad zakomentovaný.
+- **Test:** `test_serial_tcp` (raw i telnet, DCD, MikroMon s USYNC). Celkem 13 testů.
+- **Návod:** `docs/seriova-linka.md`.
+
+Fáze F4 (IDE-1 s IDE diskem a PMD32-SD, okno Média) je hotová a ověřená autorem.
 
 Dřív hotové fáze:
+- **F4:** IDE-1 (IDE disk, PMD32-SD), sestava `cpm_ide.jsonc`, okno Média.
 - **F3:** ZRMD-1 + RTC, boot CP/M z RAM disku, sériový terminál s emulací SAPI/ANSI.
 - **F2:** MCP server (`docs/mcp.md`), debugger, sériový terminál, `EmuHost`.
 - **F0:** kostra, build a dokumentace z průzkumu.
@@ -35,8 +37,8 @@ Dřív hotové fáze:
 | F1 | Jádro, JPR-1ZI, ARB-1C, DMR-1, AND-1Z-89, EKL-1, Intel HEX, režim bez okna, minimální GUI. **MikroMon naběhne a reaguje** | ✅ hotovo |
 | F2 | MCP server (Streamable HTTP), okno terminálu, debugger (registry, disassembler, paměť, breakpointy, I/O log) | ✅ hotovo |
 | F3 | ZRMD-1 + RTC, boot CP/M z RAM disku (ECMON) | ✅ hotovo |
-| F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo (ověřit) |
-| F5+ | Sériová linka přes TCP a COM; Consul 262.3, Consul 259.11, ANK-1; DSM-1 s kazetou (WAV), RAM-1Z, ZRD-1V, JPR-1V; 8080, MIKOS, PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; CI | |
+| F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo |
+| F5+ | ~~Sériová linka přes TCP a COM~~ ✅; Consul 262.3, Consul 259.11, ANK-1; DSM-1 s kazetou (WAV), RAM-1Z, ZRD-1V, JPR-1V; 8080, MIKOS, PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; CI | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 

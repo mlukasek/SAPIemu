@@ -20,7 +20,16 @@
             "ram_config": 1,
             "uart_base": "10h",
             "baud": 9600,
-            "connected": false
+            "connected": false,     // no terminal on the line (DCD inactive): ECMON uses the screen and keyboard
+            // host side of the serial line (see docs/seriova-linka.md)
+            "serial": {
+                // TeraTerm: TCP/IP, host 127.0.0.1, port 2323, service Telnet or Other (raw).
+                // dcd_follows: DCD is active while a client is connected, so ECMON started
+                // after connecting TeraTerm uses the serial console.
+                "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true },
+                // "com": { "port": "COM5", "baud": 9600 },   // host serial port (or com0com pair)
+                "pacing": true          // do not send faster than SAPI reads (no overrun)
+            }
         },
         {
             "slot": 3,

@@ -40,6 +40,7 @@ private:
     bool int_enabled = true;      // INT0 output connected
     uint8_t modem_ctrl = 0;       // b7 IER, b6 IET, b5 relay, b4 KAZ, b3 RD, b2 BRK, b1 DTR, b0 RTS
     bool connected_default = true;   // terminal connected at power on (DCD/CTS/DSR active)
+    bool rts_flow = false;           // host side honours RTS (b0 of the modem control register)
     Mhb1012 uart;
     std::unique_ptr<SerialChannel> serial;
 };

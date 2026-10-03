@@ -26,7 +26,7 @@ struct Mhb1012 {
     void write_data(uint8_t d);
     uint8_t read_data(void);
     // Move characters between the UART and the host channel up to `now`.
-    void advance(uint64_t now, SerialChannel* ch);
+    void advance(uint64_t now, SerialChannel* ch, bool rx_allowed = true);
     bool tx_idle(void) const { return tbre && !tsr_busy; }
 
 private:
