@@ -30,7 +30,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - `test_decoders`: JPR BOOT ROM, všech 8 konfigurací DMR-1, okno AND-1Z;
   - `test_uart`: časování a přepis vysílacího registru;
   - `test_mikromon`: boot, příkazy, česky psaný text, breakpoint;
-  - `test_zexdoc` a `test_zexall` jen v release buildu.
+  - `test_zexdoc` a `test_zexall` jen v release buildu. ZEXDOC ověřen 2026-10-03: všechny testy OK,
+    46,7 mld. T-stavů za asi 1 min 45 s (holé jádro asi 440 MHz).
 
 Fáze F0 (kostra, build, dokumentace z průzkumu, ROM a média) je hotová dříve.
 
