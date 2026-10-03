@@ -10,13 +10,18 @@
 #include "cards/jpr1zi.h"
 #include "cards/placeholder.h"
 #include "cards/ram1.h"
+#include "cards/ram1z.h"
 #include "cards/rem1.h"
+#include "cards/rmd1.h"
 #include "cards/rpd1.h"
 #include "cards/zrmd1.h"
 
 Card* card_create(const std::string& type)
 {
     if (type == "JPR-1ZI") return new Jpr1zi();
+    if (type == "JPR-1Z") return new Jpr1zi("JPR-1Z");
+    if (type == "RAM-1Z") return new Ram1z();
+    if (type == "RMD-1") return new Rmd1();
     if (type == "JPR-1") return new Jpr1();
     if (type == "JPR-1A") return new Jpr1("JPR-1A");
     if (type == "REM-1") return new Rem1();
@@ -41,5 +46,5 @@ Card* card_create(const std::string& type)
 
 std::vector<std::string> card_types(void)
 {
-    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A" };
+    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1" };
 }

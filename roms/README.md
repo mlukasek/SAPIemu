@@ -35,6 +35,13 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `ram-1/RAM-1_D1A_74S287.bin` | RAM-1 PROM D1A | Standardní dekodér RAM-1 (4000–…, tab. 1). Přepis z návodu (`ram-1.php`, 1. tabulka). |
 | `ram-1/RAM-1_16K_D1A_74S287.bin` | RAM-1/16K PROM D1A | Druhá tabulka z `ram-1.php` (RAM-1/16K: C000–E7FF + F000–FFFF, C000–FFFF, C000–E7FF, 0000–BFFF). |
 | `ram-1a/RAM-1A_D1A_74S287.bin` | RAM-1A PROM D1A | Dekodér RAM-1A (ZPS-3: 0000–BFFF). Přepis z návodu (`ram-1a.php`), shodný se strojopisnou tabulkou `ram-1a_pri.png`. |
+| `jpr-1z/MOR62Z.bin` | JPR-1Z EPROM 2716 | CP/M 2.2/P 62K boot pro ZPS-4 (R. Peřina 1988, „SAPI-1 ZPS4-62K“), z sapi.cz `data/mor62z_hex.php`. |
+| `jpr-1z/ELIS_V7.01.bin` | JPR-1Z EPROM 2716 | Monitor ELIS 62k MON-č R62Z v7.01 *JME/JPE (Z80, C259.11/C262.3 + K6313). Zdroj `H:\SAPI-1\Petr_repliky_k_vyrobe\JPR-1ZI\JPR-1Z_BIOS_ELIS.BIN`. |
+| `jpr-1z/ELIS_V3.00.bin` | JPR-1Z EPROM 2716 | Monitor ELIS V3.00 *JME (8080 kód, C262.3/CS + D100/P), z sapi.cz `data/elis_hex.php`. |
+| `jpr-1z/JPR-1Z_D14_74S287.bin` | JPR-1Z PROM D14 (= D3C ZI) | Dekodér paměti, dump `Petr_repliky_k_vyrobe\JPR-1ZI\JPR-1Z_PROM_D14.hex`. |
+| `jpr-1z/JPR-1Z_D10_74S287.bin` | JPR-1Z PROM D10 (= D6B ZI) | Dekodér I/O, dump `JPR-1Z_PROM_D10.hex` (shodný s `JPR-1ZI_D6B.bin`). |
+| `ram-1z/RAM-1Z_D3B_74S571.bin` | RAM-1Z PROM D3B | Dekodér RAM, dump `Petr_repliky_k_vyrobe\DMR-1\RAM-1Z_PROM_B9.hex` (shodný s HEX v návodu). |
+| `rmd-1/RMD-1_74S287.bin` | RMD-1 PROM | Dekodér portů (40–43, 45), z návodu `rmd-1.php`. Přiřazení O3/O4 je k ověření. |
 | `and-1/MHB2501.bin` | AND-1 znakový generátor MHB 2501 (latinka) | **Překreslený**, ne dump (p-MOS ROM, dump neexistuje). Podle tabulky v katalogu MHB250x (`Foto\Jiri_Slansky\Dokumentace\AND-1 a 1A\MHB250x.png`), automaticky převedeno, několik vad skenu opraveno ručně. 64 znaků × 8 řádků, bity 4–0 = sloupce zleva, řádek 8 nevyužit. |
 | `and-1/MHB2502.bin` | AND-1 MHB 2502 (azbuka) | Překreslený stejně. Kódy 20–3Fh převzaté z MHB 2501. |
 | `and-1/AND-1_D3C_74188.bin` | AND-1 D3C (74188) | Kurzor, blikání a dvojitá šířka, 32 B z výpisu na sapi.cz (`and-1.php`). |

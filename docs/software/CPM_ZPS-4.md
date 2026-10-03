@@ -1,6 +1,15 @@
 # CP/M pro ZPS-4 (JPR-1Z, RAM-1Z, AND-1Z, RPD-1, RMD-1)
 
-Soupis z 2026-10-04. Emulace zatím není, viz `docs/desky/JPR-1Z.md`, `RAM-1Z.md`, `RMD-1.md`, `AND-1Z-89.md`.
+**Stav (2026-10-04): ZPS-4 běží.**
+- **`machines/zps/ZPS-4.sapi` (Peřina, MOR62Z + `media/rpd-1/CPM22P_62Z_Perina.img`):** `SAPI-1 ZPS4-62K`,
+  `CPM V2.2 V/P1`, `A>`. RTEST inicializuje RAM disk E: („RAM DISK READY“), SAVE na E: funguje.
+- **`machines/zps/ZPS-4_ELIS.sapi` (ELIS v7.01 + `media/rpd-1/ELIS_61K.img`):** „Dobrý den přeje ELIS 62k MON-č
+  R62Z v7.01“, 61k CP/M V2.2. DIR, PIP a RAM disk C: po INIRMD5 (volba 2) fungují.
+- **ELIS v3.00** systém zavede, ale s Consulem 262.3 bere každou klávesu dvakrát (STROBE jako pulz) nebo
+  donekonečna (STROBE držený úpravou 7474). Jak klávesnici obsluhuje, zatím nevím. Výchozí je proto v7.01.
+- Test `tests/test_zps4.cpp`.
+
+Desky: `docs/desky/JPR-1Z.md`, `RAM-1Z.md`, `RMD-1.md`, `AND-1Z-89.md`.
 
 ## Sestava (`BKP\doku2\zps.php`, originální dokumentace ZPS-4 není k dispozici)
 

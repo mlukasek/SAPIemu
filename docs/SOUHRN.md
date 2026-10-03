@@ -2,7 +2,14 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Stav k 2026-10-03
+## Stav k 2026-10-04
+
+**Hotové: ZPS-4** (`machines/zps/ZPS-4.sapi`, `ZPS-4_ELIS.sapi`).
+- Nové karty JPR-1Z (typ JPR-1ZI s 2716), RAM-1Z (dump D3B, přepínače S1) a RAM disk RMD-1 (256 KB / 1 MB).
+- CP/M 2.2/P (Peřina) s RAM diskem E: i ELIS 61k CP/M s RAM diskem C: běží. ELIS v3.00 má nevyjasněnou
+  klávesnici.
+- Test `test_zps4`, celkem 23 testů. Popis v `docs/software/CPM_ZPS-4.md`.
+
 
 **Hotové: ZPS-3** (`machines/zps/ZPS-3.sapi`).
 - Nové karty JPR-1A (varianta JPR-1: BOOT, porty 01–03, D2C), AND-1A (D3A, E800) a RAM-1A (D1A,
@@ -123,7 +130,7 @@ Dřív hotové fáze:
 | F5 | Sériová linka přes TCP a COM; klávesnice Consul 262.3, Consul 259.11, ANK-1; konfigurátor sestav a mapa portů | ✅ hotovo |
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
-| F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1 (podklady na sapi.cz `rmd-1.php` včetně schématu v PDF), CP/M (diskety `cpm48z`, `cpm62z`, ROM MOR48Z/62Z) | ⏳ průzkum podkladů |
+| F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9+ | JPR-1V, PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -187,6 +194,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Která ROM ELIS (v3.00/v7.01) patří k disketě: autor neví, vyzkoušet v emulátoru.
     - RMD-1 časové limity: autor neví.
     - Pořadí karet je celkem jedno. Klávesnice spíš **Consul 262.3** (ZPS-4 je novější).
+    - **ELIS v3.00:** s Consulem 262.3 bere klávesy dvakrát (pulz STROBE) nebo donekonečna (7474). Jak
+      monitor v3.00 čte klávesnici? (v7.01 funguje.)
 
 ## Jak pokračovat
 
@@ -194,10 +203,6 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-04): F8 ZPS-4.**
-   - Soupis podkladů je hotový: `docs/desky/JPR-1Z.md`, `RAM-1Z.md`, `RMD-1.md`, `AND-1Z-89.md` a
-     `docs/software/CPM_ZPS-4.md`.
-   - Plán: JPR-1Z jako typ JPR-1ZI (2716, bez XINTA), RAM-1Z s PROM dumpem, RMD-1, CP/M 2.2/P (MOR62Z +
-     CPM62Z) a ELIS.
-   - Otázky jsou v bodě 20. Zbývá originální IMA CP/M 48K, k tomu chybí
+4. Pokračovat další fází z tabulky. ZPS-1 až ZPS-4 běží (2026-10-04). Otevřené otázky ke ZPS-3/4 jsou v bodech
+   19 a 20. Zbývá originální IMA CP/M 48K, k tomu chybí
    disketa (bod 19), a varianty 62K/64K. Podklady jsou v `docs/software/CPM_ZPS-3.md`.

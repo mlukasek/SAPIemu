@@ -38,6 +38,8 @@ static const Translation k_table[] = {
     { "RPD-1B step", "RPD-1B krok" },
     { "RPD-1B test interrupt", "RPD-1B test přerušení" },
     { "graphics RAM", "grafická RAM" },
+    { "RAM disk row (A16-A19)", "řada RAM disku (A16-A19)" },
+    { "RAM disk prepare read", "příprava čtení RAM disku" },
     { "UART, cassette", "UART, kazeta" },
     { "RAM disk data", "data RAM disku" },
     { "RAM disk address", "adresa RAM disku" },

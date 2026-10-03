@@ -1,6 +1,7 @@
 # RMD-1 (RMD-1Z) – RAM disk
 
-Stav: **podklady sebrané, emulace zatím není** (soupis 2026-10-04). RMD-1 a RMD-1Z se liší jen názvem.
+Stav: **emulovaná** (`src/cards/rmd1.*`), ověřeno s Peřinovým CP/M (RTEST, disk E:) a s ELIS (INIRMD5, disk C:).
+RMD-1 a RMD-1Z se liší jen názvem.
 
 ## Podklady
 
@@ -43,6 +44,18 @@ Tři nezávislé BIOSy (Peřina `BIOS.MAC`, ELIS, JB `BIRMD.MAC`) dělají toté
   velikosti v JB spoléhá na to, že sektor 15 se u 256 KB desky zrcadlí na sektor 3.
 - **Peřinův CP/M** má RAM disk jako E:. `RSYS62A.COM` ho dá na A:, `RTEST.COM` ho inicializuje.
 - **ELIS** má `INIRMD5.COM` (inicializace 256K/1M s nastavitelným základem).
+
+## Emulace
+
+- **Parametry:**
+  - `size_kb` (256 nebo 1024);
+  - `prom` (dekodér portů, výchozí `roms/rmd-1/RMD-1_74S287.bin` z návodu);
+  - `power_on` (`random` jako skutečná DRAM, nebo `e5` = prázdný disk CP/M);
+  - `image` (volitelný soubor, do kterého se obsah ukládá; jen pohodlí emulátoru, deska to neumí).
+- **Ověřeno:**
+  - INIRMD5 správně pozná 256 KB i 1 MB (na 256 KB desce se zrcadlí bity řady D2/D3).
+  - Volba 1 („automat výběr“) jen zjistí velikost a paměť nevyplní. Inicializaci udělá volba 2 (256 KB, asi
+    1 minuta) nebo 3 (1 MB, několik minut).
 
 ## Model pro emulaci
 

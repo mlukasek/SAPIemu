@@ -1,7 +1,12 @@
 # JPR-1Z – procesorová deska Z80 pro ZPS-4
 
-Stav: **podklady sebrané, emulace zatím není** (soupis 2026-10-04). JPR-1Z je předchůdce emulované JPR-1ZI
-(`docs/desky/JPR-1ZI.md`). Emulace bude typ JPR-1ZI s jiným nastavením.
+Stav: **emulovaná** jako typ `JPR-1Z` třídy JPR-1ZI (`src/cards/jpr1zi.*`), ověřeno v ZPS-4 (`tests/test_zps4.cpp`).
+JPR-1Z je předchůdce JPR-1ZI (`docs/desky/JPR-1ZI.md`).
+
+- EPROM 2716 se zrcadlí po 2 KB.
+- Dekodéry jsou dumpy `roms/jpr-1z/JPR-1Z_D14_74S287.bin` (paměť) a `JPR-1Z_D10_74S287.bin` (I/O). D14 má
+  proti D3C (2k) jinou polaritu nepoužitých bitů a jiný obsah v polovině s A7 = 1, která je uzemněná. Pro
+  používané adresy vybírá stejně.
 
 `BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `PR` = `H:\SAPI-1\Petr_repliky_k_vyrobe`.
 

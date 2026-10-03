@@ -11,7 +11,7 @@ using nlohmann::json;
 // Cards are synchronised and interrupt lines sampled every SYNC_CYCLES CPU cycles.
 static const int SYNC_CYCLES = 64;
 
-Jpr1zi::Jpr1zi() : CpuCard("JPR-1ZI")
+Jpr1zi::Jpr1zi(const char* type) : CpuCard(type)
 {
     memset(&z80, 0, sizeof(z80));
 }
@@ -34,15 +34,24 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
     cpu_hz = (uint32_t)(cpu_div_mhz == 4 ? crystal / 4 : crystal / 8);
     bus_hz = (uint32_t)(bus_mhz == 4 ? crystal / 4 : crystal / 8);
 
+    bool z = type == "JPR-1Z";
     std::string rom, decoder, d6b_file;
     if (!cfg_string(cfg, "rom", rom, "", err)) return false;
-    if (!cfg_string(cfg, "decoder", decoder, "roms/jpr-1zi/JPR-1ZI_D3C_2k.bin", err)) return false;
-    if (!cfg_string(cfg, "io_decoder", d6b_file, "roms/jpr-1zi/JPR-1ZI_D6B.bin", err)) return false;
+    if (!cfg_string(cfg, "decoder", decoder, z ? "roms/jpr-1z/JPR-1Z_D14_74S287.bin" : "roms/jpr-1zi/JPR-1ZI_D3C_2k.bin",
+                    err)) return false;
+    if (!cfg_string(cfg, "io_decoder", d6b_file, z ? "roms/jpr-1z/JPR-1Z_D10_74S287.bin" : "roms/jpr-1zi/JPR-1ZI_D6B.bin",
+                    err)) return false;
     if (decoder == "2k") decoder = "roms/jpr-1zi/JPR-1ZI_D3C_2k.bin";
     if (decoder == "8k") decoder = "roms/jpr-1zi/JPR-1ZI_D3C_8k.bin";
 
     if (rom.empty()) {
         eprom.assign(8192, 0xFF);
+    } else if (z) {   // 2716: A11, A12 not connected, the 2 KB repeat
+        std::vector<uint8_t> e2;
+        if (!rom_load(rom, e2, 2048, 0xFF, 0, err)) return false;
+        e2.resize(2048, 0xFF);
+        eprom.resize(8192);
+        for (int i = 0; i < 8192; i++) eprom[(size_t)i] = e2[(size_t)(i & 0x7FF)];
     } else if (!rom_load(rom, eprom, 8192, 0xFF, 0, err)) {
         return false;
     }

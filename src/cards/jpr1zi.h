@@ -12,7 +12,9 @@
 
 class Jpr1zi : public CpuCard {
 public:
-    Jpr1zi();
+    // "JPR-1ZI", or "JPR-1Z" (ZPS-4): the same card with a 2716 (2 KB, mirrored)
+    // and without the XINTA helper (not modelled anyway); decoders D14 = D3C, D10 = D6B
+    explicit Jpr1zi(const char* type = "JPR-1ZI");
     ~Jpr1zi() override;
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
@@ -47,7 +49,7 @@ private:
     uint32_t cpu_hz = 2000000;
     uint32_t bus_hz = 2000000;
 
-    std::vector<uint8_t> eprom;   // 8 KB (2764)
+    std::vector<uint8_t> eprom;   // 8 KB (2764); JPR-1Z: 2716 mirrored to 8 KB
     std::vector<uint8_t> d3c;     // memory decoder PROM
     std::vector<uint8_t> d6b;     // I/O decoder PROM
     uint8_t port_out[3] = {0, 0, 0};

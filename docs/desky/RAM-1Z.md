@@ -1,5 +1,9 @@
 # RAM-1Z – dynamická RAM 64 KB
 
+Stav: **emulovaná** (`src/cards/ram1z.*`). Parametry `fitted_kb`, `s1_1`, `s1_2` (sepnuto), `map` (S1/4 MAP1,
+jinak S1/3 zem) a `prom` (výchozí dump `roms/ram-1z/RAM-1Z_D3B_74S571.bin`). Refresh z Z80 /RFSH se
+neemuluje: deska s 8080 by na skutečném HW nefungovala, emulátor to nehlídá.
+
 Zdroje:
 - `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\ram-1z.php`
 - `H:\SAPI-1\RAM-1Z\DESCRIPTION`

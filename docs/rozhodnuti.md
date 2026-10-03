@@ -397,3 +397,14 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   a klávesnici. S připojeným terminálem jde konzole na sériovou linku jako na skutečném stroji.
 - **První CP/M na ZPS-3 je Peřinův CP/M 2.2/P** (bootovatelná disketa ze sapi.cz). Originální IMA 48K čeká na
   disketu od autora. Originální monitor V1.0-C1 Peřinovu disketu zavede.
+
+## 2026-10-04 – ZPS-4
+
+- **JPR-1Z = typ třídy JPR-1ZI** (EPROM 2716 zrcadlená, vlastní dumpy D14/D10). Obvod XINTA emulace ZI
+  nemodeluje, takže v tom rozdíl není.
+- **RAM-1Z a RMD-1 s dekodéry jako soubory PROM** (zásada z 2026-10-03). Přiřazení O3/O4 u RMD-1 podle
+  softwaru, ne podle popisků schématu (ověří kamarád autora).
+- **RMD-1 po zapnutí s náhodným obsahem** jako skutečná DRAM. Volba `power_on: e5` a soubor `image` jsou jen
+  pohodlí emulátoru.
+- **Sestavy ZPS-4 s Consulem 262.3** (autor: ZPS-4 je novější). ELIS výchozí v7.01, protože v3.00 má
+  nevyjasněnou obsluhu klávesnice.

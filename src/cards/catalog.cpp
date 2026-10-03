@@ -44,6 +44,26 @@ static const CardParam k_jpr1zi[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// JPR-1Z (ZPS-4)
+static const ParamOption k_jpr1z_roms[] = {
+    { "\"roms/jpr-1z/MOR62Z.bin\"", "MOR62Z: CP/M 2.2/P 62K (Perina 1988)", "MOR62Z: CP/M 2.2/P 62K (Peřina 1988)" },
+    { "\"roms/jpr-1z/ELIS_V7.01.bin\"", "ELIS v7.01 (Z80, C259.11/C262.3)", "ELIS v7.01 (Z80, C259.11/C262.3)" },
+    { "\"roms/jpr-1z/ELIS_V3.00.bin\"", "ELIS v3.00 (8080, C262.3)", "ELIS v3.00 (8080, C262.3)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_jpr1z[] = {
+    { "rom", PK_FILE, "EPROM 2716", "EPROM 2716", "\"\"", k_jpr1z_roms, 0, 0 },
+    { "decoder", PK_FILE, "PROM D14: memory decoder", "PROM D14: dekodér paměti", "\"roms/jpr-1z/JPR-1Z_D14_74S287.bin\"",
+      k_none, 0, 0 },
+    { "io_decoder", PK_FILE, "PROM D10: I/O decoder", "PROM D10: dekodér I/O", "\"roms/jpr-1z/JPR-1Z_D10_74S287.bin\"",
+      k_none, 0, 0 },
+    { "cpu_mhz", PK_CHOICE, "JP2/JP3: CPU clock", "JP2/JP3: takt CPU", "2", k_cpu_mhz, 0, 0 },
+    { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
+    { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
+    { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // JPR-1 (8080)
 static const ParamOption k_eprom_type[] = {
     { "\"2708\"", "2708 (1 KB)", "2708 (1 KB)" },
@@ -234,6 +254,52 @@ static const CardParam k_and1a[] = {
       "false", nullptr, 0, 0 },
     { "decoder", PK_FILE, "PROM D3A: address decoder", "PROM D3A: dekodér adresy", "\"roms/and-1a/AND-1A_D3A_74S287.bin\"",
       k_and1a_dec, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+static const ParamOption k_ram1z_kb[] = {
+    { "16", "16 KB (1 row)", "16 KB (1 řada)" },
+    { "32", "32 KB (2 rows)", "32 KB (2 řady)" },
+    { "48", "48 KB (3 rows)", "48 KB (3 řady)" },
+    { "64", "64 KB (4 rows)", "64 KB (4 řady)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_ram1z_proms[] = {
+    { "\"roms/ram-1z/RAM-1Z_D3B_74S571.bin\"", "standard (dump)", "standardní (dump)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_ram1z[] = {
+    { "fitted_kb", PK_CHOICE, "Fitted memory", "Osazená paměť", "64", k_ram1z_kb, 0, 0 },
+    { "s1_1", PK_BOOL, "S1/1 closed (open = no F800-FFFF, 62 KB)", "S1/1 sepnutý (rozpojený = bez F800-FFFF, 62 KB)",
+      "false", nullptr, 0, 0 },
+    { "s1_2", PK_BOOL, "S1/2 closed (open = no F000-FFFF, 60 KB)", "S1/2 sepnutý (rozpojený = bez F000-FFFF, 60 KB)",
+      "true", nullptr, 0, 0 },
+    { "map", PK_BOOL, "S1/4: MAP1 removes 0000-3FFF (else S1/3, ground)", "S1/4: MAP1 vypíná 0000-3FFF (jinak S1/3, zem)",
+      "false", nullptr, 0, 0 },
+    { "prom", PK_FILE, "PROM D3B: address decoder", "PROM D3B: dekodér adres", "\"roms/ram-1z/RAM-1Z_D3B_74S571.bin\"",
+      k_ram1z_proms, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+static const ParamOption k_rmd1_kb[] = {
+    { "256", "256 KB (32x 4164)", "256 KB (32x 4164)" },
+    { "1024", "1 MB (32x 41256)", "1 MB (32x 41256)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_rmd1_fill[] = {
+    { "\"random\"", "random (like the DRAM, initialise it)", "náhodný (jako DRAM, nutno inicializovat)" },
+    { "\"e5\"", "E5h (empty CP/M disk)", "E5h (prázdný disk CP/M)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_rmd1_proms[] = {
+    { "\"roms/rmd-1/RMD-1_74S287.bin\"", "standard: ports 40-43, 45", "standardní: porty 40-43, 45" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_rmd1[] = {
+    { "size_kb", PK_CHOICE, "Memory", "Paměť", "256", k_rmd1_kb, 0, 0 },
+    { "prom", PK_FILE, "PROM: port decoder", "PROM: dekodér portů", "\"roms/rmd-1/RMD-1_74S287.bin\"", k_rmd1_proms, 0, 0 },
+    { "power_on", PK_CHOICE, "Content after power on", "Obsah po zapnutí", "\"random\"", k_rmd1_fill, 0, 0 },
+    { "image", PK_FILE, "Keep the content in a file (emulator only)", "Uchovat obsah v souboru (jen emulátor)", "\"\"",
+      k_none, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -443,7 +509,7 @@ CARD(c_jpr1, "JPR-1", "JPR", "CPU card 8080, memory mapped ports", "Procesorová
      CC_CPU, 1, true, k_jpr1)
 CARD(c_jpr1a, "JPR-1A", "JPR", "CPU card 8080 \"A\" (I/O ports, boot EPROM)", "Procesorová deska 8080 \"A\" (porty I/O, boot EPROM)",
      CC_CPU, 1, true, k_jpr1a)
-CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80", "Procesorová deska Z80", CC_CPU, 1, false, k_cpu_basic)
+CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80 (ZPS-4)", "Procesorová deska Z80 (ZPS-4)", CC_CPU, 1, true, k_jpr1z)
 CARD(c_jpr1zi, "JPR-1ZI", "JPR", "CPU card Z80 (new design)", "Procesorová deska Z80 (nová konstrukce)",
      CC_CPU, 1, true, k_jpr1zi)
 CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, false, k_cpu_basic)
@@ -452,12 +518,12 @@ CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM",
 CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 KB", CC_MEMORY, 1, true, k_ram1)
 CARD(c_ram1a, "RAM-1A", "RAM", "Dynamic RAM up to 48 KB \"A\"", "Dynamická RAM až 48 KB \"A\"", CC_MEMORY, 1, true,
      k_ram1a)
-CARD(c_ram1z, "RAM-1Z", "RAM", "Dynamic RAM up to 64 KB", "Dynamická RAM až 64 KB", CC_MEMORY, 1, false, nullptr)
+CARD(c_ram1z, "RAM-1Z", "RAM", "Dynamic RAM up to 64 KB", "Dynamická RAM až 64 KB", CC_MEMORY, 1, true, k_ram1z)
 CARD(c_ram64, "RAM-64", "RAM", "Battery backed RAM up to 64 KB", "Zálohovaná RAM až 64 KB", CC_MEMORY, 1, false,
      nullptr)
 CARD(c_crm1, "CRM-1", "CRM", "Battery backed memory", "Deska zálohovaných pamětí", CC_MEMORY, 1, false, nullptr)
 CARD(c_dmr1, "DMR-1", "DMR", "128 KB RAM and serial port", "RAM 128 KB a sériový port", CC_MEMORY, 1, true, k_dmr1)
-CARD(c_rmd1, "RMD-1", "RMD", "RAM disk", "RAM disk", CC_DISK, 1, false, nullptr)
+CARD(c_rmd1, "RMD-1", "RMD", "RAM disk", "RAM disk", CC_DISK, 1, true, k_rmd1)
 CARD(c_zrmd1, "ZRMD-1", "ZRMD", "RAM disk 4 MB with RTC", "RAM disk 4 MB s RTC", CC_DISK, 1, true, k_zrmd1)
 CARD(c_zrd1v, "ZRD-1V", "ZRD", "RAM disk 4 MB (V)", "RAM disk 4 MB (V)", CC_DISK, 1, true, k_zrd1v)
 // display
