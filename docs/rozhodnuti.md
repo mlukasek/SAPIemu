@@ -302,3 +302,21 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   překladač (Hostx86), který má strop 4 GB na proces a na šablonách `json.hpp` mu dojde paměť.
 - **Řešení:** `"toolset": { "value": "host=x64", "strategy": "external" }` v `windows-base`. Ve VS je potřeba
   Delete Cache and Reconfigure.
+
+## 2026-10-03 – ZPS-1: JPR-1, REM-1, AND-1, MIKROBASIC
+
+- **Jádro 8080:** převzato `superzazu/8080` (MIT, v C, krokuje po instrukcích), ne vlastní. Prošlo
+  TST8080, 8080PRE, CPUTEST i 8080EXM. Karta JPR-1 si hranice instrukcí, breakpointy a krokování řeší sama
+  (napodobuje chování JPR-1ZI: zastavení před instrukcí na `instr_pc`).
+- **Dvě sestavy MIKROBASICu** (autor): 2.4 z výroby ZPS-1 (EPROM a RAM na REM-1) jako hlavní a starší verze
+  z AR/B 1983 (EPROM a 1 KB RAM na JPR-1). ROM jsou v `roms/mikrobasic/` (autor souhlasí), výpisy ne.
+- **Znakový generátor AND-1 je překreslený** z tabulky v katalogu MHB250x (autor), protože dump p-MOS ROM
+  neexistuje. Převod automaticky po buňkách mřížky 5×8, několik vad skenu opraveno ručně.
+- **ANK-1 drží klávesu, dokud ji program nepřečte**, a pak ji stejně drží uvolněnou. MIKROBASIC po každé klávese
+  ~65 ms pípá a další bere až po kole bez stisku, pevné časování by při rychlém psaní znaky ztrácelo.
+- **ANK-1 má volbu programu** (`mikrobasic` / `mikos`). Dva programy čtou stejnou matici s jinými tabulkami
+  (klávesa vedle CR, SHIFT+písmeno).
+- **AND-1:** skládání 64 adres řádku do 1 KB VRAM je předpoklad. Na viditelný obraz MIKROBASICu nemá vliv.
+  Režimy (blikání, kurzor, dvojitá šířka) se kreslí podle popisu, PROM 74188 se zatím nečte.
+- **IDE-1 odpovídá na portech vždy** (autor: jako skutečná deska), i bez disku nebo PMD32-SD.
+- `DisplayDevice::dot_clock_hz()`: poměr TV se počítá podle bodového taktu karty (AND-1 6 MHz, AND-1Z 10 MHz).

@@ -13,15 +13,19 @@ static const char* const k_keys[40] = {
     "6", "Y", "H", "B", "5", "T", "G", "V",
 };
 
-// Characters produced with SHIFT (MIKOS V4.0 shift table, printed legends).
+// Characters produced with SHIFT. Printed legends, the same in MIKROBASIC 2.4
+// (table at 0E22h) and MIKOS V4.0; MIKOS adds control codes on some letters.
 struct ShiftChar { uint8_t ch; char key; };
 static const ShiftChar k_shift[] = {
     { '!', '1' }, { '?', '2' }, { '"', '3' }, { '$', '4' }, { '^', '5' }, { '\'', '6' },
     { '<', '7' }, { '>', '8' }, { '(', '9' }, { ')', '0' },
-    { 0x08, 'T' }, { '/', 'Y' }, { ':', 'U' }, { '@', 'I' }, { '#', 'O' }, { 0x7F, 'P' },
+    { '/', 'Y' }, { ':', 'U' }, { '@', 'I' }, { '#', 'O' }, { 0x7F, 'P' },
     { '+', 'H' }, { '-', 'J' }, { '*', 'K' }, { '=', 'L' }, { ';', 'B' }, { ',', 'N' }, { '.', 'M' },
     { '_', 'G' }, { '%', 'R' }, { '&', 'D' }, { '\\', 'F' }, { '[', 'C' }, { ']', 'V' },
-    { 0x11, 'Q' }, { 0x17, 'W' }, { 0x10, 'A' }, { 0x13, 'S' }, { 0x03, 'X' },
+};
+// MIKOS V4.0 only: SHIFT + letter = control code
+static const ShiftChar k_shift_mikos[] = {
+    { 0x08, 'T' }, { 0x11, 'Q' }, { 0x17, 'W' }, { 0x10, 'A' }, { 0x13, 'S' }, { 0x03, 'X' },
 };
 
 static int key_index(const char* legend)
@@ -45,14 +49,18 @@ void Ank1::type_char(uint32_t cp)
 {
     if (cp >= 0x80) return;
     uint8_t c = (uint8_t)cp;
-    if (c == '\r' || c == '\n') {
+    bool mikos = software == SW_MIKOS;
+    if (c == '\r') { press(key_index("CR"), false); return; }
+    if (mikos) {
         if (c == '\n') { press(key_index("LF"), true); return; }   // shift LF = 0Ah in MIKOS
-        press(key_index("CR"), false);
-        return;
+        if (c == 0x1B) { press(key_index("LF"), false); return; }  // LF key = ESC in MIKOS
+        if (c == '\t') { press(key_index("SP"), true); return; }
+        for (const ShiftChar& s : k_shift_mikos)
+            if (s.ch == c) { press(char_key(s.key), true); return; }
+    } else {
+        if (c == 0x08) { press(key_index("LF"), false); return; }  // the key next to CR = BS in MIKROBASIC
     }
-    if (c == 0x1B) { press(key_index("LF"), false); return; }      // LF key = ESC in MIKOS
     if (c == ' ') { press(key_index("SP"), false); return; }
-    if (c == '\t') { press(key_index("SP"), true); return; }
     if (isalnum(c)) { press(char_key((char)toupper(c)), false); return; }   // upper case only
     for (const ShiftChar& s : k_shift)
         if (s.ch == c) { press(char_key(s.key), true); return; }
@@ -60,11 +68,21 @@ void Ank1::type_char(uint32_t cp)
 
 bool Ank1::host_key(int key, int mods)
 {
+    bool mikos = software == SW_MIKOS;
     switch (key) {
     case HK_ENTER: case HK_KP_ENTER: press(key_index("CR"), false); return true;
-    case HK_ESCAPE: press(key_index("LF"), false); return true;
-    case HK_BACKSPACE: press(char_key('T'), true); return true;   // shift T = 08h
-    case HK_TAB: press(key_index("SP"), true); return true;
+    case HK_ESCAPE:
+        if (!mikos) return false;
+        press(key_index("LF"), false);   // LF key = ESC in MIKOS
+        return true;
+    case HK_BACKSPACE:
+        if (mikos) press(char_key('T'), true);   // shift T = 08h
+        else press(key_index("LF"), false);      // BS key in MIKROBASIC
+        return true;
+    case HK_TAB:
+        if (!mikos) return false;
+        press(key_index("SP"), true);
+        return true;
     case HK_DELETE: press(char_key('P'), true); return true;      // shift P = DEL
     case HK_F6: int_key = true; int_until = now + hold_cycles; return true;
     case HK_F7: t_key = true; t_until = now + hold_cycles; return true;
@@ -83,7 +101,9 @@ void Ank1::advance(uint64_t t)
     now = t;
     if (int_key && now >= int_until) int_key = false;
     if (t_key && now >= t_until) t_key = false;
-    if (cur_key >= 0 && now >= phase_end) {
+    // each phase lasts its minimum time and until the program has scanned the key's row
+    if (cur_key >= 0 && now >= phase_end && scanned) {
+        scanned = false;
         if (!releasing) {
             releasing = true;            // key up, keep a pause for the debouncing
             phase_end = now + release_cycles;
@@ -99,6 +119,7 @@ void Ank1::advance(uint64_t t)
         cur_key = p.key;
         cur_shift = p.shift;
         releasing = false;
+        scanned = false;
         phase_end = now + press_cycles;
     }
 }
@@ -107,6 +128,7 @@ uint8_t Ank1::p0_in()
 {
     uint8_t cols = 0xFF;
     uint8_t rows = (uint8_t)(~out & 0x1F);   // active rows (0 on the output)
+    if (cur_key >= 0 && (rows & (0x10 >> (cur_key / 8)))) scanned = true;
     for (int r = 0; r < 5; r++) {
         if (!(rows & (0x10 >> r))) continue;
         for (int bit = 0; bit < 8; bit++)

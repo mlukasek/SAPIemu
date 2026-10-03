@@ -32,8 +32,8 @@ enum Phosphor { PHOSPHOR_WHITE = 0, PHOSPHOR_GREEN, PHOSPHOR_AMBER };
 const uint32_t k_phosphor[3] = { 0xFFE8E8E8u, 0xFF40FF70u, 0xFFFFB020u };
 const uint32_t k_background = 0xFF101010u;
 
-// PAL TV: 10 MHz dot clock vs. 7.375 MHz square-pixel clock for 288 lines
-const float k_tv_pixel_aspect = 7.375f / 10.0f;
+// PAL TV: pixel aspect = 7.375 MHz square-pixel clock (288 lines) / dot clock of the card
+const double k_tv_square_dot_hz = 7.375e6;   // square pixels of a PAL picture (288 lines)
 
 struct App {
     SDL_Window* window = nullptr;
@@ -435,7 +435,7 @@ void draw_screen(App& app)
     float fb = ImGui::GetIO().DisplayFramebufferScale.x;
     if (fb <= 0) fb = 1.0f;
     ImVec2 avail = ImGui::GetContentRegionAvail();
-    float px_aspect = app.tv_aspect ? k_tv_pixel_aspect : 1.0f;
+    float px_aspect = app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
     float img_w = (float)w * px_aspect, img_h = (float)h;
     float scale = avail.x * fb / img_w;
     if (avail.y * fb / img_h < scale) scale = avail.y * fb / img_h;

@@ -20,5 +20,10 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `dmr-1/DMR-1_D2C.bin/.hex` | DMR-1 D2C (74S571) | Dekodér RAM, 8 konfigurací (JP3). |
 | `mikromon/MikroMon1_3_f000.txt` | EPROM JPR-1ZI | MikroMon 1.3 (Intel HEX, zavádí se od 0000, běží od F000). Autor: Libor Lasota, použito s jeho souhlasem. |
 | `mikromon/navod-k-MikroMon.pdf` | | Návod k MikroMonu. |
+| `mikrobasic/MIKROBASIC_2.4_ZPS-1.bin` | REM-1 EPROM 0000–0FFF (4× 2708) | MIKROBASIC 2.4 s Mikromonitorem (TESLA ELTOS 1983), verze ZPS-1, RAM na REM-1 4000–47FF. Zdroj `H:\SAPI-1\_ROM\vypis_programu_MBASIC.BIN`, MD5 a9dde20b…, shodný s dumpy čtyř skutečných 2708 (`SAPI_DOKU_2011-09-10\EPROM_od_PEPAX\SAPI\MBASIC_v24_0..3.BIN`) a s HEX na sapi.cz. |
+| `mikrobasic/MIKROBASIC_AR1983_1k.bin` | EPROM 0000–0FFF | Starší MIKROBASIC z AR/B 1983, 1 KB RAM na JPR-1 (2000–23FF). Zdroj `Foto\Jiri_Slansky\SW\JPR-1 MicroBASIC 1k`, MD5 6d42ad34…. |
+| `and-1/MHB2501.bin` | AND-1 znakový generátor MHB 2501 (latinka) | **Překreslený**, ne dump (p-MOS ROM, dump neexistuje). Podle tabulky v katalogu MHB250x (`Foto\Jiri_Slansky\Dokumentace\AND-1 a 1A\MHB250x.png`), automaticky převedeno, několik vad skenu opraveno ručně. 64 znaků × 8 řádků, bity 4–0 = sloupce zleva, řádek 8 nevyužit. |
+| `and-1/MHB2502.bin` | AND-1 MHB 2502 (azbuka) | Překreslený stejně. Kódy 20–3Fh převzaté z MHB 2501. |
+| `and-1/AND-1_D3C_74188.bin` | AND-1 D3C (74188) | Kurzor, blikání a dvojitá šířka, 32 B z výpisu na sapi.cz (`and-1.php`). |
 
 Zdrojové kódy MikroMonu se do tohoto repozitáře nedávají.

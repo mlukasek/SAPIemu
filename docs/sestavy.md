@@ -67,8 +67,10 @@ který port a paměťovou adresu.
 | ZPS-3 | JPR-1A, RAM-1A, AND-1A, DSM-1, RPD-1 (2 sloty) | Consul 259.11 |
 | ZPS-4 | JPR-1Z, RAM-1Z, AND-1Z, DSM-1, RPD-1, RMD-1 | Consul 259.11 |
 
-Pořadí karet ve slotech je odhad (viz Nejasnosti v `docs/SOUHRN.md`). Šablony zatím nepoběží, protože jejich
-procesorové karty nejsou emulované. Dají se ale prohlížet, upravovat a ukládat.
+Pořadí karet ve slotech je odhad (viz Nejasnosti v `docs/SOUHRN.md`). **ZPS-1 a ZPS-2 běží** s MIKROBASICem 2.4
+(JPR-1, REM-1, AND-1, ANK-1; DSM-1 a BDK-1 zatím neodpovídají). ZPS-3 a ZPS-4 čekají na emulaci JPR-1A a JPR-1Z.
+Navíc je tu `machines/zps/MIKROBASIC_AR1983.sapi`: nejmenší sestava z AR/B 1983 (JPR-1 s EPROM a 1 KB RAM,
+AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 
 ## Formát souboru
 

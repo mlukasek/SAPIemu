@@ -48,6 +48,13 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         Ank1* a = new Ank1();
         long long press_ms;
         if (!cfg_number(cfg, "press_ms", press_ms, 40, err)) { delete a; return nullptr; }
+        std::string sw = cfg.value("software", std::string("mikrobasic"));
+        if (sw != "mikrobasic" && sw != "mikos") {
+            err = "ANK-1 software must be mikrobasic or mikos";
+            delete a;
+            return nullptr;
+        }
+        a->software = sw == "mikos" ? Ank1::SW_MIKOS : Ank1::SW_MIKROBASIC;
         a->press_cycles = a->release_cycles = us_to_cycles(press_ms * 1000, cpu_hz);
         a->hold_cycles = us_to_cycles(100000, cpu_hz);
         return a;
@@ -65,6 +72,7 @@ const std::vector<KeyboardPreset>& keyboard_presets(void)
         { "Consul 259.11", R"({"type":"Consul 259.11","code":"koi7"})" },
         { "Consul 259.11 (KOI-8 cs)", R"({"type":"Consul 259.11","code":"koi8cs"})" },
         { "ANK-1", R"({"type":"ANK-1"})" },
+        { "ANK-1 (MIKOS)", R"({"type":"ANK-1","software":"mikos"})" },
     };
     return presets;
 }

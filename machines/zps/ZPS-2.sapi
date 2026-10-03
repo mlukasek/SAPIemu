@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "ZPS-2 (JPR-1, REM-1, RAM-1, AND-1, DSM-1, BDK-1, ANK-1)",
-    "description": "Základní počítačová sestava ZPS-2 podle sapi.cz/sapi/doku2/zps.php. Pořadí karet ve slotech je odhad.",
+    "description": "Základní počítačová sestava ZPS-2 podle sapi.cz/sapi/doku2/zps.php. Pořadí karet ve slotech je odhad. Programové vybavení zatím MIKROBASIC 2.4 jako u ZPS-1 (RAM-1 není emulovaná).",
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },
@@ -10,11 +10,19 @@
         {
             "slot": 1,                      // position X1
             "type": "JPR-1",                // CPU card 8080, memory mapped ports
-            "keyboard": { "type": "ANK-1" }  // Keyboard
+            "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (ZPS-1: EPROMs on REM-1)
+            "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
+            "keyboard": { "type": "ANK-1" }  // Keyboard (connector X2)
         },
         {
             "slot": 2,                      // position X2
-            "type": "REM-1"                 // RAM and EPROM card
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin",  // EPROMs (from socket 1) - MIKROBASIC 2.4 (ZPS-1)
+            "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
+            "ram_block": 2,                 // Jumper R: RAM block - 4000-5FFF
+            "ram_kb": 2                     // RAM fitted (KB, 2 per 4x 2114)
         },
         {
             "slot": 3,                      // position X3
@@ -22,11 +30,13 @@
         },
         {
             "slot": 4,                      // position X4
-            "type": "AND-1"                 // Alphanumeric display
+            "type": "AND-1"                 // Alphanumeric display 40x24
         },
         {
             "slot": 5,                      // position X5
-            "type": "DSM-1"                 // Serial modem (cassette, terminal)
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600                     // Jumper: terminal baud rate - 600 Bd (factory)
         },
         {
             "slot": 6,                      // position X6

@@ -44,6 +44,77 @@ static const CardParam k_jpr1zi[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// JPR-1 (8080)
+static const ParamOption k_eprom_type[] = {
+    { "\"2708\"", "2708 (1 KB)", "2708 (1 KB)" },
+    { "\"2716\"", "2716 (2 KB)", "2716 (2 KB)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_jpr1_roms[] = {
+    { "\"\"", "none (ZPS-1: EPROMs on REM-1)", "žádné (ZPS-1: EPROM na REM-1)" },
+    { "\"roms/mikrobasic/MIKROBASIC_AR1983_1k.bin\"", "MIKROBASIC AR/B 1983 (1 KB RAM on JPR-1)",
+      "MIKROBASIC AR/B 1983 (1 KB RAM na JPR-1)" },
+    { "\"roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin\"", "MIKROBASIC 2.4", "MIKROBASIC 2.4" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_jpr1[] = {
+    { "rom", PK_FILE, "EPROM sockets D4E-D7E (from 0000)", "Patice EPROM D4E-D7E (od 0000)", "\"\"", k_jpr1_roms, 0, 0 },
+    { "eprom_type", PK_CHOICE, "Jumpers 7-8/4-5 or 9-7/4-6: EPROM type", "Propojky 7-8/4-5 nebo 9-7/4-6: typ EPROM",
+      "\"2708\"", k_eprom_type, 0, 0 },
+    { "ram", PK_BOOL, "RAM 1 KB at 2000 (2x 2114)", "RAM 1 KB na 2000 (2x 2114)", "false", nullptr, 0, 0 },
+    { "int_key", PK_BOOL, "Jumper 10-11: INT key -> interrupt R7", "Propojka 10-11: klávesa INT -> přerušení R7", "true",
+      nullptr, 0, 0 },
+    { "wait_state", PK_BOOL, "Jumper 12-14: one wait state", "Propojka 12-14: jeden čekací stav", "false", nullptr, 0, 0 },
+    { "crystal_hz", PK_INT, "Crystal (Hz, CPU = crystal / 9)", "Krystal (Hz, CPU = krystal / 9)", "18000000", nullptr,
+      1000000, 40000000 },
+    { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// REM-1
+static const ParamOption k_block[] = {
+    { "0", "0000-1FFF", "0000-1FFF" }, { "1", "2000-3FFF", "2000-3FFF" }, { "2", "4000-5FFF", "4000-5FFF" },
+    { "3", "6000-7FFF", "6000-7FFF" }, { "4", "8000-9FFF", "8000-9FFF" }, { "5", "A000-BFFF", "A000-BFFF" },
+    { "6", "C000-DFFF", "C000-DFFF" }, { "7", "E000-FFFF", "E000-FFFF" },
+    { "\"none\"", "not connected", "nezapojeno" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_rem1_roms[] = {
+    { "\"roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin\"", "MIKROBASIC 2.4 (ZPS-1)", "MIKROBASIC 2.4 (ZPS-1)" },
+    { "\"roms/mikrobasic/MIKROBASIC_AR1983_1k.bin\"", "MIKROBASIC AR/B 1983", "MIKROBASIC AR/B 1983" },
+    { "\"\"", "empty sockets", "prázdné patice" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_rem1[] = {
+    { "rom", PK_FILE, "EPROMs (from socket 1)", "EPROM (od patice 1)", "\"\"", k_rem1_roms, 0, 0 },
+    { "eprom_type", PK_CHOICE, "Jumpers H/G/I/J: EPROM type", "Propojky H/G/I/J: typ EPROM", "\"2708\"", k_eprom_type, 0, 0 },
+    { "eprom_block", PK_CHOICE, "Jumper E: EPROM block", "Propojka E: blok EPROM", "0", k_block, 0, 0 },
+    { "eprom_block2", PK_CHOICE, "Jumper F: second EPROM block (2716)", "Propojka F: druhý blok EPROM (2716)", "\"none\"",
+      k_block, 0, 0 },
+    { "ram_block", PK_CHOICE, "Jumper R: RAM block", "Propojka R: blok RAM", "2", k_block, 0, 0 },
+    { "ram_kb", PK_INT, "RAM fitted (KB, 2 per 4x 2114)", "Osazená RAM (KB, 2 na 4x 2114)", "2", nullptr, 0, 8 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// AND-1
+static const ParamOption k_and1_cs[] = {
+    { "\"MHB2501\"", "MHB 2501 latin (jumper 42-43)", "MHB 2501 latinka (propojka 42-43)" },
+    { "\"MHB2502\"", "MHB 2502 cyrillic (jumper 41-42)", "MHB 2502 azbuka (propojka 41-42)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and1_rows[] = {
+    { "24", "24 rows (jumper 47-48)", "24 řádků (propojka 47-48)" },
+    { "20", "20 rows (jumper 46-47)", "20 řádků (propojka 46-47)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_and1[] = {
+    { "charset", PK_CHOICE, "Character generator", "Generátor znaků", "\"MHB2501\"", k_and1_cs, 0, 0 },
+    { "rows", PK_CHOICE, "Rows", "Řádků", "24", k_and1_rows, 0, 0 },
+    { "int1", PK_BOOL, "Jumper 49-50: INT1 at the end of the frame", "Propojka 49-50: INT1 na konci snímku", "true",
+      nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // CPU cards not emulated yet: only what the configurator should remember
 static const CardParam k_cpu_basic[] = {
     { "rom", PK_FILE, "Monitor EPROM", "EPROM monitoru", "\"\"", k_none, 0, 0 },
@@ -228,14 +299,14 @@ static const CardParam k_ide1[] = {
 
 // CPU
 CARD(c_jpr1, "JPR-1", "JPR", "CPU card 8080, memory mapped ports", "Procesorová deska 8080, porty v paměti",
-     CC_CPU, 1, false, k_cpu_basic)
+     CC_CPU, 1, true, k_jpr1)
 CARD(c_jpr1a, "JPR-1A", "JPR", "CPU card 8080 \"A\"", "Procesorová deska 8080 \"A\"", CC_CPU, 1, false, k_cpu_basic)
 CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80", "Procesorová deska Z80", CC_CPU, 1, false, k_cpu_basic)
 CARD(c_jpr1zi, "JPR-1ZI", "JPR", "CPU card Z80 (new design)", "Procesorová deska Z80 (nová konstrukce)",
      CC_CPU, 1, true, k_jpr1zi)
 CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, false, k_cpu_basic)
 // memory
-CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM", CC_MEMORY, 1, false, nullptr)
+CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM", CC_MEMORY, 1, true, k_rem1)
 CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 KB", CC_MEMORY, 1, false, nullptr)
 CARD(c_ram1a, "RAM-1A", "RAM", "Dynamic RAM up to 48 KB \"A\"", "Dynamická RAM až 48 KB \"A\"", CC_MEMORY, 1, false,
      nullptr)
@@ -248,7 +319,7 @@ CARD(c_rmd1, "RMD-1", "RMD", "RAM disk", "RAM disk", CC_DISK, 1, false, nullptr)
 CARD(c_zrmd1, "ZRMD-1", "ZRMD", "RAM disk 4 MB with RTC", "RAM disk 4 MB s RTC", CC_DISK, 1, true, k_zrmd1)
 CARD(c_zrd1v, "ZRD-1V", "ZRD", "RAM disk 4 MB (V)", "RAM disk 4 MB (V)", CC_DISK, 1, true, k_zrd1v)
 // display
-CARD(c_and1, "AND-1", "AND", "Alphanumeric display", "Alfanumerický displej", CC_DISPLAY, 1, false, nullptr)
+CARD(c_and1, "AND-1", "AND", "Alphanumeric display 40x24", "Alfanumerický displej 40x24", CC_DISPLAY, 1, true, k_and1)
 CARD(c_and1a, "AND-1A", "AND", "Alphanumeric display \"A\"", "Alfanumerický displej \"A\"", CC_DISPLAY, 1, false,
      nullptr)
 CARD(c_and1z, "AND-1Z", "AND", "Alphanumeric display \"Z\"", "Alfanumerický displej \"Z\"", CC_DISPLAY, 1, true,

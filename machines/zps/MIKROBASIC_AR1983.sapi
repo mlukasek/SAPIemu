@@ -1,0 +1,29 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "SAPI-1 MIKROBASIC AR/B 1983 (JPR-1 s EPROM a 1 KB RAM, AND-1, ANK-1)",
+    "description": "Nejmenší sestava podle Amatérského radia řady B 1983: MIKROBASIC (starší verze, bez REWIND) ve čtyřech EPROM 2708 na JPR-1 (0000-0FFF), RAM 1 KB na JPR-1 (2000-23FF), displej AND-1, klávesnice ANK-1. LOAD/SAVE používá porty 40-43h (děrná páska), karta pro ně v sestavě není.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "roms/mikrobasic/MIKROBASIC_AR1983_1k.bin",  // EPROM sockets D4E-D7E (from 0000) - MIKROBASIC AR/B 1983 (1 KB RAM on JPR-1)
+            "eprom_type": "2708",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2708 (1 KB)
+            "ram": true,                    // RAM 1 KB at 2000 (2x 2114)
+            "int_key": true,                // Jumper 10-11: INT key -> interrupt R7
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "ANK-1" }  // Keyboard (connector X2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": true                    // Jumper 49-50: INT1 at the end of the frame
+        }
+    ]
+}

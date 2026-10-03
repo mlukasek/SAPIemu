@@ -13,8 +13,9 @@ using nlohmann::json;
 static const char* const k_versions[] = { "2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05" };
 
 static const char* const k_instructions =
-    "SAPIemu emulates the Czechoslovak 8-bit computer Tesla SAPI-1 (Z80 CPU card JPR-1ZI, ARB-1 bus, "
-    "AND-1Z 64x20 text display, DMR-1 serial+RAM, EKL-1 keyboard). Use machine_info first. "
+    "SAPIemu emulates the Czechoslovak 8-bit computer Tesla SAPI-1: Z80 CPU card JPR-1ZI with AND-1Z 64x20 "
+    "display, DMR-1 serial+RAM, RAM disks and IDE (CP/M machines), or the original 8080 JPR-1 with REM-1, "
+    "AND-1 40x24 and the ANK-1 matrix keyboard (ZPS-1, MIKROBASIC). Use machine_info first. "
     "Addresses and ports in tool arguments are hex strings (e.g. \"F000\"); JSON numbers are decimal. "
     "Typical workflow: load_hex / write_memory, set_registers pc or type commands into the monitor "
     "(type_text), run_until / run_for, then screen_text, screenshot, read_memory, get_registers. "

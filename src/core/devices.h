@@ -81,6 +81,8 @@ public:
     virtual ~DisplayDevice() {}
     virtual int screen_width() const = 0;    // pixels
     virtual int screen_height() const = 0;
+    // Dot clock of the video signal: pixel aspect on a PAL TV (square pixels at 7.375 MHz).
+    virtual double dot_clock_hz() const { return 10e6; }
     // Render into an ARGB8888 buffer of screen_width*screen_height.
     virtual void render(uint32_t* argb, uint32_t fg, uint32_t bg) = 0;
     // Visible text, one string per row, UTF-8.

@@ -17,7 +17,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
     png, log;
-  - `cpu/`: implementace z80.h;
+  - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`);
   - `chips/`: obvody (MHB1012…);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice;

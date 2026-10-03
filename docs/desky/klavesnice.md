@@ -24,7 +24,10 @@ Paralelní klávesnice (všechny kromě ANK-1) mají společný základ `paralle
 - `strict`: nečekat před dalším znakem na ACK=0 (jako skutečný HW, znaky se mohou ztratit);
 - Consul 262.3: `latch_mod` (úprava 7474, výchozí `true`);
 - Consul 259.11: `code` (`koi7` nebo `koi8cs`);
-- ANK-1: `press_ms` (doba stisku i uvolnění, výchozí 40 ms).
+- ANK-1: `press_ms` (nejkratší doba stisku i uvolnění, výchozí 40 ms), `software` (`mikrobasic`, výchozí, nebo
+  `mikos`: jinak se mapují klávesy PC na klávesy matice). Klávesa zůstane stisknutá, dokud program nepřečte její
+  řádek, a stejně tak uvolněná. Při psaní přes MCP nebo vkládání textu se tak nic neztratí, ani když program
+  zrovna počítá nebo pípá. Preset „ANK-1“ je pro MIKROBASIC, „ANK-1 (MIKOS)“ pro MIKOS V4.
 
 Emulace (kromě „strict“) nepošle další znak, dokud program nevrátí ACK do 0, aby se znaky z PC neztrácely.
 
@@ -174,3 +177,11 @@ Zdroj: `sapi\ank-1.php`, příloha VII manuálu (`ank-1pri07.png`), tabulky MIKO
 - **Software:** veškerý známý software pro ANK-1 (MIKROBASIC, MIKOS V4) je pro paměťově mapovanou JPR-1,
   na JPR-1ZI tedy zatím nepoběží. Emulace ANK-1 je ověřená testem na úrovni portů (`test_keyboards`).
 - **Kompatibilita:** nefunguje s CP/M ani s MikroMonem (jiný protokol).
+
+### ANK-1 a programy
+
+- **MIKROBASIC 2.4** (tabulky 0DFA/0E22): klávesa vedle CR je BS (08h), SHIFT+P = DEL (7Fh), SHIFT+písmeno =
+  stejné písmeno. Backspace na PC = tato klávesa. Esc a Tab MIKROBASIC nemá.
+- **MIKOS V4.0:** klávesa vedle CR je LF (ESC), SHIFT+LF = 0Ah, SHIFT+T = 08h, SHIFT+Q/W/A/S/X = 11h/17h/10h/13h/03h.
+- Znaky se SHIFT u číslic a ostatních kláves (!?"$^'<>() /:@# +-*=;,._%&\[]) jsou v obou programech stejné.
+- Ověřeno s MIKROBASICem na emulované JPR-1 (`tests/test_mikrobasic.cpp`).
