@@ -37,6 +37,8 @@ public:
     // image files in the SD root with an extension known to images.cfg
     std::vector<std::string> list_images(void) const;
     void flush(void);
+    // Relative path that stays inside the SD card (exposed for tests).
+    static bool safe_path(const std::string& rel, bool allow_dirs);
 
     bool card_locked = false;      // SD card write lock switch
     uint32_t startup_ms = 0;       // the real firmware shows its banner for 3 s after power on

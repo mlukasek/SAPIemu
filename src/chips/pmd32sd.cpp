@@ -43,6 +43,28 @@ std::string Pmd32Sd::host_path(const std::string& rel) const
     return p8(u8p(sd_root) / u8p(rel));
 }
 
+// A path inside the SD card: '/' separated components, no "..", ".", empty
+// components, drive letters or backslashes. Names come from guest software
+// (commands H, N), which must not reach host files outside the SD card - the
+// real device only sees its own FAT card.
+bool Pmd32Sd::safe_path(const std::string& rel, bool allow_dirs)
+{
+    if (rel.empty() || rel.size() > 255) return false;
+    size_t start = 0;
+    for (;;) {
+        size_t end = rel.find('/', start);
+        std::string comp = rel.substr(start, end == std::string::npos ? std::string::npos : end - start);
+        if (comp.empty() || comp == "." || comp == "..") return false;
+        for (char c : comp)
+            if ((unsigned char)c < 0x20 || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' ||
+                c == '<' || c == '>' || c == '|')
+                return false;
+        if (end == std::string::npos) return true;
+        if (!allow_dirs) return false;
+        start = end + 1;
+    }
+}
+
 bool Pmd32Sd::init(const std::string& root, std::string& err)
 {
     std::error_code ec;
@@ -153,6 +175,7 @@ int Pmd32Sd::mount(int drive, const std::string& rel, bool wp)
 {
     if (drive < 0 || drive >= DRIVES) return RESULT_BD;
     eject(drive);
+    if (!safe_path(rel, true)) return RESULT_NF;   // outside the SD card
     uint8_t t, s, f;
     int rv = check_image_type(rel, t, s, f);
     if (rv != RESULT_OK) return rv;
@@ -218,6 +241,8 @@ bool Pmd32Sd::write_sector(void)
 
 int Pmd32Sd::create_image(const std::string& name)
 {
+    // the firmware creates the file in the current directory: a plain file name
+    if (!safe_path(name, false)) return RESULT_CE;
     uint8_t t, s, f;
     int rv = check_image_type(name, t, s, f);
     if (rv != RESULT_OK) return rv;

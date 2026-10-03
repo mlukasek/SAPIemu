@@ -162,3 +162,16 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Přijímaný znak je v SAPI k dispozici až po době svého přenosu po lince** (start, data, stop bity).
   Dřív se objevil okamžitě. DOPC po odvysílání paketu vyprázdní přijímač, takže okamžité ACK zahodil
   a čekal do timeoutu. Teď ACK přijde až po 1 ms (9600 Bd), jako na skutečném drátě.
+
+## 2026-10-03 – Bezpečnostní opravy (security review)
+
+- **MCP server:** kontrola `Origin` porovnávala jen začátek řetězce, takže `http://localhost.attacker.tld`
+  prošel. Kontrola `Host` chyběla, takže šel použít DNS rebinding. Cizí webová stránka tak mohla přes
+  `load_binary` a `read_memory` přečíst libovolný soubor uživatele.
+  - Teď: `Host` musí být loopback, `Origin` (je-li uvedený) přesně loopback na libovolném portu a
+    `Content-Type` musí být JSON.
+  - Token ani omezení cest jsme nezavedli, aby se nezhoršilo pohodlí. Lokální programy mají stejná práva
+    jako uživatel.
+- **PMD32-SD:** jméno obrazu od programu v emulátoru (příkazy H a N) se nekontrolovalo. Šlo tak přistoupit
+  k souborům mimo SD kartu, a přes síťovou cestu dokonce prozradit hash hesla k Windows. Jména jsou teď
+  omezená na cesty uvnitř SD karty (`Pmd32Sd::safe_path`). Podadresáře zůstávají povolené.

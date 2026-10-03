@@ -11,6 +11,10 @@ namespace httplib { class Server; }
 
 static const int MCP_DEFAULT_PORT = 8580;
 
+// Request filter (exposed for tests): Host must be a loopback name, an Origin (if
+// any, nullptr = header missing) exactly a loopback origin, Content-Type JSON.
+bool mcp_request_allowed(const char* origin, const char* host, const char* content_type);
+
 class McpServer {
 public:
     explicit McpServer(EmuHost& host);

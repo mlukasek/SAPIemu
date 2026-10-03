@@ -136,3 +136,8 @@ Na SAPI `SendSectorTrack` mapuje D: na 00h a E: na 80h se sektorem −1.
   pošle NAK (99h, bez čekání), ale hned se vrátí do smyčky prezentace a pošle AAh. Tím NAK ve vstupním
   latchi 8255 přepíše, takže hostitel místo NAK uvidí AAh. Dokumentace protokolu uvádí NAK, ve skutečnosti
   rozhoduje timeout a opakování v ovladači SAPI.
+- **Jména obrazů jsou omezená na SD kartu.** Příkazy H (vložení) a N (vytvoření) i vkládání z GUI a MCP
+  přijmou jen cestu uvnitř SD karty. Podadresáře `HRY/HRA.2MB` jsou povolené, `..`, `\`, `:`, absolutní
+  a síťové cesty ne. Odmítnuté jméno dostane „nenalezeno“ (06), u N „chyba vytvoření“ (08), stejně jako
+  na skutečném zařízení, kde takový soubor na kartě FAT neexistuje. Bez toho by software v emulátoru mohl
+  číst a zapisovat soubory na PC mimo SD kartu.

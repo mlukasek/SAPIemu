@@ -2,6 +2,7 @@
 // does it), PMD32-SD protocol through the mode 2 8255 (as the SAPI driver does).
 #include <string.h>
 #include "chips/i8255.h"
+#include "chips/pmd32sd.h"
 #include "core/machine.h"
 #include "core/util.h"
 #include "test_util.h"
@@ -217,12 +218,41 @@ static void test_pmd32(Machine& m)
     CHECK(h.get(t)); CHECK(h.get(s)); CHECK(h.get(f));
     CHECK_EQ(t, 255);
     CHECK_EQ(s, 64);
+
+    // H (insert image) with a name leaving the SD card -> "not found" (06), no host access
+    const char* evil = "../../media/pmd32sd/VZOR_2M.2MB";
+    CHECK(h.present());
+    x = 0;
+    uint8_t len = (uint8_t)strlen(evil);
+    CHECK(h.put('H')); x ^= 'H';
+    CHECK(h.put(1)); x ^= 1;       // drive B
+    CHECK(h.put(0)); x ^= 0;       // not write protected
+    CHECK(h.put(len)); x ^= len;
+    for (const char* p = evil; *p; p++) { CHECK(h.put((uint8_t)*p)); x ^= (uint8_t)*p; }
+    CHECK(h.put(x));
+    CHECK(h.get(ack)); CHECK_EQ(ack, 0x33);
+    CHECK(h.get(err)); CHECK_EQ(err, 6);
+}
+
+static void test_safe_path(void)
+{
+    CHECK(Pmd32Sd::safe_path("VZOR_2M.2MB", false));
+    CHECK(Pmd32Sd::safe_path("HRY/HRA.2MB", true));        // subdirectory on the card
+    CHECK(!Pmd32Sd::safe_path("HRY/HRA.2MB", false));
+    CHECK(!Pmd32Sd::safe_path("../x.SAP", true));
+    CHECK(!Pmd32Sd::safe_path("HRY/../../x.SAP", true));
+    CHECK(!Pmd32Sd::safe_path("/etc/x.SAP", true));
+    CHECK(!Pmd32Sd::safe_path("C:/Users/Public/x.SAP", true));
+    CHECK(!Pmd32Sd::safe_path("..\\x.SAP", true));
+    CHECK(!Pmd32Sd::safe_path("\\\\server\\share\\x.P32", true));
+    CHECK(!Pmd32Sd::safe_path("", true));
 }
 
 int main(void)
 {
     data_root_init();
     test_i8255();
+    test_safe_path();
 
     std::string dir = path_join(data_root(), "work/tests");
     make_dirs(dir);

@@ -10,8 +10,15 @@ na klávesnici, číst obrazovku, nahrávat programy, krokovat a nastavovat brea
   - `--mcp-port N` nastaví jiný port, `--no-mcp` server vypne.
 - **Bez okna:** `sapiemu-cli --mcp [--machine ...] [--mcp-port N]`. Emuluje v reálném čase a obsluhuje MCP,
   dokud se nestiskne Ctrl+C.
-- **Bezpečnost:** server poslouchá jen na `127.0.0.1`. Požadavky z prohlížeče s cizí hlavičkou `Origin`
-  odmítá (ochrana proti DNS rebinding).
+- **Bezpečnost:** server poslouchá jen na `127.0.0.1` a přijme jen požadavek, který splní tři podmínky:
+  - hlavička `Host` je `127.0.0.1`, `localhost` nebo `[::1]` (ochrana proti DNS rebindingu);
+  - `Origin`, pokud je uvedený, je přesně jeden z těchto počítačů na libovolném portu, takže cizí webové
+    stránky nemohou poslat podvržený požadavek (CSRF);
+  - `Content-Type` je `application/json`.
+
+  Ostatní požadavky dostanou 403. Claude Code, curl i lokální nástroje na PC fungují beze změny. Nástroje
+  s cestou k souboru (`load_hex`, `load_binary`) dál berou i absolutní cesty, protože je mohou volat jen
+  programy na vlastním PC.
 
 ## Připojení Claude Code
 

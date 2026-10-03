@@ -29,9 +29,31 @@ static std::string text_of(const json& result)
     return result["content"][0].value("text", std::string());
 }
 
+static void test_request_filter(void)
+{
+    const char* json = "application/json";
+    // Claude Code / curl: loopback Host, no Origin, JSON
+    CHECK(mcp_request_allowed(nullptr, "127.0.0.1:8580", json));
+    CHECK(mcp_request_allowed(nullptr, "localhost:8580", "application/json; charset=utf-8"));
+    CHECK(mcp_request_allowed(nullptr, "[::1]:8580", json));
+    CHECK(mcp_request_allowed("http://localhost:3000", "127.0.0.1:8580", json));   // local web tool
+    // DNS rebinding: foreign Host name
+    CHECK(!mcp_request_allowed(nullptr, "localhost.attacker.tld:8580", json));
+    CHECK(!mcp_request_allowed(nullptr, "evil.example:8580", json));
+    // CSRF from other sites, also with look-alike names
+    CHECK(!mcp_request_allowed("http://localhost.attacker.tld:8580", "127.0.0.1:8580", json));
+    CHECK(!mcp_request_allowed("http://127.0.0.1.attacker.tld", "127.0.0.1:8580", json));
+    CHECK(!mcp_request_allowed("https://evil.example", "127.0.0.1:8580", json));
+    CHECK(!mcp_request_allowed("null", "127.0.0.1:8580", json));
+    // "simple" cross-site requests without JSON content type
+    CHECK(!mcp_request_allowed(nullptr, "127.0.0.1:8580", "text/plain"));
+    CHECK(!mcp_request_allowed(nullptr, "127.0.0.1:8580", nullptr));
+}
+
 int main(void)
 {
     data_root_init();
+    test_request_filter();
     EmuHost host;
     std::string err;
     CHECK(host.load("machines/mikromon.jsonc", err));

@@ -4,6 +4,7 @@
 #include "core/log.h"
 #include "core/version.h"
 
+#include <ctype.h>
 #include "httplib.h"
 #include "json.hpp"
 
@@ -90,13 +91,55 @@ std::string McpServer::handle_body(const std::string& body, int& http_status)
     return rpc_error(id, -32601, "method not found: " + method).dump();
 }
 
-// Reject browser requests from other origins (DNS rebinding protection).
-static bool origin_allowed(const httplib::Request& req)
+// Host part of "host", "host:port", "[v6]" or "[v6]:port", lower case.
+static std::string host_only(const std::string& hp)
 {
-    if (!req.has_header("Origin")) return true;
-    std::string o = req.get_header_value("Origin");
-    return o.rfind("http://127.0.0.1", 0) == 0 || o.rfind("http://localhost", 0) == 0 ||
-           o.rfind("https://127.0.0.1", 0) == 0 || o.rfind("https://localhost", 0) == 0;
+    std::string h;
+    if (!hp.empty() && hp[0] == '[') {
+        size_t e = hp.find(']');
+        h = hp.substr(1, e == std::string::npos ? std::string::npos : e - 1);
+    } else {
+        h = hp.substr(0, hp.find(':'));
+    }
+    for (char& c : h) c = (char)tolower((unsigned char)c);
+    return h;
+}
+
+static bool is_loopback_name(const std::string& h)
+{
+    return h == "localhost" || h == "127.0.0.1" || h == "::1";
+}
+
+bool mcp_request_allowed(const char* origin, const char* host, const char* content_type)
+{
+    // Browsers must not reach the server from other sites (CSRF) nor through a
+    // rebound DNS name: the Host header must name the loopback interface and
+    // an Origin, when present, must be exactly a loopback origin (any port).
+    if (host && *host && !is_loopback_name(host_only(host))) return false;
+    if (origin) {
+        std::string o = origin;
+        size_t p = o.find("://");
+        if (p == std::string::npos) return false;   // includes "null"
+        std::string scheme = o.substr(0, p);
+        if (scheme != "http" && scheme != "https") return false;
+        std::string rest = o.substr(p + 3);
+        if (rest.find('/') != std::string::npos) return false;
+        if (!is_loopback_name(host_only(rest))) return false;
+    }
+    // JSON-RPC requests are JSON; this also forces a CORS preflight for browsers
+    if (!content_type) return false;
+    std::string ct = content_type;
+    for (char& c : ct) c = (char)tolower((unsigned char)c);
+    return ct.rfind("application/json", 0) == 0;
+}
+
+static bool request_allowed(const httplib::Request& req)
+{
+    std::string origin = req.get_header_value("Origin");
+    std::string host = req.get_header_value("Host");
+    std::string ct = req.get_header_value("Content-Type");
+    return mcp_request_allowed(req.has_header("Origin") ? origin.c_str() : nullptr, host.c_str(),
+                               req.has_header("Content-Type") ? ct.c_str() : nullptr);
 }
 
 bool McpServer::start(int port, std::string& err)
@@ -104,7 +147,7 @@ bool McpServer::start(int port, std::string& err)
     stop();
     svr.reset(new httplib::Server());
     svr->Post("/mcp", [this](const httplib::Request& req, httplib::Response& res) {
-        if (!origin_allowed(req)) { res.status = 403; return; }
+        if (!request_allowed(req)) { res.status = 403; return; }
         int status = 200;
         std::string body = handle_body(req.body, status);
         res.status = status;
