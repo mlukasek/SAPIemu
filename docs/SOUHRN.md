@@ -200,6 +200,19 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - **Pozorování autora (2026-10-04, GUI, ZPS-4):** jednou se systém zasekl a ve stavovém řádku přibývaly
       neobsloužené klávesy. Mohl to být i software. Zatím nevyhodnocovat, potřebuje to víc testování.
 
+21. **Desky V – JPR-1V a AND-1V** (rozbor `docs/desky/JPR-1V.md`, `AND-1V.md`):
+    - Který obraz EEPROM máš v JPR-1V a ve které bance (propojka BIOS osazená/rozpojená) je ECMON IDE-1 a
+      MikroBIOS 3.0? Šel by dump 28C64?
+    - Kterou revizi AND-1V má sestava V (fotky ukazují v1.1 i v2.3) a který font je vypálený (10×24 typ 1/typ 2,
+      u rev 1.1 kterou sadu volí S1 9-10)?
+    - Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`? Zdroje ne, jako u MikroMonu?
+    - Lišta TURBO: tlačítko mezi piny 1 a 3 (pin 2 = LED)? Podle schématu dává 4 MHz pin 3 na zemi.
+    - Oscilátor 8 MHz? Jede něco rychleji (10/5 MHz)?
+    - Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1 (port a bit RAM-1V), nebo vždy F800
+      s MAP1OFF?
+    - Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká? Visí DGD-1 při BOOT opravdu?
+    - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
+
 ## Jak pokračovat
 
 1. `git pull`.
