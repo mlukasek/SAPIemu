@@ -14,7 +14,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **RTC 72421** podle hodin PC.
 - **Sestava `machines/cpm_zrmd.jsonc`:**
   - ECMON → volba 1 → „JPR-1Z 62K CP/M V2.2Z … A: ZRMD1/4MB BOOT SS256“ → `A>` → `DIR` funguje;
-  - volby 0 a 2 skončí na HALT (chybí FDC-1, MFC-1), volba 3 čeká na IDE (F4);
+  - volby 0 a 2 skončí na HALT (chybí FDC-1, MFC-1), volba 3 po chvíli hlásí „INIT HDD - nenalezen!“
+    a nabootuje do `A>`;
   - popis v `docs/software/ECMON.md`.
 - **ZZRMD ROM** se ukázala jako přenos systému na RAM disk, ne boot.
 - **„Terminál připojen (DCD)“** je teď vlastnost sériového kanálu. Přepíná se v okně terminálu, v MCP
@@ -22,6 +23,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **Testy:** `test_zrmd` (porty, zalamování, ochrana, režimy, ukládání, RTC, MAP) a `test_cpm`
   (boot a DIR, RAM disk jen pro čtení). Celkem 9 testů.
 - **`sapiemu-cli --disasm ADDR N`.**
+- **Sériový terminál** je znakový terminál 80×24 s kurzorem (`src/core/term.*`, test `test_term`).
+  - Emulace: SAPI (kódy ECMON/AND-1Z, výchozí), ANSI/VT100 (základ) a bez emulace (`^X`).
+  - Volba „CR = nový řádek“.
+  - CR se už nebere jako nový řádek, takže zmizelo dvojité odřádkování a „paznaky“ `^]^_` (ECMON posílá
+    1D 1F = domů a smazání obrazovky).
 
 Dřív hotové fáze:
 - **F2:** MCP server (`docs/mcp.md`), debugger, sériový terminál, `EmuHost`.

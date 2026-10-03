@@ -1,13 +1,15 @@
-// Serial terminal window: shows what SAPI sends on a serial channel and sends typed keys.
+// Serial terminal window: a character cell terminal showing what SAPI sends on a
+// serial channel; typed keys are sent to SAPI.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "imgui.h"
 #include "core/charset.h"
 #include "core/host.h"
 
-static const size_t MAX_LINES = 3000;
+// ---------------------------------------------------------------- window
 
 static void sync_terms(UiState& ui, Machine* m)
 {
@@ -18,48 +20,13 @@ static void sync_terms(UiState& ui, Machine* m)
     }
 }
 
-static void feed(TerminalState& t, const std::string& data)
-{
-    for (char c : data) {
-        uint8_t b = (uint8_t)c;
-        bool was_cr = t.last_cr;
-        t.last_cr = (b == '\r');
-        if (b == '\r' || b == '\n') {
-            // CR, LF and CR LF all end one line (SAPI software uses CR or CR LF)
-            if (b == '\n' && was_cr) continue;
-            t.lines.push_back(t.cur);
-            t.cur.clear();
-        } else if (b == 0x08) {
-            if (!t.cur.empty()) {
-                // remove the last UTF-8 character
-                size_t i = t.cur.size() - 1;
-                while (i > 0 && ((uint8_t)t.cur[i] & 0xC0) == 0x80) i--;
-                t.cur.erase(i);
-            }
-        } else if (b == 0x0C) {
-            t.lines.clear();
-            t.cur.clear();
-        } else if (b == 0x07) {
-            // bell: ignored
-        } else if (b >= 0x20 && b != 0x7F) {
-            t.cur += sapi_code_to_utf8(b);
-        } else if (b < 0x20) {
-            char buf[8];
-            snprintf(buf, sizeof(buf), "^%c", '@' + b);
-            t.cur += buf;
-        }
-        t.scroll_to_bottom = true;
-    }
-    if (t.lines.size() > MAX_LINES) t.lines.erase(t.lines.begin(), t.lines.begin() + (t.lines.size() - MAX_LINES));
-}
-
 static void send(UiState& ui, const std::string& codes)
 {
     Machine* m = ui.host->machine();
     if (!m || ui.terminal_channel >= (int)m->serials.size()) return;
     m->serials[ui.terminal_channel]->host_send((const uint8_t*)codes.data(), codes.size());
     TerminalState& t = ui.terms[ui.terminal_channel];
-    if (t.local_echo) feed(t, codes);
+    if (t.local_echo) terminal_feed(t, codes);
 }
 
 bool terminal_key(UiState& ui, int code)
@@ -76,12 +43,22 @@ bool terminal_text(UiState& ui, const char* utf8)
     return true;
 }
 
+static std::string line_utf8(const std::string& l)
+{
+    std::string s;
+    for (char c : l) {
+        uint8_t b = (uint8_t)c;
+        s += (b >= 0x20) ? sapi_code_to_utf8(b) : " ";
+    }
+    return s;
+}
+
 void draw_terminal(UiState& ui)
 {
     ui.terminal_focused = false;
     if (!ui.show_terminal) return;
     Machine* m = ui.host->machine();
-    ImGui::SetNextWindowSize(ImVec2(660, 420), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(700, 460), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr("Serial terminal"), &ui.show_terminal) || !m) {
         ImGui::End();
         return;
@@ -92,11 +69,10 @@ void draw_terminal(UiState& ui)
         ImGui::End();
         return;
     }
-    // receive data for all channels
     for (size_t i = 0; i < m->serials.size(); i++) {
         std::string data;
         m->serials[i]->host_read(ui.terms[i].pos, data, 1 << 16);
-        if (!data.empty()) feed(ui.terms[i], data);
+        if (!data.empty()) terminal_feed(ui.terms[i], data);
     }
 
     if (m->serials.size() > 1) {
@@ -113,18 +89,31 @@ void draw_terminal(UiState& ui)
     bool conn = ch->connected;
     if (ImGui::Checkbox(tr("Terminal connected (DCD)"), &conn)) ch->connected = conn;
     ImGui::SameLine();
-    ImGui::Checkbox(tr("Local echo"), &t.local_echo);
+    if (ImGui::Button(tr("Clear"))) { t.lines.clear(); t.row = t.col = 0; }
+    const char* emus[] = { tr("SAPI (ECMON/AND-1Z)"), "ANSI/VT100", tr("No emulation (^X)") };
+    ImGui::SetNextItemWidth(180);
+    ImGui::Combo("##emu", &t.emulation, emus, 3);
     ImGui::SameLine();
-    if (ImGui::Button(tr("Clear"))) { t.lines.clear(); t.cur.clear(); }
+    ImGui::Checkbox(tr("CR = new line"), &t.cr_newline);
+    ImGui::SameLine();
+    ImGui::Checkbox(tr("Local echo"), &t.local_echo);
 
     ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);
+    float cw = ImGui::CalcTextSize("M").x;
     ImGuiListClipper clipper;
-    clipper.Begin((int)t.lines.size() + 1);
+    clipper.Begin((int)t.lines.size());
     while (clipper.Step()) {
         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-            if (i < (int)t.lines.size()) ImGui::TextUnformatted(t.lines[i].c_str());
-            else ImGui::Text("%s_", t.cur.c_str());
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            ImGui::TextUnformatted(t.lines[i].empty() ? " " : line_utf8(t.lines[i]).c_str());
+            if (i == t.row) {
+                // cursor: underline block at the cursor column
+                float h = ImGui::GetTextLineHeight();
+                ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x + cw * t.col, p.y + h - 3),
+                                                          ImVec2(p.x + cw * (t.col + 1), p.y + h),
+                                                          ImGui::GetColorU32(ImGuiCol_Text));
+            }
         }
     }
     if (ui.mono) ImGui::PopFont();

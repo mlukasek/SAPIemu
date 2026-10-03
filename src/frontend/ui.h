@@ -3,19 +3,11 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include "core/term.h"
 
 class EmuHost;
 class McpServer;
 struct ImFont;
-
-struct TerminalState {
-    uint64_t pos = 0;                  // read position in the channel stream
-    std::vector<std::string> lines;    // completed lines (UTF-8)
-    std::string cur;                   // line being received
-    bool last_cr = false;
-    bool local_echo = false;
-    bool scroll_to_bottom = true;
-};
 
 struct UiState {
     EmuHost* host = nullptr;
