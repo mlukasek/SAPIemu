@@ -1,62 +1,68 @@
-// Martin's CP/M setup: ECMON with IDE-1 support, CP/M 2.2 from the ZRMD-1 RAM
-// disk, B:/C: on an IDE disk (option 3 = HDD), D:/E: on the PMD32-SD.
-// Disk images are working copies in work/ (originals in media/ stay untouched).
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "CP/M 2.2 s IDE-1 (JPR-1ZI ECMON IDE, DMR-1, AND-1Z-89, ZRMD-1, IDE-1 + PMD32-SD)",
-    "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
     "cards": [
         {
-            "slot": 1,
-            "type": "JPR-1ZI",
-            "cpu_mhz": 2,
-            "bus_mhz": 2,
-            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin",
-            "decoder": "2k",
-            "keyboard": { "type": "EKL-1" }
+            "slot": 1,                      // position X1
+            "type": "JPR-1ZI",              // CPU card Z80 (new design)
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin",  // EPROM 2764 - ECMON 2k with IDE-1
+            "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
+            "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
+            "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
+            "keyboard": { "type": "EKL-1" }  // Keyboard (connector X2)
         },
         {
-            "slot": 2,
-            "type": "DMR-1",
-            "ram_config": 1,
-            "uart_base": "10h",
-            "baud": 9600,
-            "connected": false,     // no terminal on the line (DCD inactive): ECMON uses the screen and keyboard
-            // host side of the serial line (see docs/seriova-linka.md)
+            "slot": 2,                      // position X2
+            "type": "DMR-1",                // 128 KB RAM and serial port
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "uart_base": "10h",             // JP2: UART ports
+            "baud": 9600,                   // JP8: baud rate - 9600 Bd
+            "connected": false,             // Terminal connected at start (DCD)
             "serial": {
-                // TeraTerm: TCP/IP, host 127.0.0.1, port 2323, service Telnet or Other (raw).
-                // dcd_follows: DCD is active while a client is connected, so ECMON started
-                // after connecting TeraTerm uses the serial console.
-                "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true, "protocol": "telnet" },   // telnet | raw | auto
-                // "com": { "port": "COM5", "baud": 9600 },   // host serial port (or com0com pair)
-                "pacing": true          // do not send faster than SAPI reads (no overrun)
+                "pacing": true,             // PC side: no overrun (pacing)
+                "tcp": {                    // PC side: TCP server
+                    "port": 2323,           // TCP port
+                    "bind": "127.0.0.1",    // Address (127.0.0.1 = this PC only)
+                    "protocol": "telnet",   // Protocol
+                    "dcd_follows": true     // DCD follows the client connection
+                }
             }
         },
         {
-            "slot": 3,
-            "type": "AND-1Z-89"
+            "slot": 3,                      // position X3
+            "type": "AND-1Z-89"             // Alphanumeric display "Z" 1989
         },
         {
-            "slot": 4,
-            "type": "ZRMD-1",
-            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",
-            "mode": "rw"
+            "slot": 4,                      // position X4
+            "type": "ZRMD-1",               // RAM disk 4 MB with RTC
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
+            "mode": "rw"                    // Mode - read/write, saved
         },
         {
-            "slot": 5,
-            "type": "IDE-1",
-            "ide_base": "58h",          // JP1-JP3, JP5
-            "pmd_base": "5Ch",
-            "ide": {
-                // raw image without MBR, 16 slots of 8 MB used by the BIOS (B:, C:)
-                "image": "work/ide/sapi_hdd.img",
-                "create_mb": 128,       // created filled with E5h if missing
-                "readonly": false
+            "slot": 5,                      // position X5
+            "type": "IDE-1",                // IDE disk and PMD32-SD
+            "ide_base": "58h",              // JP1-JP3, JP5: IDE ports
+            "pmd_base": "5Ch",              // PMD32-SD ports
+            "ide": {                        // IDE disk
+                "image": "work/ide/sapi_hdd.img",  // Disk image (.img)
+                "create_mb": 128,           // Create if missing (MB, 0 = no)
+                "readonly": false           // Read only
             },
-            "pmd32sd": {
-                "sd_card": "media/pmd32sd",   // directory = SD card (copied to work/pmd32sd)
-                "drives": [ "VZOR_2M.2MB", "a_sluzebni CPM.8sd", null, null ],   // A..D (CP/M D:, E:)
-                "card_locked": false,
-                "startup_ms": 0               // real firmware: 3000 (banner on the LCD)
+            "pmd32sd": {                    // PMD32-SD floppy emulator
+                "sd_card": "media/pmd32sd",  // SD card (directory)
+                "drives": [
+                    "VZOR_2M.2MB",          // Drive A (CP/M D:)
+                    "a_sluzebni CPM.8sd",   // Drive B (CP/M E:)
+                    null,                   // Drive C
+                    null                    // Drive D
+                ],
+                "card_locked": false,       // SD card write protected
+                "startup_ms": 0             // Start-up delay (ms, real 3000)
             }
         }
     ]
