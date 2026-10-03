@@ -349,3 +349,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 
 - **BDK-1 (bastldeska) je emulovaná jako prázdná karta** (autor). Je to vyvrtaná DPS pro vlastní zapojení
   uživatele, bez funkce. V ZPS-1 a ZPS-2 zůstává kvůli úplnosti, na sběrnici nic nedělá a jen zabírá slot.
+
+## 2026-10-03 – MIKOS V5.0
+
+- **Samostatná sestava `ZPS-2_MIKOS_V5.sapi`** vedle ZPS-2 s V4: stejné karty, jiná EPROM a klávesnice Consul
+  262.3 s úpravou STROBE (autor: V5 běží na ZPS-2, jen chce Consul místo ANK-1).
+- **ROM jen 5 KB (monitor + MIKOS).** Ovladač XY 4130 z `MIKOS5.BIN` se nepřidává. Má autostart z 1800h a
+  sestava nemá zapisovač.
+- **Výchozí V5.0F** (novější), V5.0E je v katalogu REM-1 jako alternativa.

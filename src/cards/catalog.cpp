@@ -85,6 +85,8 @@ static const ParamOption k_rem1_roms[] = {
     { "\"roms/mikos/MIKOS_V4.0F_ANK-1.bin\"", "Monitor V4.0F + MIKOS 4.0F (ANK-1)", "Monitor V4.0F + MIKOS 4.0F (ANK-1)" },
     { "\"roms/mikos/MIKOS_V4.0D_ANK-1.bin\"", "Monitor V4.0C + MIKOS 4.0D (ANK-1)", "Monitor V4.0C + MIKOS 4.0D (ANK-1)" },
     { "\"roms/mikos/MIKOS_V4.1F_Consul.bin\"", "Monitor V4.1F + MIKOS 4.0F (Consul)", "Monitor V4.1F + MIKOS 4.0F (Consul)" },
+    { "\"roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin\"", "Monitor V5.0F + MIKOS V5.0 (Consul, 5 KB)", "Monitor V5.0F + MIKOS V5.0 (Consul, 5 KB)" },
+    { "\"roms/mikos/MONITOR_V5.0E_MIKOS_V5.0.bin\"", "Monitor V5.0E + MIKOS V5.0 (Consul, 5 KB)", "Monitor V5.0E + MIKOS V5.0 (Consul, 5 KB)" },
     { "\"\"", "empty sockets", "prázdné patice" },
     { nullptr, nullptr, nullptr },
 };

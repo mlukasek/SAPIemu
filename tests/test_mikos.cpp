@@ -124,11 +124,97 @@ static void real_tape(const char* file, const char* name, int blocks, const char
     printf("%s\n", screen_text(m).c_str());
 }
 
+// Monitor V5.0F + MIKOS V5.0 with the Consul 262.3 keyboard: dialogs in Czech
+// (NAZEV:, --(A/N)?), the motor starts without asking, "@NAME" writes where the
+// tape is, a V4 tape (BASIC EX) loads and runs.
+static bool boot_v5(Machine& m, Dsm1*& dsm)
+{
+    std::string err;
+    CHECK(m.load_file("machines/zps/ZPS-2_MIKOS_V5.sapi", err));
+    dsm = find_dsm(m);
+    CHECK(dsm != nullptr);
+    if (!dsm) return false;
+    CHECK(run_until_text(m, "MIKOS V5.0 (C) TESLA DIZ 1987", 2.0));
+    CHECK(run_until_text(m, "MONITOR V5.0\n.", 1.0));
+    m.run_seconds(0.5);
+    return true;
+}
+
+static void v5_save_load(void)
+{
+    Machine m;
+    Dsm1* dsm;
+    if (!boot_v5(m, dsm)) return;
+    m.type_text("D0 7\r");
+    CHECK(run_until_text(m, "0000 C3 8B 01 55 50 C3 06 F0", 2.0));   // the Consul keyboard works
+    for (int i = 0; i < 0x200; i++) m.bus.mem_write((uint16_t)(0x5000 + i), (uint8_t)(i * 5 + 1));
+
+    TapeDeck* t = dsm->tape();
+    std::string err;
+    CHECK(t->create("work/test/mikos5_test.wav", err));
+    t->mode = TapeDeck::RECORD;
+    m.run_seconds(0.5);
+    m.type_text("KS");
+    CHECK(answer(m, "NAZEV:", "@DATA\r", 2.0));
+    CHECK(answer(m, "@DATA\n\n=", "5000 51FF\r", 10.0));
+    m.run_seconds(1.0);
+    for (int i = 0; i < 60 && dsm->motor_on(); i++) m.run_seconds(0.5);
+    CHECK(run_until_text(m, "=5000 =51FF\n\n.", 5.0));
+    CHECK(t->save(err));
+
+    for (int i = 0; i < 0x200; i++) m.bus.mem_write((uint16_t)(0x5000 + i), 0);
+    t->mode = TapeDeck::STOP;
+    CHECK(t->load("work/test/mikos5_test.wav", err));
+    t->mode = TapeDeck::PLAY;
+    m.type_text("KL");
+    CHECK(answer(m, "K:L\n\n NAZEV:", "DATA\r", 2.0));
+    m.run_seconds(1.0);
+    for (int i = 0; i < 60 && dsm->motor_on(); i++) m.run_seconds(0.5);
+    CHECK(run_until_text(m, ":DATA\n\nDATA\n\n.", 5.0));
+    printf("%s\n", screen_text(m).c_str());
+    int bad = 0;
+    for (int i = 0; i < 0x200; i++)
+        if (m.bus.mem_peek((uint16_t)(0x5000 + i)) != (uint8_t)(i * 5 + 1)) bad++;
+    CHECK_EQ(bad, 0);
+}
+
+static void v5_real_tape(void)
+{
+    std::string path = std::string(REAL_TAPES) + "BASIC EX V4.0.mp3";
+    if (!file_exists(path)) {
+        printf("BASIC EX V4.0.mp3 not available, skipped\n");
+        return;
+    }
+    Machine m;
+    Dsm1* dsm;
+    if (!boot_v5(m, dsm)) return;
+    std::string err;
+    TapeDeck* t = dsm->tape();
+    CHECK(t->load(path, err));
+    t->mode = TapeDeck::PLAY;
+    m.type_text("KL");
+    CHECK(answer(m, "NAZEV:", "*\r", 2.0));
+    CHECK(answer(m, "BASIC --(A/N)?", "A", 60.0));
+    m.run_seconds(1.0);
+    for (int i = 0; i < 300 && dsm->motor_on(); i++) m.run_seconds(0.5);
+    CHECK(!dsm->motor_on());
+    m.run_seconds(1.0);   // back at the prompt
+    CHECK(screen_contains(m, "*\"BASIC      \" 01 1E"));
+    m.type_text("J");
+    CHECK(run_until_text(m, "READY", 3.0));
+    m.run_seconds(0.5);
+    m.type_text("PRINT 12*34+5\r");
+    CHECK(run_until_text(m, " 413", 5.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 int main(void)
 {
     test_init();
     save_load();
     real_tape("tool_80.wav", "TOOL 80", 0x1E, "PEDIT V2.5");
     real_tape("BASIC EX V4.0.mp3", "BASIC", 0x1E, "READY", "PRINT 12*34+5\r", " 413");
+    v5_save_load();
+    v5_real_tape();
     return TEST_RESULT();
 }

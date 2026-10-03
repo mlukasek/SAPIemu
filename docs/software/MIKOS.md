@@ -1,4 +1,4 @@
-# MIKOS V4 (Monitor V4.0 + kazetový operační systém)
+# MIKOS V4 a V5 (Monitor + kazetový operační systém)
 
 Zdroje: manuál „Kazetopáskové programové vybavení SAPI-1 V4.0“ (1985) v `BKP\sapi\doku\zps2-v4.php` a
 `BKP\pdf\zps2.pdf`, výpisy `BKP\sapi\data\m40f_*.php` (monitor) a `mi40f_*.php` (MIKOS), programy
@@ -49,6 +49,37 @@ Sestava `machines/zps/ZPS-2.sapi`: JPR-1, REM-1 (EPROM 0000–0FFF, RAM odpojen�
   - Jméno v rámci bloku je uložené v kódech obrazovky AND-1 (AND 3Fh), v datech hlavičky v ASCII. Skutečná
     nahrávka TOOL 80 ho má stejně.
 - MIKOS bere klávesu až chvíli po vypsání otázky. Klávesa stisknutá dřív se ztratí (ověřeno v emulátoru).
+
+## MIKOS V5.0 (Monitor V5.0, Consul)
+
+Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5.php`, výpisy `BKP\sapi\data\m5e_*`,
+`m5f_*` (monitor), `mi5_*` (MIKOS), `H:\SAPI-1\_ROM\MIKOS v5\` (binárky a `MONITOR5.TXT`).
+
+| Soubor | Obsah | Zdroj |
+|---|---|---|
+| `roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin` | Monitor V5.0F (0000–0BFF) + MIKOS V5.0 (0C00–13FF), 5 KB | prvních 5 KB `_ROM\MIKOS v5\MIKOS5.BIN` (MD5 celého 29d02716…). Za tím je v originálu ovladač souřadnicového zapisovače XY 4130 (1400–1FFF, autostart z 1800), ten v repu není. |
+| `roms/mikos/MONITOR_V5.0E_MIKOS_V5.0.bin` | Monitor V5.0E + MIKOS V5.0, 5 KB | `_ROM\MIKOS v5\MONITOR5.BIN`, MD5 af17aef0… |
+
+- Shoda s výpisy na sapi.cz: MIKOS V5.0 bajt po bajtu. Monitory se liší jen výplní za koncem kódu (0801 u E,
+  0BFD–0BFF u F).
+- Sestava `machines/zps/ZPS-2_MIKOS_V5.sapi`: stejná jako ZPS-2, jen jiná EPROM (5× 2708) a klávesnice Consul
+  262.3 (s úpravou STROBE, 7474). Monitor V5 nepodporuje ANK-1.
+- **Klávesnice** na JPR-1 X2: stav = bit 0 na 2400h (0 = znak), data = 2800h negovaná, potvrzení zápisem 3 a 2 na
+  2400h. Stejný protokol jako u CP/M na JPR-1ZI (porty 1 a 2). Manuál popisuje zapojení C262.3 na FRB-30 a
+  úpravu STROBE. Bez ní se znaky ztrácejí.
+- **Přerušení:** monitor zapisuje úroveň (PRER 40EE, výchozí 01h) na 3000h a povoluje přerušení (EI). Zdroje
+  přerušení jsou v sestavě vypnuté stejně jako u V4.
+- Pod Monitorem V5 je na 1800h místo pro uživatelskou EPROM (obsah C3h = autostart z 1803h). Na 1400h je
+  rezerva pro MIKOS/T nebo ovladač displeje.
+- **Ovládání kazety** (dialogy česky):
+  - `.K` `L`: `NAZEV:`. Motor se spustí sám, bez dotazu PLAY. `*` = první soubor s dotazem `--(A/N)?`
+    (odpověď `A` nebo `Y`), Enter = první soubor bez dotazu, `JMÉNO` = hledá ten soubor.
+  - `.K` `S`: `NAZEV:` `@JMÉNO` zapíše na místo, kde páska stojí (prázdná kazeta). `JMÉNO` hledá konec souboru
+    a ptá se `(A/N)`. Pak `=začátek konec` + CR.
+  - `.J` spustí načtený program, `.U` ukáže jeho adresy.
+- **Ověřeno** (`test_mikos`): start (`MIKOS V5.0 (C) TESLA DIZ 1987`, `MONITOR V5.0`), `D` z klávesnice Consul,
+  `.K_S @DATA` a `.K_L DATA` zpět, BASIC EX V4.0 ze skutečné nahrávky (MP3) se načte, `.J` → `READY`,
+  `PRINT 12*34+5` = 413.
 
 ## Formát pásky
 
