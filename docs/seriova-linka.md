@@ -12,8 +12,13 @@ fungovat najednou:
 
 1. V sestavě je TCP server zapnutý (`machines/cpm_ide.jsonc`, `cpm_zrmd.jsonc`). Jinak ho spusťte v okně
    Sériový terminál tlačítkem **Spustit TCP server**.
-2. V TeraTermu zvolte Soubor → Nové připojení → **TCP/IP**, Host `127.0.0.1`, TCP port `2323`,
-   Service **Telnet** nebo **Other** (raw). Obojí funguje, emulátor telnet rozpozná sám.
+2. V TeraTermu zvolte Soubor → Nové připojení → **TCP/IP**, Host `127.0.0.1` (nebo `localhost`), TCP port
+   `2323`, Service **Telnet**. Emulátor hned po připojení nabídne telnetový znakový režim (WILL ECHO,
+   WILL SGA), takže TeraTerm posílá každou klávesu hned, ne až po Enteru.
+   - Z příkazové řádky: `telnet localhost 2323`. Server poslouchá na IPv4 i IPv6 loopbacku.
+   - Pro raw spojení (TeraTerm „Other“, PuTTY Raw, netcat) nastavte protokol **raw** (v okně terminálu
+     nebo `"protocol": "raw"`). V režimu telnet by raw klient na začátku zobrazil pár znaků vyjednávání.
+   - `"protocol": "auto"` zůstane v raw režimu, dokud klient sám nezačne telnetem.
 3. **DCD = klient připojen** (`dcd_follows`): dokud je TeraTerm připojený, je na DMR-1 aktivní DCD
    (připojený terminál). ECMON i MikroMon si konzoli volí při startu. Postup je tedy: připojit TeraTerm,
    dát v emulátoru Reset (F12 nebo F9) a ECMON pak běží na TeraTermu.
@@ -28,7 +33,7 @@ Jiný port nebo síťový přístup se nastaví v sestavě:
 
 ```jsonc
 "serial": {
-    "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true },
+    "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true, "protocol": "telnet" },
     "pacing": true
 }
 ```

@@ -28,8 +28,18 @@ typedef int sock_t;
 
 using nlohmann::json;
 
-static sock_t connect_to(int port)
+static sock_t connect_to(int port, bool v6 = false)
 {
+    if (v6) {
+        sock_t s = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+        sockaddr_in6 a;
+        memset(&a, 0, sizeof(a));
+        a.sin6_family = AF_INET6;
+        a.sin6_port = htons((uint16_t)port);
+        inet_pton(AF_INET6, "::1", &a.sin6_addr);
+        if (s != (sock_t)-1 && connect(s, (sockaddr*)&a, sizeof(a)) == 0) return s;
+        fprintf(stderr, "note: IPv6 loopback not available, using IPv4\n");
+    }
     sock_t s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     sockaddr_in a;
     memset(&a, 0, sizeof(a));
@@ -71,7 +81,7 @@ static void run(Machine& m, double seconds)
     }
 }
 
-static Machine* make(void)
+static Machine* make(const char* proto)
 {
     std::string text;
     file_read_text(data_path("machines/mikromon.jsonc"), text);
@@ -79,7 +89,7 @@ static Machine* make(void)
     for (json& c : cfg["cards"])
         if (c["type"] == "DMR-1") {
             c["baud"] = 38400;
-            c["serial"] = { { "tcp", { { "port", 0 }, { "dcd_follows", true } } } };
+            c["serial"] = { { "tcp", { { "port", 0 }, { "dcd_follows", true }, { "protocol", proto } } } };
         }
     Machine* m = new Machine();
     std::string err;
@@ -93,7 +103,7 @@ static Machine* make(void)
 
 static void session(bool telnet)
 {
-    Machine* m = make();
+    Machine* m = make(telnet ? "telnet" : "raw");
     CHECK(m != nullptr);
     if (!m) return;
     CHECK_EQ(m->bridges.size(), 1);
@@ -101,16 +111,30 @@ static void session(bool telnet)
     CHECK(port > 0);
     CHECK(!m->serials[0]->connected);           // no client yet: DCD inactive
 
-    sock_t s = connect_to(port);
+    sock_t s = connect_to(port, telnet);   // telnet session via IPv6 ::1 (like "telnet localhost")
     CHECK(s != (sock_t)-1);
     for (int i = 0; i < 200 && !m->serials[0]->connected; i++)
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     CHECK(m->serials[0]->connected);            // client connected: DCD active
 
     if (telnet) {
-        // like TeraTerm in telnet mode: negotiation first (IAC DO ECHO, IAC WILL SGA)
-        const char neg[] = { (char)255, (char)253, 1, (char)255, (char)251, 3 };
-        send_str(s, std::string(neg, sizeof(neg)));
+        // the server offers character mode first: IAC WILL ECHO, IAC WILL SGA ...
+        std::string neg;
+        for (int i = 0; i < 100 && neg.size() < 6; i++) {
+            neg += recv_some(s);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+        CHECK(neg.compare(0, 6, "\xff\xfb\x01\xff\xfb\x03") == 0);
+        // the client answers (IAC DO ECHO, IAC DO SGA) and asks for an option we
+        // do not support (IAC WILL NAWS = 31), which must be refused with IAC DONT 31
+        const char ans[] = { (char)255, (char)253, 1, (char)255, (char)253, 3, (char)255, (char)251, 31 };
+        send_str(s, std::string(ans, sizeof(ans)));
+        std::string refuse;
+        for (int i = 0; i < 100 && refuse.find("\xff\xfe\x1f") == std::string::npos; i++) {
+            refuse += recv_some(s);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+        CHECK(refuse.find("\xff\xfe\x1f") != std::string::npos);
     }
     m->reset();                                 // MikroMon finds the UART (DCD active)
     CHECK(run_until_text(*m, "MikroMon 2kB V1.3", 2.0));

@@ -143,3 +143,12 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   pro ladění pod debuggerem. Klávesu debuggeru lze ve Windows přesunout hodnotou `UserDebuggerHotKey`
   v `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug` (např. 0x13 = Pause, platí po restartu).
   Emulátor to nemění.
+
+## 2026-10-03 – Telnet jako výchozí protokol TCP, IPv6
+
+- **Telnet je výchozí.** Původní automatika (telnet až po IAC od klienta) nestačila: TeraTerm v režimu Telnet
+  čeká na nabídku serveru a bez WILL ECHO / WILL SGA zůstal v řádkovém režimu (posílal až po Enteru).
+  Server teď nabídku posílá hned po připojení a nepodporované volby klienta odmítne (DONT/WONT).
+  Režimy `raw` a `auto` zůstávají volitelné.
+- **TCP server na loopbacku poslouchá i na IPv6 `::1`.** `telnet localhost 2323` ve Windows zkouší nejdřív
+  IPv6 a se samotným IPv4 se nepřipojil.

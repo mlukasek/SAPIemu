@@ -27,6 +27,7 @@ struct UiState {
     int terminal_channel = 0;
     int tcp_port = 2323;
     bool tcp_dcd_follows = true;
+    int tcp_protocol = 0;   // TCP_TELNET
     char com_port[32] = "COM1";
     std::string bridge_error;
 

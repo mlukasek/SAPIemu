@@ -26,7 +26,7 @@
                 // TeraTerm: TCP/IP, host 127.0.0.1, port 2323, service Telnet or Other (raw).
                 // dcd_follows: DCD is active while a client is connected, so ECMON started
                 // after connecting TeraTerm uses the serial console.
-                "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true },
+                "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true, "protocol": "telnet" },   // telnet | raw | auto
                 // "com": { "port": "COM5", "baud": 9600 },   // host serial port (or com0com pair)
                 "pacing": true          // do not send faster than SAPI reads (no overrun)
             }

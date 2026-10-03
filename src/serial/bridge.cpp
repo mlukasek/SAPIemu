@@ -55,46 +55,54 @@ static bool sock_wait_readable(sock_t s, int ms)
 
 // ---------------------------------------------------------------- TCP
 
-// Telnet commands
+// Telnet commands and options
 enum { T_IAC = 255, T_DONT = 254, T_DO = 253, T_WONT = 252, T_WILL = 251, T_SB = 250, T_SE = 240 };
 enum { OPT_BINARY = 0, OPT_ECHO = 1, OPT_SGA = 3 };
+
+int tcp_protocol_from_name(const std::string& name)
+{
+    if (name == "telnet") return TCP_TELNET;
+    if (name == "raw") return TCP_RAW;
+    if (name == "auto") return TCP_AUTO;
+    return -1;
+}
 
 class TcpBridge : public SerialBridge {
 public:
     ~TcpBridge() override { stop(); }
 
-    bool start(SerialChannel* ch, const std::string& b, int p, bool dcd, std::string& err)
+    bool start(SerialChannel* ch, const std::string& b, int p, bool dcd, int proto, std::string& err)
     {
         net_init();
         channel = ch;
         bind_addr = b.empty() ? "127.0.0.1" : b;
         dcd_follows = dcd;
-        listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        if (listener == SOCK_INVALID) { err = "cannot create socket"; return false; }
-        int yes = 1;
-        setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
-        sockaddr_in a;
-        memset(&a, 0, sizeof(a));
-        a.sin_family = AF_INET;
-        a.sin_port = htons((uint16_t)p);
-        if (inet_pton(AF_INET, bind_addr.c_str(), &a.sin_addr) != 1) {
-            err = "invalid bind address " + bind_addr;
-            sock_close(listener);
-            return false;
+        protocol = proto;
+
+        // Loopback binds listen on IPv4 and IPv6, so clients that resolve
+        // "localhost" to ::1 (Windows telnet) connect too.
+        std::vector<std::string> addrs;
+        if (bind_addr == "127.0.0.1" || bind_addr == "localhost") addrs = { "127.0.0.1", "::1" };
+        else if (bind_addr == "0.0.0.0" || bind_addr == "*") addrs = { "0.0.0.0", "::" };
+        else addrs = { bind_addr };
+
+        port = p;
+        for (size_t i = 0; i < addrs.size(); i++) {
+            sock_t s = open_listener(addrs[i], port);
+            if (s == SOCK_INVALID) {
+                if (i == 0) {
+                    err = "cannot listen on " + addrs[i] + ":" + std::to_string(p) + " (port in use?)";
+                    stop();
+                    return false;
+                }
+                continue;   // e.g. no IPv6 on this host
+            }
+            listeners.push_back(s);
         }
-        if (::bind(listener, (sockaddr*)&a, sizeof(a)) != 0 || listen(listener, 1) != 0) {
-            err = "cannot listen on " + bind_addr + ":" + std::to_string(p) + " (port in use?)";
-            sock_close(listener);
-            listener = SOCK_INVALID;
-            return false;
-        }
-        socklen_t len = sizeof(a);
-        getsockname(listener, (sockaddr*)&a, &len);
-        port = ntohs(a.sin_port);
         if (dcd_follows) channel->connected = false;
         running = true;
         th = std::thread([this]() { loop(); });
-        LOGI("%s: TCP server %s:%d", channel->name.c_str(), bind_addr.c_str(), port);
+        LOGI("%s: TCP server %s:%d (%s)", channel->name.c_str(), bind_addr.c_str(), port, proto_name());
         return true;
     }
 
@@ -102,13 +110,13 @@ public:
     {
         running = false;
         if (th.joinable()) th.join();
-        if (listener != SOCK_INVALID) sock_close(listener);
-        listener = SOCK_INVALID;
+        for (sock_t s : listeners) sock_close(s);
+        listeners.clear();
     }
 
     std::string describe(void) const override
     {
-        std::string s = "TCP " + bind_addr + ":" + std::to_string(port);
+        std::string s = "TCP " + bind_addr + ":" + std::to_string(port) + " " + proto_name();
         if (client) s += telnet ? " (telnet client connected)" : " (client connected)";
         return s;
     }
@@ -117,6 +125,45 @@ public:
     int port = 0;
 
 private:
+    const char* proto_name(void) const
+    {
+        return protocol == TCP_TELNET ? "telnet" : (protocol == TCP_RAW ? "raw" : "auto");
+    }
+
+    // Bind a listening socket; port 0 is replaced by the port actually assigned.
+    sock_t open_listener(const std::string& addr, int& p)
+    {
+        bool v6 = addr.find(':') != std::string::npos;
+        sock_t s = socket(v6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (s == SOCK_INVALID) return SOCK_INVALID;
+        int yes = 1;
+        setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
+        sockaddr_storage ss;
+        memset(&ss, 0, sizeof(ss));
+        socklen_t len;
+        if (v6) {
+            setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&yes, sizeof(yes));
+            sockaddr_in6* a = (sockaddr_in6*)&ss;
+            a->sin6_family = AF_INET6;
+            a->sin6_port = htons((uint16_t)p);
+            if (inet_pton(AF_INET6, addr.c_str(), &a->sin6_addr) != 1) { sock_close(s); return SOCK_INVALID; }
+            len = sizeof(sockaddr_in6);
+        } else {
+            sockaddr_in* a = (sockaddr_in*)&ss;
+            a->sin_family = AF_INET;
+            a->sin_port = htons((uint16_t)p);
+            if (inet_pton(AF_INET, addr.c_str(), &a->sin_addr) != 1) { sock_close(s); return SOCK_INVALID; }
+            len = sizeof(sockaddr_in);
+        }
+        if (::bind(s, (sockaddr*)&ss, len) != 0 || listen(s, 1) != 0) {
+            sock_close(s);
+            return SOCK_INVALID;
+        }
+        getsockname(s, (sockaddr*)&ss, &len);
+        p = ntohs(v6 ? ((sockaddr_in6*)&ss)->sin6_port : ((sockaddr_in*)&ss)->sin_port);
+        return s;
+    }
+
     void send_all(sock_t s, const uint8_t* d, size_t n)
     {
         while (n > 0) {
@@ -129,13 +176,26 @@ private:
 
     void telnet_start(sock_t s)
     {
-        // server echoes (SAPI does), suppress go ahead, 8-bit binary both ways
+        // The server echoes (SAPI does) and suppresses go ahead: the client switches
+        // to character mode and sends every key immediately. 8-bit binary both ways.
         const uint8_t neg[] = { T_IAC, T_WILL, OPT_ECHO, T_IAC, T_WILL, OPT_SGA, T_IAC, T_DO, OPT_SGA,
                                 T_IAC, T_WILL, OPT_BINARY, T_IAC, T_DO, OPT_BINARY };
         send_all(s, neg, sizeof(neg));
     }
 
-    // Filter telnet commands from client data; returns payload bytes.
+    // Refuse (once) the options we do not support; ECHO, SGA and BINARY were offered.
+    void telnet_reply(uint8_t cmd, uint8_t opt)
+    {
+        if (opt == OPT_ECHO || opt == OPT_SGA || opt == OPT_BINARY || replied[opt]) return;
+        uint8_t r[3] = { T_IAC, 0, opt };
+        if (cmd == T_WILL) r[1] = T_DONT;
+        else if (cmd == T_DO) r[1] = T_WONT;
+        else return;
+        replied[opt] = true;
+        send_all(cs, r, 3);
+    }
+
+    // Filter telnet commands from client data; returns the payload bytes.
     std::string filter_in(const uint8_t* d, int n)
     {
         std::string out;
@@ -143,7 +203,7 @@ private:
             uint8_t c = d[i];
             switch (tstate) {
             case 0:
-                if (c == T_IAC && (telnet || first_byte)) {
+                if (c == T_IAC && (telnet || (protocol == TCP_AUTO && first_byte))) {
                     if (!telnet) { telnet = true; telnet_start(cs); }
                     tstate = 1;
                 } else if (telnet && after_cr && (c == 0 || c == '\n')) {
@@ -155,12 +215,12 @@ private:
                 break;
             case 1:   // after IAC
                 if (c == T_IAC) { out += (char)0xFF; tstate = 0; }
-                else if (c >= T_WILL && c <= T_DONT) tstate = 2;
+                else if (c >= T_WILL && c <= T_DONT) { tcmd = c; tstate = 2; }
                 else if (c == T_SB) tstate = 3;
                 else tstate = 0;
                 break;
-            case 2: tstate = 0; break;                        // option byte
-            case 3: if (c == T_IAC) tstate = 4; break;         // subnegotiation
+            case 2: telnet_reply(tcmd, c); tstate = 0; break;   // option byte
+            case 3: if (c == T_IAC) tstate = 4; break;          // subnegotiation
             case 4: tstate = (c == T_SE) ? 0 : 3; break;
             }
             first_byte = false;
@@ -168,19 +228,36 @@ private:
         return out;
     }
 
+    sock_t accept_any(void)
+    {
+        fd_set rd;
+        FD_ZERO(&rd);
+        sock_t maxs = 0;
+        for (sock_t s : listeners) {
+            FD_SET(s, &rd);
+            if (s > maxs) maxs = s;
+        }
+        struct timeval tv = { 0, 50000 };
+        if (select((int)maxs + 1, &rd, NULL, NULL, &tv) <= 0) return SOCK_INVALID;
+        for (sock_t s : listeners)
+            if (FD_ISSET(s, &rd)) return accept(s, NULL, NULL);
+        return SOCK_INVALID;
+    }
+
     void loop(void)
     {
         while (running) {
-            if (!sock_wait_readable(listener, 50)) continue;
-            cs = accept(listener, NULL, NULL);
+            cs = accept_any();
             if (cs == SOCK_INVALID) continue;
             int one = 1;
             setsockopt(cs, IPPROTO_TCP, TCP_NODELAY, (const char*)&one, sizeof(one));
             client = true;
-            telnet = false;
+            telnet = (protocol == TCP_TELNET);
             first_byte = true;
             tstate = 0;
             after_cr = false;
+            memset(replied, 0, sizeof(replied));
+            if (telnet) telnet_start(cs);
             pos = channel->host_end();   // do not replay what was sent before the connection
             if (dcd_follows) channel->connected = true;
             LOGI("%s: TCP client connected", channel->name.c_str());
@@ -215,21 +292,25 @@ private:
 
     std::string bind_addr;
     bool dcd_follows = true;
-    sock_t listener = SOCK_INVALID, cs = SOCK_INVALID;
+    int protocol = TCP_TELNET;
+    std::vector<sock_t> listeners;
+    sock_t cs = SOCK_INVALID;
     std::thread th;
     std::atomic<bool> running{ false };
     std::atomic<bool> client{ false };
     std::atomic<bool> telnet{ false };
     bool first_byte = true, after_cr = false;
     int tstate = 0;
+    uint8_t tcmd = 0;
+    bool replied[256] = { false };
     uint64_t pos = 0;
 };
 
 SerialBridge* tcp_bridge_start(SerialChannel* ch, const std::string& bind, int port, bool dcd_follows,
-                               std::string& err)
+                               int protocol, std::string& err)
 {
     TcpBridge* b = new TcpBridge();
-    if (!b->start(ch, bind, port, dcd_follows, err)) {
+    if (!b->start(ch, bind, port, dcd_follows, protocol, err)) {
         delete b;
         return nullptr;
     }
@@ -376,7 +457,9 @@ bool serial_bridges_from_config(SerialChannel* ch, const json& cfg, int default_
         int port = t.value("port", 2323);
         std::string bind = t.value("bind", std::string("127.0.0.1"));
         bool dcd = t.value("dcd_follows", true);
-        SerialBridge* b = tcp_bridge_start(ch, bind, port, dcd, err);
+        int proto = tcp_protocol_from_name(t.value("protocol", std::string("telnet")));
+        if (proto < 0) { err = "serial.tcp.protocol must be telnet, raw or auto"; return false; }
+        SerialBridge* b = tcp_bridge_start(ch, bind, port, dcd, proto, err);
         if (!b) {
             // e.g. a second emulator instance uses the port: run without it
             LOGW("%s: %s", ch->name.c_str(), err.c_str());

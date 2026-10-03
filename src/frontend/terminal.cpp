@@ -69,10 +69,14 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
         ImGui::SameLine();
         if (ImGui::Button(tr("Start TCP server"))) {
             std::string err;
-            SerialBridge* b = tcp_bridge_start(ch, "127.0.0.1", ui.tcp_port, ui.tcp_dcd_follows, err);
+            SerialBridge* b = tcp_bridge_start(ch, "127.0.0.1", ui.tcp_port, ui.tcp_dcd_follows, ui.tcp_protocol, err);
             if (b) m->add_bridge(b);
             else ui.bridge_error = err;
         }
+        ImGui::SameLine();
+        const char* protos[] = { "telnet", "raw", "auto" };
+        ImGui::SetNextItemWidth(80);
+        ImGui::Combo("##tcpproto", &ui.tcp_protocol, protos, 3);
         ImGui::SameLine();
         ImGui::Checkbox(tr("DCD = client connected"), &ui.tcp_dcd_follows);
     }

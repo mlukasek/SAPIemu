@@ -18,10 +18,19 @@ public:
     SerialChannel* channel = nullptr;
 };
 
+// TCP protocols: telnet = the server negotiates character mode right after the
+// connection (TeraTerm "Telnet", Windows telnet, PuTTY Telnet); raw = bytes as
+// they are (TeraTerm "Other", PuTTY Raw, netcat); auto = raw until the client
+// starts with a telnet command.
+enum TcpProtocol { TCP_TELNET = 0, TCP_RAW = 1, TCP_AUTO = 2 };
+int tcp_protocol_from_name(const std::string& name);   // -1 if unknown
+
 // TCP server on bind:port (port 0 = any free port, see tcp_bridge_port()).
-// dcd_follows: the channel's "terminal connected" follows the client connection.
+// "127.0.0.1"/"localhost" listens on IPv4 and IPv6 loopback, "0.0.0.0" on all
+// interfaces. dcd_follows: the channel's "terminal connected" follows the
+// client connection.
 SerialBridge* tcp_bridge_start(SerialChannel* ch, const std::string& bind, int port, bool dcd_follows,
-                               std::string& err);
+                               int protocol, std::string& err);
 int tcp_bridge_port(SerialBridge* b);
 
 // Host serial port ("COM5" on Windows, "/dev/ttyUSB0" on Linux), 8N1.
