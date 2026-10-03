@@ -223,17 +223,30 @@ void draw_screen(App& app)
     d->render(app.pixels.data(), k_phosphor[app.phosphor], k_background);
     SDL_UpdateTexture(app.screen_tex, nullptr, app.pixels.data(), w * 4);
 
+    // Scale in physical pixels (window points * framebuffer scale) so that integer
+    // scaling stays sharp with Windows display scaling.
+    float fb = ImGui::GetIO().DisplayFramebufferScale.x;
+    if (fb <= 0) fb = 1.0f;
     ImVec2 avail = ImGui::GetContentRegionAvail();
     float px_aspect = app.tv_aspect ? k_tv_pixel_aspect : 1.0f;
     float img_w = (float)w * px_aspect, img_h = (float)h;
-    float scale = avail.x / img_w;
-    if (avail.y / img_h < scale) scale = avail.y / img_h;
+    float scale = avail.x * fb / img_w;
+    if (avail.y * fb / img_h < scale) scale = avail.y * fb / img_h;
     if (app.integer_scale && scale >= 1.0f) scale = (float)(int)scale;
     if (scale <= 0.1f) scale = 0.1f;
-    ImVec2 size(img_w * scale, img_h * scale);
-    ImVec2 cur = ImGui::GetCursorPos();
-    ImGui::SetCursorPos(ImVec2(cur.x + (avail.x - size.x) * 0.5f, cur.y + (avail.y - size.y) * 0.5f));
+    ImVec2 size(img_w * scale / fb, img_h * scale / fb);
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    pos.x += (avail.x - size.x) * 0.5f;
+    pos.y += (avail.y - size.y) * 0.5f;
+    pos.x = (float)(int)(pos.x * fb + 0.5f) / fb;   // align to the pixel grid
+    pos.y = (float)(int)(pos.y * fb + 0.5f) / fb;
+    ImGui::SetCursorScreenPos(pos);
+    // The SDL renderer backend applies the sampler state per draw command and
+    // defaults to linear filtering; switch to nearest for the emulated screen.
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
     ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)app.screen_tex), size);
+    dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
     ImGui::End();
 }
 
