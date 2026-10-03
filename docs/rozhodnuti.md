@@ -17,7 +17,7 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Závislosti:** SDL3 přes CMake FetchContent, ostatní knihovny vendorované v `third_party/`.
   - Změna proti plánu: plán počítal s vcpkg. FetchContent ale funguje stejně ve VS, z příkazové řádky i na Linuxu, bez nastavování VCPKG_ROOT a baseline.
   - Na Linuxu se přednostně použije systémové SDL3.
-- **Formát konfigurace sestavy: JSON s komentáři** (`machines/*.jsonc`). Načítá se přes nlohmann/json s `ignore_comments`, takže stačí jedna knihovna pro konfiguraci i MCP.
+- **Formát konfigurace sestavy: JSON s komentáři** (`machines/*.sapi`). Načítá se přes nlohmann/json s `ignore_comments`, takže stačí jedna knihovna pro konfiguraci i MCP.
 
 ## 2026-10-03 – Chování emulace
 
@@ -249,3 +249,9 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   uložené pozici jen tehdy, když leží na některém připojeném monitoru.
 - `--settings soubor.json` použije jiný soubor (profily, testy). `--ui-snapshot` bez něj nastavení nečte ani
   nezapisuje.
+
+## 2026-10-03 – Soubory sestav s příponou .sapi
+
+- **Sestavy mají příponu `.sapi`** (přání autora), obsah zůstává JSON s komentáři. Konfigurátor ukládá `.sapi`,
+  dialogy a seznam sestav berou i starší `.jsonc` a `.json`. Uložená „poslední sestava“ s příponou `.jsonc` se
+  při startu převede na `.sapi`.

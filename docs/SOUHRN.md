@@ -13,7 +13,7 @@ klávesnice) a ztráta psaní po použití textového pole ImGui. TURBO/F8 přep
   (jumpery, ROM, obrazy).
 - Katalog karet (`src/cards/catalog.cpp`) zná i karty, které zatím nejsou emulované. Ty jsou šedé a na sběrnici
   neodpovídají.
-- Ukládání sestav jako komentovaný `.jsonc` kamkoli. Šablony ZPS-1 až ZPS-4 v `machines/zps/`.
+- Ukládání sestav jako komentovaný soubor `.sapi` kamkoli. Šablony ZPS-1 až ZPS-4 v `machines/zps/`.
 - Změna se projeví po vypnutí a zapnutí (tlačítko NAPÁJENÍ na panelu ZDR).
 - MCP: `card_catalog`, `get_machine_config`, `set_machine_config`. Sběrnice podle typu (ARB-1 8, ARB-1C 14,
   ARB-1C-8 8 pozic).
@@ -58,7 +58,7 @@ konzole na obrazovce (DCD vypnuté) a přenos souboru DOPC10 → XMODEM do TeraT
 Fáze F4 (IDE-1 s IDE diskem a PMD32-SD, okno Média) je hotová a ověřená autorem.
 
 Dřív hotové fáze:
-- **F4:** IDE-1 (IDE disk, PMD32-SD), sestava `cpm_ide.jsonc`, okno Média.
+- **F4:** IDE-1 (IDE disk, PMD32-SD), sestava `cpm_ide.sapi`, okno Média.
 - **F3:** ZRMD-1 + RTC, boot CP/M z RAM disku, sériový terminál s emulací SAPI/ANSI.
 - **F2:** MCP server (`docs/mcp.md`), debugger, sériový terminál, `EmuHost`.
 - **F0:** kostra, build a dokumentace z průzkumu.

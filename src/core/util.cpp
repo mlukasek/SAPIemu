@@ -171,7 +171,8 @@ std::vector<std::string> list_machine_files(void)
     std::vector<std::string> out;
     std::error_code ec;
     for (auto& e : fs::recursive_directory_iterator(u8_to_path(data_path("machines")), ec)) {
-        if (e.path().extension() != ".jsonc" && e.path().extension() != ".json") continue;
+        std::filesystem::path ext = e.path().extension();
+        if (ext != ".sapi" && ext != ".jsonc" && ext != ".json") continue;   // .jsonc/.json: older files
         out.push_back(data_relative(path_to_u8(e.path())));
     }
     std::sort(out.begin(), out.end());

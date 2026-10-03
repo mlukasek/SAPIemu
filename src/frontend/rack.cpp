@@ -56,7 +56,7 @@ const ImVec4 TXT_OK(0.55f, 0.9f, 0.55f, 1.0f);
 
 // ---------------------------------------------------------------- file dialogs
 
-const SDL_DialogFileFilter k_machine_filter[] = { { "SAPI-1 (*.jsonc, *.json)", "jsonc;json" } };
+const SDL_DialogFileFilter k_machine_filter[] = { { "SAPI-1 (*.sapi)", "sapi;jsonc;json" } };
 
 void SDLCALL dialog_done(void* userdata, const char* const* files, int)
 {
@@ -190,7 +190,7 @@ void handle_dialog(UiState& ui)
         }
     } else if (kind == RackEditor::DLG_SAVE) {
         size_t slash = path.find_last_of("/\\");
-        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".jsonc";
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapi";
         editor_save(ui, path);
     } else if (kind == RackEditor::DLG_PARAM) {
         json& cards = r.cfg["cards"];

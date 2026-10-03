@@ -1,6 +1,6 @@
 // Card catalog and machine description editing: every emulated card can be
 // created from its catalog defaults, machines survive a round trip through the
-// .jsonc writer, cards not emulated yet stay passive.
+// .sapi writer, cards not emulated yet stay passive.
 #include <filesystem>
 #include "cards/catalog.h"
 #include "core/headless.h"
@@ -62,7 +62,7 @@ static void test_round_trip(void)
     std::string dir = path_join(data_root(), "machines");
     int n = 0;
     for (auto& e : std::filesystem::recursive_directory_iterator(std::filesystem::path(std::u8string(dir.begin(), dir.end())), ec)) {
-        if (e.path().extension() != ".jsonc") continue;
+        if (e.path().extension() != ".sapi") continue;
         std::u8string u = e.path().u8string();
         std::string path(u.begin(), u.end());
         std::string text;
@@ -114,7 +114,7 @@ static void test_edit(void)
 static void test_placeholders(void)
 {
     std::string text, err;
-    CHECK(file_read_text(data_path("machines/mikromon.jsonc"), text));
+    CHECK(file_read_text(data_path("machines/mikromon.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);
     cfg["cards"].push_back({ { "slot", 4 }, { "type", "DSM-1" } });
     cfg["cards"].push_back({ { "slot", 5 }, { "type", "RPD-1" } });   // two boards: X5 and X6

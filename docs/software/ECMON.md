@@ -35,7 +35,7 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
 - **Boot:** po volbě načte systém z RAM disku ZRMD-1 a spustí CP/M 2.2 („JPR-1Z 62K CP/M V2.2Z,
   BIOS-3K V050815JB“).
 
-## Chování volby systému v emulátoru (sestava `machines/cpm_zrmd.jsonc`)
+## Chování volby systému v emulátoru (sestava `machines/cpm_zrmd.sapi`)
 
 | Volba | Výsledek |
 |---|---|
@@ -44,7 +44,7 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
 | 2 (MFC8) | Jako 0, skončí na `HALT` při inicializaci řadiče. |
 | 3 (HDD) | „INIT HDD“ chvíli hledá IDE disk, pak hlásí „INIT HDD - nenalezen!“ a nabootuje do `A>` (ověřil autor na GUI). |
 
-S IDE-1 a ROM `ECMON_2k_IDE-1` (sestava `machines/cpm_ide.jsonc`) najde volba 3 PMD32-SD i IDE disk:
+S IDE-1 a ROM `ECMON_2k_IDE-1` (sestava `machines/cpm_ide.sapi`) najde volba 3 PMD32-SD i IDE disk:
 „PMD32-SD OK“, „INIT HDD SAPIemu IDE disk“, „OFFSET B: 0000H, C: 0200H“. B: a C: jsou na IDE, D: a E:
 na PMD32-SD.
 

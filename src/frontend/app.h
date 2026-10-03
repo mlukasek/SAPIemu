@@ -2,7 +2,7 @@
 #include <string>
 
 // Machine started when neither --machine nor the settings name one.
-#define DEFAULT_MACHINE_FILE "machines/mikromon.jsonc"
+#define DEFAULT_MACHINE_FILE "machines/mikromon.sapi"
 
 // Self-check of the GUI layout: render into a hidden window, save the window
 // content as PNG and exit (sapiemu --ui-snapshot FILE [--ui-rack SLOT] [--ui-open MACHINE]).

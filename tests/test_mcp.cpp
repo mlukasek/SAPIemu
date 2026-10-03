@@ -56,7 +56,7 @@ int main(void)
     test_request_filter();
     EmuHost host;
     std::string err;
-    CHECK(host.load("machines/mikromon.jsonc", err));
+    CHECK(host.load("machines/mikromon.sapi", err));
     host.paused = true;   // deterministic: only tool calls run the machine
 
     std::atomic<bool> quit(false);
@@ -143,12 +143,12 @@ int main(void)
     CHECK(mc["runnable"] == true);
     json cfg = mc["config"];
     cfg["cards"].push_back({ { "slot", 4 }, { "type", "DSM-1" } });
-    r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/test_mcp_machine.jsonc" } });
+    r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/test_mcp_machine.sapi" } });
     json sr = json::parse(text_of(r));
     CHECK(sr["started"] == true);
     CHECK(sr["problems"].size() == 1);   // DSM-1 not emulated
-    CHECK(file_exists(data_path("work/test/test_mcp_machine.jsonc")));
-    r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-3.jsonc" } });
+    CHECK(file_exists(data_path("work/test/test_mcp_machine.sapi")));
+    r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-3.sapi" } });
     json zps = json::parse(text_of(r));
     CHECK(zps["runnable"] == false);
     r = tool(s, "set_machine_config", { { "config", zps["config"] } });

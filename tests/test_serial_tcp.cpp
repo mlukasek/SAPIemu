@@ -84,7 +84,7 @@ static void run(Machine& m, double seconds)
 static Machine* make(const char* proto)
 {
     std::string text;
-    file_read_text(data_path("machines/mikromon.jsonc"), text);
+    file_read_text(data_path("machines/mikromon.sapi"), text);
     json cfg = json::parse(text, nullptr, false, true);
     for (json& c : cfg["cards"])
         if (c["type"] == "DMR-1") {

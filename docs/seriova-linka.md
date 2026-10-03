@@ -10,7 +10,7 @@ fungovat najednou:
 
 ## TeraTerm přes TCP (doporučeno)
 
-1. V sestavě je TCP server zapnutý (`machines/cpm_ide.jsonc`, `cpm_zrmd.jsonc`). Jinak ho spusťte v okně
+1. V sestavě je TCP server zapnutý (`machines/cpm_ide.sapi`, `cpm_zrmd.sapi`). Jinak ho spusťte v okně
    Sériový terminál tlačítkem **Spustit TCP server**.
 2. V TeraTermu zvolte Soubor → Nové připojení → **TCP/IP**, Host `127.0.0.1` (nebo `localhost`), TCP port
    `2323`, Service **Telnet**. Emulátor hned po připojení nabídne telnetový znakový režim (WILL ECHO,

@@ -158,7 +158,7 @@ static void test_mikromon(void)
 {
     Machine m;
     std::string err;
-    CHECK(m.load_file("machines/mikromon.jsonc", err));
+    CHECK(m.load_file("machines/mikromon.sapi", err));
     if (!err.empty()) fprintf(stderr, "%s\n", err.c_str());
     CHECK(run_until_text(m, "MikroMon 2kB V1.3", 2.0));
     const char* names[] = { "Consul 262.3", "Consul 262.3 (bez 7474)", "Consul 259.11",

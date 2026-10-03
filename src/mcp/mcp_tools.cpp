@@ -314,9 +314,9 @@ json t_set_machine_config(EmuHost& h, const json& a)
     bool start = arg_bool(a, "start", true);
     json j = { { "problems", pr }, { "runnable", runnable } };
     if (!save.empty()) {
-        std::string ext = save.size() > 6 ? save.substr(save.size() - 6) : std::string();
-        if (ext != ".jsonc" && (save.size() < 5 || save.substr(save.size() - 5) != ".json"))
-            throw ToolError{ "save_as must end with .jsonc or .json" };
+        size_t dot = save.find_last_of('.');
+        std::string e = dot == std::string::npos ? std::string() : save.substr(dot);
+        if (e != ".sapi" && e != ".jsonc" && e != ".json") throw ToolError{ "save_as must end with .sapi" };
         std::string full = data_path(save);
         std::string text = machine_cfg_to_jsonc(cfg);
         make_dirs(path_dir(full));
@@ -834,15 +834,15 @@ const char* const S_NONE = R"({"type":"object","properties":{}})";
 const Tool k_tools[] = {
     { "machine_info", "Emulator and machine overview: machine name, run state, CPU clock and cycles, cards in slots with their jumper settings, serial channels, registers.",
       S_NONE, t_machine_info },
-    { "list_machines", "List machine description files (machines/*.jsonc including subfolders such as machines/zps/) that can be loaded with load_machine.",
+    { "list_machines", "List machine description files (machines/*.sapi including subfolders such as machines/zps/) that can be loaded with load_machine.",
       S_NONE, t_list_machines },
     { "card_catalog", "Catalog of SAPI-1 cards and buses for machine descriptions: card types (emulated or placeholder), slots they take and every configuration parameter (jumpers, ROM files, options with meaning, defaults). Optionally only one card type.",
       R"({"type":"object","properties":{"type":{"type":"string"}}})", t_card_catalog },
-    { "get_machine_config", "Machine description (cards in slots X1.., jumpers) of the running machine, or of a file when 'path' is given, with layout problems. jsonc=true adds the commented file text as the configurator writes it.",
+    { "get_machine_config", "Machine description (cards in slots X1.., jumpers) of the running machine, or of a file when 'path' is given, with layout problems. jsonc=true adds the commented .sapi file text as the configurator writes it.",
       R"({"type":"object","properties":{"path":{"type":"string"},"jsonc":{"type":"boolean","default":false}}})", t_get_machine_config },
-    { "set_machine_config", "Use a machine description (as returned by get_machine_config, edited): optionally save it as a commented .jsonc file (path relative to the data directory, e.g. machines/my.jsonc) and power the machine on with it (start=true, default). Cards not emulated yet are passive; a machine whose CPU card is not emulated cannot start.",
+    { "set_machine_config", "Use a machine description (as returned by get_machine_config, edited): optionally save it as a commented .sapi file (JSON with comments) (path relative to the data directory, e.g. machines/my.sapi) and power the machine on with it (start=true, default). Cards not emulated yet are passive; a machine whose CPU card is not emulated cannot start.",
       R"({"type":"object","properties":{"config":{"type":"object"},"save_as":{"type":"string"},"start":{"type":"boolean","default":true}},"required":["config"]})", t_set_machine_config },
-    { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.jsonc.",
+    { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.sapi.",
       R"({"type":"object","properties":{"path":{"type":"string"}},"required":["path"]})", t_load_machine },
     { "reset", "Press the reset button (/RES): CPU card BOOT flag set, cards reset. RAM content is kept.",
       S_NONE, t_reset },

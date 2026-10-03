@@ -26,7 +26,7 @@ std::string data_path(const std::string& rel);
 // The other way round: a path inside the data root as relative with '/'
 // separators (for machine files), other paths unchanged.
 std::string data_relative(const std::string& path);
-// Machine descriptions (*.jsonc, *.json) under machines/ including subfolders,
+// Machine descriptions (*.sapi; older *.jsonc, *.json) under machines/ including subfolders,
 // as data root relative paths, sorted.
 std::vector<std::string> list_machine_files(void);
 

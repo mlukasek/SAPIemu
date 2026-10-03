@@ -1,7 +1,7 @@
 #pragma once
-// Editing machine descriptions (machines/*.jsonc) as JSON documents: parameter
+// Editing machine descriptions (machines/*.sapi) as JSON documents: parameter
 // access by path, defaults from the card catalog, layout checks and writing a
-// commented .jsonc file. Used by the configurator window and MCP; Machine only
+// commented .sapi file (JSON with comments). Used by the configurator window and MCP; Machine only
 // reads the result.
 #include <string>
 #include <vector>
@@ -45,5 +45,5 @@ struct CfgProblem {
 };
 std::vector<CfgProblem> machine_cfg_problems(const nlohmann::json& cfg);
 
-// Commented .jsonc text of a machine description.
+// Commented text of a machine description (.sapi file, JSON with comments).
 std::string machine_cfg_to_jsonc(const nlohmann::json& cfg);

@@ -313,7 +313,7 @@ std::vector<CfgProblem> machine_cfg_problems(const json& cfg)
     return out;
 }
 
-// ---------------------------------------------------------------- .jsonc writer
+// ---------------------------------------------------------------- .sapi writer (JSON with comments)
 
 namespace {
 

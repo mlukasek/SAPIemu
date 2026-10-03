@@ -566,6 +566,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     if (first.empty()) {
         std::string last;
         get_opt(settings, "machine", last);
+        if (!last.empty() && !file_exists(data_path(last)) && last.size() > 6 &&
+            last.compare(last.size() - 6, 6, ".jsonc") == 0)
+            last = last.substr(0, last.size() - 6) + ".sapi";   // machine files were renamed to .sapi
         first = !last.empty() && file_exists(data_path(last)) ? last : std::string(DEFAULT_MACHINE_FILE);
     }
     load_machine(app, first);

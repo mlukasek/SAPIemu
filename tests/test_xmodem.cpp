@@ -13,7 +13,7 @@ int main(void)
 {
     data_root_init();
     std::string text;
-    CHECK(file_read_text(data_path("machines/cpm_ide.jsonc"), text));
+    CHECK(file_read_text(data_path("machines/cpm_ide.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);
     std::string img = path_join(data_root(), "work/tests/xmodem_ide.img");
     make_dirs(path_dir(img));

@@ -55,7 +55,7 @@ Klávesnice EKL-1 nebo Consul na portech 01h/02h (viz [klavesnice.md](../desky/k
 
 ## Sestava v emulátoru
 
-`machines/mikromon.jsonc`:
+`machines/mikromon.sapi`:
 - JPR-1ZI 2 MHz, dekodér D3C_2k, EPROM MikroMon 1.3.
 - DMR-1 s RAM v konfiguraci 1 (0000–F7FF) a UARTem na 10h.
 - AND-1Z-89 na F800.

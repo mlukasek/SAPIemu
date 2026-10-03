@@ -1,6 +1,6 @@
 #pragma once
 // A complete SAPI-1 machine: bus + cards, created from a machine description
-// (machines/*.jsonc). Not thread safe: drive it from one thread only (see EmuHost).
+// (machines/*.sapi, JSON with comments). Not thread safe: drive it from one thread only (see EmuHost).
 #include <stdint.h>
 #include <memory>
 #include <string>

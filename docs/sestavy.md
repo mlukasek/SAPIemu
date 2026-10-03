@@ -1,6 +1,6 @@
 # Sestavy a konfigurátor
 
-Sestava je popis počítače: sběrnice, karty ve slotech a jejich jumpery. Je uložená v souboru `.jsonc`
+Sestava je popis počítače: sběrnice, karty ve slotech a jejich jumpery. Je uložená v souboru `.sapi`
 (JSON s komentáři). Emulátor sestavy hledá ve složce `machines/` vedle sebe (i v podsložkách), ale soubor může
 ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigurátoru.
 
@@ -33,7 +33,7 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
 
 ## Šablony ZPS
 
-`machines/zps/ZPS-1.jsonc` až `ZPS-4.jsonc` podle https://sapi.cz/sapi/doku2/zps.php:
+`machines/zps/ZPS-1.sapi` až `ZPS-4.sapi` podle https://sapi.cz/sapi/doku2/zps.php:
 
 | Sestava | Karty | Klávesnice |
 |---|---|---|
@@ -84,5 +84,5 @@ procesorové karty nejsou emulované. Dají se ale prohlížet, upravovat a ukl�
 
 ## Ověření vzhledu bez snímku plochy
 
-`sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.jsonc] [--ui-rack SLOT]` vykreslí GUI do
+`sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT]` vykreslí GUI do
 skrytého okna, uloží obrázek a skončí. Rozložení oken uživatele (`imgui.ini`) se nemění.

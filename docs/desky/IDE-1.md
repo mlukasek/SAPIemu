@@ -143,6 +143,6 @@ Buffery dat jsou povolené jen při /DIOR nebo /DIOW a směr určuje /DIOR. JP4 
     SRST v registru device control.
   - Příkazy 10h, 91h, E0–E5h, E7h, EFh, C6h, 40h, 70h a 90h se jen přijmou.
   - Bez obrazu čtou registry FFh (plovoucí sběrnice) a BIOS ohlásí „nenalezen“.
-- **Ověřeno** se sestavou `machines/cpm_ide.jsonc`: ECMON IDE, volba 3 → „PMD32-SD OK“,
+- **Ověřeno** se sestavou `machines/cpm_ide.sapi`: ECMON IDE, volba 3 → „PMD32-SD OK“,
   „INIT HDD SAPIemu IDE disk“, „OFFSET B: 0000H, C: 0200H“. Fungují `DIR D:` a `DIR E:`,
   `PIP B:=D:STAT.COM` i `B:STAT B:` (8160K volných).
