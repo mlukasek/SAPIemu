@@ -30,6 +30,31 @@ RAM-1A se liší jen obsahem PROM D1A.
 - Řada bez obvodů čte FFh (předpoklad), deska ale v dekódovaném rozsahu odpovídá (SEL je jen z PROM).
 - Refresh se neemuluje (paměť nezapomíná).
 
+## RAM-1A (ZPS-3)
+
+Podklady:
+- návod `BKPam-1a.php` (tab. 1 a 2, X1, poznámka RAM-1A-5V s KR565RU6, PROM D1A v Intel HEX);
+- strojopisná tabulka PROM `BKP\obrazkyam-1a_pri.png` (také `D11\CPM\JPR-1A\RAM-1A_obsah_PROM.png`);
+- skeny `D11\sapi1zps3.zip`, složka `6xk199135`;
+- Eagle `D11\sapi_eagle\REPLIKY\RAM-1A\`.
+
+Hardware je stejný jako RAM-1, liší se jen obsah D1A:
+- vstupy PROM A0–A5 = A10–A15, A6 = S1, A7 = S2 (rozpojená = 1);
+- výstupy D0 SEL, D1 CA0, D2 CA2, D3 CA1;
+- nejnižších 16K rozsahu dostane CA0.
+
+| S1 | S2 | Adresy | Kapacita |
+|---|---|---|---|
+| 0 | 0 | C000–E7FF | 10K |
+| 0 | 1 | 0000–BFFF | 48K (standard ZPS-3) |
+| 1 | 1 | 4000–FFFF | 48K |
+| 1 | 0 | C000–FFFF | 16K |
+
+HEX se přesně shoduje se strojopisnou tabulkou. Nejspíš je z ní přepsaný, fyzický dump to není.
+
+**Pozor:** `BKPam-1.php` obsahuje i dvě tabulky D1A pro RAM-1 (48K a 16K). Emulace RAM-1 je zatím
+generuje z tab. 1 a s těmito tabulkami se musí porovnat.
+
 ## Nejasnosti
 
 - Dump PROM D1A (RAM-1 i RAM-1A), hlavně jestli výrobní obsah opravdu odpovídá tabulce 1 i pro neúplně osazené

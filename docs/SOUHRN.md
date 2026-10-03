@@ -162,12 +162,23 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     Jak rychle se na skutečném stroji nahraje BAS5C.SYS (emulace 17 s)? Funguje LOAD bez přípony?
     Máš 8" mechaniku a disketu MIKOS/D?
 
+19. **ZPS-3:**
+    - Máš bootovatelnou originální systémovou disketu IMA CP/M 48K pro ZPS-3 (k MON V1.0-C1)?
+    - Ve které patici JPR-1A je boot EPROM (D3B nebo D4B)? Jaké propojky máš na JPR-1A, AND-1A a RAM-1A?
+    - Jsou na AND-1A D3A vstupy A6/A7 (G/H) na +5 V?
+    - Dumpy PROM D2C, D3A, D1A pro potvrzení přepsaných tabulek.
+    - Má AND-1A 1 KB, nebo 2 KB video RAM?
+    - Pro 62K a 64K: PROM D3A pro F800 a F000 a jak se dvě RAM-1A vyhnou displeji.
+
 ## Jak pokračovat
 
 1. `git pull`.
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-03):** F7 ZPS-3. Probíhá soupis podkladů
-   k JPR-1A, AND-1A, RAM-1A a k CP/M pro ZPS-3. Výsledek a seznam toho, co chybí od autora, se zapíše do
-   `docs/desky/JPR-1A.md`, `AND-1A.md` a `RAM-1.md`.
+4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-03):** F7 ZPS-3.
+   - Soupis podkladů je hotový: `docs/desky/JPR-1A.md`, `AND-1A.md`, `RAM-1.md` (RAM-1A) a
+     `docs/software/CPM_ZPS-3.md`.
+   - Máme tabulky dekodérů všech tří desek, boot ROM MON V1.0-C1 se zdrojem a bootovatelné CP/M cpm48a (Peřina
+     s ROM MOR48A) a IMA 64K.
+   - Chybí bootovatelná IMA 48K disketa. Otázky jsou v bodě 19.
