@@ -14,6 +14,8 @@ tools\build.cmd local-debug test    # lokální preset (výstup mimo repo)
 tools\build.cmd release             # release build, zahrnuje pomalé testy ZEXDOC/ZEXALL
 ```
 
+Klávesy v GUI: F5 běh/pauza, F8 turbo, F10 krok přes, F11 krok, F12 reset.
+
 ## Lokální preset (necommituje se)
 
 Když repo leží na síťovém disku, je rychlejší ukládat výstupy sestavení na lokální disk. Stačí v kořeni repa vytvořit
