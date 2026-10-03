@@ -189,7 +189,7 @@ static const CardParam k_ide1[] = {
     { "ide.readonly", PK_BOOL, "Read only", "Jen pro čtení", "false", nullptr, 0, 0 },
     { "ide.working_copy", PK_BOOL, "Work on a copy in work/", "Pracovat s kopií ve work/", "true", nullptr, 0, 0 },
     { "pmd32sd", PK_SECTION, "PMD32-SD floppy emulator", "Emulátor disket PMD32-SD", "false", nullptr, 0, 0 },
-    { "pmd32sd.sd_card", PK_FILE, "SD card (directory)", "SD karta (složka)", "\"media/pmd32sd\"", k_none, 0, 0 },
+    { "pmd32sd.sd_card", PK_DIR, "SD card (directory)", "SD karta (složka)", "\"media/pmd32sd\"", k_none, 0, 0 },
     { "pmd32sd.working_copy", PK_BOOL, "Work on a copy in work/", "Pracovat s kopií ve work/", "true",
       nullptr, 0, 0 },
     { "pmd32sd.drives.0", PK_TEXT, "Drive A (CP/M D:)", "Mechanika A (CP/M D:)", "null", nullptr, 0, 0 },

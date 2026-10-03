@@ -1,12 +1,15 @@
 #include "mcp/mcp_tools.h"
+#include "cards/catalog.h"
 #include "cards/ide1.h"
 #include "core/charset.h"
 #include "core/headless.h"
 #include "core/host.h"
 #include "core/log.h"
+#include "core/machine_cfg.h"
 #include "core/png.h"
 #include "core/util.h"
 #include "core/version.h"
+#include "input/keyboards.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -219,16 +222,121 @@ json t_machine_info(EmuHost& h, const json&)
 json t_list_machines(EmuHost&, const json&)
 {
     json list = json::array();
-    std::error_code ec;
-    std::string dir = path_join(data_root(), "machines");
-    std::filesystem::path p(std::u8string(dir.begin(), dir.end()));
-    for (auto& e : std::filesystem::directory_iterator(p, ec)) {
-        std::u8string n = e.path().filename().u8string();
-        std::string name(n.begin(), n.end());
-        if (name.size() > 6 && (name.find(".jsonc") != std::string::npos || name.find(".json") != std::string::npos))
-            list.push_back("machines/" + name);
-    }
+    for (const std::string& f : list_machine_files()) list.push_back(f);
     return json_result(json{ { "machines", list } });
+}
+
+json param_json(const CardParam* p)
+{
+    static const char* const kinds[] = { "choice", "int", "hex", "bool", "file", "dir", "text", "section", "keyboard" };
+    json j = { { "path", p->path }, { "kind", kinds[p->kind] }, { "label", p->en }, { "label_cs", p->cs },
+               { "default", param_default(p) } };
+    if (p->kind == PK_INT || p->kind == PK_HEX) {
+        j["min"] = p->min;
+        j["max"] = p->max;
+    }
+    if (p->options && p->options[0].value) {
+        json o = json::array();
+        for (int i = 0; p->options[i].value; i++)
+            o.push_back({ { "value", json::parse(p->options[i].value) }, { "label", p->options[i].en } });
+        j[p->kind == PK_CHOICE ? "options" : "suggestions"] = o;
+    }
+    if (p->kind == PK_KEYBOARD) {
+        json o = json::array();
+        for (const KeyboardPreset& k : keyboard_presets())
+            o.push_back({ { "value", json::parse(k.config) }, { "label", k.name } });
+        j["options"] = o;
+    }
+    return j;
+}
+
+json t_card_catalog(EmuHost&, const json& a)
+{
+    std::string only = arg_str(a, "type", "", false);
+    json cards = json::array();
+    for (const CardInfo* ci : card_catalog()) {
+        if (!only.empty() && only != ci->type) continue;
+        json c = { { "type", ci->type }, { "title", ci->en }, { "title_cs", ci->cs },
+                   { "class", card_class_name(ci->cls, false) }, { "slots", ci->width }, { "emulated", ci->emulated } };
+        json params = json::array();
+        for (const CardParam* p = ci->params; p && p->path; p++) params.push_back(param_json(p));
+        c["params"] = params;
+        cards.push_back(c);
+    }
+    json buses = json::array();
+    for (const BusInfo* b : bus_catalog())
+        buses.push_back({ { "type", b->type }, { "title", b->en }, { "slots", b->slots }, { "jp3", b->has_jp3 } });
+    return json_result(json{ { "cards", cards }, { "buses", buses },
+                             { "notes", "Slot X1 is the CPU card (unless ARB-1C JP3 = 1-2). Parameter paths with "
+                                        "dots are nested objects, a numeric part is an array index. A section "
+                                        "parameter is an optional object." } });
+}
+
+json problems_json(const json& cfg, bool& runnable)
+{
+    json pr = json::array();
+    runnable = true;
+    for (const CfgProblem& p : machine_cfg_problems(cfg)) {
+        pr.push_back({ { "slot", p.slot }, { "error", p.error }, { "text", p.en } });
+        if (p.error) runnable = false;
+    }
+    return pr;
+}
+
+json t_get_machine_config(EmuHost& h, const json& a)
+{
+    std::string path = arg_str(a, "path", "", false);
+    json cfg;
+    if (path.empty()) {
+        cfg = need_machine(h).config;
+        path = h.machine_file();
+    } else {
+        std::string text;
+        if (!file_read_text(data_path(path), text)) return error_result("cannot read " + path);
+        cfg = json::parse(text, nullptr, false, true);
+        if (cfg.is_discarded()) return error_result("syntax error in " + path);
+    }
+    bool runnable;
+    json j = { { "file", path }, { "config", cfg }, { "problems", problems_json(cfg, runnable) },
+               { "runnable", runnable } };
+    if (arg_bool(a, "jsonc", false)) j["jsonc"] = machine_cfg_to_jsonc(cfg);
+    return json_result(j);
+}
+
+json t_set_machine_config(EmuHost& h, const json& a)
+{
+    if (!a.contains("config") || !a["config"].is_object()) throw ToolError{ "'config' must be a machine description object" };
+    const json& cfg = a["config"];
+    bool runnable;
+    json pr = problems_json(cfg, runnable);
+    std::string save = arg_str(a, "save_as", "", false);
+    bool start = arg_bool(a, "start", true);
+    json j = { { "problems", pr }, { "runnable", runnable } };
+    if (!save.empty()) {
+        std::string ext = save.size() > 6 ? save.substr(save.size() - 6) : std::string();
+        if (ext != ".jsonc" && (save.size() < 5 || save.substr(save.size() - 5) != ".json"))
+            throw ToolError{ "save_as must end with .jsonc or .json" };
+        std::string full = data_path(save);
+        std::string text = machine_cfg_to_jsonc(cfg);
+        make_dirs(path_dir(full));
+        if (!file_write_all(full, text.data(), text.size())) return error_result("cannot write " + full);
+        j["saved"] = data_relative(full);
+    }
+    if (start) {
+        if (!runnable) {
+            j["started"] = false;
+            j["error"] = "the machine cannot run (see problems)";
+            return json_result(j);
+        }
+        std::string err;
+        if (!h.load_config(cfg, save.empty() ? std::string() : data_relative(data_path(save)), err)) {
+            j["started"] = false;
+            j["error"] = err;
+            return json_result(j);
+        }
+        j["started"] = true;
+    }
+    return json_result(j);
 }
 
 json t_load_machine(EmuHost& h, const json& a)
@@ -720,8 +828,14 @@ const char* const S_NONE = R"({"type":"object","properties":{}})";
 const Tool k_tools[] = {
     { "machine_info", "Emulator and machine overview: machine name, run state, CPU clock and cycles, cards in slots with their jumper settings, serial channels, registers.",
       S_NONE, t_machine_info },
-    { "list_machines", "List machine description files (machines/*.jsonc) that can be loaded with load_machine.",
+    { "list_machines", "List machine description files (machines/*.jsonc including subfolders such as machines/zps/) that can be loaded with load_machine.",
       S_NONE, t_list_machines },
+    { "card_catalog", "Catalog of SAPI-1 cards and buses for machine descriptions: card types (emulated or placeholder), slots they take and every configuration parameter (jumpers, ROM files, options with meaning, defaults). Optionally only one card type.",
+      R"({"type":"object","properties":{"type":{"type":"string"}}})", t_card_catalog },
+    { "get_machine_config", "Machine description (cards in slots X1.., jumpers) of the running machine, or of a file when 'path' is given, with layout problems. jsonc=true adds the commented file text as the configurator writes it.",
+      R"({"type":"object","properties":{"path":{"type":"string"},"jsonc":{"type":"boolean","default":false}}})", t_get_machine_config },
+    { "set_machine_config", "Use a machine description (as returned by get_machine_config, edited): optionally save it as a commented .jsonc file (path relative to the data directory, e.g. machines/my.jsonc) and power the machine on with it (start=true, default). Cards not emulated yet are passive; a machine whose CPU card is not emulated cannot start.",
+      R"({"type":"object","properties":{"config":{"type":"object"},"save_as":{"type":"string"},"start":{"type":"boolean","default":true}},"required":["config"]})", t_set_machine_config },
     { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.jsonc.",
       R"({"type":"object","properties":{"path":{"type":"string"}},"required":["path"]})", t_load_machine },
     { "reset", "Press the reset button (/RES): CPU card BOOT flag set, cards reset. RAM content is kept.",

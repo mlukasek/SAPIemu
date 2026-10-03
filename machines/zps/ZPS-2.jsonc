@@ -1,0 +1,36 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-2 (JPR-1, REM-1, RAM-1, AND-1, DSM-1, BDK-1, ANK-1)",
+    "description": "Základní počítačová sestava ZPS-2 podle sapi.cz/sapi/doku2/zps.php. Pořadí karet ve slotech je odhad.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "keyboard": { "type": "ANK-1" }  // Keyboard
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "REM-1"                 // RAM and EPROM card
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RAM-1"                 // Dynamic RAM up to 48 KB
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "AND-1"                 // Alphanumeric display
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DSM-1"                 // Serial modem (cassette, terminal)
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "BDK-1"                 // Universal board
+        }
+    ]
+}

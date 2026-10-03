@@ -4,6 +4,20 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
+**Hotové: konfigurátor sestavy (Stroj → Sestava…), návod `docs/sestavy.md`.**
+- Čelní pohled na rám (X1 vpravo, panely SPN a ZDR). Kliknutím na slot se karta vloží, vymění nebo nastaví
+  (jumpery, ROM, obrazy).
+- Katalog karet (`src/cards/catalog.cpp`) zná i karty, které zatím nejsou emulované. Ty jsou šedé a na sběrnici
+  neodpovídají.
+- Ukládání sestav jako komentovaný `.jsonc` kamkoli. Šablony ZPS-1 až ZPS-4 v `machines/zps/`.
+- Změna se projeví po vypnutí a zapnutí (tlačítko NAPÁJENÍ na panelu ZDR).
+- MCP: `card_catalog`, `get_machine_config`, `set_machine_config`. Sběrnice podle typu (ARB-1 8, ARB-1C 14,
+  ARB-1C-8 8 pozic).
+- `sapiemu --ui-snapshot` vykreslí GUI do souboru (kontrola vzhledu bez snímku plochy).
+- Testy `test_machine_cfg` a rozšířený `test_mcp`, celkem 16 testů.
+- **Do budoucna:** fotky panelů karet (PNG pro každou kartu, kreslený panel zůstane jako náhrada), mapa portů
+  a paměti sestavy s kontrolou kolizí z PROM dekodérů, přesouvání karet tažením.
+
 **Hotové: výběr klávesnice (F5).** EKL-1, Consul 262.3 (výchozí s úpravou 7474, volitelně původní pulz
 1 ms), Consul 259.11 (KOI-7 s klávesou CLEAR, volitelně KOI-8 cs pro ECMON) a ANK-1 (matice 5×8).
 - **Volba:** v sestavě (`keyboard` u JPR-1ZI), menu Stroj → Klávesnice, MCP `set_keyboard`,
@@ -78,6 +92,9 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     diskem vyplněným E5h.
 13. **EKL-1 a čeština v MikroMonu:** ukáže MikroMon na skutečném HW po napsání `ž` (Alt-lock) velké `Ž`?
     Firmware EKL-1 posílá české znaky s prohozenou velikostí, ECMON ji vrací, MikroMon ne.
+14. **Sestavy ZPS:** v jakém pořadí byly karty ve slotech u ZPS-1 až ZPS-4 (šablony jsou odhad)? Kolik pozic
+    mají ARB-1A/Au (odhad 13) a ARB-1B (odhad 14, ARB-1C má X1–X14)? Mají všechny karty čelní panel se zkratkou
+    (DMR, ZRMD, IDE…)?
 
 ## Jak pokračovat
 

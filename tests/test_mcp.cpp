@@ -128,6 +128,27 @@ int main(void)
     r = tool(s, "read_memory", { { "address", "zz" } });
     CHECK(r["isError"] == true);
 
+    // machine configuration
+    r = tool(s, "card_catalog", { { "type", "DMR-1" } });
+    CHECK(text_of(r).find("ram_config") != std::string::npos);
+    r = tool(s, "get_machine_config", json::object());
+    json mc = json::parse(text_of(r));
+    CHECK(mc["runnable"] == true);
+    json cfg = mc["config"];
+    cfg["cards"].push_back({ { "slot", 4 }, { "type", "DSM-1" } });
+    r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/test_mcp_machine.jsonc" } });
+    json sr = json::parse(text_of(r));
+    CHECK(sr["started"] == true);
+    CHECK(sr["problems"].size() == 1);   // DSM-1 not emulated
+    CHECK(file_exists(data_path("work/test/test_mcp_machine.jsonc")));
+    r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-3.jsonc" } });
+    json zps = json::parse(text_of(r));
+    CHECK(zps["runnable"] == false);
+    r = tool(s, "set_machine_config", { { "config", zps["config"] } });
+    CHECK(json::parse(text_of(r))["started"] == false);
+    r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/x.txt" }, { "start", false } });
+    CHECK(r["isError"] == true);
+
     quit = true;
     emu.join();
     return TEST_RESULT();

@@ -18,8 +18,8 @@
 #include <memory>
 #include <signal.h>
 
-#ifdef SAPIEMU_GUI
 #include "frontend/app.h"
+#ifdef SAPIEMU_GUI
 #include <SDL3/SDL_main.h>
 #endif
 #ifdef _WIN32
@@ -39,6 +39,8 @@ static void print_help(void)
            "  --data-root DIR    directory with roms/, media/, machines/\n"
            "  --mcp-port N       MCP server port (default %d, 127.0.0.1 only)\n"
            "  --no-mcp           GUI: do not start the MCP server\n"
+           "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
+           "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"
@@ -147,6 +149,7 @@ int main(int argc_ansi, char** argv_ansi)
     int mcp_port = MCP_DEFAULT_PORT;
     bool mcp_enabled = true;
     bool mcp_serve = false;
+    UiSnapshot snap;
 
 #if defined(SAPIEMU_GUI) && defined(_WIN32)
     for (int i = 1; i < argc; i++)
@@ -169,6 +172,9 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--headless") headless = true;
         else if (a == "--mcp-port" && i + 1 < argc) mcp_port = atoi(argv[++i].c_str());
         else if (a == "--no-mcp") mcp_enabled = false;
+        else if (a == "--ui-snapshot" && i + 1 < argc) { snap.path = argv[++i]; mcp_enabled = false; }
+        else if (a == "--ui-rack" && i + 1 < argc) { snap.rack = true; snap.rack_slot = atoi(argv[++i].c_str()); }
+        else if (a == "--ui-open" && i + 1 < argc) snap.open = argv[++i];
         else if (a == "--mcp") { mcp_serve = true; headless = true; }
         else {
             actions.push_back(a);
@@ -198,7 +204,7 @@ int main(int argc_ansi, char** argv_ansi)
         fprintf(stderr, "unknown option '%s' (see --help)\n", actions[0].c_str());
         return 1;
     }
-    return app_run(machine_file, mcp_enabled ? mcp_port : 0);
+    return app_run(machine_file, mcp_enabled ? mcp_port : 0, snap.path.empty() ? nullptr : &snap);
 #else
     return 0;
 #endif

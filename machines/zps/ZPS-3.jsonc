@@ -1,0 +1,32 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-3 (JPR-1A, RAM-1A, AND-1A, DSM-1, RPD-1, Consul 259.11)",
+    "description": "Základní počítačová sestava ZPS-3 podle sapi.cz/sapi/doku2/zps.php: klávesnice Consul 259.11 na kabelu KB-13, řadič RPD-1 = desky RPD-1A a RPD-1B (kabel KB-17). Pořadí karet ve slotech je odhad.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1A",               // CPU card 8080 "A"
+            "keyboard": { "type": "Consul 259.11", "code": "koi7" }  // Keyboard
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RAM-1A"                // Dynamic RAM up to 48 KB "A"
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1A"                // Alphanumeric display "A"
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1"                 // Serial modem (cassette, terminal)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "RPD-1"                 // Floppy disk controller (boards A + B)
+        }
+    ]
+}

@@ -22,6 +22,12 @@ const std::string& data_root(void);
 // Resolve a path from a config file: absolute paths are kept, relative ones are
 // taken relative to the data root.
 std::string data_path(const std::string& rel);
+// The other way round: a path inside the data root as relative with '/'
+// separators (for machine files), other paths unchanged.
+std::string data_relative(const std::string& path);
+// Machine descriptions (*.jsonc, *.json) under machines/ including subfolders,
+// as data root relative paths, sorted.
+std::vector<std::string> list_machine_files(void);
 
 // Path of the file to use for a writable media image. Images under media/ are
 // pristine originals: when `work_copy` is set they are copied to work/ on first

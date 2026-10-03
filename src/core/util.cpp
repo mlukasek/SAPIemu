@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 #include <filesystem>
 
 #ifdef _WIN32
@@ -142,6 +143,33 @@ std::string data_path(const std::string& rel)
     fs::path p = u8_to_path(rel);
     if (p.is_absolute()) return rel;
     return path_to_u8(u8_to_path(data_root()) / p);
+}
+
+std::string data_relative(const std::string& path)
+{
+    std::error_code ec;
+    fs::path p = fs::weakly_canonical(u8_to_path(path), ec);
+    if (ec) return path;
+    fs::path root = fs::weakly_canonical(u8_to_path(data_root()), ec);
+    if (ec) return path;
+    fs::path rel = p.lexically_relative(root);
+    if (rel.empty() || rel.is_absolute()) return path;
+    std::string r = path_to_u8(rel);
+    if (r.rfind("..", 0) == 0) return path;
+    for (char& c : r) if (c == '\\') c = '/';
+    return r;
+}
+
+std::vector<std::string> list_machine_files(void)
+{
+    std::vector<std::string> out;
+    std::error_code ec;
+    for (auto& e : fs::recursive_directory_iterator(u8_to_path(data_path("machines")), ec)) {
+        if (e.path().extension() != ".jsonc" && e.path().extension() != ".json") continue;
+        out.push_back(data_relative(path_to_u8(e.path())));
+    }
+    std::sort(out.begin(), out.end());
+    return out;
 }
 
 bool media_path(const std::string& rel, bool work_copy, std::string& out, std::string& err)

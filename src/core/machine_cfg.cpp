@@ -400,6 +400,8 @@ std::vector<std::string> key_order(const Writer& w, const std::string& path, con
         add("type"); add("slots"); add("jp3");
     } else if (path.empty()) {
         add("slot"); add("type"); add("name");
+    } else {
+        add("type");
     }
     if (w.ci && w.ci->params) {
         std::string prefix = path.empty() ? std::string() : path + ".";

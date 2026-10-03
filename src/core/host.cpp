@@ -1,4 +1,5 @@
 #include "core/host.h"
+#include "core/util.h"
 #include "core/log.h"
 
 #include <chrono>
@@ -30,17 +31,36 @@ void EmuHost::shutdown(void)
 
 bool EmuHost::load(const std::string& f, std::string& err)
 {
-    // the old machine releases its TCP ports / COM ports first
-    if (m) m->stop_bridges();
+    std::string text, full = data_path(f);
+    if (!file_read_text(full, text)) {
+        err = "cannot read machine file " + full;
+        return false;
+    }
+    nlohmann::json cfg = nlohmann::json::parse(text, nullptr, false, true /* ignore comments */);
+    if (cfg.is_discarded()) {
+        err = "syntax error in machine file " + full;
+        return false;
+    }
+    return load_config(cfg, f, err);
+}
+
+bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::string& err)
+{
+    // the old machine releases its TCP ports / COM ports first; switching
+    // machines is a power cycle: the old one saves its RAM disks
+    if (m) {
+        m->stop_bridges();
+        m->flush();
+    }
     std::unique_ptr<Machine> nm(new Machine());
-    if (!nm->load_file(f, err) || !nm->start_bridges(err)) {
+    nm->config_path = f.empty() ? std::string() : data_path(f);
+    if (!nm->load_json(cfg, err) || !nm->start_bridges(err)) {
         if (m) {
             std::string e2;
             if (!m->start_bridges(e2)) LOGW("%s", e2.c_str());
         }
         return false;
     }
-    if (m) m->flush();
     m = std::move(nm);
     file = f;
     generation++;

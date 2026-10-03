@@ -25,7 +25,8 @@ enum ParamKind {
     PK_INT,         // integer in [min, max]
     PK_HEX,         // number written as "XXh" (ports, addresses)
     PK_BOOL,
-    PK_FILE,        // path relative to the data root (ROM, image, directory)
+    PK_FILE,        // file path relative to the data root (ROM, image); options = suggestions
+    PK_DIR,         // directory path relative to the data root
     PK_TEXT,
     PK_SECTION,     // optional object: present = enabled; its parameters follow with the path as prefix
     PK_KEYBOARD,    // keyboard on the CPU card connector (keyboard_presets())

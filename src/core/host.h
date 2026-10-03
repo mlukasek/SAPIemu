@@ -21,6 +21,9 @@ public:
 
     // Load a machine description; the old machine is kept on error.
     bool load(const std::string& file, std::string& err);
+    // Build a machine from a description (configurator); `file` is where it was
+    // loaded from / saved to (empty for an unsaved one).
+    bool load_config(const nlohmann::json& cfg, const std::string& file, std::string& err);
     Machine* machine(void) { return m.get(); }
     const std::string& machine_file(void) const { return file; }
     uint64_t machine_generation(void) const { return generation; }   // changes on every load

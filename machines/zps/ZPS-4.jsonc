@@ -1,0 +1,36 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-4 (JPR-1Z, RAM-1Z, AND-1Z, DSM-1, RPD-1, RMD-1, Consul 259.11)",
+    "description": "Pravděpodobná sestava ZPS-4 podle sapi.cz/sapi/doku2/zps.php (původní dokumentace chybí). RAM disk RMD-1 nebyl k provozu CP/M nutný. Pořadí karet ve slotech je odhad.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1Z",               // CPU card Z80
+            "keyboard": { "type": "Consul 259.11", "code": "koi7" }  // Keyboard
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RAM-1Z"                // Dynamic RAM up to 64 KB
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1Z"                // Alphanumeric display "Z"
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1"                 // Serial modem (cassette, terminal)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "RPD-1"                 // Floppy disk controller (boards A + B)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "RMD-1"                 // RAM disk
+        }
+    ]
+}

@@ -193,3 +193,25 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   frontend nezávisí na typu klávesnice.
 - **EKL-1 posílá češtinu s prohozenou velikostí** (KOI-8 cs XOR 20h) jako jeho firmware. Dřív emulace
   posílala přímý kód KOI-8 cs. ECMON a CP/M velikost vracejí, MikroMon ne (nejasnost 13 v SOUHRN).
+
+## 2026-10-03 – Konfigurátor sestavy
+
+- **Okno Sestava ukazuje rám zepředu:** X1 (procesor) vpravo vedle panelů SPN a ZDR, další sloty doleva.
+  Zatím je kreslený, později mohou přibýt fotky panelů jednotlivých karet.
+- **Počet slotů podle typu sběrnice** (rozhodnutí autora): ARB-1 8, ARB-1A/Au 13, ARB-1B 14, ARB-1C 14
+  (X1–X14 podle seznamu součástek), ARB-1C-8 = 8slotová deska ZPC. Dřívější `"ARB-1C", "slots": 8` je teď
+  `ARB-1C-8`.
+- **Změna sestavy se projeví vypnutím a zapnutím** (rozhodnutí autora). Úpravy se dělají v kopii, nejdřív se
+  uloží RAM disky staré sestavy, pak se postaví nová.
+- **Sestava je obyčejný soubor kdekoli** (rozhodnutí autora). Výchozí je `machines/` vedle emulátoru,
+  GitHub slouží jen vývoji. Šablony ZPS se dodávají v `machines/zps/`.
+- **Neemulované karty jsou v katalogu taky** (rozhodnutí autora). Zabírají slot, ale neodpovídají
+  (`PlaceholderCard`). Sestavu s neemulovaným procesorem lze upravit a uložit, ale nespustí se.
+- **Jeden popis parametrů v katalogu** (`src/cards/catalog.cpp`) slouží formuláři, komentářům v uloženém souboru,
+  kontrole i MCP. Texty katalogu mají anglickou a českou variantu přímo u dat. Nejdou přes tabulku `tr()`, aby
+  popis jumperu nebyl na dvou místech.
+- **Uložený soubor generuje program** (klíče v pořadí katalogu, komentář u každého parametru). Ruční komentáře
+  se při uložení z konfigurátoru ztratí. Ručně psané sestavy dál fungují.
+- **RPD-1 zabírá dva sloty** (desky RPD-1A a RPD-1B spojené kabelem KB-17). V souboru se uvádí první slot.
+- **Kontrola GUI bez snímku plochy:** `sapiemu --ui-snapshot` vykreslí okno skrytě a uloží obsah vlastního
+  rendereru do PNG.

@@ -19,6 +19,7 @@
 #include "core/host.h"
 #include "core/log.h"
 #include "core/util.h"
+#include "core/png.h"
 #include "core/version.h"
 #include "input/keyboards.h"
 #include "input/parallel_kbd.h"
@@ -72,21 +73,6 @@ void load_machine(App& app, const std::string& file)
         return;
     }
     set_title(app);
-}
-
-std::vector<std::string> list_machines(void)
-{
-    std::vector<std::string> out;
-    std::error_code ec;
-    std::string dir = path_join(data_root(), "machines");
-    std::filesystem::path p(std::u8string(dir.begin(), dir.end()));
-    for (auto& e : std::filesystem::directory_iterator(p, ec)) {
-        if (e.path().extension() == ".jsonc" || e.path().extension() == ".json") {
-            std::u8string n = e.path().filename().u8string();
-            out.push_back("machines/" + std::string(n.begin(), n.end()));
-        }
-    }
-    return out;
 }
 
 void debug_step(App& app, bool over)
@@ -146,10 +132,11 @@ void draw_menu(App& app)
     Machine* m = app.host.machine();
     if (ImGui::BeginMenu(tr("File"))) {
         if (ImGui::BeginMenu(tr("Open machine"))) {
-            for (const std::string& f : list_machines())
+            for (const std::string& f : list_machine_files())
                 if (ImGui::MenuItem(f.c_str(), nullptr, f == app.host.machine_file())) load_machine(app, f);
             ImGui::EndMenu();
         }
+        if (ImGui::MenuItem(tr("Open file..."))) rack_open_and_run(app.ui);
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Exit"))) app.quit = true;
         ImGui::EndMenu();
@@ -159,6 +146,7 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         ImGui::MenuItem(tr("Turbo"), "F8", &app.host.turbo);
         ImGui::Separator();
+        ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
         KeyboardDevice* kb = m ? m->keyboard() : nullptr;
         if (ImGui::BeginMenu(tr("Keyboard"), m != nullptr)) {
             for (const KeyboardPreset& p : keyboard_presets()) {
@@ -318,7 +306,7 @@ void draw_error(App& app)
 
 } // namespace
 
-int app_run(const std::string& machine_file, int mcp_port)
+int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snap)
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
@@ -331,13 +319,15 @@ int app_run(const std::string& machine_file, int mcp_port)
     float dpi = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     if (dpi <= 0) dpi = 1.0f;
     app.window = SDL_CreateWindow("SAPIemu", (int)(1100 * dpi), (int)(760 * dpi),
-                                  SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+                                  SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
+                                      (snap ? SDL_WINDOW_HIDDEN : 0));
     app.renderer = SDL_CreateRenderer(app.window, nullptr);
     if (!app.window || !app.renderer) {
         fprintf(stderr, "cannot create window: %s\n", SDL_GetError());
         return 1;
     }
     SDL_SetRenderVSync(app.renderer, 1);
+    app.ui.window = app.window;
     SDL_StartTextInput(app.window);
 
     IMGUI_CHECKVERSION();
@@ -350,6 +340,7 @@ int app_run(const std::string& machine_file, int mcp_port)
         SDL_free(pref);
         io.IniFilename = app.ini_path.c_str();
     }
+    if (snap) io.IniFilename = nullptr;   // a self-check must not change the user's layout
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(dpi);
@@ -362,6 +353,12 @@ int app_run(const std::string& machine_file, int mcp_port)
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
     load_machine(app, machine_file);
+    int snap_frames = 0;
+    if (snap) {
+        app.ui.show_rack = snap->rack || !snap->open.empty();
+        app.ui.rack.sel = snap->rack_slot;
+        app.ui.rack.machine_gen = ~0ull;
+    }
 
     if (mcp_port > 0) {
         app.mcp = new McpServer(app.host);
@@ -397,6 +394,7 @@ int app_run(const std::string& machine_file, int mcp_port)
         draw_iolog(app.ui);
         draw_terminal(app.ui);
         draw_media(app.ui);
+        draw_rack(app.ui);
         draw_log(app);
         draw_error(app);
         ImGui::Render();
@@ -405,6 +403,21 @@ int app_run(const std::string& machine_file, int mcp_port)
         SDL_SetRenderDrawColor(app.renderer, 24, 24, 24, 255);
         SDL_RenderClear(app.renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.renderer);
+        if (snap && ++snap_frames == 2) {
+            // follow_machine() has run: open the requested description, select the slot
+            if (!snap->open.empty()) rack_open_in_editor(app.ui, snap->open);
+            app.ui.rack.sel = snap->rack_slot;
+        }
+        if (snap && snap_frames >= 12) {
+            // window content as PNG (our own renderer, not the screen)
+            SDL_Surface* s = SDL_RenderReadPixels(app.renderer, nullptr);
+            SDL_Surface* c = s ? SDL_ConvertSurface(s, SDL_PIXELFORMAT_ARGB8888) : nullptr;
+            bool ok = c && png_write_argb(snap->path, (const uint32_t*)c->pixels, c->w, c->h, 1, 1);
+            if (c) SDL_DestroySurface(c);
+            if (s) SDL_DestroySurface(s);
+            fprintf(stderr, ok ? "UI snapshot: %s\n" : "UI snapshot failed: %s\n", snap->path.c_str());
+            app.quit = true;
+        }
         SDL_RenderPresent(app.renderer);
     }
 
