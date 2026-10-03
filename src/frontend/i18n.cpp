@@ -21,6 +21,8 @@ static const Translation k_table[] = {
     { "Turbo", "Turbo" },
     { "Keyboard", "Klávesnice" },
     { "Open file...", "Otevřít soubor…" },
+    { "Card types on the panels", "Typy karet na panelech" },
+    { "BIOS: EPROM bank switch of JPR-1V (no function yet)", "BIOS: přepnutí banky EPROM u JPR-1V (zatím bez funkce)" },
     { "Configuration...", "Sestava…" },
     { "Machine configuration", "Sestava" },
     { "Cannot read", "Nelze přečíst" },

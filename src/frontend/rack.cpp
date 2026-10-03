@@ -218,6 +218,11 @@ void follow_machine(UiState& ui)
 }
 
 // ---------------------------------------------------------------- frame drawing
+//
+// Front panels after Libor Lasota's print data for the aluminium panels of his
+// SAPI-1 frame (H:\SAPI-1\LiborLasota\Chassis\Potisk_ARTAX). Dimensions are in
+// points (1/72 inch) as in the drawings: narrow panel 57 x 491.8, SPN two
+// positions (114.2), ZDR seven positions (402.5); slot pitch 20.32 mm.
 
 // Text rotated by 90 degrees (read from the bottom up), centred at c.
 void text_vertical(ImDrawList* dl, ImVec2 c, float size, ImU32 col, const char* text)
@@ -233,10 +238,241 @@ void text_vertical(ImDrawList* dl, ImVec2 c, float size, ImU32 col, const char* 
     }
 }
 
-void text_centered(ImDrawList* dl, ImVec2 c, float size, ImU32 col, const char* text)
+const float PANEL_H = 491.8f;
+const float PANEL_W = 57.0f;
+const float PITCH = 57.6f;
+const float SPN_W = 114.2f;
+const float ZDR_W = 402.5f;
+
+enum { PI_END = 0, PI_TEXT, PI_DSUB, PI_LED, PI_JACK };
+
+struct PanelItem {
+    int kind;
+    float x, y;          // centre
+    const char* text;    // PI_TEXT, 14 pt
+};
+
+// connectors K3 (top) and K2 (bottom): JPR, FDC
+const PanelItem k_pl_k3k2[] = {
+    { PI_TEXT, 28.5f, 71.3f, "K3" }, { PI_DSUB, 29.0f, 146.8f, nullptr },
+    { PI_DSUB, 29.0f, 345.2f, nullptr }, { PI_TEXT, 28.5f, 405.8f, "K2" },
+    { PI_END, 0, 0, nullptr },
+};
+const PanelItem k_pl_dsm[] = {
+    { PI_TEXT, 28.5f, 71.3f, "K3" }, { PI_TEXT, 28.5f, 88.3f, "\xE2\x80\x9C" "A" "\xE2\x80\x9D" },
+    { PI_DSUB, 29.0f, 146.8f, nullptr }, { PI_DSUB, 29.0f, 345.2f, nullptr },
+    { PI_TEXT, 28.5f, 405.8f, "K2" }, { PI_TEXT, 28.5f, 422.8f, "\xE2\x80\x9C" "B" "\xE2\x80\x9D" },
+    { PI_END, 0, 0, nullptr },
+};
+// display cards: K2 = VGA in the middle (AND-1V, DGD, BGP, CGA)
+const PanelItem k_pl_vga[] = {
+    { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
+    { PI_END, 0, 0, nullptr },
+};
+const PanelItem k_pl_mph[] = {
+    { PI_TEXT, 28.5f, 71.3f, "K4" }, { PI_TEXT, 28.5f, 88.3f, "OVL" }, { PI_DSUB, 29.0f, 146.8f, nullptr },
+    { PI_TEXT, 28.5f, 222.9f, "K3" }, { PI_JACK, 29.6f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 271.1f, "ZVUK" },
+    { PI_DSUB, 29.0f, 345.2f, nullptr }, { PI_TEXT, 28.5f, 407.0f, "K2" },
+    { PI_TEXT, 28.5f, 424.0f, "MY\xC5\xA0" },
+    { PI_END, 0, 0, nullptr },
+};
+const PanelItem k_pl_zrd[] = {
+    { PI_TEXT, 29.0f, 312.3f, "ZAM" }, { PI_LED, 19.8f, 332.3f, nullptr },
+    { PI_TEXT, 29.0f, 369.9f, "DSK" }, { PI_LED, 19.8f, 389.9f, nullptr },
+    { PI_END, 0, 0, nullptr },
+};
+
+// Layout of a card's panel by its front panel label; plain panel when unknown.
+const PanelItem* panel_layout(const CardInfo* ci)
 {
-    ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(size, FLT_MAX, 0.0f, text);
-    dl->AddText(ImGui::GetFont(), size, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), col, text);
+    if (!ci) return nullptr;
+    const char* p = ci->panel;
+    if (!strcmp(p, "JPR") || !strcmp(p, "FDC")) return k_pl_k3k2;
+    if (!strcmp(p, "DSM")) return k_pl_dsm;
+    if (!strcmp(p, "AND") || !strcmp(p, "DGD") || !strcmp(p, "BGP") || !strcmp(p, "CGA")) return k_pl_vga;
+    if (!strcmp(p, "MPH")) return k_pl_mph;
+    if (!strcmp(ci->type, "ZRD-1V")) return k_pl_zrd;
+    return nullptr;
+}
+
+const ImU32 COL_HOLE = IM_COL32(28, 30, 33, 255);
+const ImU32 COL_SCREW = IM_COL32(186, 188, 192, 255);
+const ImU32 COL_SCREW_SLOT = IM_COL32(90, 92, 96, 255);
+const ImU32 COL_SHELL = IM_COL32(160, 162, 166, 255);
+const ImU32 COL_LINE = IM_COL32(34, 31, 32, 255);
+
+struct Panel {   // mapping of panel points to the screen
+    ImDrawList* dl;
+    ImVec2 o;    // top left corner of the panel
+    float k;     // pixels per point
+    ImVec2 p(float x, float y) const { return ImVec2(o.x + x * k, o.y + y * k); }
+};
+
+void pt_text(const Panel& P, float x, float y, float size, ImU32 col, const char* t, int align = 0, bool bold = false,
+             float max_w = 0.0f)
+{
+    ImFont* f = ImGui::GetFont();
+    float px = size * P.k;
+    ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, t);
+    if (max_w > 0 && ts.x > max_w * P.k) {   // long labels (ZRMD) shrink to the panel width
+        px *= max_w * P.k / ts.x;
+        ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, t);
+    }
+    ImVec2 c = P.p(x, y);
+    float left = align == 0 ? c.x - ts.x * 0.5f : align < 0 ? c.x : c.x - ts.x;
+    P.dl->AddText(f, px, ImVec2(left, c.y - ts.y * 0.5f), col, t);
+    if (bold) P.dl->AddText(f, px, ImVec2(left + (px > 24 ? 1.2f : 0.7f), c.y - ts.y * 0.5f), col, t);
+}
+
+// oblong mounting hole 16.8 x 9.4 with a screw
+void pt_hole(const Panel& P, float x, float y)
+{
+    P.dl->AddRectFilled(P.p(x, y), P.p(x + 16.8f, y + 9.4f), COL_HOLE, 4.7f * P.k);
+    ImVec2 c = P.p(x + 8.4f, y + 4.7f);
+    float r = 3.9f * P.k;
+    P.dl->AddCircleFilled(c, r, COL_SCREW);
+    P.dl->AddLine(ImVec2(c.x - r * 0.7f, c.y), ImVec2(c.x + r * 0.7f, c.y), COL_SCREW_SLOT, P.k > 0.8f ? 1.5f : 1.0f);
+}
+
+// vertical D-sub cut-out (body 28.3 x 52.1, screw tabs 21 wide, 91.9 high) with the connector in it
+void pt_dsub(const Panel& P, float x, float y)
+{
+    ImDrawList* dl = P.dl;
+    float k = P.k;
+    dl->AddRectFilled(P.p(x - 14.15f, y - 26.05f), P.p(x + 14.15f, y + 26.05f), COL_HOLE, 2.8f * k);
+    dl->AddRectFilled(P.p(x - 10.5f, y - 45.95f), P.p(x + 10.5f, y + 45.95f), COL_HOLE, 10.5f * k);
+    // metal shell with the D-shaped insulator, standoffs in the tabs
+    dl->AddRectFilled(P.p(x - 9.5f, y - 23.0f), P.p(x + 9.5f, y + 23.0f), COL_SHELL, 2.0f * k);
+    ImVec2 d[4] = { P.p(x - 6.5f, y - 20.0f), P.p(x + 6.5f, y - 20.0f), P.p(x + 4.8f, y + 20.0f),
+                    P.p(x - 4.8f, y + 20.0f) };
+    dl->AddConvexPolyFilled(d, 4, IM_COL32(52, 54, 58, 255));
+    for (int s = -1; s <= 1; s += 2) {
+        ImVec2 c = P.p(x, y + s * 35.5f);
+        dl->AddNgonFilled(c, 5.2f * k, COL_SHELL, 6);
+        dl->AddCircleFilled(c, 2.2f * k, COL_HOLE);
+    }
+}
+
+void pt_led(const Panel& P, float x, float y, ImU32 on)
+{
+    P.dl->AddCircleFilled(P.p(x, y), 8.5f * P.k, COL_HOLE);
+    P.dl->AddCircleFilled(P.p(x, y), 5.6f * P.k, on);
+    if (on != COL_LED_OFF) P.dl->AddCircleFilled(P.p(x - 1.6f, y - 1.6f), 1.8f * P.k, IM_COL32(220, 255, 220, 200));
+}
+
+void pt_jack(const Panel& P, float x, float y)
+{
+    P.dl->AddCircleFilled(P.p(x, y), 11.35f * P.k, COL_HOLE);
+    P.dl->AddCircle(P.p(x, y), 8.0f * P.k, COL_SHELL, 0, 2.5f * P.k);
+    P.dl->AddCircleFilled(P.p(x, y), 3.2f * P.k, IM_COL32(10, 10, 10, 255));
+}
+
+// horizontal D-sub 9 (keyboard connectors on SPN)
+void pt_de9(const Panel& P, float x, float y)
+{
+    P.dl->AddRectFilled(P.p(x - 20.3f, y - 11.8f), P.p(x + 20.3f, y + 11.8f), COL_HOLE, 3.0f * P.k);
+    ImVec2 d[4] = { P.p(x - 12.5f, y - 6.5f), P.p(x + 12.5f, y - 6.5f), P.p(x + 10.0f, y + 6.5f),
+                    P.p(x - 10.0f, y + 6.5f) };
+    P.dl->AddConvexPolyFilled(d, 4, COL_SHELL);
+    P.dl->AddCircleFilled(P.p(x - 16.6f, y), 2.4f * P.k, COL_SHELL);
+    P.dl->AddCircleFilled(P.p(x + 16.6f, y), 2.4f * P.k, COL_SHELL);
+}
+
+void panel_plate(const Panel& P, float w, bool dim)
+{
+    P.dl->AddRectFilled(P.p(0, 0), P.p(w, PANEL_H), dim ? COL_PANEL_DIM : COL_PANEL, 1.5f * P.k);
+    P.dl->AddRect(P.p(0, 0), P.p(w, PANEL_H), COL_PANEL_EDGE, 1.5f * P.k);
+}
+
+// A narrow card panel: holes, the label at the top and the bottom, connectors.
+void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type, bool error, bool show_type)
+{
+    bool dim = !ci || !ci->emulated;
+    panel_plate(P, PANEL_W, dim);
+    pt_hole(P, 12.8f, 4.4f);
+    pt_hole(P, 12.8f, 478.1f);
+    ImU32 tc = dim ? COL_TEXT_DIM : COL_TEXT;
+    const char* label = ci ? ci->panel : "?";
+    pt_text(P, 28.5f, 33.6f, 20.0f, tc, label, 0, false, 50.0f);
+    pt_text(P, 28.5f, 461.6f, 20.0f, tc, label, 0, false, 50.0f);
+    for (const PanelItem* it = panel_layout(ci); it && it->kind != PI_END; it++) {
+        switch (it->kind) {
+        case PI_TEXT: pt_text(P, it->x, it->y, 14.0f, tc, it->text); break;
+        case PI_DSUB: pt_dsub(P, it->x, it->y); break;
+        case PI_LED: pt_led(P, it->x, it->y, COL_LED_OFF); break;
+        case PI_JACK: pt_jack(P, it->x, it->y); break;
+        default: break;
+        }
+    }
+    if (show_type) {
+        // the exact card type across the panel, in the largest free gap between the panel items
+        float lo = 50.0f, hi = 445.0f;   // below the top label, above the bottom one
+        float best_a = lo, best_b = hi;
+        float occ[32][2];
+        int no = 0;
+        for (const PanelItem* it = panel_layout(ci); it && it->kind != PI_END && no < 32; it++) {
+            float h = it->kind == PI_DSUB ? 46.0f : it->kind == PI_JACK ? 12.0f : 9.0f;
+            occ[no][0] = it->y - h - 4.0f;
+            occ[no][1] = it->y + h + 4.0f;
+            no++;
+        }
+        if (no > 0) {
+            best_b = best_a;
+            float y = lo;
+            while (y < hi) {
+                float next = hi;   // end of the free run starting at y
+                for (int i = 0; i < no; i++)
+                    if (occ[i][0] >= y && occ[i][0] < next) next = occ[i][0];
+                if (next - y > best_b - best_a) { best_a = y; best_b = next; }
+                float skip = next;   // jump over the item starting there
+                for (int i = 0; i < no; i++)
+                    if (occ[i][0] <= next && occ[i][1] > skip) skip = occ[i][1];
+                y = skip > next ? skip : next + 1.0f;
+            }
+        }
+        ImFont* f = ImGui::GetFont();
+        float px = ImGui::GetFontSize() * 0.85f;
+        ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
+        float room = (best_b - best_a) * P.k - 8.0f;
+        if (ts.x > room && room > 0) {
+            px *= room / ts.x;
+            ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
+        }
+        ImVec2 c = P.p(PANEL_W * 0.5f, (best_a + best_b) * 0.5f);
+        float hw = ts.y * 0.5f + 2.0f, hh = ts.x * 0.5f + 4.0f;
+        P.dl->AddRectFilled(ImVec2(c.x - hw, c.y - hh), ImVec2(c.x + hw, c.y + hh), IM_COL32(20, 24, 30, 205), 3.0f);
+        text_vertical(P.dl, c, px, IM_COL32(240, 240, 240, 255), type.c_str());
+    }
+    if (error) P.dl->AddCircleFilled(P.p(PANEL_W - 9.0f, 24.0f), 6.0f * P.k + 1.5f, COL_ERROR);
+}
+
+void draw_spn(const Panel& P, bool power)
+{
+    panel_plate(P, SPN_W, false);
+    pt_hole(P, 12.7f, 4.4f);
+    pt_hole(P, 84.7f, 4.4f);
+    pt_hole(P, 12.7f, 478.1f);
+    pt_hole(P, 84.7f, 478.1f);
+    pt_text(P, 8.4f, 33.6f, 20.0f, COL_TEXT, "SPN", -1);
+    pt_text(P, 8.4f, 461.6f, 20.0f, COL_TEXT, "SPN", -1);
+    pt_text(P, 16.0f, 72.0f, 14.0f, COL_TEXT, "ZDROJ", -1);
+    float lw = 1.4f * P.k;
+    P.dl->AddRect(P.p(17.0f, 85.4f), P.p(93.5f, 205.0f), COL_LINE, 3.8f * P.k, 0, lw);
+    P.dl->AddRect(P.p(17.0f, 229.5f), P.p(93.5f, 406.9f), COL_LINE, 3.8f * P.k, 0, lw);
+    const char* v1[4] = { "+12V", "+5V", "-5V", "-12V" };
+    for (int i = 0; i < 4; i++) {
+        float y = 101.9f + 28.8f * i;
+        pt_text(P, 60.0f, y, 14.0f, COL_TEXT, v1[i], 1);
+        pt_led(P, 83.5f, y, power ? COL_LED_ON : COL_LED_OFF);
+    }
+    for (int i = 0; i < 2; i++) {
+        float y = 245.9f + 28.8f * i;
+        pt_text(P, 60.0f, y, 14.0f, COL_TEXT, v1[i], 1);
+        pt_led(P, 83.5f, y, power ? COL_LED_ON : COL_LED_OFF);
+    }
+    pt_de9(P, 57.0f, 316.8f);
+    pt_de9(P, 57.0f, 373.5f);
+    pt_text(P, 15.3f, 422.2f, 14.0f, COL_TEXT, "K2/K3", -1);
 }
 
 int card_first_slot(const json& card)
@@ -256,22 +492,6 @@ bool slot_has_error(const std::vector<CfgProblem>& pr, int slot)
     return false;
 }
 
-void draw_panel(ImDrawList* dl, float u, ImVec2 a, ImVec2 b, const CardInfo* ci, const std::string& type, bool error)
-{
-    bool dim = !ci || !ci->emulated;
-    dl->AddRectFilled(a, b, dim ? COL_PANEL_DIM : COL_PANEL, 2.0f);
-    dl->AddRect(a, b, COL_PANEL_EDGE, 2.0f);
-    float cx = (a.x + b.x) * 0.5f;
-    dl->AddCircleFilled(ImVec2(cx, a.y + 0.55f * u), 0.22f * u, COL_PANEL_EDGE);   // screws
-    dl->AddCircleFilled(ImVec2(cx, b.y - 0.55f * u), 0.22f * u, COL_PANEL_EDGE);
-    ImU32 tc = dim ? COL_TEXT_DIM : COL_TEXT;
-    const char* label = ci ? ci->panel : "?";
-    text_centered(dl, ImVec2(cx, a.y + 1.45f * u), 0.82f * u, tc, label);
-    text_centered(dl, ImVec2(cx, b.y - 1.45f * u), 0.82f * u, tc, label);
-    text_vertical(dl, ImVec2(cx, (a.y + b.y) * 0.5f), 0.9f * u, tc, type.c_str());
-    if (error) dl->AddCircleFilled(ImVec2(b.x - 0.45f * u, a.y + 0.45f * u), 0.28f * u, COL_ERROR);
-}
-
 bool panel_button(const char* id, ImVec2 a, ImVec2 b)
 {
     ImGui::SetCursorScreenPos(a);
@@ -288,37 +508,44 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     const json& cfg = r.cfg;
     int n = machine_cfg_slots(cfg);
 
+    // scale: fit the window width, within readable limits
     float u = ImGui::GetFontSize();
-    float sw = 2.3f * u, ph = 15.0f * u, pad = 0.8f * u;
-    float spn_w = 3.0f * u, zdr_w = 10.0f * u;
-    float w = pad + n * sw + 0.3f * u + spn_w + zdr_w + pad;
-    float h = pad + ph + 1.6f * u + pad;
+    const float margin = 16.0f, gap = 4.0f, label_band = 26.0f;
+    float total_w = margin + n * PITCH + gap + SPN_W + 1.0f + ZDR_W + margin;
+    float total_h = margin + PANEL_H + label_band + margin * 0.5f;
+    float avail = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize;
+    float k = avail / total_w;
+    float kmin = 0.034f * u, kmax = 0.075f * u;
+    if (k < kmin) k = kmin;
+    if (k > kmax) k = kmax;
+    float w = total_w * k, h = total_h * k;
 
+    ImGui::Checkbox(tr("Card types on the panels"), &r.show_types);
     ImGui::BeginChild("frame", ImVec2(0, h + ImGui::GetStyle().ScrollbarSize + 4), ImGuiChildFlags_None,
                       ImGuiWindowFlags_HorizontalScrollbar);
     ImDrawList* dl = ImGui::GetWindowDrawList();
     ImVec2 o = ImGui::GetCursorScreenPos();
-    dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), COL_CHASSIS, 0.6f * u);
-    dl->AddRect(o, ImVec2(o.x + w, o.y + h), COL_CHASSIS_EDGE, 0.6f * u, 0, 2.0f);
-    float y0 = o.y + pad, y1 = y0 + ph;
-    float sx0 = o.x + pad;
-    dl->AddRectFilled(ImVec2(sx0, y0), ImVec2(sx0 + n * sw, y1), COL_INSIDE);
+    dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), COL_CHASSIS, 10.0f * k);
+    dl->AddRect(o, ImVec2(o.x + w, o.y + h), COL_CHASSIS_EDGE, 10.0f * k, 0, 2.0f);
+    float y0 = o.y + margin * k, y1 = y0 + PANEL_H * k;
+    float sx0 = o.x + margin * k;
+    dl->AddRectFilled(ImVec2(sx0, y0), ImVec2(sx0 + n * PITCH * k, y1), COL_INSIDE);
 
-    auto slot_x = [&](int s) { return sx0 + (float)(n - s) * sw; };   // left edge of slot s
+    auto slot_x = [&](int s) { return sx0 + (float)(n - s) * PITCH * k; };   // left edge of slot s
 
-    // empty slots: card guides at the top and the bottom
+    // empty slots: card guides at the top and the bottom; slot names below
     for (int s = 1; s <= n; s++) {
-        float x = slot_x(s);
-        float cx = x + sw * 0.5f;
-        dl->AddRectFilled(ImVec2(cx - 0.18f * u, y0), ImVec2(cx + 0.18f * u, y0 + 1.2f * u), COL_GUIDE);
-        dl->AddRectFilled(ImVec2(cx - 0.18f * u, y1 - 1.2f * u), ImVec2(cx + 0.18f * u, y1), COL_GUIDE);
+        float cx = slot_x(s) + PITCH * k * 0.5f;
+        dl->AddRectFilled(ImVec2(cx - 3.5f * k, y0), ImVec2(cx + 3.5f * k, y0 + 30.0f * k), COL_GUIDE);
+        dl->AddRectFilled(ImVec2(cx - 3.5f * k, y1 - 30.0f * k), ImVec2(cx + 3.5f * k, y1), COL_GUIDE);
         char lab[8];
         snprintf(lab, sizeof(lab), "X%d", s);
-        text_centered(dl, ImVec2(cx, y1 + 0.8f * u), 0.8f * u, COL_TEXT, lab);
+        float fs = 13.0f * k < 0.75f * u ? 0.75f * u : 13.0f * k;
+        ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, lab);
+        dl->AddText(ImGui::GetFont(), fs, ImVec2(cx - ts.x * 0.5f, y1 + (label_band * k - ts.y) * 0.5f), COL_TEXT, lab);
     }
 
-    // cards
-    int clicked = -1, ctx = -1, hovered = -1;
+    // cards (a card of two boards gets two panels)
     if (cfg.contains("cards") && cfg["cards"].is_array()) {
         for (size_t i = 0; i < cfg["cards"].size(); i++) {
             const json& c = cfg["cards"][i];
@@ -327,20 +554,20 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             if (s < 1 || s + wd - 1 > n) continue;
             std::string type = c.value("type", std::string("?"));
             const CardInfo* ci = card_info(type);
-            ImVec2 a(slot_x(s + wd - 1) + 1.0f, y0), b(slot_x(s) + sw - 1.0f, y1);
-            bool err = false;
-            for (int k = 0; k < wd; k++) err = err || slot_has_error(problems, s + k);
-            draw_panel(dl, u, a, b, ci, type, err);
+            for (int b = 0; b < wd; b++) {
+                Panel P = { dl, ImVec2(slot_x(s + b) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
+                draw_card_panel(P, ci, type, slot_has_error(problems, s + b), r.show_types && b == 0);
+            }
         }
     }
     // hit areas per slot, highlight
+    int clicked = -1, ctx = -1, hovered = -1;
     for (int s = 1; s <= n; s++) {
         int idx = machine_cfg_card_at(cfg, s);
         int first = idx >= 0 ? card_first_slot(cfg["cards"][(size_t)idx]) : s;
         char id[16];
         snprintf(id, sizeof(id), "slot%d", s);
-        ImVec2 a(slot_x(s), y0), b(slot_x(s) + sw, y1);
-        if (panel_button(id, a, b)) clicked = first;
+        if (panel_button(id, ImVec2(slot_x(s), y0), ImVec2(slot_x(s) + PITCH * k, y1))) clicked = first;
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ctx = first;
         if (ImGui::IsItemHovered()) {
             hovered = first;
@@ -359,7 +586,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         int idx = machine_cfg_card_at(cfg, s);
         int wd = idx >= 0 ? card_cfg_width(cfg["cards"][(size_t)idx]) : 1;
         if (s < 1 || s + wd - 1 > n) return;
-        dl->AddRect(ImVec2(slot_x(s + wd - 1), y0 - 2), ImVec2(slot_x(s) + sw, y1 + 2), col, 2.0f, 0, th);
+        dl->AddRect(ImVec2(slot_x(s + wd - 1) - 1, y0 - 3), ImVec2(slot_x(s) + PITCH * k + 1, y1 + 3), col, 3.0f, 0, th);
     };
     if (hovered > 0 && hovered != r.sel) outline(hovered, COL_HOVER, 1.5f);
     if (r.sel > 0) outline(r.sel, COL_SEL, 2.5f);
@@ -374,56 +601,44 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         ImGui::EndPopup();
     }
 
-    // SPN-1: power indicators
-    float px = sx0 + n * sw + 0.3f * u;
-    ImVec2 sa(px, y0), sb(px + spn_w, y1);
-    dl->AddRectFilled(sa, sb, COL_PANEL, 2.0f);
-    dl->AddRect(sa, sb, COL_PANEL_EDGE, 2.0f);
-    float scx = (sa.x + sb.x) * 0.5f;
-    text_centered(dl, ImVec2(scx, y0 + 0.9f * u), 0.82f * u, COL_TEXT, "SPN");
-    text_centered(dl, ImVec2(scx, y0 + 2.6f * u), 0.62f * u, COL_TEXT, loc("POWER", "ZDROJ"));
-    const char* volts[4] = { "+12V", "+5V", "-5V", "-12V" };
-    for (int i = 0; i < 4; i++) {
-        float y = y0 + (3.8f + 1.2f * i) * u;
-        dl->AddText(ImGui::GetFont(), 0.6f * u, ImVec2(sa.x + 0.25f * u, y - 0.32f * u), COL_TEXT, volts[i]);
-        dl->AddCircleFilled(ImVec2(sb.x - 0.6f * u, y), 0.3f * u, m ? COL_LED_ON : COL_LED_OFF);
-    }
-    text_centered(dl, ImVec2(scx, y1 - 0.9f * u), 0.82f * u, COL_TEXT, "SPN");
+    // SPN-1: power indicators, keyboard connectors
+    float px = sx0 + n * PITCH * k + gap * k;
+    Panel S = { dl, ImVec2(px, y0), k };
+    draw_spn(S, m != nullptr);
 
-    // ZDR-1A: CPU frequency, power, reset, turbo
-    float zx = sb.x;
-    ImVec2 za(zx, y0), zb(zx + zdr_w, y1);
-    dl->AddRectFilled(za, zb, COL_PANEL, 2.0f);
-    dl->AddRect(za, zb, COL_PANEL_EDGE, 2.0f);
-    float zcx = (za.x + zb.x) * 0.5f;
-    dl->AddText(ImGui::GetFont(), 0.82f * u, ImVec2(za.x + 0.4f * u, y0 + 0.5f * u), COL_TEXT, "ZDR");
-    text_centered(dl, ImVec2(zcx, y0 + 2.2f * u), 0.7f * u, COL_TEXT, loc("CPU FREQUENCY", "FREKVENCE CPU"));
-    ImVec2 da(zcx - 2.2f * u, y0 + 2.9f * u), db(zcx + 2.2f * u, y0 + 5.3f * u);
-    dl->AddRectFilled(da, db, IM_COL32(10, 10, 10, 255), 3.0f);
+    // ZDR: CPU frequency, power, reset, turbo, BIOS
+    Panel Z = { dl, ImVec2(px + (SPN_W + 1.0f) * k, y0), k };
+    panel_plate(Z, ZDR_W, false);
+    pt_hole(Z, 12.8f, 4.4f);
+    pt_hole(Z, 372.8f, 4.4f);
+    pt_hole(Z, 12.8f, 478.1f);
+    pt_hole(Z, 372.8f, 478.1f);
+    pt_text(Z, 8.5f, 33.6f, 20.0f, COL_TEXT, "ZDR", -1);
+    pt_text(Z, 8.5f, 461.6f, 20.0f, COL_TEXT, "ZDR", -1);
+    pt_text(Z, 48.5f, 89.0f, 14.0f, COL_TEXT, "FREKVENCE CPU", -1);
+    dl->AddRect(Z.p(49.6f, 101.4f), Z.p(182.8f, 192.1f), COL_PANEL_EDGE, 0, 0, 1.0f);
+    dl->AddRectFilled(Z.p(55.3f, 106.8f), Z.p(177.2f, 186.7f), IM_COL32(12, 14, 12, 255));
     char freq[16];
     if (m && !host.paused && host.speed_percent > 0)
         snprintf(freq, sizeof(freq), "%.1f", m->bus.cpu_hz / 1e6 * host.speed_percent / 100.0);
     else
-        snprintf(freq, sizeof(freq), "--");
-    text_centered(dl, ImVec2(zcx, (da.y + db.y) * 0.5f), 1.9f * u, IM_COL32(60, 255, 120, 255), freq);
-    // "SAPI 1"
-    text_centered(dl, ImVec2(zcx, y0 + 7.4f * u), 2.2f * u, COL_TEXT, "SAPI 1");
-    text_centered(dl, ImVec2(zcx + 1.0f, y0 + 7.4f * u), 2.2f * u, COL_TEXT, "SAPI 1");
-    // buttons
-    struct Btn { const char* en; const char* cs; ImU32 col; };
-    const Btn btns[3] = {
-        { "POWER", "NAPÁJENÍ", IM_COL32(60, 200, 120, 255) },
-        { "RESET", "RESET", IM_COL32(220, 50, 50, 255) },
-        { "TURBO", "TURBO", host.turbo ? IM_COL32(255, 230, 120, 255) : IM_COL32(240, 240, 240, 255) },
+        snprintf(freq, sizeof(freq), m ? "--" : "");
+    pt_text(Z, 116.2f, 147.0f, 60.0f, IM_COL32(60, 255, 120, 255), freq);
+    pt_text(Z, 219.9f, 178.5f, 48.0f, COL_TEXT, "SAPI 1", -1, true);
+    struct Btn { const char* label; ImU32 col; };
+    const Btn btns[4] = {
+        { "NAPÁJENÍ", IM_COL32(64, 196, 120, 255) },
+        { "RESET", IM_COL32(214, 52, 48, 255) },
+        { "TURBO", host.turbo ? IM_COL32(255, 228, 110, 255) : IM_COL32(236, 236, 236, 255) },
+        { "BIOS", IM_COL32(236, 236, 236, 255) },
     };
-    float bw = 1.7f * u, gap = (zdr_w - 3 * bw) / 4.0f;
-    for (int i = 0; i < 3; i++) {
-        float bx = za.x + gap + i * (bw + gap);
-        float by = y0 + 10.6f * u;
-        text_centered(dl, ImVec2(bx + bw * 0.5f, by - 0.7f * u), 0.6f * u, COL_TEXT, loc(btns[i].en, btns[i].cs));
-        ImVec2 ba(bx, by), bb(bx + bw, by + bw);
-        dl->AddRectFilled(ImVec2(ba.x - 2, ba.y - 2), ImVec2(bb.x + 2, bb.y + 2), IM_COL32(60, 60, 60, 255), 3.0f);
-        dl->AddRectFilled(ba, bb, btns[i].col, 3.0f);
+    for (int i = 0; i < 4; i++) {
+        float bx = 48.2f + 85.05f * i;
+        pt_text(Z, bx + 25.5f, 349.8f, 14.0f, COL_TEXT, btns[i].label);
+        ImVec2 ba = Z.p(bx, 362.2f), bb = Z.p(bx + 51.0f, 413.2f);
+        dl->AddRectFilled(ba, bb, IM_COL32(44, 46, 50, 255), 3.0f * k);
+        dl->AddRectFilled(Z.p(bx + 2.8f, 365.0f), Z.p(bx + 48.2f, 410.4f), btns[i].col, 4.0f * k);
+        dl->AddRect(Z.p(bx + 2.8f, 365.0f), Z.p(bx + 48.2f, 410.4f), IM_COL32(0, 0, 0, 90), 4.0f * k);
         char id[16];
         snprintf(id, sizeof(id), "btn%d", i);
         if (panel_button(id, ba, bb)) {
@@ -433,7 +648,9 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         }
         if (ImGui::IsItemHovered()) {
             const char* tip = i == 0 ? tr("Switch off and on with the edited configuration")
-                            : i == 1 ? tr("Reset (F12)") : tr("Turbo (F8)");
+                            : i == 1 ? tr("Reset (F12)")
+                            : i == 2 ? tr("Turbo (F8)")
+                                     : tr("BIOS: EPROM bank switch of JPR-1V (no function yet)");
             ImGui::SetTooltip("%s", tip);
         }
     }

@@ -94,7 +94,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     Firmware EKL-1 posílá české znaky s prohozenou velikostí, ECMON ji vrací, MikroMon ne.
 14. **Sestavy ZPS:** v jakém pořadí byly karty ve slotech u ZPS-1 až ZPS-4 (šablony jsou odhad)? Kolik pozic
     mají ARB-1A/Au (odhad 13) a ARB-1B (odhad 14, ARB-1C má X1–X14)? Mají všechny karty čelní panel se zkratkou
-    (DMR, ZRMD, IDE…)?
+    (DMR, ZRMD, IDE…)? Panely jsou kreslené podle Liborových štítků. AND-1Z-89 má zatím panel AND-1V (K2 VGA),
+    jak vypadá panel originálních karet a DMR-1, ZRMD-1, IDE-1?
 
 ## Jak pokračovat
 

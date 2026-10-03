@@ -19,6 +19,7 @@ struct RackEditor {
     std::string path;              // file (data root relative when inside it), empty = not saved yet
     uint64_t machine_gen = ~0ull;  // generation of the running machine the editor follows
     int sel = 0;                   // selected slot, 0 = the bus
+    bool show_types = true;        // exact card type across the panels
     std::string message;
     bool message_error = false;
 

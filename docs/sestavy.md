@@ -7,6 +7,13 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
 ## Konfigurátor (Stroj → Sestava…)
 
 - **Čelní pohled na rám:** sloty X1…Xn zprava doleva, vpravo panely SPN a ZDR.
+  - Panely jsou kreslené podle tiskových podkladů hliníkových štítků z rámu Libora Lasoty
+    (`H:\SAPI-1\LiborLasota\Chassis\Potisk_ARTAX`, rozměry v bodech přímo z PDF): úzký panel 57 × 491,8 bodu,
+    SPN dvě pozice, ZDR sedm pozic, otvory, konektory K2/K3 (D-sub), LED ZAM/DSK, popisky.
+  - Rozložení konektorů podle zkratky panelu: JPR a FDC (K3 nahoře, K2 dole), DSM (K3 „A“, K2 „B“), AND, DGD,
+    BGP a CGA (K2 VGA uprostřed), MPH (K4 OVL, K3 ZVUK, K2 MYŠ), ZRD-1V (LED ZAM, DSK). Ostatní karty mají
+    zatím jen zkratku.
+  - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
   - X1 je procesorová karta (výjimkou je ARB-1C s JP3 = 1-2 pro PKT-1).
   - Počet slotů určuje typ sběrnice.
   - Karty, které zatím nejsou emulované, jsou šedé. Červená tečka znamená chybu (např. karta mimo X1).
