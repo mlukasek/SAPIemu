@@ -12,8 +12,9 @@ static const int16_t TAPE_AMPLITUDE = 12000;
 static const double TAPE_RUNUP_S = 0.05;   // the tape gets to speed after the motor starts
 static const uint32_t k_bauds[] = { 50, 75, 110, 150, 300, 600, 1200, 2400, 4800, 9600 };
 
-Dsm1::Dsm1() : Card("DSM-1")
+Dsm1::Dsm1(const char* type) : Card(type)
 {
+    no_tape = type == std::string("DSM-1V");
     uart.tx_log = &tx_chars;
 }
 
@@ -26,10 +27,15 @@ bool Dsm1::configure(const json& cfg, std::string& err)
         return false;
     }
     base = (uint8_t)v;
-    if (!cfg_number(cfg, "baud", v, 600, err)) return false;
+    if (!cfg_number(cfg, "baud", v, no_tape ? 115200 : 600, err)) return false;
     bool ok = false;
-    for (uint32_t b : k_bauds) if (b == (uint32_t)v) ok = true;
-    if (!ok) { err = "baud must be one of 50..9600 (terminal jumper)"; return false; }
+    if (no_tape) ok = v > 0 && 230400 % v == 0 && 230400 / v <= 256;   // 230400 / (256 - N)
+    else for (uint32_t b : k_bauds) if (b == (uint32_t)v) ok = true;
+    if (!ok) {
+        err = no_tape ? "baud must be 230400 / (256 - N), 900..115200 (jumpers S1/S2)"
+                      : "baud must be one of 50..9600 (terminal jumper)";
+        return false;
+    }
     baud = (uint32_t)v;
     if (!cfg_bool(cfg, "int0", int_enabled, true, err)) return false;
     if (!cfg_bool(cfg, "connected", connected_default, true, err)) return false;
@@ -290,3 +296,98 @@ void Dsm1::describe(json& out)
     }
     out["tape"] = t;
 }
+
+// ---------------------------------------------------------------- DSM-1V
+
+bool Dsm1v::configure(const json& cfg, std::string& err)
+{
+    static const char* const keys[2] = { "a", "b" };
+    static const int bases[2] = { 0x10, 0x14 };
+    for (int i = 0; i < 2; i++) {
+        json c = cfg.contains(keys[i]) && cfg[keys[i]].is_object() ? cfg[keys[i]] : json::object();
+        if (!cfg_bool(c, "enabled", enabled[i], true, err)) return false;
+        if (!c.contains("base")) c["base"] = bases[i];
+        if (!c.contains("baud")) c["baud"] = 115200;
+        c["int0"] = true;   // wired-OR to /INT0, no jumper; IER/IET in the modem register
+        ch[i].bus = bus;
+        ch[i].probe = probe;
+        ch[i].name = name + (i ? " B" : " A");
+        std::string e;
+        if (!ch[i].configure(c, e)) {
+            err = std::string("channel ") + (i ? "B: " : "A: ") + e;
+            return false;
+        }
+    }
+    if (enabled[0] && enabled[1] && ch[0].base_port() == ch[1].base_port()) {
+        err = "channels A and B have the same base port";
+        return false;
+    }
+    return true;
+}
+
+void Dsm1v::reset()
+{
+    for (Dsm1& c : ch) c.reset();
+}
+
+void Dsm1v::advance(uint64_t now)
+{
+    for (int i = 0; i < 2; i++)
+        if (enabled[i]) ch[i].advance(now);
+}
+
+bool Dsm1v::io_read(uint8_t port, uint8_t& data)
+{
+    for (int i = 0; i < 2; i++)
+        if (enabled[i] && ch[i].io_read(port, data)) return true;
+    return false;
+}
+
+bool Dsm1v::io_write(uint8_t port, uint8_t data)
+{
+    for (int i = 0; i < 2; i++)
+        if (enabled[i] && ch[i].io_write(port, data)) return true;
+    return false;
+}
+
+int Dsm1v::irq_lines()
+{
+    int l = 0;
+    for (int i = 0; i < 2; i++)
+        if (enabled[i]) l |= ch[i].irq_lines();
+    return l;
+}
+
+SerialChannel* Dsm1v::serial_channel(int index)
+{
+    int n = 0;
+    for (int i = 0; i < 2; i++)
+        if (enabled[i] && n++ == index) return ch[i].serial_channel(0);
+    return nullptr;
+}
+
+void Dsm1v::flush()
+{
+    for (Dsm1& c : ch) c.flush();
+}
+
+void Dsm1v::describe(json& out)
+{
+    for (int i = 0; i < 2; i++) {
+        json o;
+        o["enabled"] = enabled[i];
+        if (enabled[i]) ch[i].describe(o);
+        out[i ? "b" : "a"] = o;
+    }
+}
+
+int Dsm1v::decode_io(uint8_t port, const char** what)
+{
+    for (int i = 0; i < 2; i++)
+        if (enabled[i]) {
+            int d = ch[i].decode_io(port, what);
+            if (d) return d;
+        }
+    return 0;
+}
+

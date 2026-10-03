@@ -18,7 +18,9 @@
 
 class Dsm1 : public Card {
 public:
-    Dsm1();
+    // "DSM-1", or "DSM-1V" for one channel of the DSM-1V: no cassette, baud
+    // rate 230400 / (256 - N) from the 40103 divider (900 Bd to 115200 Bd)
+    explicit Dsm1(const char* type = "DSM-1");
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
     void reset() override;
@@ -36,7 +38,8 @@ public:
     bool motor_on(void) const;
 
 private:
-    bool cassette(void) const { return (modem_ctrl & 0x10) != 0; }
+    bool cassette(void) const { return !no_tape && (modem_ctrl & 0x10) != 0; }
+    bool no_tape = false;
     void set_mode(uint8_t ctrl);
     void tape_run(uint64_t now);
     void tape_receive(double p0, double p1);
@@ -59,3 +62,27 @@ private:
     double runup = 0;              // samples left of the motor run-up (recorded as silence)
     std::vector<Mhb1012::TxChar> tx_chars;   // characters sent to the recorder
 };
+
+// DSM-1V (Libor Lasota, docs/desky/DSM-1V.md): two DSM-1 channels without the
+// cassette (6402 UARTs), each with its own base (10h/14h/18h/1Ch or disabled)
+// and baud rate, both interrupts wired-OR to /INT0.
+class Dsm1v : public Card {
+public:
+    Dsm1v() : Card("DSM-1V"), ch{ Dsm1("DSM-1V"), Dsm1("DSM-1V") } {}
+
+    bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void reset() override;
+    void advance(uint64_t now) override;
+    bool io_read(uint8_t port, uint8_t& data) override;
+    bool io_write(uint8_t port, uint8_t data) override;
+    int irq_lines() override;
+    SerialChannel* serial_channel(int index) override;
+    void flush() override;
+    void describe(nlohmann::json& out) override;
+    int decode_io(uint8_t port, const char** what) override;
+
+private:
+    Dsm1 ch[2];
+    bool enabled[2] = { true, true };
+};
+

@@ -87,6 +87,61 @@ static const CardParam k_jpr1v[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// DSM-1V (Libor Lasota)
+static const ParamOption k_dsm1v_base[] = {
+    { "\"10h\"", "10h", "10h" }, { "\"14h\"", "14h", "14h" }, { "\"18h\"", "18h", "18h" }, { "\"1Ch\"", "1Ch", "1Ch" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dsm1v_baud[] = {
+    { "115200", "115200 (N = FEh)", "115200 (N = FEh)" }, { "57600", "57600 (N = FCh)", "57600 (N = FCh)" },
+    { "38400", "38400 (N = FAh)", "38400 (N = FAh)" }, { "19200", "19200 (N = F4h)", "19200 (N = F4h)" },
+    { "9600", "9600 (N = E8h)", "9600 (N = E8h)" }, { "4800", "4800 (N = D0h)", "4800 (N = D0h)" },
+    { "2400", "2400 (N = A0h)", "2400 (N = A0h)" }, { "1200", "1200 (N = 40h)", "1200 (N = 40h)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dsm1v[] = {
+    { "a", PK_SECTION, "Channel A (K3)", "Kanál A (K3)", "true", nullptr, 0, 0 },
+    { "a.enabled", PK_BOOL, "S3 5-6: channel enabled", "S3 5-6: kanál povolen", "true", nullptr, 0, 0 },
+    { "a.base", PK_CHOICE, "S3 1-2, 3-4: ports", "S3 1-2, 3-4: porty", "\"10h\"", k_dsm1v_base, 0, 0 },
+    { "a.baud", PK_CHOICE, "S2: baud rate", "S2: rychlost", "115200", k_dsm1v_baud, 0, 0 },
+    { "a.connected", PK_BOOL, "Terminal connected (DCD)", "Terminál připojen (DCD)", "true", nullptr, 0, 0 },
+    { "b", PK_SECTION, "Channel B (K2)", "Kanál B (K2)", "true", nullptr, 0, 0 },
+    { "b.enabled", PK_BOOL, "S3 11-12: channel enabled", "S3 11-12: kanál povolen", "true", nullptr, 0, 0 },
+    { "b.base", PK_CHOICE, "S3 7-8, 9-10: ports", "S3 7-8, 9-10: porty", "\"14h\"", k_dsm1v_base, 0, 0 },
+    { "b.baud", PK_CHOICE, "S1: baud rate", "S1: rychlost", "115200", k_dsm1v_baud, 0, 0 },
+    { "b.connected", PK_BOOL, "Terminal connected (DCD)", "Terminál připojen (DCD)", "true", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// AND-1V (Libor Lasota)
+static const ParamOption k_and1v_map[] = {
+    { "\"always\"", "MAP1OFF fitted: always", "MAP1OFF osazená: vždy" },
+    { "\"map1_h\"", "MAP1OFF open, H/L fitted: MAP1 = H", "MAP1OFF rozpojená, H/L osazená: MAP1 = H" },
+    { "\"map1_l\"", "both open: MAP1 = L", "obě rozpojené: MAP1 = L" },
+    { "\"never\"", "both fitted: disabled", "obě osazené: vypnuto" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and1v_color[] = {
+    { "\"white\"", "white (S1 all open)", "bílá (S1 vše rozpojené)" }, { "\"green\"", "green", "zelená" },
+    { "\"amber\"", "amber", "jantarová" }, { "\"cyan\"", "cyan", "azurová" }, { "\"yellow\"", "yellow", "žlutá" },
+    { "\"phosphor\"", "as the screen setting of the emulator", "podle nastavení obrazovky emulátoru" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and1v_fonts[] = {
+    { "\"roms/and-1v/font_and1v22_1024.bin\"", "10x24 type 1", "10x24 typ 1" },
+    { "\"roms/and-1v/newfont_and1v22_1024.bin\"", "10x24 type 2", "10x24 typ 2" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_and1v[] = {
+    { "base", PK_HEX, "S2 /A11-/A15: VRAM base (2 KB steps)", "S2 /A11-/A15: začátek VRAM (po 2 KB)", "\"F800h\"",
+      nullptr, 0, 0xF800 },
+    { "map", PK_CHOICE, "S2 MAP1OFF, H/L", "S2 MAP1OFF, H/L", "\"always\"", k_and1v_map, 0, 0 },
+    { "color", PK_CHOICE, "S1: ink colour", "S1: barva", "\"white\"", k_and1v_color, 0, 0 },
+    { "font", PK_FILE, "Character generator 27C256", "Generátor znaků 27C256", "\"roms/and-1v/font_and1v22_1024.bin\"",
+      k_and1v_fonts, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // JPR-1 (8080)
 static const ParamOption k_eprom_type[] = {
     { "\"2708\"", "2708 (1 KB)", "2708 (1 KB)" },
@@ -492,8 +547,6 @@ static const CardParam k_zrmd1[] = {
 };
 static const CardParam k_zrd1v[] = {
     ZRMD_COMMON
-    { "map_jp2", PK_BOOL, "JP2: MAP1/MAP2 from the address register", "JP2: MAP1/MAP2 z adresového registru",
-      "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -550,6 +603,7 @@ CARD(c_rmd1, "RMD-1", "RMD", "RAM disk", "RAM disk", CC_DISK, 1, true, k_rmd1)
 CARD(c_zrmd1, "ZRMD-1", "ZRMD", "RAM disk 4 MB with RTC", "RAM disk 4 MB s RTC", CC_DISK, 1, true, k_zrmd1)
 CARD(c_zrd1v, "ZRD-1V", "ZRD", "RAM disk 4 MB (V)", "RAM disk 4 MB (V)", CC_DISK, 1, true, k_zrd1v)
 // display
+CARD(c_and1v, "AND-1V", "AND", "VGA display 64x20 (V)", "Displej VGA 64x20 (V)", CC_DISPLAY, 1, true, k_and1v)
 CARD(c_and1, "AND-1", "AND", "Alphanumeric display 40x24", "Alfanumerický displej 40x24", CC_DISPLAY, 1, true, k_and1)
 CARD(c_and1a, "AND-1A", "AND", "Alphanumeric display \"A\"", "Alfanumerický displej \"A\"", CC_DISPLAY, 1, true,
      k_and1a)
@@ -561,6 +615,7 @@ CARD(c_and30c, "AND-30C", "AND", "Display with MC6845", "Displej s MC6845", CC_D
 CARD(c_dgd1, "DGD-1", "DGD", "Graphic display 320x240", "Grafický displej 320x240", CC_DISPLAY, 1, true, k_dgd1)
 CARD(c_dbs1a, "DBS-1A", "DBS", "Colour semigraphics", "Barevná semigrafika", CC_DISPLAY, 1, false, nullptr)
 // serial
+CARD(c_dsm1v, "DSM-1V", "DSM", "Two serial channels (V)", "Dva sériové kanály (V)", CC_SERIAL, 1, true, k_dsm1v)
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,
      true, k_dsm1)
 CARD(c_dsp1, "DSP-1", "DSP", "Serial ports", "Sériové porty", CC_SERIAL, 1, false, nullptr)
@@ -583,8 +638,8 @@ const std::vector<const CardInfo*>& card_catalog(void)
     static const std::vector<const CardInfo*> list = {
         &c_jpr1zi, &c_jpr1, &c_jpr1a, &c_jpr1z, &c_jpr1v,
         &c_dmr1, &c_rem1, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
-        &c_and1z89, &c_and1z, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dbs1a,
-        &c_dsm1, &c_dsp1,
+        &c_and1z89, &c_and1z, &c_and1v, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dbs1a,
+        &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
         &c_dpp1, &c_rtc1, &c_bdk1,
     };

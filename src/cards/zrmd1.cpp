@@ -41,6 +41,7 @@ bool Zrmd1::configure(const json& cfg, std::string& err)
     if (v < 1 || v > 8) { err = "chips must be 1..8 (512 KB each)"; return false; }
     chips = (int)v;
     if (!cfg_bool(cfg, "map_jp2", map_jp2, false, err)) return false;
+    if (is_zrd1v) map_jp2 = false;   // ZRD-1V has no MAP outputs (mapping is on RAM-1V)
 
     std::string mode_s;
     if (!cfg_string(cfg, "mode", mode_s, "rw", err)) return false;
