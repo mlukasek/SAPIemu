@@ -11,6 +11,7 @@
 //   --break ADDR          set an execution breakpoint (hex)
 //   --print-regs          print CPU registers
 //   --screenshot FILE     save the screen as PNG (2x)
+//   --disasm ADDR N       disassemble N instructions from ADDR (hex)
 //
 // Returns the process exit code (0 = all actions succeeded).
 #include <string>

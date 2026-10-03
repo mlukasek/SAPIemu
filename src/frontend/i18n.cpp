@@ -47,6 +47,7 @@ static const Translation k_table[] = {
     { "Step over", "Krok přes" },
     { "Serial terminal", "Sériový terminál" },
     { "Local echo", "Lokální echo" },
+    { "Terminal connected (DCD)", "Terminál připojen (DCD)" },
     { "This machine has no serial port.", "Sestava nemá sériový port." },
     { "Run (F5)", "Běh (F5)" },
     { "Pause (F5)", "Pauza (F5)" },

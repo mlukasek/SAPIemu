@@ -62,6 +62,12 @@ static bool action_has_arg(const std::string& a)
            a == "--serial-send" || a == "--break" || a == "--screenshot";
 }
 
+static int action_arg_count(const std::string& a)
+{
+    if (a == "--disasm") return 2;
+    return action_has_arg(a) ? 1 : 0;
+}
+
 #if defined(SAPIEMU_GUI) && defined(_WIN32)
 static void attach_parent_console(void)
 {
@@ -165,7 +171,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--mcp") { mcp_serve = true; headless = true; }
         else {
             actions.push_back(a);
-            if (action_has_arg(a) && i + 1 < argc) actions.push_back(argv[++i]);
+            for (int k = action_arg_count(a); k > 0 && i + 1 < argc; k--) actions.push_back(argv[++i]);
         }
     }
 

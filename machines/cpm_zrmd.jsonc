@@ -1,0 +1,41 @@
+// CP/M 2.2 booted from the ZRMD-1 RAM disk by the ECMON monitor
+// ("JPR-1Z 62K MON CZ"). Martin's setup; the disk image is a working copy
+// in work/ (the original in media/ is never modified).
+{
+    "name": "CP/M 2.2 z RAM disku (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1)",
+    "bus": { "type": "ARB-1C", "slots": 8, "jp3": "2-3" },
+    "cards": [
+        {
+            "slot": 1,
+            "type": "JPR-1ZI",
+            "cpu_mhz": 2,
+            "bus_mhz": 2,
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin",
+            "decoder": "2k",
+            "keyboard": { "type": "EKL-1" }
+        },
+        {
+            "slot": 2,
+            "type": "DMR-1",
+            "ram_config": 1,        // RAM 0000-F7FF (62 KB)
+            "uart_base": "10h",
+            "baud": 9600,
+            "connected": false      // no terminal on the line (DCD inactive): ECMON uses the screen and keyboard
+        },
+        {
+            "slot": 3,
+            "type": "AND-1Z-89",
+            "map_enabled": false
+        },
+        {
+            "slot": 4,
+            "type": "ZRMD-1",
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",
+            "mode": "rw",           // rw | nosave (changes lost on exit) | readonly (like all S1-S4 off)
+            "write_enable": [true, true, true, true],   // DIP switches S1-S4, one per MB
+            "rtc": true,
+            "rtc_int": "none",      // JP3: none | int0 | int1
+            "map_jp2": false        // JP2: port 63h bits 6/7 drive MAP1/MAP2
+        }
+    ]
+}

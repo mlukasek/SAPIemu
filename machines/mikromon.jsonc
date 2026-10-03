@@ -23,7 +23,8 @@
             "type": "DMR-1",
             "ram_config": 1,    // JP3: RAM 0000-F7FF
             "uart_base": "10h", // JP2
-            "baud": 9600        // JP8
+            "baud": 9600,       // JP8
+            "connected": true   // terminal on the line (DCD active); can be changed in the terminal window
         },
         {
             "slot": 3,

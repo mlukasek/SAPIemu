@@ -83,6 +83,25 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
             m.set_breakpoint((uint16_t)addr, true);
         } else if (a == "--print-regs") {
             print_regs(m);
+        } else if (a == "--disasm" && i + 2 < actions.size()) {
+            long long addr, count;
+            std::string v = actions[++i];
+            if (!parse_number(v + (v.find_first_of("hHxX$") == std::string::npos ? "h" : ""), addr) ||
+                !parse_number(actions[++i], count)) {
+                fprintf(stderr, "usage: --disasm ADDR COUNT\n");
+                return 1;
+            }
+            uint16_t pc = (uint16_t)addr;
+            for (long long n = 0; n < count; n++) {
+                DisasmResult d = m.disassemble(pc);
+                printf("%04X  ", pc);
+                for (int k = 0; k < 4; k++) {
+                    if (k < d.length) printf("%02X ", m.peek((uint16_t)(pc + k)));
+                    else printf("   ");
+                }
+                printf(" %s\n", d.text.c_str());
+                pc = (uint16_t)(pc + d.length);
+            }
         } else if (a == "--screenshot" && has_arg) {
             const std::string& path = actions[++i];
             if (!m.display) { fprintf(stderr, "no display card\n"); return 1; }

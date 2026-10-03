@@ -10,7 +10,8 @@ Zdroje:
 
 - **Paměť:** až 8× SRAM 512 KB, celkem 4 MB. Emulátor počítá s plným osazením, kapacita je konfigurovatelná.
 - **Přístup jen přes I/O porty, okno v paměti není.**
-- **Dekódování:** A7=0 a A5·A6=1, tedy rozsah 60–7Fh. Adresy pevně určuje GAL.
+- **Dekódování** (GAL `deport60.eqn` / `porty.eqn`): A7=0 a A5·A6=1. Port 60h je dekódovaný úplně
+  (A0–A4 = 0), 61–63h jen pro zápis, 70–7Fh RTC (A4=1, registr A0–A3). **64–6Fh nejsou dekódované.**
 
 | Port | Funkce |
 |---|---|
@@ -24,7 +25,15 @@ Zdroje:
 - **Porty 61–63h nejdou číst.**
 - **Přerušení RTC:** jumper JP3 volí INT0 nebo INT1/NMI.
 - **Výběr čipu:** `mem.eqn` vybírá jednu z 8 SRAM podle A19–A21.
-- **Ochrana zápisu:** DIP přepínače S1–S4. Zapnutý přepínač (na GND) povoluje zápis do své dvojice čipů (1 MB). Zápis do chráněného čipu se tiše neprovede.
+- **Ochrana zápisu** (GAL `mem.eqn`, ověřeno): DIP přepínače S1–S4. Zapnutý přepínač (na GND) povoluje zápis.
+  Při čtení jsou čipy vybírány vždy, při zápisu jen s povoleným přepínačem.
+
+  | Přepínač | Čipy (A21 A20) | Rozsah |
+  |---|---|---|
+  | S1 | 0, 1 (00) | 000000–0FFFFF |
+  | S2 | 2, 3 (01) | 100000–1FFFFF |
+  | S3 | 4, 5 (10) | 200000–2FFFFF |
+  | S4 | 6, 7 (11) | 300000–3FFFFF |
 - **Zálohování:** MAX691 s článkem NiMH/NiCd nebo napájením ze sběrnice Uz.
 - **Adresní vodiče SRAM** jsou na DPS fyzicky přeházené. CPU to nevidí, emulátor používá lineární pole 4 MB.
 
@@ -33,7 +42,9 @@ Zdroje:
 - **Programový model** je stejný jako u ZRMD-1.
 - **Chybí** RTC a ochrana zápisu po čipech.
 - **Bázová adresa** se nastavuje jumpery na 74LS688, výchozí je 60h.
-- **Zamykání:** MikroMon při startu zamyká ZRD-1V proti zápisu sekvencí `OUT 61h,FF; OUT 62h,FF; OUT 63h,3F`, prodleva, `OUT 60h`. Mechanismus nutno ještě prostudovat.
+- **„Zamykání“ z MikroMonu:** MikroMon při startu provede `OUT 61h,FF; OUT 62h,FF; OUT 63h,3F`, prodlevu
+  a `OUT 60h`. Popis ZRD-1V žádný zamykací mechanismus nemá, sekvence tedy nejspíš jen zapíše bajt na poslední
+  adresu 3FFFFFh a nechá tam adresu „zaparkovanou“. Emulátor to provede doslova. Ověřit u autora MikroMonu.
 
 ## Obsah RAM disku (`media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`)
 
@@ -67,7 +78,21 @@ Zdroje:
 - **RTC** bere čas z hostitele.
 - **Port** je konfigurovatelný (výchozí 60h).
 
+## Implementace v emulátoru
+
+- **Karty:** `ZRMD-1` a `ZRD-1V` (`src/cards/zrmd1.*`), RTC `src/chips/rtc72421.*`.
+- **Konfigurace:** `image`, `working_copy` (výchozí `true` = kopie ve `work/`), `mode`, `chips` (1–8),
+  `base`, `write_enable` [S1..S4], `rtc`, `rtc_int` (JP3: `none`/`int0`/`int1`), `map_jp2`.
+- **Obrazy Intel HEX** se načtou, ale změny se neukládají (režim `nosave`).
+- **Ukládání:** soubor se uloží při ukončení, při načtení jiné sestavy a automaticky 5 s emulovaného času
+  po první změně.
+- **RTC:** hodiny běží podle místního času PC s posunem, který se mění, když program nastaví čas.
+  HOLD, STOP, RESET, 30s ADJ, 12/24 h a periodické přerušení (1/64 s, 1 s, 1 min, 1 h) jsou emulované.
+  Rozdíl mezi pulzním a úrovňovým režimem se zatím neemuluje, výstup je vždy úroveň do smazání příznaku.
+- **Nečtené bity:** horní 4 bity dat RTC nikdo nebudí, čtou se jako 1.
+
 ## Nejasnosti
 
-- Které adresní rozsahy chrání přepínače S1–S4: přiřazení čipů z výběru přes A19–A21 je třeba ověřit.
+- Nulují /RES adresní čítače a latch portu 63h? Emulátor předpokládá, že ano.
+- Které bity portu 63h vedou přes JP2 na MAP1 a MAP2: emulátor předpokládá b6 → MAP1, b7 → MAP2.
 - Zamykání ZRD-1V z MikroMonu (viz výše).

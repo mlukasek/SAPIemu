@@ -108,6 +108,10 @@ void draw_terminal(UiState& ui)
         ImGui::TextUnformatted(m->serials[0]->name.c_str());
     }
     TerminalState& t = ui.terms[ui.terminal_channel];
+    SerialChannel* ch = m->serials[ui.terminal_channel];
+    ImGui::SameLine();
+    bool conn = ch->connected;
+    if (ImGui::Checkbox(tr("Terminal connected (DCD)"), &conn)) ch->connected = conn;
     ImGui::SameLine();
     ImGui::Checkbox(tr("Local echo"), &t.local_echo);
     ImGui::SameLine();

@@ -10,6 +10,7 @@ bool file_read_all(const std::string& utf8_path, std::vector<uint8_t>& out);
 bool file_read_text(const std::string& utf8_path, std::string& out);
 bool file_write_all(const std::string& utf8_path, const void* data, size_t size);
 bool file_exists(const std::string& utf8_path);
+bool make_dirs(const std::string& utf8_dir);
 std::string path_join(const std::string& a, const std::string& b);
 std::string path_dir(const std::string& p);
 
@@ -21,6 +22,11 @@ const std::string& data_root(void);
 // Resolve a path from a config file: absolute paths are kept, relative ones are
 // taken relative to the data root.
 std::string data_path(const std::string& rel);
+
+// Path of the file to use for a writable media image. Images under media/ are
+// pristine originals: when `work_copy` is set they are copied to work/ on first
+// use and the copy is returned. Other paths are returned resolved.
+bool media_path(const std::string& rel, bool work_copy, std::string& out, std::string& err);
 
 // Parse a number given as JSON-ish text: "0x1F", "1Fh", "$1F", "31".
 bool parse_number(const std::string& s, long long& out);

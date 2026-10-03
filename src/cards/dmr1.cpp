@@ -38,13 +38,12 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     if (!ok) { err = "baud must be one of 75..38400 (JP8)"; return false; }
     baud = (uint32_t)v;
     if (!cfg_bool(cfg, "int0", int_enabled, true, err)) return false;
-    if (!cfg_bool(cfg, "dcd", dcd, true, err)) return false;
-    if (!cfg_bool(cfg, "cts", cts, true, err)) return false;
-    if (!cfg_bool(cfg, "dsr", dsr, true, err)) return false;
+    if (!cfg_bool(cfg, "connected", connected_default, true, err)) return false;
 
     char buf[64];
     snprintf(buf, sizeof(buf), "%s@%02Xh", name.c_str(), base);
     serial.reset(new SerialChannel(buf));
+    serial->connected = connected_default;
     return true;
 }
 
@@ -108,9 +107,7 @@ bool Dmr1::io_read(uint8_t port, uint8_t& data)
         // modem status: b7 CTS, b6 DSR, b5 DCD (active = 0), b4 RI (raw RxD, idle = 1),
         // b3 PE, b2 FE, b1 OE, b0 INTR
         uint8_t v = 0;
-        if (!cts) v |= 0x80;
-        if (!dsr) v |= 0x40;
-        if (!dcd) v |= 0x20;
+        if (!serial->connected) v |= 0xE0;   // CTS, DSR, DCD inactive
         v |= 0x10;
         if (uart.pe) v |= 0x08;
         if (uart.fe) v |= 0x04;
@@ -160,4 +157,5 @@ void Dmr1::describe(json& out)
     snprintf(buf, sizeof(buf), "%02Xh", base);
     out["uart_base"] = buf;
     out["baud"] = baud;
+    out["terminal_connected"] = (bool)serial->connected;
 }

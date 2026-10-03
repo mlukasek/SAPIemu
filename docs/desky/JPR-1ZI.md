@@ -91,7 +91,8 @@ Dekodér D6B (`JPR-1ZI_D6B.bin`: bajty 07, 0B, 0D, 0E pro adresy 0–3, jinde 0F
 - **MikroMon 1.3:** podrobnosti v [../software/MikroMon.md](../software/MikroMon.md).
 - **ECMON 2k** („JPR-1Z 62K MON CZ“): kopíruje se na F000. Používá porty 01/02, DSM-1 na 10–17h a 28–2Fh (DPP-1).
 - **ECMON 2k IDE-1:** totéž a navíc porty 5C–5Fh (PMD32-SD přes IDE-1).
-- **ZZRMD 2k/8k:** boot CP/M z RAM disku ZRMD-1. Používá porty 60/63h a DSM-1 na 10h/14h.
+- **ZZRMD 2k/8k:** přenos systému (Intel HEX ze sériové linky) na RAM disk ZRMD-1, **ne** boot. CP/M
+  bootuje ECMON. Podrobnosti v [../software/ECMON.md](../software/ECMON.md).
 
 ## JPR-1V (modernější reinkarnace)
 

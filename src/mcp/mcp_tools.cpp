@@ -585,6 +585,16 @@ json t_serial_receive(EmuHost& h, const json& a)
     return text_result(out);
 }
 
+json t_serial_set_connected(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    SerialChannel* ch = serial_arg(m, a);
+    if (!a.contains("connected")) throw ToolError{ "missing argument 'connected'" };
+    ch->connected = arg_bool(a, "connected", true);
+    return text_result(ch->name + std::string(ch->connected ? ": terminal connected (DCD active)"
+                                                            : ": terminal disconnected (DCD inactive)"));
+}
+
 json t_io_log(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -666,6 +676,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"text":{"type":"string"},"channel":{"type":"integer","default":0}},"required":["text"]})", t_serial_send },
     { "serial_receive", "Read data the SAPI sent on a serial channel since the last serial_receive.",
       R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"max_bytes":{"type":"integer","default":4096},"hex":{"type":"boolean","default":false}}})", t_serial_receive },
+    { "serial_set_connected", "Connect or disconnect the virtual terminal on a serial channel (modem lines DCD/CTS/DSR). Monitors such as ECMON pick the serial console at boot when DCD is active.",
+      R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"connected":{"type":"boolean"}},"required":["connected"]})", t_serial_set_connected },
     { "io_log", "Show recent I/O port accesses; enable=true starts logging (clear=true empties the log).",
       R"({"type":"object","properties":{"enable":{"type":"boolean"},"clear":{"type":"boolean"},"count":{"type":"integer","default":50}}})", t_io_log },
     { "get_log", "Recent emulator log messages (warnings, bus conflicts...).",

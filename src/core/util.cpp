@@ -72,6 +72,13 @@ bool file_exists(const std::string& utf8_path)
     return fs::exists(u8_to_path(utf8_path), ec);
 }
 
+bool make_dirs(const std::string& utf8_dir)
+{
+    std::error_code ec;
+    fs::create_directories(u8_to_path(utf8_dir), ec);
+    return fs::is_directory(u8_to_path(utf8_dir), ec);
+}
+
 std::string path_join(const std::string& a, const std::string& b)
 {
     return path_to_u8(u8_to_path(a) / u8_to_path(b));
@@ -135,6 +142,31 @@ std::string data_path(const std::string& rel)
     fs::path p = u8_to_path(rel);
     if (p.is_absolute()) return rel;
     return path_to_u8(u8_to_path(data_root()) / p);
+}
+
+bool media_path(const std::string& rel, bool work_copy, std::string& out, std::string& err)
+{
+    std::string norm = rel;
+    for (char& c : norm) if (c == '\\') c = '/';
+    if (!work_copy || norm.rfind("media/", 0) != 0) {
+        out = data_path(rel);
+        return true;
+    }
+    fs::path src = u8_to_path(data_path(norm));
+    fs::path dst = u8_to_path(data_root()) / "work" / u8_to_path(norm.substr(6));
+    out = path_to_u8(dst);
+    std::error_code ec;
+    if (fs::exists(dst, ec)) return true;
+    if (!fs::exists(src, ec)) {
+        err = "media file not found: " + path_to_u8(src);
+        return false;
+    }
+    fs::create_directories(dst.parent_path(), ec);
+    if (!fs::copy_file(src, dst, ec)) {
+        err = "cannot create working copy " + out + ": " + ec.message();
+        return false;
+    }
+    return true;
 }
 
 bool parse_number(const std::string& text, long long& out)

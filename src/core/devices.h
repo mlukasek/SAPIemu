@@ -1,6 +1,7 @@
 #pragma once
 // Interfaces between cards and the outside world: CPU, display, keyboard, serial line.
 #include <stdint.h>
+#include <atomic>
 #include <deque>
 #include <mutex>
 #include <string>
@@ -74,6 +75,10 @@ class SerialChannel {
 public:
     explicit SerialChannel(const std::string& n) : name(n) {}
     std::string name;
+    // A terminal is connected on the host side: drives the modem inputs
+    // (DCD/CTS/DSR active). Software such as MikroMon or ECMON uses DCD to decide
+    // whether to use the serial console.
+    std::atomic<bool> connected{ true };
 
     // emulated side
     void to_host(uint8_t b);

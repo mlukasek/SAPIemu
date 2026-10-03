@@ -92,3 +92,18 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   Visual Studia pro F10/F11. Turbo se kvůli tomu přesunulo na F8.
 - **Screenshot:** dvoubarevné obrazovky se ukládají jako PNG s 1bitovou paletou. Obrázek má desítky kB,
   bez nutnosti psát kompresor deflate.
+
+## 2026-10-03 – Implementace F3
+
+- **Dekódování ZRMD-1 přesně podle GAL:** 60h data, 61–63h jen zápis, 70–7Fh RTC; 64–6Fh nic.
+  Ochrana zápisu S1–S4 po 1 MB.
+- **Pracovní kopie médií:** obrazy z `media/` se při prvním použití zkopírují do `work/` (`media_path()`).
+  Nastavením `working_copy: false` se použije přímo zadaný soubor.
+- **RAM disk se ukládá** při ukončení, při načtení jiné sestavy a automaticky 5 s emulovaného času po změně.
+  Je to kompromis mezi bezpečností dat a zápisem 4 MB.
+- **RTC běží podle místního času PC** s posunem, takže nastavení času v SAPI se neprojeví na PC a „přežije“
+  jen do ukončení. Posun se zatím neukládá.
+- **Připojený terminál (DCD)** je vlastnost sériového kanálu, ne karty. Software se podle DCD rozhoduje,
+  kam posílat konzoli, a uživatel to chce přepínat za běhu.
+- **Výchozí sestava CP/M** má terminál odpojený (konzole na obrazovce). MikroMon má terminál připojený
+  (ozvěna na UART).
