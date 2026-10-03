@@ -49,7 +49,7 @@ který port a paměťovou adresu.
   zkušebním režimu, takže se neotevírají ani nekopírují obrazy disků.
 - **Paměť:** pruh 64 KB, v němž má každá karta svou barvu. EPROM procesorové karty (jen po resetu, BOOT = 1)
   je proužek nahoře, protože se čte na kartě a zápis jde na sběrnici. Pod pruhem je tabulka rozsahů s funkcí
-  a přístupem (Č = čtení, Z = zápis).
+  a přístupem (R = čtení, W = zápis).
 - **Porty:** tabulka rozsahů. Neemulované sériové karty (DSM-1) jsou v mapě s porty z konfigurátoru, ostatní
   neemulované karty jsou vypsané jako „dekódování neznámé“.
 - **MAP1/MAP2:** když na nich mapa závisí (AND-1Z se S1, DMR-1 s A6/A7 z MAP), jde vybrat stav linek.

@@ -979,8 +979,8 @@ std::string range_text(const MapRange& rg, int digits)
 std::string flags_text(int f)
 {
     std::string s;
-    if (f & DEC_READ) s += loc("R", "Č");
-    if (f & DEC_WRITE) s += loc("W", "Z");
+    if (f & DEC_READ) s += "R";
+    if (f & DEC_WRITE) s += "W";
     if (f & DEC_ONCARD) s += loc(" (on card)", " (na kartě)");
     return s;
 }
