@@ -196,6 +196,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Pořadí karet je celkem jedno. Klávesnice spíš **Consul 262.3** (ZPS-4 je novější).
     - **ELIS v3.00:** s Consulem 262.3 bere klávesy dvakrát (pulz STROBE) nebo donekonečna (7474). Jak
       monitor v3.00 čte klávesnici? (v7.01 funguje.)
+    - **Pozorování autora (2026-10-04, GUI, ZPS-4):** jednou se systém zasekl a ve stavovém řádku přibývaly
+      neobsloužené klávesy. Mohl to být i software. Zatím nevyhodnocovat, potřebuje to víc testování.
 
 ## Jak pokračovat
 
