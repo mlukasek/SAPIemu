@@ -202,6 +202,25 @@ static const ParamOption k_dsm_baud[] = {
 static const CardParam k_dsm1[] = {
     { "base", PK_CHOICE, "Jumpers 16-12..16-15: ports", "Propojky 16-12 až 16-15: porty", "\"10h\"", k_dmr_base, 0, 0 },
     { "baud", PK_CHOICE, "Jumper: terminal baud rate", "Propojka: rychlost terminálu", "600", k_dsm_baud, 0, 0 },
+    { "int0", PK_BOOL, "UART interrupt on INT0", "Přerušení UART na INT0", "true", nullptr, 0, 0 },
+    { "tape", PK_FILE, "Cassette in the recorder (WAV, MP3)", "Kazeta v magnetofonu (WAV, MP3)", "\"\"", k_none, 0, 0 },
+    { "tape_write_protect", PK_BOOL, "Cassette write protected", "Kazeta chráněná proti zápisu", "true", nullptr, 0, 0 },
+    { "connected", PK_BOOL, "Terminal connected at start (DCD)", "Terminál připojen při startu (DCD)", "true",
+      nullptr, 0, 0 },
+    { "cts", PK_BOOL, "Terminal ready at start (CTS/DSR)", "Terminál připraven při startu (CTS/DSR)", "true",
+      nullptr, 0, 0 },
+    { "flow_control", PK_CHOICE, "Flow control", "Řízení toku", "\"none\"", k_flow, 0, 0 },
+    { "serial.pacing", PK_BOOL, "PC side: no overrun (pacing)", "Strana PC: bez přetečení", "true", nullptr, 0, 0 },
+    { "serial.tcp", PK_SECTION, "PC side: TCP server", "Strana PC: TCP server", "false", nullptr, 0, 0 },
+    { "serial.tcp.port", PK_INT, "TCP port", "TCP port", "2323", nullptr, 1, 65535 },
+    { "serial.tcp.bind", PK_TEXT, "Address (127.0.0.1 = this PC only)", "Adresa (127.0.0.1 = jen tento PC)",
+      "\"127.0.0.1\"", nullptr, 0, 0 },
+    { "serial.tcp.protocol", PK_CHOICE, "Protocol", "Protokol", "\"telnet\"", k_tcp_proto, 0, 0 },
+    { "serial.tcp.dcd_follows", PK_BOOL, "DCD follows the client connection", "DCD podle připojení klienta",
+      "true", nullptr, 0, 0 },
+    { "serial.com", PK_SECTION, "PC side: COM port", "Strana PC: COM port", "false", nullptr, 0, 0 },
+    { "serial.com.port", PK_TEXT, "Port (COM5, /dev/ttyUSB0)", "Port (COM5, /dev/ttyUSB0)", "\"COM1\"", nullptr, 0, 0 },
+    { "serial.com.baud", PK_INT, "Baud rate", "Rychlost", "600", nullptr, 50, 921600 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -331,7 +350,7 @@ CARD(c_dgd1, "DGD-1", "DGD", "Graphic display", "Grafický displej", CC_DISPLAY,
 CARD(c_dbs1a, "DBS-1A", "DBS", "Colour semigraphics", "Barevná semigrafika", CC_DISPLAY, 1, false, nullptr)
 // serial
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,
-     false, k_dsm1)
+     true, k_dsm1)
 CARD(c_dsp1, "DSP-1", "DSP", "Serial ports", "Sériové porty", CC_SERIAL, 1, false, nullptr)
 // disks
 CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič pružných disků (desky A + B)", CC_DISK,

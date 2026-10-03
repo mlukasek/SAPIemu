@@ -47,6 +47,7 @@ file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
     src/input/*.cpp src/serial/*.cpp src/mcp/*.cpp)
 add_library(sapicore STATIC ${CORE_SOURCES})
 target_include_directories(sapicore PUBLIC src)
+target_include_directories(sapicore PRIVATE ${TP}/minimp3)
 target_link_libraries(sapicore PUBLIC chips_z80 i8080 nlohmann_json httplib)
 if(NOT WIN32)
     target_link_libraries(sapicore PUBLIC Threads::Threads)

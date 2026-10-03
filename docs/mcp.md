@@ -47,6 +47,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | Nástroj | Popis |
 |---|---|
 | `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry |
+| `tape_status`, `tape_insert`, `tape_control` | Magnetofon DSM-1: stav, vložení kazety (WAV/MP3 odkudkoli, nebo nová), tlačítka přehrát / nahrát / stop / převinout / vysunout / uložit / ochrana |
 | `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (poslední popis sestavy), `cycle` |
 | `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/` |
 | `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná |

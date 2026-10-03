@@ -1,5 +1,6 @@
 #include "mcp/mcp_tools.h"
 #include "cards/catalog.h"
+#include "cards/dsm1.h"
 #include "cards/ide1.h"
 #include "core/charset.h"
 #include "core/headless.h"
@@ -836,6 +837,82 @@ json t_serial_set_connected(EmuHost& h, const json& a)
                        std::string(ch->cts ? ", CTS/DSR active" : ", CTS/DSR inactive"));
 }
 
+// DSM-1 by its port ("10h") or card name; the first one when not given.
+Dsm1* find_dsm1(Machine& m, const json& a)
+{
+    std::string want = arg_str(a, "card", "", false);
+    long long port = -1;
+    if (!want.empty()) parse_number(want, port);
+    for (auto& c : m.cards) {
+        Dsm1* d = dynamic_cast<Dsm1*>(c.get());
+        if (!d) continue;
+        if (want.empty() || c->name == want || (port >= 0 && d->base_port() == (uint8_t)port)) return d;
+    }
+    throw ToolError{ want.empty() ? "machine has no DSM-1 card" : "no DSM-1 '" + want + "'" };
+}
+
+json tape_json(Dsm1* d)
+{
+    json j;
+    d->describe(j);
+    j["card"] = d->name;
+    return j;
+}
+
+json t_tape_status(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    if (a.contains("card")) return json_result(tape_json(find_dsm1(m, a)));
+    json list = json::array();
+    for (auto& c : m.cards)
+        if (Dsm1* d = dynamic_cast<Dsm1*>(c.get())) list.push_back(tape_json(d));
+    return json_result(json{ { "recorders", list } });
+}
+
+json t_tape_insert(EmuHost& h, const json& a)
+{
+    Dsm1* d = find_dsm1(need_machine(h), a);
+    std::string path = arg_str(a, "path", nullptr, true);
+    bool create = arg_bool(a, "new", false);
+    TapeDeck* t = d->tape();
+    t->eject();
+    std::string err;
+    if (create) {
+        if (!t->create(path, err)) return error_result(err);
+    } else {
+        if (!t->load(path, err)) return error_result(err);
+        if (a.contains("write_protect")) t->write_protect = arg_bool(a, "write_protect", true) || t->is_mp3;
+    }
+    return json_result(tape_json(d));
+}
+
+json t_tape_control(EmuHost& h, const json& a)
+{
+    Dsm1* d = find_dsm1(need_machine(h), a);
+    TapeDeck* t = d->tape();
+    std::string act = arg_str(a, "action", nullptr, true);
+    std::string err;
+    if (act == "eject") {
+        t->eject();
+    } else if (act == "save") {
+        if (!t->save(err)) return error_result(err);
+    } else {
+        if (!t->loaded()) return error_result("no cassette in the recorder");
+        if (act == "play") t->mode = TapeDeck::PLAY;
+        else if (act == "record") {
+            if (t->write_protect) return error_result("the cassette is write protected");
+            t->mode = TapeDeck::RECORD;
+        } else if (act == "stop") t->mode = TapeDeck::STOP;
+        else if (act == "rewind") { t->mode = TapeDeck::STOP; t->pos = 0; }
+        else if (act == "unprotect") {
+            if (t->is_mp3) return error_result("an MP3 cassette cannot be recorded on");
+            t->write_protect = false;
+        } else if (act == "protect") t->write_protect = true;
+        else throw ToolError{ "action must be play, record, stop, rewind, eject, save, protect or unprotect" };
+    }
+    return json_result(tape_json(d));
+}
+
 Ide1* find_ide1(Machine& m)
 {
     for (auto& c : m.cards) {
@@ -919,6 +996,12 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"path":{"type":"string"},"jsonc":{"type":"boolean","default":false}}})", t_get_machine_config },
     { "set_machine_config", "Use a machine description (as returned by get_machine_config, edited): optionally save it as a commented .sapi file (JSON with comments) (path relative to the data directory, e.g. machines/my.sapi) and power the machine on with it (start=true, default). Cards not emulated yet are passive; a machine whose CPU card is not emulated cannot start.",
       R"({"type":"object","properties":{"config":{"type":"object"},"save_as":{"type":"string"},"start":{"type":"boolean","default":true}},"required":["config"]})", t_set_machine_config },
+    { "tape_status", "Cassette recorders of the DSM-1 cards: cassette file, position and length, PLAY/RECORD/STOP, motor (runs only when the program closes the relay), write protection, whether the DSM-1 is switched to the recorder.",
+      R"({"type":"object","properties":{"card":{"type":"string","description":"DSM-1 port (10h) or card name; all when omitted"}}})", t_tape_status },
+    { "tape_insert", "Put a cassette into a DSM-1 recorder: an existing WAV or MP3 file from anywhere (write protected unless write_protect=false; MP3 always), or new=true for a new empty WAV tape that can be recorded on. Recorded tapes are saved on eject, power off and exit.",
+      R"({"type":"object","properties":{"path":{"type":"string"},"new":{"type":"boolean","default":false},"write_protect":{"type":"boolean"},"card":{"type":"string"}},"required":["path"]})", t_tape_insert },
+    { "tape_control", "Buttons of a DSM-1 recorder: play, record, stop, rewind (to the start), eject, save, protect / unprotect. The tape moves only while PLAY or RECORD is pressed and the program switches the motor relay on (MIKROBASIC LOAD / SAVE do that).",
+      R"({"type":"object","properties":{"action":{"type":"string","enum":["play","record","stop","rewind","eject","save","protect","unprotect"]},"card":{"type":"string"}},"required":["action"]})", t_tape_control },
     { "power", "Power switch of the machine: off (RAM lost, battery backed SRAM and RAM disks kept, host connections closed), on (with the last machine description), cycle = off and on. Reset (tool reset) keeps the RAM.",
       R"({"type":"object","properties":{"state":{"type":"string","enum":["on","off","cycle"]}},"required":["state"]})", t_power },
     { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.sapi.",

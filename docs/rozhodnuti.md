@@ -320,3 +320,16 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   Režimy (blikání, kurzor, dvojitá šířka) se kreslí podle popisu, PROM 74188 se zatím nečte.
 - **IDE-1 odpovídá na portech vždy** (autor: jako skutečná deska), i bez disku nebo PMD32-SD.
 - `DisplayDevice::dot_clock_hz()`: poměr TV se počítá podle bodového taktu karty (AND-1 6 MHz, AND-1Z 10 MHz).
+
+## 2026-10-03 – DSM-1 a magnetofon
+
+- **Magnetofon jako skutečný** (autor): tlačítka PŘEHRÁT, NAHRÁT, STOP a Převinout, motor ovládá relé DSM-1.
+  Vložené kazety jsou chráněné proti zápisu, nahrává se na novou kazetu nebo po vypnutí ochrany.
+- **Kazety odkudkoli ve WAV i MP3** (autor). MP3 dekóduje vendorovaná minimp3 (CC0). Nahrávky nejsou v repu,
+  zůstávají v `H:\SAPI-1\SAPI_DOKU_2024-01-03\Kazetopáskové vybavení AUDIO WAV\` (test je přeskočí, když chybí).
+- **Fázový dekodér místo prostého rozhodování podle délky intervalů.** Popis v manuálu (208/416 µs, práh čítače
+  12) na čistých WAV fungoval, na MP3 kopiích dával stovky chyb rámce: jeden zákmit otočil úroveň linky. Fázový
+  dekodér (mřížka bitů podle prvního start bitu, PLL, rozhodnutí každého bitu porovnáním polovin) čte všechny
+  nahrávky bez chyby.
+- **UART MHB1012 dostal bitovou úroveň** (`rx_inject`, `tx_log`). Znaková úroveň zůstává pro terminál, kazeta
+  skládá znaky z demodulované linky přímo v kartě.

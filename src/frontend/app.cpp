@@ -113,6 +113,7 @@ nlohmann::json settings_json(App& app)
                       { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
     j["speed"] = { { "turbo", app.host.turbo }, { "speed_hz", app.host.speed_hz } };
+    j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     return j;
 }
 
@@ -156,6 +157,8 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(s, "tv_aspect", app.tv_aspect);
     get_opt(s, "smooth", app.smooth);
     get_opt(s, "card_types", ui.rack.show_types);
+    const nlohmann::json& cas = j.value("cassette", nlohmann::json::object());
+    get_opt(cas, "last_dir", ui.tape_dlg.last_dir);
     const nlohmann::json& t = j.value("terminal", nlohmann::json::object());
     get_opt(t, "channel", ui.terminal_channel);
     if (ui.terminal_channel < 0) ui.terminal_channel = 0;

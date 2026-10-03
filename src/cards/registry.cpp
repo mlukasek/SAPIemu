@@ -3,6 +3,7 @@
 #include "cards/and1.h"
 #include "cards/and1z.h"
 #include "cards/dmr1.h"
+#include "cards/dsm1.h"
 #include "cards/ide1.h"
 #include "cards/jpr1.h"
 #include "cards/jpr1zi.h"
@@ -16,6 +17,7 @@ Card* card_create(const std::string& type)
     if (type == "REM-1") return new Rem1();
     if (type == "AND-1") return new And1();
     if (type == "DMR-1") return new Dmr1();
+    if (type == "DSM-1") return new Dsm1();
     if (type == "ZRMD-1") return new Zrmd1(false);
     if (type == "IDE-1") return new Ide1();
     if (type == "ZRD-1V") return new Zrmd1(true);
@@ -29,5 +31,5 @@ Card* card_create(const std::string& type)
 
 std::vector<std::string> card_types(void)
 {
-    return { "JPR-1ZI", "JPR-1", "DMR-1", "REM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1" };
+    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1" };
 }

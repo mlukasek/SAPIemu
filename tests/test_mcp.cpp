@@ -160,7 +160,7 @@ int main(void)
     r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/test_mcp_machine.sapi" } });
     json sr = json::parse(text_of(r));
     CHECK(sr["started"] == true);
-    CHECK(sr["problems"].size() == 1);   // DSM-1 not emulated
+    CHECK(sr["problems"].empty());   // DSM-1 on 14h, emulated
     CHECK(file_exists(data_path("work/test/test_mcp_machine.sapi")));
     r = tool(s, "get_machine_config", { { "path", "machines/zps/ZPS-3.sapi" } });
     json zps = json::parse(text_of(r));
@@ -169,6 +169,21 @@ int main(void)
     CHECK(json::parse(text_of(r))["started"] == false);
     r = tool(s, "set_machine_config", { { "config", cfg }, { "save_as", "work/test/x.txt" }, { "start", false } });
     CHECK(r["isError"] == true);
+
+    // cassette recorder of the DSM-1 (ZPS-1)
+    r = tool(s, "load_machine", { { "path", "machines/zps/ZPS-1.sapi" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "tape_insert", { { "path", "work/test/mcp_tape.wav" }, { "new", true } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "tape_control", { { "action", "record" } });
+    CHECK(json::parse(text_of(r))["tape"]["mode"] == "record");
+    r = tool(s, "tape_status", { { "card", "10h" } });
+    CHECK(json::parse(text_of(r))["tape"]["write_protect"] == false);
+    r = tool(s, "tape_control", { { "action", "protect" } });
+    r = tool(s, "tape_control", { { "action", "record" } });
+    CHECK(r["isError"] == true);   // write protected
+    r = tool(s, "tape_control", { { "action", "eject" } });
+    CHECK(json::parse(text_of(r))["tape"]["loaded"] == false);
 
     quit = true;
     emu.join();

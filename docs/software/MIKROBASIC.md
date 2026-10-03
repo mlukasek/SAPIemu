@@ -26,7 +26,18 @@ Na sapi.cz je ještě verze 2.4 pro RAM na JPR-1 a verze 3.1 pro klávesnice Con
   SHIFT+P = DEL. Po přijetí klávesy pípá asi 65 ms a další klávesu bere až po kole skenování bez stisku.
 - Přerušení nepovoluje (nemá EI). Klávesu INT čte přímo z P1-IN7.
 
+## Kazeta (DSM-1 na 10h)
+
+- **SAVE:** `NAME =` jméno, pak motor (`OUT 10h,30h`: relé + KAZ, záznam), UART 8 bitů, 2 stop bity, úvodní tón,
+  `'B'`, jméno, CR, konečná adresa programu (2 bajty), program, kontrolní součet, motor stop (`OUT 10h,10h`).
+- **LOAD:** motor (`OUT 10h,38h`: relé + KAZ + čtení), čeká na ticho, vypíše `*`, hledá `'B'`, vypíše jméno, načte
+  program a ověří součet (jinak ERROR).
+- **REWIND:** pustí motor a čeká na klávesu (převíjí se na magnetofonu).
+- V emulátoru: okno Média → „Nová kazeta…“ (nebo vložit WAV/MP3), stisknout NAHRÁT a napsat SAVE. Pro čtení
+  Převinout, PŘEHRÁT a napsat LOAD.
+
 ## Ověřeno v emulátoru
 
+`tests/test_cassette.cpp`: SAVE na novou kazetu, NEW, LOAD (`*PROG`), RUN.
 `tests/test_mikrobasic.cpp`: naběhne READY, `PRINT 12*34+5` = 413, program s FOR/NEXT, LIST, znaky se SHIFT
 z ANK-1. Verze AR/B 1983 naběhne z EPROM na JPR-1.

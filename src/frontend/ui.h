@@ -13,6 +13,16 @@ class McpServer;
 struct ImFont;
 struct SDL_Window;
 
+// Cassette dialogs of the Media window (answer from another thread).
+struct TapeDialog {
+    std::mutex mtx;
+    int kind = 0;            // 0 none, 1 insert, 2 new tape
+    bool done = false;
+    std::string result;      // chosen file, empty = cancelled
+    std::string card;        // DSM-1 card name
+    std::string last_dir;    // where the last tape came from
+};
+
 // Machine configurator (window "Sestava"): edits a copy of a machine description.
 struct RackEditor {
     nlohmann::json cfg;            // description being edited
@@ -54,6 +64,7 @@ struct UiState {
     bool show_rack = false;
     SDL_Window* window = nullptr;
     RackEditor rack;
+    TapeDialog tape_dlg;
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;

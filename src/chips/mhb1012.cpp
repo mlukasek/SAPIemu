@@ -40,6 +40,15 @@ void Mhb1012::write_data(uint8_t d)
     tbre = false;
 }
 
+void Mhb1012::rx_inject(uint8_t data, bool framing_error, bool parity_error)
+{
+    oe = dr;   // previous character not read yet: overrun
+    rx_data = (uint8_t)(data & ((1u << word_bits) - 1));
+    dr = true;
+    fe = framing_error;
+    pe = parity_error;
+}
+
 uint8_t Mhb1012::read_data(void)
 {
     dr = false;
@@ -58,6 +67,7 @@ void Mhb1012::advance(uint64_t now, SerialChannel* ch, bool rx_allowed)
         tsr = thr;
         tbre = true;
         tsr_busy = true;
+        if (tx_log) tx_log->push_back(TxChar{ now, thr });
         tx_done_at = now + (uint64_t)char_cycles();
     }
     // receiver: a character taken from the host is on the line for one character

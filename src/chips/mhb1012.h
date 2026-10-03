@@ -3,6 +3,7 @@
 // correct timing: a character occupies start + data + parity + stop bits at the
 // configured baud rate. Board-specific register mapping lives in the card.
 #include <stdint.h>
+#include <vector>
 
 class SerialChannel;
 
@@ -28,6 +29,18 @@ struct Mhb1012 {
     // Move characters between the UART and the host channel up to `now`.
     void advance(uint64_t now, SerialChannel* ch, bool rx_allowed = true);
     bool tx_idle(void) const { return tbre && !tsr_busy; }
+
+    // Bit level line (DSM-1 cassette): a character framed on the receive line,
+    // complete now (DR is set at once); and a log of the characters as they start
+    // leaving the transmit shift register.
+    void rx_inject(uint8_t data, bool framing_error, bool parity_error);
+    struct TxChar {
+        uint64_t start;   // CPU cycle of the start bit
+        uint8_t data;
+    };
+    std::vector<TxChar>* tx_log = nullptr;
+    int frame_bits(void) const { return 1 + word_bits + (no_parity ? 0 : 1) + (two_stop ? 2 : 1); }
+    double bit_cycles(void) const { return cycles_per_bit; }
 
 private:
     double char_cycles(void) const;
