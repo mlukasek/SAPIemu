@@ -33,4 +33,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Příkazová řádka:** `tools\build.cmd debug test`. Skript sám najde VS přes vswhere (přednost má VS 2022) a spustí configure, build a ctest.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
 - **Linux (později):** `cmake --preset linux-debug && cmake --build --preset linux-debug`.
+- Na autorově hlavním PC je `H:` síťový disk (`\\Luksrv1\history`). VS proto hlásí, že databázi IntelliSense nemůže
+  uložit do `.vs\`. Hláška je neškodná, stačí potvrdit OK nebo nastavit Fallback Location (C/C++ → Advanced).
+  Sestavení do `out\` na síťovém disku funguje, jen je pomalejší.
 - **Pozor:** makra `Z80_SET_DATA` a podobná v `z80.h` se rozvinou na blok `{}`. Před `else` je proto nutné psát složené závorky.
