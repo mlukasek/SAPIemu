@@ -133,3 +133,9 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   Kdo chce věrné chování skutečné linky, volbu vypne.
 - **Most do sítě nebo COM portu běží ve vlastním vlákně** a s emulací komunikuje jen přes thread-safe
   `SerialChannel`. Před načtením jiné sestavy se mosty zastaví, aby nová sestava mohla otevřít stejný port.
+
+## 2026-10-03 – Reset na F9 místo F12
+
+- Pod debuggerem si Windows rezervují **F12** jako klávesu „zastav v debuggeru“ (UserDebuggerHotKey).
+  Při ladění ve Visual Studiu proto F12 vyvolala „Breakpoint Instruction Executed“ a do emulátoru se
+  nedostala. Reset je teď na **F9**, F12 emulátor nepoužívá.
