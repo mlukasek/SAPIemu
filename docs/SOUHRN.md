@@ -131,7 +131,8 @@ Dřív hotové fáze:
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
-| F9+ | JPR-1V, PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
+| F9 | **Liborovy desky V:** JPR-1V (Z80 až 4 MHz), RAM-1V, AND-1V (VGA), DSM-1V (dvojitý UART), ZRD-1V (zálohování, MAP). Podklady v `..\JPR-1V` atd. (PDF schémata) | ⏳ průzkum podkladů |
+| F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
@@ -205,6 +206,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky. ZPS-1 až ZPS-4 běží (2026-10-04). Otevřené otázky ke ZPS-3/4 jsou v bodech
+4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-04): F9 desky V.** Probíhá rozbor schémat. Výsledek
+   a otázky pro autora se zapíšou do `docs/desky/JPR-1V.md`, `RAM-1V.md`, `AND-1V.md`, `DSM-1V.md` a
+   `ZRMD-1.md` (ZRD-1V). ZPS-1 až ZPS-4 běží (2026-10-04). Otevřené otázky ke ZPS-3/4 jsou v bodech
    19 a 20. Zbývá originální IMA CP/M 48K, k tomu chybí
    disketa (bod 19), a varianty 62K/64K. Podklady jsou v `docs/software/CPM_ZPS-3.md`.
