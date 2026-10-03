@@ -15,6 +15,9 @@ public:
     // "JPR-1ZI", or "JPR-1Z" (ZPS-4): the same card with a 2716 (2 KB, mirrored)
     // and without the XINTA helper (not modelled anyway); decoders D14 = D3C, D10 = D6B
     explicit Jpr1zi(const char* type = "JPR-1ZI");
+    // "JPR-1V" (Libor Lasota): fixed TTL decoding equal to D3C 2k + D6B, 28C64 with
+    // two 2 KB banks at 0000-07FF chosen by the BIOS jumper, 8 MHz oscillator:
+    // bus 2 MHz, CPU 2 or 4 MHz (TURBO)
     ~Jpr1zi() override;
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
@@ -50,6 +53,8 @@ private:
     uint32_t bus_hz = 2000000;
 
     std::vector<uint8_t> eprom;   // 8 KB (2764); JPR-1Z: 2716 mirrored to 8 KB
+    unsigned eprom_off = 0;       // JPR-1V: the bank selected by the BIOS jumper
+    unsigned eprom_mask = 0x1FFF;
     std::vector<uint8_t> d3c;     // memory decoder PROM
     std::vector<uint8_t> d6b;     // I/O decoder PROM
     uint8_t port_out[3] = {0, 0, 0};

@@ -64,6 +64,29 @@ static const CardParam k_jpr1z[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// JPR-1V (Libor Lasota)
+static const ParamOption k_jpr1v_roms[] = {
+    { "\"roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin\"", "bank 0 MikroBIOS 3.0, bank 1 ECMON IDE-1",
+      "banka 0 MikroBIOS 3.0, banka 1 ECMON IDE-1" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_jpr1v_bios[] = {
+    { "\"fitted\"", "fitted: bank 0 (EEPROM 0000-07FF)", "osazená: banka 0 (EEPROM 0000-07FF)" },
+    { "\"open\"", "open: bank 1 (EEPROM 0800-0FFF)", "rozpojená: banka 1 (EEPROM 0800-0FFF)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_jpr1v[] = {
+    { "rom", PK_FILE, "EEPROM 28C64 (two 2 KB banks)", "EEPROM 28C64 (dvě banky po 2 KB)",
+      "\"roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin\"", k_jpr1v_roms, 0, 0 },
+    { "bios", PK_CHOICE, "Jumper BIOS: EEPROM bank", "Propojka BIOS: banka EEPROM", "\"fitted\"", k_jpr1v_bios, 0, 0 },
+    { "turbo", PK_BOOL, "TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz", "TURBO: CPU 4 MHz (jinak 2 MHz), sběrnice vždy 2 MHz",
+      "false", nullptr, 0, 0 },
+    { "osc_hz", PK_INT, "Oscillator (Hz, bus = /4, CPU = /4 or /2)", "Oscilátor (Hz, sběrnice = /4, CPU = /4 nebo /2)",
+      "8000000", nullptr, 1000000, 40000000 },
+    { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // JPR-1 (8080)
 static const ParamOption k_eprom_type[] = {
     { "\"2708\"", "2708 (1 KB)", "2708 (1 KB)" },
@@ -512,7 +535,7 @@ CARD(c_jpr1a, "JPR-1A", "JPR", "CPU card 8080 \"A\" (I/O ports, boot EPROM)", "P
 CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80 (ZPS-4)", "Procesorová deska Z80 (ZPS-4)", CC_CPU, 1, true, k_jpr1z)
 CARD(c_jpr1zi, "JPR-1ZI", "JPR", "CPU card Z80 (new design)", "Procesorová deska Z80 (nová konstrukce)",
      CC_CPU, 1, true, k_jpr1zi)
-CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, false, k_cpu_basic)
+CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, true, k_jpr1v)
 // memory
 CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM", CC_MEMORY, 1, true, k_rem1)
 CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 KB", CC_MEMORY, 1, true, k_ram1)

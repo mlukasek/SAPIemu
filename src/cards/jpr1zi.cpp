@@ -33,12 +33,29 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
     // QC = crystal/4 (4 MHz), QD = crystal/8 (2 MHz)
     cpu_hz = (uint32_t)(cpu_div_mhz == 4 ? crystal / 4 : crystal / 8);
     bus_hz = (uint32_t)(bus_mhz == 4 ? crystal / 4 : crystal / 8);
+    bool v = type == "JPR-1V";
+    eprom_off = 0;
+    eprom_mask = 0x1FFF;
+    if (v) {   // 74HCT175 Johnson counter: bus = osc/4, CPU = osc/4 or osc/2 with TURBO
+        long long osc;
+        bool turbo;
+        std::string bios;
+        if (!cfg_number(cfg, "osc_hz", osc, 8000000, err)) return false;
+        if (!cfg_bool(cfg, "turbo", turbo, false, err)) return false;
+        if (!cfg_string(cfg, "bios", bios, "fitted", err)) return false;
+        if (bios != "fitted" && bios != "open") { err = "bios must be fitted (bank 0) or open (bank 1)"; return false; }
+        bus_hz = (uint32_t)(osc / 4);
+        cpu_hz = (uint32_t)(turbo ? osc / 2 : osc / 4);
+        eprom_off = bios == "fitted" ? 0x000u : 0x800u;
+        eprom_mask = 0x7FF;
+    }
 
     bool z = type == "JPR-1Z";
     std::string rom, decoder, d6b_file;
-    if (!cfg_string(cfg, "rom", rom, "", err)) return false;
+    if (!cfg_string(cfg, "rom", rom, v ? "roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin" : "", err)) return false;
     if (!cfg_string(cfg, "decoder", decoder, z ? "roms/jpr-1z/JPR-1Z_D14_74S287.bin" : "roms/jpr-1zi/JPR-1ZI_D3C_2k.bin",
                     err)) return false;
+    if (v) decoder = "roms/jpr-1zi/JPR-1ZI_D3C_2k.bin";   // fixed logic: the same as D3C 2k (0000-07FF)
     if (!cfg_string(cfg, "io_decoder", d6b_file, z ? "roms/jpr-1z/JPR-1Z_D10_74S287.bin" : "roms/jpr-1zi/JPR-1ZI_D6B.bin",
                     err)) return false;
     if (decoder == "2k") decoder = "roms/jpr-1zi/JPR-1ZI_D3C_2k.bin";
@@ -190,7 +207,7 @@ int Jpr1zi::run(int cycles)
             if (pins & Z80_RD) {
                 bus->wait = 0;
                 uint8_t d;
-                if (rom_selected(addr)) d = eprom[addr & 0x1FFF];
+                if (rom_selected(addr)) d = eprom[eprom_off + (addr & eprom_mask)];
                 else d = bus->mem_read(addr);
                 Z80_SET_DATA(pins, d);
                 stall += bus->wait;
@@ -268,7 +285,7 @@ void Jpr1zi::set_regs(const CpuRegs& r)
 
 uint8_t Jpr1zi::peek(uint16_t addr)
 {
-    if (rom_selected(addr)) return eprom[addr & 0x1FFF];
+    if (rom_selected(addr)) return eprom[eprom_off + (addr & eprom_mask)];
     return bus->mem_peek(addr);
 }
 
