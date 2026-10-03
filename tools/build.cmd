@@ -1,10 +1,13 @@
 @echo off
-rem Command-line build: tools\build.cmd [debug|release] [test]
+rem Command-line build: tools\build.cmd [debug|release|<preset name>] [test]
 rem Finds Visual Studio 2022 via vswhere, sets up the x64 environment and runs CMake presets.
+rem debug/release map to windows-*; any other value is used as a preset name (e.g. local-debug
+rem from the uncommitted CMakeUserPresets.json).
 setlocal
-set CFG=%1
-if "%CFG%"=="" set CFG=debug
-set PRESET=windows-%CFG%
+set PRESET=%1
+if "%PRESET%"=="" set PRESET=debug
+if /i "%PRESET%"=="debug" set PRESET=windows-debug
+if /i "%PRESET%"=="release" set PRESET=windows-release
 
 rem Prefer Visual Studio 2022 (17.x), fall back to the newest installed version.
 set VSWHERE="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"

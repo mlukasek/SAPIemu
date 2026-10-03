@@ -1,5 +1,5 @@
 # Each test is a small standalone executable returning 0 on success.
-# Tests that need ROMs/media get the repository root as SAPIEMU_SOURCE_DIR (via sapicore).
+# Tests that need ROMs/media find the repository through the data root lookup.
 
 function(sapi_test name)
     add_executable(${name} ${name}.cpp test_util.h)
@@ -8,3 +8,17 @@ function(sapi_test name)
 endfunction()
 
 sapi_test(test_z80_smoke)
+sapi_test(test_charset)
+sapi_test(test_decoders)
+sapi_test(test_uart)
+sapi_test(test_mikromon)
+
+# Z80 instruction exerciser: takes minutes in a debug build, so it is registered
+# only for optimized builds (label "slow"; ctest -L slow / -LE slow).
+add_executable(test_zex test_zex.cpp test_util.h)
+target_link_libraries(test_zex PRIVATE sapicore)
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_test(NAME test_zexdoc COMMAND test_zex zexdoc.com)
+    add_test(NAME test_zexall COMMAND test_zex zexall.com)
+    set_tests_properties(test_zexdoc test_zexall PROPERTIES LABELS slow TIMEOUT 1800)
+endif()

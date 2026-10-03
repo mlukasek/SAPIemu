@@ -14,6 +14,18 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Knihovny:** `third_party/` (vendorované, popis v `third_party/README.md`). SDL3 se stahuje přes CMake FetchContent.
 - **Podklady k deskám** jsou mimo repo, o složku výš (`..\JPR-1ZI`, `..\AND-1Z-89`, …), pokud jsou na daném PC naklonované. Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`).
 - **Původní zadání:** `zadani.md`.
+- **Zdrojový kód** (`src/`):
+  - `core/`: sběrnice, karta, stroj, headless, util, charset, ihex, png, log;
+  - `cpu/`: implementace z80.h;
+  - `chips/`: obvody (MHB1012…);
+  - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
+  - `input/`: klávesnice;
+  - `frontend/`: GUI;
+  - `main.cpp`.
+- **Sestavy:** `machines/*.jsonc` (JSON s komentáři, cesty relativně ke kořeni repa).
+- **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
+- **Ověřování:** stav emulace si Claude ověřuje přes `sapiemu-cli` (`--print-screen`, `--screenshot`), ne snímky
+  plochy uživatele.
 
 ## Preference autora (dodržovat)
 

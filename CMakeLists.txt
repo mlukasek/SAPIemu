@@ -75,13 +75,15 @@ if(SAPIEMU_BUILD_GUI)
     target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
     file(GLOB_RECURSE FRONTEND_SOURCES CONFIGURE_DEPENDS src/frontend/*.cpp)
-    add_executable(sapiemu src/main.cpp ${FRONTEND_SOURCES})
+    # GUI application (no console window on Windows)
+    add_executable(sapiemu WIN32 src/main.cpp ${FRONTEND_SOURCES})
     target_link_libraries(sapiemu PRIVATE sapicore imgui SDL3::SDL3)
     target_compile_definitions(sapiemu PRIVATE SAPIEMU_GUI=1)
-else()
-    add_executable(sapiemu src/main.cpp)
-    target_link_libraries(sapiemu PRIVATE sapicore)
 endif()
+
+# Console tool: headless runs, scripting, tests
+add_executable(sapiemu-cli src/main.cpp)
+target_link_libraries(sapiemu-cli PRIVATE sapicore)
 
 if(SAPIEMU_BUILD_TESTS)
     enable_testing()

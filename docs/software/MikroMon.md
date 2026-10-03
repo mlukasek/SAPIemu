@@ -16,6 +16,12 @@ HEX má adresu **0000h** a patří do EPROM JPR-1ZI. Kód je přeložený pro b�
 6. Vypíše „ZPS-4 / MikroMon 2kB V1.3“.
 7. Zamkne ZRD-1V: `OUT 61h,FF; OUT 62h,FF; OUT 63h,3F`, prodleva, `OUT 60h`.
 
+## Ozvěna na UART (zjištěno při emulaci)
+
+Bez příkazu `USYNC` posílá MikroMon každý znak na UART **bez čekání na TBRE**, viz rutina `Echo` v `dsm1.asm`.
+Při 9600 Bd se tak znaky ve vysílacím registru MHB1012 přepisují a terminál dostane jen zhruba každý pátý znak.
+Emulátor to věrně reprodukuje, po startu přijde na linku „Z4kn 3“. Na reálném HW ověřit, zda se to chová stejně.
+
 ## Potřebná paměť
 
 - RAM EE00–F7FF (zásobník EF00h, kód F000–F7FF).
