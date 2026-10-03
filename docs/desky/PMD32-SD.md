@@ -117,3 +117,22 @@ Na SAPI `SendSectorTrack` mapuje D: na 00h a E: na 80h se sektorem −1.
 
 - **SD karta:** složka na hostiteli, výchozí je `work/pmd32sd`, kopie z `media/pmd32sd`.
 - **Protokol:** stavový automat s časováním v emulovaném čase (tik 1 ms), aby odpovídaly timeouty.
+
+## Implementace v emulátoru
+
+- **Firmware jako stavový automat:** hlavní smyčka firmwaru v3.2 (`main()` v `pmd32.c`) je přepsaná
+  1:1 jako stavový automat (`src/chips/pmd32sd.cpp`). Běží v emulovaném čase, takže timeouty (15/10/30/5/500 ms)
+  odpovídají originálu.
+- **Komunikace s 8255:** zařízení přímo sleduje /OBF a IBF a odpovídá impulzy /ACK a /STB.
+- **SD karta** je adresář na hostiteli (`images.cfg` v kořeni).
+  - Rozpoznání typu obrazu, výchozí obraz `*` pro jednotku A a podadresáře (příkazy K, L, M) se chovají
+    jako ve firmwaru.
+  - Příkaz N (vytvoření obrazu vyplněného E5h) také.
+  - Konfiguraci jednotek, kterou firmware drží v EEPROM, nahrazuje konfigurace sestavy, okno **Média**
+    a MCP `pmd32_mount`.
+- **Úvodní hláška:** firmware po zapnutí 3 s ukazuje na LCD hlášku a nekomunikuje. Emulátor má výchozí
+  `startup_ms: 0`.
+- **Zjištění (přímo ze zdrojového kódu firmwaru, testem to nejde ověřit):** po chybném CRC firmware sice
+  pošle NAK (99h, bez čekání), ale hned se vrátí do smyčky prezentace a pošle AAh. Tím NAK ve vstupním
+  latchi 8255 přepíše, takže hostitel místo NAK uvidí AAh. Dokumentace protokolu uvádí NAK, ve skutečnosti
+  rozhoduje timeout a opakování v ovladači SAPI.

@@ -19,6 +19,7 @@ struct UiState {
     bool show_terminal = false;
     bool show_iolog = false;
     bool show_log = false;
+    bool show_media = false;
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;
@@ -45,6 +46,7 @@ void draw_debugger(UiState& ui);
 void draw_memory(UiState& ui);
 void draw_iolog(UiState& ui);
 void draw_terminal(UiState& ui);
+void draw_media(UiState& ui);
 // Keyboard input for the focused terminal; returns true if consumed.
 bool terminal_key(UiState& ui, int sapi_code);
 bool terminal_text(UiState& ui, const char* utf8);

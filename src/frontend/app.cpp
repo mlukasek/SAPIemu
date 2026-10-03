@@ -153,6 +153,7 @@ void draw_menu(App& app)
     }
     if (ImGui::BeginMenu(tr("View"))) {
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
+        ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
         ImGui::Separator();
         if (ImGui::BeginMenu(tr("Phosphor"))) {
@@ -360,6 +361,7 @@ int app_run(const std::string& machine_file, int mcp_port)
         draw_memory(app.ui);
         draw_iolog(app.ui);
         draw_terminal(app.ui);
+        draw_media(app.ui);
         draw_log(app);
         draw_error(app);
         ImGui::Render();

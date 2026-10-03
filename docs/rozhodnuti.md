@@ -107,3 +107,15 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   kam posílat konzoli, a uživatel to chce přepínat za běhu.
 - **Výchozí sestava CP/M** má terminál odpojený (konzole na obrazovce). MikroMon má terminál připojený
   (ozvěna na UART).
+
+## 2026-10-03 – Implementace F4
+
+- **PMD32-SD se emuluje přepisem firmwaru, ne vlastní interpretací protokolu.** Hlavní smyčka `pmd32.c`
+  je přepsaná jako stavový automat (makro `DO()`, jedno čekání na řádek). Tím zůstávají zachované všechny
+  timeouty i zvláštnosti, například přepsání NAK prezentací.
+- **SD karta = adresář** s `images.cfg`. Kopie z `media/pmd32sd` vzniká ve `work/pmd32sd`.
+  Obsah EEPROM (vložené obrazy) nahrazuje konfigurace sestavy.
+- **IDE disk = surový obraz**, ve výchozím stavu 128 MB (16 slotů po 8 MB) vyplněných E5h, takže
+  CP/M vidí prázdné jednotky. Příkazy disk provede okamžitě. BIOS nemá timeouty, rychlost tedy nevadí.
+- **Signály IDE se vyhodnocují na hranách** (/DIOR náběžná = čtení, /DIOW sestupná = zápis), jako na
+  skutečné sběrnici. Proto funguje přesně posloupnost z `IDE.MAC`.

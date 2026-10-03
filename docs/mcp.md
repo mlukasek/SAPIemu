@@ -54,6 +54,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `type_text` | Psaní na klávesnici EKL-1 (`\r` = Enter, čeština → KOI-8čs), volitelně s během `run_ms` |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
+| `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |
 | `serial_set_connected` | Připojení a odpojení terminálu (DCD/CTS/DSR). ECMON a MikroMon podle DCD volí konzoli |
 | `io_log`, `get_log` | Záznam I/O přístupů a log emulátoru |
 

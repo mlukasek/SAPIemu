@@ -1,0 +1,54 @@
+// Martin's CP/M setup: ECMON with IDE-1 support, CP/M 2.2 from the ZRMD-1 RAM
+// disk, B:/C: on an IDE disk (option 3 = HDD), D:/E: on the PMD32-SD.
+// Disk images are working copies in work/ (originals in media/ stay untouched).
+{
+    "name": "CP/M 2.2 s IDE-1 (JPR-1ZI ECMON IDE, DMR-1, AND-1Z-89, ZRMD-1, IDE-1 + PMD32-SD)",
+    "bus": { "type": "ARB-1C", "slots": 8, "jp3": "2-3" },
+    "cards": [
+        {
+            "slot": 1,
+            "type": "JPR-1ZI",
+            "cpu_mhz": 2,
+            "bus_mhz": 2,
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin",
+            "decoder": "2k",
+            "keyboard": { "type": "EKL-1" }
+        },
+        {
+            "slot": 2,
+            "type": "DMR-1",
+            "ram_config": 1,
+            "uart_base": "10h",
+            "baud": 9600,
+            "connected": false
+        },
+        {
+            "slot": 3,
+            "type": "AND-1Z-89"
+        },
+        {
+            "slot": 4,
+            "type": "ZRMD-1",
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",
+            "mode": "rw"
+        },
+        {
+            "slot": 5,
+            "type": "IDE-1",
+            "ide_base": "58h",          // JP1-JP3, JP5
+            "pmd_base": "5Ch",
+            "ide": {
+                // raw image without MBR, 16 slots of 8 MB used by the BIOS (B:, C:)
+                "image": "work/ide/sapi_hdd.img",
+                "create_mb": 128,       // created filled with E5h if missing
+                "readonly": false
+            },
+            "pmd32sd": {
+                "sd_card": "media/pmd32sd",   // directory = SD card (copied to work/pmd32sd)
+                "drives": [ "VZOR_2M.2MB", "a_sluzebni CPM.8sd", null, null ],   // A..D (CP/M D:, E:)
+                "card_locked": false,
+                "startup_ms": 0               // real firmware: 3000 (banner on the LCD)
+            }
+        }
+    ]
+}

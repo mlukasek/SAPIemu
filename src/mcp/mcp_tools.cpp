@@ -1,4 +1,5 @@
 #include "mcp/mcp_tools.h"
+#include "cards/ide1.h"
 #include "core/charset.h"
 #include "core/headless.h"
 #include "core/host.h"
@@ -595,6 +596,44 @@ json t_serial_set_connected(EmuHost& h, const json& a)
                                                             : ": terminal disconnected (DCD inactive)"));
 }
 
+Ide1* find_ide1(Machine& m)
+{
+    for (auto& c : m.cards) {
+        Ide1* i = dynamic_cast<Ide1*>(c.get());
+        if (i && i->pmd32()) return i;
+    }
+    throw ToolError{ "machine has no IDE-1 card with PMD32-SD" };
+}
+
+json t_pmd32_images(EmuHost& h, const json&)
+{
+    Pmd32Sd* p = find_ide1(need_machine(h))->pmd32();
+    json drives = json::array();
+    for (int d = 0; d < Pmd32Sd::DRIVES; d++)
+        drives.push_back(json{ { "drive", std::string(1, (char)('A' + d)) },
+                               { "image", p->drive_present(d) ? json(p->drive_path(d)) : json(nullptr) },
+                               { "wp", p->drive_wp(d) } });
+    return json_result(json{ { "sd_card", p->root() }, { "drives", drives }, { "images", p->list_images() },
+                             { "note", "SAPI CP/M: drive A = D:, drive B = E:" } });
+}
+
+json t_pmd32_mount(EmuHost& h, const json& a)
+{
+    Pmd32Sd* p = find_ide1(need_machine(h))->pmd32();
+    std::string drv = arg_str(a, "drive", nullptr, true);
+    if (drv.size() != 1 || toupper((unsigned char)drv[0]) < 'A' || toupper((unsigned char)drv[0]) > 'D')
+        throw ToolError{ "drive must be A, B, C or D" };
+    int d = toupper((unsigned char)drv[0]) - 'A';
+    std::string image = arg_str(a, "image", "");
+    if (image.empty()) {
+        p->eject(d);
+        return text_result("drive " + drv + " ejected");
+    }
+    int rv = p->mount(d, image, arg_bool(a, "wp", false));
+    if (rv != 0) return error_result("cannot insert " + image + " (PMD32-SD error " + std::to_string(rv) + ")");
+    return text_result("drive " + drv + ": " + image + (p->drive_wp(d) ? " (write protected)" : ""));
+}
+
 json t_io_log(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -678,6 +717,10 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"max_bytes":{"type":"integer","default":4096},"hex":{"type":"boolean","default":false}}})", t_serial_receive },
     { "serial_set_connected", "Connect or disconnect the virtual terminal on a serial channel (modem lines DCD/CTS/DSR). Monitors such as ECMON pick the serial console at boot when DCD is active.",
       R"({"type":"object","properties":{"channel":{"type":"integer","default":0},"connected":{"type":"boolean"}},"required":["connected"]})", t_serial_set_connected },
+    { "pmd32_images", "PMD32-SD floppy emulator (on IDE-1): inserted images of drives A-D and image files available on the SD card directory.",
+      S_NONE, t_pmd32_images },
+    { "pmd32_mount", "Insert an image into a PMD32-SD drive (A-D; in SAPI CP/M A = D:, B = E:), or eject it with an empty image name. The image type must be listed in images.cfg.",
+      R"({"type":"object","properties":{"drive":{"type":"string","enum":["A","B","C","D"]},"image":{"type":"string"},"wp":{"type":"boolean","default":false}},"required":["drive"]})", t_pmd32_mount },
     { "io_log", "Show recent I/O port accesses; enable=true starts logging (clear=true empties the log).",
       R"({"type":"object","properties":{"enable":{"type":"boolean"},"clear":{"type":"boolean"},"count":{"type":"integer","default":50}}})", t_io_log },
     { "get_log", "Recent emulator log messages (warnings, bus conflicts...).",

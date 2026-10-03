@@ -4,32 +4,25 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
-**Hotová fáze F3: RAM disk ZRMD-1 s RTC a boot CP/M 2.2.** Čeká se na ověření autorem.
+**Hotová fáze F4: IDE-1 s IDE diskem a PMD32-SD.** Čeká se na ověření autorem.
 
-- **Karty `ZRMD-1` a `ZRD-1V`:**
-  - 4 MB, porty 60–63h, autoinkrement adresy se zalamuje v rámci 256 B;
-  - ochrana zápisu S1–S4 podle GAL;
-  - režimy `rw`, `nosave` a `readonly`, pracovní kopie ve `work/`, automatické ukládání;
-  - MAP přes JP2.
-- **RTC 72421** podle hodin PC.
-- **Sestava `machines/cpm_zrmd.jsonc`:**
-  - ECMON → volba 1 → „JPR-1Z 62K CP/M V2.2Z … A: ZRMD1/4MB BOOT SS256“ → `A>` → `DIR` funguje;
-  - volby 0 a 2 skončí na HALT (chybí FDC-1, MFC-1), volba 3 po chvíli hlásí „INIT HDD - nenalezen!“
-    a nabootuje do `A>`;
-  - popis v `docs/software/ECMON.md`.
-- **ZZRMD ROM** se ukázala jako přenos systému na RAM disk, ne boot.
-- **„Terminál připojen (DCD)“** je teď vlastnost sériového kanálu. Přepíná se v okně terminálu, v MCP
-  (`serial_set_connected`) a v konfiguraci (`connected`). ECMON i MikroMon podle DCD volí konzoli.
-- **Testy:** `test_zrmd` (porty, zalamování, ochrana, režimy, ukládání, RTC, MAP) a `test_cpm`
-  (boot a DIR, RAM disk jen pro čtení). Celkem 9 testů.
-- **`sapiemu-cli --disasm ADDR N`.**
-- **Sériový terminál** je znakový terminál 80×24 s kurzorem (`src/core/term.*`, test `test_term`).
-  - Emulace: SAPI (kódy ECMON/AND-1Z, výchozí), ANSI/VT100 (základ) a bez emulace (`^X`).
-  - Volba „CR = nový řádek“.
-  - CR se už nebere jako nový řádek, takže zmizelo dvojité odřádkování a „paznaky“ `^]^_` (ECMON posílá
-    1D 1F = domů a smazání obrazovky).
+- **Karta `IDE-1`:**
+  - dvě 8255 (`src/chips/i8255.*`, módy 0, 1 a 2);
+  - IDE disk s obrazem `.img` (`ide_disk.*`, LBA a CHS), vytvoří se automaticky jako 128 MB vyplněných E5h;
+  - PMD32-SD (`pmd32sd.*`): protokol přepsaný z firmwaru v3.2 jako stavový automat v emulovaném čase,
+    SD karta = adresář s `images.cfg`.
+- **Sestava `machines/cpm_ide.jsonc`:**
+  - ECMON IDE → volba 3 → „PMD32-SD OK“, „INIT HDD SAPIemu IDE disk“, `A>`;
+  - `DIR D:` (VZOR_2M.2MB), `DIR E:` (8" obraz), `PIP B:=D:STAT.COM`, `B:STAT B:` fungují.
+- **Okno Média** (Zobrazení → Média): výběr obrazů PMD32-SD A–D, ochrana zápisu, zamčení karty.
+  MCP: `pmd32_images`, `pmd32_mount`.
+- **Pracovní kopie** (`media_path`) umí i celé adresáře (SD karta → `work/pmd32sd`).
+- **Testy:** `test_ide1` (8255, IDE přes porty jako BIOS, protokol PMD32-SD) a `test_cpm_ide` (boot, DIR D:,
+  PIP na B:). Celkem 12 testů.
+- **Zjištění z firmwaru PMD32-SD:** NAK po chybném CRC hned přepíše prezentace AAh (viz `docs/desky/PMD32-SD.md`).
 
 Dřív hotové fáze:
+- **F3:** ZRMD-1 + RTC, boot CP/M z RAM disku, sériový terminál s emulací SAPI/ANSI.
 - **F2:** MCP server (`docs/mcp.md`), debugger, sériový terminál, `EmuHost`.
 - **F0:** kostra, build a dokumentace z průzkumu.
 - **F1:** jádro, karty JPR-1ZI, DMR-1, AND-1Z-89 a EKL-1, GUI, `sapiemu-cli`. ZEXDOC prošel.
@@ -41,8 +34,8 @@ Dřív hotové fáze:
 | F0 | Kostra repa, build, dokumentace z průzkumu, ROM a média | ✅ hotovo |
 | F1 | Jádro, JPR-1ZI, ARB-1C, DMR-1, AND-1Z-89, EKL-1, Intel HEX, režim bez okna, minimální GUI. **MikroMon naběhne a reaguje** | ✅ hotovo |
 | F2 | MCP server (Streamable HTTP), okno terminálu, debugger (registry, disassembler, paměť, breakpointy, I/O log) | ✅ hotovo |
-| F3 | ZRMD-1 + RTC, boot CP/M z RAM disku (ECMON) | ✅ hotovo (ověřit) |
-| F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ⏳ další |
+| F3 | ZRMD-1 + RTC, boot CP/M z RAM disku (ECMON) | ✅ hotovo |
+| F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo (ověřit) |
 | F5+ | Sériová linka přes TCP a COM; Consul 262.3, Consul 259.11, ANK-1; DSM-1 s kazetou (WAV), RAM-1Z, ZRD-1V, JPR-1V; 8080, MIKOS, PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; CI | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -60,6 +53,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 8. **IDE-1:** stav IDE signálů po resetu, když je PC 8255 nastavený jako vstup.
 9. **MikroMon bez USYNC:** ztrácí ozvěna na UART znaky i na skutečném HW? Emulace: po startu přijde „Z4kn 3“.
 10. **MHB1012:** pořadí bitů délky slova (b3/b2) v řídicím registru.
+12. **IDE disk:** máte obraz (dump) skutečného DOM/CF z vaší sestavy? Emulátor zatím začíná s prázdným
+    diskem vyplněným E5h.
 11. **Reálná sestava CP/M:** je na DMR-1 připojený terminál (DCD), nebo se používá obrazovka? Kterou volbu
     0–3 v ECMON používáte (předpoklad: 3 = HDD)? Kterou EPROM máte v JPR-1ZI (ECMON s IDE-1)?
 

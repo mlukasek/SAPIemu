@@ -162,6 +162,15 @@ bool media_path(const std::string& rel, bool work_copy, std::string& out, std::s
         return false;
     }
     fs::create_directories(dst.parent_path(), ec);
+    if (fs::is_directory(src, ec)) {
+        // a directory (e.g. the PMD32-SD "SD card"): copy it recursively
+        fs::copy(src, dst, fs::copy_options::recursive, ec);
+        if (ec) {
+            err = "cannot create working copy " + out + ": " + ec.message();
+            return false;
+        }
+        return true;
+    }
     if (!fs::copy_file(src, dst, ec)) {
         err = "cannot create working copy " + out + ": " + ec.message();
         return false;

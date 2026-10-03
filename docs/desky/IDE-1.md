@@ -124,3 +124,25 @@ Buffery dat jsou povolené jen při /DIOR nebo /DIOW a směr určuje /DIOR. JP4 
 - Po resetu je PC 8255 vstup a vstupy 7406 mohou „plavat“ do H, takže by IDE signály byly aktivní. Není jisté, zda R8 a R9 jsou pull-upy. Emulátor zatím bere signály jako neaktivní.
 - Zapojení lišty SV2 je jen odečtené z PDF.
 - Zdroje OFFSHDD.COM a BIOSu 2015 („BI-3K V050815JB“) nejsou k dispozici.
+
+## Implementace v emulátoru
+
+- **Kód:** karta `IDE-1` (`src/cards/ide1.*`), obvody `src/chips/i8255.*`, `ide_disk.*`, `pmd32sd.*`.
+- **Konfigurace:**
+  - `ide_base` (výchozí 58h), `pmd_base` (výchozí 5Ch);
+  - `ide`: `image`, `create_mb` (vytvoří obraz vyplněný E5h, když chybí), `readonly`, `working_copy`;
+  - `pmd32sd`: `sd_card` (adresář jako SD karta, výchozí `media/pmd32sd`, kopie ve `work/pmd32sd`),
+    `drives` [A..D] (jméno obrazu nebo `{image, wp}`), `card_locked`, `startup_ms`.
+- **8255 IDE:** signály IDE jsou aktivní jen při CW 80h/92h, kdy je port C výstup.
+  - Čtení registru se provede na náběžné hraně PC6 (/DIOR). Data jsou pak na vstupech PA a PB.
+    U 8bitových registrů je D8–D15 FFh.
+  - Zápis se provede na sestupné hraně PC5 (/DIOW) z výstupních latchů PA a PB.
+  - PC7 (náběžná hrana) resetuje disk.
+- **IDE disk:**
+  - IDENTIFY (model „SAPIemu IDE disk“), READ/WRITE SECTORS (LBA28 i CHS, 16 hlav × 63 sektorů),
+    SRST v registru device control.
+  - Příkazy 10h, 91h, E0–E5h, E7h, EFh, C6h, 40h, 70h a 90h se jen přijmou.
+  - Bez obrazu čtou registry FFh (plovoucí sběrnice) a BIOS ohlásí „nenalezen“.
+- **Ověřeno** se sestavou `machines/cpm_ide.jsonc`: ECMON IDE, volba 3 → „PMD32-SD OK“,
+  „INIT HDD SAPIemu IDE disk“, „OFFSET B: 0000H, C: 0200H“. Fungují `DIR D:` a `DIR E:`,
+  `PIP B:=D:STAT.COM` i `B:STAT B:` (8160K volných).
