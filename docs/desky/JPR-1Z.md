@@ -1,0 +1,51 @@
+# JPR-1Z – procesorová deska Z80 pro ZPS-4
+
+Stav: **podklady sebrané, emulace zatím není** (soupis 2026-10-04). JPR-1Z je předchůdce emulované JPR-1ZI
+(`docs/desky/JPR-1ZI.md`). Emulace bude typ JPR-1ZI s jiným nastavením.
+
+`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `PR` = `H:\SAPI-1\Petr_repliky_k_vyrobe`.
+
+## Podklady
+
+- **Návod Tesla (OCR):** `BKP\jpr-1z.php`, obsahuje tabulky PROM, zapojení X1–X3 a zapojení Consul 259.11/262.3.
+- **Schéma:**
+  - překreslené EC1045 2011: `BKP\pdf\jpr-1z.pdf` = `PR\JPR-1ZI\JPR-1Z.pdf`;
+  - zapojení konektorů: `PR\JPR-1ZI\JPR-1Z_*_connector_pinout.txt`.
+- **Skeny originálního návodu:** `H:\SAPI-1\Foto\Jiri_Slansky\Dokumentace\JPR-1Z\1-7.jpg`.
+
+## Rozdíly proti JPR-1ZI (podle schématu)
+
+- **EPROM 2716 (2 KB)** místo 2764.
+- **Bez obvodu XINTA** (pomocné obvody pro 8259). /INT0 → Z80 /INT, INT1 → /NMI.
+- **Takt:** stejný jako u ZI (krystal 16 MHz, 74LS93, JP2/JP3), standard 2 MHz CPU i sběrnice. Návod připouští
+  i krystal 10 MHz s 7490 (÷5) nebo 8 MHz (÷4). Petrova skutečná deska má 8 MHz
+  (`PR\JPR-1ZI\JPR-1Z_PROM_Petr.txt`).
+- **Dekodér paměti D14** (= ZI D3C), zapojení stejné jako u ZI:
+  - A0 = A13, A1 = A12, A2 = GND, A3 = A14, A4 = A15, A5 = A11, A6 = BOOT, A7 = GND, CE = /AEN.
+  - Tabulka Tesla funkčně odpovídá `roms/jpr-1zi/JPR-1ZI_D3C_2k.bin` (významný je jen bit 3, ROM/RAM).
+  - Dumpy: `PR\JPR-1ZI\JPR-1Z_PROM_D14.hex`, `JPR1Z-D14.287` a dump skutečné desky ELIS
+    `JPR-1Z_ELIS_PROM-D14-00/FF.HEX`. Všechny jsou rovnocenné.
+- **Dekodér I/O D10** (= ZI D6B): 07 0B 0D 0E, shodný s `JPR-1ZI_D6B.bin` (`PR\JPR-1ZI\JPR-1Z_PROM_D10.hex`).
+- **Porty:** 00 zápis = vypnutí BOOT, 01–03 = P0–P2 (3212). Zápisy jdou i během BOOT do RAM na sběrnici.
+- **Klávesnice Consul 259.11:**
+  - data /D1–/D7 na P1-IN0–6 (port 02), /CLR na P1-IN7;
+  - /SC na P0-IN0, /AC na P0-OUT0;
+  - /ZVUK na X2 pin 14 = P0-OUT1. Tabulka v návodu uvádí dvakrát P0-OUT0, to je překlep.
+- **Mapování:** X1 piny 21/22 (MAP1/MAP2) jsou prázdné. ZPS-4 mapování nepoužívá.
+
+## ROM pro JPR-1Z (2716)
+
+| ROM | Soubor | Poznámka |
+|---|---|---|
+| MOR62Z (Peřina 1988) | `BKP\data\mor62z_hex.php` | „SAPI-1 ZPS4-62K“, CP/M 2.2/P, zdroj MOR24.MAC (ZPS4 EQU) |
+| „SAPI-1 ZPS4-62K *ZF“ | `H:\SAPI-1\Foto\Jiri_Slansky\SW\JPR-1Z MACROS\1Z.BIN` | varianta MOR62Z |
+| ELIS v3.00 | `BKP\data\elis_hex.php` | kód 8080, text „C262.3“ |
+| ELIS v7.01 | `PR\JPR-1ZI\JPR-1Z_BIOS_ELIS.BIN` | kód Z80, „C259.11/C262.3 + K6313“ |
+| JB „ROM JPR-1Z S AND-1Z CESTINA V131087JB“ | zdroj `MO2711.MAC/.HEX` na `...\IMAGE_8\RPD\60_r1_rmd1m_271111.8sd` | RPD-1 + RMD-1/1MB + AND-1Z + C259.11 |
+
+Originální boot EPROM Tesla IMA pro ZPS-4 se nenašla.
+
+## Nejasnosti
+
+- Originální boot EPROM ZPS-4 (Tesla IMA) a systémová disketa.
+- Která ROM ELIS patří k disketě ELIS (v3.00 má C262.3, disketa hlásí C259.11)?

@@ -78,7 +78,19 @@ OCR tabulky na sapi.cz se od hex souborů místy liší. Platí hex.
 
 Kompozitní video na X2 pin 30. Pro terminál AZJ-462 navíc /HS, VS a /VID s otevřeným kolektorem.
 
+## AND-1Z (ZPS-4)
+
+- Funkčně stejná jako AND-1Z-89 (4× 2114 místo 6116). Návod: AND-1Z na F800 je „pro ELIS (ZPS-4) a CP/M“.
+- **Dumpy z desky ELIS** v `H:\SAPI-1\Petr_repliky_k_vyrobe\AND-1Z-89\`:
+  - PROM D1 `AND-1Z_ELIS_PROM-D1-00/FF.HEX`, `PROM_AND-1Z_D1_ELIS.HEX`: vše 1, 0x3F = 0, 0xBF = 8. Standardní
+    dump má místo toho 0x7F/0xFF, takže ELIS vybere F800–FFFF při **A6 (nepopsaný vstup DA1) = L**, standardní
+    při A6 = H.
+  - Znakový generátor `AND-1Z_ELIS_EPROM.BIN` (4 KB) se od `AND-1Z_CharGen.bin` liší ve 3 bajtech (znaky 17h,
+    3Ch, CBh).
+
 ## Nejasnosti (ověřit na HW)
+
+- AND-1Z: co budí vstup A6 DA1 (ELIS PROM vs standardní)?
 
 - 20 nebo 24 řádků: PROM a manuál říkají 20, dokumentace CP/M 24 („poslední znak na FDFFh“).
 - Délka řádku 107 nebo 108 znaků.

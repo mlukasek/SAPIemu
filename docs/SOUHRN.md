@@ -179,13 +179,24 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Má AND-1A 1 KB, nebo 2 KB video RAM?
     - Pro 62K a 64K: PROM D3A pro F800 a F000 a jak se dvě RAM-1A vyhnou displeji.
 
+20. **ZPS-4:**
+    - RMD-1 PROM: bit 2 (O3) = port 40 (řada), bit 3 (O4) = 43 (příprava čtení)? Schéma má popisky obráceně.
+    - Originální boot EPROM Tesla IMA a systémová disketa ZPS-4?
+    - AND-1Z: co budí vstup A6 PROM DA1 (ELIS PROM chce L, standardní H)?
+    - Která ROM ELIS (v3.00 nebo v7.01) patří k disketě ELIS?
+    - RMD-1: časové limity (INIR při 2/4 MHz, NOP po `OUT 43`).
+    - Pořadí karet ve slotech ZPS-4, Consul 259.11 nebo 262.3?
+
 ## Jak pokračovat
 
 1. `git pull`.
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-03): F8 ZPS-4.** Probíhá soupis podkladů
-   (stejně jako u ZPS-3), výsledek se zapíše do `docs/desky/JPR-1Z.md`, `RAM-1Z.md`, `RMD-1.md` a
-   `docs/software/CPM_ZPS-4.md`. ZPS-3 je hotová (2026-10-03). Zbývá originální IMA CP/M 48K, k tomu chybí
+4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-04): F8 ZPS-4.**
+   - Soupis podkladů je hotový: `docs/desky/JPR-1Z.md`, `RAM-1Z.md`, `RMD-1.md`, `AND-1Z-89.md` a
+     `docs/software/CPM_ZPS-4.md`.
+   - Plán: JPR-1Z jako typ JPR-1ZI (2716, bez XINTA), RAM-1Z s PROM dumpem, RMD-1, CP/M 2.2/P (MOR62Z +
+     CPM62Z) a ELIS.
+   - Otázky jsou v bodě 20. Zbývá originální IMA CP/M 48K, k tomu chybí
    disketa (bod 19), a varianty 62K/64K. Podklady jsou v `docs/software/CPM_ZPS-3.md`.
