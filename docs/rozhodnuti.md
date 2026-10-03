@@ -294,3 +294,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   jsou nahrazené mapou (dvě RAM přes sebe jsou teď kolize, tedy chyba).
 - Konfigurátor mapu přepočítává jen při změně sestavy. MCP `get_machine_config` a `set_machine_config`
   hlásí i kolize z mapy.
+
+## 2026-10-03 – 64bitový překladač ve Visual Studiu
+
+- **VS hlásilo C1060 „compiler is out of heap space“,** ale z příkazové řádky (`toolsuild.cmd`) šel stejný preset
+  přeložit. Presety určovaly jen cílovou architekturu (`x64`, external). VS pak zřejmě volí 32bitový hostitelský
+  překladač (Hostx86), který má strop 4 GB na proces a na šablonách `json.hpp` mu dojde paměť.
+- **Řešení:** `"toolset": { "value": "host=x64", "strategy": "external" }` v `windows-base`. Ve VS je potřeba
+  Delete Cache and Reconfigure.

@@ -55,4 +55,6 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - Na autorově hlavním PC je `H:` síťový disk (`\\Luksrv1\history`). VS proto hlásí, že databázi IntelliSense nemůže
   uložit do `.vs\`. Hláška je neškodná, stačí potvrdit OK nebo nastavit Fallback Location (C/C++ → Advanced).
   Sestavení do `out\` na síťovém disku funguje, jen je pomalejší.
+- **VS a C1060 „compiler is out of heap space“:** presety mají `toolset host=x64`, jinak VS pouští 32bitový `cl.exe`,
+  kterému na souborech s `json.hpp` dojde paměť. Po změně presetů ve VS: Project → Delete Cache and Reconfigure.
 - **Pozor:** makra `Z80_SET_DATA` a podobná v `z80.h` se rozvinou na blok `{}`. Před `else` je proto nutné psát složené závorky.
