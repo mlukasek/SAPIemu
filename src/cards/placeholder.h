@@ -7,4 +7,5 @@ class PlaceholderCard : public Card {
 public:
     explicit PlaceholderCard(const std::string& t) : Card("placeholder") { type = t; }
     void describe(nlohmann::json& out) override { out["emulated"] = false; }
+    bool decode_known() override { return false; }
 };

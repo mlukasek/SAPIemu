@@ -22,9 +22,11 @@ public:
     SerialChannel* serial_channel(int index) override { return index == 0 ? serial.get() : nullptr; }
     void describe(nlohmann::json& out) override;
     void flush() override;   // battery backed SRAM -> file
+    int decode_io(uint8_t port, const char** what) override;
+    int decode_mem(uint16_t addr, int map, const char** what) override;
 
 private:
-    bool ram_select(uint16_t addr, uint32_t& offset, bool& write_block) const;
+    bool ram_select(uint16_t addr, int map, uint32_t& offset, bool& write_block) const;
 
     // RAM
     bool ram_enabled = true;

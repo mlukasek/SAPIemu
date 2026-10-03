@@ -530,6 +530,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         LOGI("settings: %s", app.settings_path.c_str());
     }
     int win_w = (int)(1100 * dpi), win_h = (int)(760 * dpi);
+    if (snap) win_h = (int)(1300 * dpi);   // room for the configurator with its map
     const nlohmann::json& sw = settings.value("window", nlohmann::json::object());
     int sx = 0, sy = 0, sww = 0, swh = 0;
     bool spos = false, smax = false;
@@ -650,6 +651,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             // follow_machine() has run: open the requested description, select the slot
             if (!snap->open.empty()) rack_open_in_editor(app.ui, snap->open);
             app.ui.rack.sel = snap->rack_slot;
+            app.ui.rack.open_map_tab = snap->map;
         }
         if (snap && snap_frames >= 12) {
             // window content as PNG (our own renderer, not the screen)

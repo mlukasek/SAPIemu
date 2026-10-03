@@ -19,6 +19,7 @@ public:
     bool io_write(uint8_t port, uint8_t data) override;
     void flush() override;
     void describe(nlohmann::json& out) override;
+    int decode_io(uint8_t port, const char** what) override;
 
     // I8255Peripheral (IDE side)
     uint8_t pins_a() override { return data_lo; }

@@ -6,6 +6,7 @@
 #include "core/host.h"
 #include "core/log.h"
 #include "core/machine_cfg.h"
+#include "core/machine_map.h"
 #include "core/png.h"
 #include "core/util.h"
 #include "core/version.h"
@@ -277,11 +278,71 @@ json problems_json(const json& cfg, bool& runnable)
 {
     json pr = json::array();
     runnable = true;
-    for (const CfgProblem& p : machine_cfg_problems(cfg)) {
+    for (const CfgProblem& p : machine_all_problems(cfg)) {
         pr.push_back({ { "slot", p.slot }, { "error", p.error }, { "text", p.en } });
         if (p.error) runnable = false;
     }
     return pr;
+}
+
+json t_machine_map(EmuHost& h, const json& a)
+{
+    std::string path = arg_str(a, "path", "", false);
+    json cfg;
+    if (a.contains("config") && a["config"].is_object()) {
+        cfg = a["config"];
+    } else if (!path.empty()) {
+        std::string text;
+        if (!file_read_text(data_path(path), text)) return error_result("cannot read " + path);
+        cfg = json::parse(text, nullptr, false, true);
+        if (cfg.is_discarded()) return error_result("syntax error in " + path);
+    } else {
+        cfg = need_machine(h).config;
+    }
+    MachineMap m;
+    machine_map_build(cfg, m);
+    auto ranges = [&](const std::vector<MapRange>& rs, int digits) {
+        json out = json::array();
+        for (const MapRange& r : rs) {
+            char lo[8], hi[8];
+            snprintf(lo, sizeof(lo), "%0*Xh", digits, r.lo);
+            snprintf(hi, sizeof(hi), "%0*Xh", digits, r.hi);
+            json users = json::array();
+            for (const MapUser& u : r.users) {
+                std::string acc = std::string((u.flags & DEC_READ) ? "R" : "") + ((u.flags & DEC_WRITE) ? "W" : "");
+                json ju = { { "card", m.cards[(size_t)u.card].name }, { "slot", m.cards[(size_t)u.card].slot },
+                            { "function", u.what }, { "access", acc } };
+                if (u.flags & DEC_ONCARD) ju["on_cpu_card"] = true;
+                users.push_back(ju);
+            }
+            json jr = { { "from", lo }, { "to", hi }, { "users", users } };
+            if (r.conflict) jr["conflict"] = true;
+            if (r.shared_write) jr["shared_write"] = true;
+            out.push_back(jr);
+        }
+        return out;
+    };
+    json j;
+    j["io"] = ranges(m.io, 2);
+    if (m.map_matters) {
+        json mm = json::object();
+        for (int s = 0; s < 4; s++) {
+            char key[24];
+            snprintf(key, sizeof(key), "MAP1=%d MAP2=%d", s & 1, (s >> 1) & 1);
+            mm[key] = ranges(m.mem[s], 4);
+        }
+        j["memory_by_map"] = mm;
+    } else {
+        j["memory"] = ranges(m.mem[0], 4);
+    }
+    json unknown = json::array();
+    for (const MapCard& c : m.cards)
+        if (!c.known && !c.declared) unknown.push_back(c.name);
+    if (!unknown.empty()) j["decoding_unknown"] = unknown;
+    json pr = json::array();
+    for (const CfgProblem& p : machine_map_problems(m)) pr.push_back({ { "error", p.error }, { "text", p.en } });
+    j["conflicts"] = pr;
+    return json_result(j);
 }
 
 json t_get_machine_config(EmuHost& h, const json& a)
@@ -852,6 +913,8 @@ const Tool k_tools[] = {
       S_NONE, t_list_machines },
     { "card_catalog", "Catalog of SAPI-1 cards and buses for machine descriptions: card types (emulated or placeholder), slots they take and every configuration parameter (jumpers, ROM files, options with meaning, defaults). Optionally only one card type.",
       R"({"type":"object","properties":{"type":{"type":"string"}}})", t_card_catalog },
+    { "machine_map", "Port and memory map of a machine from the cards' own address decoders (PROM dumps, jumpers): which card answers which I/O port and memory range (per MAP1/MAP2 state when it matters), with conflicts (two cards answering a read). For the running machine, a file ('path') or a description ('config').",
+      R"({"type":"object","properties":{"path":{"type":"string"},"config":{"type":"object"}}})", t_machine_map },
     { "get_machine_config", "Machine description (cards in slots X1.., jumpers) of the running machine, or of a file when 'path' is given, with layout problems. jsonc=true adds the commented .sapi file text as the configurator writes it.",
       R"({"type":"object","properties":{"path":{"type":"string"},"jsonc":{"type":"boolean","default":false}}})", t_get_machine_config },
     { "set_machine_config", "Use a machine description (as returned by get_machine_config, edited): optionally save it as a commented .sapi file (JSON with comments) (path relative to the data directory, e.g. machines/my.sapi) and power the machine on with it (start=true, default). Cards not emulated yet are passive; a machine whose CPU card is not emulated cannot start.",

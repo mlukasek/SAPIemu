@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "json.hpp"
+#include "core/machine_map.h"
 #include "core/term.h"
 
 class EmuHost;
@@ -20,6 +21,12 @@ struct RackEditor {
     uint64_t machine_gen = ~0ull;  // generation of the running machine the editor follows
     int sel = 0;                   // selected slot, 0 = the bus
     bool show_types = true;        // exact card type across the panels
+    // port and memory map of `cfg`, rebuilt when it changes
+    nlohmann::json map_cfg;
+    MachineMap map;
+    std::vector<CfgProblem> problems;   // layout problems and map conflicts
+    int map_state = 0;                  // MAP1/MAP2 state shown in the map
+    bool open_map_tab = false;          // select the map tab once (UI snapshot)
     std::string message;
     bool message_error = false;
 

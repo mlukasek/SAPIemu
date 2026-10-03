@@ -31,9 +31,9 @@ bool And1z::configure(const json& cfg, std::string& err)
 
 // D1 inputs: A0=A15, A1=A11, A2=/RES (high in operation), A3=A14, A4=A13, A5=A12,
 // A6=not labelled (assumed high), A7=A10. Outputs: bit0 = /SEL, bit3 = MA10.
-bool And1z::select(uint16_t a, unsigned& offset) const
+bool And1z::select(uint16_t a, int map, unsigned& offset) const
 {
-    if (map_enabled && (bus->map & MAP_1)) return false;
+    if (map_enabled && (map & MAP_1)) return false;
     unsigned idx = ((a >> 15) & 1) | (((a >> 11) & 1) << 1) | (1u << 2) | (((a >> 14) & 1) << 3) |
                    (((a >> 13) & 1) << 4) | (((a >> 12) & 1) << 5) | (1u << 6) | (((a >> 10) & 1) << 7);
     uint8_t o = prom_d1[idx];
@@ -54,10 +54,18 @@ int And1z::wait_states(void) const
     return (int)(wait_ns / ns_per_cycle) + 1;
 }
 
+int And1z::decode_mem(uint16_t addr, int map, const char** what)
+{
+    unsigned off;
+    if (!select(addr, map, off)) return 0;
+    *what = "VRAM";
+    return DEC_READ | DEC_WRITE;
+}
+
 bool And1z::mem_read(uint16_t addr, uint8_t& data)
 {
     unsigned off;
-    if (!select(addr, off)) return false;
+    if (!select(addr, bus->map, off)) return false;
     data = vram[off];
     bus->wait += wait_states();
     return true;
@@ -66,7 +74,7 @@ bool And1z::mem_read(uint16_t addr, uint8_t& data)
 bool And1z::mem_write(uint16_t addr, uint8_t data)
 {
     unsigned off;
-    if (!select(addr, off)) return false;
+    if (!select(addr, bus->map, off)) return false;
     vram[off] = data;
     bus->wait += wait_states();
     return true;
@@ -75,7 +83,7 @@ bool And1z::mem_write(uint16_t addr, uint8_t data)
 bool And1z::mem_peek(uint16_t addr, uint8_t& data)
 {
     unsigned off;
-    if (!select(addr, off)) return false;
+    if (!select(addr, bus->map, off)) return false;
     data = vram[off];
     return true;
 }

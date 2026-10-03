@@ -954,6 +954,145 @@ void draw_slot_props(UiState& ui, int slot)
     }
 }
 
+// ---------------------------------------------------------------- port and memory map
+
+// card colours of the map; red is kept for conflicts
+ImU32 card_color(int i)
+{
+    static const ImU32 pal[10] = {
+        IM_COL32(86, 156, 214, 255), IM_COL32(106, 190, 106, 255), IM_COL32(220, 190, 80, 255),
+        IM_COL32(170, 120, 210, 255), IM_COL32(80, 196, 196, 255), IM_COL32(200, 140, 90, 255),
+        IM_COL32(150, 170, 80, 255), IM_COL32(120, 140, 230, 255), IM_COL32(190, 190, 190, 255),
+        IM_COL32(110, 200, 160, 255),
+    };
+    return pal[(i < 0 ? 0 : i) % 10];
+}
+
+std::string range_text(const MapRange& rg, int digits)
+{
+    char buf[32];
+    if (rg.lo == rg.hi) snprintf(buf, sizeof(buf), "%0*Xh", digits, rg.lo);
+    else snprintf(buf, sizeof(buf), "%0*X-%0*Xh", digits, rg.lo, digits, rg.hi);
+    return buf;
+}
+
+std::string flags_text(int f)
+{
+    std::string s;
+    if (f & DEC_READ) s += loc("R", "Č");
+    if (f & DEC_WRITE) s += loc("W", "Z");
+    if (f & DEC_ONCARD) s += loc(" (on card)", " (na kartě)");
+    return s;
+}
+
+void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>& ranges, int digits)
+{
+    ImGuiTableFlags tf = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingFixedFit;
+    if (!ImGui::BeginTable(id, 4, tf)) return;
+    ImGui::TableSetupColumn(tr("Addresses"));
+    ImGui::TableSetupColumn(tr("Card"));
+    ImGui::TableSetupColumn(tr("Function"));
+    ImGui::TableSetupColumn(tr("Access"));
+    ImGui::TableHeadersRow();
+    for (const MapRange& rg : ranges) {
+        for (size_t k = 0; k < rg.users.size(); k++) {
+            const MapUser& us = rg.users[k];
+            ImGui::TableNextRow();
+            ImVec4 col = rg.conflict ? TXT_ERROR : rg.shared_write ? TXT_WARN : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            ImGui::TableNextColumn();
+            if (k == 0) ImGui::TextColored(col, "%s", range_text(rg, digits).c_str());
+            ImGui::TableNextColumn();
+            ImGui::ColorButton("##c", ImColor(card_color(us.card)), ImGuiColorEditFlags_NoTooltip,
+                               ImVec2(ImGui::GetFontSize() * 0.7f, ImGui::GetFontSize() * 0.7f));
+            ImGui::SameLine();
+            ImGui::TextColored(col, "%s (X%d)", m.cards[(size_t)us.card].name.c_str(), m.cards[(size_t)us.card].slot);
+            ImGui::TableNextColumn();
+            ImGui::TextColored(col, "%s", tr(us.what.c_str()));
+            ImGui::TableNextColumn();
+            ImGui::TextColored(col, "%s%s", flags_text(us.flags).c_str(),
+                               k == 0 && rg.conflict ? loc("  CONFLICT", "  KOLIZE") : "");
+        }
+    }
+    ImGui::EndTable();
+}
+
+// 64 KB as a bar: one colour per card, conflicts red, the CPU card's EPROM as a strip on top.
+void memory_bar(const MachineMap& m, const std::vector<MapRange>& ranges)
+{
+    float u = ImGui::GetFontSize();
+    float w = ImGui::GetContentRegionAvail().x - 4, h = 1.8f * u;
+    ImVec2 o = ImGui::GetCursorScreenPos();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), IM_COL32(40, 40, 44, 255));
+    auto x_of = [&](int a) { return o.x + w * (float)a / 65536.0f; };
+    for (const MapRange& rg : ranges) {
+        float x0 = x_of(rg.lo), x1 = x_of(rg.hi + 1);
+        if (x1 - x0 < 1.0f) x1 = x0 + 1.0f;
+        int bus_users = 0, oncard = -1, first = -1;
+        for (const MapUser& us : rg.users) {
+            if (us.flags & DEC_ONCARD) oncard = us.card;
+            else { bus_users++; if (first < 0) first = us.card; }
+        }
+        if (first >= 0)
+            dl->AddRectFilled(ImVec2(x0, o.y + 0.35f * h), ImVec2(x1, o.y + h), rg.conflict ? COL_ERROR : card_color(first));
+        if (oncard >= 0) dl->AddRectFilled(ImVec2(x0, o.y), ImVec2(x1, o.y + 0.3f * h), card_color(oncard));
+    }
+    for (int a = 0; a <= 0x10000; a += 0x1000) {
+        float x = x_of(a);
+        dl->AddLine(ImVec2(x, o.y + h), ImVec2(x, o.y + h + ((a & 0x3FFF) ? 0.2f : 0.4f) * u), IM_COL32(150, 150, 150, 255));
+    }
+    const int marks[5] = { 0x0000, 0x4000, 0x8000, 0xC000, 0xFFFF };
+    for (int i = 0; i < 5; i++) {
+        char t[8];
+        snprintf(t, sizeof(t), "%04X", marks[i]);
+        float tw = ImGui::CalcTextSize(t).x;
+        float x = x_of(marks[i] == 0xFFFF ? 0x10000 : marks[i]) - (i == 0 ? 0 : i == 4 ? tw : tw * 0.5f);
+        dl->AddText(ImVec2(x, o.y + h + 0.45f * u), IM_COL32(200, 200, 200, 255), t);
+    }
+    ImGui::InvisibleButton("membar", ImVec2(w, h));
+    if (ImGui::IsItemHovered()) {
+        int a = (int)((ImGui::GetIO().MousePos.x - o.x) / w * 65536.0f);
+        if (a < 0) a = 0;
+        if (a > 0xFFFF) a = 0xFFFF;
+        std::string who = tr("nothing (open bus, FFh)");
+        for (const MapRange& rg : ranges) {
+            if (a < rg.lo || a > rg.hi) continue;
+            who.clear();
+            for (const MapUser& us : rg.users)
+                who += (who.empty() ? "" : ", ") + m.cards[(size_t)us.card].name + " " + tr(us.what.c_str());
+        }
+        ImGui::SetTooltip("%04Xh: %s", a, who.c_str());
+    }
+    ImGui::Dummy(ImVec2(w, 1.2f * u));
+}
+
+void draw_map(RackEditor& r)
+{
+    const MachineMap& m = r.map;
+    if (m.map_matters) {
+        const char* states[4] = { "MAP1=0 MAP2=0", "MAP1=1 MAP2=0", "MAP1=0 MAP2=1", "MAP1=1 MAP2=1" };
+        ImGui::SetNextItemWidth(12.0f * ImGui::GetFontSize());
+        ImGui::Combo(tr("Memory map for"), &r.map_state, states, 4);
+    } else {
+        r.map_state = 0;
+    }
+    std::string unknown;
+    for (const MapCard& c : m.cards)
+        if (!c.known && !c.declared) unknown += (unknown.empty() ? "" : ", ") + c.name + " (X" + std::to_string(c.slot) + ")";
+    if (!unknown.empty())
+        ImGui::TextColored(TXT_WARN, "%s %s", tr("Decoding unknown (not emulated):"), unknown.c_str());
+
+    ImGui::SeparatorText(tr("Memory"));
+    const std::vector<MapRange>& mem = r.map.mem[r.map_state & 3];
+    memory_bar(m, mem);
+    if (mem.empty()) ImGui::TextDisabled("%s", tr("No card answers in the memory."));
+    else map_table("memmap", m, mem, 4);
+    ImGui::SeparatorText(tr("I/O ports"));
+    if (m.io.empty()) ImGui::TextDisabled("%s", tr("No card answers on the ports."));
+    else map_table("iomap", m, m.io, 2);
+    ImGui::TextDisabled("%s", tr("Addresses nobody answers read FFh (open bus). The CPU card's EPROM is read on the card, writes go to the bus."));
+}
+
 void new_menu(UiState& ui)
 {
     RackEditor& r = ui.rack;
@@ -1003,7 +1142,8 @@ void draw_rack(UiState& ui)
     if (!ui.show_rack) return;
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();
-    ImGui::SetNextWindowSize(ImVec2(62.0f * u, 46.0f * u), ImGuiCond_FirstUseEver);
+    ImVec2 vp = ImGui::GetMainViewport()->WorkSize;   // first use: most of the main window
+    ImGui::SetNextWindowSize(ImVec2(vp.x * 0.92f < 62.0f * u ? vp.x * 0.92f : 62.0f * u, vp.y * 0.9f), ImGuiCond_FirstUseEver);
     bool dirty = r.cfg != r.saved;
     char title[300];
     snprintf(title, sizeof(title), "%s - %s%s###rack", tr("Machine configuration"),
@@ -1036,7 +1176,14 @@ void draw_rack(UiState& ui)
     ImGui::SameLine();
     ImGui::TextDisabled("|");
     ImGui::SameLine();
-    std::vector<CfgProblem> problems = machine_cfg_problems(r.cfg);
+    if (r.map_cfg != r.cfg) {   // the map needs the cards built: only when something changed
+        r.map_cfg = r.cfg;
+        machine_map_build(r.cfg, r.map);
+        r.problems = machine_cfg_problems(r.cfg);
+        std::vector<CfgProblem> mp = machine_map_problems(r.map);
+        r.problems.insert(r.problems.end(), mp.begin(), mp.end());
+    }
+    const std::vector<CfgProblem>& problems = r.problems;
     bool runnable = true;
     for (const CfgProblem& p : problems) if (p.error) runnable = false;
     ImGui::BeginDisabled(!runnable);
@@ -1063,8 +1210,19 @@ void draw_rack(UiState& ui)
         ImGui::TextColored(p.error ? TXT_ERROR : TXT_WARN, "%s", loc(p.en.c_str(), p.cs.c_str()));
     if (!problems.empty()) ImGui::Separator();
     if (r.sel > machine_cfg_slots(r.cfg)) r.sel = 0;
-    if (r.sel == 0) draw_bus_props(r);
-    else draw_slot_props(ui, r.sel);
+    if (ImGui::BeginTabBar("props_tabs")) {
+        if (ImGui::BeginTabItem(r.sel == 0 ? tr("Machine and bus") : tr("Card settings"))) {
+            if (r.sel == 0) draw_bus_props(r);
+            else draw_slot_props(ui, r.sel);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem(tr("Port and memory map"), nullptr, r.open_map_tab ? ImGuiTabItemFlags_SetSelected : 0)) {
+            r.open_map_tab = false;
+            draw_map(r);
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
     ImGui::EndChild();
     ImGui::End();
 }

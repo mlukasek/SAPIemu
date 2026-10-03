@@ -39,6 +39,23 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   hodnoty. Ruční komentáře z původního souboru se při uložení z konfigurátoru ztratí.
 - Dokud v konfigurátoru nejsou neuložené změny, sleduje běžící sestavu (i když ji změní MCP).
 
+## Mapa portů a paměti
+
+Záložka „Mapa portů a paměti“ pod rámem (a MCP nástroj `machine_map`) ukazuje, která karta odpovídá na
+který port a paměťovou adresu.
+
+- **Zdroj je dekódování samotných karet:** tytéž PROM dumpy a jumpery, podle kterých karta odpovídá za běhu
+  (JPR-1ZI D3C/D6B, DMR-1 D2C a JP3, AND-1Z D1 a S1, ZRMD-1 GAL, IDE-1 JP1–JP5). Karty se pro výpočet postaví ve
+  zkušebním režimu, takže se neotevírají ani nekopírují obrazy disků.
+- **Paměť:** pruh 64 KB, v němž má každá karta svou barvu. EPROM procesorové karty (jen po resetu, BOOT = 1)
+  je proužek nahoře, protože se čte na kartě a zápis jde na sběrnici. Pod pruhem je tabulka rozsahů s funkcí
+  a přístupem (Č = čtení, Z = zápis).
+- **Porty:** tabulka rozsahů. Neemulované sériové karty (DSM-1) jsou v mapě s porty z konfigurátoru, ostatní
+  neemulované karty jsou vypsané jako „dekódování neznámé“.
+- **MAP1/MAP2:** když na nich mapa závisí (AND-1Z se S1, DMR-1 s A6/A7 z MAP), jde vybrat stav linek.
+- **Kolize:** dvě karty, které na čtení budí sběrnici na stejné adrese, jsou chyba a sestava se nezapne. Jsou
+  červeně v pruhu i v tabulce. Zápis do dvou karet je varování. Nikým neobsazené adresy čtou FFh.
+
 ## Šablony ZPS
 
 `machines/zps/ZPS-1.sapi` až `ZPS-4.sapi` podle https://sapi.cz/sapi/doku2/zps.php:
@@ -92,5 +109,5 @@ procesorové karty nejsou emulované. Dají se ale prohlížet, upravovat a ukl�
 
 ## Ověření vzhledu bez snímku plochy
 
-`sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT]` vykreslí GUI do
+`sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map]` vykreslí GUI do
 skrytého okna, uloží obrázek a skončí. Rozložení oken uživatele (`imgui.ini`) se nemění.

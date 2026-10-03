@@ -61,7 +61,7 @@ bool Ide1::configure(const json& cfg, std::string& err)
         if (!cfg_bool(d, "readonly", ro, false, err)) return false;
         if (!cfg_bool(d, "working_copy", work, true, err)) return false;
         if (!cfg_number(d, "create_mb", create_mb, 0, err)) return false;
-        if (!image.empty()) {
+        if (!image.empty() && !probe) {
             if (!media_path(image, work, path, err)) {
                 if (create_mb <= 0) return false;
                 err.clear();
@@ -86,6 +86,7 @@ bool Ide1::configure(const json& cfg, std::string& err)
         if (!cfg_bool(p, "card_locked", pmd.card_locked, false, err)) return false;
         if (!cfg_number(p, "startup_ms", startup, 0, err)) return false;
         pmd.startup_ms = (uint32_t)startup;
+        if (probe) return true;   // only the decoding is wanted: no SD card copy
         if (!media_path(sd, work, path, err)) return false;
         if (!pmd.init(path, err)) return false;
         if (p.contains("drives")) {
@@ -156,6 +157,13 @@ void Ide1::outputs_changed(int port, uint8_t value)
         }
     }
     last_pc = pc;
+}
+
+int Ide1::decode_io(uint8_t port, const char** what)
+{
+    if (ide_enabled && (port & 0xFC) == base_ide) { *what = "IDE (8255)"; return DEC_READ | DEC_WRITE; }
+    if (pmd_enabled && (port & 0xFC) == base_pmd) { *what = "PMD32-SD (8255)"; return DEC_READ | DEC_WRITE; }
+    return 0;
 }
 
 bool Ide1::io_read(uint8_t port, uint8_t& data)

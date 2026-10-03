@@ -69,7 +69,7 @@ bool Zrmd1::configure(const json& cfg, std::string& err)
     bool work_copy;
     if (!cfg_string(cfg, "image", image, "", err)) return false;
     if (!cfg_bool(cfg, "working_copy", work_copy, true, err)) return false;
-    if (image.empty()) {
+    if (image.empty() || probe) {   // probe: no working copies just to look at the decoding
         mem.assign(size, 0xE5);   // empty CP/M directory pattern
         if (mode == MODE_RW) mode = MODE_NOSAVE;
         return true;
@@ -116,6 +116,15 @@ bool Zrmd1::writable(uint32_t addr) const
     if (mode == MODE_READONLY) return false;
     if (is_zrd1v) return true;
     return write_enable[(addr >> 20) & 3];   // S1..S4 per 1 MB (GAL mem.eqn, A20/A21)
+}
+
+int Zrmd1::decode_io(uint8_t port, const char** what)
+{
+    uint8_t off = (uint8_t)(port - base);
+    if (off == 0) { *what = "RAM disk data"; return DEC_READ | DEC_WRITE; }
+    if (off < 4) { *what = "RAM disk address"; return DEC_WRITE; }
+    if (rtc_enabled && off >= 0x10 && off < 0x20) { *what = "RTC"; return DEC_READ | DEC_WRITE; }
+    return 0;
 }
 
 bool Zrmd1::io_read(uint8_t port, uint8_t& data)

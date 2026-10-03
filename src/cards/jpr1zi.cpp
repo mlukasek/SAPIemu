@@ -91,10 +91,10 @@ void Jpr1zi::advance(uint64_t now)
 
 // D3C inputs: A0=A13, A1=A12, A2=GND, A3=A14, A4=A15, A5=A11, A6=BOOT, A7=GND;
 // output O4 (bit 3) = ROM/RAM.
-bool Jpr1zi::rom_selected(uint16_t a) const
+bool Jpr1zi::rom_select(uint16_t a, bool boot_ff) const
 {
     unsigned idx = ((a >> 13) & 1) | (((a >> 12) & 1) << 1) | (((a >> 14) & 1) << 3) |
-                   (((a >> 15) & 1) << 4) | (((a >> 11) & 1) << 5) | ((boot ? 1u : 0u) << 6);
+                   (((a >> 15) & 1) << 4) | (((a >> 11) & 1) << 5) | ((boot_ff ? 1u : 0u) << 6);
     return (d3c[idx] & 0x08) != 0;
 }
 
@@ -108,6 +108,25 @@ int Jpr1zi::io_select(uint8_t port) const
     if (!(o & 0x02)) return 2;
     if (!(o & 0x01)) return 3;
     return -1;
+}
+
+int Jpr1zi::decode_io(uint8_t port, const char** what)
+{
+    switch (io_select(port)) {
+    case 0: *what = "BOOT off"; return DEC_WRITE;
+    case 1: *what = "P0 (keyboard)"; return DEC_READ | DEC_WRITE;
+    case 2: *what = "P1 (keyboard)"; return DEC_READ | DEC_WRITE;
+    case 3: *what = "P2 (printer)"; return DEC_READ | DEC_WRITE;
+    default: return 0;
+    }
+}
+
+int Jpr1zi::decode_mem(uint16_t addr, int, const char** what)
+{
+    // the EPROM after reset (BOOT = 1): reads stay on the card, writes go to the bus
+    if (!rom_select(addr, true)) return 0;
+    *what = "EPROM (BOOT)";
+    return DEC_READ | DEC_ONCARD;
 }
 
 bool Jpr1zi::io_read(uint8_t port, uint8_t& data)

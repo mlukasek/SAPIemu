@@ -11,6 +11,7 @@ struct UiSnapshot {
     bool rack = false;       // show the configurator
     int rack_slot = 0;       // slot selected in it
     std::string open;        // machine description opened in the configurator (not started)
+    bool map = false;        // show the port and memory map tab
 };
 
 // Runs the SDL3/ImGui frontend; returns the process exit code. An empty

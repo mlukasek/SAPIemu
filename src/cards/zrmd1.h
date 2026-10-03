@@ -23,6 +23,7 @@ public:
     bool io_write(uint8_t port, uint8_t data) override;
     int irq_lines() override;
     int map_lines() override;
+    int decode_io(uint8_t port, const char** what) override;
     void flush() override;
     void describe(nlohmann::json& out) override;
 

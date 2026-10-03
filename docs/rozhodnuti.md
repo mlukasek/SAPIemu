@@ -279,3 +279,18 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   jsou varování.
 - DSM-1 (zatím neemulovaná) má v katalogu porty (propojky 16-12 až 16-15, z výroby 10h) a rychlost terminálu
   (z výroby 600 Bd).
+
+## 2026-10-03 – Mapa portů a paměti
+
+- **Mapa vychází z dekódování samotných karet** (`Card::decode_io`, `decode_mem`). Tatáž logika podle PROM dumpů
+  a jumperů obsluhuje i běh emulace, takže mapa nemůže ukazovat něco jiného, než co karta za běhu dělá.
+- **Karty se pro mapu staví ve zkušebním režimu** (`Card::probe`): ROM a PROM se načtou, ale obrazy disků se
+  neotevírají, nevytvářejí ani nekopírují do `work/`.
+- **Kolize = dvě karty budí data při čtení.** Je to chyba a sestava se nezapne. EPROM procesorové karty
+  (BOOT = 1) se čte na kartě, proto s RAM pod ní nekoliduje. Zápis do dvou karet je jen varování.
+- Mapa se počítá pro všechny čtyři stavy MAP1/MAP2. Volba stavu se ukáže, jen když na nich něco závisí.
+- **Neemulované sériové karty** jsou v mapě s porty z konfigurátoru, takže kolize DSM-1 s DMR-1 je vidět i
+  bez emulace DSM-1. Dřívější kontrola „stejné porty“ a varování „dvě DMR-1 s RAM“ v rychlé kontrole sestavy
+  jsou nahrazené mapou (dvě RAM přes sebe jsou teď kolize, tedy chyba).
+- Konfigurátor mapu přepočítává jen při změně sestavy. MCP `get_machine_config` a `set_machine_config`
+  hlásí i kolize z mapy.

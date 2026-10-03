@@ -29,11 +29,14 @@ public:
     KeyboardDevice* keyboard() override { return kbd.get(); }
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
+    int decode_io(uint8_t port, const char** what) override;
+    int decode_mem(uint16_t addr, int map, const char** what) override;
 
     bool boot = true;
 
 private:
-    bool rom_selected(uint16_t addr) const;
+    bool rom_selected(uint16_t addr) const { return rom_select(addr, boot); }
+    bool rom_select(uint16_t addr, bool boot_ff) const;
     int io_select(uint8_t port) const;   // -1 none, 0 = port 0 (BOOT), 1..3 = P0..P2
     void sync(void);
 

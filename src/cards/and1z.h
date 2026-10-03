@@ -14,6 +14,7 @@ public:
     bool mem_write(uint16_t addr, uint8_t data) override;
     bool mem_peek(uint16_t addr, uint8_t& data) override;
     void describe(nlohmann::json& out) override;
+    int decode_mem(uint16_t addr, int map, const char** what) override;
 
     int screen_width() const override { return COLS * CELL_W; }
     int screen_height() const override { return ROWS * CELL_H; }
@@ -28,7 +29,7 @@ public:
     uint8_t vram[2048];
 
 private:
-    bool select(uint16_t addr, unsigned& offset) const;
+    bool select(uint16_t addr, int map, unsigned& offset) const;
     int wait_states(void) const;
 
     std::vector<uint8_t> chargen;   // 4 KB, 16 bytes per code, line L=11 on top

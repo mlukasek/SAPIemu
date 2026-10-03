@@ -335,33 +335,24 @@ std::vector<CfgProblem> machine_cfg_problems(const json& cfg)
             }
         }
     }
-    // serial cards on the same ports, battery files shared by two cards
+    // battery files shared by two cards (port and memory conflicts: machine_map)
     if (cfg.contains("cards") && cfg["cards"].is_array()) {
         const json& cards = cfg["cards"];
+        auto on = [](const json& c, const char* k) {
+            const json* v = cfg_find(c, k);
+            return !v || !v->is_boolean() || v->get<bool>();
+        };
         for (size_t i = 0; i < cards.size(); i++) {
             for (size_t j = i + 1; j < cards.size(); j++) {
-                std::string a = card_port_label(cards[i]), b = card_port_label(cards[j]);
-                if (!a.empty() && a == b) {
-                    std::string t = card_display_name(cards[i]) + " (X" + std::to_string(card_slot(cards[i])) + "), " +
-                                    card_display_name(cards[j]) + " (X" + std::to_string(card_slot(cards[j])) + ")";
-                    out.push_back({ card_slot(cards[j]), true, "same ports " + a + ": " + t,
-                                    "stejné porty " + a + ": " + t });
-                }
-                if (cards[i].value("type", std::string()) == "DMR-1" && cards[j].value("type", std::string()) == "DMR-1") {
-                    auto on = [](const json& c, const char* k) {
-                        const json* v = cfg_find(c, k);
-                        return !v || !v->is_boolean() || v->get<bool>();
-                    };
-                    if (on(cards[i], "ram") && on(cards[j], "ram")) {
-                        out.push_back({ card_slot(cards[j]), false, "two DMR-1 with RAM: switch the RAM off on one of them",
-                                        "dvě DMR-1 s RAM: na jedné RAM vypněte" });
-                        std::string fa = cards[i].value("sram_file", std::string("work/dmr-1/sram.bin"));
-                        std::string fb = cards[j].value("sram_file", std::string("work/dmr-1/sram.bin"));
-                        if (fa == fb && on(cards[i], "battery") && on(cards[j], "battery"))
-                            out.push_back({ card_slot(cards[j]), false, "two DMR-1 keep their SRAM in the same file " + fa,
-                                            "dvě DMR-1 drží SRAM ve stejném souboru " + fa });
-                    }
-                }
+                if (cards[i].value("type", std::string()) != "DMR-1" || cards[j].value("type", std::string()) != "DMR-1")
+                    continue;
+                if (!on(cards[i], "ram") || !on(cards[j], "ram") || !on(cards[i], "battery") || !on(cards[j], "battery"))
+                    continue;
+                std::string fa = cards[i].value("sram_file", std::string("work/dmr-1/sram.bin"));
+                std::string fb = cards[j].value("sram_file", std::string("work/dmr-1/sram.bin"));
+                if (fa == fb)
+                    out.push_back({ card_slot(cards[j]), false, "two DMR-1 keep their SRAM in the same file " + fa,
+                                    "dvě DMR-1 drží SRAM ve stejném souboru " + fa });
             }
         }
     }

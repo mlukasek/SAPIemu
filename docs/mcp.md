@@ -50,6 +50,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (poslední popis sestavy), `cycle` |
 | `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/` |
 | `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná |
+| `machine_map` | Mapa portů a paměti z dekodérů karet (PROM, jumpery), po stavech MAP1/MAP2, s kolizemi; pro běžící sestavu, soubor nebo popis |
 | `get_machine_config`, `set_machine_config` | Popis sestavy (běžící nebo ze souboru) s kontrolou rozložení; použití upraveného popisu (vypnout a zapnout), volitelně uložení jako komentovaný soubor `.sapi` |
 | `reset`, `pause`, `resume` | Reset tlačítkem, pauza a běh v reálném čase (volitelně turbo) |
 | `step` | Krok (`count`), `over=true` = krok přes CALL, RST, DJNZ a LDIR |

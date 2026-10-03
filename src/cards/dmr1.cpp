@@ -91,11 +91,11 @@ void Dmr1::advance(uint64_t now)
 
 // D2C inputs: A0..A5 = A10..A15, A6..A8 = JP3 (A6/A7 optionally MAP1/MAP2).
 // Outputs: D0 = /CER, D1 = SRAM A16, D3 = write block.
-bool Dmr1::ram_select(uint16_t addr, uint32_t& offset, bool& write_block) const
+bool Dmr1::ram_select(uint16_t addr, int map, uint32_t& offset, bool& write_block) const
 {
     if (!ram_enabled) return false;
-    unsigned a6 = a6_from_map1 ? ((bus->map & MAP_1) ? 1u : 0u) : (unsigned)(ram_config & 1);
-    unsigned a7 = a7_from_map2 ? ((bus->map & MAP_2) ? 1u : 0u) : (unsigned)((ram_config >> 1) & 1);
+    unsigned a6 = a6_from_map1 ? ((map & MAP_1) ? 1u : 0u) : (unsigned)(ram_config & 1);
+    unsigned a7 = a7_from_map2 ? ((map & MAP_2) ? 1u : 0u) : (unsigned)((ram_config >> 1) & 1);
     unsigned a8 = (unsigned)((ram_config >> 2) & 1);
     unsigned idx = (unsigned)(addr >> 10) | (a6 << 6) | (a7 << 7) | (a8 << 8);
     uint8_t o = prom[idx];
@@ -105,11 +105,27 @@ bool Dmr1::ram_select(uint16_t addr, uint32_t& offset, bool& write_block) const
     return true;
 }
 
+int Dmr1::decode_mem(uint16_t addr, int map, const char** what)
+{
+    uint32_t off;
+    bool wb;
+    if (!ram_select(addr, map, off, wb)) return 0;
+    *what = wb ? "RAM (write blocked)" : "RAM";
+    return DEC_READ | DEC_WRITE;   // a blocked write is still answered
+}
+
+int Dmr1::decode_io(uint8_t port, const char** what)
+{
+    if (!uart_enabled || (port & 0xFC) != base) return 0;
+    *what = "UART";
+    return (port & 3) == 3 ? DEC_WRITE : DEC_READ | DEC_WRITE;   // base+3: reset, write only
+}
+
 bool Dmr1::mem_read(uint16_t addr, uint8_t& data)
 {
     uint32_t off;
     bool wb;
-    if (!ram_select(addr, off, wb)) return false;
+    if (!ram_select(addr, bus->map, off, wb)) return false;
     data = ram[off];
     return true;
 }
@@ -118,7 +134,7 @@ bool Dmr1::mem_write(uint16_t addr, uint8_t data)
 {
     uint32_t off;
     bool wb;
-    if (!ram_select(addr, off, wb)) return false;
+    if (!ram_select(addr, bus->map, off, wb)) return false;
     if (!wb) ram[off] = data;
     return true;
 }
