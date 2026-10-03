@@ -27,6 +27,7 @@ static const Translation k_table[] = {
     { "Amber", "Jantarová" },
     { "Integer scaling", "Celočíselné zvětšení" },
     { "TV aspect ratio", "Poměr stran jako na TV" },
+    { "Smoothing (linear filtering)", "Vyhlazování (lineární filtrování)" },
     { "Paused", "Pozastaveno" },
     { "Breakpoint at", "Breakpoint na" },
     { "Error", "Chyba" },

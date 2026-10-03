@@ -48,6 +48,7 @@ struct App {
     int phosphor = PHOSPHOR_WHITE;
     bool integer_scale = true;
     bool tv_aspect = false;
+    bool smooth = false;          // linear filtering of the screen texture
     std::string ini_path;
 };
 
@@ -162,6 +163,7 @@ void draw_menu(App& app)
         }
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
+        ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
@@ -244,9 +246,9 @@ void draw_screen(App& app)
     // The SDL renderer backend applies the sampler state per draw command and
     // defaults to linear filtering; switch to nearest for the emulated screen.
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
+    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
     ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)app.screen_tex), size);
-    dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
     ImGui::End();
 }
 
