@@ -24,6 +24,15 @@ sapi_test(test_xmodem)
 sapi_test(test_keyboards)
 sapi_test(test_machine_cfg)
 
+# Intel 8080 core: TST8080, 8080PRE and CPUTEST are quick, 8080EXM takes minutes (slow, release only)
+add_executable(test_i8080 test_i8080.cpp test_util.h)
+target_link_libraries(test_i8080 PRIVATE sapicore)
+add_test(NAME test_i8080 COMMAND test_i8080)
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_test(NAME test_8080exm COMMAND test_i8080 8080EXM.COM)
+    set_tests_properties(test_8080exm PROPERTIES LABELS slow TIMEOUT 1800)
+endif()
+
 # Z80 instruction exerciser: takes minutes in a debug build, so it is registered
 # only for optimized builds (label "slow"; ctest -L slow / -LE slow).
 add_executable(test_zex test_zex.cpp test_util.h)

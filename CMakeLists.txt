@@ -24,6 +24,10 @@ endif()
 add_library(chips_z80 STATIC src/cpu/z80_impl.c)
 target_include_directories(chips_z80 PUBLIC ${TP}/chips)
 
+# superzazu/8080 Intel 8080 core (MIT license), compiled as C
+add_library(i8080 STATIC ${TP}/i8080/i8080.c)
+target_include_directories(i8080 PUBLIC ${TP}/i8080)
+
 add_library(nlohmann_json INTERFACE)
 target_include_directories(nlohmann_json INTERFACE ${TP}/json)
 
@@ -43,7 +47,7 @@ file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
     src/input/*.cpp src/serial/*.cpp src/mcp/*.cpp)
 add_library(sapicore STATIC ${CORE_SOURCES})
 target_include_directories(sapicore PUBLIC src)
-target_link_libraries(sapicore PUBLIC chips_z80 nlohmann_json httplib)
+target_link_libraries(sapicore PUBLIC chips_z80 i8080 nlohmann_json httplib)
 if(NOT WIN32)
     target_link_libraries(sapicore PUBLIC Threads::Threads)
 endif()
