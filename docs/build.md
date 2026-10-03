@@ -16,6 +16,11 @@ tools\build.cmd release             # release build, zahrnuje pomalé testy ZEXD
 
 Klávesy v GUI: F5 běh/pauza, F8 rychlost (takt CPU → 4 MHz → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
 
+Nastavení GUI se ukládá do `sapiemu-settings.json` a rozložení oken do `imgui.ini` ve složce s exe (přenosné). Když
+tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se poslední sestava (spustí se bez
+`--machine`), velikost a poloha okna, otevřená okna, zobrazení obrazovky, nastavení terminálu a rychlost. Jiný
+soubor nastavení: `sapiemu --settings soubor.json`.
+
 ## Lokální preset (necommituje se)
 
 Když repo leží na síťovém disku, je rychlejší ukládat výstupy sestavení na lokální disk. Stačí v kořeni repa vytvořit

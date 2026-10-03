@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 
+// Machine started when neither --machine nor the settings name one.
+#define DEFAULT_MACHINE_FILE "machines/mikromon.jsonc"
+
 // Self-check of the GUI layout: render into a hidden window, save the window
 // content as PNG and exit (sapiemu --ui-snapshot FILE [--ui-rack SLOT] [--ui-open MACHINE]).
 struct UiSnapshot {
@@ -10,5 +13,8 @@ struct UiSnapshot {
     std::string open;        // machine description opened in the configurator (not started)
 };
 
-// Runs the SDL3/ImGui frontend; returns the process exit code.
-int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snapshot = nullptr);   // mcp_port 0 = no MCP server
+// Runs the SDL3/ImGui frontend; returns the process exit code. An empty
+// machine_file starts the machine used last (settings), else DEFAULT_MACHINE_FILE.
+// settings_file: settings to use instead of sapiemu-settings.json next to the exe.
+int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snapshot = nullptr,
+            const std::string& settings_file = std::string());   // mcp_port 0 = no MCP server

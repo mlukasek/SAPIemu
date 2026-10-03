@@ -54,7 +54,150 @@ struct App {
     bool smooth = false;          // linear filtering of the screen texture
     char suppress_text = 0;       // text event of a keypad key already sent as a key
     std::string ini_path;
+
+    // settings (sapiemu-settings.json next to the exe, else in the user's AppData)
+    std::string settings_path;
+    nlohmann::json settings_saved;   // as last written, to save only on change
+    uint64_t settings_check_ns = 0;
+    int win_x = 0, win_y = 0, win_w = 0, win_h = 0;   // restored (not maximized) window geometry
+    bool win_pos_known = false;
 };
+
+// ---------------------------------------------------------------- settings
+
+// Directory for the settings and imgui.ini: next to the executable (portable)
+// when it is writable, otherwise the per-user application data directory.
+std::string settings_dir(void)
+{
+    const char* base = SDL_GetBasePath();   // owned by SDL, ends with a separator
+    if (base && *base) {
+        std::string dir = base;
+        std::string probe = dir + "sapiemu-settings.json";
+        bool exists = file_exists(probe);
+        if (!exists) probe = dir + "sapiemu-write-test.tmp";
+        FILE* f = file_open(probe, "ab");
+        if (f) {
+            fclose(f);
+            if (!exists) file_remove(probe);
+            return dir;
+        }
+    }
+    char* pref = SDL_GetPrefPath("SAPIemu", "SAPIemu");
+    std::string dir = pref ? pref : "";
+    if (pref) SDL_free(pref);
+    return dir;
+}
+
+nlohmann::json settings_json(App& app)
+{
+    UiState& ui = app.ui;
+    if (ui.terminal_channel < (int)ui.terms.size()) {   // options of the terminal in use
+        const TerminalState& t = ui.terms[(size_t)ui.terminal_channel];
+        ui.term_emulation = t.emulation;
+        ui.term_cr_newline = t.cr_newline;
+        ui.term_local_echo = t.local_echo;
+    }
+    nlohmann::json j;
+    j["version"] = 1;
+    j["machine"] = app.host.machine_file();
+    bool maximized = (SDL_GetWindowFlags(app.window) & SDL_WINDOW_MAXIMIZED) != 0;
+    j["window"] = { { "x", app.win_x }, { "y", app.win_y }, { "w", app.win_w }, { "h", app.win_h },
+                    { "position", app.win_pos_known }, { "maximized", maximized } };
+    j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
+                     { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
+                     { "configuration", ui.show_rack } };
+    j["screen"] = { { "phosphor", app.phosphor }, { "integer_scale", app.integer_scale },
+                    { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
+    j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
+                      { "cr_newline", ui.term_cr_newline }, { "local_echo", ui.term_local_echo },
+                      { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
+                      { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
+    j["speed"] = { { "turbo", app.host.turbo }, { "speed_hz", app.host.speed_hz } };
+    return j;
+}
+
+void settings_save(App& app, bool force)
+{
+    if (app.settings_path.empty()) return;
+    nlohmann::json j = settings_json(app);
+    if (!force && j == app.settings_saved) return;
+    if (j["machine"].get<std::string>().empty() && app.settings_saved.contains("machine"))
+        j["machine"] = app.settings_saved["machine"];   // an unsaved configuration is not a "last machine"
+    std::string text = j.dump(2);
+    if (file_write_all(app.settings_path, text.data(), text.size())) app.settings_saved = j;
+}
+
+// Values of the settings file, applied before the window opens (geometry) or after.
+template <class T> void get_opt(const nlohmann::json& j, const char* key, T& out)
+{
+    if (j.is_object() && j.contains(key)) {
+        try {
+            out = j[key].get<T>();
+        } catch (...) {
+        }
+    }
+}
+
+void settings_apply(App& app, const nlohmann::json& j)
+{
+    UiState& ui = app.ui;
+    const nlohmann::json& w = j.value("windows", nlohmann::json::object());
+    get_opt(w, "debugger", ui.show_debugger);
+    get_opt(w, "memory", ui.show_memory);
+    get_opt(w, "terminal", ui.show_terminal);
+    get_opt(w, "io_log", ui.show_iolog);
+    get_opt(w, "log", ui.show_log);
+    get_opt(w, "media", ui.show_media);
+    get_opt(w, "configuration", ui.show_rack);
+    const nlohmann::json& s = j.value("screen", nlohmann::json::object());
+    get_opt(s, "phosphor", app.phosphor);
+    if (app.phosphor < 0 || app.phosphor > PHOSPHOR_AMBER) app.phosphor = PHOSPHOR_WHITE;
+    get_opt(s, "integer_scale", app.integer_scale);
+    get_opt(s, "tv_aspect", app.tv_aspect);
+    get_opt(s, "smooth", app.smooth);
+    get_opt(s, "card_types", ui.rack.show_types);
+    const nlohmann::json& t = j.value("terminal", nlohmann::json::object());
+    get_opt(t, "channel", ui.terminal_channel);
+    if (ui.terminal_channel < 0) ui.terminal_channel = 0;
+    get_opt(t, "emulation", ui.term_emulation);
+    get_opt(t, "cr_newline", ui.term_cr_newline);
+    get_opt(t, "local_echo", ui.term_local_echo);
+    get_opt(t, "tcp_port", ui.tcp_port);
+    get_opt(t, "tcp_protocol", ui.tcp_protocol);
+    get_opt(t, "tcp_dcd_follows", ui.tcp_dcd_follows);
+    std::string com;
+    get_opt(t, "com_port", com);
+    if (!com.empty()) snprintf(ui.com_port, sizeof(ui.com_port), "%s", com.c_str());
+}
+
+// The restored window must lie (at least partly) on a connected display.
+bool rect_on_display(int x, int y, int w, int h)
+{
+    int n = 0;
+    SDL_DisplayID* ids = SDL_GetDisplays(&n);
+    bool ok = false;
+    for (int i = 0; ids && i < n; i++) {
+        SDL_Rect r;
+        if (!SDL_GetDisplayUsableBounds(ids[i], &r)) continue;
+        if (x + 64 <= r.x + r.w && x + w - 64 >= r.x && y >= r.y - 8 && y + 32 <= r.y + r.h) ok = true;
+    }
+    SDL_free(ids);
+    return ok;
+}
+
+void track_window(App& app)
+{
+    SDL_WindowFlags f = SDL_GetWindowFlags(app.window);
+    if (f & (SDL_WINDOW_MAXIMIZED | SDL_WINDOW_MINIMIZED | SDL_WINDOW_FULLSCREEN)) return;
+    int x, y, w, h;
+    if (SDL_GetWindowPosition(app.window, &x, &y) && SDL_GetWindowSize(app.window, &w, &h) && w > 0 && h > 0) {
+        app.win_x = x;
+        app.win_y = y;
+        app.win_w = w;
+        app.win_h = h;
+        app.win_pos_known = true;
+    }
+}
 
 void set_title(App& app)
 {
@@ -331,7 +474,7 @@ void draw_error(App& app)
 
 } // namespace
 
-int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snap)
+int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snap, const std::string& settings_file)
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
@@ -343,9 +486,56 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
 
     float dpi = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     if (dpi <= 0) dpi = 1.0f;
-    app.window = SDL_CreateWindow("SAPIemu", (int)(1100 * dpi), (int)(760 * dpi),
+
+    // settings of the previous run: --settings FILE, else next to the exe / AppData;
+    // a layout self-check uses none unless a file is given
+    nlohmann::json settings = nlohmann::json::object();
+    if (!settings_file.empty()) {
+        app.settings_path = settings_file;
+        app.ini_path = settings_file + ".imgui.ini";
+    } else if (!snap) {
+        std::string dir = settings_dir();
+        if (!dir.empty()) {
+            app.settings_path = dir + "sapiemu-settings.json";
+            app.ini_path = dir + "imgui.ini";
+            // window layout of older versions lived in AppData only
+            char* pref = SDL_GetPrefPath("SAPIemu", "SAPIemu");
+            if (pref && !file_exists(app.ini_path)) {
+                std::vector<uint8_t> ini;
+                if (file_read_all(std::string(pref) + "imgui.ini", ini)) file_write_all(app.ini_path, ini.data(), ini.size());
+            }
+            if (pref) SDL_free(pref);
+        }
+    }
+    if (snap) app.ini_path.clear();   // the self-check never touches a window layout
+    if (!app.settings_path.empty()) {
+        std::string text;
+        if (file_read_text(app.settings_path, text)) {
+            settings = nlohmann::json::parse(text, nullptr, false);
+            if (settings.is_discarded() || !settings.is_object()) settings = nlohmann::json::object();
+        }
+        LOGI("settings: %s", app.settings_path.c_str());
+    }
+    int win_w = (int)(1100 * dpi), win_h = (int)(760 * dpi);
+    const nlohmann::json& sw = settings.value("window", nlohmann::json::object());
+    int sx = 0, sy = 0, sww = 0, swh = 0;
+    bool spos = false, smax = false;
+    get_opt(sw, "x", sx);
+    get_opt(sw, "y", sy);
+    get_opt(sw, "w", sww);
+    get_opt(sw, "h", swh);
+    get_opt(sw, "position", spos);
+    get_opt(sw, "maximized", smax);
+    if (sww >= 320 && swh >= 240) {
+        win_w = sww;
+        win_h = swh;
+    }
+    app.window = SDL_CreateWindow("SAPIemu", win_w, win_h,
                                   SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
                                       (snap ? SDL_WINDOW_HIDDEN : 0));
+    if (app.window && spos && rect_on_display(sx, sy, win_w, win_h)) SDL_SetWindowPosition(app.window, sx, sy);
+    if (app.window) track_window(app);
+    if (app.window && smax) SDL_MaximizeWindow(app.window);
     app.renderer = SDL_CreateRenderer(app.window, nullptr);
     if (!app.window || !app.renderer) {
         fprintf(stderr, "cannot create window: %s\n", SDL_GetError());
@@ -359,13 +549,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    char* pref = SDL_GetPrefPath("SAPIemu", "SAPIemu");
-    if (pref) {
-        app.ini_path = std::string(pref) + "imgui.ini";
-        SDL_free(pref);
-        io.IniFilename = app.ini_path.c_str();
-    }
-    if (snap) io.IniFilename = nullptr;   // a self-check must not change the user's layout
+    io.IniFilename = app.ini_path.empty() ? nullptr : app.ini_path.c_str();   // none for a self-check
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(dpi);
@@ -377,7 +561,20 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui_ImplSDL3_InitForSDLRenderer(app.window, app.renderer);
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
-    load_machine(app, machine_file);
+    settings_apply(app, settings);
+    std::string first = machine_file;
+    if (first.empty()) {
+        std::string last;
+        get_opt(settings, "machine", last);
+        first = !last.empty() && file_exists(data_path(last)) ? last : std::string(DEFAULT_MACHINE_FILE);
+    }
+    load_machine(app, first);
+    if (!app.host.machine() && first != DEFAULT_MACHINE_FILE) load_machine(app, DEFAULT_MACHINE_FILE);
+    const nlohmann::json& sp = settings.value("speed", nlohmann::json::object());
+    get_opt(sp, "turbo", app.host.turbo);
+    get_opt(sp, "speed_hz", app.host.speed_hz);
+    if (app.host.machine() && app.host.speed_hz <= app.host.machine()->bus.cpu_hz) app.host.speed_hz = 0;
+    app.settings_saved = settings;
     int snap_frames = 0;
     if (snap) {
         app.ui.show_rack = snap->rack || !snap->open.empty();
@@ -398,6 +595,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         while (SDL_PollEvent(&ev)) {
             ImGui_ImplSDL3_ProcessEvent(&ev);
             if (ev.type == SDL_EVENT_QUIT) app.quit = true;
+            else if (ev.type == SDL_EVENT_WINDOW_MOVED || ev.type == SDL_EVENT_WINDOW_RESIZED) track_window(app);
             else if (ev.type == SDL_EVENT_KEY_DOWN) handle_key(app, ev.key);
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
         }
@@ -448,8 +646,13 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             app.quit = true;
         }
         SDL_RenderPresent(app.renderer);
+        if (now - app.settings_check_ns > 3000000000ull) {   // keep the file current (crash, kill)
+            app.settings_check_ns = now;
+            settings_save(app, false);
+        }
     }
 
+    settings_save(app, false);
     app.host.shutdown();
     if (app.mcp) { app.mcp->stop(); delete app.mcp; }
     ImGui_ImplSDLRenderer3_Shutdown();

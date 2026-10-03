@@ -4,6 +4,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-03
 
+**Hotové: pamatování nastavení GUI** (`sapiemu-settings.json` vedle exe, popis v `docs/build.md`): poslední
+sestava, okno, otevřená okna, zobrazení, terminál, rychlost. Opravené pády v menu (výběr sestavy, výměna
+klávesnice) a ztráta psaní po použití textového pole ImGui. TURBO/F8 přepíná 2 / 4 MHz / max.
+
 **Hotové: konfigurátor sestavy (Stroj → Sestava…), návod `docs/sestavy.md`.**
 - Čelní pohled na rám (X1 vpravo, panely SPN a ZDR). Kliknutím na slot se karta vloží, vymění nebo nastaví
   (jumpery, ROM, obrazy).

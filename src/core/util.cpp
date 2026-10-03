@@ -73,6 +73,12 @@ bool file_exists(const std::string& utf8_path)
     return fs::exists(u8_to_path(utf8_path), ec);
 }
 
+bool file_remove(const std::string& utf8_path)
+{
+    std::error_code ec;
+    return fs::remove(u8_to_path(utf8_path), ec);
+}
+
 bool make_dirs(const std::string& utf8_dir)
 {
     std::error_code ec;

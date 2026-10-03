@@ -27,7 +27,7 @@
 #include <shellapi.h>
 #endif
 
-static const char* DEFAULT_MACHINE = "machines/mikromon.jsonc";
+static const char* DEFAULT_MACHINE = DEFAULT_MACHINE_FILE;
 
 static void print_help(void)
 {
@@ -39,6 +39,7 @@ static void print_help(void)
            "  --data-root DIR    directory with roms/, media/, machines/\n"
            "  --mcp-port N       MCP server port (default %d, 127.0.0.1 only)\n"
            "  --no-mcp           GUI: do not start the MCP server\n"
+           "  --settings FILE    GUI: settings file instead of sapiemu-settings.json next to the exe\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
@@ -139,7 +140,7 @@ int main(int argc_ansi, char** argv_ansi)
 {
     std::vector<std::string> argv = utf8_args(argc_ansi, argv_ansi);
     int argc = (int)argv.size();
-    std::string machine_file = DEFAULT_MACHINE;
+    std::string machine_file;   // empty: the GUI starts the last used machine
 #ifdef SAPIEMU_GUI
     bool headless = false;
 #else
@@ -150,6 +151,7 @@ int main(int argc_ansi, char** argv_ansi)
     bool mcp_enabled = true;
     bool mcp_serve = false;
     UiSnapshot snap;
+    std::string settings_file;
 
 #if defined(SAPIEMU_GUI) && defined(_WIN32)
     for (int i = 1; i < argc; i++)
@@ -175,6 +177,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-snapshot" && i + 1 < argc) { snap.path = argv[++i]; mcp_enabled = false; }
         else if (a == "--ui-rack" && i + 1 < argc) { snap.rack = true; snap.rack_slot = atoi(argv[++i].c_str()); }
         else if (a == "--ui-open" && i + 1 < argc) snap.open = argv[++i];
+        else if (a == "--settings" && i + 1 < argc) settings_file = argv[++i];
         else if (a == "--mcp") { mcp_serve = true; headless = true; }
         else {
             actions.push_back(a);
@@ -185,6 +188,7 @@ int main(int argc_ansi, char** argv_ansi)
     data_root_init();
     LOGD("data root: %s", data_root().c_str());
 
+    if (machine_file.empty() && (mcp_serve || headless)) machine_file = DEFAULT_MACHINE;
     if (mcp_serve) return serve_mcp(machine_file, mcp_port);
 
     if (headless) {
@@ -204,7 +208,7 @@ int main(int argc_ansi, char** argv_ansi)
         fprintf(stderr, "unknown option '%s' (see --help)\n", actions[0].c_str());
         return 1;
     }
-    return app_run(machine_file, mcp_enabled ? mcp_port : 0, snap.path.empty() ? nullptr : &snap);
+    return app_run(machine_file, mcp_enabled ? mcp_port : 0, snap.path.empty() ? nullptr : &snap, settings_file);
 #else
     return 0;
 #endif

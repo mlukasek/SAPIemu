@@ -52,6 +52,10 @@ struct UiState {
     bool screen_focused = false;
     bool terminal_focused = false;
     int terminal_channel = 0;
+    // terminal options for new terminals (remembered in the settings)
+    int term_emulation = 0;            // TERM_SAPI
+    bool term_cr_newline = false;
+    bool term_local_echo = false;
     int tcp_port = 2323;
     bool tcp_dcd_follows = true;
     int tcp_protocol = 0;   // TCP_TELNET

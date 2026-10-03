@@ -10,6 +10,7 @@ bool file_read_all(const std::string& utf8_path, std::vector<uint8_t>& out);
 bool file_read_text(const std::string& utf8_path, std::string& out);
 bool file_write_all(const std::string& utf8_path, const void* data, size_t size);
 bool file_exists(const std::string& utf8_path);
+bool file_remove(const std::string& utf8_path);
 bool make_dirs(const std::string& utf8_dir);
 std::string path_join(const std::string& a, const std::string& b);
 std::string path_dir(const std::string& p);

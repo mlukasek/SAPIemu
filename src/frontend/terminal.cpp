@@ -15,7 +15,11 @@
 static void sync_terms(UiState& ui, Machine* m)
 {
     if (ui.machine_gen != ui.host->machine_generation() || ui.terms.size() != m->serials.size()) {
-        ui.terms.assign(m->serials.size(), TerminalState());
+        TerminalState t0;
+        t0.emulation = ui.term_emulation;
+        t0.cr_newline = ui.term_cr_newline;
+        t0.local_echo = ui.term_local_echo;
+        ui.terms.assign(m->serials.size(), t0);
         ui.machine_gen = ui.host->machine_generation();
         if (ui.terminal_channel >= (int)ui.terms.size()) ui.terminal_channel = 0;
     }

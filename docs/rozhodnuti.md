@@ -234,3 +234,18 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   teď textový vstup v každém snímku znovu zapne.
 - **Pád v menu Stroj → Klávesnice:** smyčka přes nabídku dál používala ukazatel na právě vyměněnou klávesnici.
 - **Diagnostika:** když program nebere klávesy, stavový řádek ukáže „čeká kláves: n“.
+
+## 2026-10-03 – Pamatování nastavení GUI
+
+- **Umístění (rozhodnutí autora):** `sapiemu-settings.json` a `imgui.ini` ve složce s exe, aby emulátor zůstal
+  přenosný. Když tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Rozložení oken ze starších verzí
+  (jen v AppData) se při prvním spuštění zkopíruje k exe. Každé sestavení (debug, release) má tedy své nastavení.
+- **Co se pamatuje (rozhodnutí autora, vše):** poslední sestava, velikost, poloha a maximalizace okna, otevřená
+  okna, luminofor, škálování, poměr TV, vyhlazování, typy karet, volby terminálu (emulace, CR, echo, TCP port
+  a protokol, COM) a rychlost.
+- **Poslední sestava** je jen taková, která se úspěšně spustila (ne neuložená sestava z konfigurátoru). Když
+  soubor zmizí nebo nejde spustit, naběhne MikroMon. `--machine` má přednost.
+- **Ukládá se při ukončení a každé 3 s, pokud se něco změnilo** (při pádu se nic neztratí). Okno se otevře na
+  uložené pozici jen tehdy, když leží na některém připojeném monitoru.
+- `--settings soubor.json` použije jiný soubor (profily, testy). `--ui-snapshot` bez něj nastavení nečte ani
+  nezapisuje.
