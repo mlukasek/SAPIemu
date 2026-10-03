@@ -33,8 +33,8 @@ RAM-1A se liší jen obsahem PROM D1A.
 ## RAM-1A (ZPS-3)
 
 Podklady:
-- návod `BKPam-1a.php` (tab. 1 a 2, X1, poznámka RAM-1A-5V s KR565RU6, PROM D1A v Intel HEX);
-- strojopisná tabulka PROM `BKP\obrazkyam-1a_pri.png` (také `D11\CPM\JPR-1A\RAM-1A_obsah_PROM.png`);
+- návod `BKP\ram-1a.php` (tab. 1 a 2, X1, poznámka RAM-1A-5V s KR565RU6, PROM D1A v Intel HEX);
+- strojopisná tabulka PROM `BKP\obrazky\ram-1a_pri.png` (také `D11\CPM\JPR-1A\RAM-1A_obsah_PROM.png`);
 - skeny `D11\sapi1zps3.zip`, složka `6xk199135`;
 - Eagle `D11\sapi_eagle\REPLIKY\RAM-1A\`.
 
@@ -52,7 +52,7 @@ Hardware je stejný jako RAM-1, liší se jen obsah D1A:
 
 HEX se přesně shoduje se strojopisnou tabulkou. Nejspíš je z ní přepsaný, fyzický dump to není.
 
-**Pozor:** `BKPam-1.php` obsahuje i dvě tabulky D1A pro RAM-1 (48K a 16K). Emulace RAM-1 je zatím
+**Pozor:** `BKP\ram-1.php` obsahuje i dvě tabulky D1A pro RAM-1 (48K a 16K). Emulace RAM-1 je zatím
 generuje z tab. 1 a s těmito tabulkami se musí porovnat.
 
 ## Nejasnosti
