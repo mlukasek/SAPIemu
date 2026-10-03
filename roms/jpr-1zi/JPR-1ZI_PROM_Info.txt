@@ -1,0 +1,2 @@
+D3C = D14
+D5B = D6B = D10 puvodne

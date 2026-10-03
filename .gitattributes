@@ -1,0 +1,10 @@
+* text=auto
+
+# ROM/PROM dumps and media images must never be touched by line-ending conversion
+roms/**  binary
+media/** binary
+*.ttf    binary
+*.pdf    binary
+
+# keep Windows batch files with CRLF
+*.cmd text eol=crlf

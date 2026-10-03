@@ -1,0 +1,12 @@
+# build output
+out/
+build/
+.vs/
+CMakeUserPresets.json
+*.user
+
+# runtime working copies of media (originals in media/ stay untouched)
+work/
+
+# ImGui window layout
+imgui.ini
