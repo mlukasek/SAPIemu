@@ -178,6 +178,15 @@ Zdroj: `sapi\ank-1.php`, příloha VII manuálu (`ank-1pri07.png`), tabulky MIKO
   na JPR-1ZI tedy zatím nepoběží. Emulace ANK-1 je ověřená testem na úrovni portů (`test_keyboards`).
 - **Kompatibilita:** nefunguje s CP/M ani s MikroMonem (jiný protokol).
 
+### ANK-1 schéma
+
+Překreslená schémata EC1045.01 (2010): `BKP\obrazky\ank-1_logika.png` a `ank-1_tlacitka.png` (`BKP` =
+`H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`), význam bitů v příloze VII `ank-1pri07.png`.
+- P0-OUT5 → 7405 → LED SHIFT (zelená), P0-OUT7 → LED ERR (rudá), P0-OUT6 → piezo (zní při 1).
+- Tlačítka INT a T mají RS klopné obvody proti zákmitům (7400) a vedou na P1-IN7 a P1-IN6 (0 = stisknuto).
+  RES vede přímo na reset.
+- Legendy se SHIFT na klávesách odpovídají tabulce výše. Na T je „←“ (MIKOS: 08h), na P „DEL“.
+
 ### ANK-1 a programy
 
 - **MIKROBASIC 2.4** (tabulky 0DFA/0E22): klávesa vedle CR je BS (08h), SHIFT+P = DEL (7Fh), SHIFT+písmeno =
