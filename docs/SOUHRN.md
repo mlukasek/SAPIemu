@@ -112,7 +112,10 @@ Dřív hotové fáze:
 | F2 | MCP server (Streamable HTTP), okno terminálu, debugger (registry, disassembler, paměť, breakpointy, I/O log) | ✅ hotovo |
 | F3 | ZRMD-1 + RTC, boot CP/M z RAM disku (ECMON) | ✅ hotovo |
 | F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo |
-| F5+ | ~~Sériová linka přes TCP a COM~~ ✅; ~~Consul 262.3, Consul 259.11, ANK-1~~ ✅; ~~DSM-1 s kazetou~~ ✅; ~~8080, MIKOS, RAM-1~~ ✅; RAM-1Z, ZRD-1V, JPR-1V; PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; CI | |
+| F5 | Sériová linka přes TCP a COM; klávesnice Consul 262.3, Consul 259.11, ANK-1; konfigurátor sestav a mapa portů | ✅ hotovo |
+| F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
+| F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M z diskety přes RPD-1 (obrazy `BKP\sapi\data2\cpmzps3*`, `cpm48a*`, `cpm62a*`) | ⏳ průzkum podkladů |
+| F8+ | ZPS-4 (JPR-1Z, RAM-1Z, AND-1Z), RMD-1, JPR-1V, PKT-1; ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
@@ -165,4 +168,6 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky.
+4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-03):** F7 ZPS-3. Probíhá soupis podkladů
+   k JPR-1A, AND-1A, RAM-1A a k CP/M pro ZPS-3. Výsledek a seznam toho, co chybí od autora, se zapíše do
+   `docs/desky/JPR-1A.md`, `AND-1A.md` a `RAM-1.md`.
