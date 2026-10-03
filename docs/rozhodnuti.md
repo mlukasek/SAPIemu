@@ -408,3 +408,16 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   pohodlí emulátoru.
 - **Sestavy ZPS-4 s Consulem 262.3** (autor: ZPS-4 je novější). ELIS výchozí v7.01, protože v3.00 má
   nevyjasněnou obsluhu klávesnice.
+
+## 2026-10-04 – Desky V (Libor Lasota)
+
+- **Desky s V za číslem** (JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V) jsou nové desky Libora Lasoty. Vycházejí
+  z původních, ale každá má vlastní vylepšení (autor):
+  - JPR-1V je rychlejší (Z80 až 4 MHz);
+  - RAM-1V je silně konfigurovatelná a dělá mapování (MAP);
+  - AND-1V má výstup VGA;
+  - DSM-1V má dva sériové kanály a nemá kazetu;
+  - ZRD-1V se zálohuje tužkovými články AAA, nemá RTC ani mapování.
+- Na deskách V běží stejný systém jako se ZRMD-1 (ECMON, CP/M z RAM disku) a funguje s nimi boot ROM i IDE-1.
+- Informace: podklady v `..\JPR-1V`, `..\RAM-1V`, `..\AND-1V`, `..\DSM-1V`, `..\ZRD-1V` a
+  https://www.pmd85.cz/?page_id=292. Další doplní autor.
