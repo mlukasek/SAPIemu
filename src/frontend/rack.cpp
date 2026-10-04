@@ -49,6 +49,8 @@ const ImU32 COL_HOVER = IM_COL32(255, 255, 255, 170);
 const ImU32 COL_ERROR = IM_COL32(230, 50, 40, 255);
 const ImU32 COL_LED_ON = IM_COL32(90, 240, 90, 255);
 const ImU32 COL_LED_OFF = IM_COL32(40, 70, 40, 255);
+const ImU32 COL_LED_RED_ON = IM_COL32(255, 52, 36, 255);
+const ImU32 COL_LED_RED_OFF = IM_COL32(78, 30, 26, 255);
 
 const ImVec4 TXT_ERROR(1.0f, 0.42f, 0.38f, 1.0f);
 const ImVec4 TXT_WARN(1.0f, 0.82f, 0.35f, 1.0f);
@@ -318,15 +320,20 @@ bool editor_on_running(UiState& ui)
     return ui.host->machine() && ui.rack.path == ui.host->machine_file() && !ui.rack.cfg.is_null();
 }
 
-// The running display card in `slot` of the type the editor has there, nullptr if none.
-DisplayDevice* running_display(UiState& ui, const json& card, int slot)
+// The running card in `slot` of the type the editor has there, nullptr if none.
+Card* running_card(UiState& ui, const json& card, int slot)
 {
     Machine* m = ui.host->machine();
     if (!m) return nullptr;
     std::string type = card.value("type", std::string());
     for (auto& c : m->cards)
-        if (c->slot == slot && c->type == type) return dynamic_cast<DisplayDevice*>(c.get());
+        if (c->slot == slot && c->type == type) return c.get();
     return nullptr;
+}
+
+DisplayDevice* running_display(UiState& ui, const json& card, int slot)
+{
+    return dynamic_cast<DisplayDevice*>(running_card(ui, card, slot));
 }
 
 // The ink colour is not a power-cycle setting: a change in the editor shows on the
@@ -411,14 +418,15 @@ struct PanelItem {
     int kind;
     float x, y;          // centre
     const char* text;    // PI_TEXT (14 pt), PI_NOTE (12 pt, not on the print);
-                         // PI_PORT: index of the connector in card_connector_ports() (13 pt)
+                         // PI_PORT: index of the connector in card_connector_ports() (13 pt);
+                         // PI_LED: "r" = red (else green), lit by Card::panel_leds()
 };
 
 // Cards of the original design have FRB connectors in rectangular cut-outs (first set of
 // Libor's prints: DSM, FDC, JPR): K3 top, K2 bottom, labels on the left; JPR has a round
 // hole for the BOOT LED between them. The V boards have D-sub connectors.
 const PanelItem k_pl_jpr_frb[] = {
-    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_LED, 19.9f, 245.9f, nullptr },
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_LED, 19.9f, 245.9f, "r" },
     { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
@@ -668,8 +676,10 @@ void draw_rpd_cable(const Panel& A, const Panel& B)
 }
 
 void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type,
-                     const std::vector<std::string>& ports, bool error, bool show_type, int board = 0)
+                     const std::vector<std::string>& ports, bool error, bool show_type, int board = 0,
+                     unsigned leds = 0)
 {
+    int led = 0;   // index of the next LED (Card::panel_leds)
     bool dim = !ci || !ci->emulated;
     panel_plate(P, PANEL_W, dim);
     pt_hole(P, 12.8f, 4.4f);
@@ -692,7 +702,11 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
         case PI_FRB: pt_frb(P, it->x, it->y); break;
         case PI_IDC: pt_idc(P, it->x, it->y); break;
         case PI_DSUB15: pt_dsub(P, it->x, it->y, 47.0f, 75.0f); break;
-        case PI_LED: pt_led(P, it->x, it->y, COL_LED_OFF); break;
+        case PI_LED: {
+            bool on = (leds >> led++) & 1u, red = it->text && it->text[0] == 'r';
+            pt_led(P, it->x, it->y, red ? (on ? COL_LED_RED_ON : COL_LED_RED_OFF) : (on ? COL_LED_ON : COL_LED_OFF));
+            break;
+        }
         case PI_JACK: pt_jack(P, it->x, it->y); break;
         default: break;
         }
@@ -866,11 +880,13 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             std::string type = c.value("type", std::string("?"));
             const CardInfo* ci = card_info(type);
             std::vector<std::string> ports = card_connector_ports(c);   // shown at the connectors, not in the name
+            Card* live = editor_on_running(ui) ? running_card(ui, c, s) : nullptr;   // its LEDs follow the emulation
+            unsigned leds = live ? live->panel_leds() : 0;
             for (int b = 0; b < wd; b++) {
                 Panel P = { dl, ImVec2(slot_x(s + b) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
                 // a card of two boards (RPD-1): RPD-1A in its slot, RPD-1B left of it, both named
                 std::string shown = wd > 1 ? type + (char)('A' + b) : type;
-                draw_card_panel(P, ci, shown, ports, slot_has_error(problems, s + b), r.show_types, b);
+                draw_card_panel(P, ci, shown, ports, slot_has_error(problems, s + b), r.show_types, b, b == 0 ? leds : 0);
             }
             if (wd == 2 && !strcmp(type.c_str(), "RPD-1")) {
                 Panel A = { dl, ImVec2(slot_x(s) + (PITCH - PANEL_W) * 0.5f * k, y0), k };

@@ -85,6 +85,10 @@ private:
     uint8_t d2c(uint8_t a_hi) const;     // PROM outputs for A15-A8 in the current BOOT state
     bool model_a = false;
     bool boot = true;                    // BOOT flip-flop (LED V2)
+public:
+    // JPR-1A: the BOOT LED V2; JPR-1: the LED on the card at P1-OUT D7 (1 = lit, assumed)
+    unsigned panel_leds() override { return (model_a ? boot : (p1_out & 0x80) != 0) ? 1u : 0u; }
+private:
     bool rst7_jumper = true;             // JP1 1-2: RST 7, else the vector from the bus
     uint8_t d2c_prom[512];
     std::string d2c_file;

@@ -71,6 +71,9 @@ public:
     virtual int decode_mem(uint16_t addr, int map, const char** what) { return 0; }
     // false: the decoding is not known (card not emulated yet)
     virtual bool decode_known() { return true; }
+    // LEDs on the front panel that follow the emulation: bit n = the n-th LED of the panel
+    // drawing (configurator), 1 = lit.
+    virtual unsigned panel_leds() { return 0; }
 
     std::string type;   // e.g. "DMR-1"
     std::string name;   // unique instance name, defaults to type

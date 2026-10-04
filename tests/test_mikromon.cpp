@@ -13,7 +13,14 @@ int main(void)
     CHECK(m.load_file("machines/mikromon.sapi", err));
     if (!err.empty()) fprintf(stderr, "%s\n", err.c_str());
 
+    // the BOOT LED of JPR-1ZI (front panel): lit after reset until MikroMon does OUT (00h)
+    CHECK(m.cpu && m.cpu->panel_leds() == 1u);
     CHECK(run_until_text(m, "MikroMon 2kB V1.3", 2.0));
+    CHECK(m.cpu->panel_leds() == 0u);
+    m.reset();
+    CHECK(m.cpu->panel_leds() == 1u);
+    m.run_seconds(0.5);   // the banner is still on the screen: just let MikroMon start again
+    CHECK(m.cpu->panel_leds() == 0u);
     CHECK(screen_contains(m, "ZPS-4"));
 
     m.type_text("M F000\r");

@@ -544,3 +544,10 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Autor:** RPD-1A a RPD-1B mají FRB a jsou propojené. Podle fotek desek je spojka nahoře na obou deskách
   (kreslí se kabel KB-17 přes oba panely), dolní FRB na RPD-1B je pro mechaniky.
 - **Autor:** ZRMD-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V a REM-1 konektor na panelu nemají.
+
+## 2026-10-04 – LED na panelu podle emulace
+
+- **Autor:** LED na panelu JPR má ukazovat skutečný stav z emulace.
+- `Card::panel_leds()` vrací stav LED panelu (bit n = n-tá LED nákresu), konfigurátor ho u běžící sestavy čte
+  v každém snímku. JPR-1ZI, JPR-1Z, JPR-1V a JPR-1A: klopný obvod BOOT. JPR-1: P1-OUT D7 (polarita 1 = svítí je
+  předpoklad). LED JPR je červená. Další LED (IDE-1, ZRD-1V) zatím jen nakreslené.

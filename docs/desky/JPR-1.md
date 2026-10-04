@@ -47,3 +47,4 @@ Zdroje (`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI
 - Které RST dá která úroveň 3214 (odvozeno `RST 7 − úroveň`) a význam bitů zápisu na 3000h (D0–D2 stav, D3 SGS).
 - Manuál uvádí 2. pozici 2708 na 0400, dekodér pro 2716 dává 0800 (emulace: 2708 po 1 KB, 2716 po 2 KB).
 - Co CPU čte z prázdných patic a z 3000h (emulace: prázdné patice = sběrnice, 3000h = FFh).
+- Polarita LED na P1-OUT D7 (emulace: 1 = svítí, LED na panelu v konfigurátoru).

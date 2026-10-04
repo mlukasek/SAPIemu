@@ -42,6 +42,7 @@ public:
     int decode_mem(uint16_t addr, int map, const char** what) override;
 
     bool boot = true;
+    unsigned panel_leds() override { return boot ? 1u : 0u; }   // the BOOT LED (D2), lit from reset to OUT (00h)
 
 private:
     bool rom_selected(uint16_t addr) const { return rom_select(addr, boot); }

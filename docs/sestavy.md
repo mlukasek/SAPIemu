@@ -13,7 +13,9 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - **Konektory:** desky původní konstrukce mají konektory FRB v hranatých otvorech, desky V většinou D-sub
     (autor). Rozměry jsou ze štítků: otvor FRB 22,7 × 150,2 bodu vlevo od středu (první sada, DSM/FDC/JPR), D-sub
     podle druhé sady. FRB je nakreslený jako zelený obdélník se zlatými piny ve dvou řadách.
-    - všechny JPR (i JPR-1V) a FDC: K3 nahoře, K2 dole, JPR mezi nimi kulatý otvor pro LED BOOT;
+    - všechny JPR (i JPR-1V) a FDC: K3 nahoře, K2 dole, JPR mezi nimi kulatý otvor pro LED. **LED svítí podle
+      emulace** (u běžící sestavy): JPR-1ZI, JPR-1Z, JPR-1V a JPR-1A = BOOT (od resetu do `OUT 00h`), JPR-1 = LED
+      na P1-OUT D7 (zápis na 2800h);
     - DSM-1: K3 terminál (X2), K2 magnetofon (X3, „MGF“); DMR-1: jen K3 terminál (X2) na stejném místě;
     - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1: jeden FRB dole (K2), jako na deskách;
     - RPD-1: horní FRB obou desek (RPD-1A vpravo, RPD-1B vlevo) propojuje kabel KB-17, dolní FRB na RPD-1B

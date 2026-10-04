@@ -10,6 +10,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **Panely:** port u sériového konektoru, FRB (zelený, zlaté piny) u desek původní konstrukce podle Liborových
   štítků, D-sub u desek V, IDE-1 (IDC 40 a D-sub 15), RPD-1 (kabel KB-17 mezi deskami). Karty bez konektoru
   podle autora: ZRMD-1, RAM, REM. Další karty se projdou postupně (`docs/sestavy.md`).
+- LED na panelu JPR svítí podle emulace (BOOT, u JPR-1 P1-OUT D7), `Card::panel_leds()`.
 
 **Hotové: jedna barva obrazu a okna podle karet.**
 - Barva jednobarevného obrazu je parametr karty v sestavě: AND-1V propojky S1 (`color`), ostatní parametr
