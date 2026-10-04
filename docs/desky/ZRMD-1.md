@@ -25,7 +25,7 @@ Zdroje:
 - **Porty 61–63h nejdou číst.**
 - **Přerušení RTC:** jumper JP3 volí INT0 nebo INT1/NMI.
 - **Výběr čipu:** `mem.eqn` vybírá jednu z 8 SRAM podle A19–A21.
-- **Ochrana zápisu** (GAL `mem.eqn`, ověřeno): DIP přepínače S1–S4. Zapnutý přepínač (na GND) povoluje zápis.
+- **Ochrana zápisu** (GAL `mem.eqn`, ověřeno): DIP přepínače S1–S4 (v emulátoru i za chodu). Zapnutý přepínač (na GND) povoluje zápis.
   Při čtení jsou čipy vybírány vždy, při zápisu jen s povoleným přepínačem.
 
   | Přepínač | Čipy (A21 A20) | Rozsah |
@@ -137,4 +137,5 @@ Zdroje:
     /IRES, /WE, ACCESS, PWRN-1, LED HLMP-3762 a HLMP-3962. Jak se zámek zapíná, z toho nejde poznat.
   - **Emulace:** LED DSK na panelu svítí 20 ms po čtení nebo zápisu dat (port 60h). LED ZAM ukazuje režim zápisu
     karty (autor): zelená `rw` (ukládá se), žlutá `nosave` (jen v paměti), červená `readonly` (zápis zablokovaný).
+    Režim jde v konfigurátoru přepnout za chodu („(platí hned)“).
 

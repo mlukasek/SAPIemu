@@ -338,22 +338,26 @@ DisplayDevice* running_display(UiState& ui, const json& card, int slot)
     return dynamic_cast<DisplayDevice*>(running_card(ui, card, slot));
 }
 
-// The ink colour is not a power-cycle setting: a change in the editor shows on the
-// running machine at once, like a change from the View menu.
-void sync_live_ink(UiState& ui)
+// Parameters that take effect while running (Machine::live_param: the ink colour, the
+// write mode of a RAM disk...): a change in the editor goes to the running machine at once.
+void sync_live_params(UiState& ui)
 {
     if (!editor_on_running(ui) || !ui.rack.cfg.contains("cards")) return;
+    Machine* m = ui.host->machine();
     for (const json& card : ui.rack.cfg["cards"]) {
-        DisplayDevice* d = running_display(ui, card, card_first_slot(card));
+        Card* c = running_card(ui, card, card_first_slot(card));
         const CardInfo* ci = card_info(card.value("type", std::string()));
-        if (!d || !d->ink_param() || !ci) continue;
+        json* rc = c ? m->card_config(c) : nullptr;
+        if (!rc || !ci) continue;
         for (const CardParam* p = ci->params; p && p->path; p++) {
-            if (strcmp(p->path, d->ink_param()) != 0) continue;
+            if (p->kind == PK_SECTION || !m->live_param(c, p->path)) continue;
             json v = card_param_value(card, p);
+            if (cfg_values_equal(v, card_param_value(*rc, p))) continue;
             std::string err;
-            if (v.is_string() && v.get<std::string>() != d->ink() &&
-                !ui.host->machine()->set_display_ink(d, v.get<std::string>(), err))
-                LOGW("%s", err.c_str());
+            if (!m->set_live_param(c, p->path, v, err)) {
+                LOGW("%s: %s", c->name.c_str(), err.c_str());
+                card_set_param(*rc, ci, p, v);   // do not try again in every frame
+            }
         }
     }
 }
@@ -1076,7 +1080,11 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
 {
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();
-    const char* label = loc(p->en, p->cs);
+    // a parameter the running card takes at once is marked
+    Card* live = editor_on_running(ui) ? running_card(ui, card, card_first_slot(card)) : nullptr;
+    std::string label_s = loc(p->en, p->cs);
+    if (live && ui.host->machine()->live_param(live, p->path)) label_s += tr(" (applies at once)");
+    const char* label = label_s.c_str();
     json v = card_param_value(card, p);
     ImGui::PushID(p->path);
     ImGui::SetNextItemWidth(16.0f * u);
@@ -1500,7 +1508,7 @@ void draw_rack(UiState& ui)
 {
     handle_dialog(ui);   // also for File -> Open while the window is hidden
     follow_machine(ui);
-    sync_live_ink(ui);
+    sync_live_params(ui);
     draw_unsaved_question(ui);
     if (!ui.show_rack) return;
     RackEditor& r = ui.rack;

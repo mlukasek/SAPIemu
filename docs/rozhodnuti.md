@@ -559,3 +559,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **ZRD-1V** (autor: LED podle rev 2.0, jedna zámek zápisu, druhá přístup): DSK svítí 20 ms po přístupu k datům
   (74LS123 „20 msec“), žlutá. **ZAM podle zámku zápisu v konfiguraci karty** (autor): režim `mode` má tři stavy,
   LED je zelená `rw`, žlutá `nosave`, červená `readonly` (`Card::panel_led_color`).
+
+## 2026-10-04 – Parametry, které platí za chodu
+
+- **Autor:** zámek zápisu RAM disku má jít přepnout bez vypnutí sestavy.
+- Obecně: `Card::live_param` / `set_live_param` určují parametry, které karta přijme za chodu (přepínače, které jde
+  přepnout i na skutečné desce, režimy emulátoru). `Machine::set_live_param` je použije na kartě a zapíše do
+  popisu sestavy. Konfigurátor je u běžící sestavy posílá hned a označuje je „(platí hned)“. Barva obrazu jde
+  stejnou cestou.
+- Zatím: barva displejů, `mode` ZRMD-1/ZRD-1V a S1–S4 ZRMD-1. Z `rw` se RAM disk nejdřív uloží, po přepnutí na
+  `rw` se aktuální obsah zapíše (soubor pak odpovídá paměti).

@@ -48,6 +48,10 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - displej FREKVENCE CPU ukazuje skutečnou rychlost emulace.
 - **Změny se projeví až po vypnutí a zapnutí** (rozhodnutí autora). Obsah RAM se ztratí, RAM disky se před
   vypnutím uloží, pracovní kopie médií ve `work/` zůstávají.
+- **Výjimka: parametry označené „(platí hned)“** se u běžící sestavy použijí okamžitě, jako přepínač na skutečné
+  desce: barva obrazu, režim zápisu RAM disku ZRMD-1/ZRD-1V (`mode`) a přepínače S1–S4 ZRMD-1. Uložit je potřeba
+  jako každou změnu sestavy. Při přepnutí z `rw` se RAM disk nejdřív uloží, po přepnutí na `rw` se uloží jeho
+  aktuální obsah.
 - **Nová:** prázdná sestava, nebo kopie šablony či jiné sestavy (uloží se přes „Uložit jako…“).
 - **Uložit** zapíše soubor s komentáři z katalogu: u každého jumperu je jeho označení a význam zvolené
   hodnoty. Ruční komentáře z původního souboru se při uložení z konfigurátoru ztratí.

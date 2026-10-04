@@ -5,6 +5,7 @@
 #include "core/charset.h"
 #include "core/ihex.h"
 #include "core/log.h"
+#include "core/machine_cfg.h"
 #include "core/util.h"
 #include "input/keyboards.h"
 
@@ -407,8 +408,37 @@ bool Machine::set_display_ink(DisplayDevice* d, const std::string& value, std::s
     Card* c = dynamic_cast<Card*>(d);
     const char* key = d ? d->ink_param() : nullptr;
     if (!c || !key) { err = "the display has no ink colour"; return false; }
-    if (!d->set_ink(value, err)) return false;
-    if (nlohmann::json* cc = card_config(config, c)) (*cc)[key] = value;
+    return set_live_param(c, key, value, err);
+}
+
+nlohmann::json* Machine::card_config(Card* c)
+{
+    return c ? ::card_config(config, c) : nullptr;
+}
+
+bool Machine::live_param(Card* c, const char* path)
+{
+    DisplayDevice* d = dynamic_cast<DisplayDevice*>(c);
+    if (d && d->ink_param() && !strcmp(path, d->ink_param())) return true;
+    return c && c->live_param(path);
+}
+
+bool Machine::set_live_param(Card* c, const char* path, const nlohmann::json& v, std::string& err)
+{
+    if (!c) { err = "no card"; return false; }
+    DisplayDevice* d = dynamic_cast<DisplayDevice*>(c);
+    bool ok;
+    if (d && d->ink_param() && !strcmp(path, d->ink_param())) {
+        ok = v.is_string() && d->set_ink(v.get<std::string>(), err);
+        if (!v.is_string()) err = std::string(path) + " must be a text";
+    } else {
+        ok = c->set_live_param(path, v, err);
+    }
+    if (!ok) return false;
+    nlohmann::json* cc = ::card_config(config, c);
+    const CardInfo* ci = card_info(c->type);
+    for (const CardParam* p = ci ? ci->params : nullptr; cc && p && p->path; p++)
+        if (!strcmp(p->path, path)) card_set_param(*cc, ci, p, v);
     return true;
 }
 

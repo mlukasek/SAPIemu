@@ -77,6 +77,15 @@ public:
     // Colour of the n-th panel LED when the card sets it by its state: 'g' green, 'y' yellow,
     // 'r' red; 0 = the colour of the panel drawing.
     virtual char panel_led_color(int n) { return 0; }
+    // Parameters that take effect while running (switches that can be flipped on the real card,
+    // modes of the emulator): the configurator applies them at once, not at the next power cycle.
+    virtual bool live_param(const char* path) const { return false; }
+    // Apply such a parameter (value as in the machine description); false + err if not applied.
+    virtual bool set_live_param(const char* path, const nlohmann::json& v, std::string& err)
+    {
+        err = std::string(path) + " cannot change while running";
+        return false;
+    }
 
     std::string type;   // e.g. "DMR-1"
     std::string name;   // unique instance name, defaults to type

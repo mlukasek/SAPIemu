@@ -6,6 +6,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 using nlohmann::json;
 
@@ -136,6 +137,36 @@ unsigned Zrmd1::panel_leds()
     if (!is_zrd1v) return 0;   // ZRMD-1 has no LEDs
     bool dsk = accessed && bus && bus->now - access_at < bus->cpu_hz / 50;
     return 1u | (dsk ? 2u : 0u);
+}
+
+bool Zrmd1::live_param(const char* path) const
+{
+    return !strcmp(path, "mode") || (!is_zrd1v && !strncmp(path, "write_enable.", 13));
+}
+
+bool Zrmd1::set_live_param(const char* path, const json& v, std::string& err)
+{
+    if (!strncmp(path, "write_enable.", 13) && !is_zrd1v) {
+        int i = path[13] - '0';
+        if (i < 0 || i > 3 || !v.is_boolean()) { err = "write_enable.0-3 must be true or false (S1-S4)"; return false; }
+        write_enable[i] = v.get<bool>();
+        return true;
+    }
+    if (strcmp(path, "mode") != 0) return Card::set_live_param(path, v, err);
+    std::string s = v.is_string() ? v.get<std::string>() : std::string();
+    Mode m;
+    if (s == "rw") m = MODE_RW;
+    else if (s == "nosave") m = MODE_NOSAVE;
+    else if (s == "readonly") m = MODE_READONLY;
+    else { err = "mode must be rw, nosave or readonly"; return false; }
+    if (m == MODE_RW && !battery_files_enabled()) m = MODE_NOSAVE;   // tests: work/ stays untouched
+    if (mode == MODE_RW && m != MODE_RW) save();   // what was written so far is kept
+    if (m == MODE_RW && mode != MODE_RW) {        // from now on the file follows the memory
+        if (!dirty) dirty_since = bus ? bus->now : 0;
+        dirty = true;
+    }
+    mode = m;
+    return true;
 }
 
 char Zrmd1::panel_led_color(int n)

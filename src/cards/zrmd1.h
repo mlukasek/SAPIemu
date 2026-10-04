@@ -18,6 +18,9 @@ public:
     unsigned panel_leds() override;
     // ZAM: green rw (saved), yellow nosave (changes kept only in memory), red readonly.
     char panel_led_color(int n) override;
+    // While running: the mode, and on ZRMD-1 the write enable switches S1-S4.
+    bool live_param(const char* path) const override;
+    bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
     explicit Zrmd1(bool zrd1v);
     ~Zrmd1() override;
 

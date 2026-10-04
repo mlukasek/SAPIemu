@@ -47,6 +47,23 @@ static void cpm(void)
     }
     CHECK(dsk);
     CHECK(run_until_text(m, "WM1Z    .HLP", 5.0));
+    // the write mode changes while running (configurator): read only blocks writes, ZAM turns red
+    CHECK(zrd && m.live_param(zrd, "mode") && !m.live_param(zrd, "chips"));
+    CHECK(m.set_live_param(zrd, "mode", "readonly", err));
+    CHECK(zrd->panel_led_color(0) == 'r');
+    nlohmann::json* zc = m.card_config(zrd);
+    CHECK(zc && zc->value("mode", std::string()) == "readonly");
+    m.bus.io_write(0x61, 0x00);
+    m.bus.io_write(0x62, 0x00);
+    m.bus.io_write(0x63, 0x00);
+    uint8_t before = m.bus.io_read(0x60);
+    m.bus.io_write(0x61, 0x00);
+    m.bus.io_write(0x60, (uint8_t)~before);   // blocked
+    m.bus.io_write(0x61, 0x00);
+    CHECK_EQ(m.bus.io_read(0x60), before);
+    CHECK(!m.set_live_param(zrd, "mode", "fast", err));
+    CHECK(m.set_live_param(zrd, "mode", "rw", err));    // tests: rw becomes nosave
+    CHECK(zrd->panel_led_color(0) == 'y');
     // DSM-1V: two channels
     CHECK_EQ((int)m.serials.size(), 2);
     printf("%s\n", screen_text(m).c_str());

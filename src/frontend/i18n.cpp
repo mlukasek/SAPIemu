@@ -136,6 +136,7 @@ static const Translation k_table[] = {
     { "Load program into memory (Intel HEX)...", "Nahrát program do paměti (Intel HEX)…" },
     { "Log", "Log" },
     { "Colour", "Barva" },
+    { " (applies at once)", " (platí hned)" },
     { "Zoom", "Zvětšení" },
     { "Screen zoom", "Zvětšení obrazovky" },
     { "Right click on a picture: the zoom of its window.", "Pravé tlačítko na obraz: zvětšení jeho okna." },

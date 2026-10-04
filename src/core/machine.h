@@ -83,6 +83,11 @@ public:
     // Ink colour of a monochrome display while running (DisplayDevice::ink_param of
     // its card); the machine description `config` changes with it.
     bool set_display_ink(DisplayDevice* d, const std::string& value, std::string& err);
+    // Parameters that take effect while running: Card::live_param and the ink of a display.
+    // Setting one changes the card at once and the description `config` with it.
+    bool live_param(Card* c, const char* path);
+    bool set_live_param(Card* c, const char* path, const nlohmann::json& v, std::string& err);
+    nlohmann::json* card_config(Card* c);   // the entry of the card in `config`, nullptr if none
 
     Bus bus;
     std::vector<std::unique_ptr<Card>> cards;
