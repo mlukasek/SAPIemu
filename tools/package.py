@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Release package: out/package/SAPIemu-<version>-win64.zip
 
-Usage: python tools/package.py        (after tools\\build.cmd release test)
+Usage: python tools/package.py [--ide]   (after tools\\build.cmd release test)
+
+--ide adds the IDE disk of this PC (work/ide/*.img) as work/ide/ in the zip (name ...-ide.zip):
+the machine V and cpm_ide.sapi then start with its content (C: with the programs) instead of
+an empty disk.
 
 The zip holds the release build (sapiemu.exe, sapiemu-cli.exe) and the data the emulator
 finds next to the exe: roms/, media/, machines/, third_party/fonts, the licences of the
@@ -38,7 +42,8 @@ def main():
     name = "SAPIemu-%s-win64" % version
     out_dir = os.path.join(ROOT, "out", "package")
     os.makedirs(out_dir, exist_ok=True)
-    zip_path = os.path.join(out_dir, name + ".zip")
+    with_ide = "--ide" in sys.argv[1:]
+    zip_path = os.path.join(out_dir, name + ("-ide" if with_ide else "") + ".zip")
 
     files = []
     for d in DATA:
@@ -53,6 +58,12 @@ def main():
         z.write(os.path.join(ROOT, "docs", "prvni-kroky.md"), name + "/PRVNI-KROKY.md")
         for f in files:
             z.write(os.path.join(ROOT, f), name + "/" + f)
+        if with_ide:
+            ide = os.path.join(ROOT, "work", "ide")
+            for f in sorted(os.listdir(ide)) if os.path.isdir(ide) else []:
+                if f.lower().endswith(".img"):
+                    z.write(os.path.join(ide, f), name + "/work/ide/" + f)
+                    print("  + work/ide/" + f)
     size = os.path.getsize(zip_path)
     print("%s: %d files, %.1f MB" % (zip_path, len(files) + 3, size / 1e6))
 

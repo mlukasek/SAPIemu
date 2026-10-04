@@ -101,7 +101,10 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 3. **Balík:** `python tools\package.py` vytvoří `out\package\SAPIemu-<verze>-win64.zip`:
    - exe, `roms\`, `media\`, `machines\`, `docs\`, fonty, licence knihoven a `PRVNI-KROKY.md`;
    - jen soubory, které zná git, takže nové soubory nejdřív `git add`;
-   - skript zip rozbalí do čisté složky a ověří, že z ní naběhne MikroMon.
+   - skript zip rozbalí do čisté složky a ověří, že z ní naběhne MikroMon;
+   - `--ide` přidá IDE disk tohoto PC (`work\ide\*.img`) jako `work\ide\` (balík `…-ide.zip`). Sestava V a
+     `cpm_ide.sapi` pak mají na C: připravené programy. Na disku je i hudba, proto je balík jen pro soukromé
+     rozeslání, ne do veřejného release.
 4. **Obrázky do README** (`docs\img\`) se dělají skrytým oknem GUI:
    - připravit stav přes `sapiemu-cli ... --save-state scena.sapistate`;
    - `sapiemu --settings s.json --ui-snapshot obr.png --ui-state scena.sapistate --ui-size 1540x572`;
