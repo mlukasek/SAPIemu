@@ -40,7 +40,8 @@
             "type": "AND-1",                // Alphanumeric display 40x24
             "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
             "rows": 24,                     // Rows - 24 rows (jumper 47-48)
-            "int1": false                   // Jumper 49-50: INT1 at the end of the frame
+            "int1": false,                  // Jumper 49-50: INT1 at the end of the frame
+            "monitor": "amber"              // Monitor: phosphor colour (not on the card)
         },
         {
             "slot": 5,                      // position X5
