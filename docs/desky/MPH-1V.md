@@ -84,15 +84,15 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
 - **Joystick:** první konektor s joystickem dostane první gamepad, druhý druhý (SDL3: křížový ovladač nebo levá
   páčka, A/X = FL, B/Y = FR). Volitelně šipky a mezerník (FL) jako první joystick, které pak nejdou do klávesnice
   SAPI. Zapíná a vypíná se v menu nebo **Ctrl+F8** (autor: na psaní rychle vypnout). Stavový řádek ukazuje, když je
-  zapnutý. Obě volby (joystick z klávesnice, myš PC) jsou výchozí vypnuté a GUI si pamatuje poslední stav.
+  zapnutý. Obě volby (joystick z klávesnice, myš PC) jsou po každém spuštění vypnuté a neukládají se (autor).
 - **Myš Atari ST:** pin 2 XA, 1 XB, 4 YB, 3 YA (= D0 XA, D1 XB, D2 YB, D3 YA, popisky MPH-test), levé tlačítko
   pin 6 (D4), pravé pin 9 (D5). **Amiga:** pin 2 H, 1 V, 4 HQ, 3 VQ (D0 H, D1 V, D2 HQ, D3 VQ), prostřední
   tlačítko (pin 5) karta nemá zapojené.
 - Kvadratura: fáze 00, 10, 11, 01 (A, B), doprava a dolů vede A. Karta posílá nejvýš 1000 kroků za sekundu na
   osu (emulovaný čas) jako skutečné kolečko myši. Program, který port jen čte, by rychlejší kroky přeskočil.
   Pohyb, který nestihne, se drží nejvýš 250 ms, pak se zahodí.
-- **Zachycení v GUI:** nejdřív se zapne Stroj → Zvuk, joystick a myš → Myš PC jako myš SAPI (výchozí vypnuto,
-  pamatuje se). Pak kliknutí do kteréhokoli okna obrazovky (AND-1V, CGA-1V, DGD-1V…) myš zachytí, když je nějaká
+- **Zachycení v GUI:** nejdřív se zapne Stroj → Zvuk, joystick a myš → Myš PC jako myš SAPI (po spuštění vždy
+  vypnuto). Pak kliknutí do kteréhokoli okna obrazovky (AND-1V, CGA-1V, DGD-1V…) myš zachytí, když je nějaká
   připojená. Kurzor zmizí a relativní pohyb jde do SAPI. Pustí ji prostřední tlačítko, Ctrl+F10 nebo
   ztráta fokusu okna. Citlivost (kroků na bod myši PC) je ve Stroj → Zvuk, joystick a myš. Absolutní pozice
   nejde: kde je kurzor, ví jen program.

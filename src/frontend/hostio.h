@@ -26,7 +26,7 @@ void audio_close(HostAudio& a);
 
 struct HostJoystick {
     SDL_Gamepad* pad[2] = { nullptr, nullptr };   // first and second joystick of the machine
-    bool keyboard = false;      // settings: arrows and space are the (first) joystick
+    bool keyboard = false;      // arrows and space are the (first) joystick (off at start, Ctrl+F8)
     uint8_t last[2] = { 0, 0 }; // state last given to the machine (MCP may set it in between)
 };
 
@@ -41,7 +41,7 @@ void joystick_close(HostJoystick& j);
 // The host mouse for the mouse ports: when enabled, captured (relative mode, cursor hidden) by a
 // click into a display window, released by the middle button, Ctrl+F10 or losing the focus.
 struct HostMouse {
-    bool enabled = false;        // settings: the host mouse is the mouse of the machine
+    bool enabled = false;        // the host mouse is the mouse of the machine (off at start)
     bool captured = false;
     bool gui_captured = false;   // the state the GUI was last told about (its buttons are released then)
     bool click = false;          // a display window was clicked in this frame

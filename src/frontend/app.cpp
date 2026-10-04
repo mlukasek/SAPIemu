@@ -138,8 +138,8 @@ nlohmann::json settings_json(App& app)
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
-    j["joystick"] = { { "keyboard", app.joy.keyboard } };
-    j["mouse"] = { { "enabled", app.mouse.enabled }, { "sensitivity", app.mouse.sensitivity } };
+    // the joystick from the keyboard and the PC mouse are off at every start (author): not saved
+    j["mouse"] = { { "sensitivity", app.mouse.sensitivity } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     return j;
@@ -204,10 +204,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(snd, "enabled", app.audio.enabled);
     get_opt(snd, "volume", app.audio.volume);
     if (app.audio.volume < 0 || app.audio.volume > 100) app.audio.volume = 80;
-    const nlohmann::json& joy = j.value("joystick", nlohmann::json::object());
-    get_opt(joy, "keyboard", app.joy.keyboard);
     const nlohmann::json& mo = j.value("mouse", nlohmann::json::object());
-    get_opt(mo, "enabled", app.mouse.enabled);
     get_opt(mo, "sensitivity", app.mouse.sensitivity);
     if (!(app.mouse.sensitivity >= 0.1f && app.mouse.sensitivity <= 8.0f)) app.mouse.sensitivity = 1.0f;
 }

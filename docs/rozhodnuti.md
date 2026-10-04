@@ -644,3 +644,5 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   kurzoru, jinak po uvolnění táhlo okno (stisk, který myš zachytil, GUI vidělo, jeho uvolnění ne).
 - **Autor:** palba joysticku z klávesnice zůstává na mezerníku, joystick z klávesnice se ale rychle zapíná a vypíná
   Ctrl+F8 (F8 dál přepíná rychlost) a stavový řádek ukazuje, že je zapnutý.
+- **Autor:** joystick z klávesnice i myš PC jsou po každém spuštění vypnuté, do nastavení se neukládají (citlivost
+  myši ano).
