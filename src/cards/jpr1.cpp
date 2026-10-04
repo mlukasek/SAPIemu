@@ -56,6 +56,7 @@ bool Jpr1::configure(const json& cfg, std::string& err)
         if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
             kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
             if (!kbd) return false;
+            kbd->bus = bus;
         }
         return true;
     }
@@ -71,6 +72,7 @@ bool Jpr1::configure(const json& cfg, std::string& err)
     if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
         kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
         if (!kbd) return false;
+        kbd->bus = bus;
     }
     return true;
 }
@@ -79,6 +81,7 @@ void Jpr1::set_keyboard(KeyboardDevice* k)
 {
     kbd.reset(k);
     if (kbd) {
+        kbd->bus = bus;
         kbd->reset();
         kbd->advance(bus->now);
         kbd->p0_out(p0_out);

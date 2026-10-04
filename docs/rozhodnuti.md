@@ -676,3 +676,16 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   na adrese v paměti).
 - **Test úplnosti:** běh z načteného stavu musí dát bajt po bajtu stejný stav jako původní běh, pro všechny sestavy.
   RTC v testu čtou pevný čas PC (`host_time_fix`).
+
+## 2026-10-04 – Bzučák klávesnice a míchání zvuku
+
+- **Dva druhy podle hardwaru:**
+  - aktivní bzučák EKL-1 (ECMON jen drží P0-OUT1 v nule 160 ms, takže bzučák má vlastní oscilátor);
+  - piezo ANK-1, které sleduje bit (MIKROBASIC ho přepíná).
+- U Consulů je bzučák předpoklad (autor neví), vypnutelný parametrem.
+- **Pípnutí po resetu věrně** (autor): latch P0 (3212) nuluje /RES, P0-OUT1 = 0, dokud ho monitor nenastaví.
+- **Míchání na sběrnici:** zdroje přičítají vzorky podle indexu odvozeného z času sběrnice (14,31818 MHz / 288 =
+  49716 Hz, kmitočet YM3812 na MPH-1V). Machine::run_cycles na konci smíchá všechno až k aktuálnímu času do
+  `Bus::audio`. Zvuk je tak pro přehrávání, WAV i MCP stejný, ať zní MPH-1V, bzučák, nebo obojí.
+- Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
+  potlačení stejnosměrné složky ticho.

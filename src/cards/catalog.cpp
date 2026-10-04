@@ -43,6 +43,8 @@ static const CardParam k_jpr1zi[] = {
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -65,6 +67,8 @@ static const CardParam k_jpr1z[] = {
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -90,6 +94,8 @@ static const CardParam k_jpr1v[] = {
     { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -254,6 +260,8 @@ static const CardParam k_jpr1[] = {
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -284,6 +292,8 @@ static const CardParam k_jpr1a[] = {
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

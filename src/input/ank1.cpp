@@ -99,6 +99,7 @@ bool Ank1::key_down(int key) const
 
 void Ank1::advance(uint64_t t)
 {
+    beeper.advance(bus);
     now = t;
     if (int_key && now >= int_until) int_key = false;
     if (t_key && now >= t_until) t_key = false;
@@ -148,7 +149,7 @@ uint8_t Ank1::p1_in()
 
 void Ank1::p0_out(uint8_t value)
 {
-    if ((value ^ out) & 0x40) LOGD("ANK-1 beeper %s", (value & 0x40) ? "on" : "off");
+    beeper.set(bus, (value & 0x40) != 0);
     out = value;
 }
 
@@ -180,4 +181,5 @@ void Ank1::state(StateIO& io)
     io.v(t_key);
     io.v(int_until);
     io.v(t_until);
+    beeper.state(io);
 }

@@ -102,6 +102,7 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
     if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
         kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
         if (!kbd) return false;
+        kbd->bus = bus;
     }
     return true;
 }
@@ -111,6 +112,7 @@ void Jpr1zi::set_keyboard(KeyboardDevice* k)
     // plugging another keyboard into X2: it sees the current P0-OUT latch
     kbd.reset(k);
     if (kbd) {
+        kbd->bus = bus;
         kbd->reset();
         kbd->advance(bus->now);
         kbd->p0_out(port_out[0]);

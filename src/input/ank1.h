@@ -30,6 +30,7 @@ public:
     void clear() override { queue.clear(); }
     std::string status() const override;
     void state(StateIO& io) override;
+    int beeper_kind() const override { return Beeper::SPEAKER; }   // P0-OUT D6 drives it
 
     uint64_t press_cycles = 80000;     // 40 ms at 2 MHz
     uint64_t release_cycles = 80000;

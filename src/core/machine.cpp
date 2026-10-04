@@ -229,6 +229,7 @@ uint64_t Machine::run_cycles(uint64_t cycles)
             break;
         }
     }
+    bus.audio_collect();
     return done;
 }
 
@@ -573,6 +574,6 @@ bool Machine::load_state(const std::vector<uint8_t>& in, std::string& err, bool 
         cpu->stop_hit = false;
     }
     bus.break_request = false;
-    bus.audio.clear();
+    bus.audio_restart();
     return true;
 }

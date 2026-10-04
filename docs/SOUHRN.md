@@ -4,6 +4,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: bzučák klávesnice** (`docs/desky/klavesnice.md`).
+- EKL-1 a Consuly: aktivní bzučák 2,4 kHz na P0-OUT1 = 0, i krátké pípnutí po resetu (3212 se nuluje).
+- ANK-1: piezo za P0-OUT D6, tón dělá program (MIKROBASIC asi 750 Hz).
+- Zvuk se míchá na sběrnici se zvukem MPH-1V (`Bus::audio_add`, `audio_collect` po každém běhu), přepínač
+  `keyboard.beeper`.
+
 **Hotové: ukládání stavu stroje** (`docs/stav.md`): Soubor → Uložit / Načíst stav, rychlý slot Ctrl+F2 / Ctrl+F3
 (`work/state/`), MCP `save_state` / `load_state` (i do paměti jako checkpointy), CLI `--save-state` / `--load-state`.
 - Ve stavu je CPU, paměti včetně RAM disků (autor), všechny karty, klávesnice a sériové kanály.
@@ -224,7 +230,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 2. **DMR-1:** skutečné nastavení JP8 (baud rate) na autorově sestavě. Stav modemových bitů při odpojeném terminálu.
 3. **Volná sběrnice:** čte se opravdu FFh?
 4. **Consul 262.3:** polarita, délka strobe; má vaše JPR-1Z/ZI úpravu se 7474? (Kódy už jsou z manuálu.)
-5. **ANK-1:** bity LED a bzučáku na P0-OUT (emulace podle MIKOS: D7 ERR, D6 bzučák, D5 SHIFT).
+5. **ANK-1:** bity LED a bzučáku na P0-OUT (emulace podle MIKOS: D7 ERR, D6 bzučák, D5 SHIFT). Je piezo
+   pasivní (sleduje D6, MIKROBASIC ho přepíná), nebo s oscilátorem?
 6. **ZRMD-1:** ~~rozsahy S1–S4~~ (vyřešeno z GAL). ~~Jak MikroMon „zamyká“ ZRD-1V?~~ (rev 2.1: zápis na 60h
    déle než 20 ms po 62h, `docs/desky/ZRMD-1.md`). Nuluje /RES adresní čítače?
    Které bity 63h jdou na MAP1/MAP2?
@@ -326,6 +333,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
 24. ~~**MPH-1V**~~: vyřešeno schématem hotové desky (`..\MPH-1V\Eagle`), viz `docs/desky/MPH-1V.md`.
+
+25. **Bzučák** (`docs/desky/klavesnice.md`):
+    - Mají Consul 262.3 a 259.11 bzučák na X2 pin 14 (P0-OUT1)? Emulace předpokládá stejný jako EKL-1.
+    - Jaký tón má bzučák EKL-1 (SG1 F/CM12P)? Emulace: 2,4 kHz.
+    - Pípne skutečný SAPI po resetu? Podle zapojení ano (3212 se nuluje, P0-OUT1 = 0, 25–50 ms do zápisu
+      monitoru).
 
 ## Jak pokračovat
 

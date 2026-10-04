@@ -132,6 +132,55 @@ void Bus::reset(void)
     update_map();
 }
 
+static const uint64_t AUDIO_MASTER = 14318182;   // the samples follow the MPH-1V oscillator
+static const uint64_t AUDIO_DIV = 288;
+
+uint64_t Bus::audio_index(uint64_t t) const
+{
+    uint64_t q = t / cpu_hz, r = t % cpu_hz;
+    return (q * AUDIO_MASTER + r * AUDIO_MASTER / cpu_hz) / AUDIO_DIV;
+}
+
+double Bus::audio_pos(uint64_t t) const
+{
+    uint64_t q = t / cpu_hz, r = t % cpu_hz;
+    return ((double)q * AUDIO_MASTER + (double)r * AUDIO_MASTER / cpu_hz) / AUDIO_DIV;
+}
+
+void Bus::audio_add(uint64_t index, int value)
+{
+    if (index < mix_base) return;   // too late: already mixed out
+    size_t off = (size_t)(index - mix_base);
+    if (off > (size_t)audio_rate * 4) return;   // nonsense
+    if (off >= mix.size()) mix.resize(off + 1, 0);
+    mix[off] += value;
+}
+
+void Bus::audio_collect(void)
+{
+    advance_all();
+    uint64_t end = audio_index(now);
+    end = end > 2 ? end - 2 : 0;   // a source may still add to the last two samples
+    if (end <= mix_base) return;
+    size_t n = (size_t)(end - mix_base);
+    std::vector<int16_t> out(n);
+    for (size_t i = 0; i < n; i++) {
+        int32_t v = i < mix.size() ? mix[i] : 0;
+        out[i] = (int16_t)(v > 32767 ? 32767 : v < -32768 ? -32768 : v);
+    }
+    if (n >= mix.size()) mix.clear();
+    else mix.erase(mix.begin(), mix.begin() + (ptrdiff_t)n);
+    mix_base = end;
+    audio_put(out.data(), n);
+}
+
+void Bus::audio_restart(void)
+{
+    mix.clear();
+    mix_base = audio_index(now);
+    audio.clear();
+}
+
 void Bus::audio_record(bool on)
 {
     advance_all();   // the sound up to now belongs to the previous state

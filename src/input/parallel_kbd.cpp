@@ -19,6 +19,7 @@ void ParallelKeyboard::press_clear(void)
 
 void ParallelKeyboard::advance(uint64_t t)
 {
+    beeper.advance(bus);
     now = t;
     if (clr && now >= clr_until) clr = false;
     if (!latched && strobe_low && now >= strobe_until) {
@@ -64,9 +65,10 @@ void ParallelKeyboard::p0_out(uint8_t value)
         next_allowed = now + gap_cycles;
     }
     ack = new_ack;
+    beeper.set(bus, new_beep);
     if (new_beep != beep) {
         beep = new_beep;
-        LOGD("%s beeper %s", type_name(), beep ? "on" : "off");
+        LOGD("%s beeper %s (cycle %llu)", type_name(), beep ? "on" : "off", (unsigned long long)now);
     }
 }
 
@@ -118,4 +120,5 @@ void ParallelKeyboard::state(StateIO& io)
     io.v(now);
     io.v(next_allowed);
     io.v(strict);
+    beeper.state(io);
 }

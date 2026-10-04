@@ -201,19 +201,12 @@ void Mph1v::advance(uint64_t now)
         }
     }
     ym_phase += (uint32_t)ticks;
-    int16_t buf[256];
-    size_t n = 0;
     while (ym_phase >= 288) {
         ym_phase -= 288;
         int16_t lr[2];
         ym.sample(lr);
-        buf[n++] = filter(lr[0]);
-        if (n == 256) {
-            bus->audio_put(buf, n);
-            n = 0;
-        }
+        bus->audio_add(ym_index++, filter(lr[0]));   // sample k of the oscillator = audio_index
     }
-    if (n) bus->audio_put(buf, n);
 }
 
 bool Mph1v::io_read(uint8_t port, uint8_t& data)
@@ -320,6 +313,7 @@ void Mph1v::state(StateIO& io)
     io.v(master_acc);
     io.v(pit_phase);
     io.v(ym_phase);
+    io.v(ym_index);
     io.e(dev[0]);
     io.e(dev[1]);
     io.v(mouse_phase);

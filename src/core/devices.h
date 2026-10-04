@@ -7,6 +7,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include "core/beeper.h"
 #include "core/card.h"
 
 class StateIO;
@@ -57,6 +58,11 @@ public:
     // no such help (ANK-1 holds a key until the program reads it).
     virtual bool set_strict(bool on) { return false; }
     virtual void state(StateIO& io) {}   // save state (core/state.h)
+    // the beeper (core/beeper.h): the kind this keyboard has, switched on or off
+    virtual int beeper_kind() const { return Beeper::NONE; }
+    void set_beeper(bool on) { beeper.kind = on ? beeper_kind() : Beeper::NONE; }
+    Bus* bus = nullptr;   // set by the CPU card: the beeper sounds on its bus
+    Beeper beeper;
 };
 
 // Base class of CPU cards (bus masters).
@@ -64,9 +70,18 @@ class CpuCard : public Card {
 public:
     explicit CpuCard(const char* type_name) : Card(type_name) {}
     // While running: "keyboard.strict" of the keyboard on the connector.
-    bool live_param(const char* path) const override { return !strcmp(path, "keyboard.strict"); }
+    bool live_param(const char* path) const override
+    {
+        return !strcmp(path, "keyboard.strict") || !strcmp(path, "keyboard.beeper");
+    }
     bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override
     {
+        if (!strcmp(path, "keyboard.beeper")) {
+            KeyboardDevice* k = keyboard();
+            if (!k || !v.is_boolean()) { err = "keyboard.beeper must be true or false"; return false; }
+            k->set_beeper(v.get<bool>());
+            return true;
+        }
         if (strcmp(path, "keyboard.strict") != 0) return Card::set_live_param(path, v, err);
         KeyboardDevice* k = keyboard();
         if (!k || !v.is_boolean() || !k->set_strict(v.get<bool>())) {

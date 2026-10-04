@@ -28,6 +28,7 @@ public:
 
     void push_code(uint8_t code) { queue.push_back(code); }
     bool set_strict(bool on) override { strict = on; return true; }
+    int beeper_kind() const override { return Beeper::BUZZER; }   // X2 pin 14, active low
     void state(StateIO& io) override;
 
     // configuration

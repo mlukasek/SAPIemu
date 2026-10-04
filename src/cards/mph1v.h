@@ -71,6 +71,7 @@ private:
     uint64_t master_acc = 0;      // master clock remainder * cpu_hz
     uint32_t pit_phase = 0;       // master clocks into the 8253 clock period (256)
     uint32_t ym_phase = 0;        // master clocks into the sample period (288)
+    uint64_t ym_index = 0;        // the sample being made (Bus::audio_index)
     // connectors and the mouse
     int dev[2] = { DEV_JOYSTICK, DEV_MOUSE_ATARI };   // K4, K2
     uint32_t mouse_phase = 0;     // master clocks into the step period

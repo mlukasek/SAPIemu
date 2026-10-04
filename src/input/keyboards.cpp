@@ -39,6 +39,7 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
             delete k;
             return nullptr;
         }
+        k->set_beeper(cfg.value("beeper", true));
         k->gap_cycles = us_to_cycles(gap_us, cpu_hz);
         k->pulse_cycles = us_to_cycles(1000, cpu_hz);
         k->hold_cycles = us_to_cycles(100000, cpu_hz);
@@ -46,6 +47,7 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
     }
     if (type == "ANK-1") {
         Ank1* a = new Ank1();
+        a->set_beeper(cfg.value("beeper", true));
         long long press_ms;
         if (!cfg_number(cfg, "press_ms", press_ms, 40, err)) { delete a; return nullptr; }
         std::string sw = cfg.value("software", std::string("mikrobasic"));

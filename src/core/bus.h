@@ -41,12 +41,18 @@ struct Bus {
     uint64_t conflicts = 0;
     uint16_t pc = 0;            // address of the current instruction (set by the CPU card)
 
-    // sound: a sound card appends its output here (mono, audio_rate samples per second of
-    // emulated time); the frontend or the CLI takes it. With audio_cap = 0 nobody listens and
-    // the samples are dropped; past audio_cap the oldest go.
+    // sound: the sources (MPH-1V, the keyboard beeper) add into the samples by their index
+    // (audio_index of the bus time, 14.31818 MHz / 288 = 49716 per second); after each run
+    // audio_collect() mixes them into `audio` (mono) for the frontend or the CLI. With
+    // audio_cap = 0 nobody listens and the samples are dropped; past audio_cap the oldest go.
     std::vector<int16_t> audio;
-    uint32_t audio_rate = 0;    // 0 = no sound card
+    uint32_t audio_rate = 49716;
     size_t audio_cap = 0;
+    uint64_t audio_index(uint64_t t) const;    // the sample a bus time falls into
+    double audio_pos(uint64_t t) const;        // the same with the fraction
+    void audio_add(uint64_t index, int value);
+    void audio_collect(void);                  // brings the cards up to now, mixes up to now
+    void audio_restart(void);                  // after loading a state
     // recording (sapiemu-cli --audio-wav, MCP audio_record), independent of the player
     bool audio_recording = false;
     std::vector<int16_t> audio_rec;
@@ -91,6 +97,8 @@ struct Bus {
     double seconds(void) const { return (double)now / (double)cpu_hz; }
 
 private:
+    std::vector<int32_t> mix;   // samples from mix_base on, not mixed out yet
+    uint64_t mix_base = 0;
     void watch_hit(const char* what, unsigned addr, uint8_t value);
     void log_io(uint8_t port, uint8_t value, bool write);
 };

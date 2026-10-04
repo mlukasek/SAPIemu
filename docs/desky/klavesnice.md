@@ -9,6 +9,15 @@ Vnitřek klávesnic (AT89C2051 v EKL-1, logika Consulů) se neemuluje, jen chov�
 
 ## Přehled emulace
 
+- **Bzučák klávesnice** (`core/beeper.*`) je zvukový zdroj sběrnice jako MPH-1V. Hraje přes zvuk PC (Stroj → Zvuk,
+  joystick a myš, jen při 100 %) a nahrává se do WAV (`--audio-wav`, MCP `audio_record`):
+  - EKL-1, Consul 262.3 a 259.11: aktivní bzučák na X2 pin 14 (P0-OUT1 = 0 zní, tón 2,4 kHz). U Consulů jde
+    o předpoklad (nejasnost);
+  - ANK-1: piezo za P0-OUT D6, zvuk dělá program;
+  - parametr karty CPU „Klávesnice: bzučák“ (`keyboard.beeper`, výchozí zapnuto, platí hned) ho vypne;
+  - **po resetu** je výstupní latch P0 (3212) vynulovaný, takže P0-OUT1 = 0 a bzučák EKL-1 pípne, než monitor
+    zapíše `OUT 01h,02h`: MikroMon 25 ms, ECMON 48 ms. Emulace to dělá věrně (autor).
+
 | Klávesnice | Kódy | Strobe | Čeká na ACK=0 | P1-IN7 | Kód (`src/input/`) |
 |---|---|---|---|---|---|
 | EKL-1 | ASCII, české C0–FF s prohozenou velikostí | drží do ACK | ano | data | `ekl1.*` |
@@ -71,7 +80,9 @@ Zdroje:
 - **Data:** firmware provádí `CPL A` a `SWAP A`. SWAP opravuje prohození nibblů na DPS. Výsledkem je **invertované ASCII** na P1-IN0..7, tedy port 02h.
 - **STROBE** (P3.3) vede na X2 pin 10 (P1-STB) i pin 30 (P0-IN0). V klidu je v 1, při připraveném znaku jde do 0.
 - **Čekání na ACK:** firmware pak **čeká, dokud ACK (P3.7 = X2 pin 13 = P0-OUT0) nečte 1**, a teprve potom vrátí STROBE do 1. Když program nepotvrdí, EKL-1 visí.
-- **Bzučák:** X2 pin 14 (P0-OUT1), zní při 0.
+- **Bzučák:** SG1 F/CM12P zapojený přímo mezi VCC a X2 pin 14 (P0-OUT1), bez obvodů klávesnice. Zní při 0.
+  Software jen drží úroveň: ECMON při BEL dá `XOR A; OUT (01h),A`, čeká asi 160 ms (BC = 3000h) a pak
+  `OUT (01h),02h`. Bzučák má tedy vlastní oscilátor (aktivní). Emulace: tón 2,4 kHz, dokud je P0-OUT1 = 0.
 
 ### Kódy
 
@@ -190,6 +201,9 @@ Zdroj: `sapi\ank-1.php`, příloha VII manuálu (`ank-1pri07.png`), tabulky MIKO
 Překreslená schémata EC1045.01 (2010): `BKP\obrazky\ank-1_logika.png` a `ank-1_tlacitka.png` (`BKP` =
 `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`), význam bitů v příloze VII `ank-1pri07.png`.
 - P0-OUT5 → 7405 → LED SHIFT (zelená), P0-OUT7 → LED ERR (rudá), P0-OUT6 → piezo (zní při 1).
+- **Bzučák ANK-1:** MIKROBASIC 2.4 tón dělá sám: po stisku klávesy přepíná D6 asi 64× (asi 750 Hz, 65–80 ms).
+  Piezo tedy sleduje úroveň bitu (pasivní měnič). Emulace je stejná: zvuk je průběh D6 (`core/beeper`, druh
+  SPEAKER). MIKOS V5 po klávese nepípá.
 - Tlačítka INT a T mají RS klopné obvody proti zákmitům (7400) a vedou na P1-IN7 a P1-IN6 (0 = stisknuto).
   RES vede přímo na reset.
 - Legendy se SHIFT na klávesách odpovídají tabulce výše. Na T je „←“ (MIKOS: 08h), na P „DEL“.
