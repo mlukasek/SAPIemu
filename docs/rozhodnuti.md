@@ -455,3 +455,20 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   - karty počítají čas v jednotkách sběrnice, takže přepnutí za chodu nic nerozbije;
   - obecné rozhraní `CpuCard::has_cpu_turbo` / `set_cpu_turbo` / `cpu_display_hz`.
 - **Ovládání:** menu Rychlost a MCP `cpu_turbo`. TURBO/F8 emulátoru dál mění rychlost celé emulace.
+
+## 2026-10-04 – CGA-1V
+
+- **Podle schématu rev 1.1:**
+  - registry 3FC0–3FFF (A2 = 0 CONFIG, A2 = 1 Bt476 RS0/RS1 = A0/A1);
+  - zápis jde i do SRAM;
+  - čtení vrací SRAM s D7 = VBI.
+- **Výchozí jumpery z fotky autorovy desky:** C000h, MAP1 = MAP2 = H.
+- **Prolínání dvou posledních snímků** (volba `frame_blend`, výchozí zapnuto):
+  - software střídající stránky a palety po snímcích (REMBRAN2) počítá s tím, že barvy smíchá oko;
+  - GUI kreslí nezávisle na snímcích emulace, takže bez prolínání by obraz nahodile blikal;
+  - živý stav se kreslí, když se snímky neliší, takže zápisy jsou vidět i při zastaveném CPU.
+- **Čekací stavy přibližně:** do konce okna CPU 318 ns.
+- **Testy a pracovní kopie:**
+  - ZRD-1V/ZRMD-1 v režimu `rw` při vypnutých souborech zálohované paměti (`battery_files_enable(false)`,
+    testy) neukládá;
+  - testy dřív zapisovaly do `work/zrmd-1/`.

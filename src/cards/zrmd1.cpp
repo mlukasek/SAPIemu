@@ -49,6 +49,7 @@ bool Zrmd1::configure(const json& cfg, std::string& err)
     else if (mode_s == "nosave") mode = MODE_NOSAVE;
     else if (mode_s == "readonly") mode = MODE_READONLY;
     else { err = "mode must be rw, nosave or readonly"; return false; }
+    if (mode == MODE_RW && !battery_files_enabled()) mode = MODE_NOSAVE;   // tests: work/ stays untouched
 
     if (!is_zrd1v) {
         if (cfg.contains("write_enable")) {

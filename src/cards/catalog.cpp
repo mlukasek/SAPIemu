@@ -142,6 +142,32 @@ static const CardParam k_and1v[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// CGA-1V (Libor Lasota)
+static const ParamOption k_cga1v_base[] = {
+    { "\"C000h\"", "C000h (/A15 and /A14 open)", "C000h (/A15 i /A14 rozpojené)" },
+    { "\"8000h\"", "8000h (/A14 fitted)", "8000h (/A14 osazená)" },
+    { "\"4000h\"", "4000h (/A15 fitted)", "4000h (/A15 osazená)" },
+    { "\"0000h\"", "0000h (/A15 and /A14 fitted)", "0000h (/A15 i /A14 osazené)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_cga1v_map[] = {
+    { "\"h\"", "EN fitted: MAP = H", "EN osazená: MAP = H" },
+    { "\"l\"", "EN and LO fitted: MAP = L", "EN a LO osazené: MAP = L" },
+    { "\"ignore\"", "both open: MAP ignored", "obě rozpojené: MAP se ignoruje" },
+    { "\"never\"", "LO fitted only: card disabled", "jen LO osazená: karta vypnutá" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_cga1v[] = {
+    { "base", PK_CHOICE, "S1 /A15 /A14: base (16 KB)", "S1 /A15 /A14: báze (16 KB)", "\"C000h\"", k_cga1v_base, 0, 0 },
+    { "map1", PK_CHOICE, "S1 M1EN M1LO: MAP1", "S1 M1EN M1LO: MAP1", "\"h\"", k_cga1v_map, 0, 0 },
+    { "map2", PK_CHOICE, "S1 M2EN M2LO: MAP2", "S1 M2EN M2LO: MAP2", "\"h\"", k_cga1v_map, 0, 0 },
+    { "wait_states", PK_BOOL, "Wait states (CPU waits for its slot of the video)",
+      "Čekací stavy (CPU čeká na svůj takt videa)", "true", nullptr, 0, 0 },
+    { "frame_blend", PK_BOOL, "Blend the last two frames (page flipping every frame, like the eye)",
+      "Prolínat dva poslední snímky (střídání stránek po snímcích, jako oko)", "true", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // RAM-1V (Libor Lasota)
 static const ParamOption k_ram1v_cond[] = {
     { "\"off\"", "no hole", "bez díry" },
@@ -650,6 +676,8 @@ CARD(c_and1z89, "AND-1Z-89", "AND", "Alphanumeric display \"Z\" 1989", "Alfanume
      CC_DISPLAY, 1, true, k_and1z)
 CARD(c_and30c, "AND-30C", "AND", "Display with MC6845", "Displej s MC6845", CC_DISPLAY, 1, false, nullptr)
 CARD(c_dgd1, "DGD-1", "DGD", "Graphic display 320x240", "Grafický displej 320x240", CC_DISPLAY, 1, true, k_dgd1)
+CARD(c_cga1v, "CGA-1V", "CGA", "Colour graphics 320x200, VGA (V)", "Barevná grafika 320x200, VGA (V)", CC_DISPLAY, 1, true,
+     k_cga1v)
 CARD(c_dbs1a, "DBS-1A", "DBS", "Colour semigraphics", "Barevná semigrafika", CC_DISPLAY, 1, false, nullptr)
 // serial
 CARD(c_dsm1v, "DSM-1V", "DSM", "Two serial channels (V)", "Dva sériové kanály (V)", CC_SERIAL, 1, true, k_dsm1v)
@@ -675,7 +703,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
     static const std::vector<const CardInfo*> list = {
         &c_jpr1zi, &c_jpr1, &c_jpr1a, &c_jpr1z, &c_jpr1v,
         &c_dmr1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
-        &c_and1z89, &c_and1z, &c_and1v, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dbs1a,
+        &c_and1z89, &c_and1z, &c_and1v, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
         &c_dpp1, &c_rtc1, &c_bdk1,

@@ -4,6 +4,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: CGA-1V** (barevná grafika 320×200, VGA, Libor Lasota) v sestavě V na X7.
+- Nastavení: C000h při MAP1 = MAP2 = H (`OUT 63h,C0h`), jumpery podle fotky.
+- Registry jsou ze schématu (CONFIG/STATUS, Bt476), EGA i CGA, barvové domény, dvě stránky, VBI na /INT0
+  a čekací stavy.
+- Liborovy obrázky CASTLE, REMBRAN1 a REMBRAN2 se zobrazí, CGATEST projde. REMBRAN2 střídá stránky po snímcích,
+  proto emulátor prolíná dva poslední snímky.
+- **TURBO JPR-1V** jde přepínat za chodu (menu Rychlost, MCP `cpu_turbo`).
+- Popis v `docs/desky/CGA-1V.md`, programy v `media/cga-1v/`.
+
 **Hotové: desky V Libora Lasoty** (`machines/sapi1v.sapi`).
 - JPR-1V (banky EEPROM MikroBIOS 3.0 / ECMON), AND-1V rev 2.3 (VGA 64x20), RAM-1V (generátor MAP na 63h,
   díry, volitelné RTC M48T35), DSM-1V (10h a 14h, 115200 Bd).
@@ -152,6 +161,10 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 - **ZPS-4 / ELIS v3.00:** obsluha klávesnice (dvojité nebo nekonečné opakování kláves).
 - **RMD-1:** časování (INIR, NOP po `OUT 43`).
 - **Barva AND-1V** je věc uživatele (autor), výchozí bílá.
+- **CGA-1V:**
+  - čekací stavy jsou přibližné (do konce okna CPU 318 ns);
+  - prolínání snímků je náhrada za oko (REMBRAN2);
+  - paleta a VRAM jsou po zapnutí černé, ne náhodné.
 
 ## Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově)
 
@@ -254,13 +267,19 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - DGD-1/BGP-1S „paralelně s RAM-1V“: obě karty odpovídají na stejné adresy. Emulátor to dnes hlásí jako
       kolizi, bude potřeba výjimka.
 
+23. **CGA-1V** (`docs/desky/CGA-1V.md`):
+    - `..\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
+    - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
+    - Smí Liborovy programy (`castle`, `rembran1/2`, `cga_test`) do repa (`media/cga-1v/`)?
+
 ## Jak pokračovat
 
 1. `git pull`.
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
-4. Pokračovat další fází z tabulky. **Rozpracováno (2026-10-04): F9 desky V.** Probíhá rozbor schémat. Výsledek
+4. Pokračovat další fází z tabulky. **Hotovo (2026-10-04): F9 desky V včetně CGA-1V.** Původní poznámky k F9:
+   Výsledek
    a otázky pro autora se zapíšou do `docs/desky/JPR-1V.md`, `RAM-1V.md`, `AND-1V.md`, `DSM-1V.md` a
    `ZRMD-1.md` (ZRD-1V). ZPS-1 až ZPS-4 běží (2026-10-04).
    - Pokud se rozbor ztratí, zopakovat ho:

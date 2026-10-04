@@ -89,7 +89,9 @@ static void test_save(void)
     std::vector<uint8_t> init(512 * 1024, 0x00);
     CHECK(make_dirs(dir));
     CHECK(file_write_all(path, init.data(), init.size()));
+    battery_files_enable(true);   // rw saves only with battery files enabled
     Machine* m = make({ { "chips", 1 }, { "image", path }, { "mode", "rw" } });
+    battery_files_enable(false);
     if (!m) return;
     set_addr(m->bus, 0x1234);
     m->bus.io_write(0x60, 0x5A);
