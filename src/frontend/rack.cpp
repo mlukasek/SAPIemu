@@ -141,7 +141,7 @@ bool editor_save(UiState& ui, const std::string& path)
     std::string full = data_path(path);
     std::string text = machine_cfg_to_jsonc(r.cfg);
     make_dirs(path_dir(full));
-    if (!file_write_all(full, text.data(), text.size())) {
+    if (!file_write_text(full, text)) {
         set_message(r, std::string(tr("Cannot write")) + " " + full, true);
         return false;
     }

@@ -382,7 +382,7 @@ json t_set_machine_config(EmuHost& h, const json& a)
         std::string full = data_path(save);
         std::string text = machine_cfg_to_jsonc(cfg);
         make_dirs(path_dir(full));
-        if (!file_write_all(full, text.data(), text.size())) return error_result("cannot write " + full);
+        if (!file_write_text(full, text)) return error_result("cannot write " + full);
         j["saved"] = data_relative(full);
     }
     if (start) {

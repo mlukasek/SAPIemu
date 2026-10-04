@@ -509,3 +509,10 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Zvětšení v titulku okna obrazovky** (autor): v celých procentech („CGA-1V  200 %“), u všech videovýstupů.
 - **Rychlé zvětšení 100/200/300/400 %** (autor): pravé tlačítko na obraz, pro hlavní obrazovku i menu Zobrazení.
   Okno se nastaví kolem obrazu s malým okrajem (autor: ne natěsno). Ruční změna velikosti okna vrátí přizpůsobení oknu.
+
+## 2026-10-04 – Sestavy se ukládají s konci řádků platformy
+
+- **Autor:** sestava uložená z konfigurátoru (nebo MCP `save_as`) měla LF, pracovní kopie z gitu CRLF, takže git
+  hlásil změněný soubor i beze změny obsahu.
+- **Teď:** `file_write_text()` zapisuje konce řádků platformy (CRLF na Windows, LF jinde), stejně jako git checkout
+  s `text=auto`. Hlídá to test `test_machine_cfg` (`test_line_ends`).

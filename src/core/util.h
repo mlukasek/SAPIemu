@@ -9,6 +9,8 @@ FILE* file_open(const std::string& utf8_path, const char* mode);
 bool file_read_all(const std::string& utf8_path, std::vector<uint8_t>& out);
 bool file_read_text(const std::string& utf8_path, std::string& out);
 bool file_write_all(const std::string& utf8_path, const void* data, size_t size);
+// Text file with the line ends of the platform (CRLF on Windows), like a git checkout.
+bool file_write_text(const std::string& utf8_path, const std::string& text);
 bool file_exists(const std::string& utf8_path);
 bool file_remove(const std::string& utf8_path);
 bool make_dirs(const std::string& utf8_dir);

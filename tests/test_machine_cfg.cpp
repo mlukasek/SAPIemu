@@ -282,6 +282,28 @@ static void test_map(void)
     }
 }
 
+// A machine written by the configurator has the line ends of a git checkout (CRLF on
+// Windows), so saving it unchanged leaves no change in git.
+static void test_line_ends(void)
+{
+    std::string file = data_path("work/test/line_ends.sapi"), back;
+    make_dirs(path_dir(file));
+    json cfg = json::parse(R"({ "name": "x", "bus": { "type": "ARB-1C-8" }, "cards": [] })");
+    CHECK(file_write_text(file, machine_cfg_to_jsonc(cfg)));
+    CHECK(file_read_text(file, back));
+#ifdef _WIN32
+    CHECK(back.find("\r\n") != std::string::npos);
+    bool lone_lf = false;
+    for (size_t i = 0; i < back.size(); i++)
+        if (back[i] == '\n' && (i == 0 || back[i - 1] != '\r')) lone_lf = true;
+    CHECK(!lone_lf);
+#else
+    CHECK(back.find('\r') == std::string::npos);
+#endif
+    CHECK(json::parse(back, nullptr, false, true) == cfg);
+    file_remove(file);
+}
+
 int main(int argc, char** argv)
 {
     test_init();
@@ -299,5 +321,6 @@ int main(int argc, char** argv)
     test_battery();
     test_two_dmr();
     test_map();
+    test_line_ends();
     return TEST_RESULT();
 }

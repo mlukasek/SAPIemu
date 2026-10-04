@@ -67,6 +67,21 @@ bool file_write_all(const std::string& utf8_path, const void* data, size_t size)
     return ok;
 }
 
+bool file_write_text(const std::string& utf8_path, const std::string& text)
+{
+#ifdef _WIN32
+    std::string out;
+    out.reserve(text.size() + text.size() / 16);
+    for (size_t i = 0; i < text.size(); i++) {
+        if (text[i] == '\n' && (i == 0 || text[i - 1] != '\r')) out += '\r';
+        out += text[i];
+    }
+    return file_write_all(utf8_path, out.data(), out.size());
+#else
+    return file_write_all(utf8_path, text.data(), text.size());
+#endif
+}
+
 bool file_exists(const std::string& utf8_path)
 {
     std::error_code ec;
