@@ -501,7 +501,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 
 - **Chyba (autor):** po otevření jiné sestavy z menu se okno Sestava nezměnilo. Konfigurátor sledoval běžící
   sestavu jen bez neuložených změn a ty vznikají i barvou z menu Zobrazení → Barva.
-- **Teď:** otevření jiné sestavy (menu, Otevřít soubor…, MCP) konfigurátor přepne vždy. Neuložené změny se
-  neztratí, odloží se a tlačítko „Obnovit neuložené změny“ je vrátí. Vypnutí a zapnutí stejné sestavy (NAPÁJENÍ,
-  „Zapnout s touto sestavou“) rozpracované změny zachová jako dosud.
-- **Zvětšení v titulku okna obrazovky** (autor): „CGA-1V  2×“. Pro jednotnost u všech videovýstupů, nejen grafických.
+- **Teď (autor: odkládání stranou je nelogické):** před nahrazením neuložené sestavy v konfigurátoru se emulátor
+  zeptá **Uložit / Uložit jako… / Zahodit / Zrušit**, jako běžné programy. Týká se otevření jiné sestavy (menu,
+  Otevřít soubor…), Nová a Otevřít… v konfigurátoru a ukončení emulátoru. Sestavu přepnutou přes MCP nejde
+  předem zastavit, dotaz proto přijde potom a Zrušit ponechá změny v konfigurátoru. Vypnutí a zapnutí stejné
+  sestavy se neptá a změny zachová.
+- **Zvětšení v titulku okna obrazovky** (autor): v celých procentech („CGA-1V  200 %“), u všech videovýstupů.
+- **Rychlé zvětšení 100/200/300 %** (autor): pravé tlačítko na obraz, pro hlavní obrazovku i menu Zobrazení. Okno
+  se nastaví na přesnou velikost. Ruční změna velikosti okna vrátí přizpůsobení oknu.

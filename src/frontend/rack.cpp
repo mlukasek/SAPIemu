@@ -163,6 +163,109 @@ void editor_apply(UiState& ui)
     set_message(r, tr("Machine switched off and on with this configuration."), false);
 }
 
+// Start a machine file (File -> Open machine, File -> Open file...).
+void start_machine(UiState& ui, const std::string& rel)
+{
+    RackEditor& r = ui.rack;
+    std::string err;
+    if (!ui.host->load(rel, err)) {
+        // show it in the configurator anyway (e.g. a CPU card not emulated yet)
+        editor_open(ui, rel, false);
+        set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
+        r.machine_gen = ui.host->machine_generation();
+        ui.show_rack = true;
+        LOGE("%s", err.c_str());
+    }
+}
+
+void follow_now(UiState& ui);
+void new_empty(RackEditor& r);
+
+// Carry out the action that waited for the "unsaved changes" question.
+void do_pending(UiState& ui)
+{
+    RackEditor& r = ui.rack;
+    int kind = r.pending;
+    std::string path = r.pending_path;
+    r.pending = RackEditor::PEND_NONE;
+    switch (kind) {
+    case RackEditor::PEND_START: start_machine(ui, path); break;
+    case RackEditor::PEND_OPEN: editor_open(ui, path, false); break;
+    case RackEditor::PEND_TEMPLATE: editor_open(ui, path, true); break;
+    case RackEditor::PEND_EMPTY: new_empty(r); break;
+    case RackEditor::PEND_FOLLOW: follow_now(ui); break;
+    case RackEditor::PEND_EXIT: ui.quit = true; break;
+    default: break;
+    }
+}
+
+bool editor_dirty(const RackEditor& r)
+{
+    return !r.cfg.is_null() && r.cfg != r.saved;
+}
+
+// An action that replaces the description in the editor: at once, or after the
+// question when there are unsaved changes.
+void request(UiState& ui, int kind, const std::string& path)
+{
+    RackEditor& r = ui.rack;
+    r.pending = kind;
+    r.pending_path = path;
+    if (editor_dirty(r)) r.ask_unsaved = true;
+    else do_pending(ui);
+}
+
+// The question: Save, Save as, Discard, Cancel. A modal popup of the main window, also
+// while the configurator is hidden.
+void draw_unsaved_question(UiState& ui)
+{
+    RackEditor& r = ui.rack;
+    const char* id = "###unsaved";
+    char title[160];
+    snprintf(title, sizeof(title), "%s%s", tr("Unsaved changes"), id);
+    if (r.ask_unsaved) {
+        r.ask_unsaved = false;
+        ImGui::OpenPopup(title);
+    }
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    std::string name = r.cfg.value("name", std::string("?"));
+    ImGui::Text("%s", tr("The machine in the configurator has unsaved changes:"));
+    ImGui::Text("  %s", name.c_str());
+    ImGui::TextDisabled("  %s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str());
+    if (r.pending == RackEditor::PEND_FOLLOW)
+        ImGui::TextWrapped("%s", tr("Another machine was started (MCP). Cancel keeps the changes in the configurator."));
+    ImGui::Spacing();
+    if (ImGui::Button(tr("Save"))) {
+        ImGui::CloseCurrentPopup();
+        if (r.path.empty()) {
+            r.save_then_continue = true;
+            start_dialog(ui, RackEditor::DLG_SAVE, std::string());
+        } else if (editor_save(ui, r.path)) {
+            do_pending(ui);
+        } else {
+            r.ask_unsaved = true;   // not saved (message in the configurator): ask again
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Save as..."))) {
+        ImGui::CloseCurrentPopup();
+        r.save_then_continue = true;
+        start_dialog(ui, RackEditor::DLG_SAVE, r.path);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Discard"))) {
+        ImGui::CloseCurrentPopup();
+        r.saved = r.cfg;   // nothing unsaved any more
+        do_pending(ui);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) {
+        ImGui::CloseCurrentPopup();
+        r.pending = RackEditor::PEND_NONE;
+    }
+    ImGui::EndPopup();
+}
+
 void handle_dialog(UiState& ui)
 {
     RackEditor& r = ui.rack;
@@ -176,22 +279,26 @@ void handle_dialog(UiState& ui)
         r.dlg_kind = RackEditor::DLG_NONE;
         r.dlg_done = false;
     }
-    if (path.empty()) return;   // cancelled
-    if (kind == RackEditor::DLG_OPEN) {
-        editor_open(ui, path, false);
-    } else if (kind == RackEditor::DLG_RUN) {
-        std::string rel = data_relative(path), err;
-        if (!ui.host->load(rel, err)) {
-            // show it in the configurator anyway (e.g. a CPU card not emulated yet)
-            editor_open(ui, rel, false);
-            set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
-            r.machine_gen = ui.host->machine_generation();
-            ui.show_rack = true;
+    if (path.empty()) {   // cancelled
+        if (kind == RackEditor::DLG_SAVE && r.save_then_continue) {   // not saved: ask again
+            r.save_then_continue = false;
+            r.ask_unsaved = true;
         }
+        return;
+    }
+    if (kind == RackEditor::DLG_OPEN) {
+        request(ui, RackEditor::PEND_OPEN, path);
+    } else if (kind == RackEditor::DLG_RUN) {
+        request(ui, RackEditor::PEND_START, data_relative(path));
     } else if (kind == RackEditor::DLG_SAVE) {
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapi";
-        editor_save(ui, path);
+        bool saved = editor_save(ui, path);
+        if (r.save_then_continue) {
+            r.save_then_continue = false;
+            if (saved) do_pending(ui);
+            else r.ask_unsaved = true;
+        }
     } else if (kind == RackEditor::DLG_PARAM) {
         json& cards = r.cfg["cards"];
         if (r.dlg_card < 0 || r.dlg_card >= (int)cards.size()) return;
@@ -241,28 +348,32 @@ void sync_live_ink(UiState& ui)
     }
 }
 
-// Follow the running machine. Another machine opened from the menu or by MCP is always
-// shown; unsaved changes of the description in the editor are put aside (they can be
-// restored). The same machine started again (power cycle) keeps them.
+// Show the description of the running machine in the editor.
+void follow_now(UiState& ui)
+{
+    RackEditor& r = ui.rack;
+    Machine* m = ui.host->machine();
+    if (!m) return;
+    r.cfg = m->config;
+    r.saved = r.cfg;
+    r.path = ui.host->machine_file();
+    r.sel = 0;
+}
+
+// Follow the running machine. Machines opened from the GUI ask before they start; a
+// machine started by MCP asks afterwards when the editor holds unsaved changes of another
+// description. The same machine started again (power cycle) keeps the changes.
 void follow_machine(UiState& ui)
 {
     RackEditor& r = ui.rack;
     Machine* m = ui.host->machine();
     if (!m || r.machine_gen == ui.host->machine_generation()) return;
-    bool dirty = !r.cfg.is_null() && r.cfg != r.saved;
-    if (!dirty || r.path != ui.host->machine_file()) {
-        if (dirty) {
-            r.stash_cfg = r.cfg;
-            r.stash_saved = r.saved;
-            r.stash_path = r.path;
-            set_message(r, tr("Unsaved changes of the previous machine were put aside."), true);
-        }
-        r.cfg = m->config;
-        r.saved = r.cfg;
-        r.path = ui.host->machine_file();
-        r.sel = 0;
-    }
     r.machine_gen = ui.host->machine_generation();
+    if (!editor_dirty(r)) follow_now(ui);
+    else if (r.path != ui.host->machine_file() && r.pending == RackEditor::PEND_NONE) {
+        r.pending = RackEditor::PEND_FOLLOW;
+        r.ask_unsaved = true;
+    }
 }
 
 // ---------------------------------------------------------------- frame drawing
@@ -1141,22 +1252,24 @@ void draw_map(RackEditor& r)
     ImGui::TextDisabled("%s", tr("Addresses nobody answers read FFh (open bus). The CPU card's EPROM is read on the card, writes go to the bus."));
 }
 
+void new_empty(RackEditor& r)
+{
+    json cfg = { { "name", tr("New machine") }, { "bus", { { "type", "ARB-1C-8" }, { "jp3", "2-3" } } },
+                 { "cards", json::array() } };
+    cfg["cards"].push_back(card_new_config(card_info("JPR-1ZI"), 1));
+    r.cfg = cfg;
+    r.saved = json();
+    r.path.clear();
+    r.sel = 1;
+    set_message(r, tr("New machine: insert cards into the slots."), false);
+}
+
 void new_menu(UiState& ui)
 {
-    RackEditor& r = ui.rack;
-    if (ImGui::Selectable(tr("Empty machine"))) {
-        json cfg = { { "name", tr("New machine") }, { "bus", { { "type", "ARB-1C-8" }, { "jp3", "2-3" } } },
-                     { "cards", json::array() } };
-        cfg["cards"].push_back(card_new_config(card_info("JPR-1ZI"), 1));
-        r.cfg = cfg;
-        r.saved = json();
-        r.path.clear();
-        r.sel = 1;
-        set_message(r, tr("New machine: insert cards into the slots."), false);
-    }
+    if (ImGui::Selectable(tr("Empty machine"))) request(ui, RackEditor::PEND_EMPTY, std::string());
     ImGui::SeparatorText(tr("From a template or another machine"));
     for (const std::string& f : list_machine_files()) {
-        if (ImGui::Selectable(f.c_str())) editor_open(ui, f, true);
+        if (ImGui::Selectable(f.c_str())) request(ui, RackEditor::PEND_TEMPLATE, f);
     }
 }
 
@@ -1195,6 +1308,16 @@ void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& valu
     if (card.value("type", std::string()) == c->type) card[d->ink_param()] = value;
 }
 
+void rack_start_machine(UiState& ui, const std::string& file)
+{
+    request(ui, RackEditor::PEND_START, file);
+}
+
+void rack_request_exit(UiState& ui)
+{
+    request(ui, RackEditor::PEND_EXIT, std::string());
+}
+
 void rack_open_and_run(UiState& ui)
 {
     start_dialog(ui, RackEditor::DLG_RUN, std::string());
@@ -1205,6 +1328,7 @@ void draw_rack(UiState& ui)
     handle_dialog(ui);   // also for File -> Open while the window is hidden
     follow_machine(ui);
     sync_live_ink(ui);
+    draw_unsaved_question(ui);
     if (!ui.show_rack) return;
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();
@@ -1262,20 +1386,6 @@ void draw_rack(UiState& ui)
         set_message(r, tr("Changes reverted."), false);
     }
     ImGui::EndDisabled();
-    if (!r.stash_cfg.is_null()) {
-        ImGui::SameLine();
-        char lab[300];
-        snprintf(lab, sizeof(lab), "%s (%s)", tr("Restore unsaved changes"),
-                 r.stash_path.empty() ? tr("(not saved yet)") : r.stash_path.c_str());
-        if (ImGui::Button(lab)) {   // back to the put aside description; the running machine stays
-            r.cfg = r.stash_cfg;
-            r.saved = r.stash_saved;
-            r.path = r.stash_path;
-            r.sel = 0;
-            r.stash_cfg = json();
-            set_message(r, tr("Unsaved changes restored."), false);
-        }
-    }
     ImGui::TextDisabled("%s%s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str(),
                         dirty ? tr("  - unsaved changes") : "");
     if (!r.message.empty()) {

@@ -33,11 +33,22 @@ const uint32_t k_background = 0xFF101010u;
 // PAL TV: pixel aspect = 7.375 MHz square-pixel clock (288 lines) / dot clock of the card
 const double k_tv_square_dot_hz = 7.375e6;   // square pixels of a PAL picture (288 lines)
 
+// Zoom of a display window: fitted to the window, or a fixed 100/200/300 % chosen from
+// its context menu (the window is resized to it; resizing it by hand fits again).
+struct ZoomState {
+    float zoom = 0;    // screen pixels per emulated pixel in the last frame (0 = not drawn yet)
+    float fixed = 0;   // chosen zoom, 0 = fit the window
+    int request = 0;   // percent chosen: resize the window before its next Begin
+    ImVec2 size;       // window size set for `fixed`
+};
+const int k_zoom_steps[] = { 100, 200, 300 };
+const float k_display_pad = 4.0f;   // window padding of the display windows
+
 struct GfxView {
     SDL_Texture* tex = nullptr;
     int w = 0, h = 0;
     std::vector<uint32_t> pixels;
-    float zoom = 0;   // screen pixels per emulated pixel in the last frame (0 = not drawn yet)
+    ZoomState zs;
 };
 const int MAX_GFX_VIEWS = 4;
 
@@ -47,7 +58,7 @@ struct App {
     SDL_Texture* screen_tex = nullptr;
     int tex_w = 0, tex_h = 0;
     std::vector<uint32_t> pixels;
-    float screen_zoom = 0;        // of the console screen, as GfxView::zoom
+    ZoomState screen_zs;          // of the console screen
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
     EmuHost host;
@@ -56,6 +67,7 @@ struct App {
     std::string error_text;
     bool show_error = false;
     bool quit = false;
+    uint64_t title_gen = ~0ull;   // machine generation shown in the window title
     bool integer_scale = true;
     bool tv_aspect = false;
     bool smooth = false;          // linear filtering of the screen texture
@@ -293,22 +305,58 @@ void handle_text(App& app, const char* text)
     if (app.ui.screen_focused) m->type_text(text);
 }
 
-// Window title of a display output: the card name and the current zoom ("CGA-1V  2x").
+// Window title of a display output: the card name and the current zoom ("CGA-1V  200 %").
 void display_title(char* out, size_t n, const char* name, float zoom, const char* id)
 {
     char z[16] = "";
-    if (zoom > 0) {
-        if (zoom == (float)(int)zoom) snprintf(z, sizeof(z), "  %d\xC3\x97", (int)zoom);
-        else {
-            snprintf(z, sizeof(z), "  %.2f", zoom);
-            size_t len = strlen(z);
-            while (len > 0 && z[len - 1] == '0') z[--len] = 0;
-            if (i18n_language() == LANG_CS)
-                for (char* c = z; *c; c++) if (*c == '.') *c = ',';
-            snprintf(z + len, sizeof(z) - len, "\xC3\x97");
-        }
-    }
+    if (zoom > 0) snprintf(z, sizeof(z), "  %d %%", (int)(zoom * 100.0f + 0.5f));
     snprintf(out, n, "%s%s###%s", name, z, id);
+}
+
+float display_px_aspect(App& app, DisplayDevice* d);
+
+// Before Begin: a zoom chosen from the menu resizes the window to fit the picture at it.
+void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
+{
+    if (!zs.request || !d) return;
+    float k = zs.request / 100.0f;
+    zs.request = 0;
+    float fb = ImGui::GetIO().DisplayFramebufferScale.x;
+    if (fb <= 0) fb = 1.0f;
+    float pad = 2.0f * k_display_pad + 2.0f;   // padding and a little slack for the border
+    ImVec2 s(d->screen_width() * display_px_aspect(app, d) * k / fb + pad,
+             d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
+    ImGui::SetNextWindowSize(s);
+    zs.fixed = k;
+    zs.size = s;
+}
+
+// After Begin: resizing the window by hand (or docking it) goes back to fitting.
+void zoom_track(ZoomState& zs)
+{
+    if (!zs.fixed) return;
+    ImVec2 s = ImGui::GetWindowSize();
+    if (s.x < zs.size.x - 1.5f || s.x > zs.size.x + 1.5f || s.y < zs.size.y - 1.5f || s.y > zs.size.y + 1.5f)
+        zs.fixed = 0;
+}
+
+void zoom_items(ZoomState& zs)
+{
+    for (int p : k_zoom_steps) {
+        char label[16];
+        snprintf(label, sizeof(label), "%d %%", p);
+        if (ImGui::MenuItem(label, nullptr, zs.fixed > 0 && (int)(zs.fixed * 100.0f + 0.5f) == p)) zs.request = p;
+    }
+}
+
+// Right click on the picture: the zoom of this window.
+void zoom_context_menu(ZoomState& zs)
+{
+    if (ImGui::BeginPopupContextWindow("zoommenu")) {
+        ImGui::TextDisabled("%s", tr("Zoom"));
+        zoom_items(zs);
+        ImGui::EndPopup();
+    }
 }
 
 // View -> Colour: the ink of the monochrome displays. It is a card parameter (jumpers
@@ -349,8 +397,8 @@ void draw_menu(App& app)
         if (ImGui::BeginMenu(tr("Open machine"))) {
             for (const std::string& f : list_machine_files())
                 if (ImGui::MenuItem(f.c_str(), nullptr, f == app.host.machine_file())) {
-                    load_machine(app, f);
-                    m = app.host.machine();   // the old machine is gone
+                    rack_start_machine(app.ui, f);   // asks first if the configurator has unsaved changes
+                    m = app.host.machine();          // the old machine may be gone
                 }
             ImGui::EndMenu();
         }
@@ -358,7 +406,7 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Load program into memory (Intel HEX)..."), nullptr, false, m != nullptr))
             hex_load_dialog(app.ui);
         ImGui::Separator();
-        if (ImGui::MenuItem(tr("Exit"))) app.quit = true;
+        if (ImGui::MenuItem(tr("Exit"))) rack_request_exit(app.ui);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Machine"))) {
@@ -423,6 +471,12 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
         ImGui::Separator();
         ink_menu(app, m);
+        if (ImGui::BeginMenu(tr("Screen zoom"), m && m->display)) {
+            zoom_items(app.screen_zs);
+            ImGui::Separator();
+            ImGui::TextDisabled("%s", tr("Right click on a picture: the zoom of its window."));
+            ImGui::EndMenu();
+        }
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
@@ -469,9 +523,16 @@ void draw_menu(App& app)
     ImGui::EndMainMenuBar();
 }
 
-// Draw display output `d` into the current window, scaled to fit, through its own texture.
-// Returns the zoom: screen pixels per emulated pixel (vertically, with the TV aspect).
-float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels)
+float display_px_aspect(App& app, DisplayDevice* d)
+{
+    return app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
+}
+
+// Draw display output `d` into the current window, scaled to fit (or at the zoom chosen
+// for the window), through its own texture. Returns the zoom: screen pixels per emulated
+// pixel (vertically, with the TV aspect).
+float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels,
+                   const ZoomState& zs)
 {
     int w = d->screen_width(), h = d->screen_height();
     if (!tex || w != tex_w || h != tex_h) {
@@ -490,11 +551,12 @@ float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, in
     float fb = ImGui::GetIO().DisplayFramebufferScale.x;
     if (fb <= 0) fb = 1.0f;
     ImVec2 avail = ImGui::GetContentRegionAvail();
-    float px_aspect = app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
+    float px_aspect = display_px_aspect(app, d);
     float img_w = (float)w * px_aspect, img_h = (float)h;
     float scale = avail.x * fb / img_w;
     if (avail.y * fb / img_h < scale) scale = avail.y * fb / img_h;
-    if (app.integer_scale && scale >= 1.0f) scale = (float)(int)scale;
+    if (zs.fixed > 0 && scale >= zs.fixed * 0.999f) scale = zs.fixed;
+    else if (app.integer_scale && scale >= 1.0f) scale = (float)(int)scale;
     if (scale <= 0.1f) scale = 0.1f;
     ImVec2 size(img_w * scale / fb, img_h * scale / fb);
     ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -521,10 +583,12 @@ void draw_screen(App& app)
     DisplayDevice* d = m ? m->display : nullptr;
     Card* c = dynamic_cast<Card*>(d);
     char title[96];   // named after the display card, the same window for every machine
-    display_title(title, sizeof(title), c ? c->name.c_str() : tr("Screen"), d ? app.screen_zoom : 0, "screen");
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+    display_title(title, sizeof(title), c ? c->name.c_str() : tr("Screen"), d ? app.screen_zs.zoom : 0, "screen");
+    zoom_resize(app, d, app.screen_zs);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
     ImGui::Begin(title);
     ImGui::PopStyleVar();
+    zoom_track(app.screen_zs);
     app.ui.screen_focused = ImGui::IsWindowFocused();
 
     if (!m) {   // switched off: a dark screen
@@ -539,7 +603,8 @@ void draw_screen(App& app)
         ImGui::End();
         return;
     }
-    app.screen_zoom = draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels);
+    app.screen_zs.zoom = draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels, app.screen_zs);
+    zoom_context_menu(app.screen_zs);
     ImGui::End();
 }
 
@@ -556,19 +621,22 @@ void draw_graphic_screens(App& app)
         Card* c = dynamic_cast<Card*>(d);
         char title[96], id[16];
         snprintf(id, sizeof(id), "gfx%d", k);
-        display_title(title, sizeof(title), c ? c->name.c_str() : tr("Graphics"), v.zoom, id);
+        display_title(title, sizeof(title), c ? c->name.c_str() : tr("Graphics"), v.zs.zoom, id);
         // first use: right of the console screen (820 wide from x 60), below it on a narrow desktop
         ImVec2 vp = ImGui::GetMainViewport()->WorkSize;
         ImVec2 at = vp.x >= 60 + 820 + 10 + 500 ? ImVec2(890.0f + 30.0f * k, 60.0f + 30.0f * k)
                                                  : ImVec2(60.0f + 30.0f * k, 630.0f + 30.0f * k);
         ImGui::SetNextWindowPos(at, ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+        zoom_resize(app, d, v.zs);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
         bool open = ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
         ImGui::PopStyleVar();
         if (open) {
+            zoom_track(v.zs);
             if (ImGui::IsWindowFocused()) app.ui.screen_focused = true;   // typing goes to the machine too
-            v.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels);
+            v.zs.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels, v.zs);
+            zoom_context_menu(v.zs);
         }
         ImGui::End();
     }
@@ -729,14 +797,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
             ImGui_ImplSDL3_ProcessEvent(&ev);
-            if (ev.type == SDL_EVENT_QUIT) app.quit = true;
+            if (ev.type == SDL_EVENT_QUIT) rack_request_exit(app.ui);
             else if (ev.type == SDL_EVENT_WINDOW_MOVED || ev.type == SDL_EVENT_WINDOW_RESIZED) track_window(app);
             else if (ev.type == SDL_EVENT_KEY_DOWN) handle_key(app, ev.key);
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
         }
-        uint64_t gen = app.host.machine_generation();
         app.host.poll();   // MCP commands
-        if (gen != app.host.machine_generation()) set_title(app);
+        if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator
+            app.title_gen = app.host.machine_generation();
+            set_title(app);
+        }
+        if (app.ui.quit) app.quit = true;
         uint64_t now = SDL_GetTicksNS();
         app.host.frame(now - last);
         last = now;

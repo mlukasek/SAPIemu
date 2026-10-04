@@ -37,17 +37,21 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
 - **Nová:** prázdná sestava, nebo kopie šablony či jiné sestavy (uloží se přes „Uložit jako…“).
 - **Uložit** zapíše soubor s komentáři z katalogu: u každého jumperu je jeho označení a význam zvolené
   hodnoty. Ruční komentáře z původního souboru se při uložení z konfigurátoru ztratí.
-- **Konfigurátor ukazuje běžící sestavu.** Když se otevře jiná sestava (menu Soubor, Otevřít soubor…, MCP),
-  konfigurátor ji ukáže vždy. Neuložené změny předchozí sestavy se odloží a tlačítko „Obnovit neuložené změny“
-  je vrátí zpět do konfigurátoru (běžící sestava se tím nemění). Vypnutí a zapnutí stejné sestavy rozpracované
-  změny zachová.
+- **Konfigurátor ukazuje běžící sestavu.** Když má neuložené změny a má se nahradit jinou sestavou (menu
+  Soubor → Otevřít sestavu, Otevřít soubor…, v konfigurátoru Nová a Otevřít…, i ukončení emulátoru), nejdřív
+  se zeptá: **Uložit / Uložit jako… / Zahodit / Zrušit**. Zrušit akci nechá být. Když sestavu přepne MCP,
+  dotaz přijde hned potom a Zrušit ponechá rozpracované změny v konfigurátoru. Vypnutí a zapnutí stejné sestavy
+  (NAPÁJENÍ, „Zapnout s touto sestavou“) se neptá a změny zachová.
 
 ## Okna obrazovek a barva obrazu
 
 - **Každý videovýstup má své okno pojmenované podle karty:** „AND-1V“, „AND-1Z-89“, „CGA-1V“, „DGD-1“… Konzole
   (první textový displej) je hlavní okno, grafické karty mají další. Při vypnutém stroji se hlavní okno jmenuje
-  „Obrazovka“. Za jménem je aktuální zvětšení („CGA-1V  2×“, při neceločíselném „1,5×“): počet bodů obrazovky
-  PC na bod emulovaného obrazu, svisle (s poměrem TV se vodorovně liší).
+  „Obrazovka“. Za jménem je aktuální zvětšení v celých procentech („CGA-1V  200 %“): body obrazovky PC na bod
+  emulovaného obrazu, svisle (s poměrem TV se vodorovně liší).
+- **Rychlé zvětšení:** pravé tlačítko na obraz nabídne 100 %, 200 % a 300 %, okno se na ně přesně nastaví. Pro
+  hlavní obrazovku je totéž v menu Zobrazení → Zvětšení obrazovky. Změna velikosti okna rukou vrátí přizpůsobení
+  oknu (a celočíselné zvětšení, je-li zapnuté).
 - **Barva jednobarevného obrazu je parametr karty v sestavě:**
   - AND-1V: propojky S1 (`color`: white, green, amber, red, blue, cyan, yellow, magenta), jako na desce;
   - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1 barvu nemají, ta je dána luminoforem monitoru: parametr `monitor`

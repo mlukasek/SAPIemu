@@ -42,9 +42,13 @@ struct RackEditor {
     bool open_map_tab = false;          // select the map tab once (UI snapshot)
     std::string message;
     bool message_error = false;
-    // unsaved changes put aside when another machine was opened (menu, MCP)
-    nlohmann::json stash_cfg, stash_saved;
-    std::string stash_path;
+    // Question "save the unsaved changes?" before the description is replaced: the
+    // action waits for the answer (Save, Save as, Discard, Cancel).
+    enum { PEND_NONE = 0, PEND_START, PEND_OPEN, PEND_TEMPLATE, PEND_EMPTY, PEND_FOLLOW, PEND_EXIT };
+    int pending = PEND_NONE;
+    std::string pending_path;      // machine file of PEND_START / PEND_OPEN / PEND_TEMPLATE
+    bool ask_unsaved = false;      // open the question in the next frame
+    bool save_then_continue = false;   // "Save as" dialog for the pending action
 
     // native file dialogs answer from another thread
     enum { DLG_NONE = 0, DLG_OPEN, DLG_SAVE, DLG_PARAM, DLG_RUN };
@@ -68,6 +72,8 @@ struct UiState {
     bool show_log = false;
     bool show_media = false;
     bool show_rack = false;
+    bool quit = false;             // exit confirmed (no unsaved machine description)
+    std::string error;             // error for the message box of the main window
     SDL_Window* window = nullptr;
     RackEditor rack;
     TapeDialog tape_dlg;
@@ -112,6 +118,11 @@ void hex_load_dialog(UiState& ui);
 void draw_rack(UiState& ui);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);
+// File -> Open machine: start a machine file; asks first when the configurator holds
+// unsaved changes.
+void rack_start_machine(UiState& ui, const std::string& file);
+// Exit: asks first when the configurator holds unsaved changes, then sets ui.quit.
+void rack_request_exit(UiState& ui);
 // POWER switch: off when the machine runs, else on with the configurator's description.
 void rack_power_switch(UiState& ui);
 // Ink colour of a monochrome display (card parameter: jumpers S1 of AND-1V, the monitor
