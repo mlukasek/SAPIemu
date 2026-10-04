@@ -4,6 +4,7 @@
 #include "frontend/i18n.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL3/SDL.h>
 #include "imgui.h"
 #include "cards/dsm1.h"
@@ -45,6 +46,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
 #endif
     if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 1, where.c_str(), false);
     else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 1, where.c_str(), false);
+    else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
     else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str(), false);
     else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
@@ -73,6 +75,11 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         if (!file_read_text(path, text)) LOGE("cannot read %s", path.c_str());
         else if (!m->load_ihex_text(text, err, &n)) LOGE("%s: %s", path.c_str(), err.c_str());
         else LOGI("%s: %d bytes loaded into memory", path.c_str(), n);
+        return;
+    }
+    if (kind == 6) {   // a binary file: ask for the address first
+        ui.bin_path = path;
+        ui.bin_ask = true;
         return;
     }
     if (kind == 4 || kind == 5) {   // a floppy for an RPD-1 drive
@@ -208,6 +215,62 @@ void hex_load_dialog(UiState& ui)
     tape_dialog(ui, 3, std::string());
 }
 
+void bin_load_dialog(UiState& ui)
+{
+    tape_dialog(ui, 6, std::string());
+}
+
+static long long file_size_of(const std::string& path)
+{
+    FILE* f = file_open(path, "rb");
+    if (!f) return -1;
+    fseek(f, 0, SEEK_END);
+    long long n = ftell(f);
+    fclose(f);
+    return n;
+}
+
+// The address for File -> Load binary file, with the size and the pages for CP/M SAVE.
+static void bin_load_question(UiState& ui, Machine* m)
+{
+    const char* title = tr("Load binary file into memory");
+    if (ui.bin_ask) {
+        ImGui::OpenPopup(title);
+        ui.bin_ask = false;
+    }
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    long long size = file_size_of(ui.bin_path);
+    ImGui::TextUnformatted(ui.bin_path.c_str());
+    ImGui::Text("%s %lld B", tr("Size:"), size);
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+    ImGui::InputText(tr("Address (hex)"), ui.bin_addr, sizeof(ui.bin_addr), ImGuiInputTextFlags_CharsHexadecimal);
+    long long addr = strtol(ui.bin_addr, nullptr, 16);
+    bool fits = size > 0 && addr >= 0 && addr + size <= 0x10000;
+    if (fits) {
+        ImGui::Text("%04llX-%04llXh", addr, addr + size - 1);
+        if (addr == 0x100) ImGui::TextDisabled("CP/M: SAVE %lld %s", (size + 255) / 256, tr("NAME.EXT"));
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", size < 0 ? tr("Cannot read the file.")
+                                                                      : tr("The file does not fit into memory there."));
+    }
+    ImGui::BeginDisabled(!fits || !m);
+    if (ImGui::Button(tr("Load"))) {
+        std::string err;
+        int n = 0;
+        if (!m->load_binary(ui.bin_path, (uint16_t)addr, err, &n)) LOGE("%s", err.c_str());
+        else LOGI("%s: %d bytes loaded at %04llXh", ui.bin_path.c_str(), n, addr);
+        ui.bin_path.clear();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) {
+        ui.bin_path.clear();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+}
+
 // ---------------------------------------------------------------- floppy drives of RPD-1
 
 static void draw_rpd1(UiState& ui, Rpd1* r)
@@ -241,7 +304,8 @@ static void draw_rpd1(UiState& ui, Rpd1* r)
 
 void draw_media(UiState& ui)
 {
-    tape_dialog_result(ui, ui.host->machine());   // also the HEX dialog of the File menu
+    tape_dialog_result(ui, ui.host->machine());   // also the HEX and binary dialogs of the File menu
+    bin_load_question(ui, ui.host->machine());
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(560, 300), ImGuiCond_FirstUseEver);

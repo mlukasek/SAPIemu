@@ -99,6 +99,14 @@ static int run_actions(Machine& m, const std::vector<std::string>& actions, std:
             const std::string& path = actions[++i];
             if (!file_read_text(data_path(path), text)) { fprintf(stderr, "cannot read %s\n", path.c_str()); return 1; }
             if (!m.load_ihex_text(text, err)) { fprintf(stderr, "%s: %s\n", path.c_str(), err.c_str()); return 1; }
+        } else if (a == "--load-bin" && i + 2 < actions.size()) {
+            std::string err, path = actions[++i], v = actions[++i];
+            long long addr;
+            if (!parse_number(v + (v.find_first_of("hHxX$") == std::string::npos ? "h" : ""), addr) || addr < 0 || addr > 0xFFFF) {
+                fprintf(stderr, "invalid address '%s'\n", v.c_str());
+                return 1;
+            }
+            if (!m.load_binary(path, (uint16_t)addr, err)) { fprintf(stderr, "%s\n", err.c_str()); return 1; }
         } else if (a == "--break" && has_arg) {
             long long addr;
             std::string v = actions[++i];

@@ -19,7 +19,7 @@ struct SDL_Window;
 struct TapeDialog {
     std::mutex mtx;
     int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory,
-                             // 4 insert floppy, 5 new floppy
+                             // 4 insert floppy, 5 new floppy, 6 binary file into memory
     bool done = false;
     std::string result;      // chosen file, empty = cancelled
     std::string card;        // DSM-1 / RPD-1 card name
@@ -78,6 +78,10 @@ struct UiState {
     SDL_Window* window = nullptr;
     RackEditor rack;
     TapeDialog tape_dlg;
+    // File -> Load binary file: the chosen file waits for its address
+    std::string bin_path;          // chosen file, empty = no question open
+    bool bin_ask = false;          // open the question in the next frame
+    char bin_addr[8] = "0100";     // load address (hex), remembered in the settings
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;
@@ -116,6 +120,8 @@ void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
 // File -> Load program (Intel HEX): native dialog, the file goes into memory.
 void hex_load_dialog(UiState& ui);
+// File -> Load binary file: native dialog, then the address; the file goes into memory as is.
+void bin_load_dialog(UiState& ui);
 void draw_rack(UiState& ui);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);

@@ -80,5 +80,7 @@ v `RATplayer\*.rad`) v repu není, testy ji berou z `..\MPH-1V`, pokud tam je. P
 Skladby pro SPLAY (`..\MPH-1V\SPLAY\*.hex`, také od 0100h): `SAVE 17 BUBBLE.VGM`, `SAVE 33 BIRDIE.VGM`,
 `SAVE 47 DEMON.VGM`, `SAVE 46 DINOISLE.VGM`, `SAVE 109 FURY.VGM`, `SAVE 28 HELLFIRE.VGM`,
 `SAVE 152 MONKISLA.VGM`, `SAVE 75 OLMANG.VGM`, `SAVE 54 SUPAPLEX.VGM`, `SAVE 180 TYRIAN.VGM`,
-`SAVE 22 VIMANA.VGM`. Soubor RAD se nahraje binárně od 0100h (MCP `load_binary`) a uloží
-`SAVE n JMENO.RAD`, kde n = velikost / 256 zaokrouhleno nahoru (`smjoop.rad` 38).
+`SAVE 22 VIMANA.VGM`. Soubor RAD se nahraje binárně od 0100h (GUI Soubor → Nahrát binární soubor do paměti…,
+`sapiemu-cli --load-bin soubor 100`, MCP `load_binary`) a uloží `SAVE n JMENO.RAD`, kde n = velikost / 256
+zaokrouhleno nahoru (`smjoop.rad` 38, `Void - Terrania.rad` 40, `Void - Raster.rad` 72). Okno pro nahrání
+binárního souboru n ukáže.

@@ -58,6 +58,7 @@ static void print_help(void)
            "  --break ADDR       set an execution breakpoint (hex)\n"
            "  --print-regs       print CPU registers\n"
            "  --load-hex FILE    load an Intel HEX file into memory\n"
+           "  --load-bin FILE ADDR  load a binary file into memory at ADDR (hex)\n"
            "  --display CARD     --screenshot takes this display output (e.g. DGD-1)\n"
            "  --screenshot FILE  save the screen as PNG (2x)\n"
            "  --audio-wav FILE   record the sound card from here on, saved as WAV at the end\n",
@@ -73,7 +74,7 @@ static bool action_has_arg(const std::string& a)
 
 static int action_arg_count(const std::string& a)
 {
-    if (a == "--disasm") return 2;
+    if (a == "--disasm" || a == "--load-bin") return 2;
     return action_has_arg(a) ? 1 : 0;
 }
 

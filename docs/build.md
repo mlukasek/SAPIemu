@@ -104,7 +104,8 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
   - `io_log`: záznam I/O, kruhový buffer 4096 přístupů, takže polling ho rychle zaplní;
   - `io_read`, `io_write`: přímý přístup na porty karet, např. obsah RAM disku.
 - **`sapiemu-cli`:** `--timeout-ms` musí být **před** `--wait-text`, kterého se týká. `--load-hex` nahraje
-  program, `--display DGD-1` určí obrazovku pro `--screenshot`.
+  program, `--load-bin SOUBOR ADRESA` binární soubor (adresa hex, třeba `100`), `--display DGD-1` určí obrazovku
+  pro `--screenshot`.
 - **Pracovní kopie médií** (`work/rpd-1/…`, `work/…`) po zkouškách z příkazové řádky smazat. Zápisy na disketu
   se do nich uloží a příště by se načetly místo originálu.
 - **Úpravy souborů skriptem:** na Windows v Bash heredocu se `\n`, `\r` a `\\` v Python řetězcích mění na

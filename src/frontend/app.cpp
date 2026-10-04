@@ -139,6 +139,7 @@ nlohmann::json settings_json(App& app)
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
     j["joystick"] = { { "keyboard", app.joy.keyboard } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
+    j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     return j;
 }
 
@@ -182,6 +183,9 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(s, "card_types", ui.rack.show_types);
     const nlohmann::json& cas = j.value("cassette", nlohmann::json::object());
     get_opt(cas, "last_dir", ui.tape_dlg.last_dir);
+    std::string ba;
+    get_opt(j.value("load", nlohmann::json::object()), "binary_address", ba);
+    if (!ba.empty() && ba.size() < sizeof(ui.bin_addr)) snprintf(ui.bin_addr, sizeof(ui.bin_addr), "%s", ba.c_str());
     const nlohmann::json& t = j.value("terminal", nlohmann::json::object());
     get_opt(t, "channel", ui.terminal_channel);
     if (ui.terminal_channel < 0) ui.terminal_channel = 0;
@@ -419,6 +423,8 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Open file..."))) rack_open_and_run(app.ui);
         if (ImGui::MenuItem(tr("Load program into memory (Intel HEX)..."), nullptr, false, m != nullptr))
             hex_load_dialog(app.ui);
+        if (ImGui::MenuItem(tr("Load binary file into memory..."), nullptr, false, m != nullptr))
+            bin_load_dialog(app.ui);
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Exit"))) rack_request_exit(app.ui);
         ImGui::EndMenu();

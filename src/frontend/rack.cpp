@@ -1373,8 +1373,13 @@ void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>&
             ImGui::TableNextColumn();
             if (k == 0) ImGui::TextColored(col, "%s", range_text(rg, digits).c_str());
             ImGui::TableNextColumn();
-            ImGui::ColorButton("##c", ImColor(card_color(us.card)), ImGuiColorEditFlags_NoTooltip,
-                               ImVec2(ImGui::GetFontSize() * 0.7f, ImGui::GetFontSize() * 0.7f));
+            {   // colour of the card as in the bar: drawn, not a widget (no ID clashes between rows)
+                float u = ImGui::GetFontSize(), s = u * 0.7f;
+                ImVec2 p = ImGui::GetCursorScreenPos();
+                p.y += (ImGui::GetTextLineHeight() - s) * 0.5f;
+                ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + s, p.y + s), card_color(us.card));
+                ImGui::Dummy(ImVec2(s, ImGui::GetTextLineHeight()));
+            }
             ImGui::SameLine();
             ImGui::TextColored(col, "%s (X%d)", m.cards[(size_t)us.card].name.c_str(), m.cards[(size_t)us.card].slot);
             ImGui::TableNextColumn();
