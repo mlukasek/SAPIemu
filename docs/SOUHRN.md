@@ -4,6 +4,14 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Před veřejným vydáním (autor, v klidu):** zip 0.1.0-alpha teď jde jen soukromě (Libor Lasota, Petr Všijanský,
+Michal Medek), repo zůstává neveřejné, dokud to neodsouhlasí. Pak:
+- vybrat a pečlivě připravit sestavy `.sapi` (názvy, popisy, které vůbec vydat);
+- připravit vydávací obsah disků (IDE, RAM disk) místo autorova pracovního `work/ide`;
+- rozhodnout o právech: hudba RAD/VGM na disku, programy třetích stran;
+- zvolit výchozí sestavu pro první spuštění;
+- veřejný zip pak případně `python tools\package.py --no-ide`.
+
 **Příprava první alfa verze 0.1.0-alpha:**
 - README s obrázky (`docs/img/`), návod `docs/prvni-kroky.md`, poznámky `docs/release-notes/v0.1.0-alpha.md`;
 - balík `python tools/package.py` (postup v `docs/build.md`, „Vydání“);
