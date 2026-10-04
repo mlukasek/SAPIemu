@@ -297,7 +297,7 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 
 ## 2026-10-03 – 64bitový překladač ve Visual Studiu
 
-- **VS hlásilo C1060 „compiler is out of heap space“,** ale z příkazové řádky (`toolsuild.cmd`) šel stejný preset
+- **VS hlásilo C1060 „compiler is out of heap space“,** ale z příkazové řádky (`tools\build.cmd`) šel stejný preset
   přeložit. Presety určovaly jen cílovou architekturu (`x64`, external). VS pak zřejmě volí 32bitový hostitelský
   překladač (Hostx86), který má strop 4 GB na proces a na šablonách `json.hpp` mu dojde paměť.
 - **Řešení:** `"toolset": { "value": "host=x64", "strategy": "external" }` v `windows-base`. Ve VS je potřeba
@@ -473,3 +473,12 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
     testy) neukládá;
   - testy dřív zapisovaly do `work/zrmd-1/`.
 - **Liborovy programy pro CGA-1V** (castle, rembran1/2, cga_test) smí do repa jako binárky (autor).
+
+## 2026-10-04 – Repo na lokálním disku
+
+- **Autor přesunul repo i podpůrné repozitáře desek** z `H:\SAPI-1\GIT\` (síťový disk) do `E:\SAPI_GIT\`.
+  Důvod: sestavení ve VS na síťovém disku zlobilo (IntelliSense do `.vs\`, pomalost).
+- **Archiv zůstává na `H:\SAPI-1\`** (záloha sapi.cz, `LiborLasota`, `_ROM`, nahrávky kazet). Odkazy v `docs/`
+  a cesty v testech (`test_mikos`, `test_cassette`) na něj platí dál. Relativní odkazy `..\<deska>` také.
+- **Po přesunu** se smazalo `out\build\*` (CMakeCache s cestami na `H:`), nastavení GUI se zachovalo a sestavení
+  je čisté, 24 testů prochází. Lokální preset `local-debug` (`C:\SAPIemu-build`) už na tomto PC není potřeba.

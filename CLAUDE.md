@@ -52,9 +52,14 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Příkazová řádka:** `tools\build.cmd debug test`. Skript sám najde VS přes vswhere (přednost má VS 2022) a spustí configure, build a ctest.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
 - **Linux (později):** `cmake --preset linux-debug && cmake --build --preset linux-debug`.
-- Na autorově hlavním PC je `H:` síťový disk (`\\Luksrv1\history`). VS proto hlásí, že databázi IntelliSense nemůže
-  uložit do `.vs\`. Hláška je neškodná, stačí potvrdit OK nebo nastavit Fallback Location (C/C++ → Advanced).
-  Sestavení do `out\` na síťovém disku funguje, jen je pomalejší.
+- **Umístění na autorově hlavním PC (od 2026-10-04):** repo je na lokálním disku v `E:\SAPI_GIT\SAPIemu`, podpůrné
+  repozitáře desek vedle něj v `E:\SAPI_GIT\<deska>` (relativní odkazy `..\JPR-1V` atd. platí dál). Archiv
+  `H:\SAPI-1\` (záloha sapi.cz, `LiborLasota`, `_ROM`, nahrávky kazet…) zůstává na síťovém disku `H:`
+  (`\\Luksrv1\history`). Dřív bylo repo v `H:\SAPI-1\GIT\SAPIemu` a VS na síťovém disku zlobilo (IntelliSense
+  do `.vs\`, pomalé sestavení). Lokální preset `local-debug` proto na tomto PC není potřeba.
+- **Po přesunu repa do jiné složky** neplatí `out\build\*` (CMakeCache má absolutní cesty): smazat ho, nebo ve VS
+  Project → Delete Cache and Reconfigure. Nastavení GUI (`sapiemu-settings.json`, `imgui.ini`) z něj předem
+  odložit.
 - **VS a C1060 „compiler is out of heap space“:** presety mají `toolset host=x64`, jinak VS pouští 32bitový `cl.exe`,
   kterému na souborech s `json.hpp` dojde paměť. Po změně presetů ve VS: Project → Delete Cache and Reconfigure.
 - **Pozor:** makra `Z80_SET_DATA` a podobná v `z80.h` se rozvinou na blok `{}`. Před `else` je proto nutné psát složené závorky.

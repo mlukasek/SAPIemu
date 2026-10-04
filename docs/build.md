@@ -46,6 +46,20 @@ Když repo leží na síťovém disku, je rychlejší ukládat výstupy sestaven
 }
 ```
 
+## Přesun repa do jiné složky
+
+CMake si do `CMakeCache.txt` ukládá absolutní cesty ke zdrojům, takže po přesunu repa (nebo jeho kopii jinam)
+sestavení ve staré výstupní složce selže. Postup:
+
+1. Zavřít Visual Studio.
+2. Odložit nastavení GUI ze složky s exe (`out\build\<preset>\sapiemu-settings.json`, `imgui.ini`).
+3. Smazat `out\build\<preset>` (u lokálního presetu jeho složku mimo repo), případně ve VS Project → Delete Cache
+   and Reconfigure.
+4. Sestavit znovu (`tools\build.cmd debug test`) a nastavení GUI vrátit. V `sapiemu-settings.json` může být
+   absolutní cesta (`cassette.last_dir`), ta se opraví ručně nebo při dalším otevření kazety.
+
+Složka `.vs\` je jen mezipaměť VS a znovu se vytvoří. Pracovní kopie médií ve `work\` se přesouvají s repem.
+
 ## Datová složka
 
 Emulátor hledá složku s `roms/` a `machines/`: nejdřív od složky s exe směrem nahoru, pak od aktuální složky

@@ -38,11 +38,10 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
   Soubory čtvrté diskety jsou v `cpmzps3_soubory.rar` (BIOS48C1.MAC, BOOT0C1/1C1.MAC, MON48C1.MAC,
   MOVCPM48.COM).
 - **Originální Tesla IMA CP/M 64K, bootovatelný** („CCP V2.2-A1 TESLA ELTOS IMA PARDUBICE 15/11/1984“):
-  `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3–03.8SD`. Volá F821, patří
+  `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3\01–03.8SD`. Volá F821, patří
   k `JPR1A_BOOT_64k`.
-- **48K zdrojové diskety** bez systémových stop: `...\IMAGE_8\ZDROJ_STARE
-_a/b_zps3_48k.8sd`.
-- `BKP\dataios_lst.php` je BIOS MIKOS/D, ne CP/M ZPS-3. Zdroje CP/M BIOS: BIOS48C1.MAC, BIOS64C2.MAC,
+- **48K zdrojové diskety** bez systémových stop: `...\IMAGE_8\ZDROJ_STARE\15_a/b_zps3_48k.8sd`.
+- `BKP\data\bios_lst.php` je BIOS MIKOS/D, ne CP/M ZPS-3. Zdroje CP/M BIOS: BIOS48C1.MAC, BIOS64C2.MAC,
   BIOS.MAC.
 
 ## Chybí

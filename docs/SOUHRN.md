@@ -277,7 +277,9 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 1. `git pull`.
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
-   (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`).
+   (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`). Na autorově hlavním PC je repo od
+   2026-10-04 na lokálním `E:\SAPI_GIT\SAPIemu` (dřív `H:\SAPI-1\GIT\SAPIemu`), stačí preset `windows-debug`.
+   Po přesunu je sestavení čisté a všech 24 testů prochází.
 4. Pokračovat další fází z tabulky. **Hotovo (2026-10-04): F9 desky V včetně CGA-1V.** Původní poznámky k F9:
    Výsledek
    a otázky pro autora se zapíšou do `docs/desky/JPR-1V.md`, `RAM-1V.md`, `AND-1V.md`, `DSM-1V.md` a
