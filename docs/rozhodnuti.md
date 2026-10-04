@@ -472,3 +472,4 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   - ZRD-1V/ZRMD-1 v režimu `rw` při vypnutých souborech zálohované paměti (`battery_files_enable(false)`,
     testy) neukládá;
   - testy dřív zapisovaly do `work/zrmd-1/`.
+- **Liborovy programy pro CGA-1V** (castle, rembran1/2, cga_test) smí do repa jako binárky (autor).

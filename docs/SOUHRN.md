@@ -270,7 +270,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
     - `..\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
     - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
-    - Smí Liborovy programy (`castle`, `rembran1/2`, `cga_test`) do repa (`media/cga-1v/`)?
+    - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
 ## Jak pokračovat
 
