@@ -60,4 +60,4 @@ Zdroje:
   - každý kanál má vlastní základ a povolení;
   - rychlost z kódu N;
   - přerušení na INT0.
-- V panelu a v názvu kanálu „DSM-1V #10“ / „#14“.
+- Na panelu je port u konektoru („#10“ nad K3 „A“, „#14“ pod K2 „B“), kanály se jmenují „DSM-1V #10“ / „#14“.

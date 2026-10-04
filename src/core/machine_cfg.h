@@ -41,6 +41,9 @@ int card_cfg_width(const nlohmann::json& card);
 std::string card_port_label(const nlohmann::json& card);
 // "DMR-1 #10" or just the type.
 std::string card_display_name(const nlohmann::json& card);
+// Ports of the serial connectors of a card, in the order of its panel (DSM-1V: channel A
+// on K3, B on K2; DSM-1, DMR-1: the terminal); "" for a disabled channel.
+std::vector<std::string> card_connector_ports(const nlohmann::json& card);
 
 struct CfgProblem {
     int slot;          // 0 = whole machine

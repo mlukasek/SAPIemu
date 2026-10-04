@@ -243,6 +243,20 @@ int card_cfg_width(const json& card)
     return ci ? ci->width : 1;
 }
 
+// "#10" from the port parameter `path` of a card.
+static std::string port_of(const json& card, const CardInfo* ci, const char* path)
+{
+    for (const CardParam* p = ci->params; p && p->path; p++) {
+        if (strcmp(p->path, path) != 0) continue;
+        long long v;
+        if (!as_number(card_param_value(card, p), v)) return std::string();
+        char buf[8];
+        snprintf(buf, sizeof(buf), "#%02llX", v & 0xFF);
+        return buf;
+    }
+    return std::string();
+}
+
 std::string card_port_label(const json& card)
 {
     const CardInfo* ci = card_info(card.value("type", std::string()));
@@ -252,15 +266,25 @@ std::string card_port_label(const json& card)
         const json* u = cfg_find(card, "uart");
         if (u && u->is_boolean() && !u->get<bool>()) return std::string();
     }
-    for (const CardParam* p = ci->params; p && p->path; p++) {
-        if (strcmp(p->path, pp) != 0) continue;
-        long long v;
-        if (!as_number(card_param_value(card, p), v)) return std::string();
-        char buf[8];
-        snprintf(buf, sizeof(buf), "#%02llX", v & 0xFF);
-        return buf;
+    return port_of(card, ci, pp);
+}
+
+std::vector<std::string> card_connector_ports(const json& card)
+{
+    std::vector<std::string> out;
+    const CardInfo* ci = card_info(card.value("type", std::string()));
+    if (!ci) return out;
+    if (!strcmp(ci->type, "DSM-1V")) {
+        for (const char* ch : { "a", "b" }) {
+            const json* sec = cfg_find(card, ch);
+            const json* en = cfg_find(card, (std::string(ch) + ".enabled").c_str());
+            bool on = sec && sec->is_object() && !(en && en->is_boolean() && !en->get<bool>());
+            out.push_back(on ? port_of(card, ci, (std::string(ch) + ".base").c_str()) : std::string());
+        }
+    } else if (card_port_param(ci)) {
+        out.push_back(card_port_label(card));
     }
-    return std::string();
+    return out;
 }
 
 std::string card_display_name(const json& card)

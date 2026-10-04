@@ -405,26 +405,55 @@ const float PITCH = 57.6f;
 const float SPN_W = 114.2f;
 const float ZDR_W = 402.5f;
 
-enum { PI_END = 0, PI_TEXT, PI_DSUB, PI_LED, PI_JACK };
+enum { PI_END = 0, PI_TEXT, PI_DSUB, PI_LED, PI_JACK, PI_FRB, PI_PORT, PI_NOTE };
 
 struct PanelItem {
     int kind;
     float x, y;          // centre
-    const char* text;    // PI_TEXT, 14 pt
+    const char* text;    // PI_TEXT (14 pt), PI_NOTE (12 pt, not on the print);
+                         // PI_PORT: index of the connector in card_connector_ports() (13 pt)
 };
 
-// connectors K3 (top) and K2 (bottom): JPR, FDC
+// Cards of the original design have FRB connectors in rectangular cut-outs (first set of
+// Libor's prints: DSM, FDC, JPR): K3 top, K2 bottom, labels on the left; JPR has a round
+// hole for the BOOT LED between them. The V boards have D-sub connectors.
+const PanelItem k_pl_jpr_frb[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_LED, 19.9f, 245.9f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
+    { PI_END, 0, 0, nullptr },
+};
+const PanelItem k_pl_fdc[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
+    { PI_END, 0, 0, nullptr },
+};
+// DSM-1 (Tesla): K3 = X2 terminal with its port, K2 = X3 cassette
+const PanelItem k_pl_dsm1[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_PORT, 41.0f, 56.4f, "0" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" }, { PI_NOTE, 41.0f, 437.8f, "MGF" },
+    { PI_END, 0, 0, nullptr },
+};
+// DMR-1: the terminal connector where DSM-1 has it, no cassette
+const PanelItem k_pl_dmr1[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_PORT, 41.0f, 56.4f, "0" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_END, 0, 0, nullptr },
+};
+// D-sub connectors K3 (top) and K2 (bottom): JPR-1V
 const PanelItem k_pl_k3k2[] = {
     { PI_TEXT, 28.5f, 71.3f, "K3" }, { PI_DSUB, 29.0f, 146.8f, nullptr },
     { PI_DSUB, 29.0f, 345.2f, nullptr }, { PI_TEXT, 28.5f, 405.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
+// DSM-1V: channel A on K3 (top), B on K2; the port of each next to its connector
 const PanelItem k_pl_dsm[] = {
+    { PI_PORT, 28.5f, 53.5f, "0" },
     { PI_TEXT, 28.5f, 71.3f, "K3" }, { PI_TEXT, 28.5f, 88.3f, "\xE2\x80\x9C" "A" "\xE2\x80\x9D" },
     { PI_DSUB, 29.0f, 146.8f, nullptr }, { PI_DSUB, 29.0f, 345.2f, nullptr },
     { PI_TEXT, 28.5f, 405.8f, "K2" }, { PI_TEXT, 28.5f, 422.8f, "\xE2\x80\x9C" "B" "\xE2\x80\x9D" },
+    { PI_PORT, 28.5f, 441.5f, "1" },
     { PI_END, 0, 0, nullptr },
 };
+
 // display cards: K2 = VGA in the middle (AND-1V, DGD, BGP, CGA)
 const PanelItem k_pl_vga[] = {
     { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
@@ -448,7 +477,11 @@ const PanelItem* panel_layout(const CardInfo* ci)
 {
     if (!ci) return nullptr;
     const char* p = ci->panel;
-    if (!strcmp(p, "JPR") || !strcmp(p, "FDC")) return k_pl_k3k2;
+    if (!strcmp(ci->type, "JPR-1V")) return k_pl_k3k2;
+    if (!strcmp(p, "JPR")) return k_pl_jpr_frb;
+    if (!strcmp(p, "FDC")) return k_pl_fdc;
+    if (!strcmp(ci->type, "DSM-1")) return k_pl_dsm1;
+    if (!strcmp(ci->type, "DMR-1")) return k_pl_dmr1;
     if (!strcmp(p, "DSM")) return k_pl_dsm;
     if (!strcmp(p, "AND") || !strcmp(p, "DGD") || !strcmp(p, "BGP") || !strcmp(p, "CGA")) return k_pl_vga;
     if (!strcmp(p, "MPH")) return k_pl_mph;
@@ -514,6 +547,24 @@ void pt_dsub(const Panel& P, float x, float y)
     }
 }
 
+// FRB connector TY 513 (2 x 15 contacts) in the rectangular cut-out of the print,
+// 22.7 x 150.2 points with rounded corners
+const float FRB_HALF = 75.1f;   // half height of the cut-out
+
+void pt_frb(const Panel& P, float x, float y)
+{
+    ImDrawList* dl = P.dl;
+    float k = P.k;
+    dl->AddRectFilled(P.p(x - 11.35f, y - FRB_HALF), P.p(x + 11.35f, y + FRB_HALF), COL_HOLE, 3.0f * k);
+    dl->AddRectFilled(P.p(x - 8.5f, y - 71.0f), P.p(x + 8.5f, y + 71.0f), COL_SHELL, 1.5f * k);   // insulator
+    dl->AddRectFilled(P.p(x - 5.0f, y - 66.0f), P.p(x + 5.0f, y + 66.0f), IM_COL32(52, 54, 58, 255), 1.0f * k);
+    for (int i = 0; i < 15; i++) {   // contacts, two rows
+        float cy = y - 61.6f + i * 8.8f;
+        dl->AddRectFilled(P.p(x - 3.4f, cy - 1.2f), P.p(x - 1.0f, cy + 1.2f), IM_COL32(196, 160, 72, 255));
+        dl->AddRectFilled(P.p(x + 1.0f, cy - 1.2f), P.p(x + 3.4f, cy + 1.2f), IM_COL32(196, 160, 72, 255));
+    }
+}
+
 void pt_led(const Panel& P, float x, float y, ImU32 on)
 {
     P.dl->AddCircleFilled(P.p(x, y), 8.5f * P.k, COL_HOLE);
@@ -546,8 +597,8 @@ void panel_plate(const Panel& P, float w, bool dim)
 }
 
 // A narrow card panel: holes, the label at the top and the bottom, connectors.
-void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type, const std::string& port, bool error,
-                     bool show_type)
+void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type,
+                     const std::vector<std::string>& ports, bool error, bool show_type)
 {
     bool dim = !ci || !ci->emulated;
     panel_plate(P, PANEL_W, dim);
@@ -557,14 +608,18 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
     const char* label = ci ? ci->panel : "?";
     pt_text(P, 28.5f, 33.6f, 20.0f, tc, label, 0, false, 50.0f);
     pt_text(P, 28.5f, 461.6f, 20.0f, tc, label, 0, false, 50.0f);
-    if (!port.empty()) {   // serial cards are often there more than once: their port under the label
-        pt_text(P, 28.5f, 53.5f, 13.0f, tc, port.c_str(), 0, false, 50.0f);
-        pt_text(P, 28.5f, 441.5f, 13.0f, tc, port.c_str(), 0, false, 50.0f);
-    }
+    // serial cards are often there more than once: the port of each connector next to it
     for (const PanelItem* it = panel_layout(ci); it && it->kind != PI_END; it++) {
         switch (it->kind) {
         case PI_TEXT: pt_text(P, it->x, it->y, 14.0f, tc, it->text); break;
+        case PI_NOTE: pt_text(P, it->x, it->y, 12.0f, tc, it->text); break;
+        case PI_PORT: {
+            size_t i = (size_t)(it->text[0] - '0');
+            if (i < ports.size() && !ports[i].empty()) pt_text(P, it->x, it->y, 13.0f, tc, ports[i].c_str(), 0, false, 50.0f);
+            break;
+        }
         case PI_DSUB: pt_dsub(P, it->x, it->y); break;
+        case PI_FRB: pt_frb(P, it->x, it->y); break;
         case PI_LED: pt_led(P, it->x, it->y, COL_LED_OFF); break;
         case PI_JACK: pt_jack(P, it->x, it->y); break;
         default: break;
@@ -572,12 +627,12 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
     }
     if (show_type) {
         // the exact card type across the panel, in the largest free gap between the panel items
-        float lo = port.empty() ? 50.0f : 62.0f, hi = port.empty() ? 445.0f : 432.0f;   // between the labels
+        float lo = 50.0f, hi = 445.0f;   // between the labels
         float best_a = lo, best_b = hi;
         float occ[32][2];
         int no = 0;
         for (const PanelItem* it = panel_layout(ci); it && it->kind != PI_END && no < 32; it++) {
-            float h = it->kind == PI_DSUB ? 46.0f : it->kind == PI_JACK ? 12.0f : 9.0f;
+            float h = it->kind == PI_DSUB ? 46.0f : it->kind == PI_FRB ? FRB_HALF : it->kind == PI_JACK ? 12.0f : 9.0f;
             occ[no][0] = it->y - h - 4.0f;
             occ[no][1] = it->y + h + 4.0f;
             no++;
@@ -601,6 +656,16 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
                 if (i < no && occ[i][1] > y) y = occ[i][1];
             }
         }
+        // FRB cut-outs sit left of the centre: the free strip right of them takes the type
+        bool frb = false;
+        for (const PanelItem* it = panel_layout(ci); it && it->kind != PI_END; it++) frb |= it->kind == PI_FRB;
+        float cx = PANEL_W * 0.5f, cy = (best_a + best_b) * 0.5f;
+        if (frb) {
+            best_a = 70.0f;
+            best_b = 422.0f;
+            cx = 46.1f;   // between the cut-outs (x 12.5-35.2) and the edge
+            cy = 245.9f;
+        }
         ImFont* f = ImGui::GetFont();
         float px = ImGui::GetFontSize() * 0.85f;
         ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
@@ -609,7 +674,7 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
             px *= room / ts.x;
             ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
         }
-        ImVec2 c = P.p(PANEL_W * 0.5f, (best_a + best_b) * 0.5f);
+        ImVec2 c = P.p(cx, cy);
         float hw = ts.y * 0.5f + 2.0f, hh = ts.x * 0.5f + 4.0f;
         P.dl->AddRectFilled(ImVec2(c.x - hw, c.y - hh), ImVec2(c.x + hw, c.y + hh), IM_COL32(20, 24, 30, 205), 3.0f);
         text_vertical(P.dl, c, px, IM_COL32(240, 240, 240, 255), type.c_str());
@@ -725,11 +790,10 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             if (s < 1 || s + wd - 1 > n) continue;
             std::string type = c.value("type", std::string("?"));
             const CardInfo* ci = card_info(type);
-            std::string port = card_port_label(c);
-            std::string shown = port.empty() ? type : type + " " + port;
+            std::vector<std::string> ports = card_connector_ports(c);   // shown at the connectors, not in the name
             for (int b = 0; b < wd; b++) {
                 Panel P = { dl, ImVec2(slot_x(s + b) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
-                draw_card_panel(P, ci, shown, port, slot_has_error(problems, s + b), r.show_types && b == 0);
+                draw_card_panel(P, ci, type, ports, slot_has_error(problems, s + b), r.show_types && b == 0);
             }
         }
     }

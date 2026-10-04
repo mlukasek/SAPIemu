@@ -516,3 +516,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   hlásil změněný soubor i beze změny obsahu.
 - **Teď:** `file_write_text()` zapisuje konce řádků platformy (CRLF na Windows, LF jinde), stejně jako git checkout
   s `text=auto`. Hlídá to test `test_machine_cfg` (`test_line_ends`).
+
+## 2026-10-04 – Port u konektoru, konektory FRB podle štítků
+
+- **Autor:** port sériové karty patří k jejímu konektoru, ne ke jménu karty na panelu. U DSM-1V je u každého
+  kanálu („#10“ u K3 „A“, „#14“ u K2 „B“), u DSM-1 a DMR-1 „K3 #10“. V seznamech, bublinách a v terminálu zůstává
+  „DMR-1 #10“ (autor: jen panel).
+- **Autor:** desky původní konstrukce mají konektory FRB v hranatých otvorech, desky V D-sub. Panely JPR (kromě
+  JPR-1V), FDC, DSM-1 a DMR-1 jsou nakreslené podle první sady Liborových štítků (otvor 22,7 × 150,2 bodu vlevo od
+  středu, JPR s otvorem pro LED). DSM-1: K3 = X2 terminál, K2 = X3 magnetofon. DMR-1 má jen X2 na stejném místě.
+  Typ karty je u panelů s FRB svisle v pruhu vpravo od otvorů.

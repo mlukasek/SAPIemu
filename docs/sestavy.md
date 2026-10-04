@@ -10,12 +10,17 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - Panely jsou kreslené podle tiskových podkladů hliníkových štítků z rámu Libora Lasoty
     (`H:\SAPI-1\LiborLasota\Chassis\Potisk_ARTAX`, rozměry v bodech přímo z PDF): úzký panel 57 × 491,8 bodu,
     SPN dvě pozice, ZDR sedm pozic, otvory, konektory K2/K3 (D-sub), LED ZAM/DSK, popisky.
-  - Rozložení konektorů podle zkratky panelu: JPR a FDC (K3 nahoře, K2 dole), DSM (K3 „A“, K2 „B“), AND, DGD,
-    BGP a CGA (K2 VGA uprostřed), MPH (K4 OVL, K3 ZVUK, K2 MYŠ), ZRD-1V (LED ZAM, DSK). Ostatní karty mají
-    zatím jen zkratku.
+  - **Konektory:** desky původní konstrukce mají konektory FRB v hranatých otvorech, desky V konektory D-sub
+    (autor). Rozměry jsou ze štítků: FRB 22,7 × 150,2 bodu vlevo od středu (první sada, DSM/FDC/JPR), D-sub
+    podle druhé sady.
+    - JPR (kromě JPR-1V) a FDC: K3 nahoře, K2 dole, JPR mezi nimi kulatý otvor pro LED BOOT;
+    - DSM-1: K3 terminál (X2), K2 magnetofon (X3, „MGF“); DMR-1: jen K3 terminál (X2) na stejném místě;
+    - JPR-1V: K3 a K2 D-sub; DSM-1V: K3 „A“, K2 „B“ (D-sub); AND, DGD, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL,
+      K3 ZVUK, K2 MYŠ); ZRD-1V (LED ZAM, DSK). Ostatní karty mají zatím jen zkratku.
   - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
-  - Sériové karty (DMR-1, DSM-1) bývají v sestavě víckrát, proto mají pod zkratkou nahoře i dole port, např.
-    `#10`, `#14`. Stejně se jmenují i v seznamech, bublinách a v okně Sériový terminál („DMR-1 #10“).
+  - Sériové karty (DMR-1, DSM-1, DSM-1V) bývají v sestavě víckrát, proto je **port u každého sériového
+    konektoru** („K3 #10“, u DSM-1V „#10“ nad K3 „A“ a „#14“ pod K2 „B“). Typ karty na panelu je bez portu.
+    V seznamech, bublinách a v okně Sériový terminál zůstává jméno s portem („DMR-1 #10“).
   - Dvě karty na stejném portu jsou chyba (sestava se nezapne). Dvě DMR-1 se zapnutou RAM nebo se stejným
     souborem baterie jsou varování. Druhá DMR-1 se obvykle používá jen jako sériový port: RAM vypnout
     (parametr „RAM 128 KB“) a JP2 nastavit na jiný port.
