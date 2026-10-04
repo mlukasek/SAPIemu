@@ -59,3 +59,17 @@ používat MCP server emulátoru.
 ## Stav
 
 - 2026-10-05: rozbor a plán, repo založené, ověřený překlad originálu pasmem.
+- 2026-10-05: **hratelné v SAPIemu** (`machines/sapi1v.sapi`): CGA-1V, zvuk YM3812, joystick K4 i klávesnice
+  Consul, ESC/BREAK zpět do CP/M. Podrobnosti (ovládání, jak je port udělaný, rychlost) jsou v README repa
+  SAPI-Bomberman.
+  - Znakový generátor MZ-700 je `CGROM.ROM` z MZ8Emu (`E:\@Prebrat\prebrat_z_USB\Sharp\MZ8Emu\ROM`), v repu
+    portu jako `orig/cgrom.bin`. S BomberNet dává shodné tabulky.
+  - Rychlost: při 4 MHz má snímek 60,8 ms rezervu 32 ms. Při 2 MHz stačí v klidu, při výbuchu se snímek
+    prodlouží na 78–100 ms.
+  - **Chyby emulátoru: zatím žádná.** Jediná chyba byla v portu: `MSTA` měnil IX, který hra drží během pípání.
+  - Ladění přes MCP (`sapiemu-cli --mcp --mcp-port 8591`): `load_state`/`save_state` s CP/M na promptu,
+    `load_binary` a `set_registers pc=0100`, `joystick`, `press_key`, `screenshot display=CGA-1V`,
+    `audio_record`. Měření snímku přes `run_until` na `frame_wait` a `flush_screen` (rozdíl `cycles`), profil
+    hlavní smyčky přes `step over=true`.
+  - Pozor u `run_until` na adresu breakpointu: když se breakpoint trefí už při běhu v reálném čase mezi voláními,
+    stroj stojí na té adrese a `run_until` pokračuje dál (jako „continue“), takže skončí timeoutem.
