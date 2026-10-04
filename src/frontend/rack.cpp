@@ -1231,13 +1231,18 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
 void draw_bus_props(RackEditor& r)
 {
     float u = ImGui::GetFontSize();
-    char buf[256];
+    // the name and the description are long (cards, jumpers): the width of the window
+    float label_w = ImGui::CalcTextSize(tr("Description")).x + ImGui::GetStyle().ItemInnerSpacing.x + u;
+    float desc_w = ImGui::GetContentRegionAvail().x - label_w;
+    if (desc_w < 30.0f * u) desc_w = 30.0f * u;
+    char buf[512];
     snprintf(buf, sizeof(buf), "%s", r.cfg.value("name", std::string()).c_str());
-    ImGui::SetNextItemWidth(30.0f * u);
+    ImGui::SetNextItemWidth(desc_w);
     if (ImGui::InputText(tr("Name"), buf, sizeof(buf))) r.cfg["name"] = std::string(buf);
-    char desc[1024];
+    static char desc[8192];   // about 8 lines
     snprintf(desc, sizeof(desc), "%s", r.cfg.value("description", std::string()).c_str());
-    if (ImGui::InputTextMultiline(tr("Description"), desc, sizeof(desc), ImVec2(30.0f * u, 3.6f * u),
+    float desc_h = ImGui::GetTextLineHeight() * 8.0f + ImGui::GetStyle().FramePadding.y * 2.0f;
+    if (ImGui::InputTextMultiline(tr("Description"), desc, sizeof(desc), ImVec2(desc_w, desc_h),
                                   ImGuiInputTextFlags_WordWrap)) {
         if (desc[0]) r.cfg["description"] = std::string(desc);
         else r.cfg.erase("description");
