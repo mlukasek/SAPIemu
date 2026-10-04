@@ -2,6 +2,37 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
+## Kde jsme skončili (2026-10-05) a co dál
+
+- **Stav:**
+  - Všechno je commitnuté a pushnuté na `origin/main` (repo je neveřejné).
+  - Testy: 26 v debug, 29 v release (s pomalými ZEX). Vše prochází.
+- **Alfa 0.1.0-alpha:**
+  - Zip `out/package/SAPIemu-0.1.0-alpha-win64.zip` (vzniká `python tools/package.py`, přibalí i autorův IDE
+    disk) poslal autor soukromě Liborovi Lasotovi, Petrovi Všijanskému a Michalovi Medkovi.
+  - Čeká se na jejich zpětnou vazbu a souhlas s obsahem.
+  - Tag `v0.1.0-alpha` a veřejný release zatím **nejsou**. Úkoly před veřejným vydáním jsou v bloku níže.
+- **Hotové v této sérii (2026-10-04/05), podrobnosti v blocích níže a v `docs/rozhodnuti.md`:**
+  - karty: MPH-1V (zvuk, 82C54, joystick, myš), ZRD-1V rev 2.1 (zámek zápisu, MAX187);
+  - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
+  - GUI: nahrávání binárních souborů a HEX s dotazem, větší pole Popis;
+  - nástroje: ZRDTEST (`media/zrd-1v`), assembler `tools/asm8080.py`, balík a obrázky do README.
+- **Možné další kroky (autor vybírá):**
+  1. Seznam otázek k ověření na HW, sestavený po deskách z „Nejasností“ (body 1–25). ZRD-1V se ZRDTEST.
+  2. Neemulované karty: DPP-1, RTC-1, FDC-1, MFC-1A, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
+     podkladů, které autor má.
+  3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
+  4. Převod HEX na kazetu (WAV) pro DSM-1.
+  5. Linux build a CI (GitHub Actions).
+  6. Přepínání jazyka UI.
+  7. PKT-1.
+  8. Příprava veřejného vydání (níže).
+- **Pracovní pravidla, která se osvědčila:**
+  - Skripty s `\n`, `\r` a `\b` psát nástrojem Write do souboru, ne přes heredoc v bashi. Shell zpětná lomítka
+    rozbije a do souborů se pak dostanou řídicí znaky.
+  - Po commitu obnovit CRLF smazáním a checkoutem commitnutých souborů, jen když commit prošel.
+  - GUI ověřovat přes `--ui-snapshot`, stav emulace přes `sapiemu-cli`, ne snímky plochy.
+
 ## Stav k 2026-10-04
 
 **Před veřejným vydáním (autor, v klidu):** zip 0.1.0-alpha teď jde jen soukromě (Libor Lasota, Petr Všijanský,
@@ -361,7 +392,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`). Na autorově hlavním PC je repo od
    2026-10-04 na lokálním `E:\SAPI_GIT\SAPIemu` (dřív `H:\SAPI-1\GIT\SAPIemu`), stačí preset `windows-debug`.
-   Po přesunu je sestavení čisté a všech 24 testů prochází. Autor ověřil překlad debug i release ve VS 2022.
+   Po přesunu je sestavení čisté (dnes 26 testů v debug, 29 v release). Autor ověřil překlad debug i release
+   ve VS 2022.
 4. Pokračovat další fází z tabulky. **Hotovo (2026-10-04): F9 desky V včetně CGA-1V.** Původní poznámky k F9:
    Výsledek
    a otázky pro autora se zapíšou do `docs/desky/JPR-1V.md`, `RAM-1V.md`, `AND-1V.md`, `DSM-1V.md` a
