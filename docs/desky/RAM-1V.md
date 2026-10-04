@@ -12,7 +12,7 @@ Karta `RAM-1V` (`src/cards/ram1v.*`):
   - díra 2 KB na F800 jen při MAP1 = L (tam je AND-1V);
   - S4 rozpojené, patice C prázdná.
 - **„ZPS-1/2 SETUP“** z potisku: S1–S4 rozpojené, S5 díra 0000 s ignorovaným MAP1, S6 bez díry.
-- Nejasnost: co je na C000–FFFF při MAP1 = H.
+- Při MAP1 = H je na C000–FFFF **CGA-1V** (autor), proto tam díra 16 KB.
 
 Zdroje:
 - schéma `..\RAM-1V\RAM-1V.pdf` (DPLA0059RAM rev 1.1, 07.04.2024);

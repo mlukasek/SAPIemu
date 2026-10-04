@@ -446,3 +446,12 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   - čekací stavy AND-1V se neemulují;
   - TURBO JPR-1V jde nastavit jen v sestavě, ne za chodu;
   - STSTB bez refreshe se neemuluje.
+
+## 2026-10-04 – TURBO JPR-1V za chodu
+
+- **Autor:** na originálu TURBO za chodu funguje perfektně, má jít přepínat i v emulátoru.
+- **Řešení:**
+  - časová základna sběrnice zůstává pevná (osc/2 = 4 MHz) a při 2 MHz CPU vynechá každou druhou jednotku;
+  - karty počítají čas v jednotkách sběrnice, takže přepnutí za chodu nic nerozbije;
+  - obecné rozhraní `CpuCard::has_cpu_turbo` / `set_cpu_turbo` / `cpu_display_hz`.
+- **Ovládání:** menu Rychlost a MCP `cpu_turbo`. TURBO/F8 emulátoru dál mění rychlost celé emulace.

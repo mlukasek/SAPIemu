@@ -34,6 +34,10 @@ public:
     KeyboardDevice* keyboard() override { return kbd.get(); }
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
+    bool has_cpu_turbo() const override { return turbo_switch; }
+    bool cpu_turbo() const override { return turbo_on; }
+    void set_cpu_turbo(bool on) override { turbo_on = on; }
+    uint32_t cpu_display_hz() const override { return turbo_switch && !turbo_on ? cpu_hz / 2 : cpu_hz; }
     int decode_io(uint8_t port, const char** what) override;
     int decode_mem(uint16_t addr, int map, const char** what) override;
 
@@ -54,6 +58,9 @@ private:
 
     std::vector<uint8_t> eprom;   // 8 KB (2764); JPR-1Z: 2716 mirrored to 8 KB
     unsigned eprom_off = 0;       // JPR-1V: the bank selected by the BIOS jumper
+    bool turbo_switch = false;    // JPR-1V: time base osc/2; without TURBO the CPU ticks every other unit
+    bool turbo_on = false;
+    bool half_phase = false;
     unsigned eprom_mask = 0x1FFF;
     std::vector<uint8_t> d3c;     // memory decoder PROM
     std::vector<uint8_t> d6b;     // I/O decoder PROM

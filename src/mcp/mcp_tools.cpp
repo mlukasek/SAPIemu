@@ -781,6 +781,14 @@ json t_screen_text(EmuHost& h, const json&)
     return text_result(screen_dump(m));
 }
 
+json t_cpu_turbo(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    if (!m.cpu || !m.cpu->has_cpu_turbo()) return error_result("the CPU card has no TURBO switch (JPR-1V has)");
+    if (a.contains("on")) m.cpu->set_cpu_turbo(a.value("on", false));
+    return text_result(json{ { "turbo", m.cpu->cpu_turbo() }, { "cpu_hz", m.cpu->cpu_display_hz() } }.dump(2));
+}
+
 json t_screenshot(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1048,6 +1056,8 @@ const Tool k_tools[] = {
     { "set_keyboard", "Plug another keyboard into the CPU card (connector X2). The machine keeps running; software must support the keyboard's protocol.",
       R"J({"type":"object","properties":{"name":{"type":"string","enum":["EKL-1","Consul 262.3","Consul 262.3 (bez 7474)","Consul 259.11","Consul 259.11 (KOI-8 cs)","ANK-1"]}},"required":["name"]})J", t_set_keyboard },
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
+    { "cpu_turbo", "TURBO switch of the CPU card (JPR-1V: CPU 2 or 4 MHz, bus 2 MHz) while running; without 'on' it only reports.",
+      R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
     { "screenshot", "PNG image of the display: the console screen, or display = card name of another display output (e.g. \"DGD-1\" graphics).",
       R"({"type":"object","properties":{"scale":{"type":"integer","default":2},"display":{"type":"string"}}})", t_screenshot },
     { "serial_send", "Send text to a serial channel (host -> SAPI), at the configured baud rate.",

@@ -66,6 +66,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `type_text` | Psaní na připojenou klávesnici (`\r` = Enter; čeština jen u EKL-1 a Consul 259.11 KOI-8 cs), volitelně s během `run_ms` |
 | `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
 | `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1 |
+| `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V: CPU 2/4 MHz, sběrnice 2 MHz) |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |

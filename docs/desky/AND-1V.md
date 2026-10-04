@@ -5,7 +5,7 @@ Karta `AND-1V` (`src/cards/and1v.*`), rev 2.3:
 - parametry `base`, `map` (`always`, `map1_h`, `map1_l`, `never`), `color`, `font`;
 - čekací stavy se neemulují.
 - **Výchozí jako autorova deska** (fotka `..\AND-1V\mAND-1V rev. 2.3.jpg`, autor): F800, **MAP1 = L** (kvůli
-  budoucí CGA-1V). Barva podle fotky asi zelená (S1 /BLU a /RED osazené), ale jisté to není. Font vypálený
+  budoucí CGA-1V). Barvu si každý nastaví podle sebe (autor), výchozí je bílá. Font vypálený
   v desce autor neví, výchozí je typ 1.
 
 Zdroje:

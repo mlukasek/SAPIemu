@@ -319,6 +319,11 @@ void draw_menu(App& app)
                 app.host.speed_hz = 4000000;
             }
             if (ImGui::MenuItem(tr("Maximum (turbo)"), nullptr, app.host.turbo)) app.host.turbo = true;
+            if (m && m->cpu && m->cpu->has_cpu_turbo()) {   // the TURBO switch of the CPU card (JPR-1V)
+                ImGui::Separator();
+                bool on = m->cpu->cpu_turbo();
+                if (ImGui::MenuItem(tr("CPU card TURBO (4 MHz)"), nullptr, &on)) m->cpu->set_cpu_turbo(on);
+            }
             ImGui::Separator();
             if (ImGui::MenuItem(tr("Next"), "F8")) app.host.cycle_speed();
             ImGui::EndMenu();
@@ -399,7 +404,8 @@ void draw_menu(App& app)
             ks += q;
         }
         snprintf(st, sizeof(st), "%s  %s  %s  %.2f MHz  %3.0f %%", ks.c_str(), state,
-                 (app.mcp && app.mcp->running()) ? "MCP" : "", m->bus.cpu_hz / 1e6, app.host.speed_percent);
+                 (app.mcp && app.mcp->running()) ? "MCP" : "", (m->cpu ? m->cpu->cpu_display_hz() : m->bus.cpu_hz) / 1e6,
+                 app.host.speed_percent);
     }
     float w = ImGui::CalcTextSize(st).x + ImGui::GetStyle().ItemSpacing.x * 2;
     ImGui::SameLine(ImGui::GetWindowWidth() - w);

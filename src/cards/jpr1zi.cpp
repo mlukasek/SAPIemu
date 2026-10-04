@@ -45,7 +45,9 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
         if (!cfg_string(cfg, "bios", bios, "fitted", err)) return false;
         if (bios != "fitted" && bios != "open") { err = "bios must be fitted (bank 0) or open (bank 1)"; return false; }
         bus_hz = (uint32_t)(osc / 4);
-        cpu_hz = (uint32_t)(turbo ? osc / 2 : osc / 4);
+        cpu_hz = (uint32_t)(osc / 2);   // time base; TURBO (switchable while running) selects osc/2 or osc/4
+        turbo_switch = true;
+        turbo_on = turbo;
         eprom_off = bios == "fitted" ? 0x000u : 0x800u;
         eprom_mask = 0x7FF;
     }
@@ -200,6 +202,7 @@ int Jpr1zi::run(int cycles)
             stall--;
             continue;
         }
+        if (turbo_switch && !turbo_on && (half_phase = !half_phase)) continue;   // JPR-1V at osc/4
         pins = z80_tick(&z80, pins);
 
         if (pins & Z80_MREQ) {

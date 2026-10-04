@@ -73,9 +73,35 @@ static void map_register(void)
     CHECK_EQ(m.bus.mem_peek(0xF800), 0x41);
 }
 
+// JPR-1V TURBO switched while running: CPU 2 MHz -> 4 MHz, the time base stays
+static double boot_seconds(bool turbo)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    CHECK(m.cpu->has_cpu_turbo());
+    m.cpu->set_cpu_turbo(turbo);
+    CHECK_EQ((int)m.cpu->cpu_display_hz(), turbo ? 4000000 : 2000000);
+    double t = 0;
+    while (t < 5.0 && !screen_contains(m, "Zadej 0-3")) {
+        m.run_seconds(0.01);
+        t += 0.01;
+    }
+    return t;
+}
+
+static void turbo(void)
+{
+    double slow = boot_seconds(false), fast = boot_seconds(true);
+    printf("ECMON menu after %.2f s at 2 MHz, %.2f s at 4 MHz\n", slow, fast);
+    CHECK(slow < 5.0);
+    CHECK(fast < slow * 0.8);
+}
+
 int main(void)
 {
     test_init();
+    turbo();
     cpm();
     mikrobios();
     map_register();

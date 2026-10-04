@@ -120,6 +120,7 @@ static const Translation k_table[] = {
     { "Cannot change the keyboard", "Klávesnici nelze změnit" },
     { "Screen", "Obrazovka" },
     { "Graphics", "Grafika" },
+    { "CPU card TURBO (4 MHz)", "TURBO desky CPU (4 MHz)" },
     { "Drive", "Mechanika" },
     { "(no disk)", "(bez diskety)" },
     { "New disk...", "Nová disketa…" },

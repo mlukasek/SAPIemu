@@ -7,7 +7,12 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
   (autorovo rozhodnutí);
 - na autorově desce (fotka `H:\SAPI-1\LiborLasota\JPR-1V\Foto\mJPR1V.jpg`) je propojka BIOS osazená a TURBO
   rozpojené (2 MHz).
-- **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z) a přepínání TURBO za chodu.
+- **TURBO za chodu** (jako na skutečné desce, autor): menu Stroj → Rychlost → „TURBO desky CPU (4 MHz)“, MCP
+  `cpu_turbo`, v sestavě `turbo`.
+  - Časová základna emulace je osc/2 (4 MHz). Při 2 MHz udělá CPU takt jen v každé druhé jednotce, ostatní
+    karty se proto nemusí přepočítávat.
+  - Stavový řádek ukazuje skutečný takt CPU.
+- **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z), viz „Na promyšlení“ v SOUHRN.
 
 Zdroje:
 - [S1] schéma `..\JPR-1V\JPR-1V.pdf` (rev 1.1, 4 listy);

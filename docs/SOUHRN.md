@@ -143,6 +143,16 @@ Dřív hotové fáze:
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
+## Na promyšlení (nemodelované věci a vylepšení)
+
+- **AND-1V:** čekací stavy (RDY, jedno okno CPU na znak, 0–1 takt při 2 MHz, žádné při I/O).
+- **JPR-1V:** STSTB bez refreshe (u JPR-1ZI je STSTB jen z /MREQ, což u AND-1Z může při refreshi s I = F8–FF
+  spustit čekání). Visení RDY u DGD-1 během BOOT.
+- **ZRD-1V:** vedlejší účinky čtení 61h–63h (nedefinovaná hodnota, která se zapíše do registru adresy).
+- **ZPS-4 / ELIS v3.00:** obsluha klávesnice (dvojité nebo nekonečné opakování kláves).
+- **RMD-1:** časování (INIR, NOP po `OUT 43`).
+- **Barva AND-1V** je věc uživatele (autor), výchozí bílá.
+
 ## Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově)
 
 1. **AND-1Z-89:** 20 nebo 24 řádků? (PROM a manuál říkají 20.) Délka řádku 107 nebo 108 znaků.

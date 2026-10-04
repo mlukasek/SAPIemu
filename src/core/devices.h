@@ -65,7 +65,12 @@ public:
     virtual KeyboardDevice* keyboard() { return nullptr; }
     // Replace the keyboard on the CPU card connector (takes ownership, nullptr = none).
     virtual void set_keyboard(KeyboardDevice* k) { delete k; }
-    virtual uint32_t clock_hz() const = 0;
+    virtual uint32_t clock_hz() const = 0;       // the time base of the bus (cycles per second)
+    // A TURBO switch on the CPU card that changes the CPU clock while running (JPR-1V).
+    virtual bool has_cpu_turbo() const { return false; }
+    virtual bool cpu_turbo() const { return false; }
+    virtual void set_cpu_turbo(bool on) {}
+    virtual uint32_t cpu_display_hz() const { return clock_hz(); }   // the actual CPU clock
 
     const uint8_t* bp_exec = nullptr;   // 64K map of execution breakpoints (owned by Machine)
     bool step_mode = false;             // stop at the next instruction boundary
