@@ -1289,8 +1289,15 @@ void draw_slot_props(UiState& ui, int slot)
     char lab[32];
     snprintf(lab, sizeof(lab), "X%d", slot);
     if (ImGui::BeginCombo(lab, preview, ImGuiComboFlags_HeightLarge)) {
+        size_t n = r.cfg["cards"].size();
         card_menu_items(ui, slot, true);
         ImGui::EndCombo();
+        // another card chosen: the card list changed under `card` (erased, pushed, sorted),
+        // so the pointer is stale; the new card is drawn in the next frame
+        int now = machine_cfg_card_at(r.cfg, slot);
+        if (r.cfg["cards"].size() != n || now != idx ||
+            (now >= 0 && r.cfg["cards"][(size_t)now].value("type", std::string()) != type))
+            return;
     }
     if (card) {
         ImGui::SameLine();
