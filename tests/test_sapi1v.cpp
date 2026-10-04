@@ -124,7 +124,7 @@ static int cga_colours(Machine& m, const char* png_name)
     CHECK(d != nullptr);
     if (!d) return 0;
     std::vector<uint32_t> px((size_t)d->screen_width() * d->screen_height());
-    d->render(px.data(), 0xFFFFFFFFu, 0xFF000000u);
+    d->render(px.data(), 0xFF000000u);
     const char* dir = getenv("CGA_PNG");
     if (dir) png_write_argb(std::string(dir) + "/" + png_name + ".png", px.data(), d->screen_width(), d->screen_height(), 2, 2);
     std::sort(px.begin(), px.end());

@@ -21,24 +21,31 @@ bool And1v::configure(const json& cfg, std::string& err)
     else if (m == "map1_l") map_mode = 2;
     else if (m == "never") map_mode = 3;
     else { err = "map must be always, map1_h, map1_l or never (MAP1OFF, H/L)"; return false; }
-    std::string color;
-    if (!cfg_string(cfg, "color", color, "white", err)) return false;
-    // S1: red, green (2 bits: GRH 680R, GRL 1k5), blue
-    struct C { const char* name; uint32_t argb; };
-    static const C colors[] = {
-        { "white", 0xFFFFFFFFu }, { "green", 0xFF00FF00u }, { "amber", 0xFFFFAA00u }, { "red", 0xFFFF0000u },
-        { "blue", 0xFF0000FFu }, { "cyan", 0xFF00FFFFu }, { "yellow", 0xFFFFFF00u }, { "magenta", 0xFFFF00FFu },
-        { "phosphor", 0 },
-    };
-    own_ink = false;
-    bool ok = false;
-    for (const C& c : colors)
-        if (color == c.name) { ok = true; ink = c.argb; own_ink = c.argb != 0; }
-    if (!ok) { err = "color must be white, green, amber, red, blue, cyan, yellow, magenta or phosphor"; return false; }
+    std::string s1;
+    if (!cfg_string(cfg, "color", s1, "white", err)) return false;
+    if (!set_ink(s1, err)) return false;
     if (!cfg_string(cfg, "font", font_file, "roms/and-1v/font_and1v22_1024.bin", err)) return false;
     if (!rom_load(font_file, font, 0x8000, 0x00, 0, err)) return false;
     font.resize(0x8000, 0x00);
     return true;
+}
+
+// S1: red, green (2 bits: GRH 680R, GRL 1k5), blue
+bool And1v::set_ink(const std::string& value, std::string& err)
+{
+    struct C { const char* name; uint32_t argb; };
+    static const C colors[] = {
+        { "white", 0xFFFFFFFFu }, { "green", 0xFF00FF00u }, { "amber", 0xFFFFAA00u }, { "red", 0xFFFF0000u },
+        { "blue", 0xFF0000FFu }, { "cyan", 0xFF00FFFFu }, { "yellow", 0xFFFFFF00u }, { "magenta", 0xFFFF00FFu },
+    };
+    for (const C& c : colors)
+        if (value == c.name) {
+            color = value;
+            ink_argb = c.argb;
+            return true;
+        }
+    err = "color must be white, green, amber, red, blue, cyan, yellow or magenta (jumpers S1)";
+    return false;
 }
 
 bool And1v::selected(uint16_t a, int map) const
@@ -78,9 +85,9 @@ int And1v::decode_mem(uint16_t a, int map, const char** what)
     return DEC_READ | DEC_WRITE;
 }
 
-void And1v::render(uint32_t* argb, uint32_t fg, uint32_t bg)
+void And1v::render(uint32_t* argb, uint32_t bg)
 {
-    uint32_t on = own_ink ? ink : fg;
+    uint32_t on = ink_argb;
     int w = COLS * CELL_W;
     for (int row = 0; row < ROWS; row++)
         for (int m = 0; m < CELL_H; m++) {
@@ -117,5 +124,6 @@ void And1v::describe(json& out)
     out["base"] = b;
     static const char* const modes[] = { "always", "map1_h", "map1_l", "never" };
     out["map"] = modes[map_mode];
+    out["color"] = color;
     out["font"] = font_file;
 }

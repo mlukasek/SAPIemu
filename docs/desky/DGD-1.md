@@ -32,10 +32,10 @@ Zdroje: `BKP\sapi\dgd-1.php` (OCR návodu, obsahy PROM D5D, D1A, D10C), obrázky
 ## Emulace (`src/cards/dgd1.*`)
 
 - Parametry: `base` (`"C000"` / `"0000"`, SP1-2), `mapping` (SP1-1, výběr jen při aktivním MAP1),
-  `wait_states` (výchozí zapnuto).
+  `wait_states` (výchozí zapnuto), `monitor` (barva luminoforu monitoru: white, green, amber).
 - **Čekací stavy:** CPU smí do paměti v první polovině každé mikrosekundy (předpoklad), jinak čeká na další
   okno. Při 2 MHz je to 0–1 čekací takt.
-- **Zobrazení:** vlastní okno „Grafika DGD-1“ v GUI. Snímek přes MCP `screenshot` s `display: "DGD-1"`, přes
+- **Zobrazení:** vlastní okno „DGD-1“ v GUI. Snímek přes MCP `screenshot` s `display: "DGD-1"`, přes
   `sapiemu-cli --display DGD-1 --screenshot soubor.png`.
 - **PROM D1A se nepoužívá.** Výběr se řídí tabulkou SP1 z návodu. Zapojení vstupů D1A neznáme, jedničky
   v dumpu jsou na adresách 1C, 5F, 98 a DB.

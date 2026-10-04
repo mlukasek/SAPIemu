@@ -16,6 +16,7 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
+#include "cards/catalog.h"
 #include "core/host.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -27,9 +28,6 @@
 
 namespace {
 
-enum Phosphor { PHOSPHOR_WHITE = 0, PHOSPHOR_GREEN, PHOSPHOR_AMBER };
-
-const uint32_t k_phosphor[3] = { 0xFFE8E8E8u, 0xFF40FF70u, 0xFFFFB020u };
 const uint32_t k_background = 0xFF101010u;
 
 // PAL TV: pixel aspect = 7.375 MHz square-pixel clock (288 lines) / dot clock of the card
@@ -56,7 +54,6 @@ struct App {
     std::string error_text;
     bool show_error = false;
     bool quit = false;
-    int phosphor = PHOSPHOR_WHITE;
     bool integer_scale = true;
     bool tv_aspect = false;
     bool smooth = false;          // linear filtering of the screen texture
@@ -114,7 +111,7 @@ nlohmann::json settings_json(App& app)
     j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
                      { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
                      { "configuration", ui.show_rack } };
-    j["screen"] = { { "phosphor", app.phosphor }, { "integer_scale", app.integer_scale },
+    j["screen"] = { { "integer_scale", app.integer_scale },
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
     j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
                       { "cr_newline", ui.term_cr_newline }, { "local_echo", ui.term_local_echo },
@@ -159,8 +156,6 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(w, "media", ui.show_media);
     get_opt(w, "configuration", ui.show_rack);
     const nlohmann::json& s = j.value("screen", nlohmann::json::object());
-    get_opt(s, "phosphor", app.phosphor);
-    if (app.phosphor < 0 || app.phosphor > PHOSPHOR_AMBER) app.phosphor = PHOSPHOR_WHITE;
     get_opt(s, "integer_scale", app.integer_scale);
     get_opt(s, "tv_aspect", app.tv_aspect);
     get_opt(s, "smooth", app.smooth);
@@ -179,6 +174,22 @@ void settings_apply(App& app, const nlohmann::json& j)
     std::string com;
     get_opt(t, "com_port", com);
     if (!com.empty()) snprintf(ui.com_port, sizeof(ui.com_port), "%s", com.c_str());
+}
+
+// The console window was "Obrazovka" (or "Screen"); now it is named after the display
+// card with the fixed id "###screen". Keep its saved position and size.
+void ini_rename_screen(const std::string& path)
+{
+    std::string text;
+    if (path.empty() || !file_read_text(path, text)) return;
+    if (text.find("###screen]") != std::string::npos) return;
+    for (const char* old : { "[Window][Obrazovka]", "[Window][Screen]" }) {
+        size_t at = text.find(old), end = at + strlen(old);
+        if (at == std::string::npos || end >= text.size() || (text[end] != '\r' && text[end] != '\n')) continue;
+        text.replace(at, strlen(old), "[Window][Obrazovka###screen]");
+        file_write_all(path, text.data(), text.size());
+        return;
+    }
 }
 
 // The restored window must lie (at least partly) on a connected display.
@@ -280,6 +291,36 @@ void handle_text(App& app, const char* text)
     if (app.ui.screen_focused) m->type_text(text);
 }
 
+// View -> Colour: the ink of the monochrome displays. It is a card parameter (jumpers
+// S1 of AND-1V, the monitor phosphor of the others), the same one the configurator
+// edits; the change shows at once and is saved with the machine.
+void ink_menu(App& app, Machine* m)
+{
+    std::vector<DisplayDevice*> mono;
+    for (DisplayDevice* d : m ? m->displays : std::vector<DisplayDevice*>())
+        if (d->ink_param()) mono.push_back(d);
+    if (!ImGui::BeginMenu(tr("Colour"), !mono.empty())) return;
+    bool cs = i18n_language() == LANG_CS;
+    for (DisplayDevice* d : mono) {
+        Card* c = dynamic_cast<Card*>(d);
+        const CardInfo* ci = c ? card_info(c->type) : nullptr;
+        const CardParam* p = ci ? ci->params : nullptr;
+        while (p && p->path && strcmp(p->path, d->ink_param()) != 0) p++;
+        if (!p || !p->path || !p->options) continue;
+        std::string head = c->name + " - " + (cs ? p->cs : p->en);
+        ImGui::SeparatorText(head.c_str());
+        std::string cur = d->ink();
+        for (const ParamOption* o = p->options; o->value; o++) {
+            nlohmann::json v = nlohmann::json::parse(o->value, nullptr, false);
+            if (!v.is_string()) continue;
+            std::string val = v.get<std::string>();
+            if (ImGui::MenuItem(cs ? o->cs : o->en, nullptr, val == cur) && val != cur)
+                rack_set_display_ink(app.ui, d, val);
+        }
+    }
+    ImGui::EndMenu();
+}
+
 void draw_menu(App& app)
 {
     if (!ImGui::BeginMainMenuBar()) return;
@@ -361,12 +402,7 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
         ImGui::Separator();
-        if (ImGui::BeginMenu(tr("Phosphor"))) {
-            if (ImGui::MenuItem(tr("White"), nullptr, app.phosphor == PHOSPHOR_WHITE)) app.phosphor = PHOSPHOR_WHITE;
-            if (ImGui::MenuItem(tr("Green"), nullptr, app.phosphor == PHOSPHOR_GREEN)) app.phosphor = PHOSPHOR_GREEN;
-            if (ImGui::MenuItem(tr("Amber"), nullptr, app.phosphor == PHOSPHOR_AMBER)) app.phosphor = PHOSPHOR_AMBER;
-            ImGui::EndMenu();
-        }
+        ink_menu(app, m);
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
@@ -425,7 +461,7 @@ void draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int
         tex_h = h;
         pixels.assign((size_t)w * h, 0);
     }
-    d->render(pixels.data(), k_phosphor[app.phosphor], k_background);
+    d->render(pixels.data(), k_background);
     SDL_UpdateTexture(tex, nullptr, pixels.data(), w * 4);
 
     // Scale in physical pixels (window points * framebuffer scale) so that integer
@@ -459,13 +495,16 @@ void draw_screen(App& app)
     ImGui::SetNextWindowSize(ImVec2(820, 560), ImGuiCond_FirstUseEver);
     static bool first = true;
     if (first) { ImGui::SetNextWindowFocus(); first = false; }   // type right after start
+    Machine* m = app.host.machine();
+    DisplayDevice* d = m ? m->display : nullptr;
+    Card* c = dynamic_cast<Card*>(d);
+    char title[96];   // named after the display card, the same window for every machine
+    snprintf(title, sizeof(title), "%s###screen", c ? c->name.c_str() : tr("Screen"));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-    ImGui::Begin(tr("Screen"));
+    ImGui::Begin(title);
     ImGui::PopStyleVar();
     app.ui.screen_focused = ImGui::IsWindowFocused();
 
-    Machine* m = app.host.machine();
-    DisplayDevice* d = m ? m->display : nullptr;
     if (!m) {   // switched off: a dark screen
         ImVec2 a = ImGui::GetCursorScreenPos(), av = ImGui::GetContentRegionAvail();
         ImGui::GetWindowDrawList()->AddRectFilled(a, ImVec2(a.x + av.x, a.y + av.y), IM_COL32(8, 8, 8, 255));
@@ -494,7 +533,7 @@ void draw_graphic_screens(App& app)
         GfxView& v = app.gfx[k];
         Card* c = dynamic_cast<Card*>(d);
         char title[96];
-        snprintf(title, sizeof(title), "%s %s###gfx%d", tr("Graphics"), c ? c->name.c_str() : "", k);
+        snprintf(title, sizeof(title), "%s###gfx%d", c ? c->name.c_str() : tr("Graphics"), k);
         // first use: right of the console screen (820 wide from x 60), below it on a narrow desktop
         ImVec2 vp = ImGui::GetMainViewport()->WorkSize;
         ImVec2 at = vp.x >= 60 + 820 + 10 + 500 ? ImVec2(890.0f + 30.0f * k, 60.0f + 30.0f * k)
@@ -576,6 +615,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
     if (snap) app.ini_path.clear();   // the self-check never touches a window layout
+    ini_rename_screen(app.ini_path);
     if (!app.settings_path.empty()) {
         std::string text;
         if (file_read_text(app.settings_path, text)) {

@@ -76,7 +76,7 @@ OCR tabulky na sapi.cz se od hex souborů místy liší. Platí hex.
 
 ## Výstupy
 
-Kompozitní video na X2 pin 30. Pro terminál AZJ-462 navíc /HS, VS a /VID s otevřeným kolektorem.
+Kompozitní video na X2 pin 30. Barvu obrazu dává monitor, v emulátoru parametr `monitor` (white, green, amber). Pro terminál AZJ-462 navíc /HS, VS a /VID s otevřeným kolektorem.
 
 ## AND-1Z (ZPS-4)
 

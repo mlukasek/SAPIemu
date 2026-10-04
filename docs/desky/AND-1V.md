@@ -2,10 +2,12 @@
 
 Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/test_sapi1v.cpp`.
 Karta `AND-1V` (`src/cards/and1v.*`), rev 2.3:
-- parametry `base`, `map` (`always`, `map1_h`, `map1_l`, `never`), `color`, `font`;
+- parametry `base`, `map` (`always`, `map1_h`, `map1_l`, `never`), `color` (propojky S1: white, green, amber, red,
+  blue, cyan, yellow, magenta; mění se i za běhu přes Zobrazení → Barva, viz `docs/sestavy.md`), `font`;
 - čekací stavy se neemulují.
 - **Výchozí jako autorova deska** (fotka `..\AND-1V\mAND-1V rev. 2.3.jpg`, autor): F800, **MAP1 = L** (kvůli
-  budoucí CGA-1V). Barvu si každý nastaví podle sebe (autor), výchozí je bílá. Font vypálený
+  budoucí CGA-1V). Barvu si každý nastaví podle sebe (autor), výchozí je bílá, sestava V má jantarovou
+  (autor). Font vypálený
   v desce autor neví, výchozí je typ 1.
 
 Zdroje:

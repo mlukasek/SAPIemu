@@ -202,6 +202,45 @@ void handle_dialog(UiState& ui)
     }
 }
 
+int card_first_slot(const json& card);
+
+// The editor shows the description of the running machine (perhaps with unsaved changes).
+bool editor_on_running(UiState& ui)
+{
+    return ui.host->machine() && ui.rack.path == ui.host->machine_file() && !ui.rack.cfg.is_null();
+}
+
+// The running display card in `slot` of the type the editor has there, nullptr if none.
+DisplayDevice* running_display(UiState& ui, const json& card, int slot)
+{
+    Machine* m = ui.host->machine();
+    if (!m) return nullptr;
+    std::string type = card.value("type", std::string());
+    for (auto& c : m->cards)
+        if (c->slot == slot && c->type == type) return dynamic_cast<DisplayDevice*>(c.get());
+    return nullptr;
+}
+
+// The ink colour is not a power-cycle setting: a change in the editor shows on the
+// running machine at once, like a change from the View menu.
+void sync_live_ink(UiState& ui)
+{
+    if (!editor_on_running(ui) || !ui.rack.cfg.contains("cards")) return;
+    for (const json& card : ui.rack.cfg["cards"]) {
+        DisplayDevice* d = running_display(ui, card, card_first_slot(card));
+        const CardInfo* ci = card_info(card.value("type", std::string()));
+        if (!d || !d->ink_param() || !ci) continue;
+        for (const CardParam* p = ci->params; p && p->path; p++) {
+            if (strcmp(p->path, d->ink_param()) != 0) continue;
+            json v = card_param_value(card, p);
+            std::string err;
+            if (v.is_string() && v.get<std::string>() != d->ink() &&
+                !ui.host->machine()->set_display_ink(d, v.get<std::string>(), err))
+                LOGW("%s", err.c_str());
+        }
+    }
+}
+
 // Follow the running machine while the editor holds no unsaved changes.
 void follow_machine(UiState& ui)
 {
@@ -1130,6 +1169,23 @@ void rack_open_in_editor(UiState& ui, const std::string& path)
     ui.show_rack = true;
 }
 
+void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value)
+{
+    Machine* m = ui.host->machine();
+    Card* c = dynamic_cast<Card*>(d);
+    std::string err;
+    if (!m || !c || !m->set_display_ink(d, value, err)) {
+        if (!err.empty()) LOGW("%s", err.c_str());
+        return;
+    }
+    RackEditor& r = ui.rack;
+    if (!editor_on_running(ui)) return;
+    int idx = machine_cfg_card_at(r.cfg, c->slot);
+    if (idx < 0) return;
+    json& card = r.cfg["cards"][(size_t)idx];
+    if (card.value("type", std::string()) == c->type) card[d->ink_param()] = value;
+}
+
 void rack_open_and_run(UiState& ui)
 {
     start_dialog(ui, RackEditor::DLG_RUN, std::string());
@@ -1139,6 +1195,7 @@ void draw_rack(UiState& ui)
 {
     handle_dialog(ui);   // also for File -> Open while the window is hidden
     follow_machine(ui);
+    sync_live_ink(ui);
     if (!ui.show_rack) return;
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();

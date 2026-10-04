@@ -390,6 +390,28 @@ DisplayDevice* Machine::find_display(const std::string& n)
     return nullptr;
 }
 
+// The entry of `card` in the machine description (cards are told apart by the slot).
+static nlohmann::json* card_config(nlohmann::json& cfg, const Card* card)
+{
+    if (!cfg.contains("cards") || !cfg["cards"].is_array()) return nullptr;
+    for (nlohmann::json& cc : cfg["cards"]) {
+        long long slot;
+        std::string e;
+        if (cc.is_object() && cfg_number(cc, "slot", slot, 0, e) && slot == card->slot) return &cc;
+    }
+    return nullptr;
+}
+
+bool Machine::set_display_ink(DisplayDevice* d, const std::string& value, std::string& err)
+{
+    Card* c = dynamic_cast<Card*>(d);
+    const char* key = d ? d->ink_param() : nullptr;
+    if (!c || !key) { err = "the display has no ink colour"; return false; }
+    if (!d->set_ink(value, err)) return false;
+    if (nlohmann::json* cc = card_config(config, c)) (*cc)[key] = value;
+    return true;
+}
+
 Card* Machine::find_card(const std::string& n)
 {
     for (auto& c : cards)

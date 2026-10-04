@@ -44,7 +44,7 @@ public:
     int screen_height() const override { return HEIGHT; }
     double dot_clock_hz() const override { return 7.375e6; }   // square pixels (2x2 VGA dots)
     bool text_display() const override { return false; }
-    void render(uint32_t* argb, uint32_t fg, uint32_t bg) override;
+    void render(uint32_t* argb, uint32_t bg) override;
     std::vector<std::string> text_rows() override { return std::vector<std::string>(); }
 
     static const int WIDTH = 320;

@@ -83,7 +83,7 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 ## Emulace – poznámky
 
-- Okno GUI „Grafika CGA-1V“ (`text_display() = false`). Snímek přes MCP `screenshot display=CGA-1V` nebo
+- Okno GUI „CGA-1V“ (`text_display() = false`). Snímek přes MCP `screenshot display=CGA-1V` nebo
   `sapiemu-cli --display CGA-1V --screenshot`.
 - **Prolínání snímků** (`frame_blend`, výchozí zapnuto):
   - REMBRAN2 po každém VBI přepíná stránku A/B i paletu a teprve oko smíchá barvy obou snímků;

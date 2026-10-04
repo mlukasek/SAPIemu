@@ -264,11 +264,22 @@ static void basic_exp_g(void)
     CHECK_EQ(m.bus.mem_peek(0xFA80), 0x80);   // y 5, x 0
     CHECK_EQ(m.bus.mem_peek(0xC027), 0x0F);   // y 239, x 316..319
     CHECK_EQ(m.bus.mem_peek(0xC000), 0x00);
+    // phosphor of the monitor: changed while running, written into the machine description
+    std::string err;
+    CHECK(g->ink_param() != nullptr && g->ink() == "white");
+    CHECK(m.set_display_ink(g, "green", err));
+    CHECK(!m.set_display_ink(g, "purple", err) && g->ink() == "green");
+    bool in_config = false;
+    for (const nlohmann::json& cc : m.config["cards"])
+        if (cc.value("type", std::string()) == "DGD-1") in_config = cc.value("monitor", std::string()) == "green";
+    CHECK(in_config);
+    uint32_t green = 0;
+    CHECK(monitor_phosphor("green", green));
     std::vector<uint32_t> px((size_t)g->screen_width() * g->screen_height());
-    g->render(px.data(), 0xFFFFFFFFu, 0xFF000000u);
+    g->render(px.data(), 0xFF000000u);
     CHECK_EQ(g->screen_width(), 320);
-    CHECK(px[239 * 320 + 10] == 0xFFFFFFFFu && px[239 * 320 + 11] == 0xFF000000u);
-    CHECK(px[0 * 320 + 319] == 0xFFFFFFFFu);
+    CHECK(px[239 * 320 + 10] == green && px[239 * 320 + 11] == 0xFF000000u);
+    CHECK(px[0 * 320 + 319] == green);
     // the program keeps running with the graphics memory full
     m.type_text("CLSG 255:PRINT 6*7\r");
     CHECK(run_until_text(m, "\n 42", 5.0));

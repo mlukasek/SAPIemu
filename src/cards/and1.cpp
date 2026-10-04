@@ -31,6 +31,7 @@ bool And1::configure(const json& cfg, std::string& err)
     if (r != 20 && r != 24) { err = "rows must be 24 (jumper 47-48) or 20 (46-47)"; return false; }
     rows = (int)r;
     if (!cfg_bool(cfg, "int1", int1, true, err)) return false;
+    if (!monitor.configure(cfg, err)) return false;
     if (type == "AND-1A") {
         if (!cfg_bool(cfg, "s1", s1_closed, false, err)) return false;
         if (!cfg_string(cfg, "decoder", decoder_file, "roms/and-1a/AND-1A_D3A_74S287.bin", err)) return false;
@@ -90,8 +91,9 @@ int And1::irq_lines()
     return (bus->now % f) >= f - pulse ? IRQ_INT1 : 0;
 }
 
-void And1::render(uint32_t* argb, uint32_t fg, uint32_t bg)
+void And1::render(uint32_t* argb, uint32_t bg)
 {
+    const uint32_t fg = monitor.argb;
     const int w = screen_width();
     uint64_t frame = bus ? bus->now / frame_cycles() : 0;
     bool blink_on = ((frame / BLINK_FRAMES) & 1) == 0;
@@ -152,4 +154,5 @@ void And1::describe(json& out)
     out["rows"] = rows;
     out["chargen"] = cyrillic ? "MHB 2502" : "MHB 2501";
     out["int1"] = int1;
+    out["monitor"] = monitor.name;
 }

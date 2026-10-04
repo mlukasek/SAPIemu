@@ -3,6 +3,33 @@
 static const size_t SERIAL_HISTORY_MAX = 1 << 20;
 static const size_t SERIAL_RX_MAX = 1 << 20;
 
+bool monitor_phosphor(const std::string& name, uint32_t& argb)
+{
+    struct P { const char* name; uint32_t argb; };
+    static const P phosphors[] = {
+        { "white", 0xFFE8E8E8u }, { "green", 0xFF40FF70u }, { "amber", 0xFFFFB020u },
+    };
+    for (const P& p : phosphors)
+        if (name == p.name) { argb = p.argb; return true; }
+    return false;
+}
+
+bool MonitorInk::configure(const nlohmann::json& cfg, std::string& err)
+{
+    std::string v;
+    if (!cfg_string(cfg, "monitor", v, "white", err)) return false;
+    return set(v, err);
+}
+
+bool MonitorInk::set(const std::string& value, std::string& err)
+{
+    uint32_t c;
+    if (!monitor_phosphor(value, c)) { err = "monitor must be white, green or amber"; return false; }
+    name = value;
+    argb = c;
+    return true;
+}
+
 void SerialChannel::to_host(uint8_t b)
 {
     std::lock_guard<std::mutex> lock(mtx);

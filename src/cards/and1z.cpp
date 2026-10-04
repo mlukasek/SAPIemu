@@ -24,6 +24,7 @@ bool And1z::configure(const json& cfg, std::string& err)
     if (!cfg_string(cfg, "decoder", d1, "roms/and-1z-89/PROM_D1.hex.bin", err)) return false;
     if (!cfg_bool(cfg, "map_enabled", map_enabled, false, err)) return false;
     if (!cfg_bool(cfg, "wait_states", waits, true, err)) return false;
+    if (!monitor.configure(cfg, err)) return false;
     if (!rom_load(cg, chargen, 4096, 0x00, 0, err)) return false;
     if (!rom_load(d1, prom_d1, 256, 0xFF, 0, err)) return false;
     return true;
@@ -88,8 +89,9 @@ bool And1z::mem_peek(uint16_t addr, uint8_t& data)
     return true;
 }
 
-void And1z::render(uint32_t* argb, uint32_t fg, uint32_t bg)
+void And1z::render(uint32_t* argb, uint32_t bg)
 {
+    const uint32_t fg = monitor.argb;
     const int w = screen_width();
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLS; col++) {
@@ -121,4 +123,5 @@ void And1z::describe(json& out)
     out["columns"] = COLS;
     out["rows"] = ROWS;
     out["map_enabled"] = map_enabled;
+    out["monitor"] = monitor.name;
 }

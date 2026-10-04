@@ -35,7 +35,8 @@ list znakových generátorů `...\Dokumentace\AND-1 a 1A\MHB250x.png`, Eagle `D1
 
 ## Emulace (`src/cards/and1.*`)
 
-- Parametry: `charset` (MHB2501/MHB2502), `rows` (24/20), `int1`.
+- Parametry: `charset` (MHB2501/MHB2502), `rows` (24/20), `int1`, `monitor` (barva luminoforu monitoru: white,
+  green, amber).
 - Skládání VRAM (předpoklad): sloupce 0–31 = řádek·32 + sloupec, sloupce 32–63 = 300h + řádek·8 + (sloupec
   AND 7). Viditelné buňky se nepřekrývají. Sloupce 40–63 zrcadlí 32–39. MIKROBASIC píše jen sloupce 0–39 a při
   mazání vyplní celé okno, takže na přesném skládání nezáleží.

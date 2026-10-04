@@ -22,6 +22,7 @@ bool Dgd1::configure(const json& cfg, std::string& err)
     }
     if (!cfg_bool(cfg, "mapping", mapping, false, err)) return false;
     if (!cfg_bool(cfg, "wait_states", waits, true, err)) return false;
+    if (!monitor.configure(cfg, err)) return false;
     ram.assign(0x4000, 0x00);
     return true;
 }
@@ -72,8 +73,9 @@ int Dgd1::decode_mem(uint16_t addr, int map, const char** what)
     return DEC_READ | DEC_WRITE;
 }
 
-void Dgd1::render(uint32_t* argb, uint32_t fg, uint32_t bg)
+void Dgd1::render(uint32_t* argb, uint32_t bg)
 {
+    const uint32_t fg = monitor.argb;
     for (int y = 0; y < HEIGHT; y++) {
         const uint8_t* line = &ram[(size_t)y * LINE_BYTES];
         uint32_t* out = argb + (size_t)y * WIDTH;
@@ -89,4 +91,5 @@ void Dgd1::describe(json& out)
     out["base"] = b;
     out["mapping"] = mapping;
     out["wait_states"] = waits;
+    out["monitor"] = monitor.name;
 }

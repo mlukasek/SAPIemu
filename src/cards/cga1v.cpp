@@ -176,7 +176,7 @@ static inline unsigned pixel_value(unsigned b, int px, int y, bool cga)
     return (unsigned)(y >> 5) << 5 | low << 1 | p0;   // P7:P5 = V256:V128:V64
 }
 
-void Cga1v::render(uint32_t* argb, uint32_t fg, uint32_t bg)
+void Cga1v::render(uint32_t* argb, uint32_t bg)
 {
     const Frame& f0 = frames[0];
     const Frame& f1 = frames[1];

@@ -123,8 +123,8 @@ static const ParamOption k_and1v_map[] = {
 };
 static const ParamOption k_and1v_color[] = {
     { "\"white\"", "white (S1 all open)", "bílá (S1 vše rozpojené)" }, { "\"green\"", "green", "zelená" },
-    { "\"amber\"", "amber", "jantarová" }, { "\"cyan\"", "cyan", "azurová" }, { "\"yellow\"", "yellow", "žlutá" },
-    { "\"phosphor\"", "as the screen setting of the emulator", "podle nastavení obrazovky emulátoru" },
+    { "\"amber\"", "amber", "jantarová" }, { "\"red\"", "red", "červená" }, { "\"blue\"", "blue", "modrá" },
+    { "\"cyan\"", "cyan", "azurová" }, { "\"yellow\"", "yellow", "žlutá" }, { "\"magenta\"", "magenta", "purpurová" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_and1v_fonts[] = {
@@ -331,11 +331,18 @@ static const ParamOption k_and1_rows[] = {
     { "20", "20 rows (jumper 46-47)", "20 řádků (propojka 46-47)" },
     { nullptr, nullptr, nullptr },
 };
+// Phosphor of the monochrome monitor of a display card without colour jumpers.
+static const ParamOption k_monitor[] = {
+    { "\"white\"", "white", "bílá" }, { "\"green\"", "green", "zelená" }, { "\"amber\"", "amber", "jantarová" },
+    { nullptr, nullptr, nullptr },
+};
 static const CardParam k_and1[] = {
     { "charset", PK_CHOICE, "Character generator", "Generátor znaků", "\"MHB2501\"", k_and1_cs, 0, 0 },
     { "rows", PK_CHOICE, "Rows", "Řádků", "24", k_and1_rows, 0, 0 },
     { "int1", PK_BOOL, "Jumper 49-50: INT1 at the end of the frame", "Propojka 49-50: INT1 na konci snímku", "true",
       nullptr, 0, 0 },
+    { "monitor", PK_CHOICE, "Monitor: phosphor colour (not on the card)", "Monitor: barva luminoforu (není na kartě)",
+      "\"white\"", k_monitor, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -377,6 +384,8 @@ static const CardParam k_dgd1[] = {
       "false", nullptr, 0, 0 },
     { "wait_states", PK_BOOL, "Wait states (CPU waits for its window of the display)",
       "Čekací stavy (CPU čeká na své okno displeje)", "true", nullptr, 0, 0 },
+    { "monitor", PK_CHOICE, "Monitor: phosphor colour (not on the card)", "Monitor: barva luminoforu (není na kartě)",
+      "\"white\"", k_monitor, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -393,6 +402,8 @@ static const CardParam k_and1a[] = {
       "false", nullptr, 0, 0 },
     { "decoder", PK_FILE, "PROM D3A: address decoder", "PROM D3A: dekodér adresy", "\"roms/and-1a/AND-1A_D3A_74S287.bin\"",
       k_and1a_dec, 0, 0 },
+    { "monitor", PK_CHOICE, "Monitor: phosphor colour (not on the card)", "Monitor: barva luminoforu (není na kartě)",
+      "\"white\"", k_monitor, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -565,6 +576,8 @@ static const CardParam k_and1z[] = {
     { "map_enabled", PK_BOOL, "S1: MAP1 disconnects the card", "S1: MAP1 odpojí kartu", "false", nullptr, 0, 0 },
     { "wait_states", PK_BOOL, "RDY wait states on VRAM access", "Čekání (RDY) při přístupu do VRAM", "true",
       nullptr, 0, 0 },
+    { "monitor", PK_CHOICE, "Monitor: phosphor colour (not on the card)", "Monitor: barva luminoforu (není na kartě)",
+      "\"white\"", k_monitor, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

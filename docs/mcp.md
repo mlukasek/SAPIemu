@@ -67,7 +67,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
 | `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1 |
 | `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V: CPU 2/4 MHz, sběrnice 2 MHz) |
-| `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) |
+| `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |
 | `serial_set_connected` | Připojení a odpojení terminálu (DCD/CTS/DSR). ECMON a MikroMon podle DCD volí konzoli |

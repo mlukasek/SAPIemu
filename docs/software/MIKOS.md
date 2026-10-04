@@ -92,7 +92,7 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
   BEG/BEND, PROC/ENDP s parametry, RENUM, SAVEB/LOADB…
 - **V5.0/G** přidává grafiku na desce DGD-1 (`docs/desky/DGD-1.md`): SCALE, CLSG, COLOR, MOVE, PLOT, DRAW,
   LABEL, AXES, FILL, GETP… Souřadnice 0–319 × 0–239, y = 0 dole. Sestava `ZPS-2_MIKOS_V5.sapi` má DGD-1 na C000h
-  a RAM-1 omezenou na 4000–BFFF. Grafika se ukazuje v okně „Grafika DGD-1“.
+  a RAM-1 omezenou na 4000–BFFF. Grafika se ukazuje v okně „DGD-1“.
 - **Ověřeno** (`test_mikos`): V5.0 naběhne, REPEAT/UNTIL a WHILE/WEND. V5.0/G: CLSG, PLOT na správné body
   v paměti DGD-1.
 

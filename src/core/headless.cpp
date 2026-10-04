@@ -122,7 +122,7 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
             if (!d) { fprintf(stderr, "no display card %s\n", shot_display.c_str()); return 1; }
             int w = d->screen_width(), h = d->screen_height();
             std::vector<uint32_t> px((size_t)w * h);
-            d->render(px.data(), 0xFFE8E8E8u, 0xFF101010u);
+            d->render(px.data(), 0xFF101010u);
             if (!png_write_argb(path, px.data(), w, h, 2, 2)) {
                 fprintf(stderr, "cannot write %s\n", path.c_str());
                 return 1;

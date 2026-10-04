@@ -37,7 +37,7 @@ Stav: **emulovaná** (typ `AND-1A` třídy AND-1 v `src/cards/and1.*`), ověřen
 
 - Stejný obraz, font a režimy jako AND-1. Video RAM 1 KB se stejným skládáním sloupců 32–63 jako u AND-1.
 - **Parametry:** `charset`, `rows`, `int1`, `s1` (propojka 44-45), `decoder` (PROM D3A, výchozí
-  `roms/and-1a/AND-1A_D3A_74S287.bin`).
+  `roms/and-1a/AND-1A_D3A_74S287.bin`), `monitor` (barva luminoforu monitoru).
 - Výběr 2 KB bloků se počítá z PROM: vstupy A15, A13, S1 (sepnutá = 0), A14, A11, A12, A6/A7 = 1, výstup D3 =
   /SEL. Standardní obsah dává E800, s S1 sepnutou 3800.
 - U AND-1 (typ `AND-1`) zůstává pevně 3800–3FFF (dekodér 3205).

@@ -8,6 +8,7 @@
 #include "core/machine_map.h"
 #include "core/term.h"
 
+class DisplayDevice;
 class EmuHost;
 class McpServer;
 struct ImFont;
@@ -110,6 +111,10 @@ void draw_rack(UiState& ui);
 void rack_open_and_run(UiState& ui);
 // POWER switch: off when the machine runs, else on with the configurator's description.
 void rack_power_switch(UiState& ui);
+// Ink colour of a monochrome display (card parameter: jumpers S1 of AND-1V, the monitor
+// phosphor of the others): shown at once on the running machine, the description in
+// the configurator follows (it is saved with the machine).
+void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value);
 // Open a machine description in the configurator without starting it.
 void rack_open_in_editor(UiState& ui, const std::string& path);
 // Keyboard input for the focused terminal; returns true if consumed.

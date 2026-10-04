@@ -90,10 +90,30 @@ public:
     virtual bool text_display() const { return true; }
     // Dot clock of the video signal: pixel aspect on a PAL TV (square pixels at 7.375 MHz).
     virtual double dot_clock_hz() const { return 10e6; }
-    // Render into an ARGB8888 buffer of screen_width*screen_height.
-    virtual void render(uint32_t* argb, uint32_t fg, uint32_t bg) = 0;
+    // Render into an ARGB8888 buffer of screen_width*screen_height; a monochrome
+    // picture uses its own ink colour on `bg`.
+    virtual void render(uint32_t* argb, uint32_t bg) = 0;
+    // Ink of a monochrome picture: the phosphor of the monitor (AND-1, AND-1Z, DGD-1)
+    // or the colour jumpers of the card (AND-1V). It is the card parameter
+    // ink_param() of the machine description; nullptr = a colour display (CGA-1V).
+    virtual const char* ink_param() const { return nullptr; }
+    virtual std::string ink() const { return std::string(); }   // current value
+    // Change the ink while running (value as in the machine description).
+    virtual bool set_ink(const std::string& value, std::string& err) { err = "no ink colour"; return false; }
     // Visible text, one string per row, UTF-8.
     virtual std::vector<std::string> text_rows() = 0;
+};
+
+// Phosphor of a monochrome monitor ("white", "green", "amber") as ARGB; false for an unknown name.
+bool monitor_phosphor(const std::string& name, uint32_t& argb);
+
+// The monitor of a monochrome display card without colour jumpers: card parameter
+// "monitor" (phosphor colour, not a part of the card).
+struct MonitorInk {
+    std::string name = "white";
+    uint32_t argb = 0xFFE8E8E8u;
+    bool configure(const nlohmann::json& cfg, std::string& err);
+    bool set(const std::string& value, std::string& err);
 };
 
 // Byte stream between an emulated serial port and the host (terminal window,

@@ -31,7 +31,10 @@ public:
     int screen_width() const override { return COLS * CELL_W; }
     int screen_height() const override { return ROWS * CELL_H; }
     double dot_clock_hz() const override { return 7.375e6; }   // square VGA pixels
-    void render(uint32_t* argb, uint32_t fg, uint32_t bg) override;
+    void render(uint32_t* argb, uint32_t bg) override;
+    const char* ink_param() const override { return "color"; }   // jumpers S1
+    std::string ink() const override { return color; }
+    bool set_ink(const std::string& value, std::string& err) override;
     std::vector<std::string> text_rows() override;
 
     static const int COLS = 64;
@@ -46,7 +49,7 @@ private:
     std::vector<uint8_t> font;     // 32 KB (27C256)
     uint16_t base = 0xF800;
     int map_mode = 0;              // 0 always (MAP1OFF), 1 MAP1 = H, 2 MAP1 = L, 3 never
-    uint32_t ink = 0xFFFFFFFFu;    // 0 = the GUI phosphor colour
-    bool own_ink = false;
+    uint32_t ink_argb = 0xFFFFFFFFu;   // S1
+    std::string color = "white";
     std::string font_file;
 };

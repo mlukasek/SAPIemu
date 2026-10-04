@@ -80,6 +80,9 @@ public:
     KeyboardDevice* keyboard(void) { return cpu ? cpu->keyboard() : nullptr; }
     Card* find_card(const std::string& name);
     DisplayDevice* find_display(const std::string& card);   // "" = the console screen
+    // Ink colour of a monochrome display while running (DisplayDevice::ink_param of
+    // its card); the machine description `config` changes with it.
+    bool set_display_ink(DisplayDevice* d, const std::string& value, std::string& err);
 
     Bus bus;
     std::vector<std::unique_ptr<Card>> cards;

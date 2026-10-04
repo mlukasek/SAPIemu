@@ -4,6 +4,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: jedna barva obrazu a okna podle karet.**
+- Barva jednobarevného obrazu je parametr karty v sestavě: AND-1V propojky S1 (`color`), ostatní parametr
+  `monitor` (luminofor). Menu Zobrazení → Barva i konfigurátor mění totéž a hned, uloží se se sestavou. Globální
+  „Luminofor“ v nastavení GUI zmizel. Sestava V má AND-1V jantarovou (autor).
+- Okna obrazovek se jmenují podle karty („AND-1V“, „CGA-1V“, „DGD-1“), rozložení okna se převede.
+- Popis v `docs/sestavy.md` („Okna obrazovek a barva obrazu“).
+
 **Hotové: CGA-1V** (barevná grafika 320×200, VGA, Libor Lasota) v sestavě V na X7.
 - Nastavení: C000h při MAP1 = MAP2 = H (`OUT 63h,C0h`), jumpery podle fotky.
 - Registry jsou ze schématu (CONFIG/STATUS, Bt476), EGA i CGA, barvové domény, dvě stránky, VBI na /INT0
@@ -44,7 +51,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 **Hotové: BASIC EXP V5.0 a V5.0/G pod MIKOSem V5, nová karta DGD-1 (grafika 320×240).**
 - `media/mikos/*.hex`, v GUI Soubor → Nahrát program do paměti (Intel HEX), `.B`.
-- DGD-1 má vlastní okno „Grafika DGD-1“, snímek přes MCP `screenshot display=DGD-1` a `sapiemu-cli --display`.
+- DGD-1 má vlastní okno „DGD-1“, snímek přes MCP `screenshot display=DGD-1` a `sapiemu-cli --display`.
 - Popis v `docs/desky/DGD-1.md` a `docs/software/MIKOS.md`.
 
 **Hotové: MIKOS V5.0 na ZPS-2 s klávesnicí Consul** (`machines/zps/ZPS-2_MIKOS_V5.sapi`, ROM Monitor V5.0F/E
@@ -160,7 +167,6 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 - **ZRD-1V:** vedlejší účinky čtení 61h–63h (nedefinovaná hodnota, která se zapíše do registru adresy).
 - **ZPS-4 / ELIS v3.00:** obsluha klávesnice (dvojité nebo nekonečné opakování kláves).
 - **RMD-1:** časování (INIR, NOP po `OUT 43`).
-- **Barva AND-1V** je věc uživatele (autor), výchozí bílá.
 - **CGA-1V:**
   - čekací stavy jsou přibližné (do konce okna CPU 318 ns);
   - prolínání snímků je náhrada za oko (REMBRAN2);

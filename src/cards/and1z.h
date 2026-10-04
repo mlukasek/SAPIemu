@@ -18,7 +18,10 @@ public:
 
     int screen_width() const override { return COLS * CELL_W; }
     int screen_height() const override { return ROWS * CELL_H; }
-    void render(uint32_t* argb, uint32_t fg, uint32_t bg) override;
+    void render(uint32_t* argb, uint32_t bg) override;
+    const char* ink_param() const override { return "monitor"; }
+    std::string ink() const override { return monitor.name; }
+    bool set_ink(const std::string& value, std::string& err) override { return monitor.set(value, err); }
     std::vector<std::string> text_rows() override;
 
     static const int COLS = 64;
@@ -36,4 +39,5 @@ private:
     std::vector<uint8_t> prom_d1;   // address decoder
     bool map_enabled = false;       // S1: MAP1 disables the card when "zařazen"
     bool waits = true;              // emulate RDY wait states
+    MonitorInk monitor;
 };

@@ -482,3 +482,17 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   a cesty v testech (`test_mikos`, `test_cassette`) na něj platí dál. Relativní odkazy `..\<deska>` také.
 - **Po přesunu** se smazalo `out\build\*` (CMakeCache s cestami na `H:`), nastavení GUI se zachovalo a sestavení
   je čisté, 24 testů prochází. Lokální preset `local-debug` (`C:\SAPIemu-build`) už na tomto PC není potřeba.
+
+## 2026-10-04 – Barva obrazu v sestavě, okna podle karet
+
+- **Barva jednobarevného obrazu je parametr karty** (autor: nastavení v menu i v jumperech bylo nelogické).
+  - AND-1V má barvu na propojkách S1 (`color`), jak to je na desce. Volba „podle nastavení emulátoru“ zmizela.
+  - Karty bez propojek barvy (AND-1, AND-1A, AND-1Z, AND-1Z-89, DGD-1) dostaly parametr `monitor`: barva je dána
+    luminoforem připojeného monitoru (bílá, zelená, jantarová), v konfigurátoru je označený „není na kartě“.
+  - Menu Zobrazení → Barva i konfigurátor mění tentýž parametr a změna se projeví hned, bez vypnutí (barva
+    neovlivňuje běh programu). Uloží se se sestavou. Globální „Luminofor“ v `sapiemu-settings.json` se už nečte.
+  - Snímky přes MCP a `sapiemu-cli` mají stejnou barvu jako GUI.
+- **Okna obrazovek se jmenují podle karty** (autor): „AND-1V“, „CGA-1V“, „DGD-1“ místo „Obrazovka“ a
+  „Grafika …“. Okna mají pevné id (`###screen`, `###gfxN`), takže uložená poloha zůstává i po výměně karty.
+  Starý záznam „Obrazovka“ v `imgui.ini` se při startu převede.
+- **Sestava V má AND-1V jantarovou** (autor).

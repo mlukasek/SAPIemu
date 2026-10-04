@@ -799,7 +799,7 @@ json t_screenshot(EmuHost& h, const json& a)
     if (scale < 1 || scale > 4) throw ToolError{ "scale must be 1..4" };
     int w = d->screen_width(), hh = d->screen_height();
     std::vector<uint32_t> px((size_t)w * hh);
-    d->render(px.data(), 0xFFE8E8E8u, 0xFF101010u);
+    d->render(px.data(), 0xFF101010u);
     std::vector<uint8_t> png = png_encode_argb(px.data(), w, hh, (int)scale, (int)scale);
     return json{ { "content", json::array({ json{ { "type", "image" }, { "data", base64(png) }, { "mimeType", "image/png" } } }) },
                  { "isError", false } };
