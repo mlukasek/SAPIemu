@@ -39,7 +39,18 @@ int main(void)
     CHECK(run_until_text(*m, "INIT HDD SAPIemu IDE disk", 10.0));
     CHECK(run_until_text(*m, "A>", 10.0));
 
+    // activity LED of the IDE-1 panel: off while CP/M waits, lit while DIR D: reads PMD32-SD
+    Card* ide = m->find_card("IDE-1");
+    CHECK(ide != nullptr);
+    m->run_seconds(0.2);
+    CHECK(ide && ide->panel_leds() == 0u);
     m->type_text("DIR D:\r");
+    bool lit = false;
+    for (int i = 0; i < 300 && !lit; i++) {
+        m->run_seconds(0.01);
+        lit = ide && ide->panel_leds() == 1u;
+    }
+    CHECK(lit);
     CHECK(run_until_text(*m, "USER0   .LBR", 30.0));
     CHECK(run_until_text(*m, "\nA>", 5.0));
 

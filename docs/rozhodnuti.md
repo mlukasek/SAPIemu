@@ -551,3 +551,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - `Card::panel_leds()` vrací stav LED panelu (bit n = n-tá LED nákresu), konfigurátor ho u běžící sestavy čte
   v každém snímku. JPR-1ZI, JPR-1Z, JPR-1V a JPR-1A: klopný obvod BOOT. JPR-1: P1-OUT D7 (polarita 1 = svítí je
   předpoklad). LED JPR je červená. Další LED (IDE-1, ZRD-1V) zatím jen nakreslené.
+
+## 2026-10-04 – LED IDE-1 a ZRD-1V
+
+- **IDE-1** LED nemá, emulátor ji na panelu kreslí (autor: může se hodit) a rozsvítí ji na 50 ms po každém
+  přístupu na 8255 disku nebo PMD32-SD.
+- **ZRD-1V** (autor: LED podle rev 2.0, jedna zámek zápisu, druhá přístup): DSK svítí 20 ms po přístupu k datům
+  (74LS123 „20 msec“). ZAM čeká na popis zámku zápisu rev 2.0 (binární schéma nejde přečíst). Barvy: ZAM červená,
+  DSK žlutá (HLMP-3762/3962, přiřazení je odhad).

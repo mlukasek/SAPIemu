@@ -133,4 +133,7 @@ Zdroje:
   - Autorova deska (fotka rev 1.0): S1 = 60h, S2 osazená.
 - **Rev 2.0-alpha:** list „NAPAJENI, ZAMEK ZAPISU, INDIKACE“ přidává zámek zápisu a LED přístupu
   (monostabilní obvody 74LS123, 20 ms). To může vysvětlit „zamykací“ sekvenci MikroMonu.
+  - Z binárního `.sch` jsou čitelné jen texty: 74LS123 A/B „(20msec)“, 74LS00, 74LS02, signály IRD, IWR,
+    /IRES, /WE, ACCESS, PWRN-1, LED HLMP-3762 a HLMP-3962. Jak se zámek zapíná, z toho nejde poznat.
+  - **Emulace:** LED DSK na panelu svítí 20 ms po čtení nebo zápisu dat (port 60h). LED ZAM zatím nesvítí.
 

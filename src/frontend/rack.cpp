@@ -51,6 +51,8 @@ const ImU32 COL_LED_ON = IM_COL32(90, 240, 90, 255);
 const ImU32 COL_LED_OFF = IM_COL32(40, 70, 40, 255);
 const ImU32 COL_LED_RED_ON = IM_COL32(255, 52, 36, 255);
 const ImU32 COL_LED_RED_OFF = IM_COL32(78, 30, 26, 255);
+const ImU32 COL_LED_YEL_ON = IM_COL32(255, 214, 40, 255);
+const ImU32 COL_LED_YEL_OFF = IM_COL32(80, 70, 24, 255);
 
 const ImVec4 TXT_ERROR(1.0f, 0.42f, 0.38f, 1.0f);
 const ImVec4 TXT_WARN(1.0f, 0.82f, 0.35f, 1.0f);
@@ -419,7 +421,7 @@ struct PanelItem {
     float x, y;          // centre
     const char* text;    // PI_TEXT (14 pt), PI_NOTE (12 pt, not on the print);
                          // PI_PORT: index of the connector in card_connector_ports() (13 pt);
-                         // PI_LED: "r" = red (else green), lit by Card::panel_leds()
+                         // PI_LED: "r" red, "y" yellow, else green; lit by Card::panel_leds()
 };
 
 // Cards of the original design have FRB connectors in rectangular cut-outs (first set of
@@ -463,7 +465,7 @@ const PanelItem k_pl_dsm[] = {
 
 // IDE-1: IDC 40 for the disk (SV1, top), activity LED, D-sub 15 two-row for PMD32-SD (X2, bottom)
 const PanelItem k_pl_ide1[] = {
-    { PI_NOTE, 23.85f, 56.4f, "HDD" }, { PI_IDC, 23.85f, 146.7f, nullptr }, { PI_LED, 23.85f, 245.9f, nullptr },
+    { PI_NOTE, 23.85f, 56.4f, "HDD" }, { PI_IDC, 23.85f, 146.7f, nullptr }, { PI_LED, 23.85f, 245.9f, "r" },
     { PI_DSUB15, 23.85f, 345.1f, nullptr }, { PI_NOTE, 23.85f, 437.8f, "PMD32" },
     { PI_END, 0, 0, nullptr },
 };
@@ -491,8 +493,8 @@ const PanelItem k_pl_mph[] = {
     { PI_END, 0, 0, nullptr },
 };
 const PanelItem k_pl_zrd[] = {
-    { PI_TEXT, 29.0f, 312.3f, "ZAM" }, { PI_LED, 19.8f, 332.3f, nullptr },
-    { PI_TEXT, 29.0f, 369.9f, "DSK" }, { PI_LED, 19.8f, 389.9f, nullptr },
+    { PI_TEXT, 29.0f, 312.3f, "ZAM" }, { PI_LED, 19.8f, 332.3f, "r" },
+    { PI_TEXT, 29.0f, 369.9f, "DSK" }, { PI_LED, 19.8f, 389.9f, "y" },
     { PI_END, 0, 0, nullptr },
 };
 
@@ -703,8 +705,11 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
         case PI_IDC: pt_idc(P, it->x, it->y); break;
         case PI_DSUB15: pt_dsub(P, it->x, it->y, 47.0f, 75.0f); break;
         case PI_LED: {
-            bool on = (leds >> led++) & 1u, red = it->text && it->text[0] == 'r';
-            pt_led(P, it->x, it->y, red ? (on ? COL_LED_RED_ON : COL_LED_RED_OFF) : (on ? COL_LED_ON : COL_LED_OFF));
+            bool on = (leds >> led++) & 1u;
+            char c = it->text ? it->text[0] : 'g';
+            ImU32 col = c == 'r' ? (on ? COL_LED_RED_ON : COL_LED_RED_OFF)
+                      : c == 'y' ? (on ? COL_LED_YEL_ON : COL_LED_YEL_OFF) : (on ? COL_LED_ON : COL_LED_OFF);
+            pt_led(P, it->x, it->y, col);
             break;
         }
         case PI_JACK: pt_jack(P, it->x, it->y); break;

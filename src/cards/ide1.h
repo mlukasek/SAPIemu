@@ -9,6 +9,9 @@
 
 class Ide1 : public Card, public I8255Peripheral {
 public:
+    // Activity LED of the panel drawing (not on the real card): lit for 50 ms after an
+    // access to the IDE or PMD32-SD 8255.
+    unsigned panel_leds() override;
     Ide1();
     ~Ide1() override;
 
@@ -30,6 +33,8 @@ public:
     IdeDisk* disk(void) { return ide_enabled ? &ide : nullptr; }
 
 private:
+    uint64_t access_at = 0;   // bus time of the last access to the card
+    bool accessed = false;
     bool ide_enabled = true, pmd_enabled = true;
     uint8_t base_ide = 0x58, base_pmd = 0x5C;
     I8255 ppi_ide, ppi_pmd;

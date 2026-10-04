@@ -131,10 +131,18 @@ int Zrmd1::decode_io(uint8_t port, const char** what)
     return 0;
 }
 
+unsigned Zrmd1::panel_leds()
+{
+    bool dsk = accessed && bus && bus->now - access_at < bus->cpu_hz / 50;
+    return dsk ? 2u : 0u;
+}
+
 bool Zrmd1::io_read(uint8_t port, uint8_t& data)
 {
     uint8_t off = (uint8_t)(port - base);
     if (off == 0) {
+        accessed = true;
+        access_at = bus->now;
         uint32_t a = address();
         data = a < mem.size() ? mem[a] : 0xFF;   // no chip fitted: floating bus
         a_lo++;
@@ -152,6 +160,8 @@ bool Zrmd1::io_write(uint8_t port, uint8_t data)
     uint8_t off = (uint8_t)(port - base);
     switch (off) {
     case 0: {
+        accessed = true;
+        access_at = bus->now;
         uint32_t a = address();
         if (a < mem.size() && writable(a) && mem[a] != data) {
             mem[a] = data;

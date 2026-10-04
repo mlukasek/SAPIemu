@@ -173,14 +173,23 @@ int Ide1::decode_io(uint8_t port, const char** what)
     return 0;
 }
 
+unsigned Ide1::panel_leds()
+{
+    return accessed && bus && bus->now - access_at < bus->cpu_hz / 20 ? 1u : 0u;
+}
+
 bool Ide1::io_read(uint8_t port, uint8_t& data)
 {
     if ((port & 0xFC) == base_ide) {
         data = ppi_ide.read(port & 3);
+        accessed = true;
+        access_at = bus->now;
         return true;
     }
     if ((port & 0xFC) == base_pmd) {
         data = ppi_pmd.read(port & 3);
+        accessed = true;
+        access_at = bus->now;
         return true;
     }
     return false;
@@ -190,10 +199,14 @@ bool Ide1::io_write(uint8_t port, uint8_t data)
 {
     if ((port & 0xFC) == base_ide) {
         ppi_ide.write(port & 3, data);
+        accessed = true;
+        access_at = bus->now;
         return true;
     }
     if ((port & 0xFC) == base_pmd) {
         ppi_pmd.write(port & 3, data);
+        accessed = true;
+        access_at = bus->now;
         if (pmd_enabled) pmd.advance(bus->now, bus->cpu_hz);   // the ATmega reacts within microseconds
         return true;
     }

@@ -13,6 +13,9 @@
 
 class Zrmd1 : public Card {
 public:
+    // ZRD-1V panel: bit 0 ZAM (write lock of rev 2.0, not modelled yet: off), bit 1 DSK =
+    // access to the RAM disk data (port 60h), lit 20 ms (74LS123 of rev 2.0).
+    unsigned panel_leds() override;
     explicit Zrmd1(bool zrd1v);
     ~Zrmd1() override;
 
@@ -30,6 +33,8 @@ public:
     enum Mode { MODE_RW, MODE_NOSAVE, MODE_READONLY };
 
 private:
+    uint64_t access_at = 0;   // bus time of the last data access (DSK LED)
+    bool accessed = false;
     uint32_t address(void) const { return ((uint32_t)(a_hi & 0x3F) << 16) | ((uint32_t)a_mid << 8) | a_lo; }
     bool writable(uint32_t addr) const;
     bool save(void);
