@@ -84,3 +84,11 @@ Skladby pro SPLAY (`..\MPH-1V\SPLAY\*.hex`, také od 0100h): `SAVE 17 BUBBLE.VGM
 `sapiemu-cli --load-bin soubor 100`, MCP `load_binary`) a uloží `SAVE n JMENO.RAD`, kde n = velikost / 256
 zaokrouhleno nahoru (`smjoop.rad` 38, `Void - Terrania.rad` 40, `Void - Raster.rad` 72). Okno pro nahrání
 binárního souboru n ukáže.
+
+## `zrd-1v/` – test karty RAM disku ZRD-1V
+
+Vlastní program projektu (zdroj `ZRDTEST.ASM`, překlad `python tools/asm8080.py ZRDTEST.ASM zrdtest.hex`).
+
+| Soubor | Program | `SAVE` |
+|---|---|---|
+| `zrdtest.hex` | ZRDTEST 1.0: baterie (MAX187), čtení 61h, okno zápisu a zámek (rev 2.1), `ZRDTEST [MHz]` | 6 |

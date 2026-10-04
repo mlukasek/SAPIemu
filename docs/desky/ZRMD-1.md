@@ -172,9 +172,21 @@ vypuštěno zálohování ze sběrnice signálem S4 a doplněny sériové odpory
   ukazuje pod parametry („zámek zápisu: zamčeno programem…“), MCP v `machine_info` (`locked`). Parametr „Režim“
   (rw/nosave/readonly) dál řídí jen obraz v emulátoru.
 
+### ZRDTEST
+
+`media/zrd-1v/ZRDTEST.ASM` a `zrdtest.hex` (CP/M, `SAVE 6 ZRDTEST.COM`, spuštění `ZRDTEST [MHz]`, výchozí 4):
+1. změří baterii;
+2. ukáže, co čte 61h a kam se tím posune adresa;
+3. ověří zápis hned po 62h;
+4. zkusí zápis za 10…40 ms po 62h a pak za 100 ms.
+
+Na rev 2.1 zjistí délku okna a kartu na konci zamkne (odemkne RESET). Používá jen bajty 3FFFF0h a 3FFFFFh
+a vrací je. Překlad `python tools/asm8080.py` (nebo M80). V emulátoru vyjde rev 2.1: 3000 mV, IN 61h = DFh
+(čte se během převodu, DOUT = 0), okno 20…21 ms. Rev 1.1: převodník nenalezen, IN 61h = FFh, zámek není.
+
 ### Nejasnosti rev 2.1
 
-- Která revize je na autorově desce (fotka v repu je rev 1.0)? Sestava V má teď 2.1.
+- Autorova deska je **rev 1.1** (autor), sestavy V to mají. Rev 2.1 se zatím nedá ověřit na skutečné desce.
 - Okno 74LS123: schéma píše 20 ms, vzorec 0,37–0,45 · R · C dává 25–31 ms. Emulace: 20 ms.
 - AIN přes 24 MΩ: kolik ukazuje skutečná deska proti napětí baterie (vstupní proud MAX187)? Emulace: přesně
   `battery_mv`.

@@ -10,6 +10,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - LED podle desky: ZAM červená = zamčeno, DSK zelená = přístup.
 - Měření baterie MAX187 (čtení 61h, D5, `battery_mv`) a vedlejší účinek čtení 61h–63h.
 - Zámek se neukládá do sestavy (autor), konfigurátor ho ukazuje živě. Popis v `docs/desky/ZRMD-1.md`.
+- Autor má rev 1.1: sestavy V jsou na 1.1, výchozí v katalogu je 2.1. Test karty `media/zrd-1v/ZRDTEST`
+  (CP/M), assembler `tools/asm8080.py`.
 
 **Hotové: MPH-1V** (Liborova zvuková a joysticková karta: YM3812, 8253, joystick) v sestavě V na X8, báze 50h.
 - YM3812 na jádru Nuked-OPL3 (third_party, LGPL) s časovači a stavem OPL2 a bitem WSE, 8253 (režimy 0–5,

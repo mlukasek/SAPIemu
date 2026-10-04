@@ -20,9 +20,42 @@ static json machine_cfg(void)
     std::string text;
     CHECK(file_read_text(data_path("machines/sapi1v.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);
-    for (json& c : cfg["cards"])
+    for (json& c : cfg["cards"]) {
         if (c.value("type", std::string()) == "IDE-1") c.erase("ide");   // no disk file needed here
+        if (c.value("type", std::string()) == "ZRD-1V") c["revision"] = "2.1";   // the author has 1.1
+    }
     return cfg;
+}
+
+// ZRD-1V rev 1.1 (the author's board): no lock, no LEDs; a read of 61h loads FFh
+static void zrd_rev11(void)
+{
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "ZRD-1V") c["revision"] = "1.1";
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    Card* zrd = m.find_card("ZRD-1V");
+    CHECK(zrd != nullptr);
+    if (!zrd) return;
+    m.bus.io_write(0x61, 0xFF);
+    m.bus.io_write(0x62, 0xFF);
+    m.bus.io_write(0x63, 0x3F);
+    m.run_seconds(0.1);
+    m.bus.io_write(0x60, 0x5A);   // like MikroMon: written, no lock
+    CHECK(!((Zrmd1*)zrd)->locked());
+    m.bus.io_write(0x61, 0xFF);
+    CHECK_EQ(m.bus.io_read(0x60), 0x5A);
+    CHECK_EQ(zrd->panel_leds(), 0u);
+    CHECK(zrd->live_status().empty());
+    m.bus.io_write(0x61, 0x10);
+    CHECK_EQ(m.bus.io_read(0x61), 0xFF);   // no MAX187: the undriven bus
+    m.bus.io_write(0x61, 0xFF);            // the read loaded FFh: 60h reads 3FFFFFh again
+    uint8_t want = m.bus.io_read(0x60);
+    m.bus.io_write(0x61, 0x10);
+    m.bus.io_read(0x61);
+    CHECK_EQ(m.bus.io_read(0x60), want);
 }
 
 // ZRD-1V rev 2.1: writes to 60h only within 20 ms after an access to 62h; a write outside
@@ -293,6 +326,7 @@ static void cga_vbi(void)
 int main(void)
 {
     test_init();
+    zrd_rev11();
     turbo();
     cpm();
     mikrobios();

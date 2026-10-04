@@ -103,6 +103,9 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
   - `tape_insert`, `tape_control`, `load_hex`;
   - `io_log`: záznam I/O, kruhový buffer 4096 přístupů, takže polling ho rychle zaplní;
   - `io_read`, `io_write`: přímý přístup na porty karet, např. obsah RAM disku.
+- **Testovací programy pro SAPI:** `python tools/asm8080.py ZDROJ.ASM VYSTUP.HEX [VYSTUP.COM]` je malý
+  assembler 8080 (syntaxe M80: ORG, EQU, DB, DW, DS, výrazy). Píše Intel HEX a vypíše počet stránek pro `SAVE`.
+  Použitý pro `media/zrd-1v/ZRDTEST.ASM`.
 - **`sapiemu-cli`:** `--timeout-ms` musí být **před** `--wait-text`, kterého se týká. `--load-hex` nahraje
   program, `--load-bin SOUBOR ADRESA` binární soubor (adresa hex, třeba `100`), `--display DGD-1` určí obrazovku
   pro `--screenshot`.
