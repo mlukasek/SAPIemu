@@ -131,6 +131,17 @@ void Bus::reset(void)
     update_map();
 }
 
+void Bus::audio_put(const int16_t* s, size_t n)
+{
+    if (!audio_cap) return;
+    if (audio.size() + n > audio_cap) {
+        size_t drop = audio.size() + n - audio_cap;
+        if (drop >= audio.size()) audio.clear();
+        else audio.erase(audio.begin(), audio.begin() + (ptrdiff_t)drop);
+    }
+    audio.insert(audio.end(), s, s + n);
+}
+
 void Bus::advance_all(void)
 {
     for (Card* c : cards) c->advance(now);

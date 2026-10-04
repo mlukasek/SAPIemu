@@ -2,6 +2,7 @@
 #include "core/machine.h"
 #include "core/png.h"
 #include "core/util.h"
+#include "core/wav.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +45,20 @@ static void print_regs(Machine& m)
            r.halted ? " HALT" : "");
 }
 
-int headless_run(Machine& m, const std::vector<std::string>& actions)
+// The sound recorded since --audio-wav, written to its file.
+static bool write_wav(Machine& m, const std::string& path)
+{
+    m.bus.advance_all();
+    if (!wav_write_mono16(path, m.bus.audio.data(), m.bus.audio.size(), m.bus.audio_rate)) {
+        fprintf(stderr, "cannot write %s\n", path.c_str());
+        return false;
+    }
+    printf("%s: %.1f s of sound\n", path.c_str(), (double)m.bus.audio.size() / (double)m.bus.audio_rate);
+    m.bus.audio.clear();
+    return true;
+}
+
+static int run_actions(Machine& m, const std::vector<std::string>& actions, std::string& wav)
 {
     double timeout_s = 5.0;
     std::string shot_display;   // --display CARD: the output --screenshot takes
@@ -116,6 +130,13 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
             }
         } else if (a == "--display" && has_arg) {
             shot_display = actions[++i];
+        } else if (a == "--audio-wav" && has_arg) {
+            if (!wav.empty() && !write_wav(m, wav)) return 1;
+            wav = actions[++i];
+            if (!m.bus.audio_rate) { fprintf(stderr, "no sound card in the machine\n"); return 1; }
+            m.bus.advance_all();
+            m.bus.audio.clear();
+            m.bus.audio_cap = (size_t)m.bus.audio_rate * 3600;   // at most an hour
         } else if (a == "--screenshot" && has_arg) {
             const std::string& path = actions[++i];
             DisplayDevice* d = m.find_display(shot_display);
@@ -133,4 +154,13 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
         }
     }
     return 0;
+}
+
+int headless_run(Machine& m, const std::vector<std::string>& actions)
+{
+    std::string wav;
+    int rc = run_actions(m, actions, wav);
+    if (!wav.empty() && !write_wav(m, wav) && rc == 0) rc = 1;
+    m.bus.audio_cap = 0;
+    return rc;
 }

@@ -653,6 +653,12 @@ static const CardParam k_zrd1v[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// MPH-1V
+static const CardParam k_mph1v[] = {
+    { "base", PK_HEX, "S1: port base (8 ports)", "S1: báze portů (8 portů)", "\"50h\"", nullptr, 0, 0xF8 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // IDE-1
 static const CardParam k_ide1[] = {
     { "ide_base", PK_HEX, "JP1-JP3, JP5: IDE ports", "JP1-JP3, JP5: porty IDE", "\"58h\"", nullptr, 0, 0xFC },
@@ -738,6 +744,8 @@ CARD(c_fdc1, "FDC-1", "FDC", "Floppy disk controller", "Řadič disket", CC_DISK
 CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_DISK, 1, true, k_ide1)
 // I/O
 CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports", "Paralelní porty", CC_IO, 1, false, nullptr)
+CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 8253, joystick (V)", "Zvuk YM3812, časovač 8253, joystick (V)",
+     CC_IO, 1, true, k_mph1v)
 CARD(c_rtc1, "RTC-1", "RTC", "Real time clock and timer", "Reálný čas a čítač", CC_IO, 1, false, nullptr)
 CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldeska (prázdná, bez funkce)", CC_OTHER, 1,
      true, nullptr)
@@ -750,7 +758,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
         &c_and1z89, &c_and1z, &c_and1v, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
-        &c_dpp1, &c_rtc1, &c_bdk1,
+        &c_mph1v, &c_dpp1, &c_rtc1, &c_bdk1,
     };
     return list;
 }

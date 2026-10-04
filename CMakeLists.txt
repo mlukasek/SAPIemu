@@ -28,6 +28,13 @@ target_include_directories(chips_z80 PUBLIC ${TP}/chips)
 add_library(i8080 STATIC ${TP}/i8080/i8080.c)
 target_include_directories(i8080 PUBLIC ${TP}/i8080)
 
+# nukeykt/Nuked-OPL3 YMF262 core (LGPL-2.1+), used for the YM3812 of MPH-1V
+add_library(nuked_opl3 STATIC ${TP}/nuked-opl3/opl3.c)
+target_include_directories(nuked_opl3 PUBLIC ${TP}/nuked-opl3)
+if(MSVC)
+    target_compile_options(nuked_opl3 PRIVATE /wd4244)
+endif()
+
 add_library(nlohmann_json INTERFACE)
 target_include_directories(nlohmann_json INTERFACE ${TP}/json)
 
@@ -48,7 +55,7 @@ file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
 add_library(sapicore STATIC ${CORE_SOURCES})
 target_include_directories(sapicore PUBLIC src)
 target_include_directories(sapicore PRIVATE ${TP}/minimp3)
-target_link_libraries(sapicore PUBLIC chips_z80 i8080 nlohmann_json httplib)
+target_link_libraries(sapicore PUBLIC chips_z80 i8080 nuked_opl3 nlohmann_json httplib)
 if(NOT WIN32)
     target_link_libraries(sapicore PUBLIC Threads::Threads)
 endif()

@@ -30,6 +30,7 @@ sapi_test(test_rpd1)
 sapi_test(test_zps3)
 sapi_test(test_zps4)
 sapi_test(test_sapi1v)
+sapi_test(test_mph1v)
 
 # Intel 8080 core: TST8080, 8080PRE and CPUTEST are quick, 8080EXM takes minutes (slow, release only)
 add_executable(test_i8080 test_i8080.cpp test_util.h)

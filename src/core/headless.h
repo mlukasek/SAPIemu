@@ -12,6 +12,7 @@
 //   --print-regs          print CPU registers
 //   --screenshot FILE     save the screen as PNG (2x)
 //   --disasm ADDR N       disassemble N instructions from ADDR (hex)
+//   --audio-wav FILE      record the sound card output from here on, saved as WAV at the end
 //
 // Returns the process exit code (0 = all actions succeeded).
 #include <string>

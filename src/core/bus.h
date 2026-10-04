@@ -10,6 +10,16 @@ class Card;
 // Watchpoint flags (Bus::mem_watch / io_watch)
 enum WatchFlags { WATCH_READ = 1, WATCH_WRITE = 2 };
 
+// Host game controller state (Bus::joystick), 1 = pressed. The order is that of the
+// MPH-1V joystick port (D0..D7).
+enum HostJoy {
+    JOY_DOWN = 0x01, JOY_UP = 0x02, JOY_RIGHT = 0x04, JOY_LEFT = 0x08,
+    JOY_FIRE1 = 0x10,   // FL
+    JOY_FIRE2 = 0x20,   // FR
+    JOY_BUTTON3 = 0x40, // L
+    JOY_BUTTON4 = 0x80, // R
+};
+
 struct IoLogEntry {
     uint64_t time;      // CPU cycles
     uint16_t pc;        // instruction that did the access
@@ -27,6 +37,16 @@ struct Bus {
     bool warn_conflicts = true;
     uint64_t conflicts = 0;
     uint16_t pc = 0;            // address of the current instruction (set by the CPU card)
+
+    // sound: a sound card appends its output here (mono, audio_rate samples per second of
+    // emulated time); the frontend or the CLI takes it. With audio_cap = 0 nobody listens and
+    // the samples are dropped; past audio_cap the oldest go.
+    std::vector<int16_t> audio;
+    uint32_t audio_rate = 0;    // 0 = no sound card
+    size_t audio_cap = 0;
+    void audio_put(const int16_t* s, size_t n);
+    // host game controllers (HostJoy bits) for the joystick ports of the cards
+    uint8_t joystick[2] = { 0, 0 };
 
     // debugging
     uint8_t mem_watch[65536];   // WatchFlags per address
