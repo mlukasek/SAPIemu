@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Release package: out/package/SAPIemu-<version>-win64.zip
 
-Usage: python tools/package.py [--ide]   (after tools\\build.cmd release test)
+Usage: python tools/package.py [--no-ide]   (after tools\\build.cmd release test)
 
---ide adds the IDE disk of this PC (work/ide/*.img) as work/ide/ in the zip (name ...-ide.zip):
-the machine V and cpm_ide.sapi then start with its content (C: with the programs) instead of
-an empty disk.
+The IDE disk of this PC (work/ide/*.img) goes in as work/ide/: the machine V and cpm_ide.sapi
+start with its content (C: with the programs) instead of an empty disk. --no-ide leaves it out
+(the disk holds music too, not for a public release).
 
 The zip holds the release build (sapiemu.exe, sapiemu-cli.exe) and the data the emulator
 finds next to the exe: roms/, media/, machines/, third_party/fonts, the licences of the
@@ -42,8 +42,8 @@ def main():
     name = "SAPIemu-%s-win64" % version
     out_dir = os.path.join(ROOT, "out", "package")
     os.makedirs(out_dir, exist_ok=True)
-    with_ide = "--ide" in sys.argv[1:]
-    zip_path = os.path.join(out_dir, name + ("-ide" if with_ide else "") + ".zip")
+    with_ide = "--no-ide" not in sys.argv[1:]
+    zip_path = os.path.join(out_dir, name + ".zip")
 
     files = []
     for d in DATA:

@@ -49,14 +49,13 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 
 ## Vyzkoušejte
 
-**Balík s diskem** (`SAPIemu-…-ide.zip`): na disku C: sestavy V (start volbou `3`, pak `C:`) jsou už programy
-připravené:
+**Disk C:** sestavy V (start volbou `3`, pak `C:`) má už programy připravené:
 - SPLAY s HELLFIRE.VGM (`SPLAY HELLFIRE.VGM`);
 - RAT PLAYER se skladbami RAD (`RAT SMJOOP.RAD`, VOIDRAST, VOIDTERR, ADLIB2, BLUEAD);
 - MPH-TEST, Y1STDEMO, SNDDEMON, ZRDTEST;
 - hra Flappy `FLAPDGD` pro sestavu `sapi1v_DGD_Flapy.sapi` (grafika DGD-1V).
 
-Bez disku si programy nahrajete sami:
+Další programy z `media\` si nahrajete takto:
 
 - **Grafika CGA-1V** (sestava V, CP/M):
   1. Soubor → Nahrát program do paměti → `media\cga-1v\rembran1.hex`;
