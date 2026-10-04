@@ -596,9 +596,11 @@ void draw_menu(App& app)
             ks += q;
         }
         // the clock of the CPU card (JPR-1V TURBO included) and the measured speed of the emulation
-        snprintf(st, sizeof(st), "%s  %s  %s  CPU %.2f MHz  %s %3.0f %%", ks.c_str(), state,
+        char speed[16] = " -- %";   // the first measurement comes after a second
+        if (app.host.speed_percent > 0) snprintf(speed, sizeof(speed), "%3.0f %%", app.host.speed_percent);
+        snprintf(st, sizeof(st), "%s  %s  %s  CPU %.2f MHz  %s %s", ks.c_str(), state,
                  (app.mcp && app.mcp->running()) ? "MCP" : "", (m->cpu ? m->cpu->cpu_display_hz() : m->bus.cpu_hz) / 1e6,
-                 tr("emulation"), app.host.speed_percent);
+                 tr("emulation"), speed);
     }
     float w = ImGui::CalcTextSize(st).x + ImGui::GetStyle().ItemSpacing.x * 2;
     ImGui::SameLine(ImGui::GetWindowWidth() - w);
@@ -795,7 +797,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (pref) SDL_free(pref);
         }
     }
-    if (snap) app.ini_path.clear();   // the self-check never touches a window layout
+    if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
     ini_rename_screen(app.ini_path);
     if (!app.settings_path.empty()) {
         std::string text;
@@ -807,6 +809,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     }
     int win_w = (int)(1100 * dpi), win_h = (int)(760 * dpi);
     if (snap) win_h = (int)(1300 * dpi);   // room for the configurator with its map
+    if (snap && snap->w > 0 && snap->h > 0) {
+        win_w = (int)(snap->w * dpi);
+        win_h = (int)(snap->h * dpi);
+    }
     const nlohmann::json& sw = settings.value("window", nlohmann::json::object());
     int sx = 0, sy = 0, sww = 0, swh = 0;
     bool spos = false, smax = false;
@@ -862,6 +868,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         first = !last.empty() && file_exists(data_path(last)) ? last : std::string(DEFAULT_MACHINE_FILE);
     }
     load_machine(app, first);
+    if (snap && !snap->state.empty()) {   // a picture of a saved moment
+        std::string err;
+        if (!app.host.load_state_file(snap->state, err)) fprintf(stderr, "UI snapshot: %s\n", err.c_str());
+    }
     if (!app.host.machine() && first != DEFAULT_MACHINE_FILE) load_machine(app, DEFAULT_MACHINE_FILE);
     const nlohmann::json& sp = settings.value("speed", nlohmann::json::object());
     get_opt(sp, "max", app.host.max_speed);

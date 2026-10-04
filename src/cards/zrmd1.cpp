@@ -381,6 +381,8 @@ void Zrmd1::describe(json& out)
 
 void Zrmd1::state(StateIO& io)
 {
+    std::vector<uint8_t> before;
+    if (io.loading) before = mem;
     io.mem(mem);   // the RAM disk is a memory: it goes back to the moment of the state
     io.v(a_lo);
     io.v(a_mid);
@@ -394,7 +396,7 @@ void Zrmd1::state(StateIO& io)
     io.v(adc_start);
     io.e(adc_clocks);
     io.v(adc_code);
-    if (io.loading) {   // saved to the working copy like any change (mode rw)
+    if (io.loading && mem != before) {   // saved to the working copy like any change (mode rw)
         dirty = true;
         dirty_since = bus ? bus->now : 0;
     }

@@ -4,6 +4,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Příprava první alfa verze 0.1.0-alpha:**
+- README s obrázky (`docs/img/`), návod `docs/prvni-kroky.md`, poznámky `docs/release-notes/v0.1.0-alpha.md`;
+- balík `python tools/package.py` (postup v `docs/build.md`, „Vydání“);
+- statický runtime MSVC;
+- snímky GUI se stavem (`--ui-state`, `--ui-size`).
+
 **Hotové: bzučák klávesnice** (`docs/desky/klavesnice.md`).
 - EKL-1 a Consuly: aktivní bzučák 2,4 kHz na P0-OUT1 = 0, i krátké pípnutí po resetu (3212 se nuluje).
 - ANK-1: piezo za P0-OUT D6, tón dělá program (MIKROBASIC asi 750 Hz).

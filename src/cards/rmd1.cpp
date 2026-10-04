@@ -103,9 +103,11 @@ void Rmd1::describe(json& out)
 
 void Rmd1::state(StateIO& io)
 {
+    std::vector<uint8_t> before;
+    if (io.loading) before = mem;
     io.mem(mem);
     io.v(row);
     io.v(addr);
     io.v(latch);
-    if (io.loading) dirty = true;   // the content of the state goes to the image file too
+    if (io.loading && mem != before) dirty = true;   // the content of the state goes to the image file too
 }

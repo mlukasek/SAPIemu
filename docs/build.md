@@ -92,6 +92,24 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 
 Úplný seznam akcí vypíše `sapiemu-cli --help`.
 
+## Vydání (release)
+
+1. **Verze:** `project(SAPIemu VERSION ...)` a `SAPIEMU_VERSION_SUFFIX` (`-alpha`) v `CMakeLists.txt`.
+   `sapiemu --version` ji ukáže.
+2. **Build:** `toolsuild.cmd release test`. Runtime MSVC je přilinkovaný (`CMAKE_MSVC_RUNTIME_LIBRARY`), takže exe
+   nepotřebuje Visual C++ Redistributable.
+3. **Balík:** `python tools\package.py` vytvoří `out\package\SAPIemu-<verze>-win64.zip`:
+   - exe, `roms\`, `media\`, `machines\`, `docs\`, fonty, licence knihoven a `PRVNI-KROKY.md`;
+   - jen soubory, které zná git, takže nové soubory nejdřív `git add`;
+   - skript zip rozbalí do čisté složky a ověří, že z ní naběhne MikroMon.
+4. **Obrázky do README** (`docs\img\`) se dělají skrytým oknem GUI:
+   - připravit stav přes `sapiemu-cli ... --save-state scena.sapistate`;
+   - `sapiemu --settings s.json --ui-snapshot obr.png --ui-state scena.sapistate --ui-size 1540x572`;
+   - rozložení oken dává `s.json.imgui.ini`, třeba `[Window][x###screen]` a `[Window][x###gfx0]` s `Pos=` a `Size=`;
+   - naše PNG nejsou komprimovaná, před commitem je přeuložit se zlib.
+5. **Poznámky k vydání:** `docselease-notes<verze>.md`.
+6. **GitHub:** tag `v<verze>`, Releases → Draft a new release, Pre-release, vložit poznámky a zip.
+
 ## Tipy pro vývoj (postupy, které se osvědčily)
 
 - **Nová sestava z JSON:** `test_machine_cfg <soubor.json> > machines/....sapi` převede prostý JSON na

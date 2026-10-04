@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.24)
 project(SAPIemu VERSION 0.1.0 LANGUAGES C CXX)
+set(SAPIEMU_VERSION_SUFFIX "-alpha")   # release stage, shown with the version
+
+# MSVC: the C runtime linked in (no Visual C++ redistributable needed on other PCs);
+# set before any target, SDL3 from FetchContent follows it
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -60,7 +65,7 @@ if(NOT WIN32)
     target_link_libraries(sapicore PUBLIC Threads::Threads)
 endif()
 target_compile_definitions(sapicore PUBLIC
-    SAPIEMU_VERSION="${PROJECT_VERSION}"
+    SAPIEMU_VERSION="${PROJECT_VERSION}${SAPIEMU_VERSION_SUFFIX}"
     SAPIEMU_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
 # --- frontend -------------------------------------------------------------------
