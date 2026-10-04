@@ -188,6 +188,7 @@ void do_pending(UiState& ui)
     int kind = r.pending;
     std::string path = r.pending_path;
     r.pending = RackEditor::PEND_NONE;
+    if (kind != RackEditor::PEND_EXIT) r.message.clear();   // "Saved ..." was about the replaced description
     switch (kind) {
     case RackEditor::PEND_START: start_machine(ui, path); break;
     case RackEditor::PEND_OPEN: editor_open(ui, path, false); break;
@@ -358,6 +359,7 @@ void follow_now(UiState& ui)
     r.saved = r.cfg;
     r.path = ui.host->machine_file();
     r.sel = 0;
+    r.message.clear();   // it was about the previous description ("Saved ...")
 }
 
 // Follow the running machine. Machines opened from the GUI ask before they start; a

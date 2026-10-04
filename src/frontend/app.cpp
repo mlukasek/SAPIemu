@@ -41,8 +41,9 @@ struct ZoomState {
     int request = 0;   // percent chosen: resize the window before its next Begin
     ImVec2 size;       // window size set for `fixed`
 };
-const int k_zoom_steps[] = { 100, 200, 300 };
+const int k_zoom_steps[] = { 100, 200, 300, 400 };
 const float k_display_pad = 4.0f;   // window padding of the display windows
+const float k_zoom_margin = 12.0f;  // border around the picture when the window is sized to a zoom
 
 struct GfxView {
     SDL_Texture* tex = nullptr;
@@ -323,7 +324,7 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
     zs.request = 0;
     float fb = ImGui::GetIO().DisplayFramebufferScale.x;
     if (fb <= 0) fb = 1.0f;
-    float pad = 2.0f * k_display_pad + 2.0f;   // padding and a little slack for the border
+    float pad = 2.0f * (k_display_pad + k_zoom_margin);   // a small border around the picture
     ImVec2 s(d->screen_width() * display_px_aspect(app, d) * k / fb + pad,
              d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
     ImGui::SetNextWindowSize(s);

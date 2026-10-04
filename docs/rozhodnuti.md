@@ -507,5 +507,5 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   předem zastavit, dotaz proto přijde potom a Zrušit ponechá změny v konfigurátoru. Vypnutí a zapnutí stejné
   sestavy se neptá a změny zachová.
 - **Zvětšení v titulku okna obrazovky** (autor): v celých procentech („CGA-1V  200 %“), u všech videovýstupů.
-- **Rychlé zvětšení 100/200/300 %** (autor): pravé tlačítko na obraz, pro hlavní obrazovku i menu Zobrazení. Okno
-  se nastaví na přesnou velikost. Ruční změna velikosti okna vrátí přizpůsobení oknu.
+- **Rychlé zvětšení 100/200/300/400 %** (autor): pravé tlačítko na obraz, pro hlavní obrazovku i menu Zobrazení.
+  Okno se nastaví kolem obrazu s malým okrajem (autor: ne natěsno). Ruční změna velikosti okna vrátí přizpůsobení oknu.

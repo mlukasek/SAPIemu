@@ -49,7 +49,8 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   (první textový displej) je hlavní okno, grafické karty mají další. Při vypnutém stroji se hlavní okno jmenuje
   „Obrazovka“. Za jménem je aktuální zvětšení v celých procentech („CGA-1V  200 %“): body obrazovky PC na bod
   emulovaného obrazu, svisle (s poměrem TV se vodorovně liší).
-- **Rychlé zvětšení:** pravé tlačítko na obraz nabídne 100 %, 200 % a 300 %, okno se na ně přesně nastaví. Pro
+- **Rychlé zvětšení:** pravé tlačítko na obraz nabídne 100 %, 200 %, 300 % a 400 %, okno se nastaví kolem
+  obrazu s malým okrajem. Pro
   hlavní obrazovku je totéž v menu Zobrazení → Zvětšení obrazovky. Změna velikosti okna rukou vrátí přizpůsobení
   oknu (a celočíselné zvětšení, je-li zapnuté).
 - **Barva jednobarevného obrazu je parametr karty v sestavě:**
