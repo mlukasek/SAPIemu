@@ -128,11 +128,15 @@ int main(void)
     r = tool(s, "read_memory", { { "address", "zz" } });
     CHECK(r["isError"] == true);
 
-    // speed: CPU clock -> 4 MHz -> max -> CPU clock
-    r = tool(s, "resume", { { "speed_mhz", 4 } });
+    // speed of the emulation: percent of real time, or maximum
+    r = tool(s, "resume", { { "speed_percent", 200 } });
     CHECK(json::parse(text_of(r))["speed_hz"] == 4000000);
-    r = tool(s, "resume", { { "speed_mhz", 0 } });
+    r = tool(s, "resume", { { "max_speed", true } });
+    CHECK(json::parse(text_of(r))["speed_hz"] == 0);
+    r = tool(s, "resume", { { "speed_percent", 100 } });
     CHECK(json::parse(text_of(r))["speed_hz"] == 2000000);
+    r = tool(s, "resume", { { "speed_percent", 5 } });
+    CHECK(r["isError"] == true);
     r = tool(s, "pause", json::object());
 
     // power switch: off = no machine, on = the same description again, RAM cleared

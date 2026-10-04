@@ -132,7 +132,7 @@ nlohmann::json settings_json(App& app)
                       { "cr_newline", ui.term_cr_newline }, { "local_echo", ui.term_local_echo },
                       { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
-    j["speed"] = { { "turbo", app.host.turbo }, { "speed_hz", app.host.speed_hz } };
+    j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     return j;
 }
@@ -418,25 +418,30 @@ void draw_menu(App& app)
         }
         if (ImGui::MenuItem(tr("Reset"), "F12 / F9", false, m != nullptr) && m) m->reset();
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
-        if (ImGui::BeginMenu(tr("Speed"))) {
-            char nominal[64];
-            snprintf(nominal, sizeof(nominal), "%s (%.2f MHz)", tr("CPU clock"), m ? m->bus.cpu_hz / 1e6 : 0.0);
-            bool at_nominal = !app.host.turbo && app.host.speed_hz == 0;
-            if (ImGui::MenuItem(nominal, nullptr, at_nominal)) { app.host.turbo = false; app.host.speed_hz = 0; }
-            if (m && m->bus.cpu_hz < 4000000 &&
-                ImGui::MenuItem("4 MHz", nullptr, !app.host.turbo && app.host.speed_hz == 4000000)) {
-                app.host.turbo = false;
-                app.host.speed_hz = 4000000;
+        if (ImGui::BeginMenu(tr("Emulation speed"))) {   // the whole machine against real time
+            for (int p = 100; p <= 400; p *= 2) {
+                char item[32];
+                snprintf(item, sizeof(item), "%d %%", p);
+                if (ImGui::MenuItem(item, nullptr, !app.host.max_speed && app.host.pace_percent == p)) {
+                    app.host.max_speed = false;
+                    app.host.pace_percent = p;
+                }
             }
-            if (ImGui::MenuItem(tr("Maximum (turbo)"), nullptr, app.host.turbo)) app.host.turbo = true;
-            if (m && m->cpu && m->cpu->has_cpu_turbo()) {   // the TURBO switch of the CPU card (JPR-1V)
-                ImGui::Separator();
-                bool on = m->cpu->cpu_turbo();
-                if (ImGui::MenuItem(tr("CPU card TURBO (4 MHz)"), nullptr, &on)) m->cpu->set_cpu_turbo(on);
-            }
+            if (ImGui::MenuItem(tr("Maximum"), nullptr, app.host.max_speed)) app.host.max_speed = true;
             ImGui::Separator();
             if (ImGui::MenuItem(tr("Next"), "F8")) app.host.cycle_speed();
             ImGui::EndMenu();
+        }
+        // switches of the CPU card that work while running (JPR-1V; also the TURBO and BIOS buttons)
+        if (m && m->cpu && m->live_param(m->cpu, "turbo")) {
+            bool on = m->cpu->cpu_turbo();
+            if (ImGui::MenuItem(tr("CPU card TURBO (CPU 4 MHz)"), nullptr, on)) rack_set_live_param(app.ui, m->cpu, "turbo", !on);
+        }
+        if (m && m->cpu && m->live_param(m->cpu, "bios")) {
+            nlohmann::json* cc = m->card_config(m->cpu);
+            bool bank1 = cc && cc->value("bios", std::string("fitted")) == "open";
+            if (ImGui::MenuItem(tr("BIOS jumper open (EEPROM bank 1)"), nullptr, bank1))
+                rack_set_live_param(app.ui, m->cpu, "bios", bank1 ? "fitted" : "open");
         }
         ImGui::Separator();
         ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
@@ -484,7 +489,7 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
-        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 speed 2 / 4 MHz / max, F10 step over, F11 step, F12 or F9 reset"));
+        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
         if (app.mcp && app.mcp->running()) {
@@ -503,10 +508,8 @@ void draw_menu(App& app)
     st[0] = 0;
     if (!m) snprintf(st, sizeof(st), "%s", tr("Switched off"));
     if (m) {
-        char pace[32] = "";
-        if (app.host.speed_hz) snprintf(pace, sizeof(pace), "%s %.0f MHz", tr("Speed"), app.host.speed_hz / 1e6);
         const char* state = app.host.paused ? (app.host.status.empty() ? tr("Paused") : app.host.status.c_str())
-                                            : (app.host.turbo ? tr("Turbo") : pace);
+                                            : (app.host.max_speed ? tr("Maximum") : "");
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
         if (kb && kb->pending() > 1) {   // keys typed but not taken by the program
@@ -514,9 +517,10 @@ void draw_menu(App& app)
             snprintf(q, sizeof(q), "  %s %d", tr("keys waiting:"), (int)kb->pending());
             ks += q;
         }
-        snprintf(st, sizeof(st), "%s  %s  %s  %.2f MHz  %3.0f %%", ks.c_str(), state,
+        // the clock of the CPU card (JPR-1V TURBO included) and the measured speed of the emulation
+        snprintf(st, sizeof(st), "%s  %s  %s  CPU %.2f MHz  %s %3.0f %%", ks.c_str(), state,
                  (app.mcp && app.mcp->running()) ? "MCP" : "", (m->cpu ? m->cpu->cpu_display_hz() : m->bus.cpu_hz) / 1e6,
-                 app.host.speed_percent);
+                 tr("emulation"), app.host.speed_percent);
     }
     float w = ImGui::CalcTextSize(st).x + ImGui::GetStyle().ItemSpacing.x * 2;
     ImGui::SameLine(ImGui::GetWindowWidth() - w);
@@ -775,9 +779,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     load_machine(app, first);
     if (!app.host.machine() && first != DEFAULT_MACHINE_FILE) load_machine(app, DEFAULT_MACHINE_FILE);
     const nlohmann::json& sp = settings.value("speed", nlohmann::json::object());
-    get_opt(sp, "turbo", app.host.turbo);
-    get_opt(sp, "speed_hz", app.host.speed_hz);
-    if (app.host.machine() && app.host.speed_hz <= app.host.machine()->bus.cpu_hz) app.host.speed_hz = 0;
+    get_opt(sp, "max", app.host.max_speed);
+    get_opt(sp, "percent", app.host.pace_percent);
+    if (app.host.pace_percent != 200 && app.host.pace_percent != 400) app.host.pace_percent = 100;
     app.settings_saved = settings;
     int snap_frames = 0;
     if (snap) {

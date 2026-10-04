@@ -7,8 +7,9 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
   (autorovo rozhodnutí);
 - na autorově desce (fotka `H:\SAPI-1\LiborLasota\JPR-1V\Foto\mJPR1V.jpg`) je propojka BIOS osazená a TURBO
   rozpojené (2 MHz).
-- **TURBO za chodu** (jako na skutečné desce, autor): menu Stroj → Rychlost → „TURBO desky CPU (4 MHz)“, MCP
-  `cpu_turbo`, v sestavě `turbo`.
+- **TURBO a BIOS za chodu** (jako na skutečné desce vyvedené na tlačítka panelu ZDR, autor): tlačítka TURBO a
+  BIOS na panelu ZDR, menu Stroj („TURBO karty CPU“, „Propojka BIOS rozpojená“), konfigurátor („platí hned“), MCP
+  `cpu_turbo`. Banka EEPROM se čte jen při BOOT, změna se tedy projeví po RESETu.
   - Časová základna emulace je osc/2 (4 MHz). Při 2 MHz udělá CPU takt jen v každé druhé jednotce, ostatní
     karty se proto nemusí přepočítávat.
   - Stavový řádek ukazuje skutečný takt CPU.
@@ -74,7 +75,7 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - STSTB z MREQ i IORQ kromě refreshe;
   - sběrnice 2 MHz, CPU 2/4 MHz podle TURBO (přepínatelné za chodu), oscilátor jako parametr.
 - Parametry: `rom` (8 KB) nebo `bank0`/`bank1`, `bios` (osazená/rozpojená), `turbo`, `osc_hz`.
-- **Pozor:** TURBO/F8 v emulátoru dnes zrychluje celou emulaci. TURBO desky JPR-1V je jen takt CPU.
+- TURBO desky JPR-1V je jen takt CPU. Rychlost celé emulace je zvlášť (F8, menu Stroj → Rychlost emulace).
 
 ## Otázky pro autora
 

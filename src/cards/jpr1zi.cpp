@@ -18,6 +18,27 @@ Jpr1zi::Jpr1zi(const char* type) : CpuCard(type)
 
 Jpr1zi::~Jpr1zi() {}
 
+bool Jpr1zi::live_param(const char* path) const
+{
+    return turbo_switch && (!strcmp(path, "turbo") || !strcmp(path, "bios"));
+}
+
+bool Jpr1zi::set_live_param(const char* path, const json& v, std::string& err)
+{
+    if (turbo_switch && !strcmp(path, "turbo")) {
+        if (!v.is_boolean()) { err = "turbo must be true or false"; return false; }
+        turbo_on = v.get<bool>();
+        return true;
+    }
+    if (turbo_switch && !strcmp(path, "bios")) {
+        std::string b = v.is_string() ? v.get<std::string>() : std::string();
+        if (b != "fitted" && b != "open") { err = "bios must be fitted (bank 0) or open (bank 1)"; return false; }
+        eprom_off = b == "fitted" ? 0x000u : 0x800u;
+        return true;
+    }
+    return Card::set_live_param(path, v, err);
+}
+
 bool Jpr1zi::configure(const json& cfg, std::string& err)
 {
     // Clock: 16 MHz crystal divided by 74LS93; jumpers JP2/JP3 select 2 or 4 MHz

@@ -44,8 +44,11 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
     DMR-1 s baterií (JP7) a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se
     sestavou z konfigurátoru, včetně neuložených změn. Totéž je v menu Stroj → Vypnout/Zapnout a v MCP
     (`power`). Tlačítko „Zapnout s touto sestavou“ dělá vypnutí a zapnutí jedním krokem;
-  - RESET funguje jako F12, TURBO jako F8 a přepíná dokola takt CPU (2 MHz) → 4 MHz → maximum;
-  - displej FREKVENCE CPU ukazuje skutečnou rychlost emulace.
+  - RESET funguje jako F12;
+  - TURBO a BIOS patří kartě CPU jako na Liborově rámu: u JPR-1V TURBO přepíná CPU 2/4 MHz (svítí = 4 MHz) a BIOS
+    propojku BIOS, tedy banku EEPROM (svítí = banka 1, čte se po RESETu). Ostatní karty CPU je nemají, tlačítka jsou
+    šedá. Rychlost emulace je zvlášť (F8, menu Stroj → Rychlost emulace);
+  - displej FREKVENCE CPU ukazuje efektivní takt CPU: takt karty × naměřená rychlost emulace (od 100 bez desetin).
 - **Změny se projeví až po vypnutí a zapnutí** (rozhodnutí autora). Obsah RAM se ztratí, RAM disky se před
   vypnutím uloží, pracovní kopie médií ve `work/` zůstávají.
 - **Výjimka: parametry označené „(platí hned)“** se u běžící sestavy použijí okamžitě, jako přepínač na skutečné

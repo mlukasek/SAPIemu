@@ -65,7 +65,6 @@ bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::
     file = f;
     last_cfg = cfg;
     generation++;
-    if (speed_hz <= m->bus.cpu_hz) speed_hz = 0;   // 4 MHz stays 4 MHz across a power cycle
     paused = false;
     status.clear();
     speed_t0 = host_time_ns();
@@ -121,7 +120,7 @@ void EmuHost::frame(uint64_t elapsed_ns)
     if (!m) return;
     if (!paused) {
         status.clear();
-        if (turbo) {
+        if (max_speed) {
             uint64_t start = host_time_ns();
             while (host_time_ns() - start < 14000000ull) {
                 m->run_cycles(m->bus.cpu_hz / 200);
@@ -138,22 +137,19 @@ void EmuHost::frame(uint64_t elapsed_ns)
 
 uint32_t EmuHost::target_hz(void) const
 {
-    if (turbo) return 0;
-    if (speed_hz) return speed_hz;
-    return m ? m->bus.cpu_hz : 0;
+    if (max_speed || !m) return 0;
+    return (uint32_t)((uint64_t)m->bus.cpu_hz * (uint64_t)pace_percent / 100u);
 }
 
 void EmuHost::cycle_speed(void)
 {
-    uint32_t nominal = m ? m->bus.cpu_hz : 2000000;
-    if (turbo) {
-        turbo = false;
-        speed_hz = 0;
-    } else if (speed_hz == 0 && nominal < 4000000) {
-        speed_hz = 4000000;
+    if (max_speed) {
+        max_speed = false;
+        pace_percent = 100;
+    } else if (pace_percent < 400) {
+        pace_percent *= 2;
     } else {
-        turbo = true;
-        speed_hz = 0;
+        max_speed = true;
     }
 }
 

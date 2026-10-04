@@ -53,7 +53,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná |
 | `machine_map` | Mapa portů a paměti z dekodérů karet (PROM, jumpery), po stavech MAP1/MAP2, s kolizemi; pro běžící sestavu, soubor nebo popis |
 | `get_machine_config`, `set_machine_config` | Popis sestavy (běžící nebo ze souboru) s kontrolou rozložení; použití upraveného popisu (vypnout a zapnout), volitelně uložení jako komentovaný soubor `.sapi` |
-| `reset`, `pause`, `resume` | Reset tlačítkem, pauza a běh v reálném čase (volitelně turbo) |
+| `reset`, `pause`, `resume` | Reset tlačítkem, pauza a běh; `resume` volitelně `speed_percent` (rychlost emulace proti reálnému času, 100 = reálný čas) nebo `max_speed` (co nejrychleji) |
 | `step` | Krok (`count`), `over=true` = krok přes CALL, RST, DJNZ a LDIR |
 | `run_for` | Synchronní běh po zadaný emulovaný čas v ms |
 | `run_until` | Běh do adresy, do textu na obrazovce nebo na sériové lince, nebo do timeoutu |
@@ -66,7 +66,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `type_text` | Psaní na připojenou klávesnici (`\r` = Enter; čeština jen u EKL-1 a Consul 259.11 KOI-8 cs), volitelně s během `run_ms` |
 | `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
 | `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1 |
-| `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V: CPU 2/4 MHz, sběrnice 2 MHz) |
+| `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V: CPU 2/4 MHz, sběrnice 2 MHz), zapíše se i do popisu sestavy |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |

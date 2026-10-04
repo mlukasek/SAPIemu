@@ -14,7 +14,15 @@ tools\build.cmd local-debug test    # lokální preset (výstup mimo repo)
 tools\build.cmd release             # release build, zahrnuje pomalé testy ZEXDOC/ZEXALL
 ```
 
-Klávesy v GUI: F5 běh/pauza, F8 rychlost (takt CPU → 4 MHz → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
+Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
+
+**Rychlost a takt** jsou dvě různé věci:
+- **Takt CPU** je vlastnost karty: u JPR-1ZI propojky JP2/JP3 v sestavě, u JPR-1V přepínač TURBO (2/4 MHz) i za
+  chodu (tlačítko TURBO na panelu ZDR, menu Stroj, MCP `cpu_turbo`).
+- **Rychlost emulace** zrychlí celý emulovaný počítač proti reálnému času (F8, menu Stroj → Rychlost emulace, MCP
+  `resume speed_percent`/`max_speed`), tedy i UART, disketu a časování karet.
+- Stavový řádek ukazuje obojí („CPU 4.00 MHz  emulace 100 %“), displej FREKVENCE CPU na panelu ZDR jejich součin,
+  tedy efektivní takt CPU (od 100 MHz bez desetin).
 
 Nastavení GUI se ukládá do `sapiemu-settings.json` a rozložení oken do `imgui.ini` ve složce s exe (přenosné). Když
 tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se poslední sestava (spustí se bez

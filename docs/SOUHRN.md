@@ -11,6 +11,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   štítků, D-sub u desek V, IDE-1 (IDC 40 a D-sub 15), RPD-1 (kabel KB-17 mezi deskami). Karty bez konektoru
   podle autora: ZRMD-1, RAM, REM. Další karty se projdou postupně (`docs/sestavy.md`).
 - LED na panelu JPR svítí podle emulace (BOOT, u JPR-1 P1-OUT D7), `Card::panel_leds()`.
+- **Rychlost a takt rozdělené:** TURBO a BIOS na panelu ZDR ovládají kartu CPU (JPR-1V), rychlost emulace je
+  F8 / menu Stroj → Rychlost emulace (100/200/400 %/max). Stavový řádek „CPU … MHz  emulace … %“, displej
+  FREKVENCE CPU efektivní takt (od 100 bez desetin).
 
 **Hotové: jedna barva obrazu a okna podle karet.**
 - Barva jednobarevného obrazu je parametr karty v sestavě: AND-1V propojky S1 (`color`), ostatní parametr
@@ -29,7 +32,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   a čekací stavy.
 - Liborovy obrázky CASTLE, REMBRAN1 a REMBRAN2 se zobrazí, CGATEST projde. REMBRAN2 střídá stránky po snímcích,
   proto emulátor prolíná dva poslední snímky.
-- **TURBO JPR-1V** jde přepínat za chodu (menu Rychlost, MCP `cpu_turbo`).
+- **TURBO JPR-1V** jde přepínat za chodu (tlačítko TURBO na panelu ZDR, menu Stroj, MCP `cpu_turbo`).
 - Popis v `docs/desky/CGA-1V.md`, programy v `media/cga-1v/`.
 
 **Hotové: desky V Libora Lasoty** (`machines/sapi1v.sapi`).
@@ -95,7 +98,8 @@ vypnutí).**
 
 **Hotové: pamatování nastavení GUI** (`sapiemu-settings.json` vedle exe, popis v `docs/build.md`): poslední
 sestava, okno, otevřená okna, zobrazení, terminál, rychlost. Opravené pády v menu (výběr sestavy, výměna
-klávesnice) a ztráta psaní po použití textového pole ImGui. TURBO/F8 přepíná 2 / 4 MHz / max.
+klávesnice) a ztráta psaní po použití textového pole ImGui. F8 přepíná rychlost emulace 100/200/400 %/max
+(2026-10-04, dřív TURBO 2 / 4 MHz / max).
 
 **Hotové: konfigurátor sestavy (Stroj → Sestava…), návod `docs/sestavy.md`.**
 - Čelní pohled na rám (X1 vpravo, panely SPN a ZDR). Kliknutím na slot se karta vloží, vymění nebo nastaví

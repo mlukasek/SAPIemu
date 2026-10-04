@@ -967,19 +967,29 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     dl->AddRect(Z.p(49.6f, 101.4f), Z.p(182.8f, 192.1f), COL_PANEL_EDGE, 0, 0, 1.0f);
     dl->AddRectFilled(Z.p(55.3f, 106.8f), Z.p(177.2f, 186.7f), IM_COL32(12, 14, 12, 255));
     char freq[16];
-    if (m && !host.paused && host.speed_percent > 0)
-        snprintf(freq, sizeof(freq), "%.1f", m->bus.cpu_hz / 1e6 * host.speed_percent / 100.0);
-    else
+    if (m && !host.paused && host.speed_percent > 0) {
+        // the effective CPU clock: the clock of the CPU card (JPR-1V TURBO included) times the
+        // measured pace of the emulation; whole MHz from 100 up (the display has 3 digits)
+        double mhz = (m->cpu ? m->cpu->cpu_display_hz() : m->bus.cpu_hz) / 1e6 * host.speed_percent / 100.0;
+        snprintf(freq, sizeof(freq), mhz >= 99.95 ? "%.0f" : "%.1f", mhz);
+    } else
         snprintf(freq, sizeof(freq), m ? "--" : "");
     pt_text(Z, 116.2f, 147.0f, 60.0f, IM_COL32(60, 255, 120, 255), freq);
     pt_text(Z, 219.9f, 178.5f, 48.0f, COL_TEXT, "SAPI 1", -1, true);
+    // TURBO and BIOS go to the CPU card, as on the real frame (JPR-1V: the TURBO switch and the
+    // BIOS jumper wired to the buttons); lit = TURBO on / EEPROM bank 1; grey = the card has none
+    Card* cpu = m ? m->cpu : nullptr;
+    bool has_turbo = cpu && m->live_param(cpu, "turbo"), has_bios = cpu && m->live_param(cpu, "bios");
+    bool turbo_on = has_turbo && m->cpu->cpu_turbo();
+    json* cpu_cfg = has_bios ? m->card_config(cpu) : nullptr;
+    bool bank1 = cpu_cfg && cpu_cfg->value("bios", std::string("fitted")) == "open";
+    const ImU32 btn_off = IM_COL32(236, 236, 236, 255), btn_none = IM_COL32(168, 170, 172, 255);
     struct Btn { const char* label; ImU32 col; };
     const Btn btns[4] = {
         { "NAPÁJENÍ", m ? IM_COL32(80, 230, 130, 255) : IM_COL32(34, 92, 58, 255) },
         { "RESET", IM_COL32(214, 52, 48, 255) },
-        { "TURBO", host.turbo ? IM_COL32(255, 160, 60, 255)
-                   : host.speed_hz ? IM_COL32(255, 228, 110, 255) : IM_COL32(236, 236, 236, 255) },
-        { "BIOS", IM_COL32(236, 236, 236, 255) },
+        { "TURBO", !has_turbo ? btn_none : turbo_on ? IM_COL32(255, 160, 60, 255) : btn_off },
+        { "BIOS", !has_bios ? btn_none : bank1 ? IM_COL32(255, 228, 110, 255) : btn_off },
     };
     for (int i = 0; i < 4; i++) {
         float bx = 48.2f + 85.05f * i;
@@ -998,13 +1008,18 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 m = host.machine();   // the old machine is gone
             }
             else if (i == 1 && m) m->reset();
-            else if (i == 2) host.cycle_speed();
+            else if (i == 2 && has_turbo) rack_set_live_param(ui, cpu, "turbo", !turbo_on);
+            else if (i == 3 && has_bios) rack_set_live_param(ui, cpu, "bios", bank1 ? "fitted" : "open");
         }
         if (ImGui::IsItemHovered()) {
             const char* tip = i == 0 ? (m ? tr("Switch off") : tr("Switch on with this configuration"))
                             : i == 1 ? tr("Reset (F12)")
-                            : i == 2 ? tr("Speed: CPU clock, 4 MHz, maximum (F8)")
-                                     : tr("BIOS: EPROM bank switch of JPR-1V (no function yet)");
+                            : i == 2 ? (has_turbo ? tr("TURBO of the CPU card: CPU 2 / 4 MHz")
+                                                  : tr("The CPU card has no TURBO: its clock is set by jumpers. "
+                                                       "Emulation speed: F8 or Machine -> Emulation speed"))
+                                     : (has_bios ? tr("BIOS jumper of JPR-1V: EEPROM bank 0 (MikroBIOS) / bank 1 (ECMON), "
+                                                      "read after RESET")
+                                                 : tr("BIOS: the EEPROM bank of JPR-1V (this CPU card has none)"));
             ImGui::SetTooltip("%s", tip);
         }
     }
@@ -1472,12 +1487,11 @@ void rack_open_in_editor(UiState& ui, const std::string& path)
     ui.show_rack = true;
 }
 
-void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value)
+void rack_set_live_param(UiState& ui, Card* c, const char* path, const json& v)
 {
     Machine* m = ui.host->machine();
-    Card* c = dynamic_cast<Card*>(d);
     std::string err;
-    if (!m || !c || !m->set_display_ink(d, value, err)) {
+    if (!m || !c || !m->set_live_param(c, path, v, err)) {
         if (!err.empty()) LOGW("%s", err.c_str());
         return;
     }
@@ -1486,7 +1500,16 @@ void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& valu
     int idx = machine_cfg_card_at(r.cfg, c->slot);
     if (idx < 0) return;
     json& card = r.cfg["cards"][(size_t)idx];
-    if (card.value("type", std::string()) == c->type) card[d->ink_param()] = value;
+    const CardInfo* ci = card_info(c->type);
+    if (card.value("type", std::string()) != c->type || !ci) return;
+    for (const CardParam* p = ci->params; p && p->path; p++)
+        if (!strcmp(p->path, path)) card_set_param(card, ci, p, v);
+}
+
+void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value)
+{
+    Card* c = dynamic_cast<Card*>(d);
+    if (c && d->ink_param()) rack_set_live_param(ui, c, d->ink_param(), value);
 }
 
 void rack_start_machine(UiState& ui, const std::string& file)

@@ -42,14 +42,13 @@ public:
     nlohmann::json call(std::function<nlohmann::json(EmuHost&)> fn, int timeout_ms = 120000);
 
     bool paused = false;
-    bool turbo = false;         // as fast as possible
-    // Pace of the emulation when not in turbo: 0 = the CPU clock of the machine,
-    // otherwise that many emulated cycles per second (e.g. 4 MHz on a 2 MHz
-    // machine: everything inside SAPI runs twice as fast, like a faster crystal).
-    uint32_t speed_hz = 0;
-    // TURBO button / F8: CPU clock -> 4 MHz (if the clock is lower) -> max -> CPU clock.
+    // Speed of the emulation (the whole machine against real time, not the CPU clock of the
+    // card): pace_percent of real time, or as fast as possible.
+    bool max_speed = false;
+    int pace_percent = 100;     // 100, 200, 400
+    // F8: 100 % -> 200 % -> 400 % -> maximum -> 100 %.
     void cycle_speed(void);
-    // Emulated cycles per real second (0 = turbo).
+    // Emulated cycles per real second (0 = maximum).
     uint32_t target_hz(void) const;
     std::string status;         // last stop reason ("breakpoint F123h"...)
     double speed_percent = 0;

@@ -8,6 +8,7 @@
 #include "core/machine_map.h"
 #include "core/term.h"
 
+class Card;
 class DisplayDevice;
 class EmuHost;
 class McpServer;
@@ -129,6 +130,9 @@ void rack_power_switch(UiState& ui);
 // phosphor of the others): shown at once on the running machine, the description in
 // the configurator follows (it is saved with the machine).
 void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value);
+// A parameter of a running card that applies at once (Machine::live_param): set it on the
+// card and in the description of the configurator (TURBO and BIOS buttons, menu).
+void rack_set_live_param(UiState& ui, Card* c, const char* path, const nlohmann::json& v);
 // Open a machine description in the configurator without starting it.
 void rack_open_in_editor(UiState& ui, const std::string& path);
 // Keyboard input for the focused terminal; returns true if consumed.

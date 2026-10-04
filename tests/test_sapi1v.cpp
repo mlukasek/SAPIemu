@@ -126,6 +126,19 @@ static void turbo(void)
     printf("ECMON menu after %.2f s at 2 MHz, %.2f s at 4 MHz\n", slow, fast);
     CHECK(slow < 5.0);
     CHECK(fast < slow * 0.8);
+
+    // TURBO and BIOS are live parameters (ZDR buttons): the card and the description change
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    CHECK(m.live_param(m.cpu, "turbo") && m.live_param(m.cpu, "bios") && !m.live_param(m.cpu, "osc_hz"));
+    CHECK(m.set_live_param(m.cpu, "turbo", true, err) && m.cpu->cpu_turbo());
+    CHECK(m.card_config(m.cpu)->value("turbo", false));
+    uint8_t bank = m.peek(0x0000);   // BOOT: the EEPROM is at 0000
+    std::string other = m.card_config(m.cpu)->value("bios", std::string("fitted")) == "fitted" ? "open" : "fitted";
+    CHECK(m.set_live_param(m.cpu, "bios", other, err));
+    CHECK(m.peek(0x0000) != bank || m.peek(0x0001) != bank);   // the other bank (MikroBIOS / ECMON)
+    CHECK(!m.set_live_param(m.cpu, "bios", "half", err));
 }
 
 // CGA-1V: Libor's picture viewers (CP/M .COM at 0100h) saved by SAVE and run;

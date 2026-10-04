@@ -37,6 +37,10 @@ public:
     bool has_cpu_turbo() const override { return turbo_switch; }
     bool cpu_turbo() const override { return turbo_on; }
     void set_cpu_turbo(bool on) override { turbo_on = on; }
+    // JPR-1V: the TURBO switch and the BIOS jumper (EEPROM bank) work while running, as when
+    // they are wired to the buttons of the ZDR panel.
+    bool live_param(const char* path) const override;
+    bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
     uint32_t cpu_display_hz() const override { return turbo_switch && !turbo_on ? cpu_hz / 2 : cpu_hz; }
     int decode_io(uint8_t port, const char** what) override;
     int decode_mem(uint16_t addr, int map, const char** what) override;

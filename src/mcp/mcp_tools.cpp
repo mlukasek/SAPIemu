@@ -213,7 +213,9 @@ json t_machine_info(EmuHost& h, const json&)
     j["machine"] = m.name;
     j["machine_file"] = h.machine_file();
     j["cpu_hz"] = m.bus.cpu_hz;
-    j["turbo"] = h.turbo;
+    j["cpu_card_hz"] = m.cpu ? m.cpu->cpu_display_hz() : m.bus.cpu_hz;   // clock of the CPU (JPR-1V TURBO)
+    j["max_speed"] = h.max_speed;
+    j["speed_percent"] = h.max_speed ? 0 : h.pace_percent;
     j["speed_hz"] = h.target_hz();
     j["cards"] = cards;
     j["serial_channels"] = serials;
@@ -440,15 +442,18 @@ json t_pause(EmuHost& h, const json&)
 json t_resume(EmuHost& h, const json& a)
 {
     need_machine(h);
-    if (a.contains("turbo")) h.turbo = arg_bool(a, "turbo", false);
-    if (a.contains("speed_mhz")) {
-        double mhz = a["speed_mhz"].is_number() ? a["speed_mhz"].get<double>() : 0.0;
-        if (mhz < 0 || mhz > 100) throw ToolError{ "speed_mhz must be 0 (CPU clock) .. 100" };
-        h.speed_hz = (uint32_t)(mhz * 1e6);
+    if (a.contains("max_speed")) h.max_speed = arg_bool(a, "max_speed", false);
+    if (a.contains("turbo")) h.max_speed = arg_bool(a, "turbo", false);   // older name of max_speed
+    if (a.contains("speed_percent")) {
+        int p = a["speed_percent"].is_number() ? a["speed_percent"].get<int>() : 0;
+        if (p < 10 || p > 1000) throw ToolError{ "speed_percent must be 10 .. 1000 (100 = real time)" };
+        h.pace_percent = p;
+        h.max_speed = false;
     }
     h.paused = false;
     h.status.clear();
-    return json_result(json{ { "state", "running" }, { "turbo", h.turbo }, { "speed_hz", h.target_hz() } });
+    return json_result(json{ { "state", "running" }, { "max_speed", h.max_speed },
+                             { "speed_percent", h.max_speed ? 0 : h.pace_percent }, { "speed_hz", h.target_hz() } });
 }
 
 json t_step(EmuHost& h, const json& a)
@@ -785,7 +790,8 @@ json t_cpu_turbo(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
     if (!m.cpu || !m.cpu->has_cpu_turbo()) return error_result("the CPU card has no TURBO switch (JPR-1V has)");
-    if (a.contains("on")) m.cpu->set_cpu_turbo(a.value("on", false));
+    std::string err;
+    if (a.contains("on") && !m.set_live_param(m.cpu, "turbo", a.value("on", false), err)) return error_result(err);
     return text_result(json{ { "turbo", m.cpu->cpu_turbo() }, { "cpu_hz", m.cpu->cpu_display_hz() } }.dump(2));
 }
 
@@ -1019,8 +1025,8 @@ const Tool k_tools[] = {
     { "reset", "Press the reset button (/RES): CPU card BOOT flag set, cards reset. RAM content is kept.",
       S_NONE, t_reset },
     { "pause", "Pause real-time emulation.", S_NONE, t_pause },
-    { "resume", "Resume real-time emulation; optionally turbo = as fast as possible, or speed_mhz = emulated cycles per real second in MHz (0 = the CPU clock of the machine; e.g. 4 on a 2 MHz machine runs everything twice as fast).",
-      R"({"type":"object","properties":{"turbo":{"type":"boolean"},"speed_mhz":{"type":"number"}}})", t_resume },
+    { "resume", "Resume the emulation; optionally speed_percent = speed of the whole machine against real time (100 = real time, 200 = twice as fast, not the CPU clock of the card) or max_speed = as fast as possible.",
+      R"({"type":"object","properties":{"speed_percent":{"type":"integer"},"max_speed":{"type":"boolean"}}})", t_resume },
     { "step", "Execute instructions one by one (pauses the emulation). over=true steps over CALL/RST/DJNZ/LDIR. Returns the executed instructions and registers.",
       R"({"type":"object","properties":{"count":{"type":"integer","default":1},"over":{"type":"boolean","default":false}}})", t_step },
     { "run_for", "Run the machine synchronously (as fast as possible) for the given emulated time in milliseconds or until a breakpoint.",

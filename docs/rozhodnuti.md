@@ -569,3 +569,17 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   stejnou cestou.
 - Zatím: barva displejů, `mode` ZRMD-1/ZRD-1V a S1–S4 ZRMD-1. Z `rw` se RAM disk nejdřív uloží, po přepnutí na
   `rw` se aktuální obsah zapíše (soubor pak odpovídá paměti).
+
+## 2026-10-04 – Takt CPU a rychlost emulace odděleně
+
+- **Autor:** TURBO, rychlost v menu a frekvence na displeji a ve stavovém řádku byly zmatené. Mění to rozhodnutí
+  z 2026-10-03 (TURBO/F8 přepínalo takt → 4 MHz → max).
+- **Takt CPU = karta:** tlačítko TURBO na panelu ZDR je TURBO karty CPU (JPR-1V: CPU 2/4 MHz), tlačítko BIOS
+  propojka BIOS JPR-1V (banka EEPROM). Obojí jsou parametry „platí hned“ (`Machine::set_live_param`), menu Stroj
+  a MCP `cpu_turbo` jdou stejnou cestou. Karty bez TURBO mají tlačítka šedá.
+- **Rychlost emulace:** celý stroj proti reálnému času, 100/200/400 % a maximum (F8 dokola, menu Stroj → Rychlost
+  emulace, MCP `resume speed_percent`/`max_speed`; `speed_mhz` zrušeno, `turbo` zůstává jako starší název
+  `max_speed`). V nastavení GUI `speed.percent` a `speed.max`.
+- **Zobrazení:** stavový řádek „CPU 4.00 MHz  emulace 100 %“ (takt karty a naměřená rychlost), displej FREKVENCE
+  CPU efektivní takt CPU = takt karty × rychlost emulace, od 100 MHz bez desetin. Dřív displej počítal z časové
+  základny sběrnice, u JPR-1V s CPU na 2 MHz proto ukazoval 4.
