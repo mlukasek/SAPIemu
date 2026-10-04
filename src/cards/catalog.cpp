@@ -649,7 +649,7 @@ static const CardParam k_zrmd1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 static const ParamOption k_zrd1v_rev[] = {
-    { "\"2.1\"", "rev 2.1: write lock, LEDs, battery ADC", "rev 2.1: zámek zápisu, LED, měření baterie" },
+    { "\"2.1\"", "rev 2.1 (lock, LEDs, battery)", "rev 2.1 (zámek, LED, baterie)" },
     { "\"1.1\"", "rev 1.1 (no lock, no LEDs)", "rev 1.1 (bez zámku a LED)" },
     { nullptr, nullptr, nullptr },
 };

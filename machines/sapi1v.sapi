@@ -62,7 +62,7 @@
         {
             "slot": 5,                      // position X5
             "type": "ZRD-1V",               // RAM disk 4 MB (V)
-            "revision": "2.1",              // Board revision - rev 2.1: write lock, LEDs, battery ADC
+            "revision": "2.1",              // Board revision - rev 2.1 (lock, LEDs, battery)
             "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
             "mode": "rw"                    // Mode - read/write, saved
         },
