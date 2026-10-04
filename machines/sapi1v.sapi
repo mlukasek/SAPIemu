@@ -13,7 +13,7 @@
             "type": "JPR-1V",               // CPU card Z80 (V)
             "rom": "roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin",  // EEPROM 28C64 (two 2 KB banks) - bank 0 MikroBIOS 3.0, bank 1 ECMON IDE-1
             "bios": "open",                 // Jumper BIOS: EEPROM bank - open: bank 1 (EEPROM 0800-0FFF)
-            "turbo": false,                 // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
+            "turbo": true,                  // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
             "osc_hz": 8000000,              // Oscillator (Hz, bus = /4, CPU = /4 or /2)
             "keyboard": { "type": "Consul 262.3", "latch_mod": true }  // Keyboard (connector K2)
         },

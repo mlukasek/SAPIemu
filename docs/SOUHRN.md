@@ -4,6 +4,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: DGD-1V** (Liborova grafika 320×240 s VGA, varianta DGD-1) a sestava `machines/zps/ZPS-2_MIKOS_V5_DGD-1V.sapi`.
+- S2 jako u CGA-1V (báze 0000/4000/8000/C000h, MAP1/MAP2), S1 barva jako AND-1V, čekání na okno CPU.
+- BASIC EXP V5.0/G kreslí, autorův TEST.BAS vypadá jako fotka obrazovky. Popis v `docs/desky/DGD-1V.md`.
+- **Panely:** port u sériového konektoru, FRB (zelený, zlaté piny) u desek původní konstrukce podle Liborových
+  štítků, D-sub u desek V. Další karty se projdou postupně (`docs/sestavy.md`).
+
 **Hotové: jedna barva obrazu a okna podle karet.**
 - Barva jednobarevného obrazu je parametr karty v sestavě: AND-1V propojky S1 (`color`), ostatní parametr
   `monitor` (luminofor). Menu Zobrazení → Barva i konfigurátor mění totéž a hned, uloží se se sestavou. Globální

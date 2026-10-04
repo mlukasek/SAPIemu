@@ -10,13 +10,14 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - Panely jsou kreslené podle tiskových podkladů hliníkových štítků z rámu Libora Lasoty
     (`H:\SAPI-1\LiborLasota\Chassis\Potisk_ARTAX`, rozměry v bodech přímo z PDF): úzký panel 57 × 491,8 bodu,
     SPN dvě pozice, ZDR sedm pozic, otvory, konektory K2/K3 (D-sub), LED ZAM/DSK, popisky.
-  - **Konektory:** desky původní konstrukce mají konektory FRB v hranatých otvorech, desky V konektory D-sub
-    (autor). Rozměry jsou ze štítků: FRB 22,7 × 150,2 bodu vlevo od středu (první sada, DSM/FDC/JPR), D-sub
-    podle druhé sady.
-    - JPR (kromě JPR-1V) a FDC: K3 nahoře, K2 dole, JPR mezi nimi kulatý otvor pro LED BOOT;
+  - **Konektory:** desky původní konstrukce mají konektory FRB v hranatých otvorech, desky V většinou D-sub
+    (autor). Rozměry jsou ze štítků: otvor FRB 22,7 × 150,2 bodu vlevo od středu (první sada, DSM/FDC/JPR), D-sub
+    podle druhé sady. FRB je nakreslený jako zelený obdélník se zlatými piny ve dvou řadách.
+    - všechny JPR (i JPR-1V) a FDC: K3 nahoře, K2 dole, JPR mezi nimi kulatý otvor pro LED BOOT;
     - DSM-1: K3 terminál (X2), K2 magnetofon (X3, „MGF“); DMR-1: jen K3 terminál (X2) na stejném místě;
-    - JPR-1V: K3 a K2 D-sub; DSM-1V: K3 „A“, K2 „B“ (D-sub); AND, DGD, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL,
-      K3 ZVUK, K2 MYŠ); ZRD-1V (LED ZAM, DSK). Ostatní karty mají zatím jen zkratku.
+    - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1: jeden FRB dole (K2), jako na deskách;
+    - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, DGD-1V, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL, K3 ZVUK, K2 MYŠ);
+      ZRD-1V (LED ZAM, DSK). Ostatní karty mají zatím jen zkratku (projdou se postupně).
   - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
   - Sériové karty (DMR-1, DSM-1, DSM-1V) bývají v sestavě víckrát, proto je **port u každého sériového
     konektoru** („K3 #10“, u DSM-1V „#10“ nad K3 „A“ a „#14“ pod K2 „B“). Typ karty na panelu je bez portu.
@@ -99,7 +100,8 @@ který port a paměťovou adresu.
 Pořadí karet ve slotech je odhad (viz Nejasnosti v `docs/SOUHRN.md`). **ZPS-1 běží** s MIKROBASICem 2.4,
 **ZPS-2** s Monitorem V4.0 a MIKOSem 4.0F (RAM-1/48K, programy z kazety, `docs/software/MIKOS.md`).
 `ZPS-2_MIKOS_V5.sapi` je ZPS-2 s Monitorem V5.0F, MIKOSem V5.0, klávesnicí Consul 262.3 a grafickým displejem
-DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno „DGD-1“.
+DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno „DGD-1“. `ZPS-2_MIKOS_V5_DGD-1V.sapi` je
+totéž s Liborovou DGD-1V (VGA, jantarová) místo DGD-1 (`docs/desky/DGD-1V.md`).
 `ZPS-2_MIKOS_D.sapi` je ZPS-2 s disketovým MIKOSem/D V5.0, řadičem RPD-1 (dva sloty) a 8" mechanikou se
 systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 (bastldeska) je prázdná deska pro vlastní zapojení uživatele, na sběrnici nic nedělá a jen zabírá slot.

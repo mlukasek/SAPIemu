@@ -14,6 +14,19 @@ bool monitor_phosphor(const std::string& name, uint32_t& argb)
     return false;
 }
 
+// red, green (2 bits: GRH 680R, GRL 1k5), blue
+bool vga_ink(const std::string& name, uint32_t& argb)
+{
+    struct C { const char* name; uint32_t argb; };
+    static const C colors[] = {
+        { "white", 0xFFFFFFFFu }, { "green", 0xFF00FF00u }, { "amber", 0xFFFFAA00u }, { "red", 0xFFFF0000u },
+        { "blue", 0xFF0000FFu }, { "cyan", 0xFF00FFFFu }, { "yellow", 0xFFFFFF00u }, { "magenta", 0xFFFF00FFu },
+    };
+    for (const C& c : colors)
+        if (name == c.name) { argb = c.argb; return true; }
+    return false;
+}
+
 bool MonitorInk::configure(const nlohmann::json& cfg, std::string& err)
 {
     std::string v;

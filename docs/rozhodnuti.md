@@ -526,3 +526,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   JPR-1V), FDC, DSM-1 a DMR-1 jsou nakreslené podle první sady Liborových štítků (otvor 22,7 × 150,2 bodu vlevo od
   středu, JPR s otvorem pro LED). DSM-1: K3 = X2 terminál, K2 = X3 magnetofon. DMR-1 má jen X2 na stejném místě.
   Typ karty je u panelů s FRB svisle v pruhu vpravo od otvorů.
+
+## 2026-10-04 – Konektory na panelech, DGD-1V
+
+- **Autor:** všechny JPR (i JPR-1V) mají K3 a K2 jako FRB. Původní displeje AND-1, AND-1A, AND-1Z, AND-1Z-89
+  a DGD-1 mají jeden FRB (na deskách dole, K2). VGA D-sub mají AND-1V, CGA-1V, BGP a DGD-1V. FRB se kreslí jako
+  zelený obdélník se zlatými piny (fotka konektoru od autora).
+- **DGD-1V (autor: stojí za to ji emulovat)** je varianta třídy DGD-1: stejná mapa videoram, VGA (body 2×2),
+  S2 se stejnou logikou jako S1 CGA-1V, S1 barva jako AND-1V (sdílená funkce `vga_ink`). Výchozí C000h bez
+  mapování podle prvního příkladu popisu. Sestava `ZPS-2_MIKOS_V5_DGD-1V.sapi` má jantarovou barvu jako
+  autorova deska.

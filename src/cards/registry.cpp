@@ -36,6 +36,7 @@ Card* card_create(const std::string& type)
     if (type == "AND-1") return new And1();
     if (type == "AND-1A") return new And1("AND-1A");
     if (type == "DGD-1") return new Dgd1();
+    if (type == "DGD-1V") return new Dgd1("DGD-1V");
     if (type == "CGA-1V") return new Cga1v();
     if (type == "DMR-1") return new Dmr1();
     if (type == "DSM-1") return new Dsm1();
@@ -54,5 +55,5 @@ Card* card_create(const std::string& type)
 
 std::vector<std::string> card_types(void)
 {
-    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1", "JPR-1V", "DSM-1V", "AND-1V", "RAM-1V", "CGA-1V" };
+    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1", "JPR-1V", "DSM-1V", "AND-1V", "RAM-1V", "CGA-1V", "DGD-1V" };
 }

@@ -30,22 +30,15 @@ bool And1v::configure(const json& cfg, std::string& err)
     return true;
 }
 
-// S1: red, green (2 bits: GRH 680R, GRL 1k5), blue
+// S1: /BLU /RED /GRH /GRL
 bool And1v::set_ink(const std::string& value, std::string& err)
 {
-    struct C { const char* name; uint32_t argb; };
-    static const C colors[] = {
-        { "white", 0xFFFFFFFFu }, { "green", 0xFF00FF00u }, { "amber", 0xFFFFAA00u }, { "red", 0xFFFF0000u },
-        { "blue", 0xFF0000FFu }, { "cyan", 0xFF00FFFFu }, { "yellow", 0xFFFFFF00u }, { "magenta", 0xFFFF00FFu },
-    };
-    for (const C& c : colors)
-        if (value == c.name) {
-            color = value;
-            ink_argb = c.argb;
-            return true;
-        }
-    err = "color must be white, green, amber, red, blue, cyan, yellow or magenta (jumpers S1)";
-    return false;
+    if (!vga_ink(value, ink_argb)) {
+        err = "color must be white, green, amber, red, blue, cyan, yellow or magenta (jumpers S1)";
+        return false;
+    }
+    color = value;
+    return true;
 }
 
 bool And1v::selected(uint16_t a, int map) const

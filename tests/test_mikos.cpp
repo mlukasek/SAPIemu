@@ -127,10 +127,10 @@ static void real_tape(const char* file, const char* name, int blocks, const char
 // Monitor V5.0F + MIKOS V5.0 with the Consul 262.3 keyboard: dialogs in Czech
 // (NAZEV:, --(A/N)?), the motor starts without asking, "@NAME" writes where the
 // tape is, a V4 tape (BASIC EX) loads and runs.
-static bool boot_v5(Machine& m, Dsm1*& dsm)
+static bool boot_v5(Machine& m, Dsm1*& dsm, const char* file = "machines/zps/ZPS-2_MIKOS_V5.sapi")
 {
     std::string err;
-    CHECK(m.load_file("machines/zps/ZPS-2_MIKOS_V5.sapi", err));
+    CHECK(m.load_file(file, err));
     dsm = find_dsm(m);
     CHECK(dsm != nullptr);
     if (!dsm) return false;
@@ -210,9 +210,10 @@ static void v5_real_tape(void)
 
 // BASIC EXP V5.0 and V5.0/G (Intel HEX from sapi.cz, from 4400H) under MIKOS V5;
 // /G draws into the DGD-1 at C000H: line 0 = y 239, bit 7 = the left dot.
-static bool load_basic_exp(Machine& m, Dsm1*& dsm, const char* hex, const char* banner)
+static bool load_basic_exp(Machine& m, Dsm1*& dsm, const char* hex, const char* banner,
+                           const char* file = "machines/zps/ZPS-2_MIKOS_V5.sapi")
 {
-    if (!boot_v5(m, dsm)) return false;
+    if (!boot_v5(m, dsm, file)) return false;
     std::string text, err;
     CHECK(file_read_text(data_path(hex), text));
     int n = 0;
@@ -248,12 +249,14 @@ static void basic_exp(void)
     printf("%s\n", screen_text(m).c_str());
 }
 
-static void basic_exp_g(void)
+// DGD-1 (monitor phosphor) or DGD-1V (VGA, colour jumpers S1, amber in the machine).
+static void basic_exp_g(const char* file, const char* card)
 {
     Machine m;
     Dsm1* dsm;
-    if (!load_basic_exp(m, dsm, "media/mikos/BASIC_EXP_V5.0G.hex", "* BASIC - EXP V5.0/G *")) return;
-    DisplayDevice* g = m.find_display("DGD-1");
+    if (!load_basic_exp(m, dsm, "media/mikos/BASIC_EXP_V5.0G.hex", "* BASIC - EXP V5.0/G *", file)) return;
+    bool vga = strcmp(card, "DGD-1V") == 0;
+    DisplayDevice* g = m.find_display(card);
     CHECK(g != nullptr && g != m.display);
     CHECK(m.display && m.display->text_display());
     m.bus.mem_write(0xC000, 0x55);   // CLSG clears the whole 16 KB
@@ -264,17 +267,18 @@ static void basic_exp_g(void)
     CHECK_EQ(m.bus.mem_peek(0xFA80), 0x80);   // y 5, x 0
     CHECK_EQ(m.bus.mem_peek(0xC027), 0x0F);   // y 239, x 316..319
     CHECK_EQ(m.bus.mem_peek(0xC000), 0x00);
-    // phosphor of the monitor: changed while running, written into the machine description
+    // the ink (monitor phosphor / jumpers S1): changed while running, written into the machine description
     std::string err;
-    CHECK(g->ink_param() != nullptr && g->ink() == "white");
+    CHECK(g->ink_param() != nullptr && !strcmp(g->ink_param(), vga ? "color" : "monitor"));
+    CHECK(g->ink() == (vga ? "amber" : "white"));
     CHECK(m.set_display_ink(g, "green", err));
     CHECK(!m.set_display_ink(g, "purple", err) && g->ink() == "green");
     bool in_config = false;
     for (const nlohmann::json& cc : m.config["cards"])
-        if (cc.value("type", std::string()) == "DGD-1") in_config = cc.value("monitor", std::string()) == "green";
+        if (cc.value("type", std::string()) == card) in_config = cc.value(g->ink_param(), std::string()) == "green";
     CHECK(in_config);
     uint32_t green = 0;
-    CHECK(monitor_phosphor("green", green));
+    CHECK(vga ? vga_ink("green", green) : monitor_phosphor("green", green));
     std::vector<uint32_t> px((size_t)g->screen_width() * g->screen_height());
     g->render(px.data(), 0xFF000000u);
     CHECK_EQ(g->screen_width(), 320);
@@ -286,6 +290,28 @@ static void basic_exp_g(void)
     CHECK_EQ(m.bus.mem_peek(0xD234), 0xFF);
 }
 
+// DGD-1V S2: base by /A15 /A14, MAP conditions as on CGA-1V.
+static void dgd1v_s2(void)
+{
+    std::unique_ptr<Card> c(card_create("DGD-1V"));
+    CHECK(c != nullptr);
+    if (!c) return;
+    std::string err;
+    const char* what = nullptr;
+    // the manual's second example: 0000h, only with MAP2 = H (like the PROM of DGD-1)
+    CHECK(c->configure(nlohmann::json::parse(R"({ "base": "0000h", "map2": "h" })"), err));
+    CHECK(c->decode_mem(0x0000, MAP_2, &what) != 0);
+    CHECK(c->decode_mem(0x3FFF, MAP_2 | MAP_1, &what) != 0);
+    CHECK(c->decode_mem(0x0000, 0, &what) == 0);
+    CHECK(c->decode_mem(0x4000, MAP_2, &what) == 0);
+    CHECK(c->configure(nlohmann::json::parse(R"({ "base": "8000h", "map1": "l", "map2": "h" })"), err));
+    CHECK(c->decode_mem(0x8000, MAP_2, &what) != 0);
+    CHECK(c->decode_mem(0x8000, MAP_1 | MAP_2, &what) == 0);
+    CHECK(c->configure(nlohmann::json::parse(R"({ "map1": "never" })"), err));
+    CHECK(c->decode_mem(0xC000, 0, &what) == 0);
+    CHECK(!c->configure(nlohmann::json::parse(R"({ "base": "2000h" })"), err));
+}
+
 int main(void)
 {
     test_init();
@@ -295,6 +321,8 @@ int main(void)
     v5_save_load();
     v5_real_tape();
     basic_exp();
-    basic_exp_g();
+    basic_exp_g("machines/zps/ZPS-2_MIKOS_V5.sapi", "DGD-1");
+    basic_exp_g("machines/zps/ZPS-2_MIKOS_V5_DGD-1V.sapi", "DGD-1V");
+    dgd1v_s2();
     return TEST_RESULT();
 }

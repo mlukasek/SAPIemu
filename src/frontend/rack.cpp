@@ -438,10 +438,9 @@ const PanelItem k_pl_dmr1[] = {
     { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_PORT, 41.0f, 56.4f, "0" }, { PI_FRB, 23.85f, 146.7f, nullptr },
     { PI_END, 0, 0, nullptr },
 };
-// D-sub connectors K3 (top) and K2 (bottom): JPR-1V
-const PanelItem k_pl_k3k2[] = {
-    { PI_TEXT, 28.5f, 71.3f, "K3" }, { PI_DSUB, 29.0f, 146.8f, nullptr },
-    { PI_DSUB, 29.0f, 345.2f, nullptr }, { PI_TEXT, 28.5f, 405.8f, "K2" },
+// AND-1, AND-1A, AND-1Z, DGD-1: one FRB connector, at the bottom position (as on the boards)
+const PanelItem k_pl_frb_k2[] = {
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
 // DSM-1V: channel A on K3 (top), B on K2; the port of each next to its connector
@@ -454,7 +453,7 @@ const PanelItem k_pl_dsm[] = {
     { PI_END, 0, 0, nullptr },
 };
 
-// display cards: K2 = VGA in the middle (AND-1V, DGD, BGP, CGA)
+// VGA display cards: K2 = VGA in the middle (AND-1V, DGD-1V, BGP, CGA)
 const PanelItem k_pl_vga[] = {
     { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
     { PI_END, 0, 0, nullptr },
@@ -477,13 +476,14 @@ const PanelItem* panel_layout(const CardInfo* ci)
 {
     if (!ci) return nullptr;
     const char* p = ci->panel;
-    if (!strcmp(ci->type, "JPR-1V")) return k_pl_k3k2;
-    if (!strcmp(p, "JPR")) return k_pl_jpr_frb;
+    if (!strcmp(p, "JPR")) return k_pl_jpr_frb;   // all of them, JPR-1V too
     if (!strcmp(p, "FDC")) return k_pl_fdc;
     if (!strcmp(ci->type, "DSM-1")) return k_pl_dsm1;
     if (!strcmp(ci->type, "DMR-1")) return k_pl_dmr1;
     if (!strcmp(p, "DSM")) return k_pl_dsm;
-    if (!strcmp(p, "AND") || !strcmp(p, "DGD") || !strcmp(p, "BGP") || !strcmp(p, "CGA")) return k_pl_vga;
+    if (!strcmp(ci->type, "AND-1V") || !strcmp(ci->type, "DGD-1V") || !strcmp(p, "BGP") || !strcmp(p, "CGA"))
+        return k_pl_vga;
+    if (!strcmp(p, "AND") || !strcmp(p, "DGD")) return k_pl_frb_k2;   // the original display cards
     if (!strcmp(p, "MPH")) return k_pl_mph;
     if (!strcmp(ci->type, "ZRD-1V")) return k_pl_zrd;
     return nullptr;
@@ -547,8 +547,8 @@ void pt_dsub(const Panel& P, float x, float y)
     }
 }
 
-// FRB connector TY 513 (2 x 15 contacts) in the rectangular cut-out of the print,
-// 22.7 x 150.2 points with rounded corners
+// FRB connector TY 513 in the rectangular cut-out of the print (22.7 x 150.2 points):
+// the green face of the connector, two rows of gold contacts, a hole at each end
 const float FRB_HALF = 75.1f;   // half height of the cut-out
 
 void pt_frb(const Panel& P, float x, float y)
@@ -556,12 +556,17 @@ void pt_frb(const Panel& P, float x, float y)
     ImDrawList* dl = P.dl;
     float k = P.k;
     dl->AddRectFilled(P.p(x - 11.35f, y - FRB_HALF), P.p(x + 11.35f, y + FRB_HALF), COL_HOLE, 3.0f * k);
-    dl->AddRectFilled(P.p(x - 8.5f, y - 71.0f), P.p(x + 8.5f, y + 71.0f), COL_SHELL, 1.5f * k);   // insulator
-    dl->AddRectFilled(P.p(x - 5.0f, y - 66.0f), P.p(x + 5.0f, y + 66.0f), IM_COL32(52, 54, 58, 255), 1.0f * k);
+    dl->AddRectFilled(P.p(x - 9.6f, y - 73.4f), P.p(x + 9.6f, y + 73.4f), IM_COL32(32, 112, 72, 255), 1.5f * k);
+    for (int s = -1; s <= 1; s += 2)   // fixing holes at the ends
+        dl->AddNgonFilled(P.p(x, y + s * 66.5f), 3.6f * k, COL_HOLE, 6);
+    const ImU32 gold = IM_COL32(214, 172, 74, 255), pin = IM_COL32(120, 84, 30, 255);
     for (int i = 0; i < 15; i++) {   // contacts, two rows
-        float cy = y - 61.6f + i * 8.8f;
-        dl->AddRectFilled(P.p(x - 3.4f, cy - 1.2f), P.p(x - 1.0f, cy + 1.2f), IM_COL32(196, 160, 72, 255));
-        dl->AddRectFilled(P.p(x + 1.0f, cy - 1.2f), P.p(x + 3.4f, cy + 1.2f), IM_COL32(196, 160, 72, 255));
+        float cy = y - 56.0f + i * 8.0f;
+        for (int c = -1; c <= 1; c += 2) {
+            ImVec2 pc = P.p(x + c * 3.6f, cy);
+            dl->AddCircleFilled(pc, 2.5f * k, gold);
+            dl->AddCircleFilled(pc, 1.1f * k, pin);
+        }
     }
 }
 

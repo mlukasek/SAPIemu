@@ -40,6 +40,8 @@ Zdroje: `BKP\sapi\dgd-1.php` (OCR návodu, obsahy PROM D5D, D1A, D10C), obrázky
 - **PROM D1A se nepoužívá.** Výběr se řídí tabulkou SP1 z návodu. Zapojení vstupů D1A neznáme, jedničky
   v dumpu jsou na adresách 1C, 5F, 98 a DB.
 
+Liborova náhrada s výstupem VGA je **DGD-1V** (`docs/desky/DGD-1V.md`), v emulátoru varianta této karty.
+
 ## Ověřeno v emulátoru
 
 `tests/test_mikos.cpp`: BASIC EXP V5.0/G pod MIKOSem V5:

@@ -106,6 +106,9 @@ public:
 
 // Phosphor of a monochrome monitor ("white", "green", "amber") as ARGB; false for an unknown name.
 bool monitor_phosphor(const std::string& name, uint32_t& argb);
+// Ink of a VGA card set by its colour jumpers /BLUE /RED /GREEN-HI /GREEN-LO (AND-1V, DGD-1V):
+// "white", "green", "amber", "red", "blue", "cyan", "yellow", "magenta".
+bool vga_ink(const std::string& name, uint32_t& argb);
 
 // The monitor of a monochrome display card without colour jumpers: card parameter
 // "monitor" (phosphor colour, not a part of the card).
