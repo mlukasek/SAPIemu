@@ -241,13 +241,22 @@ void sync_live_ink(UiState& ui)
     }
 }
 
-// Follow the running machine while the editor holds no unsaved changes.
+// Follow the running machine. Another machine opened from the menu or by MCP is always
+// shown; unsaved changes of the description in the editor are put aside (they can be
+// restored). The same machine started again (power cycle) keeps them.
 void follow_machine(UiState& ui)
 {
     RackEditor& r = ui.rack;
     Machine* m = ui.host->machine();
     if (!m || r.machine_gen == ui.host->machine_generation()) return;
-    if (r.cfg.is_null() || r.cfg == r.saved) {
+    bool dirty = !r.cfg.is_null() && r.cfg != r.saved;
+    if (!dirty || r.path != ui.host->machine_file()) {
+        if (dirty) {
+            r.stash_cfg = r.cfg;
+            r.stash_saved = r.saved;
+            r.stash_path = r.path;
+            set_message(r, tr("Unsaved changes of the previous machine were put aside."), true);
+        }
         r.cfg = m->config;
         r.saved = r.cfg;
         r.path = ui.host->machine_file();
@@ -1253,6 +1262,20 @@ void draw_rack(UiState& ui)
         set_message(r, tr("Changes reverted."), false);
     }
     ImGui::EndDisabled();
+    if (!r.stash_cfg.is_null()) {
+        ImGui::SameLine();
+        char lab[300];
+        snprintf(lab, sizeof(lab), "%s (%s)", tr("Restore unsaved changes"),
+                 r.stash_path.empty() ? tr("(not saved yet)") : r.stash_path.c_str());
+        if (ImGui::Button(lab)) {   // back to the put aside description; the running machine stays
+            r.cfg = r.stash_cfg;
+            r.saved = r.stash_saved;
+            r.path = r.stash_path;
+            r.sel = 0;
+            r.stash_cfg = json();
+            set_message(r, tr("Unsaved changes restored."), false);
+        }
+    }
     ImGui::TextDisabled("%s%s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str(),
                         dirty ? tr("  - unsaved changes") : "");
     if (!r.message.empty()) {

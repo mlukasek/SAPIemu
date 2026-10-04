@@ -37,6 +37,7 @@ struct GfxView {
     SDL_Texture* tex = nullptr;
     int w = 0, h = 0;
     std::vector<uint32_t> pixels;
+    float zoom = 0;   // screen pixels per emulated pixel in the last frame (0 = not drawn yet)
 };
 const int MAX_GFX_VIEWS = 4;
 
@@ -46,6 +47,7 @@ struct App {
     SDL_Texture* screen_tex = nullptr;
     int tex_w = 0, tex_h = 0;
     std::vector<uint32_t> pixels;
+    float screen_zoom = 0;        // of the console screen, as GfxView::zoom
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
     EmuHost host;
@@ -291,6 +293,24 @@ void handle_text(App& app, const char* text)
     if (app.ui.screen_focused) m->type_text(text);
 }
 
+// Window title of a display output: the card name and the current zoom ("CGA-1V  2x").
+void display_title(char* out, size_t n, const char* name, float zoom, const char* id)
+{
+    char z[16] = "";
+    if (zoom > 0) {
+        if (zoom == (float)(int)zoom) snprintf(z, sizeof(z), "  %d\xC3\x97", (int)zoom);
+        else {
+            snprintf(z, sizeof(z), "  %.2f", zoom);
+            size_t len = strlen(z);
+            while (len > 0 && z[len - 1] == '0') z[--len] = 0;
+            if (i18n_language() == LANG_CS)
+                for (char* c = z; *c; c++) if (*c == '.') *c = ',';
+            snprintf(z + len, sizeof(z) - len, "\xC3\x97");
+        }
+    }
+    snprintf(out, n, "%s%s###%s", name, z, id);
+}
+
 // View -> Colour: the ink of the monochrome displays. It is a card parameter (jumpers
 // S1 of AND-1V, the monitor phosphor of the others), the same one the configurator
 // edits; the change shows at once and is saved with the machine.
@@ -450,7 +470,8 @@ void draw_menu(App& app)
 }
 
 // Draw display output `d` into the current window, scaled to fit, through its own texture.
-void draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels)
+// Returns the zoom: screen pixels per emulated pixel (vertically, with the TV aspect).
+float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels)
 {
     int w = d->screen_width(), h = d->screen_height();
     if (!tex || w != tex_w || h != tex_h) {
@@ -488,6 +509,7 @@ void draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int
     if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
     ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), size);
     if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+    return scale;
 }
 
 void draw_screen(App& app)
@@ -499,7 +521,7 @@ void draw_screen(App& app)
     DisplayDevice* d = m ? m->display : nullptr;
     Card* c = dynamic_cast<Card*>(d);
     char title[96];   // named after the display card, the same window for every machine
-    snprintf(title, sizeof(title), "%s###screen", c ? c->name.c_str() : tr("Screen"));
+    display_title(title, sizeof(title), c ? c->name.c_str() : tr("Screen"), d ? app.screen_zoom : 0, "screen");
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
     ImGui::Begin(title);
     ImGui::PopStyleVar();
@@ -517,7 +539,7 @@ void draw_screen(App& app)
         ImGui::End();
         return;
     }
-    draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels);
+    app.screen_zoom = draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels);
     ImGui::End();
 }
 
@@ -532,8 +554,9 @@ void draw_graphic_screens(App& app)
         int k = n++;
         GfxView& v = app.gfx[k];
         Card* c = dynamic_cast<Card*>(d);
-        char title[96];
-        snprintf(title, sizeof(title), "%s###gfx%d", c ? c->name.c_str() : tr("Graphics"), k);
+        char title[96], id[16];
+        snprintf(id, sizeof(id), "gfx%d", k);
+        display_title(title, sizeof(title), c ? c->name.c_str() : tr("Graphics"), v.zoom, id);
         // first use: right of the console screen (820 wide from x 60), below it on a narrow desktop
         ImVec2 vp = ImGui::GetMainViewport()->WorkSize;
         ImVec2 at = vp.x >= 60 + 820 + 10 + 500 ? ImVec2(890.0f + 30.0f * k, 60.0f + 30.0f * k)
@@ -545,7 +568,7 @@ void draw_graphic_screens(App& app)
         ImGui::PopStyleVar();
         if (open) {
             if (ImGui::IsWindowFocused()) app.ui.screen_focused = true;   // typing goes to the machine too
-            draw_display(app, d, v.tex, v.w, v.h, v.pixels);
+            v.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels);
         }
         ImGui::End();
     }

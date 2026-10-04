@@ -42,6 +42,9 @@ struct RackEditor {
     bool open_map_tab = false;          // select the map tab once (UI snapshot)
     std::string message;
     bool message_error = false;
+    // unsaved changes put aside when another machine was opened (menu, MCP)
+    nlohmann::json stash_cfg, stash_saved;
+    std::string stash_path;
 
     // native file dialogs answer from another thread
     enum { DLG_NONE = 0, DLG_OPEN, DLG_SAVE, DLG_PARAM, DLG_RUN };

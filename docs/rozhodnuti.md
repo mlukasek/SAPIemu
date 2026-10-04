@@ -496,3 +496,12 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   „Grafika …“. Okna mají pevné id (`###screen`, `###gfxN`), takže uložená poloha zůstává i po výměně karty.
   Starý záznam „Obrazovka“ v `imgui.ini` se při startu převede.
 - **Sestava V má AND-1V jantarovou** (autor).
+
+## 2026-10-04 – Konfigurátor vždy ukazuje otevřenou sestavu, zvětšení v titulku okna
+
+- **Chyba (autor):** po otevření jiné sestavy z menu se okno Sestava nezměnilo. Konfigurátor sledoval běžící
+  sestavu jen bez neuložených změn a ty vznikají i barvou z menu Zobrazení → Barva.
+- **Teď:** otevření jiné sestavy (menu, Otevřít soubor…, MCP) konfigurátor přepne vždy. Neuložené změny se
+  neztratí, odloží se a tlačítko „Obnovit neuložené změny“ je vrátí. Vypnutí a zapnutí stejné sestavy (NAPÁJENÍ,
+  „Zapnout s touto sestavou“) rozpracované změny zachová jako dosud.
+- **Zvětšení v titulku okna obrazovky** (autor): „CGA-1V  2×“. Pro jednotnost u všech videovýstupů, nejen grafických.

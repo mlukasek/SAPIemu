@@ -8,7 +8,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - Barva jednobarevného obrazu je parametr karty v sestavě: AND-1V propojky S1 (`color`), ostatní parametr
   `monitor` (luminofor). Menu Zobrazení → Barva i konfigurátor mění totéž a hned, uloží se se sestavou. Globální
   „Luminofor“ v nastavení GUI zmizel. Sestava V má AND-1V jantarovou (autor).
-- Okna obrazovek se jmenují podle karty („AND-1V“, „CGA-1V“, „DGD-1“), rozložení okna se převede.
+- Okna obrazovek se jmenují podle karty („AND-1V“, „CGA-1V“, „DGD-1“) a ukazují zvětšení („2×“), rozložení
+  okna se převede.
+- Oprava: konfigurátor po otevření jiné sestavy zůstával na předchozí, když v ní byly neuložené změny (třeba
+  barva z menu). Teď vždy ukáže běžící sestavu, neuložené změny odloží a nabídne „Obnovit neuložené změny“.
 - Popis v `docs/sestavy.md` („Okna obrazovek a barva obrazu“).
 
 **Hotové: CGA-1V** (barevná grafika 320×200, VGA, Libor Lasota) v sestavě V na X7.
