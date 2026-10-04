@@ -604,5 +604,6 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 ## 2026-10-04 – Mapa paměti s ostatními stavy MAP
 
 - **Autor:** alternativní mapování (CGA-1V při MAP1 = MAP2 = H, díry RAM-1V…) má být vidět na první pohled.
-- Pod hlavním pruhem zvoleného stavu MAP1/MAP2 jsou tenké pruhy ostatních stavů, barevně jen tam, kde se liší
-  (barva karty, šedá = nikdo). Kliknutím se stav prohodí s hlavním. Rozbalovací výběr stavu zmizel.
+- Pruhy všech čtyř stavů MAP1/MAP2 pod sebou v pevném pořadí (autor: prohazování bylo zmatené). Vybraný stav
+  je tlustý, ostatní tenké: ztlumené tam, kde jsou stejné jako vybraný, výrazné tam, kde se liší (barva karty,
+  šedá = nikdo). Kliknutím se stav vybere. Rozbalovací výběr stavu zmizel.

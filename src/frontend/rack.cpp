@@ -1387,8 +1387,28 @@ void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>&
     ImGui::EndTable();
 }
 
+// The address axis under a memory bar starting at x0, w wide (ticks every 4 KB, labels per 16 KB).
+void memory_axis(ImVec2 o, float w)
+{
+    float u = ImGui::GetFontSize();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    auto x_of = [&](int a) { return o.x + w * (float)a / 65536.0f; };
+    for (int a = 0; a <= 0x10000; a += 0x1000) {
+        float x = x_of(a);
+        dl->AddLine(ImVec2(x, o.y), ImVec2(x, o.y + ((a & 0x3FFF) ? 0.2f : 0.4f) * u), IM_COL32(150, 150, 150, 255));
+    }
+    const int marks[5] = { 0x0000, 0x4000, 0x8000, 0xC000, 0xFFFF };
+    for (int i = 0; i < 5; i++) {
+        char t[8];
+        snprintf(t, sizeof(t), "%04X", marks[i]);
+        float tw = ImGui::CalcTextSize(t).x;
+        float x = x_of(marks[i] == 0xFFFF ? 0x10000 : marks[i]) - (i == 0 ? 0 : i == 4 ? tw : tw * 0.5f);
+        dl->AddText(ImVec2(x, o.y + 0.45f * u), IM_COL32(200, 200, 200, 255), t);
+    }
+}
+
 // 64 KB as a bar: one colour per card, conflicts red, the CPU card's EPROM as a strip on top.
-void memory_bar(const MachineMap& m, const std::vector<MapRange>& ranges)
+void memory_bar(const MachineMap& m, const std::vector<MapRange>& ranges, bool axis = true)
 {
     float u = ImGui::GetFontSize();
     float w = ImGui::GetContentRegionAvail().x - 4, h = 1.8f * u;
@@ -1408,18 +1428,7 @@ void memory_bar(const MachineMap& m, const std::vector<MapRange>& ranges)
             dl->AddRectFilled(ImVec2(x0, o.y + 0.35f * h), ImVec2(x1, o.y + h), rg.conflict ? COL_ERROR : card_color(first));
         if (oncard >= 0) dl->AddRectFilled(ImVec2(x0, o.y), ImVec2(x1, o.y + 0.3f * h), card_color(oncard));
     }
-    for (int a = 0; a <= 0x10000; a += 0x1000) {
-        float x = x_of(a);
-        dl->AddLine(ImVec2(x, o.y + h), ImVec2(x, o.y + h + ((a & 0x3FFF) ? 0.2f : 0.4f) * u), IM_COL32(150, 150, 150, 255));
-    }
-    const int marks[5] = { 0x0000, 0x4000, 0x8000, 0xC000, 0xFFFF };
-    for (int i = 0; i < 5; i++) {
-        char t[8];
-        snprintf(t, sizeof(t), "%04X", marks[i]);
-        float tw = ImGui::CalcTextSize(t).x;
-        float x = x_of(marks[i] == 0xFFFF ? 0x10000 : marks[i]) - (i == 0 ? 0 : i == 4 ? tw : tw * 0.5f);
-        dl->AddText(ImVec2(x, o.y + h + 0.45f * u), IM_COL32(200, 200, 200, 255), t);
-    }
+    if (axis) memory_axis(ImVec2(o.x, o.y + h), w);
     ImGui::InvisibleButton("membar", ImVec2(w, h));
     if (ImGui::IsItemHovered()) {
         int a = (int)((ImGui::GetIO().MousePos.x - o.x) / w * 65536.0f);
@@ -1434,7 +1443,7 @@ void memory_bar(const MachineMap& m, const std::vector<MapRange>& ranges)
         }
         ImGui::SetTooltip("%04Xh: %s", a, who.c_str());
     }
-    ImGui::Dummy(ImVec2(w, 1.2f * u));
+    if (axis) ImGui::Dummy(ImVec2(w, 1.2f * u));
 }
 
 // The range of a map that holds address a, nullptr if nobody answers there.
@@ -1467,60 +1476,73 @@ std::vector<int> map_bounds(const std::vector<MapRange>& a, const std::vector<Ma
 
 const char* const k_map_states[4] = { "MAP1=0 MAP2=0", "MAP1=1 MAP2=0", "MAP1=0 MAP2=1", "MAP1=1 MAP2=1" };
 
-// The memory in the other states of MAP1/MAP2, each as a thin bar under the main one: only
-// the places that differ from the shown state are coloured (e.g. CGA-1V at C000h with
-// MAP1 = 1). A click on a bar or its label shows that state in the main bar.
-void other_map_bars(RackEditor& r, float label_w)
+// The memory in all four states of MAP1/MAP2, always in the same order: the chosen state as
+// the full bar, the others thin. A thin bar shows its whole map, dimmed where it is the same
+// as in the chosen state, so the places that differ (e.g. CGA-1V at C000h with MAP1 = MAP2 = 1)
+// stand out. A click on a bar or its label chooses that state.
+void map_state_bars(RackEditor& r)
 {
     const MachineMap& m = r.map;
     float u = ImGui::GetFontSize();
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    const std::vector<MapRange>& cur = m.mem[r.map_state & 3];
+    float label_w = ImGui::CalcTextSize(k_map_states[3]).x + u;
+    int sel = r.map_state & 3;
+    const std::vector<MapRange>& cur = m.mem[sel];
+    ImVec2 bar_o(0, 0);
+    float bar_w = 0;
     for (int s = 0; s < 4; s++) {
-        if (s == (r.map_state & 3)) continue;
-        const std::vector<MapRange>& other = m.mem[s];
-        std::vector<int> b = map_bounds(cur, other);
-        bool differs = false;
-        for (size_t i = 0; i + 1 < b.size() && !differs; i++)
-            differs = !same_users(range_at(cur, b[i]), range_at(other, b[i]));
-        if (!differs) continue;
-        ImVec2 p = ImGui::GetCursorScreenPos();
-        float row_h = ImGui::GetFrameHeight(), w = ImGui::GetContentRegionAvail().x - label_w - 4;
         ImGui::PushID(s);
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        bool chosen = s == sel;
+        float row_h = chosen ? 1.8f * u : ImGui::GetFrameHeight();
         if (ImGui::InvisibleButton("state", ImVec2(label_w, row_h))) r.map_state = s;
         bool hl = ImGui::IsItemHovered();
-        if (hl) ImGui::SetTooltip("%s", tr("Click: show this map"));
-        dl->AddText(ImVec2(p.x, p.y + (row_h - u) * 0.5f), hl ? IM_COL32(255, 255, 255, 255) : IM_COL32(170, 170, 170, 255),
-                    k_map_states[s]);
+        if (hl && !chosen) ImGui::SetTooltip("%s", tr("Click: show this map"));
+        ImU32 tc = chosen ? IM_COL32(255, 220, 120, 255) : hl ? IM_COL32(255, 255, 255, 255) : IM_COL32(160, 160, 160, 255);
+        dl->AddText(ImVec2(p.x, p.y + (row_h - u) * 0.5f), tc, k_map_states[s]);
         ImGui::SameLine(0, 0);
         ImVec2 o = ImGui::GetCursorScreenPos();
-        float y0 = o.y + row_h * 0.3f, y1 = o.y + row_h * 0.7f;
-        auto x_of = [&](int a) { return o.x + w * (float)a / 65536.0f; };
-        dl->AddRectFilled(ImVec2(o.x, y0), ImVec2(o.x + w, y1), IM_COL32(40, 40, 44, 255));
-        for (size_t i = 0; i + 1 < b.size(); i++) {
-            const MapRange* ro = range_at(other, b[i]);
-            if (same_users(range_at(cur, b[i]), ro)) continue;
-            int first = -1;
-            for (const MapUser& us : ro ? ro->users : std::vector<MapUser>())
-                if (!(us.flags & DEC_ONCARD)) { first = us.card; break; }
-            ImU32 col = ro && ro->conflict ? COL_ERROR : first >= 0 ? card_color(first) : IM_COL32(110, 110, 116, 255);
-            float x0 = x_of(b[i]), x1 = x_of(b[i + 1]);
-            if (x1 - x0 < 1.0f) x1 = x0 + 1.0f;
-            dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), col);
-        }
-        if (ImGui::InvisibleButton("bar", ImVec2(w, row_h))) r.map_state = s;
-        if (ImGui::IsItemHovered()) {
-            int a = (int)((ImGui::GetIO().MousePos.x - o.x) / w * 65536.0f);
-            if (a < 0) a = 0;
-            if (a > 0xFFFF) a = 0xFFFF;
-            const MapRange* ro = range_at(other, a);
-            std::string who = ro ? std::string() : std::string(tr("nothing (open bus, FFh)"));
-            for (const MapUser& us : ro ? ro->users : std::vector<MapUser>())
-                who += (who.empty() ? "" : ", ") + m.cards[(size_t)us.card].name + " " + tr(us.what.c_str());
-            ImGui::SetTooltip("%s, %04Xh: %s\n%s", k_map_states[s], a, who.c_str(), tr("Click: show this map"));
+        float w = ImGui::GetContentRegionAvail().x - 4;
+        bar_o = o;
+        bar_w = w;
+        if (chosen) {
+            memory_bar(m, cur, false);
+        } else {
+            const std::vector<MapRange>& other = m.mem[s];
+            std::vector<int> b = map_bounds(cur, other);
+            float y0 = o.y + row_h * 0.3f, y1 = o.y + row_h * 0.7f;
+            auto x_of = [&](int a) { return o.x + w * (float)a / 65536.0f; };
+            dl->AddRectFilled(ImVec2(o.x, y0), ImVec2(o.x + w, y1), IM_COL32(40, 40, 44, 255));
+            for (size_t i = 0; i + 1 < b.size(); i++) {
+                const MapRange* ro = range_at(other, b[i]);
+                bool same = same_users(range_at(cur, b[i]), ro);
+                int first = -1;
+                for (const MapUser& us : ro ? ro->users : std::vector<MapUser>())
+                    if (!(us.flags & DEC_ONCARD)) { first = us.card; break; }
+                if (same && first < 0) continue;   // nobody in both: the background
+                ImU32 col = ro && ro->conflict ? COL_ERROR : first >= 0 ? card_color(first) : IM_COL32(110, 110, 116, 255);
+                if (same) col = (col & 0x00FFFFFFu) | 0x50000000u;   // the same as the chosen state: dimmed
+                float x0 = x_of(b[i]), x1 = x_of(b[i + 1]);
+                if (x1 - x0 < 1.0f) x1 = x0 + 1.0f;
+                dl->AddRectFilled(ImVec2(x0, same ? y0 + 0.1f * (y1 - y0) : y0), ImVec2(x1, same ? y1 - 0.1f * (y1 - y0) : y1), col);
+            }
+            if (ImGui::InvisibleButton("bar", ImVec2(w, row_h))) r.map_state = s;
+            if (ImGui::IsItemHovered()) {
+                int a = (int)((ImGui::GetIO().MousePos.x - o.x) / w * 65536.0f);
+                if (a < 0) a = 0;
+                if (a > 0xFFFF) a = 0xFFFF;
+                const MapRange* ro = range_at(other, a);
+                std::string who = ro ? std::string() : std::string(tr("nothing (open bus, FFh)"));
+                for (const MapUser& us : ro ? ro->users : std::vector<MapUser>())
+                    who += (who.empty() ? "" : ", ") + m.cards[(size_t)us.card].name + " " + tr(us.what.c_str());
+                ImGui::SetTooltip("%s, %04Xh: %s\n%s", k_map_states[s], a, who.c_str(), tr("Click: show this map"));
+            }
         }
         ImGui::PopID();
     }
+    ImVec2 ax = ImGui::GetCursorScreenPos();
+    memory_axis(ImVec2(bar_o.x, ax.y), bar_w);
+    ImGui::Dummy(ImVec2(bar_w, 1.2f * u));
 }
 
 void draw_map(RackEditor& r)
@@ -1536,16 +1558,8 @@ void draw_map(RackEditor& r)
     ImGui::SeparatorText(tr("Memory"));
     const std::vector<MapRange>& mem = r.map.mem[r.map_state & 3];
     if (m.map_matters) {
-        // the shown state left of the main bar, the other states as thin bars under it
-        float label_w = ImGui::CalcTextSize(k_map_states[3]).x + ImGui::GetFontSize();
-        ImVec2 p = ImGui::GetCursorScreenPos();
-        float u = ImGui::GetFontSize();
-        ImGui::GetWindowDrawList()->AddText(ImVec2(p.x, p.y + 0.4f * u), IM_COL32(255, 220, 120, 255),
-                                            k_map_states[r.map_state & 3]);
-        ImGui::SetCursorScreenPos(ImVec2(p.x + label_w, p.y));
-        memory_bar(m, mem);
-        other_map_bars(r, label_w);
-        ImGui::TextDisabled("%s", tr("Thin bars: what differs with the other states of MAP1/MAP2 (click to show)."));
+        map_state_bars(r);
+        ImGui::TextDisabled("%s", tr("Thin bars: the other states of MAP1/MAP2, bright where they differ (click to show)."));
     } else {
         memory_bar(m, mem);
     }
