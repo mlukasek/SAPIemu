@@ -35,7 +35,17 @@ static void cpm(void)
     m.type_text("1");
     CHECK(run_until_text(m, "\nA>", 10.0));
     m.run_seconds(0.3);
+    // ZRD-1V panel LEDs: ZAM shows the write mode (tests: rw becomes nosave = yellow), DSK the access
+    Card* zrd = m.find_card("ZRD-1V");
+    CHECK(zrd && (zrd->panel_leds() & 1u) && zrd->panel_led_color(0) == 'y');
+    CHECK(zrd && !(zrd->panel_leds() & 2u));
     m.type_text("DIR\r");
+    bool dsk = false;
+    for (int i = 0; i < 200 && !dsk; i++) {
+        m.run_seconds(0.005);
+        dsk = zrd && (zrd->panel_leds() & 2u);
+    }
+    CHECK(dsk);
     CHECK(run_until_text(m, "WM1Z    .HLP", 5.0));
     // DSM-1V: two channels
     CHECK_EQ((int)m.serials.size(), 2);

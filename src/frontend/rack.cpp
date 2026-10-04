@@ -493,7 +493,7 @@ const PanelItem k_pl_mph[] = {
     { PI_END, 0, 0, nullptr },
 };
 const PanelItem k_pl_zrd[] = {
-    { PI_TEXT, 29.0f, 312.3f, "ZAM" }, { PI_LED, 19.8f, 332.3f, "r" },
+    { PI_TEXT, 29.0f, 312.3f, "ZAM" }, { PI_LED, 19.8f, 332.3f, "g" },
     { PI_TEXT, 29.0f, 369.9f, "DSK" }, { PI_LED, 19.8f, 389.9f, "y" },
     { PI_END, 0, 0, nullptr },
 };
@@ -679,9 +679,12 @@ void draw_rpd_cable(const Panel& A, const Panel& B)
 
 void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type,
                      const std::vector<std::string>& ports, bool error, bool show_type, int board = 0,
-                     unsigned leds = 0)
+                     unsigned leds = 0, Card* live = nullptr)
 {
     int led = 0;   // index of the next LED (Card::panel_leds)
+    char led_col[4] = { 0, 0, 0, 0 };   // colours set by the card's state (Card::panel_led_color)
+    if (live)
+        for (int i = 0; i < 4; i++) led_col[i] = live->panel_led_color(i);
     bool dim = !ci || !ci->emulated;
     panel_plate(P, PANEL_W, dim);
     pt_hole(P, 12.8f, 4.4f);
@@ -705,8 +708,8 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
         case PI_IDC: pt_idc(P, it->x, it->y); break;
         case PI_DSUB15: pt_dsub(P, it->x, it->y, 47.0f, 75.0f); break;
         case PI_LED: {
+            char c = led < 4 && led_col[led] ? led_col[led] : it->text ? it->text[0] : 'g';
             bool on = (leds >> led++) & 1u;
-            char c = it->text ? it->text[0] : 'g';
             ImU32 col = c == 'r' ? (on ? COL_LED_RED_ON : COL_LED_RED_OFF)
                       : c == 'y' ? (on ? COL_LED_YEL_ON : COL_LED_YEL_OFF) : (on ? COL_LED_ON : COL_LED_OFF);
             pt_led(P, it->x, it->y, col);
@@ -891,7 +894,8 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 Panel P = { dl, ImVec2(slot_x(s + b) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
                 // a card of two boards (RPD-1): RPD-1A in its slot, RPD-1B left of it, both named
                 std::string shown = wd > 1 ? type + (char)('A' + b) : type;
-                draw_card_panel(P, ci, shown, ports, slot_has_error(problems, s + b), r.show_types, b, b == 0 ? leds : 0);
+                draw_card_panel(P, ci, shown, ports, slot_has_error(problems, s + b), r.show_types, b, b == 0 ? leds : 0,
+                                b == 0 ? live : nullptr);
             }
             if (wd == 2 && !strcmp(type.c_str(), "RPD-1")) {
                 Panel A = { dl, ImVec2(slot_x(s) + (PITCH - PANEL_W) * 0.5f * k, y0), k };

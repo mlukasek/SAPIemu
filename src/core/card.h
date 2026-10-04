@@ -74,6 +74,9 @@ public:
     // LEDs on the front panel that follow the emulation: bit n = the n-th LED of the panel
     // drawing (configurator), 1 = lit.
     virtual unsigned panel_leds() { return 0; }
+    // Colour of the n-th panel LED when the card sets it by its state: 'g' green, 'y' yellow,
+    // 'r' red; 0 = the colour of the panel drawing.
+    virtual char panel_led_color(int n) { return 0; }
 
     std::string type;   // e.g. "DMR-1"
     std::string name;   // unique instance name, defaults to type

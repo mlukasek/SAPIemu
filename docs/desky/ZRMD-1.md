@@ -135,5 +135,6 @@ Zdroje:
   (monostabilní obvody 74LS123, 20 ms). To může vysvětlit „zamykací“ sekvenci MikroMonu.
   - Z binárního `.sch` jsou čitelné jen texty: 74LS123 A/B „(20msec)“, 74LS00, 74LS02, signály IRD, IWR,
     /IRES, /WE, ACCESS, PWRN-1, LED HLMP-3762 a HLMP-3962. Jak se zámek zapíná, z toho nejde poznat.
-  - **Emulace:** LED DSK na panelu svítí 20 ms po čtení nebo zápisu dat (port 60h). LED ZAM zatím nesvítí.
+  - **Emulace:** LED DSK na panelu svítí 20 ms po čtení nebo zápisu dat (port 60h). LED ZAM ukazuje režim zápisu
+    karty (autor): zelená `rw` (ukládá se), žlutá `nosave` (jen v paměti), červená `readonly` (zápis zablokovaný).
 

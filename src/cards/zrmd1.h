@@ -13,9 +13,11 @@
 
 class Zrmd1 : public Card {
 public:
-    // ZRD-1V panel: bit 0 ZAM (write lock of rev 2.0, not modelled yet: off), bit 1 DSK =
-    // access to the RAM disk data (port 60h), lit 20 ms (74LS123 of rev 2.0).
+    // ZRD-1V panel: bit 0 ZAM = the write mode of the card (always lit, the colour shows it),
+    // bit 1 DSK = access to the RAM disk data (port 60h), lit 20 ms (74LS123 of rev 2.0).
     unsigned panel_leds() override;
+    // ZAM: green rw (saved), yellow nosave (changes kept only in memory), red readonly.
+    char panel_led_color(int n) override;
     explicit Zrmd1(bool zrd1v);
     ~Zrmd1() override;
 

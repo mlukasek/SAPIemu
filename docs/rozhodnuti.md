@@ -557,5 +557,5 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **IDE-1** LED nemá, emulátor ji na panelu kreslí (autor: může se hodit) a rozsvítí ji na 50 ms po každém
   přístupu na 8255 disku nebo PMD32-SD.
 - **ZRD-1V** (autor: LED podle rev 2.0, jedna zámek zápisu, druhá přístup): DSK svítí 20 ms po přístupu k datům
-  (74LS123 „20 msec“). ZAM čeká na popis zámku zápisu rev 2.0 (binární schéma nejde přečíst). Barvy: ZAM červená,
-  DSK žlutá (HLMP-3762/3962, přiřazení je odhad).
+  (74LS123 „20 msec“), žlutá. **ZAM podle zámku zápisu v konfiguraci karty** (autor): režim `mode` má tři stavy,
+  LED je zelená `rw`, žlutá `nosave`, červená `readonly` (`Card::panel_led_color`).

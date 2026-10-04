@@ -133,8 +133,15 @@ int Zrmd1::decode_io(uint8_t port, const char** what)
 
 unsigned Zrmd1::panel_leds()
 {
+    if (!is_zrd1v) return 0;   // ZRMD-1 has no LEDs
     bool dsk = accessed && bus && bus->now - access_at < bus->cpu_hz / 50;
-    return dsk ? 2u : 0u;
+    return 1u | (dsk ? 2u : 0u);
+}
+
+char Zrmd1::panel_led_color(int n)
+{
+    if (!is_zrd1v || n != 0) return 0;
+    return mode == MODE_RW ? 'g' : mode == MODE_NOSAVE ? 'y' : 'r';
 }
 
 bool Zrmd1::io_read(uint8_t port, uint8_t& data)
