@@ -642,3 +642,5 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Autor:** zachycení kliknutím bylo otravné. Myš PC se proto pro SAPI nejdřív zapne v menu (jako joystick
   z klávesnice), výchozí je vypnuto. Při zachycení i uvolnění dostane GUI uvolnění všech tlačítek a polohu
   kurzoru, jinak po uvolnění táhlo okno (stisk, který myš zachytil, GUI vidělo, jeho uvolnění ne).
+- **Autor:** palba joysticku z klávesnice zůstává na mezerníku, joystick z klávesnice se ale rychle zapíná a vypíná
+  Ctrl+F8 (F8 dál přepíná rychlost) a stavový řádek ukazuje, že je zapnutý.

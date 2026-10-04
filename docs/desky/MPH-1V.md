@@ -83,7 +83,8 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
   `mouse_amiga`. Výchozí K4 = joystick, K2 = myš Atari ST (podle štítků OVL a MYŠ).
 - **Joystick:** první konektor s joystickem dostane první gamepad, druhý druhý (SDL3: křížový ovladač nebo levá
   páčka, A/X = FL, B/Y = FR). Volitelně šipky a mezerník (FL) jako první joystick, které pak nejdou do klávesnice
-  SAPI.
+  SAPI. Zapíná a vypíná se v menu nebo **Ctrl+F8** (autor: na psaní rychle vypnout). Stavový řádek ukazuje, když je
+  zapnutý. Obě volby (joystick z klávesnice, myš PC) jsou výchozí vypnuté a GUI si pamatuje poslední stav.
 - **Myš Atari ST:** pin 2 XA, 1 XB, 4 YB, 3 YA (= D0 XA, D1 XB, D2 YB, D3 YA, popisky MPH-test), levé tlačítko
   pin 6 (D4), pravé pin 9 (D5). **Amiga:** pin 2 H, 1 V, 4 HQ, 3 VQ (D0 H, D1 V, D2 HQ, D3 VQ), prostřední
   tlačítko (pin 5) karta nemá zapojené.

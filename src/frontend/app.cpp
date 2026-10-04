@@ -291,7 +291,10 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     Machine* m = app.host.machine();
     switch (ev.key) {
     case SDLK_F5: app.host.paused = !app.host.paused; return;
-    case SDLK_F8: app.host.cycle_speed(); return;
+    case SDLK_F8:   // Ctrl+F8: the joystick from the keyboard on/off (arrows, space = fire)
+        if (ev.mod & SDL_KMOD_CTRL) app.joy.keyboard = !app.joy.keyboard;
+        else app.host.cycle_speed();
+        return;
     case SDLK_F10:
         if (app.mouse.captured && (ev.mod & SDL_KMOD_CTRL)) mouse_capture(app.mouse, app.window, false);
         else debug_step(app, true);
@@ -495,7 +498,7 @@ void draw_menu(App& app)
             if (app.audio.failed) ImGui::TextDisabled("%s", tr("No sound device."));
             ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
             ImGui::Separator();
-            ImGui::MenuItem(tr("Joystick from the keyboard (arrows, space = fire)"), nullptr, &app.joy.keyboard);
+            ImGui::MenuItem(tr("Joystick from the keyboard (arrows, space = fire)"), "Ctrl+F8", &app.joy.keyboard);
             for (int i = 0; i < 2; i++) {
                 std::string pad = joystick_name(app.joy, i);
                 ImGui::TextDisabled("%s %d: %s", tr("Gamepad"), i + 1, pad.empty() ? tr("none") : pad.c_str());
@@ -539,6 +542,7 @@ void draw_menu(App& app)
     }
     if (ImGui::BeginMenu(tr("Help"))) {
         ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
+        ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
         if (app.mcp && app.mcp->running()) {
@@ -561,6 +565,10 @@ void draw_menu(App& app)
                                             : (app.host.max_speed ? tr("Maximum") : "");
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
+        if (app.joy.keyboard) {   // arrows and space do not type now
+            ks += "  ";
+            ks += tr("joystick from the keyboard (Ctrl+F8)");
+        }
         if (app.mouse.captured) {
             ks += "  ";
             ks += tr("mouse captured (middle button / Ctrl+F10)");
