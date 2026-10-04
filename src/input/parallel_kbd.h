@@ -10,7 +10,9 @@
 // Two strobe behaviours:
 //  - latched: the strobe stays low until the computer acknowledges (EKL-1,
 //    Consul 259.11, Consul 262.3 with the 7474 modification)
-//  - pulse:   a 1 ms strobe pulse, no acknowledge (original Consul 262.3)
+//  - pulse:   a 1 ms strobe pulse, no acknowledge (original Consul 262.3). Unless strict,
+//    a key whose pulse the program did not look at (no read of port 01h while the strobe
+//    was low, e.g. busy saving a file) is sent again: typed or pasted text is not lost.
 #include <deque>
 #include "core/devices.h"
 
@@ -43,6 +45,7 @@ protected:
     bool strobe_low = false;
     uint64_t strobe_until = 0;
     bool ack = false;
+    bool seen = false;              // pulse: the program read P0-IN while the strobe was low
     bool beep = false;
     bool clr = false;
     uint64_t clr_until = 0;

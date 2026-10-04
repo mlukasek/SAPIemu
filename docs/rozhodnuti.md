@@ -583,3 +583,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Zobrazení:** stavový řádek „CPU 4.00 MHz  emulace 100 %“ (takt karty a naměřená rychlost), displej FREKVENCE
   CPU efektivní takt CPU = takt karty × rychlost emulace, od 100 MHz bez desetin. Dřív displej počítal z časové
   základny sběrnice, u JPR-1V s CPU na 2 MHz proto ukazoval 4.
+
+## 2026-10-04 – JPR-1V a Consul 262.3 bez úpravy 7474
+
+- **Chyba (autor):** v sestavě V s MikroBIOSem šel napsat jen jeden znak. MikroBIOS nepotvrzuje klávesu ACK a čeká
+  na uvolnění STROBE, úprava 7474 (jen na JPR-1Z/ZI) ho ale držela. JPR-1V úpravu nemá, sestava V má
+  `latch_mod: false`, tedy původní pulz.
+- **Pulzní STROBE a text z PC:** mimo režim `strict` emulace pošle klávesu znovu, když program během pulzu port 01h
+  nečetl. Text vkládaný z PC nebo přes MCP se tak neztrácí (na skutečném stroji by se ztratil).
+- **Debugger:** čtení paměti na portech klávesnice JPR-1 (2400h/2800h) vrací FFh, aby prohlížení paměti
+  neovlivnilo klávesnici.

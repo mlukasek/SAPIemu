@@ -42,7 +42,8 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - P1-IN se zachytává signálem P1-STB (K2-10).
   - P2-IN je transparentní.
   - Zapojení K2 je jako X2 u JPR-1ZI, současný model EKL-1/Consul sedí beze změny.
-  - MikroBIOS čte klávesnici: čeká na `IN 01h` bit 0 = 0, pak `IN 02h` s CPL.
+  - MikroBIOS čte klávesnici: čeká na `IN 01h` bit 0 = 0, pak `IN 02h` s CPL. ACK neposílá, čeká na uvolnění
+    STROBE (rutina 0591, 500 čtení). Consul 262.3 proto bez úpravy 7474 (`latch_mod: false`).
 - **Přerušení:** /INT0 → /INT, /INT1 → /NMI, RDY → /WAIT, /HOLD → /BUSRQ. /INTA = /IORQ OR /M1. Bez obvodu
   XINTA (jako JPR-1Z).
 - **Takty:** oscilátor 8 MHz → 74HCT175.

@@ -30,6 +30,8 @@ Paralelní klávesnice (všechny kromě ANK-1) mají společný základ `paralle
   zrovna počítá nebo pípá. Preset „ANK-1“ je pro MIKROBASIC, „ANK-1 (MIKOS)“ pro MIKOS V4.
 
 Emulace (kromě „strict“) nepošle další znak, dokud program nevrátí ACK do 0, aby se znaky z PC neztrácely.
+U pulzního STROBE (Consul 262.3 bez 7474) pošle klávesu znovu, když program během pulzu port 01h vůbec nečetl
+(např. zrovna ukládal soubor). Na skutečném stroji by se taková klávesa ztratila, program to nijak nepozná.
 
 ### Mapování kláves PC
 
@@ -120,6 +122,9 @@ Zdroj: `jpr-1z.php`, manuál 864.795 (skeny `H:\SAPI-1\SAPI_DOKU_2024-01-03\sken
 - **STROBE se nezachytává:** jde o pulz asi 1 ms, takže při pollingu lze klávesu přehlédnout. Úprava se 7474
   (na JPR-1Z) STROBE zachytí a nuluje ho až potvrzení programu P0-OUT0 = 1. Emulátor ji má ve výchozím stavu
   (`latch_mod: true`), původní chování je preset „Consul 262.3 (bez 7474)“.
+- **JPR-1V úpravu 7474 nemá** (P0-IN průchozí, data zachytává P1-STB), sestava V má proto `latch_mod: false`.
+  MikroBIOS 3.0 klávesu nepotvrzuje přes ACK: vezme ji na pulz STROBE (`IN 01h` bit 0 = 0, `IN 02h`) a pak čeká,
+  až je STROBE 500 čtení po sobě neaktivní. S úpravou 7474 by STROBE zůstal držený a další klávesa by nepřišla.
 - **Polarita** (strobe aktivní v 0, data invertovaná) je **jen odvozená z MikroMonu**.
 - **Kódy (verze LAT, finál 800.567):** 8bitové, ASCII pod 80h, CTRL = písmeno AND 1Fh. Zvláštní klávesy:
   - kurzor C1 ↑, C2 ↓, C3 →, C4 ←;

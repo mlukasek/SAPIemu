@@ -15,7 +15,7 @@
             "bios": "open",                 // Jumper BIOS: EEPROM bank - open: bank 1 (EEPROM 0800-0FFF)
             "turbo": true,                  // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
             "osc_hz": 8000000,              // Oscillator (Hz, bus = /4, CPU = /4 or /2)
-            "keyboard": { "type": "Consul 262.3", "latch_mod": true }  // Keyboard (connector K2)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": false }  // Keyboard (connector K2)
         },
         {
             "slot": 2,                      // position X2

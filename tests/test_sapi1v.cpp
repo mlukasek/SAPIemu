@@ -79,6 +79,11 @@ static void mikrobios(void)
     CHECK(m.load_json(cfg, err));
     CHECK(run_until_text(m, "MikroBIOS 3.0 AllRAM", 3.0));
     CHECK(run_until_text(m, "Falcon Monitor Z80", 3.0));
+    // MikroBIOS takes a key on the STROBE pulse and waits until STROBE is released (no ACK):
+    // JPR-1V has no 7474 latch, several keys in a row must arrive
+    m.run_seconds(0.2);
+    m.type_text("D 0\r");
+    CHECK(run_until_text(m, "D 0\n", 3.0));
 }
 
 static void map_register(void)

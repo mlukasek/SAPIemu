@@ -23,12 +23,14 @@ void ParallelKeyboard::advance(uint64_t t)
     if (!latched && strobe_low && now >= strobe_until) {
         strobe_low = false;   // end of the 1 ms pulse
         next_allowed = now + gap_cycles;
+        if (!strict && !seen) queue.push_front(data);   // missed by the program: the same key again
     }
     if (strobe_low || queue.empty() || now < next_allowed) return;
     if (!strict && ack) return;   // previous character not finished by the program yet
     data = queue.front();
     queue.pop_front();
     strobe_low = true;
+    seen = false;
     strobe_until = now + pulse_cycles;
     // latched: a program that keeps ACK high gets only a very short strobe
     if (latched && ack) {
@@ -39,6 +41,7 @@ void ParallelKeyboard::advance(uint64_t t)
 
 uint8_t ParallelKeyboard::p0_in()
 {
+    if (strobe_low) seen = true;
     // only bit 0 (strobe) is connected, the other inputs float high
     return (uint8_t)(0xFE | (strobe_low ? 0 : 1));
 }

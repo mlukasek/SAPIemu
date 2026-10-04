@@ -344,8 +344,8 @@ uint8_t Jpr1::peek(uint16_t a)
     switch (local(a)) {
     case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
     case L_RAM: return ram[a & 0x3FF];
-    case L_P0: return kbd ? kbd->p0_in() : 0xFF;
-    case L_P1: return kbd ? kbd->p1_in() : 0xFF;
+    case L_P0:   // reading the keyboard has side effects (key taken / seen): not from the debugger
+    case L_P1: return 0xFF;
     case L_P2: return p2_in();
     case L_ECS: return 0xFF;
     default: return bus->mem_peek(a);
