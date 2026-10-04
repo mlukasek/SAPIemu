@@ -13,6 +13,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (kusovník), emulace umí jeho read-back. SPLAY, RAT PLAYER, y1stdemo i MPH-test fungují.
 - Programy v `media/mph-1v/`, hudba (VGM, RAD) v repu není, test ji bere z `..\MPH-1V`.
 - Soubor → Nahrát binární soubor do paměti… (adresa, velikost, počet stránek pro `SAVE`), `sapiemu-cli --load-bin`.
+- **Myš** na K2 (výchozí, Atari ST nebo Amiga), konektory K4/K2 jako parametry karty (nic / joystick / myš, platí
+  hned), dva gamepady. GUI myš zachytí kliknutím do okna obrazovky, prostřední tlačítko / Ctrl+F10 ji pustí.
   Nahrání Intel HEX se ptá stejně (rozsah adres ze souboru, od 0100h navržený příkaz `SAVE`), zapíše až po potvrzení. Autor ověřil hudbu i joystick
   v GUI.
 

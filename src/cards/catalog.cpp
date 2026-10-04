@@ -654,8 +654,17 @@ static const CardParam k_zrd1v[] = {
 };
 
 // MPH-1V
+static const ParamOption k_mph_device[] = {
+    { "\"none\"", "nothing", "nic" },
+    { "\"joystick\"", "joystick (Atari)", "joystick (Atari)" },
+    { "\"mouse_atari\"", "mouse Atari ST", "myš Atari ST" },
+    { "\"mouse_amiga\"", "mouse Amiga", "myš Amiga" },
+    { nullptr, nullptr, nullptr },
+};
 static const CardParam k_mph1v[] = {
     { "base", PK_HEX, "S1: port base (8 ports)", "S1: báze portů (8 portů)", "\"50h\"", nullptr, 0, 0xF8 },
+    { "k4", PK_CHOICE, "K4 (OVL): plugged in", "K4 (OVL): připojeno", "\"joystick\"", k_mph_device, 0, 0 },
+    { "k2", PK_CHOICE, "K2 (MYŠ): plugged in", "K2 (MYŠ): připojeno", "\"mouse_atari\"", k_mph_device, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

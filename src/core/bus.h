@@ -20,6 +20,9 @@ enum HostJoy {
     JOY_BUTTON4 = 0x80, // R
 };
 
+// Host mouse buttons (Bus::mouse_buttons), 1 = pressed.
+enum MouseButton { MOUSE_LEFT = 1, MOUSE_RIGHT = 2 };
+
 struct IoLogEntry {
     uint64_t time;      // CPU cycles
     uint16_t pc;        // instruction that did the access
@@ -51,6 +54,11 @@ struct Bus {
     void audio_record(bool on);   // starts a new recording / stops it (audio_rec is kept)
     // host game controllers (HostJoy bits) for the joystick ports of the cards
     uint8_t joystick[2] = { 0, 0 };
+    // host mouse for the mouse ports: movement still to be sent (counts, +x right, +y down; the
+    // card takes it at the rate of a real mouse), buttons (MouseButton)
+    int mouse_dx = 0, mouse_dy = 0;
+    uint8_t mouse_buttons = 0;
+    bool mouse_connected = false;   // a card has a mouse on a connector: the GUI captures the host mouse
 
     // debugging
     uint8_t mem_watch[65536];   // WatchFlags per address

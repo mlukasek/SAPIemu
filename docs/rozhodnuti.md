@@ -627,3 +627,15 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Joystick:** stav ovladačů hostitele je na sběrnici (`Bus::joystick`, bity v pořadí portu MPH-1V). Gamepad přes
   SDL3, klávesnice (šipky + mezerník) jen po zapnutí, protože jinak patří klávesnici SAPI. GUI zapisuje jen změny,
   takže stav nastavený přes MCP vydrží.
+
+## 2026-10-04 – Myš a konektory MPH-1V
+
+- **Autor:** myš chytat kliknutím do okna obrazovky, ne jen v hlavním okně (hra může být v CGA-1V nebo DGD-1V).
+  Myš Atari ST i Amiga dává jen relativní pohyb, proto relativní režim SDL se skrytým kurzorem, ne pohyb nad
+  oknem. Uvolnění prostředním tlačítkem, Ctrl+F10 (jako DOSBox) a ztrátou fokusu. Klávesnice dál píše do SAPI.
+- **Co je na K4 a K2, je parametr karty** (nic / joystick / myš Atari ST / myš Amiga), jako na skutečné kartě, kam
+  se zapojí, co je po ruce. Platí hned. Výchozí podle štítků: K4 joystick, K2 myš Atari ST (odpovídá popiskům
+  MPH-test XA, XB, YA, YB).
+- **Rychlost kroků omezená na 1000/s na osu v emulovaném čase:** skutečná myš nedá kroky libovolně rychle a
+  program, který porty polluje, by je jinak přeskakoval. Pohyb navíc se drží nejvýš 250 ms.
+- Výčet tlačítek na sběrnici je `MouseButton`, stav myši PC ve frontendu `HostMouse`.

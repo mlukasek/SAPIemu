@@ -81,26 +81,45 @@ void audio_frame(HostAudio& a, Machine* m, bool listen)
     }
 }
 
-static void open_first_gamepad(HostJoystick& j)
+static bool pad_open(const HostJoystick& j, SDL_JoystickID id)
+{
+    for (SDL_Gamepad* p : j.pad)
+        if (p && SDL_GetGamepadID(p) == id) return true;
+    return false;
+}
+
+// Free places get gamepads that are connected but not open yet (in SDL's order).
+static void open_gamepads(HostJoystick& j)
 {
     int count = 0;
     SDL_JoystickID* ids = SDL_GetGamepads(&count);
-    if (ids && count > 0) {
-        j.pad = SDL_OpenGamepad(ids[0]);
-        if (j.pad) LOGI("gamepad: %s", SDL_GetGamepadName(j.pad));
+    for (int i = 0; ids && i < count; i++) {
+        if (pad_open(j, ids[i])) continue;
+        for (SDL_Gamepad*& p : j.pad) {
+            if (p) continue;
+            p = SDL_OpenGamepad(ids[i]);
+            if (p) LOGI("gamepad: %s", SDL_GetGamepadName(p));
+            break;
+        }
     }
     if (ids) SDL_free(ids);
 }
 
 void joystick_event(HostJoystick& j, const SDL_Event& ev)
 {
-    if (ev.type == SDL_EVENT_GAMEPAD_ADDED && !j.pad) {
-        j.pad = SDL_OpenGamepad(ev.gdevice.which);
-        if (j.pad) LOGI("gamepad: %s", SDL_GetGamepadName(j.pad));
-    } else if (ev.type == SDL_EVENT_GAMEPAD_REMOVED && j.pad && SDL_GetGamepadID(j.pad) == ev.gdevice.which) {
-        SDL_CloseGamepad(j.pad);
-        j.pad = nullptr;
-        open_first_gamepad(j);
+    if (ev.type == SDL_EVENT_GAMEPAD_ADDED) {
+        open_gamepads(j);
+    } else if (ev.type == SDL_EVENT_GAMEPAD_REMOVED) {
+        for (SDL_Gamepad*& p : j.pad)
+            if (p && SDL_GetGamepadID(p) == ev.gdevice.which) {
+                SDL_CloseGamepad(p);
+                p = nullptr;
+            }
+        if (!j.pad[0] && j.pad[1]) {   // the second one becomes the first
+            j.pad[0] = j.pad[1];
+            j.pad[1] = nullptr;
+        }
+        open_gamepads(j);
     }
 }
 
@@ -110,23 +129,24 @@ bool joystick_key(const HostJoystick& j, int key)
                           key == SDLK_SPACE);
 }
 
-uint8_t joystick_state(const HostJoystick& j, bool keys)
+uint8_t joystick_state(const HostJoystick& j, int n, bool keys)
 {
     uint8_t s = 0;
-    if (j.pad) {
+    SDL_Gamepad* pad = j.pad[n];
+    if (pad) {
         const int dead = 16000;
-        int x = SDL_GetGamepadAxis(j.pad, SDL_GAMEPAD_AXIS_LEFTX);
-        int y = SDL_GetGamepadAxis(j.pad, SDL_GAMEPAD_AXIS_LEFTY);
-        if (SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_DPAD_UP) || y < -dead) s |= JOY_UP;
-        if (SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) || y > dead) s |= JOY_DOWN;
-        if (SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) || x < -dead) s |= JOY_LEFT;
-        if (SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) || x > dead) s |= JOY_RIGHT;
-        if (SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_SOUTH) || SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_WEST))
+        int x = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX);
+        int y = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY);
+        if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_UP) || y < -dead) s |= JOY_UP;
+        if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) || y > dead) s |= JOY_DOWN;
+        if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) || x < -dead) s |= JOY_LEFT;
+        if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) || x > dead) s |= JOY_RIGHT;
+        if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_SOUTH) || SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_WEST))
             s |= JOY_FIRE1;
-        if (SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_EAST) || SDL_GetGamepadButton(j.pad, SDL_GAMEPAD_BUTTON_NORTH))
+        if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_EAST) || SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_NORTH))
             s |= JOY_FIRE2;
     }
-    if (keys && j.keyboard) {
+    if (n == 0 && keys && j.keyboard) {
         const bool* k = SDL_GetKeyboardState(nullptr);
         if (k[SDL_SCANCODE_UP]) s |= JOY_UP;
         if (k[SDL_SCANCODE_DOWN]) s |= JOY_DOWN;
@@ -137,14 +157,74 @@ uint8_t joystick_state(const HostJoystick& j, bool keys)
     return s;
 }
 
-std::string joystick_name(const HostJoystick& j)
+std::string joystick_name(const HostJoystick& j, int n)
 {
-    const char* n = j.pad ? SDL_GetGamepadName(j.pad) : nullptr;
-    return n ? n : (j.pad ? "gamepad" : "");
+    const char* s = j.pad[n] ? SDL_GetGamepadName(j.pad[n]) : nullptr;
+    return s ? s : (j.pad[n] ? "gamepad" : "");
 }
 
 void joystick_close(HostJoystick& j)
 {
-    if (j.pad) SDL_CloseGamepad(j.pad);
-    j.pad = nullptr;
+    for (SDL_Gamepad*& p : j.pad) {
+        if (p) SDL_CloseGamepad(p);
+        p = nullptr;
+    }
+}
+
+void mouse_capture(HostMouse& ms, SDL_Window* w, bool on)
+{
+    if (ms.captured == on) return;
+    SDL_SetWindowRelativeMouseMode(w, on);
+    ms.captured = on;
+    ms.buttons = 0;
+    ms.fx = ms.fy = 0;
+}
+
+bool mouse_event(HostMouse& ms, SDL_Window* w, Machine* m, const SDL_Event& ev)
+{
+    if (ev.type == SDL_EVENT_WINDOW_FOCUS_LOST) {
+        mouse_capture(ms, w, false);
+        return false;
+    }
+    if (!ms.captured) return false;
+    switch (ev.type) {
+    case SDL_EVENT_MOUSE_MOTION:
+        if (m) {   // whole counts to the machine, the fractions wait for the next motion
+            ms.fx += ev.motion.xrel * ms.sensitivity;
+            ms.fy += ev.motion.yrel * ms.sensitivity;
+            int ix = (int)ms.fx, iy = (int)ms.fy;
+            ms.fx -= (float)ix;
+            ms.fy -= (float)iy;
+            m->bus.mouse_dx += ix;
+            m->bus.mouse_dy += iy;
+        }
+        return true;
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+    case SDL_EVENT_MOUSE_BUTTON_UP: {
+        bool down = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+        if (ev.button.button == SDL_BUTTON_MIDDLE) {
+            if (down) mouse_capture(ms, w, false);
+            return true;
+        }
+        uint8_t b = ev.button.button == SDL_BUTTON_LEFT ? MOUSE_LEFT : ev.button.button == SDL_BUTTON_RIGHT ? MOUSE_RIGHT : 0;
+        if (down) ms.buttons |= b;
+        else ms.buttons &= (uint8_t)~b;
+        return true;
+    }
+    case SDL_EVENT_MOUSE_WHEEL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+void mouse_frame(HostMouse& ms, SDL_Window* w, Machine* m)
+{
+    bool wanted = m && m->bus.mouse_connected;
+    if (ms.click && wanted) mouse_capture(ms, w, true);
+    ms.click = false;
+    if (ms.captured && !wanted) mouse_capture(ms, w, false);
+    uint8_t b = ms.captured ? ms.buttons : 0;
+    if (m && b != ms.last) m->bus.mouse_buttons = b;   // only changes: MCP may set them in between
+    ms.last = b;
 }

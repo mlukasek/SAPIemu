@@ -66,7 +66,8 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `type_text` | Psaní na připojenou klávesnici (`\r` = Enter; čeština jen u EKL-1 a Consul 259.11 KOI-8 cs), volitelně s během `run_ms` |
 | `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
 | `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1 |
-| `joystick` | Joystick karty MPH-1V: `port` 0 (konektor joysticku) nebo 1 (myš), `pressed` = co je stisknuté (`down`, `up`, `right`, `left`, `fire1`, `fire2`), bez něj jen stav |
+| `joystick` | Joysticky stroje (konektory MPH-1V nastavené na joystick): `port` 0 = první, 1 = druhý, `pressed` = co je stisknuté (`down`, `up`, `right`, `left`, `fire1`, `fire2`), bez něj jen stav |
+| `mouse` | Myš stroje (konektor MPH-1V `mouse_atari` / `mouse_amiga`): `dx`, `dy` = pohyb v krocích (+x doprava, +y dolů, karta je posílá po 1000 za sekundu), `buttons` = držená tlačítka (`left`, `right`) |
 | `audio_record` | Nahrávání zvuku zvukové karty (MPH-1V, mono 49716 Hz): `start=true` začne, volání bez `start` skončí a vrátí délku, RMS a špičku, s `file` uloží WAV |
 | `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V: CPU 2/4 MHz, sběrnice 2 MHz), zapíše se i do popisu sestavy |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |

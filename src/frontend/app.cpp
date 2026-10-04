@@ -66,6 +66,7 @@ struct App {
     EmuHost host;
     HostAudio audio;              // sound cards (MPH-1V)
     HostJoystick joy;             // gamepad / keyboard for the joystick ports
+    HostMouse mouse;              // the host mouse for the mouse ports (captured by a click)
     McpServer* mcp = nullptr;
     UiState ui;
     std::string error_text;
@@ -138,6 +139,7 @@ nlohmann::json settings_json(App& app)
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
     j["joystick"] = { { "keyboard", app.joy.keyboard } };
+    j["mouse"] = { { "sensitivity", app.mouse.sensitivity } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     return j;
@@ -204,6 +206,9 @@ void settings_apply(App& app, const nlohmann::json& j)
     if (app.audio.volume < 0 || app.audio.volume > 100) app.audio.volume = 80;
     const nlohmann::json& joy = j.value("joystick", nlohmann::json::object());
     get_opt(joy, "keyboard", app.joy.keyboard);
+    const nlohmann::json& mo = j.value("mouse", nlohmann::json::object());
+    get_opt(mo, "sensitivity", app.mouse.sensitivity);
+    if (!(app.mouse.sensitivity >= 0.1f && app.mouse.sensitivity <= 8.0f)) app.mouse.sensitivity = 1.0f;
 }
 
 // The console window was "Obrazovka" (or "Screen"); now it is named after the display
@@ -286,7 +291,10 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     switch (ev.key) {
     case SDLK_F5: app.host.paused = !app.host.paused; return;
     case SDLK_F8: app.host.cycle_speed(); return;
-    case SDLK_F10: debug_step(app, true); return;
+    case SDLK_F10:
+        if (app.mouse.captured && (ev.mod & SDL_KMOD_CTRL)) mouse_capture(app.mouse, app.window, false);
+        else debug_step(app, true);
+        return;
     case SDLK_F11: debug_step(app, false); return;
     case SDLK_F12:   // under a debugger Windows takes F12 as the break hotkey, F9 still works
     case SDLK_F9: if (m) m->reset(); return;
@@ -479,7 +487,7 @@ void draw_menu(App& app)
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(tr("Sound and joystick"))) {
+        if (ImGui::BeginMenu(tr("Sound, joystick and mouse"))) {
             ImGui::MenuItem(tr("Sound"), nullptr, &app.audio.enabled);
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
             ImGui::SliderInt(tr("Volume"), &app.audio.volume, 0, 100, "%d %%");
@@ -487,8 +495,14 @@ void draw_menu(App& app)
             ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
             ImGui::Separator();
             ImGui::MenuItem(tr("Joystick from the keyboard (arrows, space = fire)"), nullptr, &app.joy.keyboard);
-            std::string pad = joystick_name(app.joy);
-            ImGui::TextDisabled("%s: %s", tr("Gamepad"), pad.empty() ? tr("none") : pad.c_str());
+            for (int i = 0; i < 2; i++) {
+                std::string pad = joystick_name(app.joy, i);
+                ImGui::TextDisabled("%s %d: %s", tr("Gamepad"), i + 1, pad.empty() ? tr("none") : pad.c_str());
+            }
+            ImGui::Separator();
+            ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
+            ImGui::SliderFloat(tr("Mouse sensitivity"), &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
+            ImGui::TextDisabled("%s", tr("Mouse: click into a screen to capture it; middle button or Ctrl+F10 releases it."));
             ImGui::EndMenu();
         }
         ImGui::EndMenu();
@@ -543,6 +557,10 @@ void draw_menu(App& app)
                                             : (app.host.max_speed ? tr("Maximum") : "");
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
+        if (app.mouse.captured) {
+            ks += "  ";
+            ks += tr("mouse captured (middle button / Ctrl+F10)");
+        }
         if (kb && kb->pending() > 1) {   // keys typed but not taken by the program
             char q[48];
             snprintf(q, sizeof(q), "  %s %d", tr("keys waiting:"), (int)kb->pending());
@@ -606,6 +624,7 @@ float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, in
     ImDrawList* dl = ImGui::GetWindowDrawList();
     if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
     ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), size);
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) app.mouse.click = true;   // captures the mouse when the machine has one
     if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
     return scale;
 }
@@ -832,6 +851,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     while (!app.quit) {
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
+            if (mouse_event(app.mouse, app.window, app.host.machine(), ev)) continue;   // captured: for the SAPI
             ImGui_ImplSDL3_ProcessEvent(&ev);
             if (ev.type == SDL_EVENT_QUIT) rack_request_exit(app.ui);
             else if (ev.type == SDL_EVENT_WINDOW_MOVED || ev.type == SDL_EVENT_WINDOW_RESIZED) track_window(app);
@@ -846,11 +866,16 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
         if (app.ui.quit) app.quit = true;
         uint64_t now = SDL_GetTicksNS();
-        if (Machine* jm = app.host.machine()) {   // the joystick port follows the gamepad and the keyboard
-            uint8_t js = joystick_state(app.joy, app.ui.screen_focused);
-            if (js != app.joy.last) jm->bus.joystick[0] = js;
-            app.joy.last = js;
+        if (Machine* jm = app.host.machine()) {   // the joystick ports follow the gamepads and the keyboard
+            for (int i = 0; i < 2; i++) {
+                uint8_t js = joystick_state(app.joy, i, app.ui.screen_focused);
+                if (js != app.joy.last[i]) jm->bus.joystick[i] = js;
+                app.joy.last[i] = js;
+            }
         }
+        mouse_frame(app.mouse, app.window, app.host.machine());
+        if (app.mouse.captured) io.ConfigFlags |= ImGuiConfigFlags_NoMouse;   // the GUI does not see it
+        else io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
         app.host.frame(now - last);
         last = now;
         audio_frame(app.audio, app.host.machine(),
@@ -907,6 +932,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     settings_save(app, false);
     audio_close(app.audio);
     joystick_close(app.joy);
+    mouse_capture(app.mouse, app.window, false);
     app.host.shutdown();
     if (app.mcp) { app.mcp->stop(); delete app.mcp; }
     ImGui_ImplSDLRenderer3_Shutdown();

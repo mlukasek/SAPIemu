@@ -58,8 +58,7 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
   neukládají.
 - **/INT0** = (F2 a IEN.D7) nebo (F1 a IEN.D6) nebo (YM a IEN.D0), 74LS38 s otevřeným kolektorem.
 - **JOY/MOUSE:** aktivní v 0, pull-upy 4k7. D7 a D6 jsou jen na pull-upech (čtou 1). Pro myš mají D3–D0
-  význam YA, YB, XB, XA (kvadratura).
-  Myš se zatím neemuluje, MOUSE čte stav druhého ovladače (dnes nic, tedy FFh).
+  význam YA, YB, XB, XA (kvadratura, MPH-test: „Joystick B / Myš“ na dolním konektoru).
 - Časovače YM3812: T1 po 80 µs (288 taktů), T2 po 320 µs. Stav: D7 IRQ, D6 T1, D5 T2, dolní bity 110
   (jako skutečný YM3812, detekce AdLib).
 - WSE (registr 01h bit 5): bez něj hraje každý operátor sinus. Jádro OPL3 to v režimu OPL2 nedělá, řeší to
@@ -80,10 +79,23 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
   podle emulovaného času. Zvuk jde do `Bus::audio` (mono, 49716 Hz).
 - GUI hraje zvuk jen při rychlosti emulace 100 % a mimo pauzu (Stroj → Zvuk a joystick: zapnutí, hlasitost).
   Latence je asi 60 ms. Při zpoždění se nejstarší vzorky zahodí, po vyprázdnění se zvuk znovu nabuferuje.
-- Joystick: první připojený gamepad (SDL3: křížový ovladač nebo levá páčka, A/X = FL, B/Y = FR). Volitelně
-  šipky a mezerník (FL), které pak nejdou do klávesnice SAPI.
+- **Co je na konektorech** (parametry `k4`, `k2`, platí hned i za chodu): `none`, `joystick`, `mouse_atari`,
+  `mouse_amiga`. Výchozí K4 = joystick, K2 = myš Atari ST (podle štítků OVL a MYŠ).
+- **Joystick:** první konektor s joystickem dostane první gamepad, druhý druhý (SDL3: křížový ovladač nebo levá
+  páčka, A/X = FL, B/Y = FR). Volitelně šipky a mezerník (FL) jako první joystick, které pak nejdou do klávesnice
+  SAPI.
+- **Myš Atari ST:** pin 2 XA, 1 XB, 4 YB, 3 YA (= D0 XA, D1 XB, D2 YB, D3 YA, popisky MPH-test), levé tlačítko
+  pin 6 (D4), pravé pin 9 (D5). **Amiga:** pin 2 H, 1 V, 4 HQ, 3 VQ (D0 H, D1 V, D2 HQ, D3 VQ), prostřední
+  tlačítko (pin 5) karta nemá zapojené.
+- Kvadratura: fáze 00, 10, 11, 01 (A, B), doprava a dolů vede A. Karta posílá nejvýš 1000 kroků za sekundu na
+  osu (emulovaný čas) jako skutečné kolečko myši. Program, který port jen čte, by rychlejší kroky přeskočil.
+  Pohyb, který nestihne, se drží nejvýš 250 ms, pak se zahodí.
+- **Zachycení v GUI:** kliknutí do kteréhokoli okna obrazovky (AND-1V, CGA-1V, DGD-1V…) myš zachytí, když je
+  nějaká připojená. Kurzor zmizí a relativní pohyb jde do SAPI. Pustí ji prostřední tlačítko, Ctrl+F10 nebo
+  ztráta fokusu okna. Citlivost (kroků na bod myši PC) je ve Stroj → Zvuk, joystick a myš. Absolutní pozice
+  nejde: kde je kurzor, ví jen program.
 - `sapiemu-cli --audio-wav soubor.wav` nahraje zvuk od místa v akcích do konce. MCP `audio_record` (WAV, RMS,
-  špička) a `joystick`.
+  špička), `joystick` a `mouse`.
 
 ## Nejasnosti
 
@@ -92,3 +104,5 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
   verze.
 - /RST YM3812 se po /IRES uvolní o 8 taktů 224 kHz později (asi 36 µs). Emulace to nezdržuje. Program, který by
   hned po resetu zapisoval do YM, by se na desce choval jinak (zatím žádný takový neznáme).
+- Směr os myši (která strana je „+“) jsme neověřili na skutečné myši s programem. Zatím žádný program pro SAPI
+  myš nepoužívá, MPH-test jen ukazuje bity.

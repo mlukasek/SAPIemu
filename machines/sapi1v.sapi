@@ -99,7 +99,9 @@
         {
             "slot": 8,                      // position X8
             "type": "MPH-1V",               // Sound YM3812, timer 82C54, joystick (V)
-            "base": "50h"                   // S1: port base (8 ports)
+            "base": "50h",                  // S1: port base (8 ports)
+            "k4": "joystick",               // K4 (OVL): plugged in - joystick (Atari)
+            "k2": "mouse_atari"             // K2 (MYŠ): plugged in - mouse Atari ST
         }
     ]
 }

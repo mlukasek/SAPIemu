@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 using nlohmann::json;
 
@@ -30,12 +31,29 @@ static void filter_init(void)
     hp_a = (float)(rc / (rc + 1.0 / Mph1v::SAMPLE_HZ));
 }
 
+static bool device_of(const json& v, int& out, std::string& err, const char* key)
+{
+    std::string s = v.is_string() ? v.get<std::string>() : std::string("?");
+    if (s == "none") out = Mph1v::DEV_NONE;
+    else if (s == "joystick") out = Mph1v::DEV_JOYSTICK;
+    else if (s == "mouse_atari") out = Mph1v::DEV_MOUSE_ATARI;
+    else if (s == "mouse_amiga") out = Mph1v::DEV_MOUSE_AMIGA;
+    else {
+        err = std::string(key) + " must be none, joystick, mouse_atari or mouse_amiga";
+        return false;
+    }
+    return true;
+}
+
 bool Mph1v::configure(const json& cfg, std::string& err)
 {
     long long b;
     if (!cfg_number(cfg, "base", b, 0x50, err)) return false;
     if (b < 0 || b > 0xF8 || (b & 7)) { err = "base must be a multiple of 8 from 00h to F8h (S1)"; return false; }
     base = (uint8_t)b;
+    if (!device_of(cfg.value("k4", json("joystick")), dev[0], err, "k4")) return false;
+    if (!device_of(cfg.value("k2", json("mouse_atari")), dev[1], err, "k2")) return false;
+    update_mouse_flag();
     pit.is_8254 = true;   // CP82C54-10 (parts list)
     filter_init();
     if (bus) bus->audio_rate = SAMPLE_HZ;
@@ -79,6 +97,70 @@ void Mph1v::pit_clock(void)
     pit_edges(before);
 }
 
+void Mph1v::update_mouse_flag(void)
+{
+    if (bus) bus->mouse_connected = dev[0] >= DEV_MOUSE_ATARI || dev[1] >= DEV_MOUSE_ATARI;
+}
+
+bool Mph1v::live_param(const char* path) const
+{
+    return !strcmp(path, "k4") || !strcmp(path, "k2");   // plugging a controller in and out
+}
+
+bool Mph1v::set_live_param(const char* path, const json& v, std::string& err)
+{
+    int k = !strcmp(path, "k4") ? 0 : !strcmp(path, "k2") ? 1 : -1;
+    if (k < 0) return Card::set_live_param(path, v, err);
+    if (!device_of(v, dev[k], err, path)) return false;
+    update_mouse_flag();
+    return true;
+}
+
+// One step of each wheel towards the movement the host still owes (a real mouse cannot turn
+// its wheels faster; a program polling the port would miss steps).
+void Mph1v::mouse_step(void)
+{
+    const int cap = MOUSE_RATE / 4;   // at most 250 ms behind the host, then it is dropped
+    int& dx = bus->mouse_dx;
+    int& dy = bus->mouse_dy;
+    if (dx > cap) dx = cap;
+    if (dx < -cap) dx = -cap;
+    if (dy > cap) dy = cap;
+    if (dy < -cap) dy = -cap;
+    if (dx > 0) { mx = (uint8_t)((mx + 1) & 3); dx--; }
+    else if (dx < 0) { mx = (uint8_t)((mx + 3) & 3); dx++; }
+    if (dy > 0) { my = (uint8_t)((my + 1) & 3); dy--; }
+    else if (dy < 0) { my = (uint8_t)((my + 3) & 3); dy++; }
+}
+
+uint8_t Mph1v::connector(int k)
+{
+    switch (dev[k]) {
+    case DEV_JOYSTICK: {
+        // the first joystick connector gets the first host controller, the second the second
+        int j = (k == 1 && dev[0] == DEV_JOYSTICK) ? 1 : 0;
+        return (uint8_t)(~bus->joystick[j] | 0xC0);
+    }
+    case DEV_MOUSE_ATARI:
+    case DEV_MOUSE_AMIGA: {
+        // quadrature: phase 0-3 -> (A, B) = 00, 10, 11, 01; A leads B moving right / down
+        static const uint8_t qa[4] = { 0, 1, 1, 0 }, qb[4] = { 0, 0, 1, 1 };
+        uint8_t v = 0xFF;
+        if (bus->mouse_buttons & MOUSE_LEFT) v &= (uint8_t)~0x10;    // pin 6
+        if (bus->mouse_buttons & MOUSE_RIGHT) v &= (uint8_t)~0x20;   // pin 9
+        v &= 0xF0;
+        uint8_t xa = qa[mx], xb = qb[mx], ya = qa[my], yb = qb[my];
+        if (dev[k] == DEV_MOUSE_ATARI)   // pin 2 XA, pin 1 XB, pin 4 YB, pin 3 YA
+            v |= (uint8_t)(xa | xb << 1 | yb << 2 | ya << 3);
+        else                             // pin 2 H, pin 1 V, pin 4 HQ, pin 3 VQ
+            v |= (uint8_t)(xa | ya << 1 | xb << 2 | yb << 3);
+        return v;
+    }
+    default:
+        return 0xFF;   // nothing plugged in: the pull-ups
+    }
+}
+
 int16_t Mph1v::filter(int16_t s)
 {
     float x = (float)s;
@@ -109,6 +191,13 @@ void Mph1v::advance(uint64_t now)
     while (pit_phase >= 256) {
         pit_phase -= 256;
         pit_clock();
+    }
+    if (dev[0] >= DEV_MOUSE_ATARI || dev[1] >= DEV_MOUSE_ATARI) {
+        mouse_phase += (uint32_t)ticks;
+        while (mouse_phase >= MASTER_HZ / MOUSE_RATE) {
+            mouse_phase -= MASTER_HZ / MOUSE_RATE;
+            mouse_step();
+        }
     }
     ym_phase += (uint32_t)ticks;
     int16_t buf[256];
@@ -143,11 +232,11 @@ bool Mph1v::io_read(uint8_t port, uint8_t& data)
         if (pit.out(0)) data |= 0x08;
         if (ym.irq()) data |= 0x01;
         break;
-    case 4:
-        data = (uint8_t)(~bus->joystick[0] | 0xC0);
+    case 4:   // K4 (OVL)
+        data = connector(0);
         break;
-    case 5:   // K2 (mouse port, the same wiring): a second controller
-        data = (uint8_t)(~bus->joystick[1] | 0xC0);
+    case 5:   // K2 (MYS), the same wiring
+        data = connector(1);
         break;
     case 6:
         data = ym.status();
@@ -196,7 +285,7 @@ int Mph1v::irq_lines()
 int Mph1v::decode_io(uint8_t port, const char** what)
 {
     if ((port & 0xF8) != base) return 0;
-    static const char* names[8] = { "8253", "8253", "8253", "STATUS/8253", "JOY/IEN", "MOUSE/IACK", "YM3812", "YM3812" };
+    static const char* names[8] = { "82C54", "82C54", "82C54", "STATUS/82C54", "JOY/IEN", "MOUSE/IACK", "YM3812", "YM3812" };
     *what = names[port & 7];
     return DEC_READ | DEC_WRITE;
 }
@@ -212,4 +301,7 @@ void Mph1v::describe(json& out)
     out["out"] = { pit.out(0), pit.out(1), pit.out(2) };
     out["ym_status"] = ym.status();
     out["int0"] = irq_lines() != 0;
+    static const char* devs[4] = { "none", "joystick", "mouse_atari", "mouse_amiga" };
+    out["k4"] = devs[dev[0]];
+    out["k2"] = devs[dev[1]];
 }

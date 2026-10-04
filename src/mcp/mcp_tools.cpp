@@ -801,7 +801,7 @@ json t_joystick(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
     long long port = arg_num(a, "port", 0);
-    if (port < 0 || port > 1) throw ToolError{ "port must be 0 (joystick) or 1 (mouse port)" };
+    if (port < 0 || port > 1) throw ToolError{ "port must be 0 (first joystick) or 1 (second joystick)" };
     static const char* names[8] = { "down", "up", "right", "left", "fire1", "fire2", "button3", "button4" };
     if (a.contains("pressed")) {
         uint8_t s = 0;
@@ -820,6 +820,29 @@ json t_joystick(EmuHost& h, const json& a)
     for (int i = 0; i < 8; i++)
         if (m.bus.joystick[port] & (1 << i)) st.push_back(names[i]);
     return text_result(json{ { "port", port }, { "pressed", st } }.dump());
+}
+
+json t_mouse(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    if (!m.bus.mouse_connected) return error_result("no mouse is plugged in (MPH-1V parameters k4 / k2)");
+    m.bus.mouse_dx += (int)arg_num(a, "dx", 0);
+    m.bus.mouse_dy += (int)arg_num(a, "dy", 0);
+    if (a.contains("buttons")) {
+        if (!a["buttons"].is_array()) throw ToolError{ "buttons must be an array of names" };
+        uint8_t b = 0;
+        for (const json& n : a["buttons"]) {
+            std::string s = n.is_string() ? n.get<std::string>() : std::string();
+            if (s == "left") b |= MOUSE_LEFT;
+            else if (s == "right") b |= MOUSE_RIGHT;
+            else throw ToolError{ "unknown mouse button '" + s + "'" };
+        }
+        m.bus.mouse_buttons = b;
+    }
+    json bt = json::array();
+    if (m.bus.mouse_buttons & MOUSE_LEFT) bt.push_back("left");
+    if (m.bus.mouse_buttons & MOUSE_RIGHT) bt.push_back("right");
+    return text_result(json{ { "pending_dx", m.bus.mouse_dx }, { "pending_dy", m.bus.mouse_dy }, { "buttons", bt } }.dump());
 }
 
 json t_audio_record(EmuHost& h, const json& a)
@@ -1120,8 +1143,10 @@ const Tool k_tools[] = {
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
     { "cpu_turbo", "TURBO switch of the CPU card (JPR-1V: CPU 2 or 4 MHz, bus 2 MHz) while running; without 'on' it only reports.",
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
-    { "joystick", "Joystick port of a sound card (MPH-1V): port 0 = the joystick connector, 1 = the mouse connector. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
+    { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 set to joystick): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
       R"({"type":"object","properties":{"port":{"type":"integer","default":0},"pressed":{"type":"array","items":{"type":"string","enum":["down","up","right","left","fire1","fire2"]}}}})", t_joystick },
+    { "mouse", "Mouse of the machine (MPH-1V connector set to mouse_atari / mouse_amiga): dx, dy = counts to move (+x right, +y down), sent as quadrature steps at 1000 per second and axis; 'buttons' sets what is held (left, right). Reports the counts still pending.",
+      R"({"type":"object","properties":{"dx":{"type":"integer","default":0},"dy":{"type":"integer","default":0},"buttons":{"type":"array","items":{"type":"string","enum":["left","right"]}}}})", t_mouse },
     { "audio_record", "Record the sound card output (MPH-1V, mono, 49716 Hz): start=true starts, then run the emulation; a call without start stops and reports seconds, rms and peak (16 bit), and with 'file' saves a WAV (relative paths from the data root).",
       R"({"type":"object","properties":{"start":{"type":"boolean","default":false},"file":{"type":"string"}}})", t_audio_record },
     { "screenshot", "PNG image of the display: the console screen, or display = card name of another display output (e.g. \"DGD-1\" graphics).",

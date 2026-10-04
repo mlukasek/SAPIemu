@@ -203,16 +203,92 @@ static void tone(void)
     CHECK(m.bus.audio_rec.size() >= 4960 && m.bus.audio_rec.size() <= 4980);
 }
 
-static void joystick(void)
+// The quadrature lines seen while the card sends `steps` of movement (low bits of the port).
+static std::vector<int> quad_seq(Machine& m, int port, uint8_t mask)
+{
+    std::vector<int> seq;
+    int last = -1;
+    for (int i = 0; i < 80; i++) {   // 20 ms in 0.25 ms steps (one step per ms)
+        m.run_seconds(0.00025);
+        int v = m.bus.io_read(port) & mask;
+        if (v != last) seq.push_back(v);
+        last = v;
+    }
+    return seq;
+}
+
+// K4 / K2: joystick, Atari ST and Amiga mouse (quadrature), nothing; set while running
+static void controllers(void)
 {
     Machine m;
     if (!load(m)) return;
+    Card* c = m.find_card("MPH-1V");
+    CHECK(c != nullptr);
+    if (!c) return;
+    // default: K4 joystick, K2 Atari ST mouse
+    CHECK(m.bus.mouse_connected);
     CHECK_EQ(m.bus.io_read(P + 4), 0xFF);
-    CHECK_EQ(m.bus.io_read(P + 5), 0xFF);
     m.bus.joystick[0] = JOY_UP | JOY_FIRE1;
     CHECK_EQ(m.bus.io_read(P + 4), 0xED);
     m.bus.joystick[0] = 0;
+    m.run_seconds(0.01);
+    uint8_t idle = m.bus.io_read(P + 5);
+    CHECK_EQ(idle & 0xF0, 0xF0);   // buttons up, D7 D6 = 1
+    // Atari ST: +x -> XA (D0) leads XB (D1): 00 01 11 10 00
+    int x0 = idle & 0x03;
+    m.bus.mouse_dx = 4;
+    std::vector<int> sx = quad_seq(m, P + 5, 0x03);
+    CHECK(m.bus.mouse_dx == 0);
+    CHECK_EQ((int)sx.size(), 5);
+    if (sx.size() == 5 && x0 == 0) {
+        CHECK_EQ(sx[1], 0x01);
+        CHECK_EQ(sx[2], 0x03);
+        CHECK_EQ(sx[3], 0x02);
+        CHECK_EQ(sx[4], 0x00);
+    }
+    // -y (up): the phases backwards, YB (D2) leads YA (D3): 00 04 0C 08 00
+    m.bus.mouse_dy = -4;
+    std::vector<int> sy = quad_seq(m, P + 5, 0x0C);
+    CHECK_EQ((int)sy.size(), 5);
+    if (sy.size() == 5) {
+        CHECK_EQ(sy[1], 0x04);
+        CHECK_EQ(sy[2], 0x0C);
+        CHECK_EQ(sy[3], 0x08);
+        CHECK_EQ(sy[4], 0x00);
+    }
+    // buttons: left = pin 6 (D4), right = pin 9 (D5), active low
+    m.bus.mouse_buttons = MOUSE_LEFT;
+    CHECK_EQ(m.bus.io_read(P + 5) & 0x30, 0x20);
+    m.bus.mouse_buttons = MOUSE_RIGHT;
+    CHECK_EQ(m.bus.io_read(P + 5) & 0x30, 0x10);
+    m.bus.mouse_buttons = 0;
+    // a huge movement is limited to 250 ms of steps
+    m.bus.mouse_dx = 100000;
+    m.run_seconds(0.002);
+    CHECK(m.bus.mouse_dx <= 250);
+    m.bus.mouse_dx = 0;
+    // Amiga: H (pin 2, D0) and HQ (pin 4, D2) are the X wheel
+    std::string err;
+    CHECK(m.live_param(c, "k2"));
+    CHECK(m.set_live_param(c, "k2", "mouse_amiga", err));
+    uint8_t a0 = m.bus.io_read(P + 5);
+    m.bus.mouse_dx = 1;
+    m.run_seconds(0.003);
+    uint8_t a1 = m.bus.io_read(P + 5);
+    CHECK_EQ((a0 ^ a1) & 0x0F, ((a0 & 0x05) == 0x00 || (a0 & 0x05) == 0x05) ? 0x01 : 0x04);   // one X line changed
+    // nothing on K2, a joystick on K4 and K2: the second gets the second host controller
+    CHECK(m.set_live_param(c, "k2", "none", err));
+    CHECK(!m.bus.mouse_connected);
+    CHECK_EQ(m.bus.io_read(P + 5), 0xFF);
+    CHECK(m.set_live_param(c, "k2", "joystick", err));
+    m.bus.joystick[1] = JOY_LEFT;
+    CHECK_EQ(m.bus.io_read(P + 5), 0xF7);
     CHECK_EQ(m.bus.io_read(P + 4), 0xFF);
+    CHECK(m.set_live_param(c, "k4", "none", err));
+    CHECK_EQ(m.bus.io_read(P + 5), 0xFF);   // now the only joystick: the first controller (idle)
+    nlohmann::json* cc = m.card_config(c);
+    CHECK(cc && cc->value("k4", std::string()) == "none" && cc->value("k2", std::string()) == "joystick");
+    CHECK(!m.set_live_param(c, "k2", "trackball", err));
 }
 
 // CP/M from the ZRD-1V: a program in Intel HEX loaded at 0100h and saved like on the real machine
@@ -306,7 +382,7 @@ int main(void)
     timers();
     adlib_detect();
     tone();
-    joystick();
+    controllers();
     splay();
     rat();
     return TEST_RESULT();
