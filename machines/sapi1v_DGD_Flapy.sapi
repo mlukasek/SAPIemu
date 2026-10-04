@@ -1,8 +1,8 @@
 // SAPI-1 machine description, written by the SAPIemu configurator.
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
-    "name": "SAPI-1 V (JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V, MPH-1V; ECMON + CP/M)",
-    "description": "Sestava z Liborových desek V (Libor Lasota): JPR-1V (Z80, EEPROM banka 1 = ECMON IDE-1, banka 0 = MikroBIOS 3.0 propojkou BIOS, TURBO 4 MHz), RAM-1V 64 KB (propojky jako na autorově desce = „ZPS-3/4 SETUP“: registr MAP na 63h, MAP1 = bit 6, MAP2 = bit 7, díra 16 KB na C000 při MAP1 = H, díra 2 KB na F800 při MAP1 = L; ECMON ani CP/M mapování nepoužívají), AND-1V rev 2.3 (VGA 64x20, bílá) na F800 při MAP1 = L, DSM-1V (kanály 10h a 14h, 115200 Bd), RAM disk ZRD-1V 4 MB s CP/M na 60h, IDE-1 s IDE diskem a PMD32-SD, barevná grafika CGA-1V na C000 při MAP1 = MAP2 = H (OUT 63h,C0h), zvuková a joysticková karta MPH-1V (YM3812, 82C54) na 50h. Systém je stejný jako u ZRMD-1 (cpm_zrmd.sapi, cpm_ide.sapi).",
+    "name": "SAPI-1 V s DGD-1V (JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, DGD-1V, MPH-1V; Flappy)",
+    "description": "Sestava V s grafikou DGD-1V místo CGA-1V, pro hru Flappy (FLAPDGD.COM na disku C:, start volbou 3). JPR-1V (Z80, EEPROM banka 1 = ECMON IDE-1, banka 0 = MikroBIOS 3.0 propojkou BIOS, TURBO 4 MHz), RAM-1V 64 KB (registr MAP na 63h, MAP1 = bit 6, MAP2 = bit 7, díra 16 KB na C000 při MAP1 = H, díra 2 KB na F800 při MAP1 = L), AND-1V rev 2.3 (VGA 64x20, jantarová) na F800 při MAP1 = L, DSM-1V (kanály 10h a 14h, 115200 Bd), RAM disk ZRD-1V rev 2.1 (zámek zápisu, LED, měření baterie) 4 MB s CP/M na 60h, IDE-1 s IDE diskem a PMD32-SD, grafika DGD-1V 320x240 (VGA, bílá) na C000 při MAP1 = H, zvuková a joysticková karta MPH-1V (YM3812, 82C54) na 50h.",
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
@@ -62,7 +62,7 @@
         {
             "slot": 5,                      // position X5
             "type": "ZRD-1V",               // RAM disk 4 MB (V)
-            "revision": "1.1",              // Board revision - rev 1.1 (no lock, no LEDs)
+            "revision": "2.1",              // Board revision - rev 2.1 (lock, LEDs, battery)
             "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
             "mode": "rw"                    // Mode - read/write, saved
         },
