@@ -11,9 +11,11 @@
 #include "core/png.h"
 #include "core/util.h"
 #include "core/version.h"
+#include "core/wav.h"
 #include "input/keyboards.h"
 
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
@@ -795,6 +797,60 @@ json t_cpu_turbo(EmuHost& h, const json& a)
     return text_result(json{ { "turbo", m.cpu->cpu_turbo() }, { "cpu_hz", m.cpu->cpu_display_hz() } }.dump(2));
 }
 
+json t_joystick(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    long long port = arg_num(a, "port", 0);
+    if (port < 0 || port > 1) throw ToolError{ "port must be 0 (joystick) or 1 (mouse port)" };
+    static const char* names[8] = { "down", "up", "right", "left", "fire1", "fire2", "button3", "button4" };
+    if (a.contains("pressed")) {
+        uint8_t s = 0;
+        if (!a["pressed"].is_array()) throw ToolError{ "pressed must be an array of names" };
+        for (const json& p : a["pressed"]) {
+            std::string n = p.is_string() ? p.get<std::string>() : std::string();
+            int bit = -1;
+            for (int i = 0; i < 8; i++)
+                if (n == names[i]) bit = i;
+            if (bit < 0) throw ToolError{ "unknown joystick input '" + n + "'" };
+            s |= (uint8_t)(1 << bit);
+        }
+        m.bus.joystick[port] = s;
+    }
+    json st = json::array();
+    for (int i = 0; i < 8; i++)
+        if (m.bus.joystick[port] & (1 << i)) st.push_back(names[i]);
+    return text_result(json{ { "port", port }, { "pressed", st } }.dump());
+}
+
+json t_audio_record(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    if (!m.bus.audio_rate) return error_result("the machine has no sound card (MPH-1V)");
+    bool start = a.value("start", false);
+    if (start) {
+        m.bus.audio_record(true);
+        return text_result("recording");
+    }
+    m.bus.audio_record(false);
+    const std::vector<int16_t>& s = m.bus.audio_rec;
+    double sum = 0;
+    int peak = 0;
+    for (int16_t v : s) {
+        sum += (double)v * v;
+        if (v > peak) peak = v;
+        if (-v > peak) peak = -v;
+    }
+    json r{ { "seconds", (double)s.size() / m.bus.audio_rate }, { "rate", m.bus.audio_rate },
+            { "rms", s.empty() ? 0.0 : sqrt(sum / (double)s.size()) }, { "peak", peak } };
+    std::string file = a.value("file", std::string());
+    if (!file.empty()) {
+        std::string path = data_path(file);
+        if (!wav_write_mono16(path, s.data(), s.size(), m.bus.audio_rate)) return error_result("cannot write " + path);
+        r["file"] = path;
+    }
+    return text_result(r.dump(2));
+}
+
 json t_screenshot(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1064,6 +1120,10 @@ const Tool k_tools[] = {
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
     { "cpu_turbo", "TURBO switch of the CPU card (JPR-1V: CPU 2 or 4 MHz, bus 2 MHz) while running; without 'on' it only reports.",
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
+    { "joystick", "Joystick port of a sound card (MPH-1V): port 0 = the joystick connector, 1 = the mouse connector. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
+      R"({"type":"object","properties":{"port":{"type":"integer","default":0},"pressed":{"type":"array","items":{"type":"string","enum":["down","up","right","left","fire1","fire2"]}}}})", t_joystick },
+    { "audio_record", "Record the sound card output (MPH-1V, mono, 49716 Hz): start=true starts, then run the emulation; a call without start stops and reports seconds, rms and peak (16 bit), and with 'file' saves a WAV (relative paths from the data root).",
+      R"({"type":"object","properties":{"start":{"type":"boolean","default":false},"file":{"type":"string"}}})", t_audio_record },
     { "screenshot", "PNG image of the display: the console screen, or display = card name of another display output (e.g. \"DGD-1\" graphics).",
       R"({"type":"object","properties":{"scale":{"type":"integer","default":2},"display":{"type":"string"}}})", t_screenshot },
     { "serial_send", "Send text to a serial channel (host -> SAPI), at the configured baud rate.",

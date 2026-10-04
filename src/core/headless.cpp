@@ -48,13 +48,13 @@ static void print_regs(Machine& m)
 // The sound recorded since --audio-wav, written to its file.
 static bool write_wav(Machine& m, const std::string& path)
 {
-    m.bus.advance_all();
-    if (!wav_write_mono16(path, m.bus.audio.data(), m.bus.audio.size(), m.bus.audio_rate)) {
+    m.bus.audio_record(false);
+    if (!wav_write_mono16(path, m.bus.audio_rec.data(), m.bus.audio_rec.size(), m.bus.audio_rate)) {
         fprintf(stderr, "cannot write %s\n", path.c_str());
         return false;
     }
-    printf("%s: %.1f s of sound\n", path.c_str(), (double)m.bus.audio.size() / (double)m.bus.audio_rate);
-    m.bus.audio.clear();
+    printf("%s: %.1f s of sound\n", path.c_str(), (double)m.bus.audio_rec.size() / (double)m.bus.audio_rate);
+    m.bus.audio_rec.clear();
     return true;
 }
 
@@ -134,9 +134,7 @@ static int run_actions(Machine& m, const std::vector<std::string>& actions, std:
             if (!wav.empty() && !write_wav(m, wav)) return 1;
             wav = actions[++i];
             if (!m.bus.audio_rate) { fprintf(stderr, "no sound card in the machine\n"); return 1; }
-            m.bus.advance_all();
-            m.bus.audio.clear();
-            m.bus.audio_cap = (size_t)m.bus.audio_rate * 3600;   // at most an hour
+            m.bus.audio_record(true);
         } else if (a == "--screenshot" && has_arg) {
             const std::string& path = actions[++i];
             DisplayDevice* d = m.find_display(shot_display);
@@ -161,6 +159,5 @@ int headless_run(Machine& m, const std::vector<std::string>& actions)
     std::string wav;
     int rc = run_actions(m, actions, wav);
     if (!wav.empty() && !write_wav(m, wav) && rc == 0) rc = 1;
-    m.bus.audio_cap = 0;
     return rc;
 }

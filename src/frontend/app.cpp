@@ -1,6 +1,7 @@
 // SDL3 + Dear ImGui frontend: screen window, menus, keyboard routing, debugger and
 // terminal windows, MCP server. Emulation runs on this (main) thread via EmuHost.
 #include "frontend/app.h"
+#include "frontend/hostio.h"
 #include "frontend/i18n.h"
 #include "frontend/keymap.h"
 #include "frontend/ui.h"
@@ -63,6 +64,8 @@ struct App {
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
     EmuHost host;
+    HostAudio audio;              // sound cards (MPH-1V)
+    HostJoystick joy;             // gamepad / keyboard for the joystick ports
     McpServer* mcp = nullptr;
     UiState ui;
     std::string error_text;
@@ -133,6 +136,8 @@ nlohmann::json settings_json(App& app)
                       { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
+    j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
+    j["joystick"] = { { "keyboard", app.joy.keyboard } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     return j;
 }
@@ -189,6 +194,12 @@ void settings_apply(App& app, const nlohmann::json& j)
     std::string com;
     get_opt(t, "com_port", com);
     if (!com.empty()) snprintf(ui.com_port, sizeof(ui.com_port), "%s", com.c_str());
+    const nlohmann::json& snd = j.value("sound", nlohmann::json::object());
+    get_opt(snd, "enabled", app.audio.enabled);
+    get_opt(snd, "volume", app.audio.volume);
+    if (app.audio.volume < 0 || app.audio.volume > 100) app.audio.volume = 80;
+    const nlohmann::json& joy = j.value("joystick", nlohmann::json::object());
+    get_opt(joy, "keyboard", app.joy.keyboard);
 }
 
 // The console window was "Obrazovka" (or "Screen"); now it is named after the display
@@ -279,6 +290,7 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     }
     app.suppress_text = 0;
     if (!m) return;
+    if (app.ui.screen_focused && joystick_key(app.joy, (int)ev.key)) return;   // arrows, space: the joystick
     int hk = keymap_host_key(ev.key);
     int mods = keymap_mods(ev.mod);
     int ctrl = keymap_ctrl_code(ev.key, ev.mod);
@@ -303,6 +315,7 @@ void handle_text(App& app, const char* text)
     if (!m) return;
     if (sup && text[1] == 0 && (text[0] == sup || (sup == '.' && text[0] == ','))) return;
     if (terminal_text(app.ui, text)) return;
+    if (app.ui.screen_focused && app.joy.keyboard && !strcmp(text, " ")) return;   // fire of the joystick
     if (app.ui.screen_focused) m->type_text(text);
 }
 
@@ -458,6 +471,18 @@ void draw_menu(App& app)
                     kb = m->keyboard();   // the old keyboard is gone
                 }
             }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(tr("Sound and joystick"))) {
+            ImGui::MenuItem(tr("Sound"), nullptr, &app.audio.enabled);
+            ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
+            ImGui::SliderInt(tr("Volume"), &app.audio.volume, 0, 100, "%d %%");
+            if (app.audio.failed) ImGui::TextDisabled("%s", tr("No sound device."));
+            ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
+            ImGui::Separator();
+            ImGui::MenuItem(tr("Joystick from the keyboard (arrows, space = fire)"), nullptr, &app.joy.keyboard);
+            std::string pad = joystick_name(app.joy);
+            ImGui::TextDisabled("%s: %s", tr("Gamepad"), pad.empty() ? tr("none") : pad.c_str());
             ImGui::EndMenu();
         }
         ImGui::EndMenu();
@@ -679,7 +704,7 @@ void draw_error(App& app)
 
 int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snap, const std::string& settings_file)
 {
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
@@ -806,6 +831,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             else if (ev.type == SDL_EVENT_WINDOW_MOVED || ev.type == SDL_EVENT_WINDOW_RESIZED) track_window(app);
             else if (ev.type == SDL_EVENT_KEY_DOWN) handle_key(app, ev.key);
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
+            else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
         }
         app.host.poll();   // MCP commands
         if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator
@@ -814,8 +840,15 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
         if (app.ui.quit) app.quit = true;
         uint64_t now = SDL_GetTicksNS();
+        if (Machine* jm = app.host.machine()) {   // the joystick port follows the gamepad and the keyboard
+            uint8_t js = joystick_state(app.joy, app.ui.screen_focused);
+            if (js != app.joy.last) jm->bus.joystick[0] = js;
+            app.joy.last = js;
+        }
         app.host.frame(now - last);
         last = now;
+        audio_frame(app.audio, app.host.machine(),
+                    !snap && !app.host.paused && !app.host.max_speed && app.host.pace_percent == 100);
 
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -866,6 +899,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     }
 
     settings_save(app, false);
+    audio_close(app.audio);
+    joystick_close(app.joy);
     app.host.shutdown();
     if (app.mcp) { app.mcp->stop(); delete app.mcp; }
     ImGui_ImplSDLRenderer3_Shutdown();

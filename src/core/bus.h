@@ -44,7 +44,11 @@ struct Bus {
     std::vector<int16_t> audio;
     uint32_t audio_rate = 0;    // 0 = no sound card
     size_t audio_cap = 0;
+    // recording (sapiemu-cli --audio-wav, MCP audio_record), independent of the player
+    bool audio_recording = false;
+    std::vector<int16_t> audio_rec;
     void audio_put(const int16_t* s, size_t n);
+    void audio_record(bool on);   // starts a new recording / stops it (audio_rec is kept)
     // host game controllers (HostJoy bits) for the joystick ports of the cards
     uint8_t joystick[2] = { 0, 0 };
 

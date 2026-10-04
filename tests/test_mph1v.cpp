@@ -184,11 +184,14 @@ static void tone(void)
     }
     printf("half sine: min %d, max %d\n", mn, mx);
     CHECK(mx > 1000 && mn > -mx / 4);
-    // nobody listens: no samples kept
+    // nobody listens: no samples kept, a recording gets them anyway
     m.bus.audio_cap = 0;
     m.bus.audio.clear();
+    m.bus.audio_record(true);
     m.run_seconds(0.1);
+    m.bus.audio_record(false);
     CHECK(m.bus.audio.empty());
+    CHECK(m.bus.audio_rec.size() >= 4960 && m.bus.audio_rec.size() <= 4980);
 }
 
 static void joystick(void)

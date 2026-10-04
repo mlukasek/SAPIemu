@@ -131,8 +131,17 @@ void Bus::reset(void)
     update_map();
 }
 
+void Bus::audio_record(bool on)
+{
+    advance_all();   // the sound up to now belongs to the previous state
+    if (on) audio_rec.clear();
+    audio_recording = on;
+}
+
 void Bus::audio_put(const int16_t* s, size_t n)
 {
+    if (audio_recording && audio_rec.size() < (size_t)audio_rate * 3600)   // at most an hour
+        audio_rec.insert(audio_rec.end(), s, s + n);
     if (!audio_cap) return;
     if (audio.size() + n > audio_cap) {
         size_t drop = audio.size() + n - audio_cap;

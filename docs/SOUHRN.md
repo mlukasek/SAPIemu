@@ -4,6 +4,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: MPH-1V** (Liborova zvuková a joysticková karta: YM3812, 8253, joystick) v sestavě V na X8, báze 50h.
+- YM3812 na jádru Nuked-OPL3 (third_party, LGPL) s časovači a stavem OPL2 a bitem WSE, 8253 (režimy 0–5,
+  kaskáda), výstupní filtr karty. Zvuk v GUI (Stroj → Zvuk a joystick, jen při 100 %), joystick z gamepadu
+  a volitelně šipky + mezerník, `sapiemu-cli --audio-wav`, MCP `audio_record` a `joystick`.
+- **Bity STATUS/IEN/IACK jsou podle MPH-test 0.99**, ne podle schémat (PNG ani PDF programům neodpovídají).
+  SPLAY, RAT PLAYER, y1stdemo i MPH-test v emulátoru fungují. Nejasnosti (zdroj F1 a další) jsou v
+  `docs/desky/MPH-1V.md` a v bodě 24 níže.
+- Programy v `media/mph-1v/`, hudba (VGM, RAD) v repu není, test ji bere z `..\MPH-1V`.
+
 **Hotové: DGD-1V** (Liborova grafika 320×240 s VGA, varianta DGD-1) a sestava `machines/zps/ZPS-2_MIKOS_V5_DGD-1V.sapi`.
 - S2 jako u CGA-1V (báze 0000/4000/8000/C000h, MAP1/MAP2), S1 barva jako AND-1V, čekání na okno CPU.
 - BASIC EXP V5.0/G kreslí, autorův TEST.BAS vypadá jako fotka obrazovky. Popis v `docs/desky/DGD-1V.md`.
@@ -293,6 +302,13 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - `..\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
     - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
+
+24. **MPH-1V** (`docs/desky/MPH-1V.md`):
+    - Schéma hotové desky? PNG (10. 8. 2025) i PDF (24. 8. 2025) mají jiné bity STATUS/IEN/IACK než programy.
+      Emulace je podle MPH-test 0.99: STATUS `F2 F1 T2 T1 T0 0 0 YM`, IEN `F2 F1 G2 G1 G0 – – YM`, IACK `F2 F1`.
+    - F1 nastavuje náběžná hrana OUT1 (emulace), nebo OUT0?
+    - Má IACK i bity pro nastavení F1/F2 softwarem (PDF „EE“, „FE“ na D2/D1)? Čte STATUS D2/D1 = 0 a JOY D7/D6 = 1?
+    - Osazený oscilátor: 14,31818 MHz s děliči (list 3 PNG), nebo 3,579545 MHz (PDF)?
 
 ## Jak pokračovat
 
