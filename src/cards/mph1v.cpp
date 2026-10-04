@@ -1,4 +1,5 @@
 #include "cards/mph1v.h"
+#include "core/state.h"
 #include "core/bus.h"
 
 #include <math.h>
@@ -304,4 +305,31 @@ void Mph1v::describe(json& out)
     static const char* devs[4] = { "none", "joystick", "mouse_atari", "mouse_amiga" };
     out["k4"] = devs[dev[0]];
     out["k2"] = devs[dev[1]];
+}
+
+void Mph1v::state(StateIO& io)
+{
+    pit.state(io);
+    io.begin("ym3812");
+    ym.state(io);
+    io.end();
+    io.v(ien);
+    io.v(f1);
+    io.v(f2);
+    io.v(last);
+    io.v(master_acc);
+    io.v(pit_phase);
+    io.v(ym_phase);
+    io.e(dev[0]);
+    io.e(dev[1]);
+    io.v(mouse_phase);
+    io.v(mx);
+    io.v(my);
+    io.v(lp_x1);
+    io.v(lp_x2);
+    io.v(lp_y1);
+    io.v(lp_y2);
+    io.v(hp_x1);
+    io.v(hp_y1);
+    if (io.loading) update_mouse_flag();
 }

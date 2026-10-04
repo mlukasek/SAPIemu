@@ -2,6 +2,7 @@
 // File helpers (UTF-8 paths on all platforms) and data root resolution.
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,11 @@ bool file_write_all(const std::string& utf8_path, const void* data, size_t size)
 // Text file with the line ends of the platform (CRLF on Windows), like a git checkout.
 bool file_write_text(const std::string& utf8_path, const std::string& text);
 bool file_exists(const std::string& utf8_path);
+// host wall clock for the RTCs of the cards; tests fix it (0 = the real clock again)
+time_t host_time_now(void);
+void host_time_fix(time_t t);
+// size and modification time (file clock ticks) of a file
+bool file_stat(const std::string& utf8_path, uint64_t& size, int64_t& mtime);
 bool file_remove(const std::string& utf8_path);
 bool make_dirs(const std::string& utf8_dir);
 std::string path_join(const std::string& a, const std::string& b);

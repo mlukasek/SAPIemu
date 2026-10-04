@@ -1,4 +1,5 @@
 #include "cards/ide1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -244,4 +245,21 @@ void Ide1::describe(json& out)
         }
         out["pmd32sd"] = drives;
     }
+}
+
+void Ide1::state(StateIO& io)
+{
+    io.v(access_at);
+    io.v(accessed);
+    ppi_ide.state(io);
+    ppi_pmd.state(io);
+    io.begin("ide");
+    ide.state(io);
+    io.end();
+    io.begin("pmd32sd");
+    pmd.state(io);
+    io.end();
+    io.v(last_pc);
+    io.v(data_lo);
+    io.v(data_hi);
 }

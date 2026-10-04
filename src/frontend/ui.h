@@ -19,7 +19,8 @@ struct SDL_Window;
 struct TapeDialog {
     std::mutex mtx;
     int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory,
-                             // 4 insert floppy, 5 new floppy, 6 binary file into memory
+                             // 4 insert floppy, 5 new floppy, 6 binary file into memory,
+                             // 7 save state, 8 load state
     bool done = false;
     std::string result;      // chosen file, empty = cancelled
     std::string card;        // DSM-1 / RPD-1 card name
@@ -82,6 +83,11 @@ struct UiState {
     std::string bin_path;          // chosen file, empty = no question open
     bool bin_ask = false;          // open the question in the next frame
     char bin_addr[8] = "0100";     // load address (hex), remembered in the settings
+    // save state: the result of the last save / load (the status bar shows it for a while,
+    // an error opens the message box)
+    std::string notice;
+    bool notice_error = false;
+    uint64_t notice_ns = 0;
     // File -> Load program (Intel HEX): the chosen file waits for a confirmation, with the
     // addresses of its records (read without loading)
     std::string hex_path;          // chosen file, empty = no question open
@@ -129,6 +135,11 @@ void draw_media(UiState& ui);
 void hex_load_dialog(UiState& ui);
 // File -> Load binary file: native dialog, then the address; the file goes into memory as is.
 void bin_load_dialog(UiState& ui);
+// File -> Save state / Load state (.sapistate, native dialog); quick slot of the machine
+// (Ctrl+F2 / Ctrl+F3, work/state/).
+void state_save_dialog(UiState& ui);
+void state_load_dialog(UiState& ui);
+void state_quick(UiState& ui, bool save);
 void draw_rack(UiState& ui);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);

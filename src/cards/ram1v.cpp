@@ -1,4 +1,6 @@
 #include "cards/ram1v.h"
+#include "core/util.h"
+#include "core/state.h"
 #include "core/bus.h"
 
 #include <stdio.h>
@@ -84,7 +86,7 @@ int Ram1v::chip(uint16_t a, int map) const
 // 7FFD date, 7FFE month, 7FFF year (BCD), from the host clock
 uint8_t Ram1v::rtc_read(unsigned reg)
 {
-    time_t t = time(nullptr);
+    time_t t = host_time_now();
     struct tm lt;
 #ifdef _WIN32
     localtime_s(&lt, &t);
@@ -168,4 +170,11 @@ void Ram1v::describe(json& out)
     out["map1"] = (map_out & MAP_1) != 0;
     out["map2"] = (map_out & MAP_2) != 0;
     out["sram"] = { fitted[0], fitted[1], fitted[2] };
+}
+
+void Ram1v::state(StateIO& io)
+{
+    for (std::vector<uint8_t>& m : mem) io.mem(m);
+    io.e(map_out);
+    io.v(rtc_ctrl);
 }

@@ -1,4 +1,5 @@
 #include "cards/dgd1.h"
+#include "core/state.h"
 #include "core/bus.h"
 
 #include <stdio.h>
@@ -146,4 +147,9 @@ void Dgd1::describe(json& out)
         out["monitor"] = monitor.name;
     }
     out["wait_states"] = waits;
+}
+
+void Dgd1::state(StateIO& io)
+{
+    io.mem(ram);
 }

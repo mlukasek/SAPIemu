@@ -1,4 +1,5 @@
 #include "core/devices.h"
+#include "core/state.h"
 
 static const size_t SERIAL_HISTORY_MAX = 1 << 20;
 static const size_t SERIAL_RX_MAX = 1 << 20;
@@ -105,4 +106,17 @@ size_t SerialChannel::host_pending_rx() const
 {
     std::lock_guard<std::mutex> lock(mtx);
     return rx_q.size();
+}
+
+void SerialChannel::state(StateIO& io)
+{
+    bool dcd = connected, c = cts;
+    io.v(dcd);
+    io.v(c);
+    std::lock_guard<std::mutex> lk(mtx);
+    io.v(rx_q);
+    if (io.loading) {
+        connected = dcd;
+        cts = c;
+    }
 }

@@ -1,4 +1,5 @@
 #include "core/host.h"
+#include "core/state.h"
 #include "core/util.h"
 #include "core/log.h"
 
@@ -198,4 +199,73 @@ void EmuHost::run_loop(std::atomic<bool>& quit)
         last = now;
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
+}
+
+// ---------------------------------------------------------------- save state
+
+bool EmuHost::save_state(std::vector<uint8_t>& out, std::string& err)
+{
+    if (!m) { err = "the machine is switched off"; return false; }
+    return m->save_state(out, file, err);
+}
+
+bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err)
+{
+    nlohmann::json cfg;
+    std::string f;
+    if (!Machine::state_header(in, cfg, f, err)) return false;
+    // debugging aids of the old machine survive
+    std::vector<uint16_t> bps;
+    std::vector<uint8_t> mw, iw;
+    if (m) {
+        bps = m->breakpoints();
+        mw.assign(m->bus.mem_watch, m->bus.mem_watch + 65536);
+        iw.assign(m->bus.io_watch, m->bus.io_watch + 256);
+    }
+    bool was_paused = paused;
+    if (!load_config(cfg, f, err)) return false;
+    if (!m->load_state(in, err)) {
+        err = "state: " + err;
+        m->reset();
+        return false;
+    }
+    for (uint16_t a : bps) m->set_breakpoint(a, true);
+    for (size_t i = 0; i < mw.size(); i++)
+        if (mw[i]) m->set_mem_watch((uint16_t)i, mw[i]);
+    for (size_t i = 0; i < iw.size(); i++)
+        if (iw[i]) m->set_io_watch((uint8_t)i, iw[i]);
+    paused = was_paused;
+    speed_t0 = host_time_ns();
+    speed_c0 = m->bus.now;
+    return true;
+}
+
+bool EmuHost::save_state_file(const std::string& path, std::string& err)
+{
+    std::vector<uint8_t> d;
+    if (!save_state(d, err)) return false;
+    std::string dir = path_dir(path);
+    if (!dir.empty()) make_dirs(dir);
+    if (!file_write_all(path, d.data(), d.size())) { err = "cannot write " + path; return false; }
+    LOGI("state saved: %s (%u KB)", path.c_str(), (unsigned)(d.size() / 1024));
+    return true;
+}
+
+bool EmuHost::load_state_file(const std::string& path, std::string& err)
+{
+    std::vector<uint8_t> d;
+    if (!file_read_all(path, d)) { err = "cannot read " + path; return false; }
+    if (!load_state(d, err)) return false;
+    LOGI("state loaded: %s", path.c_str());
+    return true;
+}
+
+std::string EmuHost::quick_state_path(void) const
+{
+    std::string base = file.empty() ? std::string("unsaved") : file;
+    size_t slash = base.find_last_of("/\\");
+    if (slash != std::string::npos) base = base.substr(slash + 1);
+    size_t dot = base.find_last_of('.');
+    if (dot != std::string::npos && dot > 0) base.resize(dot);
+    return data_path("work/state/" + base + ".sapistate");
 }

@@ -1,4 +1,5 @@
 #include "cards/and1v.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/charset.h"
 #include "core/ihex.h"
@@ -119,4 +120,9 @@ void And1v::describe(json& out)
     out["map"] = modes[map_mode];
     out["color"] = color;
     out["font"] = font_file;
+}
+
+void And1v::state(StateIO& io)
+{
+    io.arr(vram, sizeof(vram));
 }

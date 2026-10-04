@@ -1,4 +1,5 @@
 #include "core/machine.h"
+#include "core/state.h"
 #include "cards/catalog.h"
 #include "cards/placeholder.h"
 #include "core/card.h"
@@ -457,4 +458,121 @@ Card* Machine::find_card(const std::string& n)
     for (auto& c : cards)
         if (c->name == n) return c.get();
     return nullptr;
+}
+
+// ---------------------------------------------------------------- save state
+
+static const char STATE_MAGIC[8] = { 'S', 'A', 'P', 'I', 'S', 'T', 'A', 'T' };
+static const uint32_t STATE_VERSION = 1;
+
+static bool state_head(StateIO& io, std::string& cfg_text, std::string& file, std::string& err)
+{
+    char magic[8];
+    memcpy(magic, STATE_MAGIC, 8);
+    io.raw(magic, 8);
+    uint32_t ver = STATE_VERSION;
+    io.v(ver);
+    io.v(cfg_text);
+    io.v(file);
+    if (!io.ok()) { err = io.error; return false; }
+    if (io.loading && memcmp(magic, STATE_MAGIC, 8) != 0) { err = "not a SAPIemu state file"; return false; }
+    if (io.loading && ver != STATE_VERSION) {
+        err = "state version " + std::to_string(ver) + ", this emulator reads " + std::to_string(STATE_VERSION);
+        return false;
+    }
+    return true;
+}
+
+bool Machine::state_header(const std::vector<uint8_t>& in, json& cfg, std::string& file, std::string& err)
+{
+    StateIO io(true);
+    io.data = in;
+    std::string text;
+    if (!state_head(io, text, file, err)) return false;
+    cfg = json::parse(text, nullptr, false);
+    if (cfg.is_discarded()) { err = "the machine description in the state is damaged"; return false; }
+    return true;
+}
+
+// Everything after the header, in the order of the slots.
+static void state_body(StateIO& io, Machine& m)
+{
+    if (io.begin("bus")) {
+        m.bus.state(io);
+        io.end();
+    }
+    for (Card* c : m.bus.cards) {
+        std::string nm = "card X" + std::to_string(c->slot) + " " + c->type;
+        if (!io.begin(nm.c_str())) return;
+        c->state(io);
+        io.end();
+    }
+    if (io.begin("keyboard")) {
+        KeyboardDevice* k = m.keyboard();
+        std::string type = k ? k->type_name() : "";
+        io.v(type);
+        if (io.loading && io.ok() && type != (k ? k->type_name() : "")) {
+            std::string err;   // plugged in while running: the same keyboard again
+            if (type.empty() || !m.set_keyboard(type, err)) io.fail("keyboard " + type + ": " + err);
+            k = m.keyboard();
+        }
+        if (k && io.ok()) k->state(io);
+        io.end();
+    }
+    for (size_t i = 0; i < m.serials.size(); i++) {
+        std::string nm = "serial " + std::to_string(i);
+        if (!io.begin(nm.c_str())) return;
+        m.serials[i]->state(io);
+        io.end();
+    }
+}
+
+bool Machine::save_state(std::vector<uint8_t>& out, const std::string& file, std::string& err)
+{
+    StateIO io(false);
+    std::string text = config.dump(), f = file;
+    if (!state_head(io, text, f, err)) return false;
+    state_body(io, *this);
+    if (!io.ok()) { err = io.error; return false; }
+    out.swap(io.data);
+    return true;
+}
+
+bool Machine::load_state(const std::vector<uint8_t>& in, std::string& err, bool rebuild)
+{
+    json cfg;
+    std::string file;
+    if (!state_header(in, cfg, file, err)) return false;
+    if (cfg != config) {
+        if (!rebuild) { err = "the state belongs to another machine description"; return false; }
+        // built again from the description of the state (like EmuHost::load_config)
+        stop_bridges();
+        flush();
+        bus.cards.clear();
+        cards.clear();
+        cpu = nullptr;
+        display = nullptr;
+        displays.clear();
+        serials.clear();
+        if (!load_json(cfg, err)) return false;
+    }
+    StateIO io(true);
+    io.data = in;
+    std::string t, f;
+    if (!state_head(io, t, f, err)) return false;
+    state_body(io, *this);
+    if (io.ok() && io.pos != io.data.size()) io.fail("data after the end of the state");
+    if (!io.ok()) {
+        err = io.error;
+        return false;
+    }
+    clear_break();
+    if (cpu) {
+        cpu->step_mode = false;
+        cpu->step_skip = 0;
+        cpu->stop_hit = false;
+    }
+    bus.break_request = false;
+    bus.audio.clear();
+    return true;
 }

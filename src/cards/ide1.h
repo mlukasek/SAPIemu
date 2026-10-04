@@ -16,6 +16,7 @@ public:
     ~Ide1() override;
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     void reset() override;
     void advance(uint64_t now) override;
     bool io_read(uint8_t port, uint8_t& data) override;

@@ -1,4 +1,5 @@
 #include "cards/rem1.h"
+#include "core/state.h"
 #include "core/ihex.h"
 
 using nlohmann::json;
@@ -97,4 +98,9 @@ void Rem1::describe(json& out)
     out["eprom_block"] = block_e;
     out["ram_block"] = block_r;
     out["ram_kb"] = ram.size() / 1024;
+}
+
+void Rem1::state(StateIO& io)
+{
+    io.mem(ram);
 }

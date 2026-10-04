@@ -1,4 +1,5 @@
 #include "cards/and1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/ihex.h"
 
@@ -155,4 +156,9 @@ void And1::describe(json& out)
     out["chargen"] = cyrillic ? "MHB 2502" : "MHB 2501";
     out["int1"] = int1;
     out["monitor"] = monitor.name;
+}
+
+void And1::state(StateIO& io)
+{
+    io.arr(vram, sizeof(vram));
 }

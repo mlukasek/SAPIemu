@@ -1,4 +1,5 @@
 #include "input/parallel_kbd.h"
+#include "core/state.h"
 #include "core/charset.h"
 #include "core/log.h"
 
@@ -101,4 +102,20 @@ int wordstar_code(int key, int mods)
     case HK_DELETE: return shift ? 0x1A : 0x0B;
     default: return -1;
     }
+}
+
+void ParallelKeyboard::state(StateIO& io)
+{
+    io.v(queue);
+    io.v(data);
+    io.v(strobe_low);
+    io.v(strobe_until);
+    io.v(ack);
+    io.v(seen);
+    io.v(beep);
+    io.v(clr);
+    io.v(clr_until);
+    io.v(now);
+    io.v(next_allowed);
+    io.v(strict);
 }

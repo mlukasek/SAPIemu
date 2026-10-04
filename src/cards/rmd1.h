@@ -21,6 +21,7 @@ public:
     ~Rmd1() override;
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     bool io_read(uint8_t port, uint8_t& data) override;
     bool io_write(uint8_t port, uint8_t data) override;
     void flush() override;

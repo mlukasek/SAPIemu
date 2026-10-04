@@ -4,6 +4,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: ukládání stavu stroje** (`docs/stav.md`): Soubor → Uložit / Načíst stav, rychlý slot Ctrl+F2 / Ctrl+F3
+(`work/state/`), MCP `save_state` / `load_state` (i do paměti jako checkpointy), CLI `--save-state` / `--load-state`.
+- Ve stavu je CPU, paměti včetně RAM disků (autor), všechny karty, klávesnice a sériové kanály.
+- IDE disk, SD karta, diskety a kazety jsou jen odkazem s varováním, když se soubor změnil.
+- `test_state` ověří u každé sestavy z `machines/`, že běh z načteného stavu je bajt po bajtu stejný jako
+  původní. **Nová karta musí mít `state()`**, jinak to test pozná.
+
 **Hotové: ZRD-1V rev 2.1** podle nového schématu (`..\ZRD-1V\ZRD-1V_rev20`): parametr `revision` (2.1 / 1.1).
 - Zámek zápisu: zápis na 60h jen do 20 ms po přístupu na 62h, jinak se karta zamkne do resetu (tak ji zamyká
   MikroMon).
@@ -195,7 +202,7 @@ Dřív hotové fáze:
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
-| F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ukládání stavu; přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
+| F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 

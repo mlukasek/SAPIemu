@@ -1,4 +1,5 @@
 #include "cards/cga1v.h"
+#include "core/state.h"
 #include "core/bus.h"
 
 #include <stdio.h>
@@ -225,4 +226,22 @@ void Cga1v::describe(json& out)
     out["frame_blend"] = blend;
     snprintf(b, sizeof(b), "%02X", dac_mask);
     out["colmask"] = b;
+}
+
+void Cga1v::state(StateIO& io)
+{
+    io.arr(ram, sizeof(ram));
+    io.v(config);
+    io.v(vbi);
+    io.v(vbi_count);
+    for (int i = 0; i < 256; i++) io.arr(pal[i], 3);
+    io.v(dac_addr);
+    io.e(dac_step);
+    io.v(dac_mask);
+    for (Frame& f : frames) {
+        io.v(f.page);
+        io.v(f.cga);
+        for (uint32_t& c : f.rgb) io.v(c);
+    }
+    io.e(frame_count);
 }

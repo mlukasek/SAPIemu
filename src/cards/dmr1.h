@@ -11,6 +11,7 @@ public:
     Dmr1();
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     void reset() override;
     void advance(uint64_t now) override;
     bool mem_read(uint16_t addr, uint8_t& data) override;

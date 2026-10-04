@@ -99,6 +99,19 @@ static int run_actions(Machine& m, const std::vector<std::string>& actions, std:
             const std::string& path = actions[++i];
             if (!file_read_text(data_path(path), text)) { fprintf(stderr, "cannot read %s\n", path.c_str()); return 1; }
             if (!m.load_ihex_text(text, err)) { fprintf(stderr, "%s: %s\n", path.c_str(), err.c_str()); return 1; }
+        } else if (a == "--save-state" && has_arg) {
+            std::vector<uint8_t> d;
+            std::string err, path = actions[++i];
+            if (!m.save_state(d, m.config_path.empty() ? std::string() : data_relative(m.config_path), err) ||
+                !file_write_all(path, d.data(), d.size())) {
+                fprintf(stderr, "--save-state %s: %s\n", path.c_str(), err.empty() ? "cannot write" : err.c_str());
+                return 1;
+            }
+        } else if (a == "--load-state" && has_arg) {
+            std::vector<uint8_t> d;
+            std::string err, path = actions[++i];
+            if (!file_read_all(path, d)) { fprintf(stderr, "cannot read %s\n", path.c_str()); return 1; }
+            if (!m.load_state(d, err, true)) { fprintf(stderr, "--load-state %s: %s\n", path.c_str(), err.c_str()); return 1; }
         } else if (a == "--load-bin" && i + 2 < actions.size()) {
             std::string err, path = actions[++i], v = actions[++i];
             long long addr;

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <deque>
+#include <map>
 #include <functional>
 #include <future>
 #include <memory>
@@ -52,6 +53,17 @@ public:
     uint32_t target_hz(void) const;
     std::string status;         // last stop reason ("breakpoint F123h"...)
     double speed_percent = 0;
+
+    // Save state (docs/stav.md): into memory or a file. Loading builds the machine of the state
+    // (the old one stays on error), keeps breakpoints, watchpoints and the pause.
+    bool save_state(std::vector<uint8_t>& out, std::string& err);
+    bool load_state(const std::vector<uint8_t>& in, std::string& err);
+    bool save_state_file(const std::string& path, std::string& err);
+    bool load_state_file(const std::string& path, std::string& err);
+    // the quick slot of the machine: work/state/<machine file name>.sapistate
+    std::string quick_state_path(void) const;
+    // named states in memory (MCP save_state / load_state without a file)
+    std::map<std::string, std::vector<uint8_t>> snapshots;
 
     // Headless real-time loop (used by sapiemu-cli --mcp) until `quit` is set.
     void run_loop(std::atomic<bool>& quit);

@@ -9,6 +9,8 @@
 #include <vector>
 #include "core/card.h"
 
+class StateIO;
+
 struct CpuRegs {
     uint16_t af, bc, de, hl, ix, iy, sp, pc;
     uint16_t af2, bc2, de2, hl2;
@@ -54,6 +56,7 @@ public:
     // missed key again); keys may be lost as on the real machine. False if the keyboard has
     // no such help (ANK-1 holds a key until the program reads it).
     virtual bool set_strict(bool on) { return false; }
+    virtual void state(StateIO& io) {}   // save state (core/state.h)
 };
 
 // Base class of CPU cards (bus masters).
@@ -172,6 +175,7 @@ public:
     size_t host_receive(std::string& out, size_t max);
     uint64_t host_end(void) const;          // current end of the stream
     size_t host_pending_rx() const;         // bytes not yet taken by SAPI
+    void state(StateIO& io);                // DCD, CTS and the bytes not yet taken by SAPI
 
 private:
     mutable std::mutex mtx;

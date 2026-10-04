@@ -32,6 +32,7 @@ struct I8255 {
     uint8_t control(void) const { return ctrl; }
     bool mode2_a(void) const { return (ctrl & 0x40) != 0; }
     uint8_t out_a = 0, out_b = 0, out_c = 0;   // output latches
+    void state(class StateIO& io);
 
 private:
     uint8_t pc_value(void);           // port C as read by the CPU

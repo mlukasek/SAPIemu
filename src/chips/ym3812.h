@@ -18,6 +18,7 @@ public:
     // Advances the chip by one sample (72 clocks): the timers and one stereo sample.
     void sample(int16_t* lr);
     uint8_t reg(uint8_t r) const { return regs[r]; }
+    void state(class StateIO& io);
 
 private:
     void timers_step(void);

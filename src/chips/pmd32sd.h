@@ -37,6 +37,7 @@ public:
     // image files in the SD root with an extension known to images.cfg
     std::vector<std::string> list_images(void) const;
     void flush(void);
+    void state(class StateIO& io);   // the firmware and the drives; the images are only referred to
     // Relative path that stays inside the SD card (exposed for tests).
     static bool safe_path(const std::string& rel, bool allow_dirs);
 

@@ -1,4 +1,5 @@
 #include "cards/jpr1zi.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/ihex.h"
 #include "core/log.h"
@@ -319,4 +320,22 @@ void Jpr1zi::describe(json& out)
     out["bus_hz"] = bus_hz;
     out["boot"] = boot;
     out["keyboard"] = kbd ? kbd->type_name() : "none";
+}
+
+void Jpr1zi::state(StateIO& io)
+{
+    uint32_t size = (uint32_t)sizeof(z80);
+    io.v(size);
+    if (io.loading && size != sizeof(z80)) { io.fail("Z80 core of another build"); return; }
+    io.raw(&z80, sizeof(z80));
+    io.v(pins);
+    io.e(stall);
+    io.v(next_sync);
+    io.v(eprom_off);
+    io.v(turbo_on);
+    io.v(half_phase);
+    io.v(boot);
+    io.arr(port_out, sizeof(port_out));
+    io.v(at_boundary);
+    io.v(instr_pc);
 }

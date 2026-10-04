@@ -1,4 +1,5 @@
 #include "input/ank1.h"
+#include "core/state.h"
 #include "core/log.h"
 
 #include <ctype.h>
@@ -157,4 +158,26 @@ std::string Ank1::status() const
     if (out & 0x20) s += "SHIFT";
     if (out & 0x80) s += s.empty() ? "ERR" : " ERR";
     return s;
+}
+
+void Ank1::state(StateIO& io)
+{
+    uint32_t n = (uint32_t)queue.size();
+    io.v(n);
+    if (io.loading) queue.assign(io.ok() ? n : 0, Press{ 0, false });
+    for (Press& p : queue) {
+        io.e(p.key);
+        io.v(p.shift);
+    }
+    io.e(cur_key);
+    io.v(scanned);
+    io.v(cur_shift);
+    io.v(releasing);
+    io.v(phase_end);
+    io.v(now);
+    io.v(out);
+    io.v(int_key);
+    io.v(t_key);
+    io.v(int_until);
+    io.v(t_until);
 }

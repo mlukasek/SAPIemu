@@ -1,4 +1,6 @@
 #include "chips/rtc72421.h"
+#include "core/util.h"
+#include "core/state.h"
 
 #include <time.h>
 
@@ -35,7 +37,7 @@ static void civil_from_days(int64_t z, int& y, int& m, int& d)
 // host local wall time as seconds since 1970 (no timezone conversion)
 static int64_t host_local_seconds(void)
 {
-    time_t t = time(NULL);
+    time_t t = host_time_now();
     struct tm lt;
 #ifdef _WIN32
     localtime_s(&lt, &t);
@@ -163,4 +165,19 @@ bool Rtc72421::irq(uint64_t now, uint32_t cpu_hz)
     }
     if (ce & 1) return false;   // MASK
     return irq_flag;            // STND mode: level until the flag is cleared
+}
+
+void Rtc72421::state(StateIO& io)
+{
+    io.v(offset);
+    io.arr(reg, sizeof(reg));
+    io.v(hold);
+    io.v(stop);
+    io.v(mode24);
+    io.v(cd);
+    io.v(ce);
+    io.v(cf);
+    io.v(irq_flag);
+    io.v(next_irq_cycle);
+    io.v(fields_dirty);
 }

@@ -33,6 +33,7 @@ public:
     ~Jpr1() override;
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     void reset() override;
     void advance(uint64_t now) override;
     void describe(nlohmann::json& out) override;

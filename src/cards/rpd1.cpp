@@ -1,4 +1,5 @@
 #include "cards/rpd1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -489,4 +490,69 @@ void Rpd1::describe(json& out)
     }
     out["drives"] = drv;
     out["selected"] = sel;
+}
+
+void Rpd1::state(StateIO& io)
+{
+    // the floppies are referred to (file, protection, head), not stored
+    for (int d = 0; d < DRIVES; d++) {
+        Drive& dr = drives[d];
+        std::string img = dr.image;
+        io.media("floppy", dr.path);
+        io.v(img);
+        bool wp = dr.write_protect;
+        io.v(wp);
+        io.e(dr.track);
+        if (io.loading && io.ok() && img != dr.image) {
+            std::string err;
+            if (img.empty()) eject(d);
+            else if (!insert(d, img, wp, err)) LOGW("state: floppy %s: %s", img.c_str(), err.c_str());
+        }
+        if (io.loading) dr.write_protect = wp;
+    }
+    io.e(sel);
+    io.v(drive_ctrl);
+    io.v(head_loaded);
+    io.v(head_ready_at);
+    io.v(head_unload_at);
+    io.v(step_ready_at);
+    io.v(wf);
+    io.arr(raw, sizeof(raw));
+    io.arr(mark, sizeof(mark));
+    io.arr(sector_at, sizeof(sector_at));
+    io.e(raw_drive);
+    io.e(raw_track);
+    io.v(raw_valid);
+    io.v(ctrl);
+    for (Counter& k : cnt) {
+        io.e(k.mode);
+        io.e(k.rl);
+        io.v(k.value);
+        io.v(k.msb_next);
+        io.v(k.lsb);
+    }
+    io.v(n0);
+    io.v(n1);
+    io.v(n2);
+    io.v(cnt0_armed);
+    io.v(cnt0_expire);
+    io.v(cnt1_armed);
+    io.v(cnt1_fire);
+    io.v(transfers);
+    io.v(ovfl);
+    io.v(tout_dam);
+    io.v(streaming);
+    io.v(stream_b);
+    io.v(consumed_b);
+    io.v(search_dam);
+    io.e(sync_sector);
+    io.v(writing);
+    io.v(holding_full);
+    io.v(holding);
+    io.v(shifted_b);
+    io.v(shift_started);
+    io.v(written);
+    io.e(write_sector);
+    io.e(write_drive);
+    io.e(write_track);
 }

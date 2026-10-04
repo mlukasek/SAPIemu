@@ -1,4 +1,5 @@
 #include "chips/i8253.h"
+#include "core/state.h"
 
 I8253::I8253()
 {
@@ -224,5 +225,31 @@ void I8253::tick(int n)
             k.strobe = true;
         }
         break;
+    }
+}
+
+void I8253::state(StateIO& io)
+{
+    for (Counter& k : c) {
+        io.e(k.mode);
+        io.e(k.rw);
+        io.v(k.ctl);
+        io.v(k.bcd);
+        io.v(k.reload);
+        io.v(k.count);
+        io.v(k.out);
+        io.v(k.gate);
+        io.v(k.load);
+        io.v(k.running);
+        io.v(k.trigger);
+        io.v(k.strobe);
+        io.v(k.write_msb);
+        io.v(k.read_msb);
+        io.v(k.latched);
+        io.v(k.latch);
+        io.v(k.null_count);
+        io.v(k.status_latched);
+        io.v(k.status);
+        io.v(k.lsb);
     }
 }

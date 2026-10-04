@@ -1,4 +1,5 @@
 #include "core/bus.h"
+#include "core/state.h"
 #include "core/card.h"
 #include "core/log.h"
 
@@ -168,4 +169,13 @@ void Bus::update_map(void)
     int m = 0;
     for (Card* c : cards) m |= c->map_lines();
     map = m;
+}
+
+void Bus::state(StateIO& io)
+{
+    io.v(now);
+    io.e(map);
+    io.e(wait);
+    io.v(conflicts);
+    io.v(pc);
 }

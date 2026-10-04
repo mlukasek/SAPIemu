@@ -1,4 +1,5 @@
 #include "cards/ram1.h"
+#include "core/state.h"
 #include "core/ihex.h"
 
 #include <string.h>
@@ -64,4 +65,9 @@ void Ram1::describe(json& out)
     out["s1"] = s1;
     out["s2"] = s2;
     out["prom"] = prom_file;
+}
+
+void Ram1::state(StateIO& io)
+{
+    io.mem(ram);
 }

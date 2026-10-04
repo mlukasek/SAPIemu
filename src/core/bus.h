@@ -85,6 +85,7 @@ struct Bus {
     void update_map(void);
 
     void set_mem_watch(uint16_t addr, int flags);
+    void state(class StateIO& io);   // time, MAP lines, conflicts
     void io_log_copy(std::vector<IoLogEntry>& out, size_t max) const;
 
     double seconds(void) const { return (double)now / (double)cpu_hz; }

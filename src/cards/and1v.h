@@ -22,6 +22,7 @@ public:
     And1v() : Card("AND-1V") {}
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     bool mem_read(uint16_t addr, uint8_t& data) override;
     bool mem_write(uint16_t addr, uint8_t data) override;
     bool mem_peek(uint16_t addr, uint8_t& data) override;

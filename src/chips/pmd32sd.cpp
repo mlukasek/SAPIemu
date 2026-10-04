@@ -1,5 +1,6 @@
 // PMD32-SD protocol, following pmd32.c of firmware v3.2 (Roman Bórik, 2012).
 #include "chips/pmd32sd.h"
+#include "core/state.h"
 #include "chips/i8255.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -608,4 +609,46 @@ void Pmd32Sd::run(void)
         }
     }
     PT_END();
+}
+
+void Pmd32Sd::state(StateIO& io)
+{
+    for (int d = 0; d < DRIVES; d++) {
+        std::string p = drives[d].path;
+        bool wp = drives[d].wp;
+        io.v(p);
+        io.v(wp);
+        io.media("PMD32-SD image", p.empty() ? std::string() : host_path(p));
+        if (io.loading && io.ok()) {
+            if (p != drives[d].path) {
+                if (p.empty()) eject(d);
+                else if (mount(d, p, wp) != RESULT_OK) LOGW("state: PMD32-SD %c: %s cannot be inserted", 'A' + d, p.c_str());
+            }
+            drives[d].wp = wp;
+        }
+    }
+    io.v(card_locked);
+    io.v(now);
+    io.e(pt);
+    io.e(op_kind);
+    io.e(op_stage);
+    io.v(op_value);
+    io.v(op_ms);
+    io.v(op_deadline);
+    io.v(op_ok);
+    io.v(op_byte);
+    io.v(command);
+    io.v(crc);
+    io.v(val);
+    io.e(op);
+    io.v(drvnum);
+    io.v(sector);
+    io.v(track);
+    io.v(length);
+    io.v(temp);
+    io.v(idx);
+    io.arr(buffer, sizeof(buffer));
+    io.v(cur_dir);
+    io.v(listing);
+    io.sz(listing_pos);
 }

@@ -845,6 +845,49 @@ json t_mouse(EmuHost& h, const json& a)
     return text_result(json{ { "pending_dx", m.bus.mouse_dx }, { "pending_dy", m.bus.mouse_dy }, { "buttons", bt } }.dump());
 }
 
+// Save state: into a named slot in memory (quick checkpoints while debugging) or a file.
+json t_save_state(EmuHost& h, const json& a)
+{
+    std::string err, file = a.value("file", std::string()), name = a.value("name", std::string("default"));
+    std::vector<uint8_t> d;
+    if (!h.save_state(d, err)) return error_result(err);
+    json r{ { "bytes", d.size() }, { "cycles", h.machine()->bus.now } };
+    if (!file.empty()) {
+        std::string path = data_path(file);
+        std::string dir = path_dir(path);
+        if (!dir.empty()) make_dirs(dir);
+        if (!file_write_all(path, d.data(), d.size())) return error_result("cannot write " + path);
+        r["file"] = path;
+    } else {
+        h.snapshots[name] = d;
+        r["name"] = name;
+    }
+    return text_result(r.dump(2));
+}
+
+json t_load_state(EmuHost& h, const json& a)
+{
+    std::string err, file = a.value("file", std::string()), name = a.value("name", std::string("default"));
+    std::vector<uint8_t> d;
+    if (!file.empty()) {
+        if (!file_read_all(data_path(file), d)) return error_result("cannot read " + data_path(file));
+    } else {
+        auto it = h.snapshots.find(name);
+        if (it == h.snapshots.end()) return error_result("no state named '" + name + "' (save_state first)");
+        d = it->second;
+    }
+    if (!h.load_state(d, err)) return error_result(err);
+    Machine& m = need_machine(h);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    char pc[8];
+    snprintf(pc, sizeof(pc), "%04X", r.pc);
+    json names = json::array();
+    for (auto& s : h.snapshots) names.push_back(s.first);
+    return text_result(json{ { "machine", m.name }, { "cycles", m.bus.now }, { "pc", pc }, { "paused", h.paused },
+                             { "memory_states", names } }.dump(2));
+}
+
 json t_audio_record(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1147,6 +1190,10 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"port":{"type":"integer","default":0},"pressed":{"type":"array","items":{"type":"string","enum":["down","up","right","left","fire1","fire2"]}}}})", t_joystick },
     { "mouse", "Mouse of the machine (MPH-1V connector set to mouse_atari / mouse_amiga): dx, dy = counts to move (+x right, +y down), sent as quadrature steps at 1000 per second and axis; 'buttons' sets what is held (left, right). Reports the counts still pending.",
       R"({"type":"object","properties":{"dx":{"type":"integer","default":0},"dy":{"type":"integer","default":0},"buttons":{"type":"array","items":{"type":"string","enum":["left","right"]}}}})", t_mouse },
+    { "save_state", "Save the state of the whole machine (CPU, memories incl. RAM disks, cards, keyboard, serial channels; large media such as the IDE disk only by reference): into memory under 'name' (default \"default\") for quick checkpoints, or into 'file' (.sapistate, relative paths from the data root).",
+      R"({"type":"object","properties":{"name":{"type":"string"},"file":{"type":"string"}}})", t_save_state },
+    { "load_state", "Load a state saved by save_state (memory 'name' or 'file', also the GUI's .sapistate files): the machine of the state is built and continues from that moment; breakpoints, watchpoints and the pause are kept.",
+      R"({"type":"object","properties":{"name":{"type":"string"},"file":{"type":"string"}}})", t_load_state },
     { "audio_record", "Record the sound card output (MPH-1V, mono, 49716 Hz): start=true starts, then run the emulation; a call without start stops and reports seconds, rms and peak (16 bit), and with 'file' saves a WAV (relative paths from the data root).",
       R"({"type":"object","properties":{"start":{"type":"boolean","default":false},"file":{"type":"string"}}})", t_audio_record },
     { "screenshot", "PNG image of the display: the console screen, or display = card name of another display output (e.g. \"DGD-1\" graphics).",

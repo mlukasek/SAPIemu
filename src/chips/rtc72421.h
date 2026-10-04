@@ -10,6 +10,7 @@ struct Rtc72421 {
     void write(int reg, uint8_t value, uint64_t now_cycles, uint32_t cpu_hz);
     // Periodic interrupt output (STD.P), level. Updates the IRQ flag.
     bool irq(uint64_t now_cycles, uint32_t cpu_hz);
+    void state(class StateIO& io);
 
 private:
     void load_fields(void);      // emulated time -> digit registers

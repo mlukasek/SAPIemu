@@ -108,7 +108,7 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
   Použitý pro `media/zrd-1v/ZRDTEST.ASM`.
 - **`sapiemu-cli`:** `--timeout-ms` musí být **před** `--wait-text`, kterého se týká. `--load-hex` nahraje
   program, `--load-bin SOUBOR ADRESA` binární soubor (adresa hex, třeba `100`), `--display DGD-1` určí obrazovku
-  pro `--screenshot`.
+  pro `--screenshot`. `--save-state` / `--load-state SOUBOR` uloží a načte stav stroje (`docs/stav.md`).
 - **Pracovní kopie médií** (`work/rpd-1/…`, `work/…`) po zkouškách z příkazové řádky smazat. Zápisy na disketu
   se do nich uloží a příště by se načetly místo originálu.
 - **Úpravy souborů skriptem:** na Windows v Bash heredocu se `\n`, `\r` a `\\` v Python řetězcích mění na

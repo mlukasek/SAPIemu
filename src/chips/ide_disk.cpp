@@ -1,4 +1,5 @@
 #include "chips/ide_disk.h"
+#include "core/state.h"
 #include "core/log.h"
 #include "core/util.h"
 
@@ -294,4 +295,22 @@ void IdeDisk::write_reg(bool cs1, int reg, uint16_t value)
     case 6: head = v; break;
     default: command(v); break;
     }
+}
+
+void IdeDisk::state(StateIO& io)
+{
+    io.media("IDE disk", image_path);
+    io.v(error);
+    io.v(features);
+    io.v(count);
+    io.v(lba0);
+    io.v(lba1);
+    io.v(lba2);
+    io.v(head);
+    io.v(status);
+    io.v(devctl);
+    io.arr(buffer, sizeof(buffer));
+    io.e(buf_pos);
+    io.e(xfer);
+    io.e(remaining);
 }

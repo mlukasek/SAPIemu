@@ -1,4 +1,5 @@
 #include "cards/and1z.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/charset.h"
 #include "core/ihex.h"
@@ -124,4 +125,9 @@ void And1z::describe(json& out)
     out["rows"] = ROWS;
     out["map_enabled"] = map_enabled;
     out["monitor"] = monitor.name;
+}
+
+void And1z::state(StateIO& io)
+{
+    io.arr(vram, sizeof(vram));
 }

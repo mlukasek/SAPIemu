@@ -21,6 +21,7 @@ static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3)", "wa
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
 static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa 8\" (IMG)", "img" } };
+static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
 {
@@ -42,12 +43,18 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
         d.drive = drive;
     }
     std::string where = d.last_dir.empty() ? data_path("work") : d.last_dir;
+    if (kind == 7 || kind == 8) {   // states: in work/state unless chosen elsewhere before
+        where = data_path("work/state");
+        make_dirs(where);
+    }
 #ifdef _WIN32
     for (char& c : where) if (c == '/') c = '\\';
 #endif
     if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 1, where.c_str(), false);
     else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 1, where.c_str(), false);
     else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
+    else if (kind == 7) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str());
+    else if (kind == 8) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str(), false);
     else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str(), false);
     else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
@@ -83,6 +90,27 @@ static void hex_scan(UiState& ui, const std::string& path)
     ui.hex_hi = s.hi;
 }
 
+static void state_notice(UiState& ui, bool ok, const std::string& text)
+{
+    ui.notice = text;
+    ui.notice_error = !ok;
+    ui.notice_ns = SDL_GetTicksNS();
+}
+
+static void state_file(UiState& ui, std::string path, bool save)
+{
+    std::string err;
+    if (save) {
+        size_t slash = path.find_last_of("/\\");
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapistate";
+        if (ui.host->save_state_file(path, err)) state_notice(ui, true, std::string(tr("State saved")) + ": " + path);
+        else state_notice(ui, false, std::string(tr("Cannot save the state")) + ":\n" + err);
+    } else {
+        if (ui.host->load_state_file(path, err)) state_notice(ui, true, std::string(tr("State loaded")) + ": " + path);
+        else state_notice(ui, false, std::string(tr("Cannot load the state")) + ":\n" + err);
+    }
+}
+
 static void tape_dialog_result(UiState& ui, Machine* m)
 {
     TapeDialog& d = ui.tape_dlg;
@@ -97,6 +125,11 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         card = d.card;
         drive = d.drive;
         d.kind = 0;
+    }
+    if (kind == 7 || kind == 8) {   // save state (needs no machine for loading)
+        if (path.empty()) return;
+        state_file(ui, path, kind == 7);
+        return;
     }
     if (path.empty() || !m) return;
     d.last_dir = path_dir(path);
@@ -245,6 +278,27 @@ void hex_load_dialog(UiState& ui)
 void bin_load_dialog(UiState& ui)
 {
     tape_dialog(ui, 6, std::string());
+}
+
+void state_save_dialog(UiState& ui)
+{
+    tape_dialog(ui, 7, std::string());
+}
+
+void state_load_dialog(UiState& ui)
+{
+    tape_dialog(ui, 8, std::string());
+}
+
+void state_quick(UiState& ui, bool save)
+{
+    if (save && !ui.host->machine()) return;
+    std::string path = ui.host->quick_state_path();
+    if (!save && !file_exists(path)) {
+        state_notice(ui, false, std::string(tr("The quick slot of this machine is empty")) + ":\n" + path);
+        return;
+    }
+    state_file(ui, path, save);
 }
 
 // CP/M file name (8.3, capitals) for a host file: letters and digits of its name, the given

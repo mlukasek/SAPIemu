@@ -23,6 +23,7 @@ public:
     explicit Dsm1(const char* type = "DSM-1");
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     void reset() override;
     void advance(uint64_t now) override;
     bool io_read(uint8_t port, uint8_t& data) override;
@@ -71,6 +72,7 @@ public:
     Dsm1v() : Card("DSM-1V"), ch{ Dsm1("DSM-1V"), Dsm1("DSM-1V") } {}
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     void reset() override;
     void advance(uint64_t now) override;
     bool io_read(uint8_t port, uint8_t& data) override;

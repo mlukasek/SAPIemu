@@ -299,6 +299,13 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     case SDLK_F11: debug_step(app, false); return;
     case SDLK_F12:   // under a debugger Windows takes F12 as the break hotkey, F9 still works
     case SDLK_F9: if (m) m->reset(); return;
+    case SDLK_F2:   // Ctrl+F2 / Ctrl+F3: the quick slot of the machine; without Ctrl the SAPI keys
+    case SDLK_F3:
+        if (ev.mod & SDL_KMOD_CTRL) {
+            state_quick(app.ui, ev.key == SDLK_F2);
+            return;
+        }
+        break;
     default: break;
     }
     app.suppress_text = 0;
@@ -435,6 +442,11 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Load binary file into memory..."), nullptr, false, m != nullptr))
             bin_load_dialog(app.ui);
         ImGui::Separator();
+        if (ImGui::MenuItem(tr("Save state..."), nullptr, false, m != nullptr)) state_save_dialog(app.ui);
+        if (ImGui::MenuItem(tr("Load state..."))) state_load_dialog(app.ui);
+        if (ImGui::MenuItem(tr("Quick save state"), "Ctrl+F2", false, m != nullptr)) state_quick(app.ui, true);
+        if (ImGui::MenuItem(tr("Quick load state"), "Ctrl+F3")) state_quick(app.ui, false);
+        ImGui::Separator();
         if (ImGui::MenuItem(tr("Exit"))) rack_request_exit(app.ui);
         ImGui::EndMenu();
     }
@@ -540,6 +552,7 @@ void draw_menu(App& app)
     if (ImGui::BeginMenu(tr("Help"))) {
         ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
+        ImGui::TextUnformatted(tr("Ctrl+F2 quick save of the state, Ctrl+F3 quick load"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
         if (app.mcp && app.mcp->running()) {
@@ -562,6 +575,13 @@ void draw_menu(App& app)
                                             : (app.host.max_speed ? tr("Maximum") : "");
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
+        if (!app.ui.notice.empty() && !app.ui.notice_error && SDL_GetTicksNS() - app.ui.notice_ns < 3000000000ull) {
+            std::string n = app.ui.notice;
+            size_t slash = n.find_last_of("/\\");   // the file name is enough here
+            size_t colon = n.find(": ");
+            if (slash != std::string::npos && colon != std::string::npos) n = n.substr(0, colon + 2) + n.substr(slash + 1);
+            ks += "  " + n;
+        }
         if (app.joy.keyboard) {   // arrows and space do not type now
             ks += "  ";
             ks += tr("joystick from the keyboard (Ctrl+F8)");
@@ -723,6 +743,12 @@ void draw_log(App& app)
 
 void draw_error(App& app)
 {
+    if (app.ui.notice_error) {   // save state failed
+        app.error_text = app.ui.notice;
+        app.show_error = true;
+        app.ui.notice_error = false;
+        app.ui.notice.clear();
+    }
     if (app.show_error) {
         ImGui::OpenPopup(tr("Error"));
         app.show_error = false;

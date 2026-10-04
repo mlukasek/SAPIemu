@@ -16,6 +16,7 @@ public:
     void set_gate(int counter, bool level);
     bool out(int counter) const { return c[counter].out; }
     bool is_8254 = false;
+    void state(class StateIO& io);
 
 private:
     struct Counter {

@@ -17,6 +17,7 @@ public:
     explicit Ram1(const char* type) : Card(type) {}
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
+    void state(StateIO& io) override;
     bool mem_read(uint16_t addr, uint8_t& data) override;
     bool mem_write(uint16_t addr, uint8_t data) override;
     bool mem_peek(uint16_t addr, uint8_t& data) override { return mem_read(addr, data); }

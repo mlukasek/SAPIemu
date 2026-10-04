@@ -13,6 +13,8 @@
 //   --screenshot FILE     save the screen as PNG (2x)
 //   --disasm ADDR N       disassemble N instructions from ADDR (hex)
 //   --load-bin FILE ADDR  load a binary file into memory at ADDR (hex)
+//   --save-state FILE     save the state of the machine (docs/stav.md)
+//   --load-state FILE     load a state (the machine of the state is built when it differs)
 //   --audio-wav FILE      record the sound card output from here on, saved as WAV at the end
 //
 // Returns the process exit code (0 = all actions succeeded).

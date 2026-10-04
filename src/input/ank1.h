@@ -29,6 +29,7 @@ public:
     size_t pending() const override { return queue.size() + (cur_key >= 0 ? 1 : 0); }
     void clear() override { queue.clear(); }
     std::string status() const override;
+    void state(StateIO& io) override;
 
     uint64_t press_cycles = 80000;     // 40 ms at 2 MHz
     uint64_t release_cycles = 80000;

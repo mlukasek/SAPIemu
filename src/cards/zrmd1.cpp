@@ -1,4 +1,5 @@
 #include "cards/zrmd1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/ihex.h"
 #include "core/log.h"
@@ -375,5 +376,26 @@ void Zrmd1::describe(json& out)
             out["window_open"] = window();
             out["battery_mv"] = battery_mv;
         }
+    }
+}
+
+void Zrmd1::state(StateIO& io)
+{
+    io.mem(mem);   // the RAM disk is a memory: it goes back to the moment of the state
+    io.v(a_lo);
+    io.v(a_mid);
+    io.v(a_hi);
+    rtc.state(io);
+    io.v(access_at);
+    io.v(accessed);
+    io.v(lock);
+    io.v(window_at);
+    io.v(window_seen);
+    io.v(adc_start);
+    io.e(adc_clocks);
+    io.v(adc_code);
+    if (io.loading) {   // saved to the working copy like any change (mode rw)
+        dirty = true;
+        dirty_since = bus ? bus->now : 0;
     }
 }

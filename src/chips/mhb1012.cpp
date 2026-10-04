@@ -1,4 +1,5 @@
 #include "chips/mhb1012.h"
+#include "core/state.h"
 #include "core/devices.h"
 
 void Mhb1012::set_baud(uint32_t cpu_hz, uint32_t baud)
@@ -90,4 +91,27 @@ void Mhb1012::advance(uint64_t now, SerialChannel* ch, bool rx_allowed)
             rx_ready_at = rx_done_at;
         }
     }
+}
+
+void Mhb1012::state(StateIO& io)
+{
+    io.v(no_parity);
+    io.v(two_stop);
+    io.e(word_bits);
+    io.v(even_parity);
+    io.v(dr);
+    io.v(tbre);
+    io.v(pe);
+    io.v(fe);
+    io.v(oe);
+    io.v(rx_data);
+    io.v(cycles_per_bit);
+    io.v(thr);
+    io.v(tsr);
+    io.v(tsr_busy);
+    io.v(tx_done_at);
+    io.v(rx_ready_at);
+    io.v(rx_busy);
+    io.v(rx_shift);
+    io.v(rx_done_at);
 }

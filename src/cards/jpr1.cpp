@@ -1,4 +1,5 @@
 #include "cards/jpr1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/ihex.h"
 #include "core/log.h"
@@ -384,4 +385,49 @@ void Jpr1::describe(json& out)
     out["eprom_bytes"] = eprom.size();
     out["ram"] = ram_fitted;
     out["keyboard"] = kbd ? kbd->type_name() : "none";
+}
+
+void Jpr1::state(StateIO& io)
+{
+    // the 8080 core without its callbacks (bit fields one by one)
+    uint64_t cyc = cpu.cyc;
+    io.v(cyc);
+    io.v(cpu.pc);
+    io.v(cpu.sp);
+    io.v(cpu.a);
+    io.v(cpu.b);
+    io.v(cpu.c);
+    io.v(cpu.d);
+    io.v(cpu.e);
+    io.v(cpu.h);
+    io.v(cpu.l);
+    uint8_t f = (uint8_t)((cpu.sf ? 1 : 0) | (cpu.zf ? 2 : 0) | (cpu.hf ? 4 : 0) | (cpu.pf ? 8 : 0) |
+                          (cpu.cf ? 0x10 : 0) | (cpu.iff ? 0x20 : 0) | (cpu.halted ? 0x40 : 0) |
+                          (cpu.interrupt_pending ? 0x80 : 0));
+    io.v(f);
+    io.v(cpu.interrupt_vector);
+    io.v(cpu.interrupt_delay);
+    if (io.loading) {
+        cpu.cyc = (unsigned long)cyc;
+        cpu.sf = f & 1;
+        cpu.zf = (f >> 1) & 1;
+        cpu.hf = (f >> 2) & 1;
+        cpu.pf = (f >> 3) & 1;
+        cpu.cf = (f >> 4) & 1;
+        cpu.iff = (f >> 5) & 1;
+        cpu.halted = (f >> 6) & 1;
+        cpu.interrupt_pending = (f >> 7) & 1;
+    }
+    io.v(next_sync);
+    io.e(extra);
+    io.arr(ram, sizeof(ram));
+    io.v(p0_out);
+    io.v(p1_out);
+    io.v(p2_out);
+    io.v(irq_enabled);
+    io.e(irq_status);
+    io.e(bus_irq);
+    io.v(boot);
+    io.v(at_boundary);
+    io.v(instr_pc);
 }

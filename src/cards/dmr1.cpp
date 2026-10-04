@@ -1,4 +1,5 @@
 #include "cards/dmr1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/ihex.h"
 #include "core/log.h"
@@ -205,4 +206,11 @@ void Dmr1::describe(json& out)
     out["baud"] = baud;
     out["terminal_connected"] = (bool)serial->connected;
     out["cts"] = (bool)serial->cts;
+}
+
+void Dmr1::state(StateIO& io)
+{
+    io.mem(ram);
+    io.v(modem_ctrl);
+    uart.state(io);
 }

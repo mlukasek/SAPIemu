@@ -39,6 +39,7 @@ struct Mhb1012 {
         uint8_t data;
     };
     std::vector<TxChar>* tx_log = nullptr;
+    void state(class StateIO& io);
     int frame_bits(void) const { return 1 + word_bits + (no_parity ? 0 : 1) + (two_stop ? 2 : 1); }
     double bit_cycles(void) const { return cycles_per_bit; }
 

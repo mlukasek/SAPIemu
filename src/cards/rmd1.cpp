@@ -1,4 +1,5 @@
 #include "cards/rmd1.h"
+#include "core/state.h"
 #include "core/ihex.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -98,4 +99,13 @@ void Rmd1::describe(json& out)
     out["address"] = addr;
     out["prom"] = prom_file;
     if (!image.empty()) out["image"] = image;
+}
+
+void Rmd1::state(StateIO& io)
+{
+    io.mem(mem);
+    io.v(row);
+    io.v(addr);
+    io.v(latch);
+    if (io.loading) dirty = true;   // the content of the state goes to the image file too
 }

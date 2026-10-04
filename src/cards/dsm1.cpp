@@ -1,4 +1,5 @@
 #include "cards/dsm1.h"
+#include "core/state.h"
 #include "core/bus.h"
 #include "core/log.h"
 
@@ -391,3 +392,50 @@ int Dsm1v::decode_io(uint8_t port, const char** what)
     return 0;
 }
 
+// The cassette is referred to (file, position, buttons), not stored.
+static void tape_state(StateIO& io, TapeDeck& t)
+{
+    std::string p = t.path;
+    io.media("cassette", p);
+    io.v(p);
+    int mode = t.mode;
+    io.e(mode);
+    io.v(t.pos);
+    io.v(t.write_protect);
+    if (!io.loading || !io.ok()) return;
+    if (p != t.path) {
+        std::string err;
+        t.eject();
+        if (!p.empty() && !t.load(p, err)) LOGW("state: cassette %s: %s", p.c_str(), err.c_str());
+    }
+    t.mode = (TapeDeck::Mode)mode;
+}
+
+void Dsm1::state(StateIO& io)
+{
+    io.v(modem_ctrl);
+    uart.state(io);
+    io.begin("tape");
+    tape_state(io, deck);
+    io.end();
+    io.v(tape_time);
+    io.v(rx_scan);
+    io.v(moving);
+    io.v(runup);
+    uint32_t n = (uint32_t)tx_chars.size();
+    io.v(n);
+    if (io.loading) tx_chars.assign(io.ok() ? n : 0, Mhb1012::TxChar{ 0, 0 });
+    for (Mhb1012::TxChar& c : tx_chars) {
+        io.v(c.start);
+        io.v(c.data);
+    }
+}
+
+void Dsm1v::state(StateIO& io)
+{
+    for (int i = 0; i < 2; i++) {
+        io.begin(i ? "channel B" : "channel A");
+        ch[i].state(io);
+        io.end();
+    }
+}

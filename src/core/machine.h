@@ -68,6 +68,17 @@ public:
 
     void flush(void);   // persist RAM disks etc.
 
+    // Save state (core/state.h, docs/stav.md): the machine description, the time of the bus and
+    // the state of every card, the keyboard and the serial channels. `file` = the machine file
+    // it came from (kept in the state). load_state needs a machine built from the same
+    // description (EmuHost::load_state builds it); with `rebuild` it builds itself again
+    // when the description differs (sapiemu-cli).
+    bool save_state(std::vector<uint8_t>& out, const std::string& file, std::string& err);
+    bool load_state(const std::vector<uint8_t>& in, std::string& err, bool rebuild = false);
+    // The machine description and machine file stored in a state.
+    static bool state_header(const std::vector<uint8_t>& in, nlohmann::json& cfg, std::string& file,
+                             std::string& err);
+
     // Host side serial connections (TCP server, COM port).
     bool start_bridges(std::string& err);   // from the channels' configuration
     void stop_bridges(void);

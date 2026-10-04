@@ -11,6 +11,7 @@
 
 struct Bus;
 class SerialChannel;
+class StateIO;
 
 enum IrqLine {
     IRQ_INT0 = 1,   // /INT0 -> Z80 /INT on JPR-1ZI
@@ -63,6 +64,10 @@ public:
 
     // Short status for UIs / MCP.
     virtual void describe(nlohmann::json& out) {}
+    // Save state (core/state.h): write / read every variable that changes while running, in
+    // a fixed order. What the configuration sets up (ROMs, jumpers) is built again from the
+    // machine description. Default: nothing.
+    virtual void state(StateIO& io) {}
     // State worth seeing while running that is not a parameter (a lock set by the program...):
     // one line for the configurator, empty = nothing.
     virtual std::string live_status() { return std::string(); }

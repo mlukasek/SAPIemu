@@ -1,4 +1,5 @@
 #include "chips/i8255.h"
+#include "core/state.h"
 
 // Control word (bit 7 = 1): D6-D5 group A mode (00 = 0, 01 = 1, 1x = 2),
 // D4 PA input, D3 PC upper input, D2 group B mode, D1 PB input, D0 PC lower input.
@@ -125,4 +126,19 @@ void I8255::strobe_a(uint8_t data)
 {
     in_a = data;
     ibf_a = true;
+}
+
+void I8255::state(StateIO& io)
+{
+    io.v(out_a);
+    io.v(out_b);
+    io.v(out_c);
+    io.v(ctrl);
+    io.v(in_a);
+    io.v(obf_a);
+    io.v(ibf_a);
+    io.v(inte1);
+    io.v(inte2);
+    io.v(obf_b);
+    io.v(inte_b);
 }

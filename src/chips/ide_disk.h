@@ -24,6 +24,7 @@ public:
     uint16_t read_reg(bool cs1, int reg);
     void write_reg(bool cs1, int reg, uint16_t value);
     void flush(void);
+    void state(class StateIO& io);   // registers and the sector buffer; the image is only referred to
 
     // status bits
     enum { ST_BSY = 0x80, ST_DRDY = 0x40, ST_DF = 0x20, ST_DSC = 0x10, ST_DRQ = 0x08, ST_ERR = 0x01 };

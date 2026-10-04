@@ -658,3 +658,21 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Revize jako parametr** (`revision`, výchozí 2.1): rev 1.1 zámek, LED ani MAX187 nemá.
 - **MAX187 s napětím v parametru** `battery_mv` (platí hned, baterie se vybíjí). Převod podle datasheetu: /CS =
   okno 74LS123, takt čtením 61h, DOUT na D5.
+
+## 2026-10-04 – Ukládání stavu
+
+- **Jedna funkce `state(StateIO&)` na kartu, čip a klávesnici** pro zápis i čtení, ve stejném pořadí. Nic se nepíše
+  dvakrát a pořadí se nemůže rozejít. Pojmenované bloky s délkou ohlásí chybu místo posunu dat.
+- **Konfigurace se neukládá po kartách:** stav nese popis sestavy, načtení ji postaví znovu (ROM, PROM, propojky)
+  a pak nahraje proměnný stav. Při chybě zůstane původní stroj (EmuHost). CLI staví sestavu přímo v sobě
+  (`load_state(..., rebuild)`).
+- **RAM disky a zálohované SRAM ve stavu** (autor): jsou to paměti a stav je pak konzistentní. V režimu `rw` se
+  pak uloží i do pracovní kopie.
+- **Velká média jen odkazem** (autor): IDE, SD karta, diskety, kazety. Ukládá se soubor, velikost a čas, při
+  rozdílu varování.
+- **Ovládání (autor):** menu, rychlý slot Ctrl+F2 / Ctrl+F3 na sestavu ve `work/state/` (F2/F3 bez Ctrl patří
+  klávesnici SAPI), MCP s pojmenovanými stavy v paměti pro ladění.
+- **YM3812:** jádro Nuked-OPL3 se ukládá celé, jeho vnitřní ukazatele jako posuny od začátku čipu (stav nezávisí
+  na adrese v paměti).
+- **Test úplnosti:** běh z načteného stavu musí dát bajt po bajtu stejný stav jako původní běh, pro všechny sestavy.
+  RTC v testu čtou pevný čas PC (`host_time_fix`).

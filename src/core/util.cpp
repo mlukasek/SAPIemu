@@ -82,6 +82,30 @@ bool file_write_text(const std::string& utf8_path, const std::string& text)
 #endif
 }
 
+static time_t fixed_time = 0;
+
+time_t host_time_now(void)
+{
+    return fixed_time ? fixed_time : time(nullptr);
+}
+
+void host_time_fix(time_t t)
+{
+    fixed_time = t;
+}
+
+bool file_stat(const std::string& utf8_path, uint64_t& size, int64_t& mtime)
+{
+    std::error_code ec;
+    fs::path p = u8_to_path(utf8_path);
+    size = (uint64_t)fs::file_size(p, ec);
+    if (ec) return false;
+    auto t = fs::last_write_time(p, ec);
+    if (ec) return false;
+    mtime = (int64_t)t.time_since_epoch().count();
+    return true;
+}
+
 bool file_exists(const std::string& utf8_path)
 {
     std::error_code ec;

@@ -115,6 +115,26 @@ int main(void)
     r = tool(s, "read_memory", { { "address", "8000" }, { "length", 3 }, { "format", "hex" } });
     CHECK(text_of(r) == "3E4176");
 
+    // save state: a checkpoint in memory, changed memory, back to the checkpoint; then a file
+    r = tool(s, "save_state", { { "name", "x" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "write_memory", { { "address", "8000" }, { "data", "00 00 00" } });
+    r = tool(s, "load_state", { { "name", "x" } });
+    CHECK(r["isError"] == false);
+    CHECK(text_of(r).find("\"memory_states\"") != std::string::npos);
+    r = tool(s, "read_memory", { { "address", "8000" }, { "length", 3 }, { "format", "hex" } });
+    CHECK(text_of(r) == "3E4176");
+    r = tool(s, "load_state", { { "name", "none" } });
+    CHECK(r["isError"] == true);
+    r = tool(s, "save_state", { { "file", "work/test-state/mcp.sapistate" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "write_memory", { { "address", "8000" }, { "data", "11" } });
+    r = tool(s, "load_state", { { "file", "work/test-state/mcp.sapistate" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "read_memory", { { "address", "8000" }, { "length", 1 }, { "format", "hex" } });
+    CHECK(text_of(r) == "3E");
+    file_remove(data_path("work/test-state/mcp.sapistate"));
+
     // breakpoint + run_until address
     r = tool(s, "set_registers", { { "pc", "8000" } });
     r = tool(s, "step", { { "count", 1 } });
