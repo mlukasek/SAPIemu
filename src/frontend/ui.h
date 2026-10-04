@@ -82,6 +82,10 @@ struct UiState {
     std::string bin_path;          // chosen file, empty = no question open
     bool bin_ask = false;          // open the question in the next frame
     char bin_addr[8] = "0100";     // load address (hex), remembered in the settings
+    // File -> Load program (Intel HEX): what was loaded, shown once
+    std::string hex_done;          // file, empty = nothing to show
+    int hex_bytes = 0;
+    uint16_t hex_lo = 0, hex_hi = 0;
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;

@@ -54,7 +54,9 @@ public:
     DisasmResult disassemble(uint16_t addr);
 
     // Load an Intel HEX text / binary file into memory through the bus.
-    bool load_ihex_text(const std::string& text, std::string& err, int* bytes = nullptr);
+    // `lo`, `hi`: the lowest and highest address loaded (when bytes > 0).
+    bool load_ihex_text(const std::string& text, std::string& err, int* bytes = nullptr, uint16_t* lo = nullptr,
+                        uint16_t* hi = nullptr);
     bool load_binary(const std::string& path, uint16_t addr, std::string& err, int* bytes = nullptr);
 
     // Keyboard input: host text in UTF-8 (the keyboard converts it to its codes

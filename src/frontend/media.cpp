@@ -72,9 +72,16 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     if (kind == 3) {   // a program into memory, as if loaded from the tape
         std::string text, err;
         int n = 0;
+        uint16_t lo = 0, hi = 0;
         if (!file_read_text(path, text)) LOGE("cannot read %s", path.c_str());
-        else if (!m->load_ihex_text(text, err, &n)) LOGE("%s: %s", path.c_str(), err.c_str());
-        else LOGI("%s: %d bytes loaded into memory", path.c_str(), n);
+        else if (!m->load_ihex_text(text, err, &n, &lo, &hi)) LOGE("%s: %s", path.c_str(), err.c_str());
+        else {
+            LOGI("%s: %d bytes loaded into memory", path.c_str(), n);
+            ui.hex_done = path;   // the range and the CP/M SAVE command in a message
+            ui.hex_bytes = n;
+            ui.hex_lo = lo;
+            ui.hex_hi = hi;
+        }
         return;
     }
     if (kind == 6) {   // a binary file: ask for the address first
@@ -220,6 +227,59 @@ void bin_load_dialog(UiState& ui)
     tape_dialog(ui, 6, std::string());
 }
 
+// CP/M file name (8.3, capitals) for a host file: letters and digits of its name, the given
+// extension or its own. "Void - Terrania.rad" -> "VOIDTERR.RAD".
+static std::string cpm_name(const std::string& path, const char* ext)
+{
+    size_t slash = path.find_last_of("/\\");
+    std::string base = path.substr(slash == std::string::npos ? 0 : slash + 1);
+    size_t dot = base.find_last_of('.');
+    std::string own = dot == std::string::npos ? std::string() : base.substr(dot + 1);
+    if (dot != std::string::npos) base.resize(dot);
+    std::string out;
+    for (char c : base) {
+        if (out.size() == 8) break;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
+            out += (char)(c >= 'a' && c <= 'z' ? c - 32 : c);
+    }
+    if (out.empty()) out = "PROGRAM";
+    std::string e = ext ? std::string(ext) : own;
+    std::string ue;
+    for (char c : e) {
+        if (ue.size() == 3) break;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
+            ue += (char)(c >= 'a' && c <= 'z' ? c - 32 : c);
+    }
+    return ue.empty() ? out : out + "." + ue;
+}
+
+// The CP/M command that saves what was loaded from 0100h up to `last`.
+static void cpm_save_hint(const std::string& path, long long last, const char* ext)
+{
+    long long pages = (last - 0x100) / 256 + 1;
+    ImGui::Text("CP/M: SAVE %lld %s", pages, cpm_name(path, ext).c_str());
+}
+
+// After File -> Load program (Intel HEX): where it went and how to save it in CP/M.
+static void hex_load_info(UiState& ui)
+{
+    const char* title = tr("Program loaded");
+    if (!ui.hex_done.empty() && !ImGui::IsPopupOpen(title)) ImGui::OpenPopup(title);
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    ImGui::TextUnformatted(ui.hex_done.c_str());
+    if (ui.hex_bytes > 0) {
+        ImGui::Text("%04X-%04Xh, %d B", ui.hex_lo, ui.hex_hi, ui.hex_bytes);
+        if (ui.hex_lo == 0x100) cpm_save_hint(ui.hex_done, ui.hex_hi, "COM");
+    } else {
+        ImGui::TextUnformatted(tr("The file holds no data."));
+    }
+    if (ImGui::Button(tr("OK")) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+        ui.hex_done.clear();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+}
+
 static long long file_size_of(const std::string& path)
 {
     FILE* f = file_open(path, "rb");
@@ -248,7 +308,7 @@ static void bin_load_question(UiState& ui, Machine* m)
     bool fits = size > 0 && addr >= 0 && addr + size <= 0x10000;
     if (fits) {
         ImGui::Text("%04llX-%04llXh", addr, addr + size - 1);
-        if (addr == 0x100) ImGui::TextDisabled("CP/M: SAVE %lld %s", (size + 255) / 256, tr("NAME.EXT"));
+        if (addr == 0x100) cpm_save_hint(ui.bin_path, addr + size - 1, nullptr);
     } else {
         ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", size < 0 ? tr("Cannot read the file.")
                                                                       : tr("The file does not fit into memory there."));
@@ -306,6 +366,7 @@ void draw_media(UiState& ui)
 {
     tape_dialog_result(ui, ui.host->machine());   // also the HEX and binary dialogs of the File menu
     bin_load_question(ui, ui.host->machine());
+    hex_load_info(ui);
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(560, 300), ImGuiCond_FirstUseEver);

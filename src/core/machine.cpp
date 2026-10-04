@@ -316,19 +316,29 @@ DisasmResult Machine::disassemble(uint16_t addr)
     return z80_disasm(addr, disasm_peek, this);
 }
 
+struct IhexLoad {
+    Machine* m;
+    int count;
+    uint16_t lo, hi;
+};
+
 static void ihex_poke(void* user, uint32_t addr, uint8_t value)
 {
-    void** ctx = (void**)user;
-    ((Machine*)ctx[0])->poke((uint16_t)addr, value);
-    (*(int*)ctx[1])++;
+    IhexLoad* l = (IhexLoad*)user;
+    uint16_t a = (uint16_t)addr;
+    l->m->poke(a, value);
+    if (!l->count || a < l->lo) l->lo = a;
+    if (!l->count || a > l->hi) l->hi = a;
+    l->count++;
 }
 
-bool Machine::load_ihex_text(const std::string& text, std::string& err, int* bytes)
+bool Machine::load_ihex_text(const std::string& text, std::string& err, int* bytes, uint16_t* lo, uint16_t* hi)
 {
-    int count = 0;
-    void* ctx[2] = { this, &count };
-    bool ok = ihex_parse(text, ihex_poke, ctx, err);
-    if (bytes) *bytes = count;
+    IhexLoad l = { this, 0, 0, 0 };
+    bool ok = ihex_parse(text, ihex_poke, &l, err);
+    if (bytes) *bytes = l.count;
+    if (lo) *lo = l.lo;
+    if (hi) *hi = l.hi;
     return ok;
 }
 
