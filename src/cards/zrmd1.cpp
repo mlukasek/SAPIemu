@@ -11,6 +11,10 @@
 using nlohmann::json;
 
 static const uint32_t CHIP_SIZE = 512 * 1024;
+// ZRD-1V rev 2.1: 74LS123 window (R6 100k, C25 680n, "20msec" in the schematic) and the
+// MAX187 conversion time.
+static const double WINDOW_SECONDS = 0.020;
+static const double ADC_CONVERT_SECONDS = 8.5e-6;
 // Autosave of a modified RAM disk after this much emulated time.
 static const double AUTOSAVE_SECONDS = 5.0;
 
@@ -43,6 +47,18 @@ bool Zrmd1::configure(const json& cfg, std::string& err)
     chips = (int)v;
     if (!cfg_bool(cfg, "map_jp2", map_jp2, false, err)) return false;
     if (is_zrd1v) map_jp2 = false;   // ZRD-1V has no MAP outputs (mapping is on RAM-1V)
+    if (is_zrd1v) {
+        std::string rev;
+        if (!cfg_string(cfg, "revision", rev, "2.1", err)) return false;
+        if (rev == "2.1") rev2 = true;
+        else if (rev == "1.1") rev2 = false;
+        else { err = "revision must be 1.1 or 2.1"; return false; }
+        if (!cfg_number(cfg, "battery_mv", v, 3000, err)) return false;
+        if (v < 0 || v > 4095) { err = "battery_mv must be 0..4095 (MAX187 range)"; return false; }
+        battery_mv = (int)v;
+    } else {
+        rev2 = false;
+    }
 
     std::string mode_s;
     if (!cfg_string(cfg, "mode", mode_s, "rw", err)) return false;
@@ -109,6 +125,37 @@ void Zrmd1::reset()
     // on HW). ZRD-1V: CLR of the 74LS193 tied low, the 374 latches have no
     // clear, /RES only disables the decoder: the address survives a reset.
     if (!is_zrd1v) a_lo = a_mid = a_hi = 0;
+    lock = false;   // rev 2.1: /IRES clears the RS latch of the write lock
+}
+
+bool Zrmd1::window(void) const
+{
+    return window_seen && bus->now - window_at < (uint64_t)(WINDOW_SECONDS * bus->cpu_hz);
+}
+
+// An access to 62h triggers the 74LS123 (retriggerable). Its /Q is /CS of the MAX187: a new
+// conversion starts when /CS falls, i.e. when the window was closed.
+void Zrmd1::trigger_window(void)
+{
+    if (!window()) {
+        adc_start = bus->now;
+        adc_clocks = 0;
+        adc_code = (uint16_t)battery_mv;   // 4.096 V reference, 12 bits: 1 mV per step
+    }
+    window_seen = true;
+    window_at = bus->now;
+}
+
+// DOUT of the MAX187 as seen during a read of 61h (SCLK high): low while converting, then high
+// (end of conversion), then D11..D0 after each falling SCLK edge, zeros after them. Without
+// /CS the output floats (reads 1).
+uint8_t Zrmd1::adc_dout(void) const
+{
+    if (!window()) return 1;
+    if (bus->now - adc_start < (uint64_t)(ADC_CONVERT_SECONDS * bus->cpu_hz)) return 0;
+    if (adc_clocks == 0) return 1;
+    if (adc_clocks > 12) return 0;
+    return (uint8_t)((adc_code >> (12 - adc_clocks)) & 1);
 }
 
 void Zrmd1::advance(uint64_t now)
@@ -127,6 +174,10 @@ int Zrmd1::decode_io(uint8_t port, const char** what)
 {
     uint8_t off = (uint8_t)(port - base);
     if (off == 0) { *what = "RAM disk data"; return DEC_READ | DEC_WRITE; }
+    if (off < 4 && is_zrd1v) {   // read: the undriven internal bus, loaded into the register too
+        *what = off == 1 && rev2 ? "RAM disk address, battery ADC" : "RAM disk address";
+        return DEC_READ | DEC_WRITE;
+    }
     if (off < 4) { *what = "RAM disk address"; return DEC_WRITE; }
     if (rtc_enabled && off >= 0x10 && off < 0x20) { *what = "RTC"; return DEC_READ | DEC_WRITE; }
     return 0;
@@ -134,14 +185,22 @@ int Zrmd1::decode_io(uint8_t port, const char** what)
 
 unsigned Zrmd1::panel_leds()
 {
-    if (!is_zrd1v) return 0;   // ZRMD-1 has no LEDs
-    bool dsk = accessed && bus && bus->now - access_at < bus->cpu_hz / 50;
-    return 1u | (dsk ? 2u : 0u);
+    if (!is_zrd1v || !rev2) return 0;   // ZRMD-1 and ZRD-1V rev 1.1 have no LEDs
+    bool dsk = accessed && bus && bus->now - access_at < bus->cpu_hz / 50;   // 74LS123 IC21A, 20 ms
+    return (lock ? 1u : 0u) | (dsk ? 2u : 0u);
+}
+
+std::string Zrmd1::live_status()
+{
+    if (!is_zrd1v || !rev2) return std::string();
+    return lock ? "write lock: locked by the program (a write to 60h without 62h first), /RES unlocks"
+                : "write lock: open";
 }
 
 bool Zrmd1::live_param(const char* path) const
 {
-    return !strcmp(path, "mode") || (!is_zrd1v && !strncmp(path, "write_enable.", 13));
+    return !strcmp(path, "mode") || (!is_zrd1v && !strncmp(path, "write_enable.", 13)) ||
+           (is_zrd1v && !strcmp(path, "battery_mv"));   // the battery runs down while it works
 }
 
 bool Zrmd1::set_live_param(const char* path, const json& v, std::string& err)
@@ -150,6 +209,14 @@ bool Zrmd1::set_live_param(const char* path, const json& v, std::string& err)
         int i = path[13] - '0';
         if (i < 0 || i > 3 || !v.is_boolean()) { err = "write_enable.0-3 must be true or false (S1-S4)"; return false; }
         write_enable[i] = v.get<bool>();
+        return true;
+    }
+    if (is_zrd1v && !strcmp(path, "battery_mv")) {
+        if (!v.is_number_integer() || v.get<long long>() < 0 || v.get<long long>() > 4095) {
+            err = "battery_mv must be 0..4095";
+            return false;
+        }
+        battery_mv = v.get<int>();
         return true;
     }
     if (strcmp(path, "mode") != 0) return Card::set_live_param(path, v, err);
@@ -171,8 +238,8 @@ bool Zrmd1::set_live_param(const char* path, const json& v, std::string& err)
 
 char Zrmd1::panel_led_color(int n)
 {
-    if (!is_zrd1v || n != 0) return 0;
-    return mode == MODE_RW ? 'g' : mode == MODE_NOSAVE ? 'y' : 'r';
+    if (!is_zrd1v) return 0;
+    return n == 0 ? 'r' : 'g';   // D1 HLMP-3762 red WRITE PROTECT, D2 HLMP-3962 green ACCESS
 }
 
 bool Zrmd1::io_read(uint8_t port, uint8_t& data)
@@ -190,7 +257,28 @@ bool Zrmd1::io_read(uint8_t port, uint8_t& data)
         data = (uint8_t)(0xF0 | rtc.read(off & 15, bus->now, bus->cpu_hz));   // D4-D7 not driven
         return true;
     }
-    return false;   // 61h-63h are write only
+    if (off < 4 && is_zrd1v) {
+        // the transceiver drives the bus, but nothing drives the internal bus (only DOUT of the
+        // MAX187 on D5 for 61h): FFh, and the address register takes it like a write
+        accessed = true;
+        access_at = bus->now;
+        data = 0xFF;
+        if (off == 1) {
+            if (rev2) {
+                if (!adc_dout()) data &= (uint8_t)~0x20;
+                if (window() && bus->now - adc_start >= (uint64_t)(ADC_CONVERT_SECONDS * bus->cpu_hz))
+                    adc_clocks++;   // SCLK falls at the end of the read
+            }
+            a_lo = data;
+        } else if (off == 2) {
+            if (rev2) trigger_window();
+            a_mid = data;
+        } else {
+            a_hi = data;
+        }
+        return true;
+    }
+    return false;   // ZRMD-1: 61h-63h are write only
 }
 
 bool Zrmd1::io_write(uint8_t port, uint8_t data)
@@ -201,6 +289,11 @@ bool Zrmd1::io_write(uint8_t port, uint8_t data)
         accessed = true;
         access_at = bus->now;
         uint32_t a = address();
+        if (rev2 && !lock && !window()) lock = true;   // a write outside the window: locked until /RES
+        if (rev2 && lock) {
+            a_lo++;   // the counter counts every access, the SRAM gets no /WE
+            return true;
+        }
         if (a < mem.size() && writable(a) && mem[a] != data) {
             mem[a] = data;
             if (!dirty) dirty_since = bus->now;
@@ -209,9 +302,19 @@ bool Zrmd1::io_write(uint8_t port, uint8_t data)
         a_lo++;
         return true;
     }
-    case 1: a_lo = data; return true;
-    case 2: a_mid = data; return true;
-    case 3: a_hi = data; return true;
+    case 1:
+        if (is_zrd1v) { accessed = true; access_at = bus->now; }
+        a_lo = data;
+        return true;
+    case 2:
+        if (is_zrd1v) { accessed = true; access_at = bus->now; }
+        if (rev2) trigger_window();
+        a_mid = data;
+        return true;
+    case 3:
+        if (is_zrd1v) { accessed = true; access_at = bus->now; }
+        a_hi = data;
+        return true;
     default: break;
     }
     if (rtc_enabled && off >= 0x10 && off < 0x20) {
@@ -265,5 +368,12 @@ void Zrmd1::describe(json& out)
     if (!is_zrd1v) {
         out["write_enable"] = { write_enable[0], write_enable[1], write_enable[2], write_enable[3] };
         out["rtc"] = rtc_enabled;
+    } else {
+        out["revision"] = rev2 ? "2.1" : "1.1";
+        if (rev2) {
+            out["locked"] = lock;
+            out["window_open"] = window();
+            out["battery_mv"] = battery_mv;
+        }
     }
 }

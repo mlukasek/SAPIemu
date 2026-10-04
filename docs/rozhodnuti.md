@@ -646,3 +646,15 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   Ctrl+F8 (F8 dál přepíná rychlost) a stavový řádek ukazuje, že je zapnutý.
 - **Autor:** joystick z klávesnice i myš PC jsou po každém spuštění vypnuté, do nastavení se neukládají (citlivost
   myši ano).
+
+## 2026-10-04 – ZRD-1V rev 2.1: zámek zápisu
+
+- **Zámek je stav karty, ne konfigurace (autor):** na desce je to RS klopný obvod, který odemkne /RES. Kdyby se
+  zápis zámku uložil do sestavy, karta by po restartu emulátoru zůstala zamčená, skutečná ne. Konfigurátor ho
+  ukazuje živě (`Card::live_status`), LED ZAM je zámek, MCP `locked`. Parametr „Režim“ zůstává pro obraz
+  v emulátoru (rw/nosave/readonly).
+- **LED ZRD-1V podle desky rev 2.1:** ZAM = červená WRITE PROTECT, DSK = zelená ACCESS (po přístupu na 60h–63h).
+  Dřívější barvy ZAM podle režimu (zelená/žlutá/červená) skončily. Rev 1.1 LED nemá.
+- **Revize jako parametr** (`revision`, výchozí 2.1): rev 1.1 zámek, LED ani MAX187 nemá.
+- **MAX187 s napětím v parametru** `battery_mv` (platí hned, baterie se vybíjí). Převod podle datasheetu: /CS =
+  okno 74LS123, takt čtením 61h, DOUT na D5.

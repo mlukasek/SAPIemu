@@ -1330,6 +1330,14 @@ void draw_slot_props(UiState& ui, int slot)
         draw_param(ui, *card, idx, ci, p);
         if (nested) ImGui::Unindent();
     }
+    // state of the running card that is not a parameter (the write lock of ZRD-1V...)
+    Card* live = editor_on_running(ui) ? running_card(ui, *card, card_first_slot(*card)) : nullptr;
+    std::string st = live ? live->live_status() : std::string();
+    if (!st.empty()) {
+        ImGui::Spacing();
+        ImGui::TextColored(st.find("locked by") != std::string::npos ? TXT_WARN : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled),
+                           "%s", tr(st.c_str()));
+    }
 }
 
 // ---------------------------------------------------------------- port and memory map

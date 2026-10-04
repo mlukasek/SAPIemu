@@ -648,8 +648,16 @@ static const CardParam k_zrmd1[] = {
       nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
+static const ParamOption k_zrd1v_rev[] = {
+    { "\"2.1\"", "rev 2.1: write lock, LEDs, battery ADC", "rev 2.1: zámek zápisu, LED, měření baterie" },
+    { "\"1.1\"", "rev 1.1 (no lock, no LEDs)", "rev 1.1 (bez zámku a LED)" },
+    { nullptr, nullptr, nullptr },
+};
 static const CardParam k_zrd1v[] = {
+    { "revision", PK_CHOICE, "Board revision", "Revize desky", "\"2.1\"", k_zrd1v_rev, 0, 0 },
     ZRMD_COMMON
+    { "battery_mv", PK_INT, "Backup battery (mV, rev 2.1 measures it)", "Zálohovací baterie (mV, rev 2.1 ji měří)", "3000",
+      nullptr, 0, 4095 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

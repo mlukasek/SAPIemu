@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include "cards/zrmd1.h"
 #include "core/bus.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -24,6 +25,67 @@ static json machine_cfg(void)
     return cfg;
 }
 
+// ZRD-1V rev 2.1: writes to 60h only within 20 ms after an access to 62h; a write outside
+// locks the card until /RES (MikroMon does it on purpose); the MAX187 reads the battery.
+static void zrd_lock(Machine& m, Card* zrd)
+{
+    auto at = [&](uint32_t a) {
+        m.bus.io_write(0x61, (uint8_t)a);
+        m.bus.io_write(0x62, (uint8_t)(a >> 8));
+        m.bus.io_write(0x63, (uint8_t)(a >> 16));
+    };
+    at(0x3FFFF0);
+    uint8_t b = m.bus.io_read(0x60);
+    at(0x3FFFF0);
+    m.bus.io_write(0x60, (uint8_t)~b);   // inside the window: written
+    at(0x3FFFF0);
+    CHECK_EQ(m.bus.io_read(0x60), (uint8_t)~b);
+    at(0x3FFFF0);
+    m.bus.io_write(0x60, b);
+    // MikroMon: OUT 61h,FF / 62h,FF / 63h,3F, 100 ms, OUT 60h -> locked, nothing written
+    at(0x3FFFFF);
+    uint8_t last = m.bus.io_read(0x60);
+    at(0x3FFFFF);
+    m.run_seconds(0.1);
+    CHECK(!((Zrmd1*)zrd)->locked());
+    m.bus.io_write(0x60, (uint8_t)~last);
+    CHECK(((Zrmd1*)zrd)->locked());
+    CHECK(zrd->panel_leds() & 1u);
+    at(0x3FFFFF);
+    m.bus.io_write(0x60, (uint8_t)~last);   // locked: no write even inside the window
+    at(0x3FFFFF);
+    CHECK_EQ(m.bus.io_read(0x60), last);
+    CHECK(zrd->live_status().find("locked by") != std::string::npos);
+    // the configuration does not change: the lock is a latch on the board
+    nlohmann::json* zc = m.card_config(zrd);
+    CHECK(zc && !zc->contains("locked"));
+    // /RES unlocks
+    m.reset();
+    CHECK(!((Zrmd1*)zrd)->locked());
+    CHECK(!(zrd->panel_leds() & 1u));
+    // MAX187: an access to 62h starts the conversion, reads of 61h clock out EOC, D11..D0 on D5
+    std::string err;
+    CHECK(m.live_param(zrd, "battery_mv"));
+    CHECK(m.set_live_param(zrd, "battery_mv", 2873, err));
+    m.run_seconds(0.03);                    // the window of the last access is over
+    m.bus.io_write(0x62, 0x00);
+    CHECK_EQ(m.bus.io_read(0x61) & 0x20, 0x00);   // converting
+    m.run_seconds(0.0001);
+    CHECK_EQ(m.bus.io_read(0x61) & 0x20, 0x20);   // end of conversion
+    int code = 0;
+    for (int i = 0; i < 12; i++) code = code << 1 | ((m.bus.io_read(0x61) >> 5) & 1);
+    CHECK_EQ(code, 2873);
+    CHECK_EQ(m.bus.io_read(0x61) & 0x20, 0x00);   // zeros after the LSB
+    // a read of 61h loads the address register with what it read (FFh / DFh)
+    m.bus.io_write(0x61, 0x12);
+    uint8_t r = m.bus.io_read(0x61);
+    nlohmann::json d;
+    zrd->describe(d);
+    char want[8];
+    snprintf(want, sizeof(want), "%02X", r);
+    CHECK(d.value("address", std::string()).substr(4) == want);
+}
+
 static void cpm(void)
 {
     Machine m;
@@ -35,9 +97,9 @@ static void cpm(void)
     m.type_text("1");
     CHECK(run_until_text(m, "\nA>", 10.0));
     m.run_seconds(0.3);
-    // ZRD-1V panel LEDs: ZAM shows the write mode (tests: rw becomes nosave = yellow), DSK the access
+    // ZRD-1V rev 2.1 panel LEDs: ZAM (red) = the write lock, open; DSK (green) = access, dark now
     Card* zrd = m.find_card("ZRD-1V");
-    CHECK(zrd && (zrd->panel_leds() & 1u) && zrd->panel_led_color(0) == 'y');
+    CHECK(zrd && !(zrd->panel_leds() & 1u) && zrd->panel_led_color(0) == 'r' && zrd->panel_led_color(1) == 'g');
     CHECK(zrd && !(zrd->panel_leds() & 2u));
     m.type_text("DIR\r");
     bool dsk = false;
@@ -47,10 +109,9 @@ static void cpm(void)
     }
     CHECK(dsk);
     CHECK(run_until_text(m, "WM1Z    .HLP", 5.0));
-    // the write mode changes while running (configurator): read only blocks writes, ZAM turns red
+    // the write mode changes while running (configurator): read only blocks writes
     CHECK(zrd && m.live_param(zrd, "mode") && !m.live_param(zrd, "chips"));
     CHECK(m.set_live_param(zrd, "mode", "readonly", err));
-    CHECK(zrd->panel_led_color(0) == 'r');
     nlohmann::json* zc = m.card_config(zrd);
     CHECK(zc && zc->value("mode", std::string()) == "readonly");
     m.bus.io_write(0x61, 0x00);
@@ -63,7 +124,7 @@ static void cpm(void)
     CHECK_EQ(m.bus.io_read(0x60), before);
     CHECK(!m.set_live_param(zrd, "mode", "fast", err));
     CHECK(m.set_live_param(zrd, "mode", "rw", err));    // tests: rw becomes nosave
-    CHECK(zrd->panel_led_color(0) == 'y');
+    zrd_lock(m, zrd);
     // DSM-1V: two channels
     CHECK_EQ((int)m.serials.size(), 2);
     printf("%s\n", screen_text(m).c_str());

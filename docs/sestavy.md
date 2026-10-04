@@ -23,8 +23,8 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
     - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2). LED na
       skutečné desce není, emulátor ji přidává: svítí 50 ms po přístupu na disk nebo PMD32-SD;
     - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, DGD-1V, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL, K3 ZVUK, K2 MYŠ);
-      ZRD-1V (LED podle rev 2.0: DSK žlutá svítí 20 ms po přístupu k datům RAM disku, ZAM ukazuje režim zápisu
-      z konfigurace karty: zelená `rw`, žlutá `nosave`, červená `readonly`);
+      ZRD-1V (LED podle rev 2.1: ZAM červená = zámek zápisu nastavený programem, odemkne reset; DSK zelená svítí
+      20 ms po přístupu na 60h–63h; rev 1.1 LED nemá);
     - bez konektoru (autor): ZRMD-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V, REM-1. Ostatní karty se projdou postupně.
   - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
   - Sériové karty (DMR-1, DSM-1, DSM-1V) bývají v sestavě víckrát, proto je **port u každého sériového

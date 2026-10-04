@@ -42,9 +42,10 @@ Zdroje:
 - **Programový model** je stejný jako u ZRMD-1.
 - **Chybí** RTC a ochrana zápisu po čipech.
 - **Bázová adresa** se nastavuje jumpery na 74LS688, výchozí je 60h.
-- **„Zamykání“ z MikroMonu:** MikroMon při startu provede `OUT 61h,FF; OUT 62h,FF; OUT 63h,3F`, prodlevu
-  a `OUT 60h`. Popis ZRD-1V žádný zamykací mechanismus nemá, sekvence tedy nejspíš jen zapíše bajt na poslední
-  adresu 3FFFFFh a nechá tam adresu „zaparkovanou“. Emulátor to provede doslova. Ověřit u autora MikroMonu.
+- **Zamykání z MikroMonu (vysvětleno schématem rev 2.1):** MikroMon 1.3 při startu (0053h) provede
+  `OUT 61h,FF; OUT 62h,FF; OUT 63h,3F`, smyčku `BC = 3C19h` (400 010 taktů = 100 ms při 4 MHz) a `OUT 60h` (A = 0).
+  Rev 2.1 povolí zápis na 60h jen do 20 ms po přístupu na 62h. Zápis po 100 ms kartu **úmyslně zamkne** až do
+  resetu. Rev 1.x zámek nemá a zapíše jen 00h na poslední bajt 3FFFFFh, proto MikroMon adresu nastaví tam.
 
 ## Obsah RAM disku (`media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`)
 
@@ -139,3 +140,42 @@ Zdroje:
     karty (autor): zelená `rw` (ukládá se), žlutá `nosave` (jen v paměti), červená `readonly` (zápis zablokovaný).
     Režim jde v konfigurátoru přepnout za chodu („(platí hned)“).
 
+## ZRD-1V rev 2.1 – zámek zápisu a měření baterie (schéma 2026-09-05)
+
+Zdroj: `..\ZRD-1V\ZRD-1V_rev20\` (`ZRD-1V.pdf` 3 listy, `schema1-3.png`, Eagle, `DESCRIPTION` rev 2.1). Proti 2.0
+vypuštěno zálohování ze sběrnice signálem S4 a doplněny sériové odpory u 74AC138. Emulace: parametr
+`revision` (`2.1` výchozí, `1.1`), `battery_mv` (výchozí 3000, platí hned). Test `test_sapi1v` (`zrd_lock`).
+
+- **Dekodér** (IC19 74LS02, IC18 74LS138): /RAM (60h) a /AD1–/AD3 (61h–63h) jsou aktivní při čtení i zápisu,
+  IWR jen při zápisu, /RES vypne dekodér. 74LS245 budí sběrnici při čtení kteréhokoli z portů 60h–63h.
+- **Zámek** (list 3):
+  - IC21B 74LS123 (R6 100k, C25 680n, ve schématu „20msec“) se spouští sestupnou hranou /AD2. **Každý
+    přístup na 62h** (čtení i zápis) otevře okno 20 ms, opakovaný přístup ho prodlouží.
+  - /WE SRAM = NAND(IWR, Q okna) OR zámek: **zápis na 60h se provede jen uvnitř okna**.
+  - RS klopný obvod IC13C/IC13B (74LS00): zápis na 60h mimo okno (IC13A, IC20B) ho překlopí. **Zámek drží až do
+    /IRES**, pak se zapisuje zase normálně. Zápis, který zámek spustil, se neprovede.
+  - Běžný zápis sektoru (adresa 61h/62h/63h a hned `OTIR` na 60h) se do okna vejde. ECMON a CP/M zapisují
+    normálně, `SAVE` v testech funguje.
+- **LED:** D1 HLMP-3762 červená „WRITE PROTECT“ svítí, když je zamčeno. D2 HLMP-3962 zelená „ACCESS“ svítí 20 ms
+  (IC21A 74LS123 z /OE) po **jakémkoli** přístupu na 60h–63h. Na panelu emulátoru je ZAM = D1, DSK = D2. Rev 1.1
+  LED nemá, na panelu jsou zhasnuté.
+- **MAX187** (IC22, 12 bitů, vnitřní reference 4,096 V, tedy 1 mV na krok) měří zálohovací baterii (AIN přes R7
+  24M):
+  - /CS = /Q okna: převod začne prvním přístupem na 62h, když okno nebylo otevřené, a trvá 8,5 µs.
+  - SCLK = NOR(/IRD, /AD1): **každé čtení 61h** je jeden takt, DOUT jde přes 74LVC1G126 na **D5**.
+  - Pořadí čtení: během převodu D5 = 0, pak 1 (konec převodu), pak D11…D0 a za LSB nuly. Po zavření okna DOUT
+    plave (čte se 1).
+- **Čtení 61h–63h** zapíše do registru adresy, co je na vnitřní sběrnici: 74LS193 se načítají úrovní /AD1 a
+  74LS374 hranou /AD2 / /AD3. Kromě DOUT ji nic nebudí, emulace čte FFh (61h s DOUT na D5) a stejnou hodnotu
+  zapíše do registru. Platí i pro rev 1.1 (bez DOUT).
+- **Konfigurace vs. zámek (autor):** zámek je stav karty jako na desce, neukládá se do sestavy. Konfigurátor ho
+  ukazuje pod parametry („zámek zápisu: zamčeno programem…“), MCP v `machine_info` (`locked`). Parametr „Režim“
+  (rw/nosave/readonly) dál řídí jen obraz v emulátoru.
+
+### Nejasnosti rev 2.1
+
+- Která revize je na autorově desce (fotka v repu je rev 1.0)? Sestava V má teď 2.1.
+- Okno 74LS123: schéma píše 20 ms, vzorec 0,37–0,45 · R · C dává 25–31 ms. Emulace: 20 ms.
+- AIN přes 24 MΩ: kolik ukazuje skutečná deska proti napětí baterie (vstupní proud MAX187)? Emulace: přesně
+  `battery_mv`.
+- Čte se volná vnitřní sběrnice (61h–63h) opravdu jako FFh?

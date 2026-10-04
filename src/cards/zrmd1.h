@@ -7,17 +7,26 @@
 //   base+3 (63h)  write: A16-A21 (b0-5), b6/b7 -> MAP1/MAP2 when JP2 is fitted
 //   base+10h..1Fh (70-7Fh) RTC 72421 (ZRMD-1 only)
 // Write protection: DIP switches S1-S4, one per 1 MB (ZRMD-1 only).
+// ZRD-1V rev 2.1 (parameter revision): a write lock and the battery voltage.
+//   - 74LS123 (IC21B): every access to 62h opens a window of 20 ms; writes to 60h happen only
+//     inside it. A write to 60h outside it is dropped and sets the lock (RS latch IC13C/B),
+//     which only /RES clears (MikroMon locks the card this way at start).
+//   - LEDs: red WRITE PROTECT = locked, green ACCESS = 20 ms after any access to 60h-63h.
+//   - MAX187 (12 bit, 4.096 V reference) measures the backup battery: /CS is the 62h window,
+//     each read of 61h clocks it, DOUT is D5. Code = millivolts.
+//   - A read of 61h-63h loads the address register with what the undriven internal bus holds
+//     (read as FFh; 61h also has DOUT on D5). Rev 1.1 the same, without DOUT.
 #include <vector>
 #include "chips/rtc72421.h"
 #include "core/devices.h"
 
 class Zrmd1 : public Card {
 public:
-    // ZRD-1V panel: bit 0 ZAM = the write mode of the card (always lit, the colour shows it),
-    // bit 1 DSK = access to the RAM disk data (port 60h), lit 20 ms (74LS123 of rev 2.0).
+    // ZRD-1V rev 2.1 panel: bit 0 ZAM = the write lock (red), bit 1 DSK = access to 60h-63h,
+    // lit 20 ms (green). Rev 1.1 has no LEDs.
     unsigned panel_leds() override;
-    // ZAM: green rw (saved), yellow nosave (changes kept only in memory), red readonly.
     char panel_led_color(int n) override;
+    std::string live_status() override;
     // While running: the mode, and on ZRMD-1 the write enable switches S1-S4.
     bool live_param(const char* path) const override;
     bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
@@ -36,10 +45,23 @@ public:
     void describe(nlohmann::json& out) override;
 
     enum Mode { MODE_RW, MODE_NOSAVE, MODE_READONLY };
+    bool locked(void) const { return lock; }
 
 private:
-    uint64_t access_at = 0;   // bus time of the last data access (DSK LED)
+    uint64_t access_at = 0;   // bus time of the last access (DSK LED: 60h on rev 1.1, 60h-63h on 2.1)
     bool accessed = false;
+    bool rev2 = true;         // ZRD-1V rev 2.1 (lock, LEDs, MAX187); rev 1.1 otherwise
+    bool lock = false;        // rev 2.1: writes locked until /RES
+    uint64_t window_at = 0;   // rev 2.1: bus time of the last access to 62h (74LS123 trigger)
+    bool window_seen = false;
+    int battery_mv = 3000;    // rev 2.1: backup battery voltage (2x AAA)
+    // MAX187: conversion started when the window opened, bits clocked out by reads of 61h
+    uint64_t adc_start = 0;
+    int adc_clocks = 0;
+    uint16_t adc_code = 0;
+    bool window(void) const;
+    void trigger_window(void);
+    uint8_t adc_dout(void) const;
     uint32_t address(void) const { return ((uint32_t)(a_hi & 0x3F) << 16) | ((uint32_t)a_mid << 8) | a_lo; }
     bool writable(uint32_t addr) const;
     bool save(void);

@@ -63,6 +63,9 @@ public:
 
     // Short status for UIs / MCP.
     virtual void describe(nlohmann::json& out) {}
+    // State worth seeing while running that is not a parameter (a lock set by the program...):
+    // one line for the configurator, empty = nothing.
+    virtual std::string live_status() { return std::string(); }
 
     // Address decoding for the port and memory map, without side effects:
     // DecodeFlags of the accesses the card answers, `what` = short name of the

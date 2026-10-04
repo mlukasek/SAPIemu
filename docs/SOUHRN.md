@@ -4,6 +4,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Stav k 2026-10-04
 
+**Hotové: ZRD-1V rev 2.1** podle nového schématu (`..\ZRD-1V\ZRD-1V_rev20`): parametr `revision` (2.1 / 1.1).
+- Zámek zápisu: zápis na 60h jen do 20 ms po přístupu na 62h, jinak se karta zamkne do resetu (tak ji zamyká
+  MikroMon).
+- LED podle desky: ZAM červená = zamčeno, DSK zelená = přístup.
+- Měření baterie MAX187 (čtení 61h, D5, `battery_mv`) a vedlejší účinek čtení 61h–63h.
+- Zámek se neukládá do sestavy (autor), konfigurátor ho ukazuje živě. Popis v `docs/desky/ZRMD-1.md`.
+
 **Hotové: MPH-1V** (Liborova zvuková a joysticková karta: YM3812, 8253, joystick) v sestavě V na X8, báze 50h.
 - YM3812 na jádru Nuked-OPL3 (third_party, LGPL) s časovači a stavem OPL2 a bitem WSE, 8253 (režimy 0–5,
   kaskáda), výstupní filtr karty. Zvuk v GUI (Stroj → Zvuk a joystick, jen při 100 %), joystick z gamepadu
@@ -195,7 +202,6 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 - **AND-1V:** čekací stavy (RDY, jedno okno CPU na znak, 0–1 takt při 2 MHz, žádné při I/O).
 - **JPR-1V:** STSTB bez refreshe (u JPR-1ZI je STSTB jen z /MREQ, což u AND-1Z může při refreshi s I = F8–FF
   spustit čekání). Visení RDY u DGD-1 během BOOT.
-- **ZRD-1V:** vedlejší účinky čtení 61h–63h (nedefinovaná hodnota, která se zapíše do registru adresy).
 - **ZPS-4 / ELIS v3.00:** obsluha klávesnice (dvojité nebo nekonečné opakování kláves).
 - **RMD-1:** časování (INIR, NOP po `OUT 43`).
 - **CGA-1V:**
@@ -210,7 +216,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 3. **Volná sběrnice:** čte se opravdu FFh?
 4. **Consul 262.3:** polarita, délka strobe; má vaše JPR-1Z/ZI úpravu se 7474? (Kódy už jsou z manuálu.)
 5. **ANK-1:** bity LED a bzučáku na P0-OUT (emulace podle MIKOS: D7 ERR, D6 bzučák, D5 SHIFT).
-6. **ZRMD-1:** ~~rozsahy S1–S4~~ (vyřešeno z GAL). Jak MikroMon „zamyká“ ZRD-1V? Nuluje /RES adresní čítače?
+6. **ZRMD-1:** ~~rozsahy S1–S4~~ (vyřešeno z GAL). ~~Jak MikroMon „zamyká“ ZRD-1V?~~ (rev 2.1: zápis na 60h
+   déle než 20 ms po 62h, `docs/desky/ZRMD-1.md`). Nuluje /RES adresní čítače?
    Které bity 63h jdou na MAP1/MAP2?
 7. **MikroMon 1.3:** posílá opravdu „sw i01“ a skenuje jen kanály 10, 14 a 18h?
 8. **IDE-1:** stav IDE signálů po resetu, když je PC 8255 nastavený jako vstup.
@@ -295,8 +302,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
     - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). Nuluje /RES čítače a
       registry adresy? Jsou 61h–63h opravdu nečitelné? Má hlídání MAX808 nějaký vliv viditelný pro software?
-    - ZRD-1V: kterou revizi máš (fotka 1.1)? Co dělá zámek zápisu v rev 2.0 a souvisí s ním sekvence MikroMonu
-      `OUT 61/62/63 = FF/FF/3F` + `OUT 60`?
+    - ZRD-1V: kterou revizi máš (fotka 1.1)? ~~Zámek zápisu a MikroMon~~: vyřešeno schématem rev 2.1, otevřené
+      body jsou v `docs/desky/ZRMD-1.md` („Nejasnosti rev 2.1“).
     - RAM-1V: revize 1.1, nebo 1.2? Emulovat podle schématu 1.1 (1.2 nemá MAP2 u díry 16 KB)?
     - RAM-1V, patice C: je prázdná. Jaký Timekeeper se tam dává (M48T35/DS1644?) a emulovat jeho RTC?
     - DSM-1V: propojky na tvé desce (adresy A = 10h, B = 14h?, rychlosti obou kanálů).
