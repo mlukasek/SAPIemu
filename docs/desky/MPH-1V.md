@@ -90,8 +90,9 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
 - Kvadratura: fáze 00, 10, 11, 01 (A, B), doprava a dolů vede A. Karta posílá nejvýš 1000 kroků za sekundu na
   osu (emulovaný čas) jako skutečné kolečko myši. Program, který port jen čte, by rychlejší kroky přeskočil.
   Pohyb, který nestihne, se drží nejvýš 250 ms, pak se zahodí.
-- **Zachycení v GUI:** kliknutí do kteréhokoli okna obrazovky (AND-1V, CGA-1V, DGD-1V…) myš zachytí, když je
-  nějaká připojená. Kurzor zmizí a relativní pohyb jde do SAPI. Pustí ji prostřední tlačítko, Ctrl+F10 nebo
+- **Zachycení v GUI:** nejdřív se zapne Stroj → Zvuk, joystick a myš → Myš PC jako myš SAPI (výchozí vypnuto,
+  pamatuje se). Pak kliknutí do kteréhokoli okna obrazovky (AND-1V, CGA-1V, DGD-1V…) myš zachytí, když je nějaká
+  připojená. Kurzor zmizí a relativní pohyb jde do SAPI. Pustí ji prostřední tlačítko, Ctrl+F10 nebo
   ztráta fokusu okna. Citlivost (kroků na bod myši PC) je ve Stroj → Zvuk, joystick a myš. Absolutní pozice
   nejde: kde je kurzor, ví jen program.
 - `sapiemu-cli --audio-wav soubor.wav` nahraje zvuk od místa v akcích do konce. MCP `audio_record` (WAV, RMS,

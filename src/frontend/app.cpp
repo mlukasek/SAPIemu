@@ -139,7 +139,7 @@ nlohmann::json settings_json(App& app)
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
     j["joystick"] = { { "keyboard", app.joy.keyboard } };
-    j["mouse"] = { { "sensitivity", app.mouse.sensitivity } };
+    j["mouse"] = { { "enabled", app.mouse.enabled }, { "sensitivity", app.mouse.sensitivity } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     return j;
@@ -207,6 +207,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     const nlohmann::json& joy = j.value("joystick", nlohmann::json::object());
     get_opt(joy, "keyboard", app.joy.keyboard);
     const nlohmann::json& mo = j.value("mouse", nlohmann::json::object());
+    get_opt(mo, "enabled", app.mouse.enabled);
     get_opt(mo, "sensitivity", app.mouse.sensitivity);
     if (!(app.mouse.sensitivity >= 0.1f && app.mouse.sensitivity <= 8.0f)) app.mouse.sensitivity = 1.0f;
 }
@@ -500,9 +501,12 @@ void draw_menu(App& app)
                 ImGui::TextDisabled("%s %d: %s", tr("Gamepad"), i + 1, pad.empty() ? tr("none") : pad.c_str());
             }
             ImGui::Separator();
+            ImGui::MenuItem(tr("PC mouse as the SAPI mouse (a click into a screen captures it)"), nullptr, &app.mouse.enabled);
+            ImGui::BeginDisabled(!app.mouse.enabled);
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
             ImGui::SliderFloat(tr("Mouse sensitivity"), &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
-            ImGui::TextDisabled("%s", tr("Mouse: click into a screen to capture it; middle button or Ctrl+F10 releases it."));
+            ImGui::EndDisabled();
+            ImGui::TextDisabled("%s", tr("Middle button or Ctrl+F10 releases the captured mouse."));
             ImGui::EndMenu();
         }
         ImGui::EndMenu();
@@ -874,6 +878,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             }
         }
         mouse_frame(app.mouse, app.window, app.host.machine());
+        if (app.mouse.captured != app.mouse.gui_captured) {
+            // The click that captured the mouse went to the GUI, its release did not (nor anything
+            // pressed before the release): let go of all buttons, or the GUI drags a window after.
+            for (int b = 0; b < ImGuiMouseButton_COUNT; b++) io.AddMouseButtonEvent(b, false);
+            if (!app.mouse.captured) {
+                float mx = 0, my = 0;
+                SDL_GetMouseState(&mx, &my);
+                io.AddMousePosEvent(mx, my);
+            }
+            app.mouse.gui_captured = app.mouse.captured;
+        }
         if (app.mouse.captured) io.ConfigFlags |= ImGuiConfigFlags_NoMouse;   // the GUI does not see it
         else io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
         app.host.frame(now - last);

@@ -220,7 +220,7 @@ bool mouse_event(HostMouse& ms, SDL_Window* w, Machine* m, const SDL_Event& ev)
 
 void mouse_frame(HostMouse& ms, SDL_Window* w, Machine* m)
 {
-    bool wanted = m && m->bus.mouse_connected;
+    bool wanted = ms.enabled && m && m->bus.mouse_connected;
     if (ms.click && wanted) mouse_capture(ms, w, true);
     ms.click = false;
     if (ms.captured && !wanted) mouse_capture(ms, w, false);

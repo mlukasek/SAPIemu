@@ -38,10 +38,12 @@ uint8_t joystick_state(const HostJoystick& j, int n, bool keys);
 std::string joystick_name(const HostJoystick& j, int n);   // empty = no gamepad
 void joystick_close(HostJoystick& j);
 
-// The host mouse for the mouse ports: captured (relative mode, cursor hidden) by a click into
-// a display window, released by the middle button, Ctrl+F10 or losing the focus.
+// The host mouse for the mouse ports: when enabled, captured (relative mode, cursor hidden) by a
+// click into a display window, released by the middle button, Ctrl+F10 or losing the focus.
 struct HostMouse {
+    bool enabled = false;        // settings: the host mouse is the mouse of the machine
     bool captured = false;
+    bool gui_captured = false;   // the state the GUI was last told about (its buttons are released then)
     bool click = false;          // a display window was clicked in this frame
     float sensitivity = 1.0f;    // settings: mouse counts per host pixel
     float fx = 0, fy = 0;        // fractions of counts not sent yet

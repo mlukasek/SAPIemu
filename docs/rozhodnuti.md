@@ -639,3 +639,6 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Rychlost kroků omezená na 1000/s na osu v emulovaném čase:** skutečná myš nedá kroky libovolně rychle a
   program, který porty polluje, by je jinak přeskakoval. Pohyb navíc se drží nejvýš 250 ms.
 - Výčet tlačítek na sběrnici je `MouseButton`, stav myši PC ve frontendu `HostMouse`.
+- **Autor:** zachycení kliknutím bylo otravné. Myš PC se proto pro SAPI nejdřív zapne v menu (jako joystick
+  z klávesnice), výchozí je vypnuto. Při zachycení i uvolnění dostane GUI uvolnění všech tlačítek a polohu
+  kurzoru, jinak po uvolnění táhlo okno (stisk, který myš zachytil, GUI vidělo, jeho uvolnění ne).
