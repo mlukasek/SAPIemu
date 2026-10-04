@@ -40,7 +40,7 @@
             "type": "AND-1V",               // VGA display 64x20 (V)
             "base": "F800h",                // S2 /A11-/A15: VRAM base (2 KB steps)
             "map": "map1_l",                // S2 MAP1OFF, H/L - both open: MAP1 = L
-            "color": "white",               // S1: ink colour
+            "color": "amber",               // S1: ink colour
             "font": "roms/and-1v/font_and1v22_1024.bin"  // Character generator 27C256 - 10x24 type 1
         },
         {
