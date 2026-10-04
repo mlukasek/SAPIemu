@@ -600,3 +600,9 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   přehlédnutého pulzu) zůstává výchozí kvůli vkládání textu a MCP, ale je vidět a jde vypnout: u každé karty CPU
   s paralelní klávesnicí přepínač „Klávesnice: věrně jako hardware (klávesy se mohou ztratit)“
   (`keyboard.strict`), platí hned. Výběr jiné klávesnice volbu zachová.
+
+## 2026-10-04 – Mapa paměti s ostatními stavy MAP
+
+- **Autor:** alternativní mapování (CGA-1V při MAP1 = MAP2 = H, díry RAM-1V…) má být vidět na první pohled.
+- Pod hlavním pruhem zvoleného stavu MAP1/MAP2 jsou tenké pruhy ostatních stavů, barevně jen tam, kde se liší
+  (barva karty, šedá = nikdo). Kliknutím se stav prohodí s hlavním. Rozbalovací výběr stavu zmizel.

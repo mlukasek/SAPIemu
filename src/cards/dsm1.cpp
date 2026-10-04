@@ -269,7 +269,7 @@ int Dsm1::irq_lines()
 int Dsm1::decode_io(uint8_t port, const char** what)
 {
     if ((port & 0xFC) != base) return 0;
-    *what = "UART, cassette";
+    *what = no_tape ? "UART" : "UART, cassette";   // DSM-1V has no cassette
     return (port & 3) == 3 ? DEC_WRITE : DEC_READ | DEC_WRITE;
 }
 

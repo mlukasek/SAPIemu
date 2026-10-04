@@ -98,7 +98,10 @@ který port a paměťovou adresu.
   a přístupem (R = čtení, W = zápis).
 - **Porty:** tabulka rozsahů. Neemulované sériové karty (DSM-1) jsou v mapě s porty z konfigurátoru, ostatní
   neemulované karty jsou vypsané jako „dekódování neznámé“.
-- **MAP1/MAP2:** když na nich mapa závisí (AND-1Z se S1, DMR-1 s A6/A7 z MAP), jde vybrat stav linek.
+- **MAP1/MAP2:** když na nich mapa závisí (AND-1Z se S1, DMR-1 s A6/A7 z MAP, RAM-1V, CGA-1V…), je vlevo
+  od hlavního pruhu jeho stav a pod ním tenké pruhy ostatních stavů. Ty barevně ukazují jen místa, kde se
+  mapa v tom stavu liší (šedá = tam nikdo neodpovídá), takže alternativní mapování je vidět hned. Kliknutím na
+  tenký pruh nebo jeho popisek se ten stav ukáže v hlavním pruhu a v tabulce.
 - **Kolize:** dvě karty, které na čtení budí sběrnici na stejné adrese, jsou chyba a sestava se nezapne. Jsou
   červeně v pruhu i v tabulce. Zápis do dvou karet je varování. Nikým neobsazené adresy čtou FFh.
 
