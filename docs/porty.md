@@ -16,7 +16,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 3C–3F | RPD-1B |
 | 40–44 | RMD-1/1 |
 | 45–4A | DSP-1 |
-| 50–57 | MPH-1V (8253, STATUS/IEN/IACK, joystick, YM3812), báze S1 |
+| 50–57 | MPH-1V (82C54, STATUS/IEN/IACK, joystick, YM3812), báze S1 |
 | 58–5B | IDE-1, IDE 8255 (Martinovo nastavení) |
 | 5C–5F | IDE-1, PMD32-SD 8255 (Martinovo nastavení) |
 | 60–63 | ZRMD-1 / ZRD-1V (63h = mapovací registr) |

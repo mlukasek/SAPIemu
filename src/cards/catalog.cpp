@@ -744,7 +744,7 @@ CARD(c_fdc1, "FDC-1", "FDC", "Floppy disk controller", "Řadič disket", CC_DISK
 CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_DISK, 1, true, k_ide1)
 // I/O
 CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports", "Paralelní porty", CC_IO, 1, false, nullptr)
-CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 8253, joystick (V)", "Zvuk YM3812, časovač 8253, joystick (V)",
+CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 82C54, joystick (V)", "Zvuk YM3812, časovač 82C54, joystick (V)",
      CC_IO, 1, true, k_mph1v)
 CARD(c_rtc1, "RTC-1", "RTC", "Real time clock and timer", "Reálný čas a čítač", CC_IO, 1, false, nullptr)
 CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldeska (prázdná, bez funkce)", CC_OTHER, 1,

@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "SAPI-1 V (JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V, MPH-1V; ECMON + CP/M)",
-    "description": "Sestava z Liborových desek V (Libor Lasota): JPR-1V (Z80, EEPROM banka 1 = ECMON IDE-1, banka 0 = MikroBIOS 3.0 propojkou BIOS, TURBO 4 MHz), RAM-1V 64 KB (propojky jako na autorově desce = „ZPS-3/4 SETUP“: registr MAP na 63h, MAP1 = bit 6, MAP2 = bit 7, díra 16 KB na C000 při MAP1 = H, díra 2 KB na F800 při MAP1 = L; ECMON ani CP/M mapování nepoužívají), AND-1V rev 2.3 (VGA 64x20, bílá) na F800 při MAP1 = L, DSM-1V (kanály 10h a 14h, 115200 Bd), RAM disk ZRD-1V 4 MB s CP/M na 60h, IDE-1 s IDE diskem a PMD32-SD, barevná grafika CGA-1V na C000 při MAP1 = MAP2 = H (OUT 63h,C0h), zvuková a joystick karta MPH-1V (YM3812, 8253) na 50h. Systém je stejný jako u ZRMD-1 (cpm_zrmd.sapi, cpm_ide.sapi).",
+    "description": "Sestava z Liborových desek V (Libor Lasota): JPR-1V (Z80, EEPROM banka 1 = ECMON IDE-1, banka 0 = MikroBIOS 3.0 propojkou BIOS, TURBO 4 MHz), RAM-1V 64 KB (propojky jako na autorově desce = „ZPS-3/4 SETUP“: registr MAP na 63h, MAP1 = bit 6, MAP2 = bit 7, díra 16 KB na C000 při MAP1 = H, díra 2 KB na F800 při MAP1 = L; ECMON ani CP/M mapování nepoužívají), AND-1V rev 2.3 (VGA 64x20, bílá) na F800 při MAP1 = L, DSM-1V (kanály 10h a 14h, 115200 Bd), RAM disk ZRD-1V 4 MB s CP/M na 60h, IDE-1 s IDE diskem a PMD32-SD, barevná grafika CGA-1V na C000 při MAP1 = MAP2 = H (OUT 63h,C0h), zvuková a joysticková karta MPH-1V (YM3812, 82C54) na 50h. Systém je stejný jako u ZRMD-1 (cpm_zrmd.sapi, cpm_ide.sapi).",
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
@@ -98,7 +98,7 @@
         },
         {
             "slot": 8,                      // position X8
-            "type": "MPH-1V",               // Sound YM3812, timer 8253, joystick (V)
+            "type": "MPH-1V",               // Sound YM3812, timer 82C54, joystick (V)
             "base": "50h"                   // S1: port base (8 ports)
         }
     ]

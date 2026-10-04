@@ -38,7 +38,7 @@ static void ym(Machine& m, uint8_t reg, uint8_t v)
     m.bus.io_write(P + 7, v);
 }
 
-// 8253: CLK2 = 55930.4 Hz, mode 2 with 56 -> 998.8 Hz on OUT2, each rising edge sets F2
+// 82C54: CLK2 = 55930.4 Hz, mode 2 with 56 -> 998.8 Hz on OUT2, each rising edge sets F2
 // (the way RAT PLAYER and y1stdemo time their music, MPH-test bit layout)
 static void timers(void)
 {
@@ -46,9 +46,18 @@ static void timers(void)
     if (!load(m)) return;
     m.run_seconds(0.05);
     m.bus.io_write(P + 3, 0xB4);   // counter 2, LSB+MSB, mode 2
+    // 82C54 read-back of the status: OUT high, NULL COUNT (no count yet), RW 3, mode 2, binary
+    m.bus.io_write(P + 3, 0xE8);   // read-back, status only, counter 2
+    CHECK_EQ(m.bus.io_read(P + 2), 0xF4);
     m.bus.io_write(P + 2, 56);
     m.bus.io_write(P + 2, 0);
     m.bus.io_write(P + 4, 0x20);   // GATE2, no interrupt yet
+    m.run_seconds(0.0005);
+    // status and count together: the status first, then the count LSB and MSB
+    m.bus.io_write(P + 3, 0xC8);
+    CHECK_EQ(m.bus.io_read(P + 2), 0xB4);   // the count is in the counting element now
+    uint8_t c_lo = m.bus.io_read(P + 2), c_hi = m.bus.io_read(P + 2);
+    CHECK(c_hi == 0 && c_lo >= 1 && c_lo <= 56);
     m.bus.io_write(P + 5, 0x80);   // clear F2
     int n = 0;
     for (int i = 0; i < 2000; i++) {   // 0.1 s in 50 us steps

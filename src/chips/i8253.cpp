@@ -33,6 +33,10 @@ uint16_t I8253::value(const Counter& k) const
 uint8_t I8253::read(int n)
 {
     Counter& k = c[n];
+    if (k.status_latched) {   // 82C54 read-back: the status byte comes first
+        k.status_latched = false;
+        return k.status;
+    }
     uint16_t v = k.latched ? k.latch : value(k);
     uint8_t b;
     if (k.rw == 1) b = (uint8_t)v;
@@ -69,20 +73,40 @@ void I8253::count_written(Counter& k)
     }
 }
 
+void I8253::latch_count(Counter& k)
+{
+    if (k.latched) return;   // a second latch before the first is read is ignored
+    k.latch = value(k);
+    k.latched = true;
+}
+
 void I8253::write(int reg, uint8_t v)
 {
     if (reg == 3) {   // control word: SC1 SC0 RW1 RW0 M2 M1 M0 BCD
         int n = v >> 6;
-        if (n == 3) return;   // illegal on the 8253
-        Counter& k = c[n];
-        int rw = (v >> 4) & 3;
-        if (rw == 0) {   // counter latch command
-            if (!k.latched) {
-                k.latch = value(k);
-                k.latched = true;
+        if (n == 3) {
+            // 82C54 read-back: D5 = 0 latches the counts, D4 = 0 the status, D3..D1 = counters 2..0
+            if (!is_8254) return;   // illegal on the 8253
+            for (int i = 0; i < 3; i++) {
+                if (!(v & (2 << i))) continue;
+                Counter& r = c[i];
+                if (!(v & 0x20)) latch_count(r);
+                if (!(v & 0x10) && !r.status_latched) {
+                    r.status = (uint8_t)((r.out ? 0x80 : 0) | (r.null_count ? 0x40 : 0) | (r.ctl & 0x3F));
+                    r.status_latched = true;
+                }
             }
             return;
         }
+        Counter& k = c[n];
+        int rw = (v >> 4) & 3;
+        if (rw == 0) {   // counter latch command
+            latch_count(k);
+            return;
+        }
+        k.ctl = v;
+        k.null_count = true;
+        k.status_latched = false;
         k.rw = rw;
         k.mode = (v >> 1) & 7;
         if (k.mode > 5) k.mode -= 4;   // 6, 7 = modes 2, 3
@@ -111,6 +135,7 @@ void I8253::write(int reg, uint8_t v)
         k.reload = (uint16_t)(k.lsb | v << 8);
         k.write_msb = false;
     }
+    k.null_count = true;
     count_written(k);
 }
 
@@ -142,6 +167,7 @@ void I8253::tick(int n)
     if (k.mode == 1 || k.mode == 5) {
         if (k.trigger) {   // the clock after the gate trigger loads the count
             k.trigger = false;
+            k.null_count = false;
             k.count = initial(k);
             k.running = true;
             if (k.mode == 1) k.out = false;
@@ -158,6 +184,7 @@ void I8253::tick(int n)
     }
     if (k.load) {
         k.load = false;
+        k.null_count = false;
         k.count = initial(k);
         k.running = true;
         if (k.mode == 3) k.count &= ~1u;   // counts by two
@@ -174,7 +201,7 @@ void I8253::tick(int n)
         if (!k.gate) return;
         k.count = count_down(k.count, k.bcd);
         if (k.count == 1) k.out = false;          // low for one clock before the reload
-        else if (k.count == 0) { k.out = true; k.count = initial(k); }
+        else if (k.count == 0) { k.out = true; k.count = initial(k); k.null_count = false; }
         break;
     case 3: {
         if (!k.gate) return;
@@ -182,6 +209,7 @@ void I8253::tick(int n)
         if (k.count == 0) {
             k.out = !k.out;
             uint32_t r = initial(k);
+            k.null_count = false;
             // an odd count: one more clock in the high half, one less in the low half
             k.count = (r & 1) ? (k.out ? r + 1 : r - 1) : r;
         }

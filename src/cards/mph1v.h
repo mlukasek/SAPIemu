@@ -1,13 +1,13 @@
 #pragma once
 // MPH-1V rev 1.0 - sound and joystick card (Libor Lasota), see docs/desky/MPH-1V.md.
 //
-// The register bits are those of the card's test program MPH-test 0.99 (also used by SPLAY,
-// RAT PLAYER and y1stdemo); the schematics found so far are earlier drafts.
+// From the schematic rev 1.0 of 2025-09-06 (..\MPH-1V\Eagle, sheets 1-4) and the parts list;
+// MPH-test 0.99, SPLAY, RAT PLAYER and y1stdemo use the same bits.
 // - 8 ports from the base set by S1 (74LS688 on A3-A7):
 //   +0..+2 8253 counters, +3 read STATUS / write the 8253 control word,
 //   +4 read JOY (K4 OVL) / write IEN, +5 read MOUSE (K2) / write IACK,
 //   +6 YM3812 status / address, +7 YM3812 data.
-// - 8253 CLK0 = CLK2 = 55930.4 Hz (14.31818 MHz / 256), CLK1 = OUT0 (cascade);
+// - 82C54 (IC6) CLK0 = CLK2 = 55930.4 Hz (14.31818 MHz / 256), CLK1 = OUT0 (cascade);
 //   YM3812 at 3.579545 MHz (49716 samples/s).
 // - STATUS: D7 F2, D6 F1, D5 OUT2, D4 OUT1, D3 OUT0, D2 D1 = 0, D0 YM IRQ.
 //   F2 / F1: latches set by the rising edge of OUT2 / OUT1 (74LS74).

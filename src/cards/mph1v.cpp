@@ -36,6 +36,7 @@ bool Mph1v::configure(const json& cfg, std::string& err)
     if (!cfg_number(cfg, "base", b, 0x50, err)) return false;
     if (b < 0 || b > 0xF8 || (b & 7)) { err = "base must be a multiple of 8 from 00h to F8h (S1)"; return false; }
     base = (uint8_t)b;
+    pit.is_8254 = true;   // CP82C54-10 (parts list)
     filter_init();
     if (bus) bus->audio_rate = SAMPLE_HZ;
     return true;

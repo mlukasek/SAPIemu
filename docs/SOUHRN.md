@@ -8,9 +8,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - YM3812 na jádru Nuked-OPL3 (third_party, LGPL) s časovači a stavem OPL2 a bitem WSE, 8253 (režimy 0–5,
   kaskáda), výstupní filtr karty. Zvuk v GUI (Stroj → Zvuk a joystick, jen při 100 %), joystick z gamepadu
   a volitelně šipky + mezerník, `sapiemu-cli --audio-wav`, MCP `audio_record` a `joystick`.
-- **Bity STATUS/IEN/IACK jsou podle MPH-test 0.99**, ne podle schémat (PNG ani PDF programům neodpovídají).
-  SPLAY, RAT PLAYER, y1stdemo i MPH-test v emulátoru fungují. Nejasnosti (zdroj F1 a další) jsou v
-  `docs/desky/MPH-1V.md` a v bodě 24 níže.
+- Podle **schématu hotové desky** (`..\MPH-1V\Eagle`, 6. 9. 2025, autor ho sehnal později): souhlasí s tím,
+  co emulace dělala podle MPH-test 0.99 (STATUS `F2 F1 T2 T1 T0 0 0 YM`, F1 z OUT1). Časovač je **82C54**
+  (kusovník), emulace umí jeho read-back. SPLAY, RAT PLAYER, y1stdemo i MPH-test fungují.
 - Programy v `media/mph-1v/`, hudba (VGM, RAD) v repu není, test ji bere z `..\MPH-1V`.
 - Soubor → Nahrát binární soubor do paměti… (adresa, velikost, počet stránek pro `SAVE`), `sapiemu-cli --load-bin`.
   Nahrání Intel HEX se ptá stejně (rozsah adres ze souboru, od 0100h navržený příkaz `SAVE`), zapíše až po potvrzení. Autor ověřil hudbu i joystick
@@ -306,12 +306,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
-24. **MPH-1V** (`docs/desky/MPH-1V.md`):
-    - Schéma hotové desky? PNG (10. 8. 2025) i PDF (24. 8. 2025) mají jiné bity STATUS/IEN/IACK než programy.
-      Emulace je podle MPH-test 0.99: STATUS `F2 F1 T2 T1 T0 0 0 YM`, IEN `F2 F1 G2 G1 G0 – – YM`, IACK `F2 F1`.
-    - F1 nastavuje náběžná hrana OUT1 (emulace), nebo OUT0?
-    - Má IACK i bity pro nastavení F1/F2 softwarem (PDF „EE“, „FE“ na D2/D1)? Čte STATUS D2/D1 = 0 a JOY D7/D6 = 1?
-    - Osazený oscilátor: 14,31818 MHz s děliči (list 3 PNG), nebo 3,579545 MHz (PDF)?
+24. ~~**MPH-1V**~~: vyřešeno schématem hotové desky (`..\MPH-1V\Eagle`), viz `docs/desky/MPH-1V.md`.
 
 ## Jak pokračovat
 

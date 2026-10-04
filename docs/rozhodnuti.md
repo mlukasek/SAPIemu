@@ -613,9 +613,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **YM3812 přes Nuked-OPL3** (YMF262 v režimu OPL2, přesný, LGPL-2.1+ kompatibilní s GPLv3). Co OPL3 v režimu
   OPL2 dělá jinak, řeší obal `Ym3812`: bit WSE (bez něj sinus), časovače T1/T2 a stavový registr s dolními bity
   110. Jádro běží na nativních 49716 Hz, převzorkování dělá SDL.
-- **Bity registrů podle programů, ne podle schémat:** PNG i PDF jsou rozpracované verze. MPH-test 0.99 (testovací
-  program karty) a SPLAY, RAT, y1stdemo se shodují na STATUS `F2 F1 T2 T1 T0 0 0 YM`, IEN `F2 F1 G2 G1 G0 – – YM`,
-  IACK `F2 F1`. Nejasnosti jsou v `docs/desky/MPH-1V.md`.
+- **Bity registrů nejdřív podle programů:** dostupná PNG a PDF byla rozpracovaná, MPH-test 0.99 a SPLAY, RAT,
+  y1stdemo se shodovaly na STATUS `F2 F1 T2 T1 T0 0 0 YM`, IEN `F2 F1 G2 G1 G0 – – YM`, IACK `F2 F1`. Schéma hotové
+  desky (`..\MPH-1V\Eagle`, 6. 9. 2025) to potvrdilo včetně F1 z OUT1.
+- **Časovač 82C54** (kusovník CP82C54-10): třída `I8253` má přepínač `is_8254` pro read-back a stavový bajt.
+  8253 na jiných deskách zůstává bez read-back (tam je SC = 11 neplatné).
 - **Čas:** 8253 a YM odvozují takty od bázového času sběrnice (14,31818 MHz, zbytek se přenáší). Karta dohání
   stav v `advance()` a před každým přístupem na port.
 - **Zvuk na sběrnici:** `Bus::audio` (mono, `audio_rate`, `audio_cap` = 0 znamená, že nikdo neposlouchá, a vzorky
