@@ -559,8 +559,11 @@ void pt_dsub(const Panel& P, float x, float y, float body = 26.05f, float tabs =
     dl->AddRectFilled(P.p(x - 10.5f, y - tabs), P.p(x + 10.5f, y + tabs), COL_HOLE, 10.5f * k);
     // metal shell with the D-shaped insulator, standoffs in the tabs
     dl->AddRectFilled(P.p(x - 9.5f, y - body + 3.05f), P.p(x + 9.5f, y + body - 3.05f), COL_SHELL, 2.0f * k);
+    // the connector stands upright: the long sides of the "D" are vertical, the left one is
+    // longer and the short ends are bevelled towards the right
     float d_h = body - 6.05f;
-    ImVec2 d[4] = { P.p(x - 6.5f, y - d_h), P.p(x + 6.5f, y - d_h), P.p(x + 4.8f, y + d_h), P.p(x - 4.8f, y + d_h) };
+    ImVec2 d[4] = { P.p(x - 6.0f, y - d_h), P.p(x + 6.0f, y - d_h + 3.0f), P.p(x + 6.0f, y + d_h - 3.0f),
+                    P.p(x - 6.0f, y + d_h) };
     dl->AddConvexPolyFilled(d, 4, IM_COL32(52, 54, 58, 255));
     for (int s = -1; s <= 1; s += 2) {
         ImVec2 c = P.p(x, y + s * (tabs - 10.45f));
