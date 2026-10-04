@@ -47,15 +47,15 @@ používat MCP server emulátoru.
 - **Ladění:** MCP server emulátoru (`sapiemu-cli --mcp` na pozadí, JSON-RPC na `http://127.0.0.1:8591/mcp`, viz
   `docs/build.md`): `load_hex`, `type_text`, `screenshot` s `display` CGA-1V, `joystick`, `save_state`.
 
-## Otevřené otázky (pro autora)
+## Rozhodnuto (2026-10-05)
 
-- **Assembler Z80:** na tomto PC není (pasmo, sjasmplus, z88dk chybí).
-  - Návrh: rozšířit `tools/asm8080.py` o Z80 ve stylu pasmo a ověřit ho tím, že `bomber.asm` přeloží bajt po
-    bajtu stejně jako originál.
-  - Jinak nainstalovat sjasmplus nebo pasmo.
-- **Kam s portem:** do repa BomberNet (`sapi/`), nebo do SAPIemu (`media/bomberman/`)?
-- **Ovládání:** joystick MPH-1V i klávesnice? Které klávesy?
+- **Repo:** port je v autorově neveřejném repu `E:\SAPI_GIT\SAPI-Bomberman` (remote mlukasek/SAPI-Bomberman).
+  BomberNet autorovi nepatří, slouží jen jako zdroj. Do SAPIemu port nepatří: je to test emulátoru, nalezené
+  chyby se opravují tady.
+- **Assembler:** pasmo 0.5.3 (`E:\SAPI_GIT\Tools\pasmo-0.5.3\pasmo.exe`), originál s ním vyjde bajt po bajtu
+  stejně. z88dk je v `E:\SAPI_GIT\Tools\z88dk`. Rozšířit `tools/asm8080.py` o Z80 je vítané, ale není nutné.
+- Plán a postup jsou v README repa SAPI-Bomberman.
 
 ## Stav
 
-- 2026-10-05: rozbor a plán, kód zatím není.
+- 2026-10-05: rozbor a plán, repo založené, ověřený překlad originálu pasmem.
