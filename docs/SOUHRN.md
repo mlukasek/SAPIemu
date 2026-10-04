@@ -13,7 +13,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `docs/desky/MPH-1V.md` a v bodě 24 níže.
 - Programy v `media/mph-1v/`, hudba (VGM, RAD) v repu není, test ji bere z `..\MPH-1V`.
 - Soubor → Nahrát binární soubor do paměti… (adresa, velikost, počet stránek pro `SAVE`), `sapiemu-cli --load-bin`.
-  Po nahrání Intel HEX ukáže GUI rozsah adres a od 0100h i navržený příkaz `SAVE`. Autor ověřil hudbu i joystick
+  Nahrání Intel HEX se ptá stejně (rozsah adres ze souboru, od 0100h navržený příkaz `SAVE`), zapíše až po potvrzení. Autor ověřil hudbu i joystick
   v GUI.
 
 **Hotové: DGD-1V** (Liborova grafika 320×240 s VGA, varianta DGD-1) a sestava `machines/zps/ZPS-2_MIKOS_V5_DGD-1V.sapi`.

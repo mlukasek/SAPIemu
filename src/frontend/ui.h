@@ -82,10 +82,13 @@ struct UiState {
     std::string bin_path;          // chosen file, empty = no question open
     bool bin_ask = false;          // open the question in the next frame
     char bin_addr[8] = "0100";     // load address (hex), remembered in the settings
-    // File -> Load program (Intel HEX): what was loaded, shown once
-    std::string hex_done;          // file, empty = nothing to show
+    // File -> Load program (Intel HEX): the chosen file waits for a confirmation, with the
+    // addresses of its records (read without loading)
+    std::string hex_path;          // chosen file, empty = no question open
+    bool hex_ask = false;          // open the question in the next frame
+    std::string hex_error;         // the file cannot be read or is not valid Intel HEX
     int hex_bytes = 0;
-    uint16_t hex_lo = 0, hex_hi = 0;
+    uint32_t hex_lo = 0, hex_hi = 0;
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;
@@ -122,7 +125,7 @@ void draw_memory(UiState& ui);
 void draw_iolog(UiState& ui);
 void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
-// File -> Load program (Intel HEX): native dialog, the file goes into memory.
+// File -> Load program (Intel HEX): native dialog, then a confirmation with the addresses.
 void hex_load_dialog(UiState& ui);
 // File -> Load binary file: native dialog, then the address; the file goes into memory as is.
 void bin_load_dialog(UiState& ui);

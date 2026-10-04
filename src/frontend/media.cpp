@@ -11,6 +11,7 @@
 #include "cards/ide1.h"
 #include "cards/rpd1.h"
 #include "core/host.h"
+#include "core/ihex.h"
 #include "core/log.h"
 #include "core/util.h"
 
@@ -52,6 +53,36 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
+struct HexScan {
+    int count;
+    uint32_t lo, hi;
+};
+
+static void hex_scan_byte(void* user, uint32_t addr, uint8_t)
+{
+    HexScan* s = (HexScan*)user;
+    if (!s->count || addr < s->lo) s->lo = addr;
+    if (!s->count || addr > s->hi) s->hi = addr;
+    s->count++;
+}
+
+// The addresses of an Intel HEX file, without loading it (the question before File -> Load program).
+static void hex_scan(UiState& ui, const std::string& path)
+{
+    ui.hex_path = path;
+    ui.hex_ask = true;
+    ui.hex_error.clear();
+    std::string text, err;
+    HexScan s = { 0, 0, 0 };
+    if (!file_read_text(path, text)) ui.hex_error = tr("Cannot read the file.");
+    else if (!ihex_parse(text, hex_scan_byte, &s, err)) ui.hex_error = err;
+    else if (!s.count) ui.hex_error = tr("The file holds no data.");
+    else if (s.hi > 0xFFFF) ui.hex_error = tr("The file does not fit into memory there.");
+    ui.hex_bytes = s.count;
+    ui.hex_lo = s.lo;
+    ui.hex_hi = s.hi;
+}
+
 static void tape_dialog_result(UiState& ui, Machine* m)
 {
     TapeDialog& d = ui.tape_dlg;
@@ -69,19 +100,8 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     }
     if (path.empty() || !m) return;
     d.last_dir = path_dir(path);
-    if (kind == 3) {   // a program into memory, as if loaded from the tape
-        std::string text, err;
-        int n = 0;
-        uint16_t lo = 0, hi = 0;
-        if (!file_read_text(path, text)) LOGE("cannot read %s", path.c_str());
-        else if (!m->load_ihex_text(text, err, &n, &lo, &hi)) LOGE("%s: %s", path.c_str(), err.c_str());
-        else {
-            LOGI("%s: %d bytes loaded into memory", path.c_str(), n);
-            ui.hex_done = path;   // the range and the CP/M SAVE command in a message
-            ui.hex_bytes = n;
-            ui.hex_lo = lo;
-            ui.hex_hi = hi;
-        }
+    if (kind == 3) {   // a program: show where it goes first
+        hex_scan(ui, path);
         return;
     }
     if (kind == 6) {   // a binary file: ask for the address first
@@ -260,21 +280,42 @@ static void cpm_save_hint(const std::string& path, long long last, const char* e
     ImGui::Text("CP/M: SAVE %lld %s", pages, cpm_name(path, ext).c_str());
 }
 
-// After File -> Load program (Intel HEX): where it went and how to save it in CP/M.
-static void hex_load_info(UiState& ui)
+const ImVec4 k_load_error(1.0f, 0.4f, 0.4f, 1.0f);
+
+// File -> Load program (Intel HEX): the addresses come from the file; shown with the size and
+// the pages for CP/M SAVE before anything is written (the same layout as for a binary file).
+static void hex_load_question(UiState& ui, Machine* m)
 {
-    const char* title = tr("Program loaded");
-    if (!ui.hex_done.empty() && !ImGui::IsPopupOpen(title)) ImGui::OpenPopup(title);
-    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
-    ImGui::TextUnformatted(ui.hex_done.c_str());
-    if (ui.hex_bytes > 0) {
-        ImGui::Text("%04X-%04Xh, %d B", ui.hex_lo, ui.hex_hi, ui.hex_bytes);
-        if (ui.hex_lo == 0x100) cpm_save_hint(ui.hex_done, ui.hex_hi, "COM");
-    } else {
-        ImGui::TextUnformatted(tr("The file holds no data."));
+    const char* title = tr("Load program into memory (Intel HEX)");
+    if (ui.hex_ask) {
+        ImGui::OpenPopup(title);
+        ui.hex_ask = false;
     }
-    if (ImGui::Button(tr("OK")) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-        ui.hex_done.clear();
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    bool ok = ui.hex_error.empty();
+    ImGui::TextUnformatted(ui.hex_path.c_str());
+    if (ok) {
+        ImGui::Text("%s %d B", tr("Size:"), ui.hex_bytes);
+        ImGui::TextDisabled("%s", tr("Address: from the records of the file"));
+        ImGui::Text("%04X-%04Xh", (unsigned)ui.hex_lo, (unsigned)ui.hex_hi);
+        if (ui.hex_lo == 0x100) cpm_save_hint(ui.hex_path, ui.hex_hi, "COM");
+    } else {
+        ImGui::TextColored(k_load_error, "%s", ui.hex_error.c_str());
+    }
+    ImGui::BeginDisabled(!ok || !m);
+    if (ImGui::Button(tr("Load"))) {
+        std::string text, err;
+        int n = 0;
+        if (!file_read_text(ui.hex_path, text)) LOGE("cannot read %s", ui.hex_path.c_str());
+        else if (!m->load_ihex_text(text, err, &n)) LOGE("%s: %s", ui.hex_path.c_str(), err.c_str());
+        else LOGI("%s: %d bytes loaded at %04X-%04Xh", ui.hex_path.c_str(), n, (unsigned)ui.hex_lo, (unsigned)ui.hex_hi);
+        ui.hex_path.clear();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) {
+        ui.hex_path.clear();
         ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -310,8 +351,8 @@ static void bin_load_question(UiState& ui, Machine* m)
         ImGui::Text("%04llX-%04llXh", addr, addr + size - 1);
         if (addr == 0x100) cpm_save_hint(ui.bin_path, addr + size - 1, nullptr);
     } else {
-        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", size < 0 ? tr("Cannot read the file.")
-                                                                      : tr("The file does not fit into memory there."));
+        ImGui::TextColored(k_load_error, "%s", size < 0 ? tr("Cannot read the file.")
+                                                        : tr("The file does not fit into memory there."));
     }
     ImGui::BeginDisabled(!fits || !m);
     if (ImGui::Button(tr("Load"))) {
@@ -366,7 +407,7 @@ void draw_media(UiState& ui)
 {
     tape_dialog_result(ui, ui.host->machine());   // also the HEX and binary dialogs of the File menu
     bin_load_question(ui, ui.host->machine());
-    hex_load_info(ui);
+    hex_load_question(ui, ui.host->machine());
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(560, 300), ImGuiCond_FirstUseEver);
