@@ -16,8 +16,12 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
     - všechny JPR (i JPR-1V) a FDC: K3 nahoře, K2 dole, JPR mezi nimi kulatý otvor pro LED BOOT;
     - DSM-1: K3 terminál (X2), K2 magnetofon (X3, „MGF“); DMR-1: jen K3 terminál (X2) na stejném místě;
     - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1: jeden FRB dole (K2), jako na deskách;
+    - RPD-1: horní FRB obou desek (RPD-1A vpravo, RPD-1B vlevo) propojuje kabel KB-17, dolní FRB na RPD-1B
+      („K2 FDD“) vede k mechanikám; svislé typy „RPD-1A“ a „RPD-1B“;
+    - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2);
     - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, DGD-1V, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL, K3 ZVUK, K2 MYŠ);
-      ZRD-1V (LED ZAM, DSK). Ostatní karty mají zatím jen zkratku (projdou se postupně).
+      ZRD-1V (LED ZAM, DSK);
+    - bez konektoru (autor): ZRMD-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V, REM-1. Ostatní karty se projdou postupně.
   - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
   - Sériové karty (DMR-1, DSM-1, DSM-1V) bývají v sestavě víckrát, proto je **port u každého sériového
     konektoru** („K3 #10“, u DSM-1V „#10“ nad K3 „A“ a „#14“ pod K2 „B“). Typ karty na panelu je bez portu.

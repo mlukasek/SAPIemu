@@ -8,7 +8,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - S2 jako u CGA-1V (báze 0000/4000/8000/C000h, MAP1/MAP2), S1 barva jako AND-1V, čekání na okno CPU.
 - BASIC EXP V5.0/G kreslí, autorův TEST.BAS vypadá jako fotka obrazovky. Popis v `docs/desky/DGD-1V.md`.
 - **Panely:** port u sériového konektoru, FRB (zelený, zlaté piny) u desek původní konstrukce podle Liborových
-  štítků, D-sub u desek V. Další karty se projdou postupně (`docs/sestavy.md`).
+  štítků, D-sub u desek V, IDE-1 (IDC 40 a D-sub 15), RPD-1 (kabel KB-17 mezi deskami). Karty bez konektoru
+  podle autora: ZRMD-1, RAM, REM. Další karty se projdou postupně (`docs/sestavy.md`).
 
 **Hotové: jedna barva obrazu a okna podle karet.**
 - Barva jednobarevného obrazu je parametr karty v sestavě: AND-1V propojky S1 (`color`), ostatní parametr

@@ -536,3 +536,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   S2 se stejnou logikou jako S1 CGA-1V, S1 barva jako AND-1V (sdílená funkce `vga_ink`). Výchozí C000h bez
   mapování podle prvního příkladu popisu. Sestava `ZPS-2_MIKOS_V5_DGD-1V.sapi` má jantarovou barvu jako
   autorova deska.
+
+## 2026-10-04 – Panely IDE-1, RPD-1 a karet bez konektoru
+
+- **Autor:** IDE-1 má IDC 40 pro disk a dvouřadý D-sub 15 pro PMD32-SD. Rozmístění podle fotky desky: IDC
+  nahoře, LED, D-sub dole. Konektory jsou vlevo od středu jako FRB, typ karty je v pruhu vpravo.
+- **Autor:** RPD-1A a RPD-1B mají FRB a jsou propojené. Podle fotek desek je spojka nahoře na obou deskách
+  (kreslí se kabel KB-17 přes oba panely), dolní FRB na RPD-1B je pro mechaniky.
+- **Autor:** ZRMD-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V a REM-1 konektor na panelu nemají.

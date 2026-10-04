@@ -49,6 +49,5 @@ Okno GUI „DGD-1V“, snímek přes MCP `screenshot display=DGD-1V` a `sapiemu-
 
 ## Nejasnosti
 
-- Na fotce autorovy desky není jisté, které propojky S2 jsou osazené (modrá propojka u /A14, /A15?). Sestava
-  používá C000h bez mapování, protože obrazovka je z MIKOSu V5 s RAM-1 na 4000–BFFF.
 - Přesný počet čekacích taktů (synchronizace IC4A/B).
+- Výchozí adresa C000h jako DGD-1 (autor), sestava stejně.
