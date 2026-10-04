@@ -72,7 +72,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   ([third_party/README.md](third_party/README.md)).
 - **ROM, PROM a programy** v `roms/` a `media/` patří svým autorům a jsou tu pro zachování historie SAPI-1.
   Zdroje jsou v [roms/README.md](roms/README.md) a [media/README.md](media/README.md).
-- **Libor Lasota:** desky V, MikroMon a programy pro CGA-1V a MPH-1V, použité s jeho souhlasem.
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,
   ze kterých emulace vychází, a překreslená schémata desek.
+- **Libor Lasota:** desky V, MikroMon a programy pro CGA-1V a MPH-1V, použité s jeho souhlasem.
 - Software pro SAPI-1 od Tesla ELTOS / DIZ, CP/M 2.2/P od R. Peřiny a další programy, které se zachovaly.
