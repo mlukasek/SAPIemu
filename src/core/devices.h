@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <deque>
+#include <string.h>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -49,12 +50,28 @@ public:
     virtual void clear() = 0;
     // Short state for the status bar (LEDs...), empty if none.
     virtual std::string status() const { return std::string(); }
+    // "True to the hardware": no help for text typed on the PC (wait for the program, send a
+    // missed key again); keys may be lost as on the real machine. False if the keyboard has
+    // no such help (ANK-1 holds a key until the program reads it).
+    virtual bool set_strict(bool on) { return false; }
 };
 
 // Base class of CPU cards (bus masters).
 class CpuCard : public Card {
 public:
     explicit CpuCard(const char* type_name) : Card(type_name) {}
+    // While running: "keyboard.strict" of the keyboard on the connector.
+    bool live_param(const char* path) const override { return !strcmp(path, "keyboard.strict"); }
+    bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override
+    {
+        if (strcmp(path, "keyboard.strict") != 0) return Card::set_live_param(path, v, err);
+        KeyboardDevice* k = keyboard();
+        if (!k || !v.is_boolean() || !k->set_strict(v.get<bool>())) {
+            err = "this keyboard has no faithful mode to switch (keyboard.strict)";
+            return false;
+        }
+        return true;
+    }
     // Execute up to `cycles` CPU clock cycles. Returns the number executed; stops
     // early when a breakpoint is hit or a single step completes.
     virtual int run(int cycles) = 0;

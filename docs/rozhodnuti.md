@@ -593,3 +593,10 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   nečetl. Text vkládaný z PC nebo přes MCP se tak neztrácí (na skutečném stroji by se ztratil).
 - **Debugger:** čtení paměti na portech klávesnice JPR-1 (2400h/2800h) vrací FFh, aby prohlížení paměti
   neovlivnilo klávesnici.
+
+## 2026-10-04 – Věrný režim klávesnice viditelně v konfigurátoru
+
+- **Autor:** zachovat věrnost hardwaru, pokud není nutné jinak. Pomoc pro text z PC (čekání na ACK=0, opakování
+  přehlédnutého pulzu) zůstává výchozí kvůli vkládání textu a MCP, ale je vidět a jde vypnout: u každé karty CPU
+  s paralelní klávesnicí přepínač „Klávesnice: věrně jako hardware (klávesy se mohou ztratit)“
+  (`keyboard.strict`), platí hned. Výběr jiné klávesnice volbu zachová.

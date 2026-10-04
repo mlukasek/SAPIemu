@@ -21,7 +21,9 @@ Vnitřek klávesnic (AT89C2051 v EKL-1, logika Consulů) se neemuluje, jen chov�
 Paralelní klávesnice (všechny kromě ANK-1) mají společný základ `parallel_kbd.*`. Volby v sestavě:
 
 - `char_gap_us`: mezera mezi znaky, výchozí 1 ms, bez 7474 20 ms;
-- `strict`: nečekat před dalším znakem na ACK=0 (jako skutečný HW, znaky se mohou ztratit);
+- `strict`: věrně jako hardware, bez pomoci pro text z PC (nečekat na ACK=0, neopakovat přehlédnutý pulz),
+  znaky se mohou ztratit. V konfigurátoru „Klávesnice: věrně jako hardware“ u karty CPU, platí hned (i za chodu).
+  ANK-1 tuto volbu nemá (drží klávesu, dokud ji program nepřečte);
 - Consul 262.3: `latch_mod` (úprava 7474, výchozí `true`);
 - Consul 259.11: `code` (`koi7` nebo `koi8cs`);
 - ANK-1: `press_ms` (nejkratší doba stisku i uvolnění, výchozí 40 ms), `software` (`mikrobasic`, výchozí, nebo

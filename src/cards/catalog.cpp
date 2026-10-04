@@ -41,6 +41,8 @@ static const CardParam k_jpr1zi[] = {
     { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
     { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -61,6 +63,8 @@ static const CardParam k_jpr1z[] = {
     { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
     { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -84,6 +88,8 @@ static const CardParam k_jpr1v[] = {
     { "osc_hz", PK_INT, "Oscillator (Hz, bus = /4, CPU = /4 or /2)", "Oscilátor (Hz, sběrnice = /4, CPU = /4 nebo /2)",
       "8000000", nullptr, 1000000, 40000000 },
     { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -246,6 +252,8 @@ static const CardParam k_jpr1[] = {
     { "crystal_hz", PK_INT, "Crystal (Hz, CPU = crystal / 9)", "Krystal (Hz, CPU = krystal / 9)", "18000000", nullptr,
       1000000, 40000000 },
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -274,6 +282,8 @@ static const CardParam k_jpr1a[] = {
     { "crystal_hz", PK_INT, "Crystal (Hz, CPU = crystal / 9)", "Krystal (Hz, CPU = krystal / 9)", "18000000", nullptr,
       1000000, 40000000 },
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

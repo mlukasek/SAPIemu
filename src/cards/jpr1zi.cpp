@@ -20,7 +20,7 @@ Jpr1zi::~Jpr1zi() {}
 
 bool Jpr1zi::live_param(const char* path) const
 {
-    return turbo_switch && (!strcmp(path, "turbo") || !strcmp(path, "bios"));
+    return (turbo_switch && (!strcmp(path, "turbo") || !strcmp(path, "bios"))) || CpuCard::live_param(path);
 }
 
 bool Jpr1zi::set_live_param(const char* path, const json& v, std::string& err)
@@ -36,7 +36,7 @@ bool Jpr1zi::set_live_param(const char* path, const json& v, std::string& err)
         eprom_off = b == "fitted" ? 0x000u : 0x800u;
         return true;
     }
-    return Card::set_live_param(path, v, err);
+    return CpuCard::set_live_param(path, v, err);
 }
 
 bool Jpr1zi::configure(const json& cfg, std::string& err)

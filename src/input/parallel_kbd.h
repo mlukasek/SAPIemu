@@ -27,6 +27,7 @@ public:
     void clear() override { queue.clear(); }
 
     void push_code(uint8_t code) { queue.push_back(code); }
+    bool set_strict(bool on) override { strict = on; return true; }
 
     // configuration
     bool latched = true;            // strobe held until acknowledged

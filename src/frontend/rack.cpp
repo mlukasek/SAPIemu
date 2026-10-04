@@ -1197,16 +1197,27 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     }
     case PK_KEYBOARD: {
         const std::vector<KeyboardPreset>& kp = keyboard_presets();
+        // the faithful mode ("strict", its own checkbox) is not a part of the preset
+        json plain = v;
+        bool strict = false;
+        if (plain.is_object() && plain.contains("strict")) {
+            strict = plain["strict"].is_boolean() && plain["strict"].get<bool>();
+            plain.erase("strict");
+        }
         int cur = -2;
         if (v.is_null()) cur = -1;
         for (size_t i = 0; i < kp.size(); i++)
-            if (json::parse(kp[i].config) == v) cur = (int)i;
+            if (json::parse(kp[i].config) == plain) cur = (int)i;
         std::string preview = cur == -1 ? tr("(none)") : cur >= 0 ? kp[(size_t)cur].name
                                                                    : std::string(tr("custom")) + ": " + scalar(v);
         if (ImGui::BeginCombo(label, preview.c_str())) {
             if (ImGui::Selectable(tr("(none)"), cur == -1)) card_set_param(card, ci, p, json());
             for (size_t i = 0; i < kp.size(); i++)
-                if (ImGui::Selectable(kp[i].name, cur == (int)i)) card_set_param(card, ci, p, json::parse(kp[i].config));
+                if (ImGui::Selectable(kp[i].name, cur == (int)i)) {
+                    json k = json::parse(kp[i].config);
+                    if (strict) k["strict"] = true;   // keep the faithful mode with another keyboard
+                    card_set_param(card, ci, p, k);
+                }
             ImGui::EndCombo();
         }
         break;
@@ -1302,6 +1313,11 @@ void draw_slot_props(UiState& ui, int slot)
     }
     for (const CardParam* p = ci->params; p->path; p++) {
         if (!card_param_active(*card, ci, p)) continue;
+        if (!strcmp(p->path, "keyboard.strict")) {   // parallel keyboards only (not none, not ANK-1)
+            const json* kb = cfg_find(*card, "keyboard");
+            std::string kt = kb && kb->is_object() ? kb->value("type", std::string()) : std::string();
+            if (kt.empty() || kt == "ANK-1") continue;
+        }
         bool nested = param_section(ci, p) != nullptr;
         if (nested) ImGui::Indent();
         draw_param(ui, *card, idx, ci, p);

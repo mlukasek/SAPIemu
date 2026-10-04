@@ -84,6 +84,10 @@ static void mikrobios(void)
     m.run_seconds(0.2);
     m.type_text("D 0\r");
     CHECK(run_until_text(m, "D 0\n", 3.0));
+    // the faithful mode of the keyboard switches while running and goes into the description
+    CHECK(m.live_param(m.cpu, "keyboard.strict"));
+    CHECK(m.set_live_param(m.cpu, "keyboard.strict", true, err));
+    CHECK(m.card_config(m.cpu)->at("keyboard").value("strict", false));
 }
 
 static void map_register(void)
