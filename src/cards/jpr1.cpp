@@ -274,6 +274,11 @@ int Jpr1::run(int cycles)
     int done = 0;
     while (done < cycles) {
         if (bus->now >= next_sync) sync();
+        if (bus->hold) {   // a DMA controller had the bus: the CPU waited
+            bus->now += bus->hold;
+            done += (int)bus->hold;
+            bus->hold = 0;
+        }
         if (!resume) {
             // instruction boundary (where the Z80 card stops after the opcode fetch)
             instr_pc = cpu.pc;

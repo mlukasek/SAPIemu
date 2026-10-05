@@ -19,12 +19,10 @@ static uint8_t reverse8(uint8_t v)
     return (uint8_t)((v & 0xAA) >> 1 | (v & 0x55) << 1);
 }
 
-// CRC-CCITT as on IBM 3740 disks (and in the EBIOS): FFFF, x^16+x^12+x^5+1
+// CRC-CCITT as on IBM 3740 disks (and in the EBIOS)
 static uint16_t crc_update(uint16_t crc, uint8_t b)
 {
-    crc ^= (uint16_t)(b << 8);
-    for (int i = 0; i < 8; i++) crc = (crc & 0x8000) ? (uint16_t)((crc << 1) ^ 0x1021) : (uint16_t)(crc << 1);
-    return crc;
+    return floppy_crc(crc, b);
 }
 
 Rpd1::~Rpd1()
@@ -63,45 +61,17 @@ bool Rpd1::insert(int i, const std::string& image, bool wp, std::string& err)
     if (i < 0 || i >= DRIVES) { err = "no such drive"; return false; }
     eject(i);
     Drive& d = drives[i];
-    std::string path;
-    if (!media_path(image, work_copy, path, err)) return false;
-    std::vector<uint8_t> data;
-    if (!file_read_all(path, data)) { err = "cannot read " + path; return false; }
-    if (data.size() != (size_t)IMAGE_SIZE) {
-        char b[160];
-        snprintf(b, sizeof(b), "%s: %u bytes, an 8\" SS SD image has %d (77 x 26 x 128)", image.c_str(),
-                 (unsigned)data.size(), IMAGE_SIZE);
-        err = b;
-        return false;
-    }
-    d.image = image;
-    d.path = path;
-    d.data.swap(data);
+    if (!d.load(image, work_copy, err)) return false;
     d.write_protect = wp;
-    d.dirty = false;
     raw_valid = false;
-    LOGI("%s: drive %c: %s%s", name.c_str(), 'A' + i, path.c_str(), wp ? " (write protected)" : "");
-    return true;
-}
-
-bool Rpd1::save(int i, std::string& err)
-{
-    Drive& d = drives[i];
-    if (!d.dirty || d.data.empty()) return true;
-    if (!file_write_all(d.path, d.data.data(), d.data.size())) {
-        err = "cannot write " + d.path;
-        return false;
-    }
-    d.dirty = false;
+    LOGI("%s: drive %c: %s%s", name.c_str(), 'A' + i, d.path.c_str(), wp ? " (write protected)" : "");
     return true;
 }
 
 void Rpd1::eject(int i)
 {
-    std::string err;
-    if (!save(i, err)) LOGE("%s: %s", name.c_str(), err.c_str());
-    drives[i].data.clear();
-    drives[i].path.clear();
+    if (i < 0 || i >= DRIVES) return;
+    drives[i].unload(name.c_str());
     raw_valid = false;
 }
 
@@ -109,7 +79,7 @@ void Rpd1::flush()
 {
     for (int i = 0; i < DRIVES; i++) {
         std::string err;
-        if (!save(i, err)) LOGE("%s: %s", name.c_str(), err.c_str());
+        if (!drives[i].save(err)) LOGE("%s: %s", name.c_str(), err.c_str());
     }
 }
 

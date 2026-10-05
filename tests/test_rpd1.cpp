@@ -114,7 +114,7 @@ static void mikos_d(void)
 
     // the file is on the disk image after a flush
     std::string e;
-    CHECK(rpd->save(0, e));
+    CHECK(rpd->drives[0].save(e));
     CHECK(file_read_all(data_path(TEST_DISK), img));
     bool found = false;
     for (size_t off = 2 * 26 * 128; off < 3 * 26 * 128; off += 32)   // the directory, skewed over track 2

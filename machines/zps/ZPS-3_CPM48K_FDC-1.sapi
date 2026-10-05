@@ -1,0 +1,60 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-3 CP/M 48K (MOR48AF, FDC-1)",
+    "description": "ZPS-3 s řadičem FDC-1 (8272 + DMA 8257) místo RPD-1 a systémem CP/M 2.2/P 48K (Peřina 1988): monitor MOR48AF v EPROM JPR-1A se po RESET zkopíruje na B800 a zavede CP/M z diskety v mechanice A. RAM-1A/48K 0000-BFFF, AND-1A na E800, DSM-1 na 10h, klávesnice Consul 259.11. Tiskárna DPP (u FDC-1 na 18h-1Bh) není emulovaná.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1A",               // CPU card 8080 "A" (I/O ports, boot EPROM)
+            "rom": "roms/jpr-1a/MOR48AF.bin",  // EPROM D3B + D4B (2x 2716, 0000-0FFF after RESET) - MOR48AF: CP/M 2.2/P 48K, FDC-1 (Perina 1988)
+            "decoder": "roms/jpr-1a/JPR-1A_D2C_74S571.bin",  // PROM D2C: decoder (EPROM, ports 00-03) - standard (manual)
+            "jp1": "1-2",                   // Jumper JP1: interrupt vector - 1-2: interrupt = RST 7
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "Consul 259.11", "code": "koi7" }  // Keyboard (connector X2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RAM-1A",               // Dynamic RAM up to 48 KB "A"
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": false,                    // S1 (S1 S2: 01 = 0000-BFFF, 11 = 4000-FFFF, 10 = C000-FFFF, 00 = C000-E7FF)
+            "s2": true,                     // S2
+            "prom": "roms/ram-1a/RAM-1A_D1A_74S287.bin"  // PROM D1A: address decoder - RAM-1A (ZPS-3: 0000-BFFF)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1A",               // Alphanumeric display "A"
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false,                  // Jumper 49-50: INT1 at the end of the frame
+            "s1": false,                    // Jumper 44-45 (S1): VRAM at 3800 instead of E800
+            "decoder": "roms/and-1a/AND-1A_D3A_74S287.bin"  // PROM D3A: address decoder - standard: E800, S1 closed 3800
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "connected": false              // Terminal connected at start (DCD)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
+            "drive_a": {                    // Drive A (8" SS SD)
+                "image": "media/fdc-1/CPM22P_48AF_Perina.img",  // Disk image (.img, 77 x 26 x 128 B) - CP/M 2.2/P 48K for FDC-1 (Perina, AND-1A)
+                "write_protect": false      // Write protected
+            },
+            "working_copy": true,           // Work on copies in work/
+            "decoder": "roms/fdc-1/FDC-1A_D5B_74S287.bin",  // PROM D5B (FDC-1A): port decoder - standard: 8257 04-0BH, 8272 0CH-0DH, FDC-1B 0EH-0FH
+            "rdy_ground": true,             // FDC-1A X3-20 /RDY grounded (as supplied, Consul 7113): all drives ready
+            "sa2_a": "8sd",                 // FDC-1B switches SA2 S1, S5: drive A - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_b": "8sd",                 // FDC-1B switches SA2 S2, S6: drive B - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_c": "8sd",                 // FDC-1B switches SA2 S3, S7: drive C - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_d": "8sd"                  // FDC-1B switches SA2 S4, S8: drive D - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+        }
+    ]
+}

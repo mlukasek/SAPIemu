@@ -9,7 +9,7 @@
 #include "imgui.h"
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
-#include "cards/rpd1.h"
+#include "chips/floppy.h"
 #include "core/host.h"
 #include "core/ihex.h"
 #include "core/log.h"
@@ -142,21 +142,21 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         ui.bin_ask = true;
         return;
     }
-    if (kind == 4 || kind == 5) {   // a floppy for an RPD-1 drive
-        Rpd1* r = dynamic_cast<Rpd1*>(m->find_card(card));
-        if (!r) return;
+    if (kind == 4 || kind == 5) {   // a floppy for a drive of a disk controller (RPD-1, FDC-1)
+        Card* r = m->find_card(card);
+        if (!r || !r->floppy_drive(drive)) return;
         std::string err;
         if (kind == 5) {   // a new disk, formatted: every byte E5h (empty CP/M directory)
             size_t slash = path.find_last_of("/\\");
             if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".img";
-            std::vector<uint8_t> blank(Rpd1::IMAGE_SIZE, 0xE5);
+            std::vector<uint8_t> blank(FloppyDrive::IMAGE_SIZE, 0xE5);
             if (!file_write_all(path, blank.data(), blank.size())) {
                 LOGE("cannot write %s", path.c_str());
                 return;
             }
         }
         // a disk from media/ is used through its working copy
-        if (!r->insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
+        if (!r->floppy_insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
         return;
     }
     Dsm1* dsm = dynamic_cast<Dsm1*>(m->find_card(card));
@@ -426,13 +426,13 @@ static void bin_load_question(UiState& ui, Machine* m)
     ImGui::EndPopup();
 }
 
-// ---------------------------------------------------------------- floppy drives of RPD-1
+// ---------------------------------------------------------------- floppy drives (RPD-1, FDC-1)
 
-static void draw_rpd1(UiState& ui, Rpd1* r)
+static void draw_floppies(UiState& ui, Card* r)
 {
     ImGui::PushID(r);
-    for (int i = 0; i < Rpd1::DRIVES; i++) {
-        Rpd1::Drive& d = r->drives[i];
+    for (int i = 0; r->floppy_drive(i); i++) {
+        FloppyDrive& d = *r->floppy_drive(i);
         ImGui::PushID(i);
         ImGui::Text("%s %c:", tr("Drive"), 'A' + i);
         ImGui::SameLine();
@@ -446,7 +446,7 @@ static void draw_rpd1(UiState& ui, Rpd1* r)
         if (ImGui::Button(tr("New disk..."))) tape_dialog(ui, 5, r->name, i);
         ImGui::SameLine();
         ImGui::BeginDisabled(d.data.empty());
-        if (ImGui::Button(tr("Eject"))) r->eject(i);
+        if (ImGui::Button(tr("Eject"))) r->floppy_eject(i);
         ImGui::SameLine();
         ImGui::Checkbox(tr("Write protect"), &d.write_protect);
         ImGui::SameLine();
@@ -479,12 +479,12 @@ void draw_media(UiState& ui)
             draw_tape(ui, dsm);
             continue;
         }
-        if (Rpd1* rpd = dynamic_cast<Rpd1*>(c.get())) {
+        if (c->floppy_drive(0)) {
             any = true;
             char title[96];
             snprintf(title, sizeof(title), "%s %s", c->name.c_str(), tr("floppy drives 8\""));
             ImGui::SeparatorText(title);
-            draw_rpd1(ui, rpd);
+            draw_floppies(ui, c.get());
             continue;
         }
         Ide1* ide = dynamic_cast<Ide1*>(c.get());

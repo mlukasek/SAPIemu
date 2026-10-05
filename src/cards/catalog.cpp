@@ -269,7 +269,14 @@ static const CardParam k_jpr1[] = {
 static const ParamOption k_jpr1a_roms[] = {
     { "\"roms/jpr-1a/JPR-1A_MON_V1.0-C1.bin\"", "48K MON V1.0-C1 (Tesla IMA 1986, CP/M ZPS-3)",
       "48K MON V1.0-C1 (Tesla IMA 1986, CP/M ZPS-3)" },
-    { "\"roms/jpr-1a/MOR48A.bin\"", "MOR48A: CP/M 2.2/P 48K (Perina 1988)", "MOR48A: CP/M 2.2/P 48K (Peřina 1988)" },
+    { "\"roms/jpr-1a/MOR48A.bin\"", "MOR48A: CP/M 2.2/P 48K, RPD-1 (Perina 1988)",
+      "MOR48A: CP/M 2.2/P 48K, RPD-1 (Peřina 1988)" },
+    { "\"roms/jpr-1a/MOR62A.bin\"", "MOR62A: CP/M 2.2/P 62K, RPD-1 (Perina 1988)",
+      "MOR62A: CP/M 2.2/P 62K, RPD-1 (Peřina 1988)" },
+    { "\"roms/jpr-1a/MOR48AF.bin\"", "MOR48AF: CP/M 2.2/P 48K, FDC-1 (Perina 1988)",
+      "MOR48AF: CP/M 2.2/P 48K, FDC-1 (Peřina 1988)" },
+    { "\"roms/jpr-1a/MOR62AF.bin\"", "MOR62AF: CP/M 2.2/P 62K, FDC-1 (Perina 1988)",
+      "MOR62AF: CP/M 2.2/P 62K, FDC-1 (Peřina 1988)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_jpr1a_jp1[] = {
@@ -338,6 +345,8 @@ static const ParamOption k_ram1_proms[] = {
     { "\"roms/ram-1/RAM-1_D1A_74S287.bin\"", "RAM-1 (from 4000)", "RAM-1 (od 4000)" },
     { "\"roms/ram-1a/RAM-1A_D1A_74S287.bin\"", "RAM-1A (ZPS-3: 0000-BFFF)", "RAM-1A (ZPS-3: 0000-BFFF)" },
     { "\"roms/ram-1/RAM-1_16K_D1A_74S287.bin\"", "RAM-1/16K (C000)", "RAM-1/16K (C000)" },
+    { "\"roms/ram-1a/RAM-1A_D1A_62K_74S287.bin\"", "RAM-1A for CP/M 62K: S1 S2 10 = C000-F7FF (assumed)",
+      "RAM-1A pro CP/M 62K: S1 S2 10 = C000-F7FF (předpoklad)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_ram1[] = {
@@ -393,6 +402,8 @@ static const ParamOption k_rpd1_step[] = {
 };
 static const ParamOption k_rpd1_disks[] = {
     { "\"media/rpd-1/MIKOS_D_V5.0_system.img\"", "MIKOS/D V5.0 system disk", "Systémová disketa MIKOS/D V5.0" },
+    { "\"media/rpd-1/CPM22P_48A_Perina.img\"", "CP/M 2.2/P 48K (Perina, AND-1A)", "CP/M 2.2/P 48K (Peřina, AND-1A)" },
+    { "\"media/rpd-1/CPM22P_62A_Perina.img\"", "CP/M 2.2/P 62K (Perina, AND-1A)", "CP/M 2.2/P 62K (Peřina, AND-1A)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_rpd1[] = {
@@ -410,6 +421,52 @@ static const CardParam k_rpd1[] = {
       nullptr, 0, 500 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
+
+static const ParamOption k_fdc1_disks[] = {
+    { "\"media/fdc-1/CPM22P_48AF_Perina.img\"", "CP/M 2.2/P 48K for FDC-1 (Perina, AND-1A)",
+      "CP/M 2.2/P 48K pro FDC-1 (Peřina, AND-1A)" },
+    { "\"media/fdc-1/CPM22P_62AF_Perina.img\"", "CP/M 2.2/P 62K for FDC-1 (Perina, AND-1A)",
+      "CP/M 2.2/P 62K pro FDC-1 (Peřina, AND-1A)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_fdc1_dec[] = {
+    { "\"roms/fdc-1/FDC-1A_D5B_74S287.bin\"", "standard: 8257 04-0BH, 8272 0CH-0DH, FDC-1B 0EH-0FH",
+      "standardní: 8257 04-0BH, 8272 0CH-0DH, FDC-1B 0EH-0FH" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_fdc1_sw[] = {
+    { "\"8sd\"", "8\" SD (read by IN 0EH: D1 = 1, D0 = 0)", "8\" SD (čte IN 0EH: D1 = 1, D0 = 0)" },
+    { "\"8dd\"", "8\" DD (D1 = 1, D0 = 1; the emulated drives are SD)", "8\" DD (D1 = 1, D0 = 1; emulované mechaniky jsou SD)" },
+    { "\"5sd\"", "5.25\" SD (D1 = 0, D0 = 0; 8\" drive emulated)", "5,25\" SD (D1 = 0, D0 = 0; emulovaná je 8\")" },
+    { "\"5dd\"", "5.25\" DD (D1 = 0, D0 = 1; 8\" drive emulated)", "5,25\" DD (D1 = 0, D0 = 1; emulovaná je 8\")" },
+    { nullptr, nullptr, nullptr },
+};
+#define FDC1_DRIVE(k, l, def)                                                                                            \
+    { k, PK_SECTION, "Drive " l " (8\" SS SD)", "Mechanika " l " (8\" SS SD)", def, nullptr, 0, 0 },                    \
+    { k ".image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",         \
+      k_fdc1_disks, 0, 0 },                                                                                              \
+    { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+static const CardParam k_fdc1[] = {
+    FDC1_DRIVE("drive_a", "A", "true")
+    FDC1_DRIVE("drive_b", "B", "false")
+    FDC1_DRIVE("drive_c", "C", "false")
+    FDC1_DRIVE("drive_d", "D", "false")
+    { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
+    { "decoder", PK_FILE, "PROM D5B (FDC-1A): port decoder", "PROM D5B (FDC-1A): dekodér portů",
+      "\"roms/fdc-1/FDC-1A_D5B_74S287.bin\"", k_fdc1_dec, 0, 0 },
+    { "rdy_ground", PK_BOOL, "FDC-1A X3-20 /RDY grounded (as supplied, Consul 7113): all drives ready",
+      "FDC-1A X3-20 /RDY spojený se zemí (z výroby, Consul 7113): všechny mechaniky připravené", "true", nullptr, 0, 0 },
+    { "sa2_a", PK_CHOICE, "FDC-1B switches SA2 S1, S5: drive A", "FDC-1B přepínače SA2 S1, S5: mechanika A", "\"8sd\"",
+      k_fdc1_sw, 0, 0 },
+    { "sa2_b", PK_CHOICE, "FDC-1B switches SA2 S2, S6: drive B", "FDC-1B přepínače SA2 S2, S6: mechanika B", "\"8sd\"",
+      k_fdc1_sw, 0, 0 },
+    { "sa2_c", PK_CHOICE, "FDC-1B switches SA2 S3, S7: drive C", "FDC-1B přepínače SA2 S3, S7: mechanika C", "\"8sd\"",
+      k_fdc1_sw, 0, 0 },
+    { "sa2_d", PK_CHOICE, "FDC-1B switches SA2 S4, S8: drive D", "FDC-1B přepínače SA2 S4, S8: mechanika D", "\"8sd\"",
+      k_fdc1_sw, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+#undef FDC1_DRIVE
 
 static const ParamOption k_dgd1_base[] = {
     { "\"C000\"", "C000H (switch SP1-2 open, ZPS-2, ZPS-3)", "C000H (přepínač SP1-2 rozepnutý, ZPS-2, ZPS-3)" },
@@ -430,6 +487,8 @@ static const CardParam k_dgd1[] = {
 
 static const ParamOption k_and1a_dec[] = {
     { "\"roms/and-1a/AND-1A_D3A_74S287.bin\"", "standard: E800, S1 closed 3800", "standardní: E800, S1 sepnutá 3800" },
+    { "\"roms/and-1a/AND-1A_D3A_CPM62K_74S287.bin\"", "CP/M 62K (home made): F800, S1 closed 3800",
+      "CP/M 62K (domácí): F800, S1 sepnutá 3800" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_and1a[] = {
@@ -767,7 +826,8 @@ CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič p
 CARD(c_rpd1z, "RPD-1Z", "RPD", "Floppy disk controller \"Z\"", "Řadič pružných disků \"Z\"", CC_DISK, 1, false,
      nullptr)
 CARD(c_mfc1a, "MFC-1A", "MFC", "Mini floppy controller", "Řadič minidisket", CC_DISK, 1, false, nullptr)
-CARD(c_fdc1, "FDC-1", "FDC", "Floppy disk controller", "Řadič disket", CC_DISK, 1, false, nullptr)
+CARD(c_fdc1, "FDC-1", "FDC", "Floppy disk controller 8272 + DMA (boards A + B)",
+     "Řadič pružných disků 8272 + DMA (desky A + B)", CC_DISK, 2, true, k_fdc1)
 CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_DISK, 1, true, k_ide1)
 // I/O
 CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports", "Paralelní porty", CC_IO, 1, false, nullptr)

@@ -24,6 +24,7 @@
 // CRCs is generated from the image.
 #include <vector>
 #include "core/card.h"
+#include "chips/floppy.h"
 
 class Rpd1 : public Card {
 public:
@@ -38,27 +39,25 @@ public:
     void flush() override;
     void describe(nlohmann::json& out) override;
     int decode_io(uint8_t port, const char** what) override;
+    FloppyDrive* floppy_drive(int index) override { return index >= 0 && index < DRIVES ? &drives[index] : nullptr; }
+    bool floppy_insert(int index, const std::string& image, bool wp, std::string& err) override
+    {
+        return insert(index, image, wp, err);
+    }
+    void floppy_eject(int index) override { eject(index); }
 
-    static const int TRACKS = 77;
-    static const int SECTORS = 26;
-    static const int SECTOR_SIZE = 128;
-    static const int IMAGE_SIZE = TRACKS * SECTORS * SECTOR_SIZE;
-    static const int TRACK_LEN = 5208;   // bytes per revolution (166.7 ms at 32 us)
+    static const int TRACKS = FloppyDrive::TRACKS;
+    static const int SECTORS = FloppyDrive::SECTORS;
+    static const int SECTOR_SIZE = FloppyDrive::SECTOR_SIZE;
+    static const int IMAGE_SIZE = FloppyDrive::IMAGE_SIZE;
+    static const int TRACK_LEN = FloppyDrive::TRACK_LEN;
     static const int DRIVES = 2;
 
-    struct Drive {
-        std::string image;            // as configured
-        std::string path;             // file in use (working copy)
-        std::vector<uint8_t> data;    // IMAGE_SIZE when a disk is inserted
-        bool write_protect = false;
-        bool dirty = false;
-        int track = 0;                // head position
-    };
+    typedef FloppyDrive Drive;
     Drive drives[DRIVES];
 
     bool insert(int drive, const std::string& image, bool wp, std::string& err);
     void eject(int drive);
-    bool save(int drive, std::string& err);
 
 private:
     enum Mark { M_NONE, M_ID, M_DATA };

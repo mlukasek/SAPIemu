@@ -1,6 +1,9 @@
 // ZPS-3 (JPR-1A, RAM-1A, AND-1A, DSM-1, RPD-1, Consul 259.11): the original
 // boot ROM MON V1.0-C1 and Perina's MOR48A boot CP/M 2.2/P from the 8" disk,
 // DIR, SAVE and ERA work; with a terminal on DSM-1 the console goes there.
+// The machines of machines/zps/ZPS-3_CPM*.sapi: CP/M 48K and 62K with RPD-1 and with
+// FDC-1 (8272 + DMA 8257); a RESET with the head on track 0 boots again (the 8272
+// reports "ready changed" for all drives after its reset).
 #include <string.h>
 #include "core/headless.h"
 #include "core/machine.h"
@@ -70,6 +73,54 @@ static void mor48a(void)
     CHECK(run_until_text(m, "\nA>", 2.0));
 }
 
+// A machine file of machines/zps with drive A on a fresh copy of its disk: boot, DIR, SAVE,
+// DIR, ERA; the saved file reaches the image; RESET boots again.
+static void cpm_machine(const char* file, const char* banner, const char* disk, const char* test_disk)
+{
+    printf("--- %s\n", file);
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path(disk), img));
+    CHECK(file_write_all(data_path(test_disk), img.data(), img.size()));
+    std::string text;
+    CHECK(file_read_text(data_path(file), text));
+    json cfg = json::parse(text, nullptr, false, true);
+    for (json& c : cfg["cards"]) {
+        std::string t = c.value("type", std::string());
+        if (t == "RPD-1" || t == "FDC-1") c["drive_a"] = { { "image", test_disk }, { "write_protect", false } };
+    }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    CHECK(run_until_text(m, banner, 2.0));
+    CHECK(run_until_text(m, "CPM V2.2 V/P1", 8.0));
+    CHECK(run_until_text(m, "\nA>", 2.0));
+    m.run_seconds(0.3);
+    m.type_text("DIR S*.*\r");
+    CHECK(run_until_text(m, "A> SYSGEN   COM", 5.0));
+    m.run_seconds(0.3);
+    for (int i = 0; i < 0x400; i++) m.bus.mem_write((uint16_t)(0x0100 + i), (uint8_t)(i * 7 + 3));
+    m.type_text("SAVE 4 TEST.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("DIR T*.*\r");
+    CHECK(run_until_text(m, "A> TEST     COM", 5.0));
+    m.flush();
+    CHECK(file_read_all(data_path(test_disk), img));
+    bool found = false;
+    for (size_t off = 2 * 26 * 128; off + 0x400 <= img.size() && !found; off += 128)
+        if (img[off] == 3 && img[off + 1] == 10 && img[off + 2] == 17) found = true;   // the data, sector 1 of a block
+    CHECK(found);
+    m.run_seconds(0.3);
+    m.type_text("ERA TEST.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("DIR T*.*\r");
+    CHECK(run_until_text(m, "NO FILE", 5.0));
+    // RESET with the head on track 0 or wherever CP/M left it: boots again
+    m.reset();
+    CHECK(run_until_text(m, "CPM V2.2 V/P1", 8.0));
+    CHECK(run_until_text(m, "\nA>", 2.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 // DCD on DSM-1 (terminal connected): MON V1.0-C1 uses the serial console
 static void terminal(void)
 {
@@ -92,5 +143,13 @@ int main(void)
     mon_c1();
     mor48a();
     terminal();
+    cpm_machine("machines/zps/ZPS-3_CPM48K.sapi", "SAPI-1 ZPS3-48K", "media/rpd-1/CPM22P_48A_Perina.img",
+                "work/test/zps3_m48a.img");
+    cpm_machine("machines/zps/ZPS-3_CPM62K.sapi", "SAPI-1 ZPS3-62K", "media/rpd-1/CPM22P_62A_Perina.img",
+                "work/test/zps3_m62a.img");
+    cpm_machine("machines/zps/ZPS-3_CPM48K_FDC-1.sapi", "SAPI-1 ZPS3-48K/FDC-1", "media/fdc-1/CPM22P_48AF_Perina.img",
+                "work/test/zps3_m48af.img");
+    cpm_machine("machines/zps/ZPS-3_CPM62K_FDC-1.sapi", "SAPI-1 ZPS3-62K/FDC-1", "media/fdc-1/CPM22P_62AF_Perina.img",
+                "work/test/zps3_m62af.img");
     return TEST_RESULT();
 }

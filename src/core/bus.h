@@ -36,6 +36,8 @@ struct Bus {
     uint64_t now = 0;           // CPU clock cycles since power-on
     uint32_t cpu_hz = 2000000;  // CPU clock, used by cards to convert time
     int wait = 0;               // wait states requested during the current access (RDY low)
+    uint32_t hold = 0;          // cycles a DMA controller held the bus (/HOLD); the CPU card adds
+                                // them to the time before its next instruction
     int map = 0;                // current MAP1/MAP2 levels (MapLine mask)
     bool warn_conflicts = true;
     uint64_t conflicts = 0;

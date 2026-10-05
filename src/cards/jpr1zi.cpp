@@ -222,6 +222,11 @@ int Jpr1zi::run(int cycles)
         bus->now++;
         done++;
         if (bus->now >= next_sync) sync();
+        if (bus->hold) {   // a DMA controller had the bus: the CPU waited
+            bus->now += bus->hold;
+            done += (int)bus->hold;
+            bus->hold = 0;
+        }
         if (stall > 0) {   // RDY low: CPU held in a wait state
             stall--;
             continue;

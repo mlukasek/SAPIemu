@@ -12,6 +12,7 @@
 struct Bus;
 class SerialChannel;
 class StateIO;
+struct FloppyDrive;
 
 enum IrqLine {
     IRQ_INT0 = 1,   // /INT0 -> Z80 /INT on JPR-1ZI
@@ -58,6 +59,15 @@ public:
 
     // Serial channels provided by the card (index 0..n-1), nullptr past the end.
     virtual SerialChannel* serial_channel(int index) { return nullptr; }
+    // Floppy drives of a disk controller (index 0 = A), nullptr past the end. Disks are
+    // changed through floppy_insert / floppy_eject, which keep the controller consistent.
+    virtual FloppyDrive* floppy_drive(int index) { return nullptr; }
+    virtual bool floppy_insert(int index, const std::string& image, bool write_protect, std::string& err)
+    {
+        err = "no such drive";
+        return false;
+    }
+    virtual void floppy_eject(int index) {}
 
     // Save battery-backed / persistent content (RAM disk...). Called on exit and on demand.
     virtual void flush() {}
