@@ -189,6 +189,7 @@ RECALIBRATE. Mechaniky zapíná `DRVON EQU 40H` (D6 = 1), vypíná `DRVOF EQU 00
 - Fungoval BIOS ECBIM8 s MFC-1A na skutečném stroji? Podle obou schémat by se zasekl (chybí `RET` v `INIT_MFC`)
   a na originálu by navíc D6 = 1 mechaniky vypínal. Jaké MSR vrací 8272 v resetu?
 - RDYn (XP2-19) není v příkladech připojení mechanik zapojený. Jakou úroveň pak vidí 8272 na RDY? Výpisy
-  `SAPI15\MFC_TEST_CPM` (sekce výše) ukazují stálé RDY (`rdy_ground = true`). Má to být výchozí nastavení?
+  `SAPI15\MFC_TEST_CPM` (sekce výše) ukazují stálé RDY (`rdy_ground = true`). Sestavy SAPIMANa
+  (`cpm_boot_mfc1a*`) ho mají od 2026-10-06 (rozhodnutí autora), `cpm_zrmd_mfc1a` ne (ECBIM8 čte z jednotky 3).
 - Kdo dělal testy `SAPI15\MFC_TEST_CPM` (2010) a s jakým `DRVON` (40h, nebo 00h) běžel test na „Original MFC1A“?
 - Které mechaniky se k MFC-1A u SAPI skutečně připojovaly (5,25" s READY, nebo 8" Consul)?

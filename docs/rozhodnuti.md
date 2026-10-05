@@ -838,4 +838,6 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **MFC-1A `rdy_ground = true`** dává RDY trvale, i při vypnutých mechanikách (D6). Dřív READY sledovalo D6 vždy.
 - Podklad: výpisy z reálných desek v `SAPI15\MFC_TEST_CPM` (2010, `docs/desky/MFC-1A.md`). S `rdy_ground = true`
   dává emulace stejné bajty jako originál. Výchozí `rdy_ground = false` zatím zůstává (ECBIM8 by s trvalým RDY bez
-  diskety v jednotce 3 čekal věčně), změna výchozího nastavení je otázka pro autora.
+  diskety v jednotce 3 čekal věčně).
+- **2026-10-06, autor:** sestavy SAPIMANa `cpm_boot_mfc1a` a `cpm_boot_mfc1a_rmd` mají `rdy_ground = true`
+  (podle výpisů z reálných desek). `cpm_zrmd_mfc1a` zůstává `false` kvůli ECBIM8.

@@ -59,7 +59,7 @@
             },
             "working_copy": true,           // Work on copies in work/
             "decoder": "roms/mfc-1a/MFC-1A_DD9_74S287.bin",  // PROM DD9: port decoder
-            "rdy_ground": false,            // READY from the drive (disk in)
+            "rdy_ground": true,             // RDY tied active (as the real boards in SAPI15 MFC_TEST_CPM)
             "wiring": "ec1045",             // the system turns the drives on with D6 = 1 (as the EC1045 redraw)
             "reset_mode": "level"           // Register 0FH: the reset bit as in the schematic
         }
