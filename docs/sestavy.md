@@ -20,6 +20,8 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
     - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1: jeden FRB dole (K2), jako na deskách;
     - RPD-1: horní FRB obou desek (RPD-1A vpravo, RPD-1B vlevo) propojuje kabel KB-17, dolní FRB na RPD-1B
       („K2 FDD“) vede k mechanikám; svislé typy „RPD-1A“ a „RPD-1B“;
+    - FDC-1: stejně, horní FRB obou desek (FDC-1A vpravo, FDC-1B vlevo) propojuje stejný kabel, k mechanikám vede
+      dolní FRB na FDC-1A („K2 FDD“), dolní FRB na FDC-1B má vlastní signály SEL, HL a MOT;
     - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2). LED na
       skutečné desce není, emulátor ji přidává: svítí 50 ms po přístupu na disk nebo PMD32-SD;
     - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, DGD-1V, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL, K3 ZVUK, K2 MYŠ);

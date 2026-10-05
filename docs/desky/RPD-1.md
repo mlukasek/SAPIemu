@@ -6,6 +6,9 @@ Zdroje:
 - ovladač EBIOS (`BKP\sapi\data\ebios_lst.php`, J. Hlaváč 1988, v EPROM MIKOS/D na 1300–17DA);
 - systémová disketa MIKOS/D (`BKP\sapi\data2\m5mid_img.rar`, `m5mid_imd.rar`).
 
+Nástupce: řadič FDC-1 (8272 + DMA, od roku 1989, `docs/desky/FDC-1.md`). Má stejné propojení desek (KB-17) a
+skoro stejný konektor mechanik; rozdíly kolíků jsou v FDC-1.md.
+
 ## Zapojení
 
 - **Dvě desky vedle sebe ve vaně:** RPD-1A (datové rozhraní, porty 20–25h) a RPD-1B (řízení mechaniky,

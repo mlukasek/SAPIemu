@@ -17,6 +17,22 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   `media/fdc-1/`). Na nich je `FDC.DOC` (popis změn proti RPD-1), `FDC.INC`, zdroj monitoru `MOR24F.MAC` a
   formátovač `FORM6.COM` (AGRODAT Znojmo 1988).
 
+### Návod (sken `navod-scan`, strany 2–27)
+
+- 3 Instalace, 4 Popis funkce, 5 Programování (registry 0EH/0FH, dekodér, adresy), stručný popis 8272 (vývody,
+  MSR, ST0–ST3, povely SPECIFY, RECALIBRATE, SEEK, READ ID, READ DATA, WRITE DATA, FORMAT, SENSE INTERRUPT STATUS,
+  READ/WRITE DELETED DATA, READ TRACK, SENSE DRIVE STATUS, INVALID, SCAN), 6 Testování (ve výrobě speciální
+  testovací program), 7 Údržba, 8 Všeobecné údaje, 9 Konfigurace mechanik (SA2), 10 Rozdíly v zapojení proti RPD-1,
+  zapojení Consul 7113, 11/12 rozpisky součástek, 13/14 rozložení součástek.
+- Návod k 8272 upozorňuje, že povely SCAN „se v běžných programech (BIOS CP/M) neuplatňují“ a u FDC rumunské
+  výroby nelze předpokládat lepší výsledky.
+- Rozpiska FDC-1A: 74LS04, 74LS08, 74LS14, MH7438, 74LS51, 74LS74, UCY74145, UCY74153, 74125, 74LS175, MH74S287,
+  MHB8282, 2× MHB8286, 8257 (KR580IK57), NEC 765A (CM609), NE555, KC507. FDC-1B: 74LS02, 74LS04, 74LS08, 74LS14,
+  74LS32, MH7438, UCY7473, 74LS74, MH7493A, 74S124 (K531GG1), 74125, 74145, 3× UCY74153, 3× 74LS175, MHB4503,
+  krystal 8 MHz, přepínače DIL TS 501 8181 (8 pólů, SA2) a TS 501 2121 (2 póly, SA1).
+- Tabulka GPL (8"): FM 128 B N = 00, GPL 07, při formátování 1B; 256 B 0E/2A; 512 B 1B/3A; 1024 B 47/8A.
+  MFM 256 B 0E/36, 512 B 1B/54, 1024 B 47/74. 5,25": FM 128 B 07/09 …
+
 ## Zapojení
 
 - **Dvě desky** propojené plochým kabelem stejně jako RPD-1 (konektor X2): FDC-1A (8272, DMA, dekodér portů,
@@ -27,6 +43,33 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Řadič umí až 4 mechaniky, 8" i 5,25", SS i DS, SD i DD (návod). **Emulace má 4 mechaniky 8" SS SD**
   (IBM 3740, 77 × 26 × 128 B, obrazy `.img` jako u RPD-1).
 - Od roku 1989 dodávaný místo RPD-1 (FDC.DOC). Tiskárnu DPP-1 je kvůli kolizi portů nutné přeadresovat z 08H na 18H.
+- **Propojení desek:** horní konektory (X2) obou desek spojuje stejný plochý kabel jako u RPD-1 (KB-17, návod:
+  „Obě desky řadiče jsou propojeny stejnou propojkou jako u řadiče RPD-1“). Signály X2: /CK, /WC, /WD, /RD, /RES,
+  /VCO, 4M, RD, /S1, /IE, /MFM a země.
+- **Konektor mechanik X3 na FDC-1A** (FRB 30, klíč A-5) má stejné rozložení jako K2 FDD na RPD-1B s rozdíly (návod
+  kap. 10):
+
+| Kolík | RPD-1B | FDC-1A | | Kolík | RPD-1B | FDC-1A |
+|---|---|---|---|---|---|---|
+| 2 | /HL | /HL | | 18 | /IX | /IX |
+| 4 | /ST | /ST | | 20 | /WF | /RDY (z výroby na zem, Consul 7113; pro 5,25" přerušit) |
+| 6 | /SEL0 | /SEL0 | | 22 | /TR43 | /TR43 |
+| 8 | /RD | /RD | | 23 | zem | /SS1 (výběr hlavy) |
+| 10 | /WG | /WG | | 24 | /SEL1 | /SEL1 |
+| 12 | /WD | /WD | | 25 | zem | /SEL2 |
+| 14 | /TR00 | /TR00 | | 26 | /FR | /TWO SIDE |
+| 16 | /WP | /WP | | 27 | zem | /SEL3 |
+| 1, 3, 5 … 21 | zem | zem | | 28 | /DIR | /DIR |
+| | | | | 29, 30 | zem, rezerva | /WF, /FR |
+
+- **Konektor X3 na FDC-1B** (klíč B-5): samostatné signály /M0–/M3 (kolíky 2, 4, 6, 8), /H0–/H3 (10, 12, 14, 16)
+  a /S0–/S3 (18, 20, 22, 24) z registrů 0FH a 0EH. Tabulka v návodu (str. 21) má nadpis „FDC-1A, X3“, text nad
+  ní ale tyto signály přiřazuje konektoru X3 na FDC-1B.
+- **Kabel k mechanikám Consul** (FDC.DOC, příloha): signály T43, FR, HL, WR, WD, STEP, DIR, S0, S1, RDD, T00,
+  INDX, WF a jejich zemní vodiče, pro C7113 (přímý konektor), C7123 (RFT 34, dvě mechaniky), RPD-1B a FDC-1A
+  (FRB 30). Rozdíly mezi RPD-1B a FDC-1A: FR na kolíku 26 / 30, WF na 20 / 16 (u FDC-1A je 20 RDY a „pro FDC-1A
+  uzemnit!“). Zapojení Consul 7113 v návodu: STEP 4, SEL0 6, SEL1 24, RD 8, WG 10, WD 12, TR00 14, WP 16,
+  INDX 18, DIR 28, TWO SIDE 26, RDY 20 (na FRB 30), napájení +5 V, +24 V A 0,5 A, +24 V B 1,5 A.
 
 ## Porty (PROM D5B, výchozí)
 
@@ -50,6 +93,16 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 
 ## Software
 
+- **Diskety pro FDC-1** (`media/fdc-1`, obsah stejný pro 48K i 62K): BIOS2.MAC, BOOT.MAC, CPM.DOC, CPMH.DOC,
+  CPM48A/48Z/62A/62Z.COM, FDC.DOC (popis změn proti RPD-1 a tabulka kabelu), FDC.INC, FORM6.COM, MODIF1.COM,
+  MOR24F.MAC (zdroj MORxxF), MOR48AF/48ZF/62AF/62ZF.HEX (EPROM pro JPR-1A a JPR-1Z), RSYS48A/62A.COM, RTEST.COM,
+  SYSGEN.COM, WM.COM, WM.HLP, W16/40/64/80.COM, X40/64/80.COM. Moduly pro FDC-1 mají za jménem „F“, jinak je systém
+  stejný jako pro RPD-1 (FDC.DOC).
+- **Podklady EC1045 v `sw\`:** BIOSy pro JPR-1Z/ZI se ZRMD-1 a druhým řadičem FDC-1 (`ECBIF3`, `ECBIF5`, `ECBIF8`,
+  `ECBIF8P`, `ECBIHD`, `ECBIM8`, `ECBIR8`, `ECMON`; varianty `_cd` s příkazy CD a MOUNT pro PMD32-SD). V systému
+  EC1045 je systémový řadič RPD-1 s 8" a FDC-1A/B připojuje 5,25" mechaniky (`info-z-emailu.txt`). `mount.cfg` je
+  konfigurace programu MOUNT (https://pmd85.borik.net/wiki/MOUNT) pro AND-1Z/V a TeraTerm.
+
 - **MOR48AF / MOR62AF** (Peřina 1988, „SAPI-1 ZPS3-48K/FDC-1“, zdroj `MOR24F.MAC`):
   - init: `OUT 0EH,04` a `OUT 0EH,00` (reset 8272), `OUT 08H,00`, SPECIFY 03 0F FE (SRT 16 ms, HUT 240 ms,
     HLT 254 ms, DMA);
@@ -58,8 +111,15 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   - po SEEK/RECALIBRATE volá SENSE INTERRUPT STATUS, dokud nedostane ST0 se SE pro svou mechaniku (80h = ještě
     ne, jiná mechanika = znovu, chybové bity = chyba).
 - **ECBIF8.MAC** (EC1045, ovladač „FDC-1 V050290JB“): stejné porty, SPECIFY 03 7F 30.
-- **FORM6.COM** (formátovač): typy A–I (8" i 5,25", SD i DD), SPECIFY 03 7F 80, FORMAT A TRACK s DMA
-  (26 × 4 bajty ID), ověří přepínače SA2 na 0EH.
+- **FORM6.COM** („FORMAT ZNK, AGRODAT Znojmo V1.0 090388ZF“):
+  - nabídka typů A–I: A = SS SD 8" 0–76, 26 × 128 B; B = SS DD 5,25" 0–39, 16 × 256; C = SS DD 8", 8 × 1024;
+    D, E, F = SS DD 5,25" 9 × 512, 8 × 512, 5 × 1024; G = DS DD 5,25" 9 × 512; H = DS DD 8" 8 × 1024;
+    I = DS DD 5,25" 0–79, 9 × 512;
+  - pak „FORMATED DRIVE:“ (A–D) a „ARE YOU SURE ??? (Y/N)“ (řádkový vstup BDOS, tedy Y a Enter);
+  - `OUT 0EH,mechanika`, `IN 0EH`, D1 porovná s typem (1 = 8"), jinak „IT IS NOT ALLOWED FORMAT FOR THIS DRIVE“;
+  - `OUT 0FH,0FH` (motory) a čekání, SPECIFY 03 7F 80, RECALIBRATE, pro každou stopu SEEK a FORMAT A TRACK
+    (8257: počet 8067h = 104 bajtů, 26 × C H R N), výsledek do „ERROR ON TRACK“ / „O.K.“.
+  - V emulátoru naformátuje 8" SS SD disketu na B: (asi minuta) a CP/M na ni pak zapisuje.
 
 ## Emulace
 

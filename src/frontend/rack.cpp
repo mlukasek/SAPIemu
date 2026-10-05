@@ -484,6 +484,19 @@ const PanelItem k_pl_rpd1b[] = {
     { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" }, { PI_NOTE, 41.0f, 437.8f, "FDD" },
     { PI_END, 0, 0, nullptr },
 };
+// FDC-1: like RPD-1 the top connectors (X2) of both boards are linked by the same cable; the
+// bottom one of FDC-1A (X3) goes to the floppy drives, that of FDC-1B (X3) has its own SEL, HL
+// and MOT signals
+const PanelItem k_pl_fdc1a[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" }, { PI_NOTE, 41.0f, 437.8f, "FDD" },
+    { PI_END, 0, 0, nullptr },
+};
+const PanelItem k_pl_fdc1b[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
+    { PI_END, 0, 0, nullptr },
+};
 // VGA display cards: K2 = VGA in the middle (AND-1V, DGD-1V, BGP, CGA)
 const PanelItem k_pl_vga[] = {
     { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
@@ -509,6 +522,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     if (!ci) return nullptr;
     const char* p = ci->panel;
     if (!strcmp(ci->type, "RPD-1")) return board ? k_pl_rpd1b : k_pl_rpd1a;
+    if (!strcmp(ci->type, "FDC-1")) return board ? k_pl_fdc1b : k_pl_fdc1a;
     if (!strcmp(ci->type, "IDE-1")) return k_pl_ide1;
     if (!strcmp(p, "JPR")) return k_pl_jpr_frb;   // all of them, JPR-1V too
     if (!strcmp(p, "FDC")) return k_pl_fdc;
@@ -658,7 +672,8 @@ void panel_plate(const Panel& P, float w, bool dim)
 }
 
 // A narrow card panel: holes, the label at the top and the bottom, connectors.
-// Flat cable KB-17 between the top FRB connectors of RPD-1A (panel A) and RPD-1B (B, on its left).
+// Flat cable KB-17 between the top FRB connectors of RPD-1A (panel A) and RPD-1B (B, on its left);
+// FDC-1A and FDC-1B are linked by the same cable (manual of FDC-1).
 void draw_rpd_cable(const Panel& A, const Panel& B)
 {
     ImDrawList* dl = A.dl;
@@ -901,7 +916,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 draw_card_panel(P, ci, shown, ports, slot_has_error(problems, s + b), r.show_types, b, b == 0 ? leds : 0,
                                 b == 0 ? live : nullptr);
             }
-            if (wd == 2 && !strcmp(type.c_str(), "RPD-1")) {
+            if (wd == 2 && (type == "RPD-1" || type == "FDC-1")) {
                 Panel A = { dl, ImVec2(slot_x(s) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
                 Panel B = { dl, ImVec2(slot_x(s + 1) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
                 draw_rpd_cable(A, B);
