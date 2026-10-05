@@ -11,9 +11,9 @@ bool Mfc1a::configure(const json& cfg, std::string& err)
 {
     if (!configure_common(cfg, "roms/mfc-1a/MFC-1A_DD9_74S287.bin", "DD9", err)) return false;
     std::string r;
-    if (!cfg_string(cfg, "reset_d4", r, "pulse", err)) return false;
+    if (!cfg_string(cfg, "reset_d5", r, "pulse", err)) return false;
     if (r != "pulse" && r != "level") {
-        err = "reset_d4 must be pulse or level";
+        err = "reset_d5 must be pulse or level";
         return false;
     }
     reset_level = r == "level";
@@ -29,7 +29,7 @@ void Mfc1a::reset()
 int Mfc1a::irq_lines()
 {
     advance(bus->now);
-    return (reg & 0x20) && !fdc_in_reset && fdc.interrupt() ? IRQ_INT0 : 0;
+    return (reg & 0x10) && !fdc_in_reset && fdc.interrupt() ? IRQ_INT0 : 0;   // D4: DD12A
 }
 
 bool Mfc1a::io_read(uint8_t port, uint8_t& data)
@@ -63,14 +63,15 @@ bool Mfc1a::io_write(uint8_t port, uint8_t data)
     }
     if (!(y & Y_REG)) {
         advance(bus->now);   // the 8272 has worked with the old drive until now
-        bool rise = (data & 0x10) && !(reg & 0x10);
+        bool rise = (data & 0x20) && !(reg & 0x20);
         reg = data;
         if (reset_level) {
-            set_fdc_reset((reg & 0x10) != 0);
+            set_fdc_reset((reg & 0x20) != 0);   // D5: DD4B, RES72
         } else if (rise) {
             set_fdc_reset(true);    // a reset pulse: the chip starts from idle
             set_fdc_reset(false);
         }
+        if (reset_level && (reg & 0x20)) reg &= (uint8_t)~0x40;   // DD23B clears DD23A (D6): no drive
         return true;
     }
     return true;

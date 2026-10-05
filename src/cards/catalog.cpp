@@ -501,7 +501,7 @@ static const CardParam k_mfc1a[] = {
     { "rdy_ground", PK_BOOL, "X2-19 RDY grounded (8\" Consul 7113 have no READY); else READY from the drive (disk in)",
       "X2-19 RDY spojený se zemí (8\" Consul 7113 nemají READY); jinak READY z mechaniky (vložená disketa)", "false",
       nullptr, 0, 0 },
-    { "reset_d4", PK_CHOICE, "Register 0FH D4 (reset of the 8272)", "Registr 0FH D4 (reset 8272)", "\"pulse\"", k_mfc1a_res,
+    { "reset_d5", PK_CHOICE, "Register 0FH D5 (reset of the 8272)", "Registr 0FH D5 (reset 8272)", "\"pulse\"", k_mfc1a_res,
       0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };

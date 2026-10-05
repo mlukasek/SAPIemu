@@ -696,9 +696,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   okno Média. FDC-1 a MFC-1A se liší jen dekodérem, registry a tím, kdo vybírá mechaniku. Formát stavu FDC-1 se
   tím změnil (karta je z téhož dne, starší stavy s ní nejsou).
 - **MFC-1A:** porty podle dumpu PROM DD9, mechaniku vybírá registr 0FH (DS0/DS1 z 8272 nejsou zapojené).
-- **D4 registru 0FH jako pulz** (parametr `reset_d4`, výchozí `pulse`): podle schématu drží 8272 v resetu, ale
-  BIOS ECBIM8 (ECMON varianta 2) zapíše při inicializaci FFh a zasekl by se. Autor: emulovat tak, aby varianta 2
-  bootovala, a **důrazně upozornit na rozdíl proti schématu** (důležité pro repliku). `level` = schéma.
+- **Bity registru 0FH podle schématu:** D4 = povolení přerušení (DD12A), D5 = reset 8272 (DD4B → RES72), D6 =
+  povolení mechanik (DD23A, DD23B ho při resetu nuluje). Komentáře v ECBIM8 mají D4 a D5 prohozené (zjištěno
+  ze schématu ve vysokém rozlišení, PyMuPDF).
+- **D5 registru 0FH jako pulz** (parametr `reset_d5`, výchozí `pulse`): podle schématu drží 8272 v resetu, ale
+  BIOS ECBIM8 (ECMON varianta 2) kvůli chybějícímu `RET` v `INIT_MFC` zapíše FFh a zasekl by se. Autor: emulovat
+  tak, aby varianta 2 bootovala, a **důrazně upozornit na rozdíl proti schématu** (důležité pro repliku).
+  `level` = schéma. V režimu pulse zůstane mechanika vybraná (jinak by BIOS čekal v RECALIBRATE).
 - **READY u MFC-1A z mechaniky** (výchozí `rdy_ground = false`): ECBIM8 při inicializaci čte z jednotky 3 a
   s uzemněným RDY by bez diskety čekal věčně.
 - Sestavy `cpm_zrmd_fdc1.sapi` a `cpm_zrmd_mfc1a.sapi` (B: = disketa CP/M 2.2/P jako data). Test `test_fdc_ecmon`

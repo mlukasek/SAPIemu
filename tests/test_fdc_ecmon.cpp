@@ -1,7 +1,7 @@
 // FDC-1 and MFC-1A under the CP/M of the ZRMD-1 RAM disk (ECMON, BIOS variants 0 "FDC8" and
 // 2 "MFC8", machines/cpm_zrmd_fdc1.sapi and cpm_zrmd_mfc1a.sapi): B: is an 8" disk with
 // files (DIR), C: a formatted empty one (SAVE, the file reaches the image). MFC-1A with the
-// reset bit as in the schematic (reset_d4 = level) hangs in the BIOS initialization.
+// reset bit as in the schematic (reset_d5 = level) hangs in the BIOS initialization.
 #include "core/headless.h"
 #include "core/machine.h"
 #include "core/util.h"
@@ -9,7 +9,7 @@
 
 using nlohmann::json;
 
-static json machine(const char* file, const char* type, const char* reset_d4)
+static json machine(const char* file, const char* type, const char* reset_d5)
 {
     std::string text;
     CHECK(file_read_text(data_path(file), text));
@@ -28,7 +28,7 @@ static json machine(const char* file, const char* type, const char* reset_d4)
         if (t == type) {
             c["drive_a"] = { { "image", "work/test/ecmon_b.img" }, { "write_protect", false } };
             c["drive_b"] = { { "image", "work/test/ecmon_c.img" }, { "write_protect", false } };
-            if (reset_d4) c["reset_d4"] = reset_d4;
+            if (reset_d5) c["reset_d5"] = reset_d5;
         }
     }
     return cfg;
@@ -62,7 +62,7 @@ static void controller(const char* file, const char* type, const char* variant, 
     printf("%s\n", screen_text(m).c_str());
 }
 
-// reset_d4 = level: FFh written at the initialization holds the 8272 in reset, the BIOS waits
+// reset_d5 = level: FFh written at the initialization holds the 8272 in reset, the BIOS waits
 static void mfc_level(void)
 {
     Machine m;
