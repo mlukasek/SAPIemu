@@ -36,6 +36,11 @@ sapi_test(test_sapi1v)
 sapi_test(test_mph1v)
 sapi_test(test_state)
 
+# tools/cpmrun runs as a separate program (M80 and L80 are not in the repository)
+sapi_test(test_cpmrun)
+target_compile_definitions(test_cpmrun PRIVATE CPMRUN_EXE="$<TARGET_FILE:cpmrun>")
+add_dependencies(test_cpmrun cpmrun)
+
 # Intel 8080 core: TST8080, 8080PRE and CPUTEST are quick, 8080EXM takes minutes (slow, release only)
 add_executable(test_i8080 test_i8080.cpp test_util.h)
 target_link_libraries(test_i8080 PRIVATE sapicore)

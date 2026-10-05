@@ -94,8 +94,9 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    `FDC\f1_rmd1m_*.8sd`, `RPD\r1_rmd1m_271111.8sd`; RMD-1 je emulovaný), varianty s PMD32-SD (`f2_pmd*`,
    `r2_pmd*`), a jeho datové 8" diskety (`PREKLADACE`, `TEXTY`, `ZDROJ_NOVE`, `ZDROJ_STARE`, `SYSPROG` …) do
    `media/sapiman/` jako knihovna softwaru.
-4. **`cpmrun`:** malý test v ctestu (vlastní mini program `.COM`, M80 je od Microsoftu a do repa nepatří);
-   zjistit, proč L80 s příkazem v příkazové řádce bere `/P:0` jako jméno souboru (z konzole funguje).
+4. ~~**`cpmrun`:** malý test v ctestu, L80 a `/P:0` z příkazové řádky~~ hotové 2026-10-06: `test_cpmrun`;
+   `/P:0` rozbíjel Git Bash (převod cest), L80 se pak zacyklil po odpovědi Y na „move anyway“ (správně N), stav
+   konzole teď hlásí stdin (`docs/build.md`).
 5. ~~**Okno Média:** ověřit vzhled výběru formátu nové diskety~~ hotové 2026-10-05: výběr je jednou nad
    mechanikami řadiče, snímek `sapiemu --ui-snapshot X.png --ui-media`.
 6. **Otázky na EC1045** (sekce výše): `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A.

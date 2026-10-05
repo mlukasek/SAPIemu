@@ -7,7 +7,8 @@
 // trap to the PC: the console goes to stdout/stdin, files are in DIR (default: current
 // directory) for every drive letter, names are matched case-insensitively. Implemented BDOS
 // functions: 0-40 as far as compilers and assemblers use them (sequential and random files,
-// search with ?, delete, rename, file size). The exit code is 0, or 2 when the program
+// search with ?, delete, rename, file size). stdin is the keyboard: its characters are keys
+// typed ahead (console status reports them). The exit code is 0, or 2 when the program
 // cannot be started.
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +18,13 @@
 #include <vector>
 #include <filesystem>
 #include "z80.h"
+#ifdef _WIN32
+#include <conio.h>
+#include <io.h>
+#else
+#include <sys/select.h>
+#include <unistd.h>
+#endif
 
 namespace fs = std::filesystem;
 
@@ -195,6 +203,27 @@ static uint8_t search_result(void)
     return 0xFF;
 }
 
+// a key waiting: stdin is the keys typed ahead (a pipe or file: its next character, not taken),
+// a terminal: a key pressed
+static bool console_ready(void)
+{
+#ifdef _WIN32
+    if (_isatty(_fileno(stdin))) return _kbhit() != 0;
+#else
+    if (isatty(0)) {
+        fd_set s;
+        FD_ZERO(&s);
+        FD_SET(0, &s);
+        timeval t = { 0, 0 };
+        return select(1, &s, nullptr, nullptr, &t) > 0;
+    }
+#endif
+    int c = getchar();
+    if (c == EOF) return false;
+    ungetc(c, stdin);
+    return true;
+}
+
 static int read_console(void)
 {
     int c = getchar();
@@ -207,7 +236,7 @@ static bool bdos(z80_t* cpu)
     uint8_t fn = cpu->c;
     uint16_t de = cpu->de;
     uint16_t result = 0;
-    if (trace && fn > 12) fprintf(stderr, "[BDOS %d DE=%04X %s]\n", fn, de, fn >= 15 && fn != 26 ? fcb_name(de).c_str() : "");
+    if (trace && (fn > 12 || fn == 1 || fn == 6 || fn == 10 || fn == 11)) fprintf(stderr, "[BDOS %d DE=%04X %s]\n", fn, de, fn >= 15 && fn != 26 ? fcb_name(de).c_str() : "");
     switch (fn) {
     case 0: return false;
     case 1: result = (uint16_t)read_console(); putchar(result); break;
@@ -215,7 +244,8 @@ static bool bdos(z80_t* cpu)
     case 3: result = 0x1A; break;   // reader: end of file
     case 4: case 5: break;          // punch, list: dropped
     case 6:
-        if (cpu->e == 0xFF || cpu->e == 0xFE) result = 0;   // no key waiting
+        if (cpu->e == 0xFF) result = console_ready() ? (uint16_t)read_console() : 0;
+        else if (cpu->e == 0xFE) result = console_ready() ? 0xFF : 0;
         else putchar(cpu->e);
         break;
     case 7: case 8: break;          // IOBYTE
@@ -236,7 +266,7 @@ static bool bdos(z80_t* cpu)
         mem[(uint16_t)(de + 1)] = (uint8_t)n;
         break;
     }
-    case 11: result = 0; break;
+    case 11: result = console_ready() ? 0xFF : 0; break;
     case 12: result = 0x0022; break;
     case 13: dma = 0x80; cur_drive = 0; break;
     case 14: cur_drive = cpu->e & 15; break;
@@ -352,9 +382,10 @@ static bool bdos(z80_t* cpu)
 // returns false when the program ends
 static bool bios(z80_t* cpu, uint8_t entry)
 {
+    if (trace && entry != 4) fprintf(stderr, "[BIOS %d]\n", entry);
     switch (entry) {
     case 0: case 1: return false;                         // boot, warm boot
-    case 2: cpu->a = 0; break;                            // console status
+    case 2: cpu->a = console_ready() ? 0xFF : 0; break;   // console status
     case 3: cpu->a = (uint8_t)read_console(); break;      // console in
     case 4: putchar(cpu->c); fflush(stdout); break;       // console out
     default: cpu->a = 0; break;
