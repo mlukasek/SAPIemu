@@ -60,7 +60,8 @@ AND-1Z-89, ZRMD-1 (C:), řadič s bootovací disketou v A: a datovou disketou CP
   S obrazem pro ECMON by `DIR C:` vypsal nesmysly.
 - **MFC-1A** v sestavě: `wiring = ec1045`, `reset_mode = level`. Systém zapíná mechaniky D6 = 1; se zapojením
   podle originálu Tesla se boot zastaví (ověřeno).
-- Konzole podle hlášení „AND1Z + C259.11“: v sestavách je klávesnice EKL-1 jako u ostatních sestav autora.
+- Klávesnice Consul 259.11 v kódu KOI-8 cs: monitory mají „OVLADAC KLAVESNICE CONSUL 259.11 KOI8 CS2“ a hlásí
+  „CON: AND1Z + C259.11“.
 
 ## Původ chyby ECBIM8
 
