@@ -19,6 +19,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   (ROM, obrazy disket, které autor připravil) jsou v `..\SAPI-sestavy\<sestava>` (např. `ZPS-3`). **Aktuální kopie
   archivů (stažené 2026-10-05, používat přednostně před staršími na `H:`):** `..\SAPI_DOKU` (dokumentace SAPI_DOKU,
   např. `MFC-1A` s celým návodem a originálními skeny schémat) a `..\SAPI.CZ` (záloha webu sapi.cz: `sapi`, `pdf`…).
+  `..\SAPI_DOKU_FTP` je kopie SAPI_DOKU z FTP (2026-10-05), liší se od té z Dropboxu (archiv EC1045 s disketami,
+  obrazy ImageDisk, viz `docs/software/CPM_SAPIMAN.md`); autor je bude slučovat.
   Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`). **Zdrojáky systému ECMON
   + CP/M ZRMD-1** (ověřené proti originálům) jsou v `..\SAPI-karty\ZRMD-1\SRC\` (`build.py`, M80/L80 pod
   `cpmrun`, viz `docs/software/ECMON.md`). **Systémy CP/M J. Bíby (SAPIMAN) a EC1045**, obrazy disket, formáty a otázky na

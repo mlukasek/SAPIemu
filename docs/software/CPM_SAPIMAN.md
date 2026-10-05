@@ -105,10 +105,37 @@ V ECBIM8 (systém na RAM disku) za tímto místem následuje `READ_MFC` a disk j
 Chyba tedy vznikla přenesením bootovacího kódu do BIOSu pro RAM disk. Systémy JB pro MFC-1A shodně zapínají
 mechaniky D6 = 1, tedy podle překreslení EC1045, ne podle originálního schématu Tesla (`docs/desky/MFC-1A.md`).
 
+## SAPI_DOKU z FTP (`..\SAPI_DOKU_FTP`, stažené 2026-10-05)
+
+Autor stáhl SAPI_DOKU i z FTP; liší se od kopie z Dropboxu (`..\SAPI_DOKU`). Obsahem (MD5) je v ní navíc 4995
+souborů, z toho 4793 v **`ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\`** (archiv EC1045 z jeho e-mailu):
+
+- **`PETR\SAPI_SYS\`**: systémové 8" diskety J. Bíby Z1–Z10 a 1–10 se seznamem `Zaloha_sys_disket_sapi.txt`:
+  RPD 271111 (Z1 programy, Z2 zdroje), **RPD 3K 050412 + FDC-1 5,25" DS/HD 512 × 30 PC formát** (Z3, Z9), FDC 130711
+  (Z4, Z10), MFC 281211 s RMD-1 (Z5 zdroje, Z6 programy), RPD 170212 + PMD32-SD (Z7), **FDC 64K PC-MONITOR**
+  (RAM 64K, RMD-1, Z8). Zdroje systémů včetně `.MAC`, `.PRN`, `.HEX`.
+- **`PETR\2MB\`**: 5,25" diskety J. Bíby vykopírované do obrazů PMD32-SD (`1613`–`1619.2MB`), použitelné
+  rovnou jako disk D: PMD32-SD.
+- **`PETR\CPM\`** (93 obrazů `.8SD`), `TEXT01`, `TNS-2_32`, `C2713`, `C271X`.
+- **`!!!!_TRIDENO_!!!!\`**: roztříděné originály CPM64K, ELIS, PERINA (CP/M 2.2/P a jeho úpravy), ZPS3, OPV663,
+  V040386ZF (obrazy `.8SD`/`.IMG` a vybalené soubory).
+- **`OBRAZY_IMD\`**: 890 obrazů ImageDisk (`.imd`, záznam po stopách včetně FM/MFM a délky sektorů):
+  - `JILEK\04`: **5,25" diskety R. Peřiny a J. Jílka (1990–91)**, DD 40 × 2 × 9 × 512 (360 KB) i HD 80 × 2 × 15 × 512
+    (1,2 MB PC), např. „CPM MONITOR V5.F/Z zdroj“, „Perina 4/91 zsid, l80, m80“; `JILEK\01–03` 8" MIKOS/D, ISIS, CP/M;
+  - `BILY\40A/40B`: 8" DS DD 77 × 2 × 15 × 512 („archyv zdrojaku“); `STRIZEK`, `DEX`, `8DD`: 8" MFM 26 × 256;
+  - `MELSOFT`: 8" FM 9 × 512 (CP/X); `PC`: diskety PC; `C2713`, `C2715`, `IPDS`, `HP42` …: jiné počítače;
+  - kořen: `POKUS5A1.IMD` aj. „5.25" ala 8"“ (FM stopa 0, MFM 80 × 2 × 15 × 512).
+- Dále: `SAPI15\MELSOFT_DISKETY\SAPI15_*.sp2` (327 680 B), `MS-80\A3` (skeny řadiče FDD SM 80-341),
+  `Jarda\STD-BUS`, `PS-Mikro`, `skeny_dokumentace_bez_retusi_Petr` (BT100, SP210T, KP311), `_SAPIDOKU_Archive`
+  (celé SAPI_DOKU z 2020-01-01, zip 1,6 GB).
+
+**Pro emulátor z toho plyne:** čtení obrazů **ImageDisk** (`.imd`) přímo v mechanice (libovolná geometrie, smíšené
+FM/MFM, 8" DD, DS, 9 × 512) by zpřístupnilo stovky disket; 5,25" diskety z `JILEK\04` a sestavy podle `SAPI_SYS`
+(RPD + FDC 5,25" HD, FDC 64K) jsou materiál pro další sestavy; `PETR\2MB` pro PMD32-SD.
+
 ## Otázky na EC1045 (Petr Všijanský)
 
-- Složka `…/PETR/2MB/` z FTP SAPI_DOKU (5,25" diskety J. Bíby vykopírované do obrazů PMD32-SD): v naší kopii
-  SAPI_DOKU chybí. Má ji?
+- ~~Složka `…/PETR/2MB/`~~: je v kopii z FTP (`..\SAPI_DOKU_FTP`).
 - Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme.
 - Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení (D4/D5, polarita D6)?
 
