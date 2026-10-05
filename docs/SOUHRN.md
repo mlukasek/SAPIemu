@@ -38,9 +38,16 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   HD/DD, dvě strany) pro FDC-1 a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), okno Média zakládá
   diskety v libovolném formátu.
 - **Možné další kroky (autor vybírá; doporučení 2026-10-05: nejdřív a), pak DPP-1):**
-  0. **Diskety, dodělávky:** a) ověřit FDC-1 a MFC-1A (i DD) SAPIMANovými programy z `CPM_PROGRAMY\CISLOVANI
-     SEKTORU` a `FORMATOVANI` nebo `MFC1.ASM`; b) motory mechanik (FDC-1 0FH, MFC-1A D3 D2); c) malý test
-     `cpmrun`; d) otázky na EC1045 (`PETR/2MB`, zdroják ECMON IDE-1) jsou v `docs/software/CPM_SAPIMAN.md`.
+  0. **Diskety a CP/M, dodělávky z 2026-10-05** (podrobně v `docs/software/CPM_SAPIMAN.md`, „Dodělávky“):
+     a) ověřit FDC-1 a MFC-1A, i DD a formátování, originálními programy SAPIMANa (`CPM_PROGRAMY\CISLOVANI
+        SEKTORU`, `FORMATOVANI`, `Format_FDC_8`) a `MFC1.ASM`;
+     b) motory mechanik (FDC-1 0FH, MFC-1A D3 D2, BIOSy F3/F5 je časují);
+     c) sestavy s RAM diskem RMD-1 z bootovacích disket SAPIMANa (`m1_281211_rmd`, `f1_rmd1m_*`, `r1_rmd1m_*`)
+        a další jeho 8" diskety (překladače, texty, zdrojáky) jako datové;
+     d) `cpmrun`: malý test v ctestu (bez M80), proč L80 nebere `/P:0` z příkazové řádky;
+     e) ověřit vzhled okna Média s výběrem formátu nové diskety (`--ui-snapshot`);
+     f) otázky na EC1045 (Petr Všijanský): složka `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A;
+     g) případně opravit `RET` v ECBIM8 i v autorově pracovní kopii RAM disku (`work/zrmd-1`, jen se souhlasem).
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle

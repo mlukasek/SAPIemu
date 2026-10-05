@@ -78,6 +78,25 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
   Prázdnou disketu kteréhokoli formátu vyrobí okno Média (Nová disketa, výběr formátu).
 - Klávesnice Consul 262.3 s úpravou 7474: BIOS hlásí „CON: AND1Z + C262.3“, ROM má ovladač Consul 259.11 KOI8 CS2.
 
+## Dodělávky (2026-10-05, autor: „jsou tam dobré věci“)
+
+1. **Ověřit diskety originálním softwarem:** programy SAPIMANa v `SAPI_DOKU\SAPIMAN\CPM_PROGRAMY\`:
+   `CISLOVANI SEKTORU\CIS_FDC_MFC_DE` (formátování a čtení/zápis 3,5", 5,25" a 8" ve FM i MFM, sektory 128–1024 B,
+   pro FDC-1 i MFC-1A), `FORMATOVANI`, `Format_FDC_8`, `DUP_fyz_ kopie_8_disket`; program `SAPI_DOKU\MFC-1A\MFC1.ASM`
+   (5,25" DD na MFC-1A). Prověří MFM, DD na MFC-1A (zatím neověřené žádným softwarem), FORMAT a READ ID.
+2. **Motory mechanik:** FDC-1 registr 0FH (M3–M0), MFC-1A D3 D2 registru 0FH. BIOSy `ECBIF3/F5` motory zapínají
+   a časují (`MOTOR`, `TIM_Mx`). Emulovat rozběh a to, že bez motoru disketa nečte (index, data).
+3. **Další sestavy a diskety SAPIMANa:** bootovací diskety s RAM diskem RMD-1 (`MFC\m1_281211_rmd.8sd`,
+   `FDC\f1_rmd1m_*.8sd`, `RPD\r1_rmd1m_271111.8sd`; RMD-1 je emulovaný), varianty s PMD32-SD (`f2_pmd*`,
+   `r2_pmd*`), a jeho datové 8" diskety (`PREKLADACE`, `TEXTY`, `ZDROJ_NOVE`, `ZDROJ_STARE`, `SYSPROG` …) do
+   `media/sapiman/` jako knihovna softwaru.
+4. **`cpmrun`:** malý test v ctestu (vlastní mini program `.COM`, M80 je od Microsoftu a do repa nepatří);
+   zjistit, proč L80 s příkazem v příkazové řádce bere `/P:0` jako jméno souboru (z konzole funguje).
+5. **Okno Média:** ověřit vzhled výběru formátu nové diskety (`sapiemu --ui-snapshot`).
+6. **Otázky na EC1045** (sekce výše): `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A.
+7. **Pracovní kopie autora** `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`: oprava `RET` v ECBIM8 (bajt 583Dh
+   0Eh → C9h) jen se souhlasem autora; sestava `cpm_zrmd_mfc1a` má zatím vlastní opravený obraz `_fixMFC`.
+
 ## Původ chyby ECBIM8
 
 Monitor `mon281211` (MFC-1A, 8" boot, 2011) má v `INIT_MFC` za SPECIFY také `LD C,0 ;disk 0` bez `RET`. Tam je
