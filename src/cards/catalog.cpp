@@ -466,6 +466,46 @@ static const CardParam k_fdc1[] = {
       k_fdc1_sw, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
+static const ParamOption k_mfc1a_disks[] = {
+    { "\"media/rpd-1/CPM22P_48A_Perina.img\"", "CP/M 2.2/P 48K (Perina), as a data disk",
+      "CP/M 2.2/P 48K (Peřina), jako datová disketa" },
+    { "\"media/fdc-1/CPM22P_48AF_Perina.img\"", "CP/M 2.2/P 48K for FDC-1 (Perina), as a data disk",
+      "CP/M 2.2/P 48K pro FDC-1 (Peřina), jako datová disketa" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_mfc1a_dec[] = {
+    { "\"roms/mfc-1a/MFC-1A_DD9_74S287.bin\"", "standard: 8257 04H, 05H, 08H, 8272 0CH-0DH, drive register 0FH",
+      "standardní: 8257 04H, 05H, 08H, 8272 0CH-0DH, registr mechanik 0FH" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_mfc1a_res[] = {
+    { "\"pulse\"", "pulse on the rising edge (DEVIATION from the schematic, the BIOS ECBIM8 works)",
+      "pulz na náběžné hraně (ODCHYLKA od schématu, BIOS ECBIM8 funguje)" },
+    { "\"level\"", "1 holds the reset (schematic; ECBIM8 hangs at its initialization)",
+      "1 drží reset (schéma; ECBIM8 se při inicializaci zasekne)" },
+    { nullptr, nullptr, nullptr },
+};
+#define MFC1A_DRIVE(k, l, def)                                                                                           \
+    { k, PK_SECTION, "Drive " l " (8\" SS SD)", "Mechanika " l " (8\" SS SD)", def, nullptr, 0, 0 },                    \
+    { k ".image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",         \
+      k_mfc1a_disks, 0, 0 },                                                                                             \
+    { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+static const CardParam k_mfc1a[] = {
+    MFC1A_DRIVE("drive_a", "A", "true")
+    MFC1A_DRIVE("drive_b", "B", "false")
+    MFC1A_DRIVE("drive_c", "C", "false")
+    MFC1A_DRIVE("drive_d", "D", "false")
+    { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
+    { "decoder", PK_FILE, "PROM DD9: port decoder", "PROM DD9: dekodér portů", "\"roms/mfc-1a/MFC-1A_DD9_74S287.bin\"",
+      k_mfc1a_dec, 0, 0 },
+    { "rdy_ground", PK_BOOL, "X2-19 RDY grounded (8\" Consul 7113 have no READY); else READY from the drive (disk in)",
+      "X2-19 RDY spojený se zemí (8\" Consul 7113 nemají READY); jinak READY z mechaniky (vložená disketa)", "false",
+      nullptr, 0, 0 },
+    { "reset_d4", PK_CHOICE, "Register 0FH D4 (reset of the 8272)", "Registr 0FH D4 (reset 8272)", "\"pulse\"", k_mfc1a_res,
+      0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+#undef MFC1A_DRIVE
 #undef FDC1_DRIVE
 
 static const ParamOption k_dgd1_base[] = {
@@ -825,7 +865,8 @@ CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič p
      2, true, k_rpd1)
 CARD(c_rpd1z, "RPD-1Z", "RPD", "Floppy disk controller \"Z\"", "Řadič pružných disků \"Z\"", CC_DISK, 1, false,
      nullptr)
-CARD(c_mfc1a, "MFC-1A", "MFC", "Mini floppy controller", "Řadič minidisket", CC_DISK, 1, false, nullptr)
+CARD(c_mfc1a, "MFC-1A", "MFC", "Mini floppy controller 8272 + DMA", "Řadič minidisket 8272 + DMA", CC_DISK, 1, true,
+     k_mfc1a)
 CARD(c_fdc1, "FDC-1", "FDC", "Floppy disk controller 8272 + DMA (boards A + B)",
      "Řadič pružných disků 8272 + DMA (desky A + B)", CC_DISK, 2, true, k_fdc1)
 CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_DISK, 1, true, k_ide1)

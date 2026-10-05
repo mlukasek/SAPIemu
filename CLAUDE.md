@@ -84,4 +84,7 @@ Pasti ověřené 2026-10-05:
   odložit.
 - **VS a C1060 „compiler is out of heap space“:** presety mají `toolset host=x64`, jinak VS pouští 32bitový `cl.exe`,
   kterému na souborech s `json.hpp` dojde paměť. Po změně presetů ve VS: Project → Delete Cache and Reconfigure.
+- **LNK1236 / LNK1163 („corrupt or invalid COFF sections“, „invalid selection for COMDAT“)** po přerušeném
+  sestavení: smazat `out\build\<preset>\CMakeFiles\sapicore.dir`, `sapicore.lib` a `sapicore.pdb` a sestavit znovu.
+  Samotné smazání jednoho `.obj` nestačilo (2026-10-05).
 - **Pozor:** makra `Z80_SET_DATA` a podobná v `z80.h` se rozvinou na blok `{}`. Před `else` je proto nutné psát složené závorky.

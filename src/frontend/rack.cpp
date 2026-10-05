@@ -497,6 +497,11 @@ const PanelItem k_pl_fdc1b[] = {
     { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
+// MFC-1A: one connector to the floppy drives (XP2)
+const PanelItem k_pl_mfc1a[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "FDD" },
+    { PI_END, 0, 0, nullptr },
+};
 // VGA display cards: K2 = VGA in the middle (AND-1V, DGD-1V, BGP, CGA)
 const PanelItem k_pl_vga[] = {
     { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
@@ -523,6 +528,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     const char* p = ci->panel;
     if (!strcmp(ci->type, "RPD-1")) return board ? k_pl_rpd1b : k_pl_rpd1a;
     if (!strcmp(ci->type, "FDC-1")) return board ? k_pl_fdc1b : k_pl_fdc1a;
+    if (!strcmp(ci->type, "MFC-1A")) return k_pl_mfc1a;
     if (!strcmp(ci->type, "IDE-1")) return k_pl_ide1;
     if (!strcmp(p, "JPR")) return k_pl_jpr_frb;   // all of them, JPR-1V too
     if (!strcmp(p, "FDC")) return k_pl_fdc;

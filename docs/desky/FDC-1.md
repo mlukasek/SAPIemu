@@ -140,6 +140,10 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   `sa2_a`–`sa2_d` (přepínače SA2: 8sd, 8dd, 5sd, 5dd).
 - Okno Média ukazuje mechaniky A–D (vložit, nová, vysunout, ochrana), stejně jako u RPD-1.
 
+- **ECMON (JPR-1ZI) varianta 0 „FDC8“** s BIOSem ECBIF8 funguje s FDC-1 i na Z80 (`machines/cpm_zrmd_fdc1.sapi`,
+  test `test_fdc_ecmon`): B: a C: jsou 8" diskety na mechanikách A a B řadiče.
+- Společnou část s MFC-1A (mechaniky, 8272, 8257, DMA, stav) má třída `Fdc8272Card` (`src/cards/fdc8272.*`).
+
 ## Nejasnosti k ověření na HW
 
 - Polarita D0 přepínačů SA2 (DD/SD) při čtení 0EH a k čemu je dvoupólový přepínač SA1 na FDC-1B (návod mluví

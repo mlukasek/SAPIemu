@@ -19,6 +19,7 @@
 #include "cards/rmd1.h"
 #include "cards/rpd1.h"
 #include "cards/fdc1.h"
+#include "cards/mfc1a.h"
 #include "cards/zrmd1.h"
 
 Card* card_create(const std::string& type)
@@ -48,6 +49,7 @@ Card* card_create(const std::string& type)
     if (type == "BDK-1") return new BlankCard(type);
     if (type == "RPD-1") return new Rpd1();
     if (type == "FDC-1") return new Fdc1();
+    if (type == "MFC-1A") return new Mfc1a();
     if (type == "MPH-1V") return new Mph1v();
     if (type == "AND-1Z-89" || type == "AND-1Z") {
         And1z* c = new And1z();
@@ -59,5 +61,5 @@ Card* card_create(const std::string& type)
 
 std::vector<std::string> card_types(void)
 {
-    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1", "JPR-1V", "DSM-1V", "AND-1V", "RAM-1V", "CGA-1V", "DGD-1V", "MPH-1V", "FDC-1" };
+    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1", "JPR-1V", "DSM-1V", "AND-1V", "RAM-1V", "CGA-1V", "DGD-1V", "MPH-1V", "FDC-1", "MFC-1A" };
 }

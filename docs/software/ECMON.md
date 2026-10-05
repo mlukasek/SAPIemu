@@ -35,13 +35,23 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
 - **Boot:** po volbě načte systém z RAM disku ZRMD-1 a spustí CP/M 2.2 („JPR-1Z 62K CP/M V2.2Z,
   BIOS-3K V050815JB“).
 
+## Volba systému (autor, 2026-10-05)
+
+- **Menu s volbou se zobrazí jen po prvním zapnutí.** Volba se uloží do RAM a každý další RESET rovnou spustí
+  zvolenou konfiguraci. Aby se menu ukázalo znovu, musí se počítač vypnout tak, aby se smazal obsah RAM. Menu
+  i některé ovladače jsou v ROM.
+- ECMON z JPR-1ZI (`JPR-1ZI_ECMON_2k_Martin.bin`) s původním obrazem RAM disku menu na obrazovku nevypíše: po
+  „BOOT“ hned přečte klávesu, a když žádná není, spustí variantu 0. V testech se proto číslo varianty píše
+  předem (`type_text` hned po zapnutí), klávesnice ho podrží. Pracovní kopie autora (`work/zrmd-1/…`) se od
+  originálu liší a menu „Zadej 0-3“ zobrazuje.
+
 ## Chování volby systému v emulátoru (sestava `machines/cpm_zrmd.sapi`)
 
 | Volba | Výsledek |
 |---|---|
-| 0 (FDC8) | BIOS inicializuje řadič FDC-1 (8272, porty 0Ch/0Dh). Bez karty čte FFh a skončí na `HALT` (E6D0). |
+| 0 (FDC8) | BIOS ECBIF8 inicializuje řadič FDC-1 (8272, porty 0Ch/0Dh). Bez karty čte FFh a skončí na `HALT` (E6D0). **S FDC-1** (`cpm_zrmd_fdc1.sapi`) nabootuje, B: a C: jsou 8" diskety („B,C: FDC1; 8" SS,SD“). |
 | 1 (RPD8) | **Nabootuje až do `A>`**, `DIR` vypíše RAM disk. Hlásí „PMD32-SD nenalezen“. |
-| 2 (MFC8) | Jako 0, skončí na `HALT` při inicializaci řadiče. |
+| 2 (MFC8) | Bez karty jako 0, skončí na `HALT` při inicializaci řadiče. **S MFC-1A** (`cpm_zrmd_mfc1a.sapi`) nabootuje („B,C: MFC1; 8" SS,SD“), jen s D4 registru 0FH jako pulz (`docs/desky/MFC-1A.md`). |
 | 3 (HDD) | „INIT HDD“ chvíli hledá IDE disk, pak hlásí „INIT HDD - nenalezen!“ a nabootuje do `A>` (ověřil autor na GUI). |
 
 S IDE-1 a ROM `ECMON_2k_IDE-1` (sestava `machines/cpm_ide.sapi`) najde volba 3 PMD32-SD i IDE disk:

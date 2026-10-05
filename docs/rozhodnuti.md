@@ -690,6 +690,20 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
+## 2026-10-05 – Řadič MFC-1A
+
+- **Společná základní třída `Fdc8272Card`** (`src/cards/fdc8272.*`) pro desky s 8272 + 8257: mechaniky, DMA, stav,
+  okno Média. FDC-1 a MFC-1A se liší jen dekodérem, registry a tím, kdo vybírá mechaniku. Formát stavu FDC-1 se
+  tím změnil (karta je z téhož dne, starší stavy s ní nejsou).
+- **MFC-1A:** porty podle dumpu PROM DD9, mechaniku vybírá registr 0FH (DS0/DS1 z 8272 nejsou zapojené).
+- **D4 registru 0FH jako pulz** (parametr `reset_d4`, výchozí `pulse`): podle schématu drží 8272 v resetu, ale
+  BIOS ECBIM8 (ECMON varianta 2) zapíše při inicializaci FFh a zasekl by se. Autor: emulovat tak, aby varianta 2
+  bootovala, a **důrazně upozornit na rozdíl proti schématu** (důležité pro repliku). `level` = schéma.
+- **READY u MFC-1A z mechaniky** (výchozí `rdy_ground = false`): ECBIM8 při inicializaci čte z jednotky 3 a
+  s uzemněným RDY by bez diskety čekal věčně.
+- Sestavy `cpm_zrmd_fdc1.sapi` a `cpm_zrmd_mfc1a.sapi` (B: = disketa CP/M 2.2/P jako data). Test `test_fdc_ecmon`
+  používá původní obraz RAM disku jen pro čtení (pracovní kopie autora je jiná) a variantu píše předem.
+
 ## 2026-10-05 – Řadič FDC-1 a sestavy ZPS-3 CP/M 48K/62K
 
 Zadání autora: otestovat ROM a diskety z `..\SAPI-sestavy\ZPS-3\` (MOR*.hex, CPM*.img; 48/62 = paměť, F = FDC-1),

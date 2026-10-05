@@ -33,6 +33,8 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `jpr-1a/MOR62A.bin` | JPR-1A EPROM 0000–080B | CP/M 2.2/P 62K boot pro RPD-1 (Peřina 1988, „SAPI-1 ZPS3-62K“), kopíruje se na F000. Zdroj autor `..\SAPI-sestavy\ZPS-3\MOR62A.hex`. |
 | `jpr-1a/MOR48AF.bin`, `MOR62AF.bin` | JPR-1A EPROM 0000–06C7 | Totéž pro řadič FDC-1 („SAPI-1 ZPS3-48K/FDC-1“, „…62K/FDC-1“), z `MOR48AF.hex`, `MOR62AF.hex`. Zdroj MOR24F.MAC je na disketě. |
 | `fdc-1/FDC-1A_D5B_74S287.bin` | FDC-1A PROM D5B (74S287) | Dekodér portů FDC-1: 04–0BH 8257, 0CH–0DH 8272, 0EH–0FH FDC-1B. **Dump** `..\SAPI-karty\FDC-1\PROM_D5B.hex`. |
+| `mfc-1a/MFC-1A_DD9_74S287.bin` | MFC-1A PROM DD9 (74S287) | Dekodér portů MFC-1A: 04H, 05H, 08H 8257, 0CH–0DH 8272, 0FH registr mechanik. **Dump** `..\SAPI-karty\MFC-1A\doc\ADRESOVY_DEKODER.BIN`. |
+| `mfc-1a/MFC-1A_DD25_74S287_PLL.bin` | MFC-1A PROM DD25 (74S287) | Číslicový fázový závěs datového separátoru, **dump** `EPROM_FAZOVY_ZAVES.BIN`. Emulace ho nepoužívá. |
 | `and-1a/AND-1A_D3A_CPM62K_74S287.bin` | AND-1A PROM D3A | Domácí varianta pro CP/M 62K: F800 (S1 sepnutá 3800). Podle tabulky `SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\FDC\FDC_AND1A130711_RMD\dekoder AND1ACPM.txt`. |
 | `ram-1a/RAM-1A_D1A_62K_74S287.bin` | RAM-1A PROM D1A | Standardní D1A, jen S1 S2 = 10 dává C000–F7FF místo C000–FFFF (druhá RAM-1A pro CP/M 62K). **Předpoklad**, ne doložená PROM. |
 | `jpr-1a/JPR-1A_D2C_74S571.bin` | JPR-1A PROM D2C (74S571, 512 × 4) | Dekodér EPROM a portů. **Přepis tabulky** z návodu (sapi.cz `jpr-1a.php`), ne dump. |
