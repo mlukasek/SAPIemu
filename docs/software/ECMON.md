@@ -40,10 +40,20 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
 - **Menu s volbou se zobrazí jen po prvním zapnutí.** Volba se uloží do RAM a každý další RESET rovnou spustí
   zvolenou konfiguraci. Aby se menu ukázalo znovu, musí se počítač vypnout tak, aby se smazal obsah RAM. Menu
   i některé ovladače jsou v ROM.
-- ECMON z JPR-1ZI (`JPR-1ZI_ECMON_2k_Martin.bin`) s původním obrazem RAM disku menu na obrazovku nevypíše: po
-  „BOOT“ hned přečte klávesu, a když žádná není, spustí variantu 0. V testech se proto číslo varianty píše
-  předem (`type_text` hned po zapnutí), klávesnice ho podrží. Pracovní kopie autora (`work/zrmd-1/…`) se od
-  originálu liší a menu „Zadej 0-3“ zobrazuje.
+- **Jak to ECMON dělá** (ROM, kód od F668h, rozebráno 2026-10-05): po hlavičce otestuje podpis **AA 55 00 na
+  F792h–F794h**.
+  - Podpis chybí (RAM po zapnutí bez zálohy): vypíše menu a čeká na klávesu 0–3, volbu uloží na **003Bh**.
+  - Podpis je: asi 1,3–3 s (BC = 5000h nebo B000h průchodů) testuje, jestli je stisknutá klávesa. Když ano,
+    vypíše menu a stisknutou klávesu rovnou bere jako volbu. Když ne, spustí variantu uloženou na 003Bh.
+  - Pak načte 128 B zavaděče z RAM disku (porty 60h–63h, oblast podle varianty) na 0080h, zapíše podpis a skočí
+    na 0080h.
+- **V emulátoru drží RAM DMR-1 baterie** (výchozí `battery = true`, soubor `work/dmr-1/sram.bin`, sdílený všemi
+  sestavami jako jedna fyzická karta, `docs/desky/DMR-1.md`). Podpis i volba proto přežijí vypnutí i ukončení
+  emulátoru a menu se po zapnutí neukáže. Menu vyvolá stisk klávesy hned po zapnutí (během prodlevy), nebo
+  sestava s `"battery": false` u DMR-1, nebo smazání `sram.bin` při vypnutém emulátoru. Menu i volba jsou celé
+  v ROM, na obrazu RAM disku nezáleží.
+- Testy mají soubory baterií vypnuté (RAM po zapnutí vynulovaná), číslo varianty píšou hned po zapnutí. Klávesnice
+  ho podrží, takže funguje s podpisem i bez něj.
 
 ## Chování volby systému v emulátoru (sestava `machines/cpm_zrmd.sapi`)
 
