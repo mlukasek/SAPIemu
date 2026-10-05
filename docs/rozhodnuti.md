@@ -723,6 +723,9 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   pro repliku). Sestava `cpm_zrmd_mfc1a.sapi` proto má `wiring = ec1045` a `reset_mode = pulse` (odchylka:
   náběžná hrana jen resetuje 8272 a D6 zůstane, jinak by BIOS čekal v RECALIBRATE). Výchozí hodnoty parametrů
   jsou podle originálu, odchylku zapíná jen sestava.
+  **Doplněno večer:** po opravě BIOSu ve zdrojácích (`..\SAPI-karty\ZRMD-1\SRC`) má sestava RAM disk
+  `media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin` a `reset_mode = level`, takže bez odchylky (autor
+  schválil). `pulse` zůstává jako volba pro původní obraz.
 - **READY u MFC-1A z mechaniky** (výchozí `rdy_ground = false`): ECBIM8 při inicializaci čte z jednotky 3 a
   s uzemněným RDY by bez diskety čekal věčně.
 - Sestavy `cpm_zrmd_fdc1.sapi` a `cpm_zrmd_mfc1a.sapi` (B: = disketa CP/M 2.2/P jako data). Test `test_fdc_ecmon`

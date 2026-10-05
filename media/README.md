@@ -24,6 +24,10 @@ Zdroj: `..\SAPI-karty\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
 
 Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 
+- `SAPI_CPM_Martin_2019-10-07_fixMFC.bin` (2026-10-05): totéž s novou systémovou oblastí (0–7FFF) přeloženou
+  ze zdrojáků `..\SAPI-karty\ZRMD-1\SRC` (`build.py --image`). Proti originálu se liší jediný bajt kódu, oprava
+  `RET` v BIOSu ECBIM8 (583Dh: 0Eh → C9h). Neinicializované buffery v systémových blocích jsou vynulované, data od
+  8000h jsou beze změny. Používá ho sestava `cpm_zrmd_mfc1a.sapi`.
 - `SAPI_CPM_Martin_2019-10-07.bin`: celý obsah 4 MB RAM disku.
   - Offset v souboru = `(port63 & 3F) << 16 | port62 << 8 | port61`.
   - Na RAM disku je CP/M 2.2 (DPB: SPT 2, BSH 5, DSM 1015, DRM 1023, OFF 128; adresář od 0x8000).

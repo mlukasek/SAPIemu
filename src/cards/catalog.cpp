@@ -479,10 +479,10 @@ static const ParamOption k_mfc1a_dec[] = {
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_mfc1a_res[] = {
-    { "\"level\"", "1 holds the reset (schematic; ECBIM8 hangs at its initialization)",
-      "1 drží reset (schéma; ECBIM8 se při inicializaci zasekne)" },
-    { "\"pulse\"", "pulse on the rising edge (DEVIATION from the schematic, the BIOS ECBIM8 works)",
-      "pulz na náběžné hraně (ODCHYLKA od schématu, BIOS ECBIM8 funguje)" },
+    { "\"level\"", "1 holds the reset (schematic; the unfixed ECBIM8 hangs at its initialization)",
+      "1 drží reset (schéma; neopravený ECBIM8 se při inicializaci zasekne)" },
+    { "\"pulse\"", "pulse on the rising edge (DEVIATION from the schematic, the unfixed BIOS ECBIM8 works)",
+      "pulz na náběžné hraně (ODCHYLKA od schématu, neopravený BIOS ECBIM8 funguje)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_mfc1a_wiring[] = {
@@ -731,6 +731,8 @@ static const CardParam k_and1z[] = {
 // ZRMD-1 / ZRD-1V
 static const ParamOption k_zrmd_images[] = {
     { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin\"", "CP/M (Martin 2019)", "CP/M (Martin 2019)" },
+    { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin\"", "CP/M (Martin 2019), BIOS ECBIM8 (MFC-1A) fixed",
+      "CP/M (Martin 2019), opravený BIOS ECBIM8 (MFC-1A)" },
     { "\"media/zrmd-1/ECSYS_zaloha_0-3.hex\"", "ECSYS 0-3 (HEX)", "ECSYS 0-3 (HEX)" },
     { "\"media/zrmd-1/puvodni_SYS0_3_s_CD.HEX\"", "original SYS 0-3 with CD (HEX)", "původní SYS 0-3 s CD (HEX)" },
     { "\"\"", "empty", "prázdný" },

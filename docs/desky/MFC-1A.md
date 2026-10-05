@@ -12,8 +12,9 @@ sestava `machines/cpm_zrmd_mfc1a.sapi`, test `test_fdc_ecmon`.
 > 2. **BIOS ECBIM8 má chybu:** v `INIT_MFC` chybí `RET`, takže při inicializaci zapíše do 0FH hodnotu FFh. Podle
 >    obou schémat tím drží 8272 v resetu a čeká navěky.
 > 3. Emulace umí obě zapojení (`wiring = tesla / ec1045`) a reset přesně podle schématu (`reset_mode = level`,
->    výchozí). Sestava `cpm_zrmd_mfc1a.sapi` má **`ec1045` a reset jako pulz (`pulse`, odchylka od schématu)**,
->    aby varianta 2 nabootovala (rozhodnutí autora, `docs/rozhodnuti.md`).
+>    výchozí). Sestava `cpm_zrmd_mfc1a.sapi` má `ec1045`, reset podle schématu a **RAM disk s opraveným BIOSem**
+>    (`media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin`, zdroják `..\SAPI-karty\ZRMD-1\SRC`). Pro původní
+>    obraz zůstává odchylka `reset_mode = pulse` (reset jen jako pulz), se kterou neopravený BIOS nabootuje.
 
 ## Podklady (ověřovat z více zdrojů)
 
@@ -147,9 +148,10 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
   - `rdy_ground`: výchozí ne = READY dává mechanika, když je v ní disketa (jako 5,25" mechaniky); ano = RDY
     trvale aktivní (pak 8272 bez diskety čeká na index věčně a ECBIM8 by bez diskety v D nenabootoval);
   - `drive_a`–`drive_d`, `working_copy`, `decoder` (PROM DD9).
-- **Sestava `cpm_zrmd_mfc1a.sapi`:** `wiring = ec1045`, `reset_mode = pulse`. Inicializace ECBIM8 pak zkusí číst
-  z jednotky 3, bez diskety v ní to po třech pokusech vzdá a CP/M naběhne. Test ověřuje i to, že s `reset_mode =
-  level` se BIOS v obou zapojeních zasekne.
+- **Sestava `cpm_zrmd_mfc1a.sapi`:** `wiring = ec1045`, `reset_mode = level`, RAM disk s opraveným ECBIM8
+  (`..._fixMFC.bin`). Test `test_fdc_ecmon` ověřuje i původní obraz: s `level` se BIOS v obou zapojeních zasekne,
+  s `pulse` nabootuje. Neopravená inicializace pak zkusí číst z jednotky 3, bez diskety v ní to po třech pokusech
+  vzdá a CP/M naběhne.
 - **Mechaniky:** 4 × 8" SS SD (IBM 3740, obrazy `.img` jako u RPD-1). Motory (D3 D2), 5,25" mechaniky a dvojitá
   hustota (MFM, hodiny 4 MHz) se zatím neemulují.
 - Okno Média ukazuje mechaniky A–D.
