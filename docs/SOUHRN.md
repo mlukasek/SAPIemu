@@ -5,8 +5,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 ## Kde jsme skončili (2026-10-05) a co dál
 
 - **Stav:**
-  - Všechno je commitnuté a pushnuté na `origin/main` (repo je neveřejné).
-  - Testy: 26 v debug, 29 v release (s pomalými ZEX). Vše prochází.
+  - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
+  - Testy: 27 v debug (v release navíc pomalé ZEX). Vše prochází.
+  - Podklady mimo repo, které dnes vznikly: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`).
 - **Alfa 0.1.0-alpha:**
   - Zip `out/package/SAPIemu-0.1.0-alpha-win64.zip` (vzniká `python tools/package.py`, přibalí i autorův IDE
     disk) poslal autor soukromě Liborovi Lasotovi, Petrovi Všijanskému a Michalovi Medkovi.
@@ -32,14 +33,18 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   schématu (`docs/software/ECMON.md`). Baterie DMR-1 je ve všech sestavách vypnutá (autor ji nemá), takže ECMON
   po zapnutí nabídne menu. Ze zdrojáků je přeložené všechno včetně CCPZ V4.1 (stažený z sydneysmith.com)
   a BDOS DRI. Sestava `cpm_zrmd_mfc1a.sapi` má opravený RAM disk `..._fixMFC.bin` a reset 8272 podle schématu.
-- **Možné další kroky (autor vybírá):**
-  0. **Diskety (`docs/software/CPM_SAPIMAN.md`), hotové 2026-10-05:** formáty PC (MFM, HD/DD) pro FDC-1
-     a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), sestavy s bootem z 8" diskety SAPIMANa
-     (`cpm_boot_*.sapi`). Zbývá: motory mechanik, DD na MFC-1A ověřit softwarem.
+- **Hotové 2026-10-05 v noci (`docs/software/CPM_SAPIMAN.md`):** průzkum podkladů J. Bíby (SAPIMAN) a EC1045,
+  sestavy s bootem CP/M z 8" diskety (`cpm_boot_mfc1a/fdc1/rpd1.sapi`, Consul 259.11), formáty disket PC (MFM,
+  HD/DD, dvě strany) pro FDC-1 a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), okno Média zakládá
+  diskety v libovolném formátu.
+- **Možné další kroky (autor vybírá; doporučení 2026-10-05: nejdřív a), pak DPP-1):**
+  0. **Diskety, dodělávky:** a) ověřit FDC-1 a MFC-1A (i DD) SAPIMANovými programy z `CPM_PROGRAMY\CISLOVANI
+     SEKTORU` a `FORMATOVANI` nebo `MFC1.ASM`; b) motory mechanik (FDC-1 0FH, MFC-1A D3 D2); c) malý test
+     `cpmrun`; d) otázky na EC1045 (`PETR/2MB`, zdroják ECMON IDE-1) jsou v `docs/software/CPM_SAPIMAN.md`.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
-     podkladů, které autor má.
+     podkladů, které autor má. DPP-1 má přednost: ECMON a BIOSy ji používají (tiskárna, PMD32-SD na 28–2Fh).
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
   4. Převod HEX na kazetu (WAV) pro DSM-1.
   5. Linux build a CI (GitHub Actions).

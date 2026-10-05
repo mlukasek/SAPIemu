@@ -32,13 +32,18 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V (Bt476).
 - **Komunikace a disky:**
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3), DSM-1V;
-  - řadič 8" disket RPD-1, IDE-1 s IDE diskem a PMD32-SD;
+  - řadiče disket RPD-1, FDC-1 a MFC-1A: 8" SS SD i diskety PC 3,5"/5,25" HD a DD (MFM, dvě strany);
+  - IDE-1 s IDE diskem a PMD32-SD;
   - sériové linky do PC přes TCP nebo COM port.
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11 a membránová ANK-1.
-- **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2 (ZRMD-1, RPD-1, IDE), ELIS, MikroBIOS,
-  ECMON.
+- **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4, ELIS,
+  MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A),
+  z disket PC HD a z IDE disku.
+- **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,
+  L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
+  ([docs/software/ECMON.md](docs/software/ECMON.md)).
 - **Konfigurátor sestavy:**
   - panely karet jako na skutečném stroji, LED podle emulace;
   - propojky, některé i za chodu;
@@ -55,6 +60,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - [docs/prvni-kroky.md](docs/prvni-kroky.md): spuštění, sestavy, klávesy, co vyzkoušet.
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
+- [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045
+  v [CPM_SAPIMAN.md](docs/software/CPM_SAPIMAN.md)).
 - [docs/stav.md](docs/stav.md): ukládání stavu. [docs/mcp.md](docs/mcp.md): MCP server.
   [docs/build.md](docs/build.md): sestavení a tipy pro vývoj.
 - [docs/SOUHRN.md](docs/SOUHRN.md): stav projektu, plán, otázky k ověření na skutečném hardwaru.
@@ -75,4 +82,6 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,
   ze kterých emulace vychází, a překreslená schémata desek.
 - **Libor Lasota:** desky V, MikroMon a programy pro CGA-1V a MPH-1V, použité s jeho souhlasem.
+- **Jiří Bíba (SAPIMAN):** monitory a BIOSy CP/M pro SAPI-1 (RPD-1, FDC-1, MFC-1A, RAM disky, IDE) a sbírka disket
+  a zdrojáků v SAPI_DOKU; **EC1045** je dál udržoval (ECMON, diskety PC, CD a MOUNT pro PMD32-SD).
 - Software pro SAPI-1 od Tesla ELTOS / DIZ, CP/M 2.2/P od R. Peřiny a další programy, které se zachovaly.

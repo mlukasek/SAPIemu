@@ -22,10 +22,13 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `mikromon.sapi` | MikroMon 1.3 (Libor Lasota) | `?` + Enter vypíše příkazy |
 | `cpm_zrmd.sapi` | CP/M 2.2 z RAM disku ZRMD-1 (ECMON) | po startu stiskněte `1`, pak `DIR` |
 | `cpm_ide.sapi` | totéž s IDE diskem a PMD32-SD | po startu `3` |
+| `cpm_zrmd_fdc1.sapi`, `cpm_zrmd_mfc1a.sapi` | totéž s řadičem disket FDC-1 nebo MFC-1A a 8" disketami | po startu `0` (FDC-1) nebo `2` (MFC-1A), pak `DIR B:` |
+| `cpm_ec1045.sapi` | systém EC1045: FDC-1 s disketami PC 3,5" a 5,25" HD | `1` = 3,5", `2` = 5,25" (vložit disketu v okně Média), pak `DIR B:` |
+| `cpm_boot_mfc1a.sapi`, `cpm_boot_fdc1.sapi`, `cpm_boot_rpd1.sapi` | CP/M J. Bíby (2011) bootovaný z 8" diskety | naběhne CP/M, na A: jsou zdrojáky systému |
 | `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `1` = CP/M z RAM disku A:, `3` = i s IDE diskem B:, C: |
 | `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
 | `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
-| `zps/ZPS-3.sapi`, `zps/ZPS-4*.sapi` | CP/M 2.2/P z 8" diskety (RPD-1), ELIS | naběhne CP/M |
+| `zps/ZPS-3*.sapi`, `zps/ZPS-4*.sapi` | CP/M 2.2/P z 8" diskety (RPD-1, u `_FDC-1` řadič FDC-1), 48K a 62K, ELIS | naběhne CP/M |
 
 ## Ovládání
 
@@ -41,7 +44,8 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 - **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů
   a paměti. Kartu změníte kliknutím na slot. Některé propojky platí hned („platí hned“).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV.
-- **Média:** Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, IDE disk a PMD32-SD.
+- **Média:** Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (nová disketa
+  v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD), IDE disk a PMD32-SD.
 - **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX) nebo binární soubor. V CP/M pak
   `SAVE n JMENO.COM` (okno počet stránek napoví).
 - **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš. Zvuk hraje jen při rychlosti 100 %.
