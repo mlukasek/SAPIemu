@@ -43,7 +43,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         SEKTORU`, `FORMATOVANI`, `Format_FDC_8`) a `MFC1.ASM`; **většinou hotové 2026-10-05**: formátování FDC-1 HD
         a 8", MFC-1A DD, FM a 8", číslování sektorů (doraz hlavy 82, nová disketa jako `.imd`), `mfc1test` se shoduje s výpisy z reálných
         MFC-1A (`docs/desky/MFC-1A.md`, otázka na výchozí `rdy_ground`), zbývá DUP;
-     b) motory mechanik (FDC-1 0FH, MFC-1A D3 D2, BIOSy F3/F5 je časují);
+     b) ~~motory mechanik~~ hotové 2026-10-06 (`motor_line`, `spinup_ms`; sestavy s mechanikami PC);
      c) sestavy s RAM diskem RMD-1 z bootovacích disket SAPIMANa (`m1_281211_rmd`, `f1_rmd1m_*`, `r1_rmd1m_*`)
         a další jeho 8" diskety (překladače, texty, zdrojáky) jako datové;
      d) ~~`cpmrun`: test a L80 `/P:0`~~ hotové 2026-10-06 (`test_cpmrun`, `docs/build.md`);
@@ -441,7 +441,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Polarita D0 (DD/SD) přepínačů SA2 při čtení 0EH a k čemu je dvoupólový přepínač SA1.
     - Hlásí 8272 po resetu „ready changed“ pro všechny 4 jednotky (SENSE INTERRUPT STATUS po resetu)?
     - Kolik taktů CPU zabere přenos DMA (emulace 4) a doba RQM po bajtu povelu (emulace 12 µs).
-    - Používá něco registr 0FH (motory, hlavy) a výběr 0EH D1 D0 kromě FORM6?
+    - Registr 0FH: vedly /M0–/M3 z X3 k mechanikám PC? Nuluje ho /RES? Rozběh mechanik (emulace 500 ms)?
 
 27. **MFC-1A** (`docs/desky/MFC-1A.md`):
     - Které zapojení registru 0FH mají vyrobené desky a podle kterého se staví replika? Originál Tesla: D4 reset,

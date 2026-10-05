@@ -147,6 +147,12 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - **Parametry:** `drive_a`–`drive_d` (obraz, ochrana), `working_copy`, `decoder` (PROM D5B), `rdy_ground`,
   `sa2_a`–`sa2_d` (přepínače SA2: 8sd, 8dd, 5sd, 5dd).
 - Okno Média ukazuje mechaniky A–D (vložit, nová, vysunout, ochrana), stejně jako u RPD-1.
+- **Motory** (parametr `motor_line`, výchozí ne): s ním se disketa točí, jen když má mechanika zapnutý motor
+  bitem M3–M0 registru 0FH, a čte se až `spinup_ms` (výchozí 500 ms) po zapnutí. Bez otáčení nejsou indexové
+  pulzy ani značky a 8272 čeká, dokud motor nenaběhne. Bez parametru se disketa točí stále (8" Consul se
+  střídavým motorem). Zapnuté v sestavách s mechanikami PC (`cpm_ec1045`, `cpm_boot_dlouhe_rpd1_fdc1*`):
+  jejich BIOS motor zapne při výběru mechaniky a monitor ho po nečinnosti vypne (časovače `TIM_Mx` v CONST).
+  Monitor MON130711 pro 8" motory nezapíná, s `motor_line` by nenabootoval (test `test_sapi_sys`).
 - **Doraz hlavy** je stopa 82 (`FloppyDrive::LAST_TRACK`, předpoklad). Stopa naformátovaná za koncem obyčejného
   obrazu zůstane jen v paměti, ImageDisk ji uloží.
 - **Ověřeno formátovacím programem SAPIMANa** `fd5p_512_30` (5,25" HD PC, MFM 2 × 15 × 512, stopy 0–80, kontrola
@@ -163,11 +169,11 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Hlásí 8272 na FDC-1 po resetu „ready changed“ pro všechny 4 jednotky? (MOR to snese, bylo by dobré to ověřit
   sekvencí SENSE INTERRUPT STATUS po resetu.)
 - Kolik taktů CPU zabere jeden přenos DMA (emulace 4).
-- Registr 0FH (motory, hlavy) a výběr 0EH D1 D0 vedou jen na X3 FDC-1B. Používá je něco kromě FORM6
-  (`OUT 0FH,0FH` = všechny motory)?
+- Registr 0FH (motory, hlavy) a výběr 0EH D1 D0 vedou jen na X3 FDC-1B. Motory zapínají BIOSy pro mechaniky PC
+  (EC1045, dlouhé CP/M J. Bíby), formátovací programy SAPIMANa a FORM6. Vedly /M0–/M3 z X3 k mechanikám PC
+  (MOTOR ON), a jak? Nuluje /RES registr 0FH (emulace ano)? Jak dlouho se mechaniky rozbíhají (emulace 500 ms)?
 - Doba RQM po bajtu povelu (emulace 12 µs).
 - Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? Jak EC1045
   připojoval mechaniky PC HD (přepínače, /RDY, signál HD/DD mechaniky)?
-- Motory (0FH) emulace nesleduje: disketa se točí stále.
 - Kam až dojede hlava použitých mechanik (8" Consul, 5,25" a 3,5" PC)? Emulace má doraz na stopě 82. Programy
   SAPIMANa formátují stopy 0–80.

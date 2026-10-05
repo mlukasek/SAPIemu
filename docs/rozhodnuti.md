@@ -841,3 +841,17 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   diskety v jednotce 3 čekal věčně).
 - **2026-10-06, autor:** sestavy SAPIMANa `cpm_boot_mfc1a` a `cpm_boot_mfc1a_rmd` mají `rdy_ground = true`
   (podle výpisů z reálných desek). `cpm_zrmd_mfc1a` zůstává `false` kvůli ECBIM8.
+
+## 2026-10-06 – Motory mechanik FDC-1 a MFC-1A
+
+- **Parametr `motor_line`** (výchozí ne) a `spinup_ms` (výchozí 500) u obou řadičů. S ním se disketa točí jen se
+  zapnutým motorem: FDC-1 bity M3–M0 registru 0FH, MFC-1A mechanika s číslem v D3 D2 (povolená jako výběr, D6).
+  Disk je na plných otáčkách `spinup_ms` po zapnutí, vypnutím se zastaví hned (doběh se nemodeluje).
+- **8272** hledá index a značky až od chvíle, kdy se disk točí (`I8272Host::fdc_turning_from`). Když čeká na disk,
+  který se netočí, a motor se zapne, hledání pokračuje (`I8272::motor_changed`). Operace, která už běží, se po
+  vypnutí motoru dokončí.
+- **Výchozí ne:** 8" Consul mají střídavý motor a točí se stále. Monitory a BIOSy pro 8" motory nezapínají
+  (MON130711 na FDC-1, BIOS 281211 na MFC-1A nechává D3 D2 = 0), s `motor_line` by nefungovaly.
+- **Zapnuté** v `cpm_ec1045` a `cpm_boot_dlouhe_rpd1_fdc1*` (mechaniky PC): BIOS zapne motor při SELECT a
+  nečeká, rozběh odčeká 8272. Monitor motory po nečinnosti vypíná (časovače `TIM_Mx` v CONST, vstup BIOSu `MOTOR`).
+- `/RES` nuluje registr 0FH FDC-1 (předpoklad, Nejasnost). Stav karet má nově masku motorů a časy rozběhu.

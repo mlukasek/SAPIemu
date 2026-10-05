@@ -1,6 +1,8 @@
 // Machines from the system disks of J. Biba (SAPI_DOKU_FTP ...\PETR\SAPI_SYS, media/sapiman/Z*):
 // RPD-1 and FDC-1 with the ZRMD-1 RAM disk in the ECMON layout (SS256): C: lists the files of the
 // RAM disk image; MFC-1A with RMD-1; the 64K CP/M with only a terminal on the serial line.
+// Drive motors: the long CP/M turns the motors of its PC drives on (motor_line), the 8" system
+// on FDC-1 does not, so with motor_line its boot disk never turns.
 #include "core/devices.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -156,6 +158,25 @@ static void pmd_systems(void)
     }
 }
 
+// with motor_line the drives turn only when register 0FH switches their motors on
+static void motors(void)
+{
+    printf("--- motors\n");
+    json cfg = machine("machines/cpm_boot_fdc1.sapi");
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "FDC-1") c["motor_line"] = true;
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    CHECK(run_until_text(m, "130711JB", 10.0));
+    CHECK(!run_until_text(m, "A>", 8.0));   // the monitor does not switch the motors on
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "FDC-1") c["motor_line"] = false;
+    Machine n;
+    CHECK(n.load_json(cfg, err));
+    CHECK(run_until_text(n, "A>", 20.0));
+}
+
 int main(void)
 {
     test_init();
@@ -168,5 +189,6 @@ int main(void)
              "D,E:FDC1;5,25\"DS,HD512x30PC", "ON D: 1174K");
     long_cpm("machines/cpm_boot_dlouhe_rpd1_fdc1_35.sapi", "media/fdc-1/prazdna_3.5HD_CPM.img",
              "D,E:FDC1;3,5\"DS,HD512x36PC", "ON D: 1412K");
+    motors();
     return TEST_RESULT();
 }

@@ -96,6 +96,24 @@ bool I8272::has_index(void)
     return d && d->present();
 }
 
+uint64_t I8272::turning_b(void)
+{
+    uint64_t t = host ? host->fdc_turning_from(unit) : 0;
+    if (t == NEVER) return NEVER;
+    uint64_t c = byte_cyc();
+    return (t + c - 1) / c;
+}
+
+void I8272::motor_changed(uint64_t now)
+{
+    advance(now);
+    if (phase == PH_EXEC && ex == X_SEARCH && ev_t == NEVER) {   // waiting for the disk: start again
+        ex = X_LOAD;
+        ev_t = now;
+        advance(now);
+    }
+}
+
 bool I8272::ids_readable(void)
 {
     FloppyTrack* t = trk();
@@ -403,10 +421,12 @@ bool I8272::data_byte(uint8_t& b, bool to_memory)
 void I8272::search(uint64_t from_b)
 {
     ex = X_SEARCH;
-    if (!has_index()) {   // no disk turning, no index pulses: the chip waits for ever
+    uint64_t tb = turning_b();
+    if (!has_index() || tb == NEVER) {   // no disk turning, no index pulses: the chip waits for ever
         ev_t = NEVER;
         return;
     }
+    if (from_b < tb) from_b = tb;   // the motor is starting
     int len, first, slen, idm;
     lay(len, first, slen, idm);
     uint64_t L = (uint64_t)len;
@@ -545,11 +565,13 @@ void I8272::exec_event(void)
         lay(len, first, slen, idm);
         uint64_t L = (uint64_t)len;
         if (op == OP_FORMAT || op == OP_READ_TRACK) {
-            if (!has_index()) {
+            uint64_t tb = turning_b();
+            if (!has_index() || tb == NEVER) {
                 ex = X_SEARCH;
                 ev_t = NEVER;
                 return;
             }
+            if (b < tb) b = tb;
             index_b = (b / L + 1) * L;   // both start at the index pulse
             if (op == OP_FORMAT) {
                 ex = X_FMT_INDEX;

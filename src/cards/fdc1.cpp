@@ -30,7 +30,8 @@ void Fdc1::reset()
 {
     reset_chips();
     ctrl = 0;
-    motors = 0;
+    motors = 0;   // /RES clears the register (an assumption)
+    set_motors(0);
 }
 
 int Fdc1::irq_lines()
@@ -74,6 +75,7 @@ bool Fdc1::io_write(uint8_t port, uint8_t data)
     if (!(y & Y_FDCB)) {
         if (port & 1) {
             motors = data;
+            set_motors(data & 0x0F);   // M3-M0; H3-H0 (head load) are not used by PC drives
             return true;
         }
         ctrl = data;

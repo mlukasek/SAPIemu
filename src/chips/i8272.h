@@ -40,6 +40,9 @@ public:
     // Data rate (kbit/s) the board's clock gives the chip for the unit in FM or MFM: an 8 MHz
     // clock gives 250 FM, 500 MFM.
     virtual int fdc_kbps(int unit, bool mfm) { return mfm ? 500 : 250; }
+    // Time (bus cycles) from which the disk of the unit turns at full speed: 0 = always (a drive
+    // without motor control), UINT64_MAX = stopped (motor off). Before it no index, no marks.
+    virtual uint64_t fdc_turning_from(int unit) { return 0; }
 };
 
 struct I8272 {
@@ -50,6 +53,7 @@ struct I8272 {
     uint8_t read(int a0, uint64_t now);
     void write(int a0, uint8_t value, uint64_t now);
     void advance(uint64_t now);
+    void motor_changed(uint64_t now);   // a drive motor was switched: a search waiting for it goes on
     bool interrupt(void) const { return int_result || int_byte || pend[0] || pend[1] || pend[2] || pend[3]; }
     uint8_t msr(uint64_t now) const;
     bool head_loaded(void) const { return hd_loaded; }
@@ -67,7 +71,8 @@ private:
     uint64_t byte_end(uint64_t b) { return (b + 1) * byte_cyc(); }   // time a disk byte has passed
     FloppyDrive* drive(int u) { return host ? host->fdc_drive(u) : nullptr; }
     bool ready(int u) { return host && host->fdc_ready(u); }
-    bool has_index(void);               // a disk turns in the drive: index pulses
+    bool has_index(void);               // a disk is in the drive (index pulses when it turns)
+    uint64_t turning_b(void);           // first disk byte at full speed (NEVER = the motor is off)
     FloppyTrack* trk(void);             // track under the head of the unit, nullptr when none
     bool ids_readable(void);            // the head sees ID marks (track, recording, data rate)
     void lay(int& track_len, int& first, int& sector_len, int& id_mark);   // layout of the track (or FORMAT)

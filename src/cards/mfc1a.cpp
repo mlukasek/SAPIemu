@@ -33,6 +33,13 @@ void Mfc1a::reset()
     reset_chips();
     reg = 0;        // /RES clears DD11
     dd23 = false;   // and through RES72 and DD23B also DD23A
+    update_motors();
+}
+
+// MO0n-MO3n: DD18 decodes D3 D2, enabled like the drive select (D6, wiring)
+void Mfc1a::update_motors(void)
+{
+    set_motors(drives_on() ? (uint8_t)(1 << ((reg >> 2) & 3)) : 0);
 }
 
 int Mfc1a::irq_lines()
@@ -82,6 +89,7 @@ bool Mfc1a::io_write(uint8_t port, uint8_t data)
             set_fdc_reset(true);    // a reset pulse: the chip starts from idle
             set_fdc_reset(false);
         }
+        update_motors();
         return true;
     }
     return true;

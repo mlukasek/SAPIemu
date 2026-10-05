@@ -65,6 +65,8 @@
             "working_copy": true,           // Work on copies in work/
             "decoder": "roms/fdc-1/FDC-1A_D5B_74S287.bin",  // PROM D5B (FDC-1A): port decoder - standard: 8257 04-0BH, 8272 0CH-0DH, FDC-1B 0EH-0FH
             "rdy_ground": true,             // FDC-1A X3-20 /RDY grounded (as supplied, Consul 7113): all drives ready
+            "motor_line": true,             // PC drives turn only with MOTOR ON (FDC-1B X3, register 0FH)
+            "spinup_ms": 500,               // spin-up of the drive after MOTOR ON
             "sa2_a": "8dd",                 // FDC-1B switches SA2 S1, S5: drive A - 8" (8 MHz), also PC HD drives
             "sa2_b": "8dd",                 // FDC-1B switches SA2 S2, S6: drive B - 8" (8 MHz), also PC HD drives
             "sa2_c": "8sd",                 // FDC-1B switches SA2 S3, S7: drive C - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)

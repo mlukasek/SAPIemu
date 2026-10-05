@@ -40,6 +40,7 @@ public:
 
     // I8272Host: the drive register selects the drive
     FloppyDrive* fdc_drive(int unit) override { return drives_on() ? &drives[reg & 3] : nullptr; }
+    uint64_t fdc_turning_from(int unit) override { return turning_from[reg & 3]; }
     // RDY tied active (rdy_ground) does not depend on the drive selection
     bool fdc_ready(int unit) override { return rdy_ground || (drives_on() && drives[reg & 3].present()); }
     // CLK 8 MHz for SD (FM), 4 MHz for DD (MFM), as in the manual: 250 kbit/s either way,
@@ -48,6 +49,7 @@ public:
 
 private:
     bool drives_on(void) const { return tesla ? !dd23 : dd23; }
+    void update_motors(void);
 
     uint8_t reg = 0;            // 0FH (DD11)
     bool dd23 = false;          // DD23A Q (D6)

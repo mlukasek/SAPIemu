@@ -88,8 +88,8 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    a MFC-1A (DD, FM, 8"), číslování sektorů 8". READ ID programy nepoužívají. Místo `MFC1.ASM` (monitor) jeho
    CP/M verze `SAPI15\MFC_TEST_CPM\mfc1test.asm` s výpisy z reálných desek: emulace se shoduje
    (`docs/desky/MFC-1A.md`). Zbývá `DUP_fyz_ kopie`.
-2. **Motory mechanik:** FDC-1 registr 0FH (M3–M0), MFC-1A D3 D2 registru 0FH. BIOSy `ECBIF3/F5` motory zapínají
-   a časují (`MOTOR`, `TIM_Mx`). Emulovat rozběh a to, že bez motoru disketa nečte (index, data).
+2. ~~**Motory mechanik**~~ hotové 2026-10-06: parametr `motor_line` a `spinup_ms` u FDC-1 a MFC-1A, zapnutý
+   v sestavách s mechanikami PC (EC1045, dlouhé CP/M). `docs/desky/FDC-1.md`, `docs/desky/MFC-1A.md`.
 3. **Další sestavy a diskety SAPIMANa:** bootovací diskety s RAM diskem RMD-1 (`MFC\m1_281211_rmd.8sd`,
    `FDC\f1_rmd1m_*.8sd`, `RPD\r1_rmd1m_271111.8sd`; RMD-1 je emulovaný), varianty s PMD32-SD (`f2_pmd*`,
    `r2_pmd*`), a jeho datové 8" diskety (`PREKLADACE`, `TEXTY`, `ZDROJ_NOVE`, `ZDROJ_STARE`, `SYSPROG` …) do

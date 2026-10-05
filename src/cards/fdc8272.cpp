@@ -31,6 +31,15 @@ bool Fdc8272Card::configure_common(const json& cfg, const char* default_decoder,
     memcpy(prom, p.data(), 256);
     if (!cfg_bool(cfg, "working_copy", work_copy, true, err)) return false;
     if (!cfg_bool(cfg, "rdy_ground", rdy_ground, type == "FDC-1", err)) return false;   // MFC-1A: from the drives
+    long long v;
+    if (!cfg_bool(cfg, "motor_line", motor_line, false, err)) return false;
+    if (!cfg_number(cfg, "spinup_ms", v, 500, err)) return false;
+    if (v < 0 || v > 5000) {
+        err = "spinup_ms must be 0-5000";
+        return false;
+    }
+    spinup_ms = (uint32_t)v;
+    for (int i = 0; i < DRIVES; i++) turning_from[i] = motor_line ? UINT64_MAX : 0;
     static const char* const keys[DRIVES] = { "drive_a", "drive_b", "drive_c", "drive_d" };
     for (int i = 0; i < DRIVES; i++) {
         std::string image;
@@ -92,6 +101,19 @@ void Fdc8272Card::set_fdc_reset(bool on)
     fdc.reset(bus->now);   // held in reset, or released: the chip starts from idle
 }
 
+void Fdc8272Card::set_motors(uint8_t mask)
+{
+    advance(bus->now);
+    for (int i = 0; i < DRIVES; i++) {
+        bool on = (mask >> i) & 1, was = (motor_mask >> i) & 1;
+        if (!motor_line) turning_from[i] = 0;
+        else if (!on) turning_from[i] = UINT64_MAX;
+        else if (!was) turning_from[i] = bus->now + (uint64_t)bus->cpu_hz * spinup_ms / 1000;
+    }
+    motor_mask = mask;
+    if (!fdc_in_reset) fdc.motor_changed(bus->now);
+}
+
 void Fdc8272Card::advance(uint64_t now)
 {
     if (!fdc_in_reset) fdc.advance(now);
@@ -120,8 +142,11 @@ void Fdc8272Card::describe(json& out)
         const FloppyDrive& d = drives[i];
         drv.push_back({ { "drive", std::string(1, (char)('A' + i)) }, { "image", d.image }, { "path", d.path },
                         { "inserted", d.present() }, { "write_protect", d.write_protect },
-                        { "modified", d.dirty }, { "track", d.track } });
+                        { "modified", d.dirty }, { "track", d.track },
+                        { "turning", !motor_line || (turning_from[i] != UINT64_MAX && bus->now >= turning_from[i]) } });
     }
+    out["motor_line"] = motor_line;
+    out["motors"] = motor_mask;
     out["drives"] = drv;
     out["unit"] = fdc.current_unit();
     out["busy"] = fdc.busy();
@@ -157,6 +182,8 @@ void Fdc8272Card::state_common(StateIO& io)
     fdc.state(io);
     dma.state(io);
     io.v(fdc_in_reset);
+    io.v(motor_mask);
+    for (int i = 0; i < DRIVES; i++) io.v(turning_from[i]);
     // DMA cycles not yet taken from the CPU (only the disk controller holds the bus)
     uint32_t h = bus->hold;
     io.v(h);

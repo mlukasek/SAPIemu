@@ -25,6 +25,7 @@ public:
 
     // I8272Host: DMA channel 2 of the 8257
     bool fdc_dma(bool to_memory, uint8_t& byte, bool& tc) override;
+    uint64_t fdc_turning_from(int unit) override { return turning_from[unit & 3]; }
 
     static const int DRIVES = 4;
     FloppyDrive drives[DRIVES];
@@ -37,6 +38,9 @@ protected:
     void reset_chips(void);
     // the 8272 is held in reset by a register bit of the board
     void set_fdc_reset(bool on);
+    // MOTOR ON of the drives (bit per drive) from a board register; with motor_line the disk turns
+    // spinup_ms after its motor is switched on and stops when it is switched off
+    void set_motors(uint8_t mask);
     void state_common(StateIO& io);
 
     uint8_t prom[256];
@@ -45,4 +49,8 @@ protected:
     bool fdc_in_reset = false;
     bool rdy_ground = true;
     bool work_copy = true;
+    bool motor_line = false;          // the drives turn only with MOTOR ON (PC drives); else always (8" AC motors)
+    uint32_t spinup_ms = 500;
+    uint8_t motor_mask = 0;
+    uint64_t turning_from[DRIVES] = {};
 };

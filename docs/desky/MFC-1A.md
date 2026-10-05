@@ -157,7 +157,10 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
   rychlost je vždy 250 kbit/s a diskety HD (500 kbit/s) MFC-1A nepřečte. DD (MFM) i FM ověřily formátovací
   programy SAPIMANa `fd3m_512_18` (3,5" DD 2 × 9 × 512, strana 1 se sektory 10–18) a `fd5_256_16` (5,25" FM
   2 × 8 × 256), oba s kontrolou READ TRACK (2026-10-05). Jejich formáty uloží jen ImageDisk (`.imd`). CP/M pro
-  MFC-1A s DD nemáme. Motory (D3 D2) se neemulují, disketa se točí stále.
+  MFC-1A s DD nemáme. **Motory:** s parametrem `motor_line` se točí jen mechanika, jejíž číslo je v D3 D2
+  (MO0n–MO3n přes DD18, povolené jako výběr mechaniky bitem D6), rozběh `spinup_ms`. Výchozí je bez něj
+  (8" Consul se točí stále), sestavy SAPIMANa ho nemají: BIOS 281211 pro 8" mechaniky nechává D3 D2 = 0 a
+  s `motor_line` by nepřečetl B:. `mfc1test` (SAPI15) motor vybrané mechaniky zapíná.
 - Okno Média ukazuje mechaniky A–D.
 
 ## Testy z reálného HW: `SAPI15\MFC_TEST_CPM` (2010)

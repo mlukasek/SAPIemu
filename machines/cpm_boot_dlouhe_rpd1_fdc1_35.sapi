@@ -79,6 +79,8 @@
             },
             "working_copy": true,           // Work on copies in work/
             "rdy_ground": true,             // /RDY grounded: all drives ready
+            "motor_line": true,             // PC drives turn only with MOTOR ON (FDC-1B X3, register 0FH)
+            "spinup_ms": 500,               // spin-up of the drive after MOTOR ON
             "sa2_a": "8dd",                 // drive A: 8" clock (8 MHz), PC HD drive
             "sa2_b": "8dd"                  // drive B: 8" clock (8 MHz), PC HD drive
         }
