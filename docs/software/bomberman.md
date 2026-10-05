@@ -73,3 +73,17 @@ používat MCP server emulátoru.
     hlavní smyčky přes `step over=true`.
   - Pozor u `run_until` na adresu breakpointu: když se breakpoint trefí už při běhu v reálném čase mezi voláními,
     stroj stojí na té adrese a `run_until` pokračuje dál (jako „continue“), takže skončí timeoutem.
+- 2026-10-05: **zrychlení na 2 MHz** (repo SAPI-Bomberman, README → Vykreslování, Rychlost):
+  - `flush_screen` porovnává jen kreslená místa a vrací pozadí z mapy (zdi jsou v mapě);
+  - statický titulek se kreslí jednou;
+  - pípání nestojí čas snímku (fronta tónů, konec podle čítače 2 v 82C54).
+  - Při 2 MHz: klid 9–12 ms, výbuch pěti bomb nejvýš 55 ms (dřív 57–60 a 100–180 ms).
+  - Ověřeno porovnáním obsahu CGA v každém snímku proti předchozí verzi. Skripty jsou v repu portu v `tools/emu`
+    (MCP z Pythonu bez balíčků).
+  - Klávesnice teď potvrzuje ACK jako MikroMon, takže funguje i EKL-1 (bez ACK visela).
+  - **Chyby emulátoru: pořád žádná.** Poznatky k MCP:
+    - `read_memory` vrací nejvýš 4096 bajtů; při větší délce vrátí chybový text;
+    - `cycles` počítá takty 4 MHz i při CPU 2 MHz;
+    - zápis na IDE disk (`fwrite`) byl po `power off` a `on` v obrazu. Po zabití `sapiemu-cli` by zápisy
+      z bufferu souboru mohly chybět, proto vypínat přes `power off`.
+  - Hra je v emulátoru autora na disku C: (volba 3 při bootu, `C:BOMBER`).
