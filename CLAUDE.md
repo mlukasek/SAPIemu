@@ -21,7 +21,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   např. `MFC-1A` s celým návodem a originálními skeny schémat) a `..\SAPI.CZ` (záloha webu sapi.cz: `sapi`, `pdf`…).
   Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`). **Zdrojáky systému ECMON
   + CP/M ZRMD-1** (ověřené proti originálům) jsou v `..\SAPI-karty\ZRMD-1\SRC\` (`build.py`, M80/L80 pod
-  `cpmrun`, viz `docs/software/ECMON.md`).
+  `cpmrun`, viz `docs/software/ECMON.md`). **Systémy CP/M J. Bíby (SAPIMAN) a EC1045**, obrazy disket, formáty a otázky na
+  EC1045: `docs/software/CPM_SAPIMAN.md`.
 - **Původní zadání:** `zadani.md`.
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,

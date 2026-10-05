@@ -52,3 +52,17 @@ to **záměr**: inicializace propadne do `.SELECT` a vybere disk 0 (40h, D6 = 1)
 V ECBIM8 (systém na RAM disku) za tímto místem následuje `READ_MFC` a disk je LOG_DISK − 1, odtud zápis FFh.
 Chyba tedy vznikla přenesením bootovacího kódu do BIOSu pro RAM disk. Systémy JB pro MFC-1A shodně zapínají
 mechaniky D6 = 1, tedy podle překreslení EC1045, ne podle originálního schématu Tesla (`docs/desky/MFC-1A.md`).
+
+## Otázky na EC1045 (Petr Všijanský)
+
+- Složka `…/PETR/2MB/` z FTP SAPI_DOKU (5,25" diskety J. Bíby vykopírované do obrazů PMD32-SD): v naší kopii
+  SAPI_DOKU chybí. Má ji?
+- Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme.
+- Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení (D4/D5, polarita D6)?
+
+## Plán (schválený autorem 2026-10-05)
+
+1. Sestavy bootující CP/M z 8" diskety SAPIMANa: MFC-1A (`m1_281211_*`, EPROM `mon281211`), pak FDC-1
+   (`f1_*`, `mon130711`) a RPD-1 (`r1_*`). EPROM přeložit ze zdrojáků (`cpmrun`) a ověřit proti `.hex`.
+2. 3,5"/5,25" HD v PC formátu (MFM, 2 strany, 512 B) pro FDC-1 a MFC-1A a sestava EC1045 s původním ECMON_cd
+   (menu FDC8/FDC3/FDC5/HDD) a BIOSy `ECBIF3/F5` ze zdrojáků.
