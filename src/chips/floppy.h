@@ -95,6 +95,11 @@ struct FloppyDrive {
     bool dirty = false;
     int track = 0;                // head position
 
+    // Mechanical stop of the head: an 80-track drive reaches a few tracks more (an assumption, the
+    // same for all drives). Tracks formatted beyond a plain image stay in memory until the disk is
+    // taken out; ImageDisk keeps them.
+    static const int LAST_TRACK = 82;
+
     FloppyDrive();
     bool present(void) const { return !tracks.empty(); }
     bool is_8sssd(void) const;    // RPD-1: an 8" SS SD disk with its data in logical order
@@ -102,6 +107,9 @@ struct FloppyDrive {
     bool load(const std::string& image, bool work_copy, std::string& err);
     // Write a modified image back to its file.
     bool save(std::string& err);
+    // A new disk formatted as g (every byte E5h, an empty CP/M directory): ImageDisk when the name
+    // ends with .imd (any format can be written on it later), else a plain image.
+    static bool create(const std::string& path, const FloppyGeom* g, std::string& err);
     // Save and take the disk out.
     void unload(const char* who);
     // Track of a cylinder and head, nullptr when there is none (unformatted, outside the disk).

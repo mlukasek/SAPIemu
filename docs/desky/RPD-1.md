@@ -62,7 +62,7 @@ skoro stejný konektor mechanik; rozdíly kolíků jsou v FDC-1.md.
 - **WF** nastaví i zápis na chráněnou disketu, nuluje ho FR. RDY = vložená disketa (motory 8" běží stále).
 - **HLR** dává časovač po zápisu na 3Dh, i bez diskety. EBIOS na HLR čeká bez časového limitu.
 - **INTE/INR, 3Fh** a 5,25" mechaniky nejsou emulované (software je nepoužívá).
-- **GUI:** okno Média, mechanika A/B: Vložit…, Nová disketa… (naformátovaná, celá E5h), Vysunout, ochrana
+- **GUI:** okno Média, mechanika A/B: Vložit…, Nová disketa… (naformátovaná, celá E5h; s příponou `.imd` jako ImageDisk), Vysunout, ochrana
   proti zápisu, stopa. Změny se ukládají při vysunutí, vypnutí a ukončení.
 
 ## Ověřeno v emulátoru

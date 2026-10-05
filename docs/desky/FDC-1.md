@@ -147,6 +147,10 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - **Parametry:** `drive_a`–`drive_d` (obraz, ochrana), `working_copy`, `decoder` (PROM D5B), `rdy_ground`,
   `sa2_a`–`sa2_d` (přepínače SA2: 8sd, 8dd, 5sd, 5dd).
 - Okno Média ukazuje mechaniky A–D (vložit, nová, vysunout, ochrana), stejně jako u RPD-1.
+- **Doraz hlavy** je stopa 82 (`FloppyDrive::LAST_TRACK`, předpoklad). Stopa naformátovaná za koncem obyčejného
+  obrazu zůstane jen v paměti, ImageDisk ji uloží.
+- **Ověřeno formátovacím programem SAPIMANa** `fd5p_512_30` (5,25" HD PC, MFM 2 × 15 × 512, stopy 0–80, kontrola
+  READ TRACK) v sestavě `cpm_boot_dlouhe_rpd1_fdc1` (2026-10-05, `docs/software/CPM_SAPIMAN.md`).
 
 - **ECMON (JPR-1ZI) varianta 0 „FDC8“** s BIOSem ECBIF8 funguje s FDC-1 i na Z80 (`machines/cpm_zrmd_fdc1.sapi`,
   test `test_fdc_ecmon`): B: a C: jsou 8" diskety na mechanikách A a B řadiče.
@@ -165,3 +169,5 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? Jak EC1045
   připojoval mechaniky PC HD (přepínače, /RDY, signál HD/DD mechaniky)?
 - Motory (0FH) emulace nesleduje: disketa se točí stále.
+- Kam až dojede hlava použitých mechanik (8" Consul, 5,25" a 3,5" PC)? Emulace má doraz na stopě 82. Programy
+  SAPIMANa formátují stopy 0–80.

@@ -8,7 +8,6 @@
 // RQM is low for a while after each command or result byte (the chip's microcode)
 static const uint32_t RQM_US = 12;
 static const uint64_t NEVER = ~(uint64_t)0;
-static const int MAX_TRACK = 79;   // mechanical stop of the head
 
 // ST0 interrupt codes
 static const uint8_t IC_NORMAL = 0x00, IC_ABNORMAL = 0x40, IC_INVALID = 0x80, IC_READY = 0xC0;
@@ -295,7 +294,7 @@ void I8272::seek_step(int u)
         pcn[u] = (uint8_t)(pcn[u] + dir);
         if (d) {
             int t = d->track + dir;
-            if (t >= 0 && t <= MAX_TRACK) d->track = t;
+            if (t >= 0 && t <= FloppyDrive::LAST_TRACK) d->track = t;
         }
     }
     next_step[u] += period ? period : 1;

@@ -2,7 +2,9 @@
 // compressed sectors, a deleted data mark and a data error loads with its sector IDs and flags,
 // keeps its data in logical order (RPD-1) and saves back after a write; FORMAT rebuilds a track
 // of an ImageDisk and is refused by a plain image of another format; the EC1045 system
-// (machines/cpm_ec1045.sapi) saves a file on a 5.25" HD disk given as ImageDisk.
+// (machines/cpm_ec1045.sapi) saves a file on a 5.25" HD disk given as ImageDisk. A new disk as
+// ImageDisk takes the formats of SAPIMAN's format programs (side 1 numbered 10-18, cylinder 80);
+// a plain image keeps a track beyond its end in memory only.
 #include "chips/floppy.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -174,10 +176,62 @@ static void imd_hd(void)
     printf("%s\n", screen_text(m).c_str());
 }
 
+static std::vector<FloppySector> ids_of(int c, int h, int r0, int n, int count)
+{
+    std::vector<FloppySector> ids((size_t)count);
+    for (int k = 0; k < count; k++) {
+        ids[(size_t)k].c = (uint8_t)c;
+        ids[(size_t)k].h = (uint8_t)h;
+        ids[(size_t)k].r = (uint8_t)(r0 + k);
+        ids[(size_t)k].n = (uint8_t)n;
+    }
+    return ids;
+}
+
+// new disks (Media window): ImageDisk takes any format, a plain image its own and tracks beyond it
+static void new_disks(void)
+{
+    std::string err;
+    const FloppyGeom* dd = floppy_geom_for_size(737280);
+    CHECK(dd != nullptr);
+    if (!dd) return;
+    CHECK(FloppyDrive::create(data_path("work/test/new720.IMD"), dd, err));
+    FloppyDrive d;
+    CHECK(d.load("work/test/new720.IMD", false, err));
+    CHECK(d.imd && d.cylinders == 80 && d.heads == 2 && d.rpm == 300);
+    FloppyTrack* t = d.track_at(5, 1);
+    CHECK(t && t->mfm && t->kbps == 250 && t->size == 512 && t->sec.size() == 9 && d.data[t->sec[8].off] == 0xE5);
+    // as fd3m_512_18 of SAPIMAN: side 1 numbered 10-18, cylinders 0-80
+    CHECK(d.format_track(5, 1, true, 250, 2, ids_of(5, 1, 10, 2, 9), 0xE5));
+    CHECK(d.format_track(80, 1, true, 250, 2, ids_of(80, 1, 10, 2, 9), 0xE5));
+    CHECK(d.save(err));
+    FloppyDrive e;
+    CHECK(e.load("work/test/new720.IMD", false, err));
+    CHECK(e.imd && e.cylinders == 81);
+    FloppyTrack* u = e.track_at(5, 1);
+    CHECK(u && u->sec.size() == 9 && find(u, 10) && find(u, 18) && !find(u, 1));
+    CHECK(e.track_at(80, 1) && find(e.track_at(80, 1), 10));
+
+    // a plain image: another numbering is refused, cylinder 80 stays until the disk is taken out
+    CHECK(FloppyDrive::create(data_path("work/test/new720.img"), dd, err));
+    FloppyDrive p;
+    CHECK(p.load("work/test/new720.img", false, err));
+    CHECK(!p.imd && p.rpm == 300);
+    CHECK(!p.format_track(5, 1, true, 250, 2, ids_of(5, 1, 10, 2, 9), 0xE5));
+    CHECK(p.format_track(80, 0, true, 250, 2, ids_of(80, 0, 1, 2, 9), 0x00));
+    FloppyTrack* v = p.track_at(80, 0);
+    CHECK(v && v->sec.size() == 9 && p.data[v->sec[3].off + 100] == 0x00);
+    CHECK(p.track_at(79, 1) && find(p.track_at(79, 1), 9));
+    CHECK(p.save(err));
+    std::vector<uint8_t> f;
+    CHECK(file_read_all(data_path("work/test/new720.img"), f) && f.size() == 737280);
+}
+
 int main(void)
 {
     test_init();
     imd_8inch();
     imd_hd();
+    new_disks();
     return TEST_RESULT();
 }

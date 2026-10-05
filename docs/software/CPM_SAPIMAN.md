@@ -84,6 +84,9 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    `CISLOVANI SEKTORU\CIS_FDC_MFC_DE` (formátování a čtení/zápis 3,5", 5,25" a 8" ve FM i MFM, sektory 128–1024 B,
    pro FDC-1 i MFC-1A), `FORMATOVANI`, `Format_FDC_8`, `DUP_fyz_ kopie_8_disket`; program `SAPI_DOKU\MFC-1A\MFC1.ASM`
    (5,25" DD na MFC-1A). Prověří MFM, DD na MFC-1A (zatím neověřené žádným softwarem), FORMAT a READ ID.
+   **Částečně hotové 2026-10-05** (sekce „Formátovací programy SAPIMANa“): FORMAT a READ TRACK na FDC-1 (HD) a
+   MFC-1A (DD, FM). Zbývá: 8" programy (`Format_FDC_8`, `FORM_MFC_AB`), `CISLOVANI SEKTORU`, `DUP_fyz_ kopie`,
+   `MFC1.ASM` a READ ID.
 2. **Motory mechanik:** FDC-1 registr 0FH (M3–M0), MFC-1A D3 D2 registru 0FH. BIOSy `ECBIF3/F5` motory zapínají
    a časují (`MOTOR`, `TIM_Mx`). Emulovat rozběh a to, že bez motoru disketa nečte (index, data).
 3. **Další sestavy a diskety SAPIMANa:** bootovací diskety s RAM diskem RMD-1 (`MFC\m1_281211_rmd.8sd`,
@@ -194,3 +197,26 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
 
 1. ~~Sestavy bootující CP/M z 8" diskety SAPIMANa~~ (hotové, `cpm_boot_*.sapi`).
 2. ~~3,5"/5,25" HD v PC formátu pro FDC-1 a sestava EC1045~~ (hotové, `cpm_ec1045.sapi`). MFC-1A umí DD.
+
+## Formátovací programy SAPIMANa v emulátoru (2026-10-05)
+
+Zdroje jsou v `..\SAPI_DOKU\SAPIMAN\CPM_PROGRAMY\FORMATOVANI` (`FORM_FDC_DE`, `FORM_MFC_DE`, `FORM_MFC_AB`)
+jako `.txt` (M80, J. Bíba 2011–2012). Každý program se ptá na disk (D:, E:, C: = formát RAM disku), formátuje
+stopy 0–80 po stranách a pak každou stranu zkontroluje povelem READ TRACK (42h) s DMA na délku ID pole.
+
+- **Překlad:** `cpmrun M80 =FD5P` a `cpmrun L80 FD5P,FD5P/N/E` (`.MAC` = `.txt`, M80 a L80 jsou ve
+  `..\SAPI-karty\ZRMD-1\SRC`). M80 hlásí u `SLA` bez operandu varování Q a přeloží ho jako `SLA B` (CB 20), takže
+  to tak měl i autor.
+- **Spuštění:** v běžící sestavě `--load-bin X.COM 100`, pak `SAVE 6 X.COM` a `X`. Pro pokus kopie sestavy
+  s disketami v dočasné složce (`working_copy: false`, ZRMD-1 `readonly`).
+- **Výsledky:**
+  - FDC-1, `fd5p_512_30` (5,25" HD PC, MFM 2 × 15 × 512) v `cpm_boot_dlouhe_rpd1_fdc1`: „Disketa je OK“. PIPU pak na
+    disketu D: zkopíroval celý B: s ověřením (`[V]`), STAT ukazuje 1038K volných.
+  - MFC-1A, `fd3m_512_18` (3,5" DD, MFM 2 × 9 × 512, strana 1 sektory 10–18) a `fd5_256_16` (5,25" FM 2 × 8 × 256)
+    v `cpm_boot_mfc1a` na jednotce 1 (E:): „Disketa je OK“.
+- **Poznatky:**
+  - 81 stop (0–80): emulovaná hlava teď dojede na stopu 82. Dřív se 81. stopa zapsala přes stopu 79.
+  - Formáty MFC-1A s číslováním 10–18 na straně 1 a FM na 5,25" uloží jen ImageDisk. Novou disketu `.imd` založí
+    okno Média (Nová disketa…, jméno s příponou `.imd`).
+  - Programy DE počítají s D: a E: na jednotkách 0 a 1 řadiče a C: jako RAM diskem. V sestavách SAPIMANa s MFC-1A
+    jsou A: a B: na jednotkách 0 a 1, takže E: tam znamená jednotku 1 (B:).

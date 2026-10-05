@@ -429,7 +429,7 @@ bool Rpd1::io_write(uint8_t port, uint8_t data)
     if (port == 0x3E) {   // one step, DIR = 3CH D2 (1 = to higher tracks)
         Drive& d = cur();
         if (drive_ctrl & 0x04) {
-            if (d.track < 79) d.track++;
+            if (d.track < FloppyDrive::LAST_TRACK) d.track++;
         } else if (d.track > 0) {
             d.track--;
         }

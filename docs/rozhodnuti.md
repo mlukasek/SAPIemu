@@ -717,7 +717,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   vlastní formát.
 - **8" SS SD v IMD se standardními ID** drží data v logickém pořadí jako obyčejný obraz, takže ho bere i RPD-1
   (ověřeno: MIKOS/D z Jílkovy diskety `JILEK\01\01.IMD` nabootuje na ZPS-2).
-- MAX hlavy zůstává 79, RECALIBRATE dál 77 kroků (jako čip).
+- MAX hlavy zůstává 79, RECALIBRATE dál 77 kroků (jako čip). (Od 2026-10-05 je doraz 82, viz „Formátovací
+  programy SAPIMANa“.)
 
 ## 2026-10-05 – Diskety PC (MFM, HD/DD) pro FDC-1 a MFC-1A
 
@@ -813,3 +814,19 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - Odkazy v `docs/`, `media/`, `roms/`, `CLAUDE.md` a v komentářích kódu jsou teď `..\SAPI-karty\<deska>`.
 - `test_mph1v` hledá hudbu (SPLAY, RAT PLAYER) nejdřív v `..\SAPI-karty\MPH-1V`, pak ve starém `..\MPH-1V`, aby
   fungoval i na PC, kde ještě je staré rozložení.
+
+## 2026-10-05 – Formátovací programy SAPIMANa, doraz hlavy, nová disketa jako ImageDisk
+
+- **Ověřeno originálními programy** (`SAPI_DOKU\SAPIMAN\CPM_PROGRAMY\FORMATOVANI`, přeložené M80/L80 pod `cpmrun`):
+  FDC-1 5,25" HD PC (`fd5p_512_30`, MFM 2 × 15 × 512) v dlouhém CP/M a MFC-1A 3,5" DD (`fd3m_512_18`, MFM
+  2 × 9 × 512) i 5,25" FM (`fd5_256_16`, 2 × 8 × 256). Všechny naformátují a kontrolním READ TRACK hlásí
+  „Disketa je OK“. Na disketu z FDC-1 pak PIPU zkopíroval celý disk B: s ověřením.
+- **Doraz hlavy je stopa 82** (`FloppyDrive::LAST_TRACK`, dřív 79, pro 8272 i RPD-1). Programy SAPIMANa formátují
+  stopy 0–80. S dorazem 79 se 81. stopa zapsala přes stopu 79 s C = 80 a CP/M by o ni přišlo. Mechaniky na
+  80 stop dojedou o pár stop dál. **Hodnota 82 je předpoklad** (Nejasnost u FDC-1), stejná pro všechny mechaniky.
+- **Stopa za koncem obyčejného obrazu** (např. 80 u 720K nebo 1,2M) zůstane v paměti, dokud je disketa v mechanice.
+  Do souboru se neuloží, protože obraz `.img` má pevnou velikost. ImageDisk ji uloží.
+- **Nová disketa jako ImageDisk:** okno Média s názvem `.imd` založí ImageDisk naformátovaný zvoleným formátem
+  (`FloppyDrive::create`). Ten pak přijme libovolný formát FORMATu, třeba číslování sektorů 10–18 na straně 1,
+  které používají programy SAPIMANa pro MFC-1A a které obyčejný obraz PC neumí. Prázdné (nenaformátované) IMD se
+  nedělá: ImageDisk nemá údaj o otáčkách, ty se odvozují z obsahu.

@@ -2,8 +2,10 @@
 #include "core/log.h"
 #include "core/util.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 // name, size, tracks, heads, sectors, n, mfm, kbps, rpm
 static const FloppyGeom k_8sssd = { "8\" SS SD", 256256, 77, 1, 26, 0, false, 250, 360 };
@@ -347,7 +349,8 @@ bool FloppyDrive::save(std::string& err)
 {
     if (!dirty || !present()) return true;
     if (imd) return save_imd(err);
-    if (!file_write_all(path, data.data(), data.size())) {
+    // tracks formatted beyond the image are not in the file
+    if (!file_write_all(path, data.data(), geom ? (size_t)geom->size : data.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -401,6 +404,29 @@ bool FloppyDrive::save_imd(std::string& err)
     return true;
 }
 
+bool FloppyDrive::create(const std::string& path, const FloppyGeom* g, std::string& err)
+{
+    std::vector<uint8_t> blank((size_t)g->size, 0xE5);
+    size_t dot = path.find_last_of('.');
+    std::string ext = dot == std::string::npos ? std::string() : path.substr(dot);
+    for (char& c : ext) c = (char)tolower((unsigned char)c);
+    if (ext != ".imd") {
+        if (file_write_all(path, blank.data(), blank.size())) return true;
+        err = "cannot write " + path;
+        return false;
+    }
+    FloppyDrive d;
+    if (!d.load_plain(blank, err)) return false;
+    time_t now = time(nullptr);
+    char h[128];
+    strftime(h, sizeof(h), "IMD 1.18: %d/%m/%Y %H:%M:%S\r\n", localtime(&now));
+    d.imd_header = std::string(h) + "SAPIemu: " + g->name + "\r\n";
+    d.imd = true;
+    d.path = path;
+    d.dirty = true;
+    return d.save(err);
+}
+
 void FloppyDrive::unload(const char* who)
 {
     std::string err;
@@ -432,7 +458,8 @@ bool FloppyDrive::format_track(int cyl, int head, bool mfm, int kbps, int n, con
         if (ok) {
             FloppyTrack& t = tracks[(size_t)cyl * 2 + head];
             for (size_t k = 0; k < ids.size(); k++) {
-                uint32_t off = (uint32_t)((((size_t)cyl * heads + head) * geom->sectors + (size_t)(ids[k].r - 1)) * size);
+                uint32_t off =
+                    (uint32_t)((((size_t)cyl * geom->heads + head) * geom->sectors + (size_t)(ids[k].r - 1)) * size);
                 memset(&data[off], fill, (size_t)size);
                 t.sec[k] = ids[k];
                 t.sec[k].off = off;
@@ -443,13 +470,16 @@ bool FloppyDrive::format_track(int cyl, int head, bool mfm, int kbps, int n, con
             return true;
         }
     }
-    if (!imd) return false;
-    // ImageDisk: the track gets the new sectors
+    // beyond a plain image (a drive reaches a few tracks more): in memory only, the file keeps its size
+    bool beyond = geom && cyl >= geom->tracks;
+    if (!imd && !beyond) return false;
+    // ImageDisk (or a track beyond the image): the track gets the new sectors
     if (cyl >= cylinders) {
         tracks.resize((size_t)(cyl + 1) * 2);
         cylinders = cyl + 1;
     }
-    if (head + 1 > heads) heads = head + 1;
+    if (imd && head + 1 > heads) heads = head + 1;
+    if (!imd) LOGI("%s: track %d head %d beyond the image, kept until the disk is taken out", path.c_str(), cyl, head);
     FloppyTrack& t = tracks[(size_t)cyl * 2 + head];
     t = FloppyTrack();
     t.formatted = true;
@@ -465,7 +495,7 @@ bool FloppyDrive::format_track(int cyl, int head, bool mfm, int kbps, int n, con
         t.sec.push_back(s);
     }
     layout(t);
-    geom = nullptr;   // no longer an image in logical order
+    if (!beyond) geom = nullptr;   // no longer an image in logical order
     dirty = true;
     return true;
 }

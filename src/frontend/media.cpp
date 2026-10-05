@@ -151,9 +151,8 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         if (kind == 5) {   // a new disk, formatted: every byte E5h (empty CP/M directory)
             size_t slash = path.find_last_of("/\\");
             if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".img";
-            std::vector<uint8_t> blank((size_t)floppy_geoms()[s_new_disk_fmt]->size, 0xE5);
-            if (!file_write_all(path, blank.data(), blank.size())) {
-                LOGE("cannot write %s", path.c_str());
+            if (!FloppyDrive::create(path, floppy_geoms()[s_new_disk_fmt], err)) {
+                LOGE("%s", err.c_str());
                 return;
             }
         }
