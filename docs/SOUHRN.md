@@ -48,6 +48,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      e) ověřit vzhled okna Média s výběrem formátu nové diskety (`--ui-snapshot`);
      f) otázky na EC1045 (Petr Všijanský): složka `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A;
      g) případně opravit `RET` v ECBIM8 i v autorově pracovní kopii RAM disku (`work/zrmd-1`, jen se souhlasem).
+  0b. **Z archivu EC1045 v `..\SAPI_DOKU_FTP`** (2026-10-05, `docs/software/CPM_SAPIMAN.md`):
+     1) **obrazy ImageDisk (`.imd`) přímo v mechanikách** (libovolná geometrie, smíšené FM/MFM, 8" DD) a na nich
+        5,25" diskety Peřiny a Jílka (`OBRAZY_IMD\JILEK\04`) – rozpracováno 2026-10-05;
+     2) sestavy podle systémových disket `PETR\SAPI_SYS` (RPD-1 + FDC-1 5,25" HD, FDC 64K PC-MONITOR, MFC s RMD-1,
+        RPD + PMD32-SD);
+     3) obrazy `PETR\2MB` (5,25" diskety J. Bíby) jako disky D: PMD32-SD.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
