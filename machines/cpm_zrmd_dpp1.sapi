@@ -1,0 +1,69 @@
+// CP/M 2.2 booted from the ZRMD-1 RAM disk by the ECMON monitor
+// ("JPR-1Z 62K MON CZ"). Martin's setup; the disk image is a working copy
+// in work/ (the original in media/ is never modified).
+{
+    "name": "CP/M 2.2 z RAM disku s DPP-1 a PMD32-SD (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, DPP-1)",
+    "description": "Sestava cpm_zrmd s deskou DPP-1 na 28h: ECMON (verze bez IDE) obsluhuje PMD32-SD přes kanál 2 (2Ch-2Fh), D: a E: jsou obrazy na SD kartě media/pmd32sd (D: 2MB obraz 1614.2MB s BASICem J. Bíby, E: obraz 8\" diskety 1618_1.8SD). docs/desky/DPP-1.md.",
+    "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
+    "cards": [
+        {
+            "slot": 1,
+            "type": "JPR-1ZI",
+            "cpu_mhz": 2,
+            "bus_mhz": 2,
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin",
+            "decoder": "2k",
+            "keyboard": { "type": "EKL-1" }
+        },
+        {
+            "slot": 2,
+            "type": "DMR-1",
+            "ram_config": 1,        // RAM 0000-F7FF (62 KB)
+            "battery": false,       // JP7: no battery, the RAM is cleared at power off (ECMON shows its menu)
+            "uart_base": "10h",
+            "baud": 9600,
+            "connected": false,     // no terminal on the line (DCD inactive): ECMON uses the screen and keyboard
+            // host side of the serial line (see docs/seriova-linka.md)
+            "serial": {
+                // TeraTerm: TCP/IP, host 127.0.0.1, port 2323, service Telnet or Other (raw).
+                // dcd_follows: DCD is active while a client is connected, so ECMON started
+                // after connecting TeraTerm uses the serial console.
+                "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true, "protocol": "telnet" },   // telnet | raw | auto
+                // "com": { "port": "COM5", "baud": 9600 },   // host serial port (or com0com pair)
+                "pacing": true          // do not send faster than SAPI reads (no overrun)
+            }
+        },
+        {
+            "slot": 3,
+            "type": "AND-1Z-89",
+            "map_enabled": false
+        },
+        {
+            "slot": 4,
+            "type": "ZRMD-1",
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",
+            "mode": "rw",           // rw | nosave (changes lost on exit) | readonly (like all S1-S4 off)
+            "write_enable": [true, true, true, true],   // DIP switches S1-S4, one per MB
+            "rtc": true,
+            "rtc_int": "none",      // JP3: none | int0 | int1
+            "map_jp2": false        // JP2: port 63h bits 6/7 drive MAP1/MAP2
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DPP-1",                // Parallel ports (2x 8255), PMD32-SD
+            "base": "28h",                  // S1: ports - 28h-2Fh (1S1, 2S1 closed)
+            "pmd_channel": 2,               // PMD32-SD on channel 2 (2Ch-2Fh)
+            "pmd32sd": {                    // PMD32-SD floppy emulator
+                "sd_card": "media/pmd32sd",  // SD card (directory)
+                "drives": [
+                    "1614.2MB",           // Drive A (CP/M D:)
+                    "1618_1.8SD",         // Drive B (CP/M E:, an 8\" image)
+                    null,                   // Drive C
+                    null                    // Drive D
+                ],
+                "card_locked": false,       // SD card write protected
+                "startup_ms": 0             // Start-up delay (ms, real 3000)
+            }
+        }
+    ]
+}

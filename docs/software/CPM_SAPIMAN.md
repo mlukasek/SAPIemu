@@ -170,6 +170,19 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
   a AND-1Z. A: Z8 (zdroje, `MON64.MAC`), B: Z4 (programy). Hlásí „CON: TERMINAL PRES DSM1.1“.
 - Ověřeno testem `test_sapi_sys` (boot, `DIR B:`, `DIR C:`; 64K: přes sériovou linku `DIR`, `IRMD40`, `SAVE` na C:).
 
+## PMD32-SD přes DPP-1 a diskety PETR\2MB (2026-10-05)
+
+- Systémy J. Bíby a ECMON (bez IDE) používají PMD32-SD přes desku **DPP-1** na 28h (kanál 2, 2Ch–2Fh), od
+  2026-10-05 emulovanou (`docs/desky/DPP-1.md`).
+- `cpm_pmd_rpd1.sapi`: „dlouhé“ CP/M **CPM170212** (BIOS-2K, CCP D200, BDOS DA00, BIOS E800), A:, B: RPD-1 8",
+  **C:, D: = PMD32-SD 2 MB**; EPROM MON 271111 (podle IDENTIFIKACE jde i s 130711). A: = bootovací disketa
+  `r2_pmd2d2m_170212` (`PMD32-SD_IMAGE8\RPD`), B: = Z7 (zdroje). Výzva `U0A>`.
+- `cpm_zrmd_dpp1.sapi`: autorova sestava `cpm_zrmd` + DPP-1: ECMON hlásí „PMD32-SD OK“, D: = 2MB obraz, E: = obraz 8"
+  diskety („PMD32-SD/IMAGE 8"SS,SD“).
+- **5,25" diskety J. Bíby** (`PETR\2MB`) jsou na SD kartě `media/pmd32sd`: `1613.2MB` (BASIC programy), `1614.2MB`
+  (BASIC, BASCOM, MBAS), `1615.2MB` (dBASE II), `1616.2MB` (FAND), `1617.2MB` (WordStar, VEDIT, TED), `1618.2MB`,
+  `1619.2MB` (Turbo Pascal 3), `1618_1.8SD` (zdroje FORMFDC, INIRMD, MONITOR, TRAM…), `1618_2.8SD`.
+
 ## Otázky na EC1045 (Petr Všijanský)
 
 - ~~Složka `…/PETR/2MB/`~~: je v kopii z FTP (`..\SAPI_DOKU_FTP`).

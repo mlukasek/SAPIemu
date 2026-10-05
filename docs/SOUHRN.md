@@ -54,12 +54,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      2) ~~sestavy podle systémových disket `PETR\SAPI_SYS`~~ hotové 2026-10-05 (`cpm_boot_*_ss256`, `cpm_boot_mfc1a_rmd`,
         `cpm_term64k_fdc1`); „dlouhé CP/M“ RPD-1 + FDC-1 5,25" HD hotové
         (`cpm_boot_dlouhe_rpd1_fdc1.sapi`, bootovací disketa poskládaná ze zdrojáků); i pro 3,5" (`…_35.sapi`);
-        zbývá RPD 170212 + PMD32-SD (Z7);
-     3) obrazy `PETR\2MB` (5,25" diskety J. Bíby) jako disky D: PMD32-SD.
+        RPD 170212 + PMD32-SD hotové (`cpm_pmd_rpd1.sapi`, nová karta **DPP-1**);
+     3) ~~obrazy `PETR\2MB` jako disky PMD32-SD~~ hotové (`media/pmd32sd/16xx.2MB`, sestavy `cpm_pmd_rpd1`,
+        `cpm_zrmd_dpp1` s DPP-1). Zbývá kanál 1 DPP-1 jako tiskárna Centronics.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
-     podkladů, které autor má. DPP-1 má přednost: ECMON a BIOSy ji používají (tiskárna, PMD32-SD na 28–2Fh).
+     podkladů, které autor má. ~~DPP-1~~ hotová 2026-10-05 (PMD32-SD; tiskárna na kanálu 1 zatím ne).
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
   4. Převod HEX na kazetu (WAV) pro DSM-1.
   5. Linux build a CI (GitHub Actions).

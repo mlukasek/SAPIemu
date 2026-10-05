@@ -1,0 +1,76 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "Dlouhé CP/M 2.2 (2K BIOS): RPD-1 8\" + PMD32-SD přes DPP-1 (J. Bíba 170212)",
+    "description": "„Dlouhé“ CP/M J. Bíby CPM170212 (BIOS-2K V170212JB, CCP D200): A:, B: = RPD-1 8\", C:, D: = PMD32-SD přes DPP-1 (kanál 2, 2Ch-2Fh). EPROM MON 271111 (jde i s 130711). A: = bootovací disketa r2_pmd2d2m_170212 (SAPIMAN\\PMD32-SD_IMAGE8), B: = Z7 (zdroje systému). Na SD kartě jsou i 5,25\" diskety J. Bíby 1613-1619.2MB (C: 1619 Turbo Pascal, D: 1617 editory WordStar, VEDIT); přepnout v okně Média nebo programem MOUNT. docs/software/CPM_SAPIMAN.md, docs/desky/DPP-1.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1ZI",              // CPU card Z80 (new design)
+            "rom": "roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin",
+            "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
+            "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
+            "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
+            "keyboard": { "type": "Consul 259.11", "code": "koi8cs" }  // Keyboard (connector X2) - the monitor drives CONSUL 259.11 KOI8 CS2
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "DMR-1",                // 128 KB RAM and serial port
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "battery": false,               // JP7: battery backup of the SRAM
+            "uart_base": "10h",             // JP2: UART ports
+            "baud": 9600,                   // JP8: baud rate - 9600 Bd
+            "connected": false,             // Terminal connected at start (DCD)
+            "serial": {
+                "pacing": true,             // PC side: no overrun (pacing)
+                "tcp": {                    // PC side: TCP server
+                    "port": 2323,           // TCP port
+                    "bind": "127.0.0.1",    // Address (127.0.0.1 = this PC only)
+                    "protocol": "telnet",   // Protocol
+                    "dcd_follows": true     // DCD follows the client connection
+                }
+            }
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1Z-89",            // Alphanumeric display "Z" 1989
+            "map_enabled": false            // S1: MAP1 disconnects the card
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "RPD-1",                // Floppy disk controller (boards A + B)
+            "drive_a": {
+                "image": "media/sapiman/r2_pmd2d2m_170212.img",  // Boot disk (J. Biba)
+                "write_protect": false
+            },
+            "drive_b": {
+                "image": "media/sapiman/Z7_RPD170212_PMD_zdroje.img",  // sources of this system
+                "write_protect": false
+            },
+            "working_copy": true,           // Work on copies in work/
+            "step_ms": 8,                   // Drive: step period - 8 ms (Consul 7213)
+            "settle_ms": 35                 // Drive: head load settle time (ms)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "DPP-1",                // Parallel ports (2x 8255), PMD32-SD
+            "base": "28h",                  // S1: ports - 28h-2Fh (1S1, 2S1 closed)
+            "pmd_channel": 2,               // PMD32-SD on channel 2 (2Ch-2Fh)
+            "pmd32sd": {                    // PMD32-SD floppy emulator
+                "sd_card": "media/pmd32sd",  // SD card (directory)
+                "drives": [
+                    "1619.2MB",           // Drive A
+                    "1617.2MB",           // Drive B
+                    null,                   // Drive C
+                    null                    // Drive D
+                ],
+                "card_locked": false,       // SD card write protected
+                "startup_ms": 0             // Start-up delay (ms, real 3000)
+            }
+        }
+    ]
+}

@@ -34,7 +34,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3), DSM-1V;
   - řadiče disket RPD-1, FDC-1 a MFC-1A: 8" SS SD i diskety PC 3,5"/5,25" HD a DD (MFM, dvě strany), obrazy
     `.img` i ImageDisk `.imd` (libovolná geometrie, čtení i zápis);
-  - IDE-1 s IDE diskem a PMD32-SD;
+  - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD);
   - sériové linky do PC přes TCP nebo COM port.
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.

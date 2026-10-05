@@ -26,6 +26,10 @@ static json machine(const char* file)
                 if (c.contains(k)) c[k]["write_protect"] = true;
         }
         if (ty == "DMR-1" && c.contains("serial")) c["serial"].erase("tcp");
+        if (c.contains("pmd32sd")) {
+            c["pmd32sd"]["working_copy"] = false;
+            c["pmd32sd"]["card_locked"] = true;
+        }
     }
     return cfg;
 }
@@ -116,6 +120,42 @@ static void long_cpm(const char* file, const char* blank, const char* banner, co
     printf("%s\n", screen_text(m).c_str());
 }
 
+// DPP-1 with PMD32-SD on channel 2: the long CP/M 170212 (C:, D:) and ECMON (D: 2 MB, E: 8")
+static void pmd_systems(void)
+{
+    printf("--- machines/cpm_pmd_rpd1.sapi\n");
+    {
+        Machine m;
+        std::string err;
+        CHECK(m.load_json(machine("machines/cpm_pmd_rpd1.sapi"), err));
+        CHECK(run_until_text(m, "BIOS-2K V170212JB", 10.0));
+        CHECK(run_until_text(m, "A>", 20.0));
+        m.run_seconds(0.3);
+        m.type_text("DIR C:\r");
+        CHECK(run_until_text(m, "TURBO    COM", 20.0));
+        m.run_seconds(4.0);
+        m.type_text("DIR D:\r");
+        CHECK(run_until_text(m, "WSOVLY1  OVR", 20.0));
+        printf("%s\n", screen_text(m).c_str());
+    }
+    printf("--- machines/cpm_zrmd_dpp1.sapi\n");
+    {
+        Machine m;
+        std::string err;
+        CHECK(m.load_json(machine("machines/cpm_zrmd_dpp1.sapi"), err));
+        m.type_text("1");   // ECMON variant 1 (RPD8: no floppy controller needed)
+        CHECK(run_until_text(m, "PMD32-SD OK", 30.0));
+        CHECK(run_until_text(m, "\nA>", 10.0));
+        m.run_seconds(0.3);
+        m.type_text("DIR D:\r");
+        CHECK(run_until_text(m, "PARABOLA.BAS", 20.0));
+        m.run_seconds(4.0);
+        m.type_text("DIR E:\r");
+        CHECK(run_until_text(m, "FORMFDC .MAC", 20.0));
+        printf("%s\n", screen_text(m).c_str());
+    }
+}
+
 int main(void)
 {
     test_init();
@@ -123,6 +163,7 @@ int main(void)
     screen_system("machines/cpm_boot_fdc1_ss256.sapi", "BIOS-1K V130711JB", "1307Z2   IDF", "MYLBA    MAC");
     screen_system("machines/cpm_boot_mfc1a_rmd.sapi", "BIOS-1K V281211JB", "MO2812   MAC", nullptr);
     term64k();
+    pmd_systems();
     long_cpm("machines/cpm_boot_dlouhe_rpd1_fdc1.sapi", "media/fdc-1/prazdna_5.25HD_CPM.img",
              "D,E:FDC1;5,25\"DS,HD512x30PC", "ON D: 1174K");
     long_cpm("machines/cpm_boot_dlouhe_rpd1_fdc1_35.sapi", "media/fdc-1/prazdna_3.5HD_CPM.img",

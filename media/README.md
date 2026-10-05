@@ -18,6 +18,21 @@ Zdroj: `..\SAPI-karty\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
 | `b_rtc_zdp_zrmd.8sd` | 8SD | Zdrojové kódy pro RTC, ZDP, ZRMD a IDE.COM. |
 | `ZZRMD.8SD` | 8SD | ZZRMD.MAC/COM, přenos systému na RAM disk ZRMD-1. |
 | `uzivat_prog.8sd` | 8SD | Uživatelské programy. |
+
+5,25" diskety J. Bíby vykopírované do obrazů PMD32-SD (`..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\PETR\2MB`,
+2026-10-05):
+
+| Soubor | Formát | Obsah |
+|---|---|---|
+| `1613.2MB` | 2MB | Programy v BASICu (pl1–pl6, play, exp…), DIRF, FIALA. |
+| `1614.2MB` | 2MB | BASIC, BASCOM, BASLIB, MBAS, KBAS2, XREF a programy (PARABOLA, TELE…). |
+| `1615.2MB` | 2MB | dBASE II s instalací a databázemi (ADRESY, SKLAD, ZOZNAM). |
+| `1616.2MB` | 2MB | FAND (databáze v Pascalu) s instalací. |
+| `1617.2MB` | 2MB | WordStar (i české verze WS1715CS, WS80CS), MAILMERGE, SPELSTAR, VEDIT, TED. |
+| `1618.2MB` | 2MB | (obsah neověřený) |
+| `1619.2MB` | 2MB | Turbo Pascal 3 s příklady a instalací. |
+| `1618_1.8SD` | 8SD | Zdroje FORMFDC, INIRMD, MONITOR, TRAM, SAPDI, SINFLOP, SYGEN… |
+| `1618_2.8SD` | 8SD | (obsah neověřený) |
 | `system.sap`, `emu48.sap` | 8SD | Obecný CP/M 2.2 („BOOT v1.0“), původ nejasný. |
 
 ## `zrmd-1/` – obsah RAM disku ZRMD-1
@@ -82,6 +97,8 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 | `Z9_RPD050412_dlouhe_CPM_boot.img` | Disketa Z9 (programy „dlouhého“ CP/M) **se systémem doplněným ze zdrojáků** (2026-10-05): zavaděč `bo2608CE` na stopě 0 sektoru 1, CCP, BDOS a BIOS `bi0504E4_5_512_30_PC` od CE00h na stopách 0 (sektory 2–26) a 1 (1–26), konec BIOSu na 6 sektorech stopy 76 (12h, 18h, 04h, 0Ah, 10h, 16h). BIOS a zavaděč souhlasí s původními výpisy `.PRN`. |
 | `Z9_RPD050412_dlouhe_CPM_boot_3.5HD.img` | Totéž s BIOSem `bi0504E4_3_512_36_PC` (D:, E: = 3,5" HD 512 × 36), také souhlasí s původním `.PRN`. |
 | `Z3_RPD050412_dlouhe_CPM_zdroje.img` | Disketa Z3: zdroje „dlouhého“ CP/M (verze s 1,44 MB a RAM diskem, `142FZ2P*`, `BI142ZD2`, `BOOTD2`). |
+| `r2_pmd2d2m_170212.img` | Bootovací CP/M 170212 (BIOS-2K) s PMD32-SD (C:, D:) přes DPP-1, `SAPIMAN\PMD32-SD_IMAGE8\RPD\r2_pmd2d2m_170212.8sd`. |
+| `Z7_RPD170212_PMD_zdroje.img` | Disketa Z7: zdroje systému RPD 170212 + PMD32-SD. |
 | `Z8_FDC64K_TERM_zdroje.img` | CP/M 64K jen s terminálem (MON 151111 64K, CCP DE00), FDC-1, RMD-1; zdroje včetně `MON64.MAC`. |
 
 ## `fdc-1/` – diskety 8" pro FDC-1

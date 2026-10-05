@@ -1051,18 +1051,16 @@ json t_tape_control(EmuHost& h, const json& a)
     return json_result(tape_json(d));
 }
 
-Ide1* find_ide1(Machine& m)
+Pmd32Sd* find_pmd32(Machine& m)
 {
-    for (auto& c : m.cards) {
-        Ide1* i = dynamic_cast<Ide1*>(c.get());
-        if (i && i->pmd32()) return i;
-    }
-    throw ToolError{ "machine has no IDE-1 card with PMD32-SD" };
+    for (auto& c : m.cards)
+        if (Pmd32Sd* p = c->pmd32sd()) return p;
+    throw ToolError{ "machine has no card with PMD32-SD (IDE-1, DPP-1)" };
 }
 
 json t_pmd32_images(EmuHost& h, const json&)
 {
-    Pmd32Sd* p = find_ide1(need_machine(h))->pmd32();
+    Pmd32Sd* p = find_pmd32(need_machine(h));
     json drives = json::array();
     for (int d = 0; d < Pmd32Sd::DRIVES; d++)
         drives.push_back(json{ { "drive", std::string(1, (char)('A' + d)) },
@@ -1074,7 +1072,7 @@ json t_pmd32_images(EmuHost& h, const json&)
 
 json t_pmd32_mount(EmuHost& h, const json& a)
 {
-    Pmd32Sd* p = find_ide1(need_machine(h))->pmd32();
+    Pmd32Sd* p = find_pmd32(need_machine(h));
     std::string drv = arg_str(a, "drive", nullptr, true);
     if (drv.size() != 1 || toupper((unsigned char)drv[0]) < 'A' || toupper((unsigned char)drv[0]) > 'D')
         throw ToolError{ "drive must be A, B, C or D" };

@@ -7,6 +7,7 @@
 #include "cards/dgd1.h"
 #include "cards/dmr1.h"
 #include "cards/dsm1.h"
+#include "cards/dpp1.h"
 #include "cards/ide1.h"
 #include "cards/jpr1.h"
 #include "cards/jpr1zi.h"
@@ -45,6 +46,7 @@ Card* card_create(const std::string& type)
     if (type == "DSM-1") return new Dsm1();
     if (type == "ZRMD-1") return new Zrmd1(false);
     if (type == "IDE-1") return new Ide1();
+    if (type == "DPP-1") return new Dpp1();
     if (type == "ZRD-1V") return new Zrmd1(true);
     if (type == "BDK-1") return new BlankCard(type);
     if (type == "RPD-1") return new Rpd1();

@@ -847,6 +847,41 @@ static const CardParam k_mph1v[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// DPP-1
+static const ParamOption k_dpp1_base[] = {
+    { "\"00h\"", "00h-07h (2S1, 3S1 closed)", "00h-07h (2S1, 3S1 sepnuté)" },
+    { "\"08h\"", "08h-0Fh (2S1 closed)", "08h-0Fh (2S1 sepnuté)" },
+    { "\"10h\"", "10h-17h (3S1 closed)", "10h-17h (3S1 sepnuté)" },
+    { "\"18h\"", "18h-1Fh (all open)", "18h-1Fh (všechny rozepnuté)" },
+    { "\"20h\"", "20h-27h (1S1, 2S1, 3S1 closed)", "20h-27h (1S1, 2S1, 3S1 sepnuté)" },
+    { "\"28h\"", "28h-2Fh (1S1, 2S1 closed)", "28h-2Fh (1S1, 2S1 sepnuté)" },
+    { "\"30h\"", "30h-37h (1S1, 3S1 closed)", "30h-37h (1S1, 3S1 sepnuté)" },
+    { "\"38h\"", "38h-3Fh (1S1 closed)", "38h-3Fh (1S1 sepnuté)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dpp1_channel[] = {
+    { "2", "channel 2 (base+4..7, X3), as ECMON and J. Biba", "kanál 2 (základ+4..7, X3), jako ECMON a J. Bíba" },
+    { "1", "channel 1 (base+0..3, X2)", "kanál 1 (základ+0..3, X2)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dpp1[] = {
+    { "base", PK_CHOICE, "S1: ports", "S1: porty", "\"28h\"", k_dpp1_base, 0, 0 },
+    { "pmd_channel", PK_CHOICE, "PMD32-SD on", "PMD32-SD na", "2", k_dpp1_channel, 0, 0 },
+    { "pmd32sd", PK_SECTION, "PMD32-SD floppy emulator", "Emulátor disket PMD32-SD", "false", nullptr, 0, 0 },
+    { "pmd32sd.sd_card", PK_DIR, "SD card (directory)", "SD karta (složka)", "\"media/pmd32sd\"", k_none, 0, 0 },
+    { "pmd32sd.working_copy", PK_BOOL, "Work on a copy in work/", "Pracovat s kopií ve work/", "true",
+      nullptr, 0, 0 },
+    { "pmd32sd.drives.0", PK_TEXT, "Drive A (CP/M D:)", "Mechanika A (CP/M D:)", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.1", PK_TEXT, "Drive B (CP/M E:)", "Mechanika B (CP/M E:)", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.2", PK_TEXT, "Drive C", "Mechanika C", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.3", PK_TEXT, "Drive D", "Mechanika D", "null", nullptr, 0, 0 },
+    { "pmd32sd.card_locked", PK_BOOL, "SD card write protected", "SD karta chráněná proti zápisu", "false",
+      nullptr, 0, 0 },
+    { "pmd32sd.startup_ms", PK_INT, "Start-up delay (ms, real 3000)", "Prodleva po zapnutí (ms, skutečně 3000)",
+      "0", nullptr, 0, 10000 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // IDE-1
 static const CardParam k_ide1[] = {
     { "ide_base", PK_HEX, "JP1-JP3, JP5: IDE ports", "JP1-JP3, JP5: porty IDE", "\"58h\"", nullptr, 0, 0xFC },
@@ -933,7 +968,8 @@ CARD(c_fdc1, "FDC-1", "FDC", "Floppy disk controller 8272 + DMA (boards A + B)",
      "Řadič pružných disků 8272 + DMA (desky A + B)", CC_DISK, 2, true, k_fdc1)
 CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_DISK, 1, true, k_ide1)
 // I/O
-CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports", "Paralelní porty", CC_IO, 1, false, nullptr)
+CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports (2x 8255), PMD32-SD", "Paralelní porty (2x 8255), PMD32-SD", CC_IO, 1,
+     true, k_dpp1)
 CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 82C54, joystick (V)", "Zvuk YM3812, časovač 82C54, joystick (V)",
      CC_IO, 1, true, k_mph1v)
 CARD(c_rtc1, "RTC-1", "RTC", "Real time clock and timer", "Reálný čas a čítač", CC_IO, 1, false, nullptr)

@@ -30,7 +30,7 @@ public:
     uint8_t pins_b() override { return data_hi; }
     void outputs_changed(int port, uint8_t value) override;
 
-    Pmd32Sd* pmd32(void) { return pmd_enabled ? &pmd : nullptr; }
+    Pmd32Sd* pmd32sd() override { return pmd_enabled ? &pmd : nullptr; }
     IdeDisk* disk(void) { return ide_enabled ? &ide : nullptr; }
 
 private:

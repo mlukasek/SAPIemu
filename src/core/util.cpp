@@ -1,4 +1,5 @@
 #include "core/util.h"
+#include "core/log.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -242,7 +243,22 @@ bool media_path(const std::string& rel, bool work_copy, std::string& out, std::s
     fs::path dst = u8_to_path(data_root()) / "work" / u8_to_path(norm.substr(6));
     out = path_to_u8(dst);
     std::error_code ec;
-    if (fs::exists(dst, ec)) return true;
+    if (fs::exists(dst, ec)) {
+        // a directory copy gets the files added to media/ since (the files already there are
+        // the user's working copies and stay as they are)
+        if (fs::is_directory(src, ec) && fs::is_directory(dst, ec)) {
+            for (fs::recursive_directory_iterator it(src, ec), end; !ec && it != end; it.increment(ec)) {
+                if (!it->is_regular_file(ec)) continue;
+                fs::path to = dst / fs::relative(it->path(), src, ec);
+                if (ec || fs::exists(to, ec)) continue;
+                fs::create_directories(to.parent_path(), ec);
+                if (fs::copy_file(it->path(), to, ec)) LOGI("working copy: added %s", path_to_u8(to).c_str());
+                ec.clear();
+            }
+            ec.clear();
+        }
+        return true;
+    }
     if (!fs::exists(src, ec)) {
         err = "media file not found: " + path_to_u8(src);
         return false;

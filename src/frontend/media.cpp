@@ -495,23 +495,23 @@ void draw_media(UiState& ui)
         if (c->floppy_drive(0)) {
             any = true;
             char title[96];
-            snprintf(title, sizeof(title), "%s %s", c->name.c_str(), tr("floppy drives 8\""));
+            snprintf(title, sizeof(title), "%s %s", c->name.c_str(), tr("floppy drives"));
             ImGui::SeparatorText(title);
             draw_floppies(ui, c.get());
             continue;
         }
         Ide1* ide = dynamic_cast<Ide1*>(c.get());
-        if (!ide) continue;
+        if (!ide && !c->pmd32sd()) continue;
         any = true;
         ImGui::SeparatorText(c->name.c_str());
-        if (IdeDisk* d = ide->disk()) {
+        if (IdeDisk* d = ide ? ide->disk() : nullptr) {
             if (d->present())
                 ImGui::Text("%s %s (%u MB%s)", tr("IDE disk:"), d->path().c_str(), d->sector_count() / 2048,
                             d->is_readonly() ? tr(", read only") : "");
             else
                 ImGui::TextUnformatted(tr("IDE disk: none"));
         }
-        if (Pmd32Sd* p = ide->pmd32()) {
+        if (Pmd32Sd* p = c->pmd32sd()) {
             ImGui::TextUnformatted("PMD32-SD");
             draw_pmd32(p);
         }

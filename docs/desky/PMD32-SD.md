@@ -1,6 +1,7 @@
 # PMD32-SD – emulátor disketových jednotek
 
-V emulátoru se implementuje **protokol na úrovni 8255 desky IDE-1**, ne vnitřek s ATmega.
+V emulátoru se implementuje **protokol na úrovni 8255 desky IDE-1**, ne vnitřek s ATmega. Stejně se připojuje
+i na kanál desky **DPP-1** (`docs/desky/DPP-1.md`; ECMON bez IDE a CP/M J. Bíby: 2Ch–2Fh).
 
 Zdroje:
 - firmware v3.2 (26. 2. 2012, Roman Bórik): `..\SAPI-karty\PMD32-SD\Firmware\pmd32sd-v32-src\pmd32sd-v32\src\pmd32.c`, `pmd32.h`, `config.c`, `timer.c`

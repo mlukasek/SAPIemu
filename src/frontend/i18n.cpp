@@ -179,7 +179,7 @@ static const Translation k_table[] = {
     { "Format of a new disk", "Formát nové diskety" },
     { "track", "stopa" },
     { ", modified", ", změněná" },
-    { "floppy drives 8\"", "mechaniky pružných disků 8\"" },
+    { "floppy drives", "mechaniky pružných disků" },
     { "Load program into memory (Intel HEX)...", "Nahrát program do paměti (Intel HEX)…" },
     { "Log", "Log" },
     { "Colour", "Barva" },

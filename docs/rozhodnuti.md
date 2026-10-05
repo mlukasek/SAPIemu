@@ -690,6 +690,20 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
+## 2026-10-05 – Karta DPP-1 s PMD32-SD
+
+- **DPP-1** (`src/cards/dpp1.*`): dva 8255, adresa přepínači S1 přesně podle tabulek 2 a 3 návodu (00h–38h po 8).
+  PMD32-SD na portu A zvoleného kanálu v módu 2, stejný kód jako u IDE-1 (`cards/pmd32link.*`, společná konfigurace
+  a popis; `Card::pmd32sd()` pro okno Média a MCP).
+- **Přepínače S2–S4 (směr 3216, polarita PC) se neemulují**: předpokládá se nastavení, které PMD32-SD potřebuje.
+  Bez připojeného zařízení čte kanál jedničky. Tiskárna na kanálu 1 zatím není.
+- Výchozí základ 28h a kanál 2, jak je používají ECMON a CP/M J. Bíby. Autorova sestava `cpm_zrmd` se nemění,
+  DPP-1 má nová `cpm_zrmd_dpp1` (autor DPP-1 ve svém stroji asi nemá, má IDE-1).
+- 5,25" diskety J. Bíby z `PETR\2MB` jsou na SD kartě `media/pmd32sd` (sdílí ji všechny sestavy s PMD32-SD).
+- **Pracovní kopie složky** (SD karta PMD32-SD ve `work/pmd32sd`) dostane soubory, které do `media/` přibyly
+  později; soubory, které v kopii už jsou, se nepřepisují (jsou to pracovní kopie autora). Dřív se kopie
+  vytvořila jen jednou a nové obrazy v ní chyběly.
+
 ## 2026-10-05 – Obrazy ImageDisk (.imd) v mechanikách
 
 - **Mechanika drží disketu jako stopy** (`FloppyTrack`): záznam FM/MFM, rychlost, délka sektoru a sektory v pořadí

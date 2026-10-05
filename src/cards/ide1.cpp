@@ -1,4 +1,5 @@
 #include "cards/ide1.h"
+#include "cards/pmd32link.h"
 #include "core/state.h"
 #include "core/bus.h"
 #include "core/log.h"
@@ -77,47 +78,7 @@ bool Ide1::configure(const json& cfg, std::string& err)
 
     // PMD32-SD
     pmd_enabled = cfg.contains("pmd32sd") && !cfg["pmd32sd"].is_null();
-    if (pmd_enabled) {
-        const json& p = cfg["pmd32sd"];
-        std::string sd, path;
-        bool work;
-        long long startup;
-        if (!cfg_string(p, "sd_card", sd, "media/pmd32sd", err)) return false;
-        if (!cfg_bool(p, "working_copy", work, true, err)) return false;
-        if (!cfg_bool(p, "card_locked", pmd.card_locked, false, err)) return false;
-        if (!cfg_number(p, "startup_ms", startup, 0, err)) return false;
-        pmd.startup_ms = (uint32_t)startup;
-        if (probe) return true;   // only the decoding is wanted: no SD card copy
-        if (!media_path(sd, work, path, err)) return false;
-        if (!pmd.init(path, err)) return false;
-        if (p.contains("drives")) {
-            const json& drv = p["drives"];
-            if (!drv.is_array() || drv.size() > Pmd32Sd::DRIVES) {
-                err = "pmd32sd.drives must be an array of up to 4 image names (A-D)";
-                return false;
-            }
-            for (size_t i = 0; i < drv.size(); i++) {
-                if (drv[i].is_null()) continue;
-                bool wp = false;
-                std::string fn;
-                if (drv[i].is_string()) {
-                    fn = drv[i].get<std::string>();
-                } else if (drv[i].is_object()) {
-                    fn = drv[i].value("image", std::string());
-                    wp = drv[i].value("wp", false);
-                }
-                if (fn.empty()) continue;
-                int rv = pmd.mount((int)i, fn, wp);
-                if (rv != 0) {
-                    err = "PMD32-SD drive " + std::string(1, (char)('A' + i)) + ": cannot insert '" + fn +
-                          "' (error " + std::to_string(rv) + ")";
-                    return false;
-                }
-            }
-        }
-        pmd.power_on(bus->now);
-        LOGI("%s: PMD32-SD card %s", name.c_str(), path.c_str());
-    }
+    if (pmd_enabled && !pmd32_configure(pmd, cfg["pmd32sd"], probe, bus->now, name, err)) return false;
     return true;
 }
 
@@ -232,19 +193,7 @@ void Ide1::describe(json& out)
         out["ide_mb"] = ide.sector_count() / 2048;
         out["ide_readonly"] = ide.is_readonly();
     }
-    if (pmd_enabled) {
-        out["sd_card"] = pmd.root();
-        json drives = json::array();
-        for (int d = 0; d < Pmd32Sd::DRIVES; d++) {
-            if (pmd.drive_present(d))
-                drives.push_back(json{ { "drive", std::string(1, (char)('A' + d)) }, { "image", pmd.drive_path(d) },
-                                       { "wp", pmd.drive_wp(d) }, { "tracks", pmd.drive_tracks(d) },
-                                       { "sectors", pmd.drive_sectors(d) } });
-            else
-                drives.push_back(json{ { "drive", std::string(1, (char)('A' + d)) }, { "image", nullptr } });
-        }
-        out["pmd32sd"] = drives;
-    }
+    if (pmd_enabled) pmd32_describe(pmd, out);
 }
 
 void Ide1::state(StateIO& io)
