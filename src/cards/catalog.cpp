@@ -35,6 +35,8 @@ static const ParamOption k_jpr_roms[] = {
       "MON 130711 J. Bíba (CP/M z 8\" diskety, FDC-1)" },
     { "\"roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin\"", "MON 271111 J. Biba (CP/M from an 8\" disk, RPD-1)",
       "MON 271111 J. Bíba (CP/M z 8\" diskety, RPD-1)" },
+    { "\"roms/jpr-1zi/JPR-1ZI_MON260112_JB_RPD_FDC.bin\"", "MON 260112 J. Biba (long CP/M, RPD-1 + FDC-1 HD)",
+      "MON 260112 J. Bíba (dlouhé CP/M, RPD-1 + FDC-1 HD)" },
     { "\"roms/jpr-1zi/JPR-1ZI_MON151111_JB_64K_TERM.bin\"", "MON 151111 64K J. Biba (CP/M 64K, terminal only, FDC-1)",
       "MON 151111 64K J. Bíba (CP/M 64K, jen terminál, FDC-1)" },
     { "\"roms/jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin\"", "ZZRMD 2k", "ZZRMD 2k" },
@@ -420,6 +422,10 @@ static const ParamOption k_rpd1_disks[] = {
       "J. Bíba Z1: bootovací CP/M, programy (C: ZRMD-1 SS256)" },
     { "\"media/sapiman/Z2_RPD271111_zdroje.img\"", "J. Biba Z2: sources of the RPD-1 system",
       "J. Bíba Z2: zdroje systému pro RPD-1" },
+    { "\"media/sapiman/Z9_RPD050412_dlouhe_CPM_boot.img\"", "J. Biba Z9 + long CP/M 050412 (MON 260112, FDC-1 HD)",
+      "J. Bíba Z9 + dlouhé CP/M 050412 (MON 260112, FDC-1 HD)" },
+    { "\"media/sapiman/Z3_RPD050412_dlouhe_CPM_zdroje.img\"", "J. Biba Z3: sources of the long CP/M",
+      "J. Bíba Z3: zdroje dlouhého CP/M" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_rpd1[] = {

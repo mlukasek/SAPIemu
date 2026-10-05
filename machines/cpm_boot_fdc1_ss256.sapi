@@ -43,7 +43,7 @@
         {
             "slot": 4,                      // position X4
             "type": "ZRMD-1",               // RAM disk 4 MB with RTC
-            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // the same RAM disk as cpm_zrmd (layout SS256)  // Disk image - CP/M (Martin 2019)
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - the RAM disk of cpm_zrmd (layout SS256)
             "mode": "rw",                   // Mode - read/write, saved
             "write_enable": [
                 true,                       // S1: write enable, 1st MB

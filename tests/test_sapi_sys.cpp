@@ -89,6 +89,33 @@ static void term64k(void)
     printf("%s\n", got.c_str());
 }
 
+// the long CP/M (RPD-1 + FDC-1 5.25" HD): the boot disk composed from the sources, D: on FDC-1
+static void long_cpm(void)
+{
+    printf("--- machines/cpm_boot_dlouhe_rpd1_fdc1.sapi\n");
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path("media/fdc-1/prazdna_5.25HD_CPM.img"), img));
+    CHECK(file_write_all(data_path("work/test/long_d.img"), img.data(), img.size()));
+    json cfg = machine("machines/cpm_boot_dlouhe_rpd1_fdc1.sapi");
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "FDC-1")
+            c["drive_a"] = { { "image", "work/test/long_d.img" }, { "write_protect", false } };
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    CHECK(run_until_text(m, "D,E:FDC1;5,25\"DS,HD512x30PC", 15.0));
+    CHECK(run_until_text(m, "A>", 10.0));
+    m.run_seconds(0.3);
+    m.type_text("DIR B:\r");
+    CHECK(run_until_text(m, "BI142ZD2 MAC", 15.0));
+    m.run_seconds(4.0);
+    m.type_text("SAVE 4 D:TEST.COM\r");
+    m.run_seconds(4.0);
+    m.type_text("STAT D:\r");
+    CHECK(run_until_text(m, "ON D: 1174K", 10.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 int main(void)
 {
     test_init();
@@ -96,5 +123,6 @@ int main(void)
     screen_system("machines/cpm_boot_fdc1_ss256.sapi", "BIOS-1K V130711JB", "1307Z2   IDF", "MYLBA    MAC");
     screen_system("machines/cpm_boot_mfc1a_rmd.sapi", "BIOS-1K V281211JB", "MO2812   MAC", nullptr);
     term64k();
+    long_cpm();
     return TEST_RESULT();
 }

@@ -143,10 +143,20 @@ FM/MFM, 8" DD, DS, 9 × 512) by zpřístupnilo stovky disket; 5,25" diskety z `J
 
 Diskety Z1–Z10 jsou v `media/sapiman/Z*.img` (disky 1–10 jsou totožné). Bootovací: Z1/Z2 (RPD 271111), Z4/Z10
 (FDC 130711), Z5/Z6 (MFC 281211 s RMD-1), Z8 (CP/M 64K s terminálem); Z3, Z7, Z9 jsou jen zdroje (RPD 3K 050412 +
-FDC-1 5,25" HD, RPD 170212 + PMD32-SD). Systém z Z3/Z9 („dlouhé CP/M“, 3K BIOS, verze 26) bootuje z 8" diskety
-na RPD-1 s EPROM 260112 (`ZMENA_CPM\FUNKCNI\8 A 3,5 A 5,25\…\MON260112MO.HEX`) a má D: a E: jako 3,5"/5,25" HD na
-druhém řadiči FDC-1. Bootovací disketu nemáme, na Z3/Z9 je systém jen jako `.BIN` (`CP142ZD1/2.BIN`); disketu by
-šlo vyrobit SYSGENem v emulátoru.
+FDC-1 5,25" HD, RPD 170212 + PMD32-SD).
+
+**„Dlouhé“ CP/M** (verze 26, CPM050412, 3K BIOS; `cpm_boot_dlouhe_rpd1_fdc1.sapi`): bootuje z 8" diskety na RPD-1
+s EPROM 260112, C: = ZRMD-1 SS256, D: a E: = FDC-1 5,25" DS HD 512 × 30 v PC formátu (varianta pro 3,5" 512 × 36 je
+ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **poskládaná ze zdrojáků**
+(`ZMENA_CPM\FUNKCNI\8 A 3,5 A 5,25\ZRMD256\3K RPD FDC 5 MFM 512X30 MOT PC ZRMD256_050412`, M80/L80 pod `cpmrun`):
+- zavaděč `bo2608CE` (stopa 0, sektor 1, EPROM ho načte na 0080h) čte stopu 0 sektory 2–26 a stopu 1 sektory 1–26
+  souvisle od CE00h (CCP `ccpCE`, BDOS `bdosD6` na D600h, BIOS `bi0504E4_5_512_30_PC_mo_s` na E400h) a konec
+  BIOSu ze 6 sektorů stopy 76 (12h, 18h, 04h, 0Ah, 10h, 16h = posledních 6 logických sektorů se skew 6, které DPB
+  s DSM 242 nikdy nepřidělí) na E780h; 3K BIOS se tak vejde i na standardní disketu (proto „dlouhý“);
+- základ je disketa Z9 (programy tohoto systému bez systémových stop), B: = Z3 (zdroje);
+- BIOS a zavaděč z překladu souhlasí s původními výpisy `.PRN` bajt po bajtu; EPROM je z `MON260112MO.HEX`
+  (zdroják `.txt` je o 3 bajty novější).
+- Ověřeno: boot, `DIR B:`, `SAVE` a `STAT` na D: (1174K); test `test_sapi_sys`.
 
 - `cpm_boot_rpd1_ss256.sapi`, `cpm_boot_fdc1_ss256.sapi`: A: programy (bootovací), B: zdroje. **C: = RAM disk ZRMD-1
   v rozložení SS256** (DPB OFF 128 jako ECMON), tedy stejný obraz jako `cpm_zrmd` (`DIR C:` vypíše tvoje soubory).

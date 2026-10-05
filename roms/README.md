@@ -15,6 +15,7 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `jpr-1zi/JPR-1ZI_MON281211_JB_MFC.bin` | EPROM JPR-1ZI | Monitor J. Bíby „JPR-1Z 62K MON CZ 281211JB“ (2 KB BIOS v ROM), boot CP/M z 8" diskety přes MFC-1A. Z `mon281211.hex` (`..\SAPI_DOKU\SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\MFC\MFC281211_ZRMD0`), zbytek FFh. Zdroják `mon281211.txt` se přeloží (`cpmrun`) na stejné bajty kromě proměnných (DS). |
 | `jpr-1zi/JPR-1ZI_MON130711_JB_FDC.bin` | EPROM JPR-1ZI | Totéž pro FDC-1 (`mon130711`, složka `FDC\FDC130711_ZRMD0`). |
 | `jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin` | EPROM JPR-1ZI | Totéž pro RPD-1 (`MON271111`, složka `RPD\RPD271111_ZRMD0`). |
+| `jpr-1zi/JPR-1ZI_MON260112_JB_RPD_FDC.bin` | EPROM JPR-1ZI | „Dlouhé“ CP/M J. Bíby (3K BIOS): RPD-1 8" + FDC-1 3,5"/5,25" HD. Z `MON260112MO.HEX` (`ZMENA_CPM\FUNKCNI\8 A 3,5 A 5,25\…`, ve všech 8 složkách stejný). Zdroják `MON260112MO.txt` je o 3 bajty novější než `.hex` a původní `.PRN`. |
 | `jpr-1zi/JPR-1ZI_MON151111_JB_64K_TERM.bin` | EPROM JPR-1ZI | „JPR-1Z 64K MONTERM CZ 151111JB“: CP/M 64K jen s terminálem přes DSM-1/1, FDC-1, RMD-1. Z `mon151111_64K.HEX` (`FDC\TERM64K_15112011_RMD`), shodný s `MON64.HEX` na disketě Z8. Po startu se odpojí `OUT 0`. |
 | `jpr-1zi/JPR-1ZI_PROM_Info.txt` | | Poznámka o označení: D3C = D14, D6B = D10 (původně). |
 | `and-1z-89/AND-1Z_CharGen.bin/.hex` | AND-1Z-89 (2732) | Znakový generátor, 4 KB, 16 B na znak. |

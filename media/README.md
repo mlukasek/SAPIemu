@@ -79,6 +79,8 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 | `Z1_RPD271111_programy.img`, `Z2_RPD271111_zdroje.img` | RPD-1, MON 271111, C: ZRMD-1 SS256 (rozložení ECMON); programy a zdroje systému. |
 | `Z4_FDC130711_programy.img`, `Z10_FDC130711_zdroje.img` | FDC-1, MON 130711, C: ZRMD-1 SS256. |
 | `Z6_MFC281211_RMD_programy.img`, `Z5_MFC281211_RMD_zdroje.img` | MFC-1A, MON 281211, C: RMD-1 1 MB na 40h. |
+| `Z9_RPD050412_dlouhe_CPM_boot.img` | Disketa Z9 (programy „dlouhého“ CP/M) **se systémem doplněným ze zdrojáků** (2026-10-05): zavaděč `bo2608CE` na stopě 0 sektoru 1, CCP, BDOS a BIOS `bi0504E4_5_512_30_PC` od CE00h na stopách 0 (sektory 2–26) a 1 (1–26), konec BIOSu na 6 sektorech stopy 76 (12h, 18h, 04h, 0Ah, 10h, 16h). BIOS a zavaděč souhlasí s původními výpisy `.PRN`. |
+| `Z3_RPD050412_dlouhe_CPM_zdroje.img` | Disketa Z3: zdroje „dlouhého“ CP/M (verze s 1,44 MB a RAM diskem, `142FZ2P*`, `BI142ZD2`, `BOOTD2`). |
 | `Z8_FDC64K_TERM_zdroje.img` | CP/M 64K jen s terminálem (MON 151111 64K, CCP DE00), FDC-1, RMD-1; zdroje včetně `MON64.MAC`. |
 
 ## `fdc-1/` – diskety 8" pro FDC-1
