@@ -1,6 +1,7 @@
 #pragma once
-// Intel 8272 / NEC uPD765 floppy disk controller, as on the FDC-1A board, with 8" FM drives
-// (IBM 3740 disks, chips/floppy.h). Time is in bus cycles (hz per second).
+// Intel 8272 / NEC uPD765 floppy disk controller (FDC-1A, MFC-1A) with the drives of
+// chips/floppy.h: 8" SS SD FM disks and PC formats (MFM, 512 B sectors, two sides). Time is in
+// bus cycles (hz per second).
 //
 // Registers: A0 = 0 main status (MSR, read only), A0 = 1 data (command bytes, result bytes,
 // data in non-DMA mode).
@@ -9,15 +10,18 @@
 //
 // Commands: READ DATA, READ DELETED DATA, WRITE DATA, WRITE DELETED DATA, READ TRACK,
 // READ ID, FORMAT A TRACK, RECALIBRATE, SEEK, SENSE INTERRUPT STATUS, SENSE DRIVE STATUS,
-// SPECIFY. SCAN is not emulated (answered as an invalid command). Disks are single sided
-// FM: MFM, head 1 and other sector sizes find no ID marks (MA).
+// SPECIFY. SCAN is not emulated (answered as an invalid command). The head sees ID marks when
+// the disk has the head, its recording (FM/MFM, the command's MF bit) and the data rate the
+// board gives the chip for the drive (fdc_kbps); sector sizes N = 0-3.
 //
-// Timing (8 MHz clock, 8"): a byte every 32 us, 360 rpm; step rate 16 - SRT ms, head load
-// HLT x 2 ms, head unload HUT x 16 ms after the last command (0 = the maximum).
+// Timing: the disk turns with its own rpm and data rate (a byte every 32 us FM 8" or 16 us MFM
+// HD); step rate 16 - SRT ms, head load HLT x 2 ms, head unload HUT x 16 ms after the last
+// command (0 = the maximum), all for the 8 MHz clock.
 #include <stdint.h>
 
 class StateIO;
 struct FloppyDrive;
+struct FloppyGeom;
 
 // What the board connects to the chip.
 class I8272Host {
@@ -31,6 +35,9 @@ public:
     // false when the DMA controller does not answer (the byte is lost: overrun); tc = TC
     // input during the cycle.
     virtual bool fdc_dma(bool to_memory, uint8_t& byte, bool& tc) = 0;
+    // Data rate (kbit/s) the board's clock gives the chip for the unit in FM or MFM: an 8 MHz
+    // clock gives 250 FM, 500 MFM.
+    virtual int fdc_kbps(int unit, bool mfm) { return mfm ? 500 : 250; }
 };
 
 struct I8272 {
@@ -59,7 +66,8 @@ private:
     FloppyDrive* drive(int u) { return host ? host->fdc_drive(u) : nullptr; }
     bool ready(int u) { return host && host->fdc_ready(u); }
     bool has_index(void);               // a disk turns in the drive: index pulses
-    bool ids_readable(void);            // the head sees FM ID marks (disk, head 0, FM, a track of the image)
+    bool ids_readable(void);            // the head sees ID marks (disk, head, recording, data rate, track)
+    const FloppyGeom& geom(void);       // format of the disk in the unit (8" SS SD when none)
     void command(uint64_t now);
     void start_exec(uint64_t now);
     void exec_event(void);
@@ -118,10 +126,10 @@ private:
     bool saw_id = false;
     uint64_t data_b = 0;                // disk byte of the first data byte of the sector
     int data_i = 0, data_len = 0;
-    int sec_found = 0;                  // sector found (1-26)
+    int sec_found = 0;                  // sector found (from 1)
     bool tc = false;
     bool overrun = false;
-    uint8_t buf[128] = {};
+    uint8_t buf[1024] = {};
     int sectors_done = 0;
     // non-DMA mode: one data byte waiting for the CPU (read) or wanted from it (write)
     bool nd_full = false;

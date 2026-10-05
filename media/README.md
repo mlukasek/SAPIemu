@@ -24,6 +24,8 @@ Zdroj: `..\SAPI-karty\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
 
 Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 
+- `SAPI_CPM_Martin_2019-10-07_sysEC1045.bin`: soubory z Martinova obrazu, systémová oblast EC1045 (menu FDC8,
+  FDC3, FDC5, HDD) přeložená `build.py --set ec1045`. Sestava `cpm_ec1045.sapi`.
 - `ZRMD-1_prazdny_OFF0.bin`: prázdný RAM disk (E5h) pro systémy J. Bíby z roku 2011, které mají CP/M přes celé
   4 MB (DPB OFF 0, DSM 1023). S obrazy pro ECMON (OFF 128, systém v prvních 32 KB) se nedá sdílet.
 - `SAPI_CPM_Martin_2019-10-07_fixMFC.bin` (2026-10-05): totéž s novou systémovou oblastí (0–7FFF) přeloženou
@@ -75,6 +77,8 @@ z EPROM `roms/jpr-1zi/JPR-1ZI_MON*_JB_*.bin`, C: je RAM disk ZRMD-1 se souborov�
 |---|---|
 | `CPM22P_48AF_Perina.img` | CP/M 2.2/P 48K (R. Peřina 1988) pro ZPS-3 s AND-1A a řadičem FDC-1, k ROM MOR48AF. Zdroj autor (`..\SAPI-sestavy\ZPS-3\CPM48AF.img`). Obsahuje FDC.DOC, FDC.INC, MOR24F.MAC, FORM6.COM (formátovač), MOR*F.HEX. |
 | `CPM22P_62AF_Perina.img` | Totéž pro 62K (AND-1A na F800), k ROM MOR62AF (`CPM62AF.img`). |
+| `prazdna_3.5HD_CPM.img` | Prázdná disketa PC 3,5" HD 1,44 MB (80 × 2 × 18 × 512 B, E5h) pro BIOS EC1045 `ECBIF3`. |
+| `prazdna_5.25HD_CPM.img` | Prázdná disketa PC 5,25" HD 1,2 MB (80 × 2 × 15 × 512 B, E5h) pro BIOS `ECBIF5`. |
 
 ## `cga-1v/` – programy pro CGA-1V (Intel HEX, CP/M `.COM` od 0100h)
 

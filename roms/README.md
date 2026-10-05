@@ -10,6 +10,7 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `jpr-1zi/JPR-1ZI_D6B.bin` | JPR-1ZI D6B (74S287) | I/O dekodér portů 00–03h. |
 | `jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin/.HEX` | EPROM JPR-1ZI | Monitor ECMON 2k „JPR-1Z 62K MON CZ“. |
 | `jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` | EPROM JPR-1ZI | ECMON s podporou IDE-1 (porty 5C–5Fh). |
+| `jpr-1zi/JPR-1ZI_ECMON_2k_EC1045.bin` | EPROM JPR-1ZI | ECMON EC1045 (`ECMON_cd.MAC`, menu FDC8, FDC3, FDC5, HDD, „Uzivatel: EC1045“), **přeloženo ze zdrojáku** (`..\SAPI-karty\ZRMD-1\SRC`, `build.py --set ec1045`), originální EPROM nemáme. Zbytek FFh. |
 | `jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin`, `_epr8k.bin` | EPROM JPR-1ZI | Zavaděč CP/M z RAM disku ZRMD-1. |
 | `jpr-1zi/JPR-1ZI_MON281211_JB_MFC.bin` | EPROM JPR-1ZI | Monitor J. Bíby „JPR-1Z 62K MON CZ 281211JB“ (2 KB BIOS v ROM), boot CP/M z 8" diskety přes MFC-1A. Z `mon281211.hex` (`..\SAPI_DOKU\SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\MFC\MFC281211_ZRMD0`), zbytek FFh. Zdroják `mon281211.txt` se přeloží (`cpmrun`) na stejné bajty kromě proměnných (DS). |
 | `jpr-1zi/JPR-1ZI_MON130711_JB_FDC.bin` | EPROM JPR-1ZI | Totéž pro FDC-1 (`mon130711`, složka `FDC\FDC130711_ZRMD0`). |

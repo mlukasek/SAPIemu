@@ -1,0 +1,74 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "CP/M 2.2 EC1045: RAM disk + FDC-1 s 3,5\"/5,25\" HD (ECMON_cd, BIOS ECBIF3/F5)",
+    "description": "Systém EC1045 (Petr Všijanský, úpravy CP/M J. Bíby): EPROM ECMON_cd s menu 0 = FDC8 (8\"), 1 = FDC3 (3,5\" DS HD 1,44 MB), 2 = FDC5 (5,25\" DS HD 1,2 MB), 3 = HDD; přeloženo ze zdrojáků (..\\SAPI-karty\\ZRMD-1\\SRC, build.py --set ec1045). RAM disk ZRMD-1 = soubory z Martinova obrazu s touto systémovou oblastí. B: a C: jsou mechaniky A a B řadiče FDC-1 (PC diskety v MFM, přepínač SA2 na 8\" = hodiny 8 MHz). V A je prázdná 3,5\" HD; pro volbu 2 vložit 5,25\" HD (okno Média). Obrazy disket jsou v PC formátu, jdou připravit i na PC. docs/software/CPM_SAPIMAN.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1ZI",              // CPU card Z80 (new design)
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_EC1045.bin",  // EPROM 2764 - ECMON 2k EC1045 (menu FDC8/FDC3/FDC5/HDD)
+            "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
+            "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
+            "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": true }  // Keyboard (connector X2) - the BIOS reports C262.3
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "DMR-1",                // 128 KB RAM and serial port
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "battery": false,               // JP7: battery backup of the SRAM
+            "uart_base": "10h",             // JP2: UART ports
+            "baud": 9600,                   // JP8: baud rate - 9600 Bd
+            "connected": false,             // Terminal connected at start (DCD)
+            "serial": {
+                "pacing": true,             // PC side: no overrun (pacing)
+                "tcp": {                    // PC side: TCP server
+                    "port": 2323,           // TCP port
+                    "bind": "127.0.0.1",    // Address (127.0.0.1 = this PC only)
+                    "protocol": "telnet",   // Protocol
+                    "dcd_follows": true     // DCD follows the client connection
+                }
+            }
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1Z-89",            // Alphanumeric display "Z" 1989
+            "map_enabled": false            // S1: MAP1 disconnects the card
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "ZRMD-1",               // RAM disk 4 MB with RTC
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07_sysEC1045.bin",  // Disk image - files of Martin 2019, system EC1045
+            "mode": "rw",                   // Mode - read/write, saved
+            "write_enable": [
+                true,                       // S1: write enable, 1st MB
+                true,                       // S2: write enable, 2nd MB
+                true,                       // S3: write enable, 3rd MB
+                true                        // S4: write enable, 4th MB
+            ],
+            "rtc": true,                    // RTC 72421
+            "rtc_int": "none",              // JP3: RTC interrupt
+            "map_jp2": false                // JP2: port 63h b6/b7 drive MAP1/MAP2
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
+            "drive_a": {                    // Drive A (8" SS SD)
+                "image": "media/fdc-1/prazdna_3.5HD_CPM.img",  // Disk image - empty 3.5" HD 1.44 MB (CP/M, BIOS ECBIF3)
+                "write_protect": false      // Write protected
+            },
+            "working_copy": true,           // Work on copies in work/
+            "decoder": "roms/fdc-1/FDC-1A_D5B_74S287.bin",  // PROM D5B (FDC-1A): port decoder - standard: 8257 04-0BH, 8272 0CH-0DH, FDC-1B 0EH-0FH
+            "rdy_ground": true,             // FDC-1A X3-20 /RDY grounded (as supplied, Consul 7113): all drives ready
+            "sa2_a": "8dd",                 // FDC-1B switches SA2 S1, S5: drive A - 8" (8 MHz), also PC HD drives
+            "sa2_b": "8dd",                 // FDC-1B switches SA2 S2, S6: drive B - 8" (8 MHz), also PC HD drives
+            "sa2_c": "8sd",                 // FDC-1B switches SA2 S3, S7: drive C - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_d": "8sd"                  // FDC-1B switches SA2 S4, S8: drive D - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+        }
+    ]
+}

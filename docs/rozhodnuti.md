@@ -690,6 +690,17 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
+## 2026-10-05 – Diskety PC (MFM, HD/DD) pro FDC-1 a MFC-1A
+
+- **Formát diskety podle velikosti obrazu** (`FloppyGeom`): 8" SS SD a formáty PC (3,5" HD, 5,25" HD, DD 720/360 KB).
+  Obrazy PC jsou prosté sektory jako na PC, takže se dají připravit i tam. RPD-1 dál bere jen 8" SS SD.
+- **Disketa nese svou rychlost a otáčky, řadič dává hodiny** (`I8272Host::fdc_kbps`): 8272 vidí ID jen při shodě
+  záznamu (FM/MFM), strany a rychlosti. FDC-1: SA2 „8"“ = 8 MHz (MFM 500 kbit/s = PC HD), „5,25"“ = 4 MHz
+  (odhad, v Nejasnostech). MFC-1A: 8 MHz FM, 4 MHz MFM podle návodu, tedy jen DD.
+- **Rozložení stopy MFM podle IBM System 34** (mezery 4E, sync, A1 A1 A1); časování a hledání sektorů jako u FM.
+- Buffer sektoru 8272 má 1024 B, **formát stavu FDC-1 a MFC-1A se změnil** (starší uložené stavy s nimi nejdou).
+- Motory (FDC-1 0FH, MFC-1A D3 D2) se dál neemulují.
+
 ## 2026-10-05 – Sestavy s bootem CP/M z 8" diskety (J. Bíba 2011)
 
 - **EPROM z `.hex` J. Bíby, ne z našeho překladu:** `mon281211`, `mon130711`, `MON271111` jsou přesně tak, jak je

@@ -176,6 +176,7 @@ static const Translation k_table[] = {
     { "Drive", "Mechanika" },
     { "(no disk)", "(bez diskety)" },
     { "New disk...", "Nová disketa…" },
+    { "Format of a new disk", "Formát nové diskety" },
     { "track", "stopa" },
     { ", modified", ", změněná" },
     { "floppy drives 8\"", "mechaniky pružných disků 8\"" },

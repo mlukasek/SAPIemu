@@ -27,6 +27,8 @@ static const ParamOption k_jpr_roms[] = {
     { "\"roms/mikromon/MikroMon1_3_f000.txt\"", "MikroMon 1.3", "MikroMon 1.3" },
     { "\"roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin\"", "ECMON 2k", "ECMON 2k" },
     { "\"roms/jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin\"", "ECMON 2k with IDE-1", "ECMON 2k s IDE-1" },
+    { "\"roms/jpr-1zi/JPR-1ZI_ECMON_2k_EC1045.bin\"", "ECMON 2k EC1045 (menu FDC8, FDC3, FDC5, HDD)",
+      "ECMON 2k EC1045 (menu FDC8, FDC3, FDC5, HDD)" },
     { "\"roms/jpr-1zi/JPR-1ZI_MON281211_JB_MFC.bin\"", "MON 281211 J. Biba (CP/M from an 8\" disk, MFC-1A)",
       "MON 281211 J. Bíba (CP/M z 8\" diskety, MFC-1A)" },
     { "\"roms/jpr-1zi/JPR-1ZI_MON130711_JB_FDC.bin\"", "MON 130711 J. Biba (CP/M from an 8\" disk, FDC-1)",
@@ -437,6 +439,10 @@ static const ParamOption k_fdc1_disks[] = {
       "CP/M 2.2/P 62K pro FDC-1 (Peřina, AND-1A)" },
     { "\"media/sapiman/f1_zrmd4_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: ZRMD-1)",
       "Bootovací CP/M J. Bíba (MON 130711, C: ZRMD-1)" },
+    { "\"media/fdc-1/prazdna_3.5HD_CPM.img\"", "empty 3.5\" HD 1.44 MB (CP/M, BIOS ECBIF3)",
+      "prázdná 3,5\" HD 1,44 MB (CP/M, BIOS ECBIF3)" },
+    { "\"media/fdc-1/prazdna_5.25HD_CPM.img\"", "empty 5.25\" HD 1.2 MB (CP/M, BIOS ECBIF5)",
+      "prázdná 5,25\" HD 1,2 MB (CP/M, BIOS ECBIF5)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_fdc1_dec[] = {
@@ -445,15 +451,19 @@ static const ParamOption k_fdc1_dec[] = {
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_fdc1_sw[] = {
-    { "\"8sd\"", "8\" SD (read by IN 0EH: D1 = 1, D0 = 0)", "8\" SD (čte IN 0EH: D1 = 1, D0 = 0)" },
-    { "\"8dd\"", "8\" DD (D1 = 1, D0 = 1; the emulated drives are SD)", "8\" DD (D1 = 1, D0 = 1; emulované mechaniky jsou SD)" },
-    { "\"5sd\"", "5.25\" SD (D1 = 0, D0 = 0; 8\" drive emulated)", "5,25\" SD (D1 = 0, D0 = 0; emulovaná je 8\")" },
-    { "\"5dd\"", "5.25\" DD (D1 = 0, D0 = 1; 8\" drive emulated)", "5,25\" DD (D1 = 0, D0 = 1; emulovaná je 8\")" },
+    { "\"8sd\"", "8\" SD (read by IN 0EH: D1 = 1, D0 = 0; 8 MHz: FM 250, MFM 500 kbit/s)",
+      "8\" SD (čte IN 0EH: D1 = 1, D0 = 0; 8 MHz: FM 250, MFM 500 kbit/s)" },
+    { "\"8dd\"", "8\" DD (D1 = 1, D0 = 1; 8 MHz, also PC HD drives 3.5\" and 5.25\")",
+      "8\" DD (D1 = 1, D0 = 1; 8 MHz, i mechaniky PC HD 3,5\" a 5,25\")" },
+    { "\"5sd\"", "5.25\" SD (D1 = 0, D0 = 0; 4 MHz: FM 125 kbit/s)", "5,25\" SD (D1 = 0, D0 = 0; 4 MHz: FM 125 kbit/s)" },
+    { "\"5dd\"", "5.25\" DD (D1 = 0, D0 = 1; 4 MHz: MFM 250 kbit/s, DD disks)",
+      "5,25\" DD (D1 = 0, D0 = 1; 4 MHz: MFM 250 kbit/s, diskety DD)" },
     { nullptr, nullptr, nullptr },
 };
 #define FDC1_DRIVE(k, l, def)                                                                                            \
-    { k, PK_SECTION, "Drive " l " (8\" SS SD)", "Mechanika " l " (8\" SS SD)", def, nullptr, 0, 0 },                    \
-    { k ".image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",         \
+    { k, PK_SECTION, "Drive " l, "Mechanika " l, def, nullptr, 0, 0 },                    \
+    { k ".image", PK_FILE, "Disk image (.img: 8\" SS SD, PC 3.5\"/5.25\" HD or DD by its size)",                \
+      "Obraz diskety (.img: 8\" SS SD, PC 3,5\"/5,25\" HD nebo DD podle velikosti)", "\"\"",         \
       k_fdc1_disks, 0, 0 },                                                                                              \
     { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
 static const CardParam k_fdc1[] = {
@@ -505,8 +515,9 @@ static const ParamOption k_mfc1a_wiring[] = {
     { nullptr, nullptr, nullptr },
 };
 #define MFC1A_DRIVE(k, l, def)                                                                                           \
-    { k, PK_SECTION, "Drive " l " (8\" SS SD)", "Mechanika " l " (8\" SS SD)", def, nullptr, 0, 0 },                    \
-    { k ".image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",         \
+    { k, PK_SECTION, "Drive " l, "Mechanika " l, def, nullptr, 0, 0 },                    \
+    { k ".image", PK_FILE, "Disk image (.img: 8\" SS SD, PC 3.5\"/5.25\" HD or DD by its size)",                \
+      "Obraz diskety (.img: 8\" SS SD, PC 3,5\"/5,25\" HD nebo DD podle velikosti)", "\"\"",         \
       k_mfc1a_disks, 0, 0 },                                                                                             \
     { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
 static const CardParam k_mfc1a[] = {
@@ -745,6 +756,8 @@ static const ParamOption k_zrmd_images[] = {
     { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin\"", "CP/M (Martin 2019)", "CP/M (Martin 2019)" },
     { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin\"", "CP/M (Martin 2019), BIOS ECBIM8 (MFC-1A) fixed",
       "CP/M (Martin 2019), opravený BIOS ECBIM8 (MFC-1A)" },
+    { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07_sysEC1045.bin\"", "CP/M (Martin 2019), systems of EC1045 (3.5\"/5.25\" HD)",
+      "CP/M (Martin 2019), systémy EC1045 (3,5\"/5,25\" HD)" },
     { "\"media/zrmd-1/ZRMD-1_prazdny_OFF0.bin\"", "empty, CP/M over all 4 MB (systems of J. Biba 2011)",
       "prázdný, CP/M přes celé 4 MB (systémy J. Bíby 2011)" },
     { "\"media/zrmd-1/ECSYS_zaloha_0-3.hex\"", "ECSYS 0-3 (HEX)", "ECSYS 0-3 (HEX)" },

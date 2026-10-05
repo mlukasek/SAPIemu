@@ -17,8 +17,8 @@
 // DD23B (D = RES72, clock RCLK) clears DD23A while the 8272 is in reset.
 // The DS0/DS1 outputs of the 8272 are not used: the register selects the drive whose
 // signals (READY, INDEX, TRACK 0, WP, data) the 8272 sees. The board serves 5.25" and 8"
-// drives; emulated are 8" SS SD drives (IBM 3740). READY comes from the drive (a disk is in),
-// or is grounded as for the Consul 7113 (parameter rdy_ground).
+// drives: 8" SS SD and DD disks of chips/floppy.h (MFM 250 kbit/s). READY comes from the drive
+// (a disk is in), or is grounded as for the Consul 7113 (parameter rdy_ground).
 //
 // Reset bit (parameter `reset_mode`): "level" = the schematic, 1 holds the 8272 in reset.
 // The BIOS ECBIM8 writes FFh at its initialization (a RET is missing in INIT_MFC) and would
@@ -41,6 +41,9 @@ public:
     // I8272Host: the drive register selects the drive
     FloppyDrive* fdc_drive(int unit) override { return drives_on() ? &drives[reg & 3] : nullptr; }
     bool fdc_ready(int unit) override { return drives_on() && (rdy_ground || drives[reg & 3].present()); }
+    // CLK 8 MHz for SD (FM), 4 MHz for DD (MFM), as in the manual: 250 kbit/s either way,
+    // so 8" SD and DD disks, no HD.
+    int fdc_kbps(int unit, bool mfm) override { return 250; }
 
 private:
     bool drives_on(void) const { return tesla ? !dd23 : dd23; }

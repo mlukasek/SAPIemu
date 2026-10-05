@@ -7,9 +7,15 @@
 // CP/M of J. Biba (2011) booted from an 8" disk through MFC-1A, FDC-1 and RPD-1
 // (machines/cpm_boot_*.sapi): DIR A: lists the system sources on the disk, SAVE to the
 // RAM disk C: (CP/M over all 4 MB).
+// The EC1045 system (machines/cpm_ec1045.sapi) with PC disks on FDC-1 in MFM: variant 1
+// 3.5" HD 1.44 MB, variant 2 5.25" HD 1.2 MB; SAVE to B: puts the directory entry on cylinder 1
+// head 0 sector 1 of the image (OFF 1, two sides).
 #include "core/headless.h"
 #include "core/machine.h"
 #include "core/util.h"
+#include "chips/floppy.h"
+
+#include <string.h>
 #include "test_util.h"
 
 using nlohmann::json;
@@ -125,6 +131,53 @@ static void boot_jb(const char* file, const char* type, const char* disk, const 
     printf("%s\n", screen_text(m).c_str());
 }
 
+static void ec1045_hd(const char* variant, const char* blank, const char* banner, const char* free_text)
+{
+    printf("--- EC1045 variant %s, %s\n", variant, blank);
+    std::string t;
+    CHECK(file_read_text(data_path("machines/cpm_ec1045.sapi"), t));
+    json cfg = json::parse(t, nullptr, false, true);
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path(blank), img));
+    CHECK(file_write_all(data_path("work/test/ec_b.img"), img.data(), img.size()));
+    for (json& c : cfg["cards"]) {
+        std::string ty = c.value("type", std::string());
+        if (ty == "ZRMD-1") {
+            c["mode"] = "readonly";
+            c["working_copy"] = false;
+        }
+        if (ty == "FDC-1") {
+            c["drive_a"] = { { "image", "work/test/ec_b.img" }, { "write_protect", false } };
+            c["working_copy"] = false;
+        }
+    }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    m.type_text(variant);
+    CHECK(run_until_text(m, banner, 5.0));
+    CHECK(run_until_text(m, "\nA>", 30.0));
+    m.run_seconds(0.3);
+    for (int i = 0; i < 0x800; i++) m.bus.mem_write((uint16_t)(0x0100 + i), (uint8_t)(i * 7 + 3));
+    m.type_text("SAVE 8 B:TEST.COM\r");
+    m.run_seconds(4.0);
+    m.type_text("STAT B:*.*\r");
+    CHECK(run_until_text(m, free_text, 10.0));
+    m.flush();
+    CHECK(file_read_all(data_path("work/test/ec_b.img"), img));
+    const FloppyGeom* g = floppy_geom_for_size(img.size());
+    CHECK(g != nullptr);
+    if (g) {
+        size_t cyl1 = (size_t)g->heads * g->sectors * 512;   // directory: cylinder 1, head 0, sector 1
+        CHECK(img.size() > cyl1 + 32 && memcmp(&img[cyl1 + 1], "TEST    COM", 11) == 0);
+        bool found = false;   // the data somewhere after the directory
+        for (size_t off = cyl1; off + 3 <= img.size() && !found; off += 128)
+            if (img[off] == 3 && img[off + 1] == 10 && img[off + 2] == 17) found = true;
+        CHECK(found);
+    }
+    printf("%s\n", screen_text(m).c_str());
+}
+
 int main(void)
 {
     test_init();
@@ -136,6 +189,8 @@ int main(void)
             "BI1307ZS MAC");
     boot_jb("machines/cpm_boot_rpd1.sapi", "RPD-1", "media/sapiman/r1_zrmd4m_271111.img", "MON CS 271111JB",
             "B2711Z4  MAC");
+    ec1045_hd("1", "media/fdc-1/prazdna_3.5HD_CPM.img", "B,C: FDC1; 3,5\" DS,HD", "ON B: 1412K");
+    ec1045_hd("2", "media/fdc-1/prazdna_5.25HD_CPM.img", "B,C: FDC1; 5,25\" DS,HD", "ON B: 1174K");
     mfc_orig("tesla", "level", false);
     mfc_orig("ec1045", "level", false);
     mfc_orig("ec1045", "pulse", true);

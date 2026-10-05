@@ -11,8 +11,9 @@
 //              enable; read: the switches SA2 of the drive selected by D1 D0: D1 = 1 8" (S1-S4),
 //              D0 = DD (S5-S8, the polarity is assumed); FORM6 checks D1 before formatting;
 //   0FH write: D3-D0 motors M3-M0, D7-D4 head load H3-H0 (own signals on X3).
-// The drives get /SEL0-3 from the 8272 (DS1 DS0 through a 74145). READY: on the boards as
-// supplied /RDY (X3-20) is grounded for Consul 7113 drives, so all four units are ready.
+// The drives get /SEL0-3 from the 8272 (DS1 DS0 through a 74145), the head /SS1 from its HD.
+// READY: on the boards as supplied /RDY (X3-20) is grounded for Consul 7113 drives, so all four
+// units are ready. Disks: 8" SS SD and PC formats (chips/floppy.h), MFM HD with SA2 = 8".
 #include "cards/fdc8272.h"
 
 class Fdc1 : public Fdc8272Card {
@@ -30,6 +31,13 @@ public:
     // I8272Host: the 8272 selects the drive itself (DS1 DS0)
     FloppyDrive* fdc_drive(int unit) override { return &drives[unit & 3]; }
     bool fdc_ready(int unit) override { return rdy_ground || drives[unit & 3].present(); }
+    // Clock of the 8272 by the switch SA2 S1-S4 of the drive (an assumption): 8" = 8 MHz (FM 250,
+    // MFM 500 kbit/s: 8" disks and PC HD drives), 5.25" = 4 MHz (FM 125, MFM 250: DD drives).
+    int fdc_kbps(int unit, bool mfm) override
+    {
+        int k = mfm ? 500 : 250;
+        return (sa2[unit & 3] & 2) ? k : k / 2;
+    }
 
 private:
     uint8_t ctrl = 0;      // 0EH

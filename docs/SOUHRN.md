@@ -33,10 +33,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   po zapnutí nabídne menu. Ze zdrojáků je přeložené všechno včetně CCPZ V4.1 (stažený z sydneysmith.com)
   a BDOS DRI. Sestava `cpm_zrmd_mfc1a.sapi` má opravený RAM disk `..._fixMFC.bin` a reset 8272 podle schématu.
 - **Možné další kroky (autor vybírá):**
-  0. **Diskety (průzkum 2026-10-05, `docs/software/CPM_SAPIMAN.md`):** a) 3,5"/5,25" HD v PC formátu (MFM, 512 B,
-     2 strany) pro FDC-1 a MFC-1A a sestava EC1045 (ECMON_cd s menu FDC8/FDC3/FDC5/HDD, BIOSy `ECBIF3/F5`
-     ze zdrojáků), obrazy se dají vyrobit na PC; b) ~~sestavy bootující CP/M z 8" diskety SAPIMANa~~
-     hotové 2026-10-05: `cpm_boot_mfc1a/fdc1/rpd1.sapi`.
+  0. **Diskety (`docs/software/CPM_SAPIMAN.md`), hotové 2026-10-05:** formáty PC (MFM, HD/DD) pro FDC-1
+     a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), sestavy s bootem z 8" diskety SAPIMANa
+     (`cpm_boot_*.sapi`). Zbývá: motory mechanik, DD na MFC-1A ověřit softwarem.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle

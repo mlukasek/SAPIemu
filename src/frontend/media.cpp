@@ -20,8 +20,10 @@
 static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3)", "wav;mp3" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
-static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa 8\" (IMG)", "img" } };
+static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG)", "img;8sd" } };
 static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
+
+static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
 {
@@ -149,7 +151,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         if (kind == 5) {   // a new disk, formatted: every byte E5h (empty CP/M directory)
             size_t slash = path.find_last_of("/\\");
             if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".img";
-            std::vector<uint8_t> blank(FloppyDrive::IMAGE_SIZE, 0xE5);
+            std::vector<uint8_t> blank((size_t)floppy_geoms()[s_new_disk_fmt]->size, 0xE5);
             if (!file_write_all(path, blank.data(), blank.size())) {
                 LOGE("cannot write %s", path.c_str());
                 return;
@@ -440,10 +442,21 @@ static void draw_floppies(UiState& ui, Card* r)
         else {
             ImGui::TextUnformatted(d.path.c_str());
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", d.path.c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("(%s)", d.geom->name);
         }
         if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 4, r->name, i);
         ImGui::SameLine();
         if (ImGui::Button(tr("New disk..."))) tape_dialog(ui, 5, r->name, i);
+        ImGui::SameLine();
+        const FloppyGeom* const* geoms = floppy_geoms();
+        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 11);
+        if (ImGui::BeginCombo("##fmt", geoms[s_new_disk_fmt]->name)) {
+            for (int g = 0; geoms[g]; g++)
+                if (ImGui::Selectable(geoms[g]->name, g == s_new_disk_fmt)) s_new_disk_fmt = g;
+            ImGui::EndCombo();
+        }
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Format of a new disk"));
         ImGui::SameLine();
         ImGui::BeginDisabled(d.data.empty());
         if (ImGui::Button(tr("Eject"))) r->floppy_eject(i);

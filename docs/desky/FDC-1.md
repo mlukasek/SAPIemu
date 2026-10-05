@@ -40,8 +40,10 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   výstupy SEL, HL a MOT pro mechaniky na X3).
 - **FDC-1A:** 8272 (NEC 765A, uPD765), DMA 8257 (KR580IK57, na schématu „8257 (8237-B)“), oddělovače 8282/8286,
   PROM D5B (74S287) na A0–A7, monostabil 555.
-- Řadič umí až 4 mechaniky, 8" i 5,25", SS i DS, SD i DD (návod). **Emulace má 4 mechaniky 8" SS SD**
-  (IBM 3740, 77 × 26 × 128 B, obrazy `.img` jako u RPD-1).
+- Řadič umí až 4 mechaniky, 8" i 5,25", SS i DS, SD i DD (návod). **Emulace má 4 mechaniky, formát podle
+  velikosti obrazu** (`src/chips/floppy.h`): 8" SS SD (IBM 3740, 77 × 26 × 128 B, jako u RPD-1) a formáty PC
+  3,5" HD 1,44 MB, 5,25" HD 1,2 MB, DD 720 a 360 KB (MFM, 512 B, dvě strany). PC mechaniky HD používal EC1045
+  (BIOSy `ECBIF3`, `ECBIF5`, sestava `machines/cpm_ec1045.sapi`).
 - Od roku 1989 dodávaný místo RPD-1 (FDC.DOC). Tiskárnu DPP-1 je kvůli kolizi portů nutné přeadresovat z 08H na 18H.
 - **Propojení desek:** horní konektory (X2) obou desek spojuje stejný plochý kabel jako u RPD-1 (KB-17, návod:
   „Obě desky řadiče jsou propojeny stejnou propojkou jako u řadiče RPD-1“). Signály X2: /CK, /WC, /WD, /RD, /RES,
@@ -126,7 +128,12 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - **8272:** povely READ DATA, READ DELETED DATA, WRITE DATA, WRITE DELETED DATA, READ TRACK, READ ID, FORMAT,
   RECALIBRATE, SEEK, SENSE INTERRUPT STATUS, SENSE DRIVE STATUS, SPECIFY. SCAN se neemuluje (odpověď jako na
   neplatný povel, varování v logu). Režim bez DMA (ND = 1) je emulovaný, software ho nepoužívá.
-- **Časování:** bajt 32 µs (FM, 8"), 360 ot/min, stopa 5208 bajtů se stejnými mezerami jako u RPD-1; krok
+- **Hodiny 8272 a rychlost:** přepínač SA2 S1–S4 mechaniky (8") dává 8 MHz: FM 250, MFM 500 kbit/s (8" a mechaniky
+  PC HD), 5,25" dává 4 MHz: FM 125, MFM 250 kbit/s (DD). **Přiřazení přepínače k hodinám je odhad.** 8272 vidí
+  značky ID jen tehdy, když disketa má jeho záznam (FM/MFM), stranu a rychlost.
+- **Časování:** disketa se točí svými otáčkami a rychlostí: 8" FM bajt 32 µs, 360 ot/min, stopa 5208 bajtů se
+  stejnými mezerami jako u RPD-1; MFM HD bajt 16 µs, stopa 12 500 (3,5", 300 ot/min) nebo 10 416 (5,25", 360);
+  rozložení MFM podle IBM System 34; krok
   16 − SRT ms, přiklopení hlavy HLT × 2 ms, odklopení HUT × 16 ms po povelu; RQM se vrací 12 µs po bajtu povelu
   nebo výsledku (odhad). Sektor se hledá podle polohy disku, chyba (ND, MA) po druhém indexu.
 - **Přerušení:** jeden stav na jednotku (jako MAME): konec seeku přepíše starší stav téže jednotky, SENSE
@@ -154,3 +161,6 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Registr 0FH (motory, hlavy) a výběr 0EH D1 D0 vedou jen na X3 FDC-1B. Používá je něco kromě FORM6
   (`OUT 0FH,0FH` = všechny motory)?
 - Doba RQM po bajtu povelu (emulace 12 µs).
+- Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? Jak EC1045
+  připojoval mechaniky PC HD (přepínače, /RDY, signál HD/DD mechaniky)?
+- Motory (0FH) emulace nesleduje: disketa se točí stále.

@@ -63,6 +63,21 @@ AND-1Z-89, ZRMD-1 (C:), řadič s bootovací disketou v A: a datovou disketou CP
 - Klávesnice Consul 259.11 v kódu KOI-8 cs: monitory mají „OVLADAC KLAVESNICE CONSUL 259.11 KOI8 CS2“ a hlásí
   „CON: AND1Z + C259.11“.
 
+## Sestava EC1045 s disketami PC HD (2026-10-05)
+
+`machines/cpm_ec1045.sapi`: jako `cpm_zrmd_fdc1`, ale EPROM `JPR-1ZI_ECMON_2k_EC1045.bin` = `ECMON_cd.MAC` od
+EC1045 beze změny (menu 0 FDC8, 1 FDC3, 2 FDC5, 3 HDD; přeloženo `build.py --set ec1045`, originální EPROM nemáme)
+a RAM disk `SAPI_CPM_Martin_2019-10-07_sysEC1045.bin` (soubory z Martinova obrazu, systémová oblast EC1045
+s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
+
+- B: a C: jsou mechaniky A a B řadiče FDC-1 se SA2 = 8" (8 MHz, MFM 500 kbit/s). V mechanice A je prázdná
+  3,5" HD (`media/fdc-1/prazdna_3.5HD_CPM.img`, E5h). Pro volbu 2 vložit `prazdna_5.25HD_CPM.img`.
+- **Ověřeno (test `test_fdc_ecmon`):** volba 1 i 2 nabootuje, `SAVE` na B: zapíše soubor, `STAT` hlásí 1412K
+  (3,5") nebo 1174K (5,25") volných, adresář je v obrazu na cylindru 1, hlavě 0, sektoru 1 (OFF 1).
+- Obrazy jsou v PC formátu (sektory za sebou: cylindr, hlava, sektor 1–18 nebo 1–15), dají se připravit i na PC.
+  Prázdnou disketu kteréhokoli formátu vyrobí okno Média (Nová disketa, výběr formátu).
+- Klávesnice Consul 262.3 s úpravou 7474: BIOS hlásí „CON: AND1Z + C262.3“, ROM má ovladač Consul 259.11 KOI8 CS2.
+
 ## Původ chyby ECBIM8
 
 Monitor `mon281211` (MFC-1A, 8" boot, 2011) má v `INIT_MFC` za SPECIFY také `LD C,0 ;disk 0` bez `RET`. Tam je
@@ -80,7 +95,5 @@ mechaniky D6 = 1, tedy podle překreslení EC1045, ne podle originálního sché
 
 ## Plán (schválený autorem 2026-10-05)
 
-1. Sestavy bootující CP/M z 8" diskety SAPIMANa: MFC-1A (`m1_281211_*`, EPROM `mon281211`), pak FDC-1
-   (`f1_*`, `mon130711`) a RPD-1 (`r1_*`). EPROM přeložit ze zdrojáků (`cpmrun`) a ověřit proti `.hex`.
-2. 3,5"/5,25" HD v PC formátu (MFM, 2 strany, 512 B) pro FDC-1 a MFC-1A a sestava EC1045 s původním ECMON_cd
-   (menu FDC8/FDC3/FDC5/HDD) a BIOSy `ECBIF3/F5` ze zdrojáků.
+1. ~~Sestavy bootující CP/M z 8" diskety SAPIMANa~~ (hotové, `cpm_boot_*.sapi`).
+2. ~~3,5"/5,25" HD v PC formátu pro FDC-1 a sestava EC1045~~ (hotové, `cpm_ec1045.sapi`). MFC-1A umí DD.
