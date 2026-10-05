@@ -1,7 +1,8 @@
 // FDC-1 and MFC-1A under the CP/M of the ZRMD-1 RAM disk (ECMON, BIOS variants 0 "FDC8" and
 // 2 "MFC8", machines/cpm_zrmd_fdc1.sapi and cpm_zrmd_mfc1a.sapi): B: is an 8" disk with
-// files (DIR), C: a formatted empty one (SAVE, the file reaches the image). MFC-1A with the
-// reset bit as in the schematic (reset_d5 = level) hangs in the BIOS initialization.
+// files (DIR), C: a formatted empty one (SAVE, the file reaches the image). The preset
+// MFC-1A is wired as the EC1045 redraw with the reset bit as a pulse; with the reset as in
+// the schematic (reset_mode = level, both wirings) the BIOS hangs in its initialization.
 #include "core/headless.h"
 #include "core/machine.h"
 #include "core/util.h"
@@ -9,7 +10,7 @@
 
 using nlohmann::json;
 
-static json machine(const char* file, const char* type, const char* reset_d5)
+static json machine(const char* file, const char* type, const char* wiring)
 {
     std::string text;
     CHECK(file_read_text(data_path(file), text));
@@ -28,7 +29,10 @@ static json machine(const char* file, const char* type, const char* reset_d5)
         if (t == type) {
             c["drive_a"] = { { "image", "work/test/ecmon_b.img" }, { "write_protect", false } };
             c["drive_b"] = { { "image", "work/test/ecmon_c.img" }, { "write_protect", false } };
-            if (reset_d5) c["reset_d5"] = reset_d5;
+            if (wiring) {
+                c["wiring"] = wiring;
+                c["reset_mode"] = "level";
+            }
         }
     }
     return cfg;
@@ -62,12 +66,12 @@ static void controller(const char* file, const char* type, const char* variant, 
     printf("%s\n", screen_text(m).c_str());
 }
 
-// reset_d5 = level: FFh written at the initialization holds the 8272 in reset, the BIOS waits
-static void mfc_level(void)
+// reset_mode = level: FFh written at the initialization holds the 8272 in reset, the BIOS waits
+static void mfc_level(const char* wiring)
 {
     Machine m;
     std::string err;
-    CHECK(m.load_json(machine("machines/cpm_zrmd_mfc1a.sapi", "MFC-1A", "level"), err));
+    CHECK(m.load_json(machine("machines/cpm_zrmd_mfc1a.sapi", "MFC-1A", wiring), err));
     m.type_text("2");
     CHECK(run_until_text(m, "B,C: MFC1", 5.0));
     CHECK(!run_until_text(m, "\nA>", 10.0));
@@ -78,6 +82,7 @@ int main(void)
     test_init();
     controller("machines/cpm_zrmd_fdc1.sapi", "FDC-1", "0", "B,C: FDC1");
     controller("machines/cpm_zrmd_mfc1a.sapi", "MFC-1A", "2", "B,C: MFC1");
-    mfc_level();
+    mfc_level("tesla");
+    mfc_level("ec1045");
     return TEST_RESULT();
 }

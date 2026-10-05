@@ -10,10 +10,18 @@ static const uint8_t Y_DMA = 0x01, Y_FDC = 0x02, Y_SEL = 0x04, Y_REG = 0x08;
 bool Mfc1a::configure(const json& cfg, std::string& err)
 {
     if (!configure_common(cfg, "roms/mfc-1a/MFC-1A_DD9_74S287.bin", "DD9", err)) return false;
-    std::string r;
-    if (!cfg_string(cfg, "reset_d5", r, "pulse", err)) return false;
+    std::string w, r;
+    if (!cfg_string(cfg, "wiring", w, "tesla", err)) return false;
+    if (w != "tesla" && w != "ec1045") {
+        err = "wiring must be tesla or ec1045";
+        return false;
+    }
+    tesla = w == "tesla";
+    reset_bit = tesla ? 0x10 : 0x20;
+    int_bit = tesla ? 0x20 : 0x10;
+    if (!cfg_string(cfg, "reset_mode", r, "level", err)) return false;
     if (r != "pulse" && r != "level") {
-        err = "reset_d5 must be pulse or level";
+        err = "reset_mode must be pulse or level";
         return false;
     }
     reset_level = r == "level";
@@ -23,13 +31,14 @@ bool Mfc1a::configure(const json& cfg, std::string& err)
 void Mfc1a::reset()
 {
     reset_chips();
-    reg = 0;
+    reg = 0;        // /RES clears DD11
+    dd23 = false;   // and through RES72 and DD23B also DD23A
 }
 
 int Mfc1a::irq_lines()
 {
     advance(bus->now);
-    return (reg & 0x10) && !fdc_in_reset && fdc.interrupt() ? IRQ_INT0 : 0;   // D4: DD12A
+    return (reg & int_bit) && !fdc_in_reset && fdc.interrupt() ? IRQ_INT0 : 0;   // DD12A
 }
 
 bool Mfc1a::io_read(uint8_t port, uint8_t& data)
@@ -63,15 +72,16 @@ bool Mfc1a::io_write(uint8_t port, uint8_t data)
     }
     if (!(y & Y_REG)) {
         advance(bus->now);   // the 8272 has worked with the old drive until now
-        bool rise = (data & 0x20) && !(reg & 0x20);
+        bool rise = (data & reset_bit) && !(reg & reset_bit);
         reg = data;
+        dd23 = (data & 0x40) != 0;
         if (reset_level) {
-            set_fdc_reset((reg & 0x20) != 0);   // D5: DD4B, RES72
+            set_fdc_reset((reg & reset_bit) != 0);   // RES72
+            if (reg & reset_bit) dd23 = false;       // DD23B clears DD23A
         } else if (rise) {
             set_fdc_reset(true);    // a reset pulse: the chip starts from idle
             set_fdc_reset(false);
         }
-        if (reset_level && (reg & 0x20)) reg &= (uint8_t)~0x40;   // DD23B clears DD23A (D6): no drive
         return true;
     }
     return true;
@@ -92,4 +102,5 @@ void Mfc1a::state(StateIO& io)
 {
     state_common(io);
     io.v(reg);
+    io.v(dd23);
 }

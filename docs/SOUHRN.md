@@ -21,9 +21,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   s CP/M 2.2/P 48K a 62K pro RPD-1 i FDC-1 (`machines/zps/ZPS-3_CPM*.sapi`, `docs/software/CPM_ZPS-3.md`).
   Podklady od autora: `..\SAPI-sestavy\ZPS-3\`, `..\SAPI-karty\FDC-1\`. Nové otázky na HW jsou v bodě 26.
 - **Hotové 2026-10-05 večer:** řadič **MFC-1A** (`docs/desky/MFC-1A.md`), sestavy `cpm_zrmd_fdc1.sapi` a
-  `cpm_zrmd_mfc1a.sapi` (ECMON varianty 0 a 2), test `test_fdc_ecmon`, celkem 27 testů. **Pozor:** D5 registru
-  0FH MFC-1A (reset 8272) je emulovaný jako pulz, ne podle schématu (BIOS ECBIM8 by se jinak zasekl, chybí mu
-  `RET` v `INIT_MFC`), bod 27 Nejasností.
+  `cpm_zrmd_mfc1a.sapi` (ECMON varianty 0 a 2), test `test_fdc_ecmon`, celkem 27 testů. Registr 0FH podle
+  originálního schématu Tesla (`..\SAPI_DOKU\MFC-1A\`); **překreslení EC1045 se od něj liší** (D4/D5 prohozené,
+  polarita D6), je jako volba `wiring = ec1045`. **Pozor:** sestava `cpm_zrmd_mfc1a.sapi` má `ec1045` a reset 8272
+  jako pulz, ne podle schématu (BIOS ECBIM8 by se jinak zasekl, chybí mu `RET` v `INIT_MFC`), bod 27 Nejasností.
 - **Možné další kroky (autor vybírá):**
   1. Seznam otázek k ověření na HW, sestavený po deskách z „Nejasností“ (body 1–25). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
@@ -409,10 +410,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Používá něco registr 0FH (motory, hlavy) a výběr 0EH D1 D0 kromě FORM6?
 
 27. **MFC-1A** (`docs/desky/MFC-1A.md`):
-    - D5 registru 0FH podle schématu drží 8272 v resetu. Fungoval BIOS ECBIM8 (ECMON varianta 2) s MFC-1A?
-      Autor neví, desku zatím nemá, plánuje repliku. Emulace: pulz (odchylka, parametr `reset_d5`). Oprava BIOSu:
-      `RET` za SPECIFY v `INIT_MFC`.
-    - Jaké mechaniky (5,25" s READY, nebo 8" Consul s uzemněným RDY X2-19)?
+    - Které zapojení registru 0FH mají vyrobené desky a podle kterého se staví replika? Originál Tesla: D4 reset,
+      D5 INT, D6 = 1 mechaniky vypnuté; překreslení EC1045: D4/D5 prohozené, D6 = 1 zapnuté.
+    - Bit resetu podle schématu drží 8272 v resetu. Fungoval BIOS ECBIM8 (ECMON varianta 2) s MFC-1A? Autor neví,
+      desku zatím nemá, plánuje repliku. Emulace v sestavě: `ec1045` + pulz (odchylka, parametry `wiring`,
+      `reset_mode`). Oprava BIOSu: `RET` za SPECIFY v `INIT_MFC` (`0E 00` → `C9 00`).
+    - RDYn (XP2-19) v příkladech připojení mechanik v návodu zapojený není. Jaké mechaniky se připojovaly?
 
 ## Jak pokračovat
 

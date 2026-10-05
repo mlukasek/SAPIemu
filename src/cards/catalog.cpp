@@ -479,10 +479,17 @@ static const ParamOption k_mfc1a_dec[] = {
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_mfc1a_res[] = {
-    { "\"pulse\"", "pulse on the rising edge (DEVIATION from the schematic, the BIOS ECBIM8 works)",
-      "pulz na náběžné hraně (ODCHYLKA od schématu, BIOS ECBIM8 funguje)" },
     { "\"level\"", "1 holds the reset (schematic; ECBIM8 hangs at its initialization)",
       "1 drží reset (schéma; ECBIM8 se při inicializaci zasekne)" },
+    { "\"pulse\"", "pulse on the rising edge (DEVIATION from the schematic, the BIOS ECBIM8 works)",
+      "pulz na náběžné hraně (ODCHYLKA od schématu, BIOS ECBIM8 funguje)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_mfc1a_wiring[] = {
+    { "\"tesla\"", "original Tesla schematic: D4 reset, D5 INT, D6 = 1 drives off",
+      "originální schéma Tesla: D4 reset, D5 INT, D6 = 1 mechaniky vypnuté" },
+    { "\"ec1045\"", "redraw EC1045 (replica): D5 reset, D4 INT, D6 = 1 drives on (BIOS ECBIM8)",
+      "překreslení EC1045 (replika): D5 reset, D4 INT, D6 = 1 mechaniky zapnuté (BIOS ECBIM8)" },
     { nullptr, nullptr, nullptr },
 };
 #define MFC1A_DRIVE(k, l, def)                                                                                           \
@@ -501,8 +508,10 @@ static const CardParam k_mfc1a[] = {
     { "rdy_ground", PK_BOOL, "X2-19 RDY grounded (8\" Consul 7113 have no READY); else READY from the drive (disk in)",
       "X2-19 RDY spojený se zemí (8\" Consul 7113 nemají READY); jinak READY z mechaniky (vložená disketa)", "false",
       nullptr, 0, 0 },
-    { "reset_d5", PK_CHOICE, "Register 0FH D5 (reset of the 8272)", "Registr 0FH D5 (reset 8272)", "\"pulse\"", k_mfc1a_res,
-      0, 0 },
+    { "wiring", PK_CHOICE, "Wiring of the drive register 0FH", "Zapojení registru mechanik 0FH", "\"tesla\"",
+      k_mfc1a_wiring, 0, 0 },
+    { "reset_mode", PK_CHOICE, "Register 0FH: the reset bit of the 8272", "Registr 0FH: bit resetu 8272", "\"level\"",
+      k_mfc1a_res, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 #undef MFC1A_DRIVE

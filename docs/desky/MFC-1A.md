@@ -4,27 +4,32 @@ Stav: **emulovaná** (typ `MFC-1A`, `src/cards/mfc1a.*`, společná část s FDC
 `src/chips/i8272.*`, `i8257.*`), ověřeno s CP/M ze ZRMD-1 (ECMON, varianta 2 „MFC8“, BIOS ECBIM8),
 sestava `machines/cpm_zrmd_mfc1a.sapi`, test `test_fdc_ecmon`.
 
-> **POZOR – odchylka emulace od schématu (důležité pro stavbu repliky):** bit **D5** registru 0FH („reset
-> 8272“) podle schématu drží 8272 v resetu, dokud je 1 (DD11 Q5 → DD4B OR s RES → RES72 → RESET 8272). BIOS
-> ECBIM8 ale při inicializaci zapíše do 0FH hodnotu FFh (rozbor níže) a s tím by čekal navěky. Emulace proto ve
-> výchozím nastavení (`reset_d5 = "pulse"`) D5 bere jen jako **pulz na náběžné hraně** a mechaniku nechá vybranou,
-> aby varianta 2 nabootovala. Chování podle schématu je `reset_d5 = "level"` (test ověřuje, že se pak BIOS
-> zasekne). Autor neví, jestli ECBIM8 s MFC-1A na skutečném stroji fungoval. Pro repliku doporučení: opravit
-> BIOS (chybějící RET, viz níže), zapojení desky neměnit.
+> **POZOR – důležité pro stavbu repliky:**
+> 1. **Překreslené schéma EC1045 (`MFC-1A_MP.pdf`, 2010) se v registru 0FH liší od originálního schématu
+>    Tesla** ve dvou místech: bity D4 a D5 jsou na vstupech DD11 prohozené (reset 8272 / povolení přerušení) a
+>    do dekodérů DD18, DD19 vede /Q místo Q obvodu DD23A (D6 = 1 mechaniky zapne místo vypne). Originál Tesla
+>    souhlasí s návodem i s programem `MFC1.ASM`, BIOS ECBIM8 počítá s polaritou D6 podle překreslení.
+> 2. **BIOS ECBIM8 má chybu:** v `INIT_MFC` chybí `RET`, takže při inicializaci zapíše do 0FH hodnotu FFh. Podle
+>    obou schémat tím drží 8272 v resetu a čeká navěky.
+> 3. Emulace umí obě zapojení (`wiring = tesla / ec1045`) a reset přesně podle schématu (`reset_mode = level`,
+>    výchozí). Sestava `cpm_zrmd_mfc1a.sapi` má **`ec1045` a reset jako pulz (`pulse`, odchylka od schématu)**,
+>    aby varianta 2 nabootovala (rozhodnutí autora, `docs/rozhodnuti.md`).
 
-## Podklady
+## Podklady (ověřovat z více zdrojů)
 
-- `..\SAPI-karty\MFC-1A\` (autor):
-  - `MFC-1A_MP.pdf`, `MFC-1A_MP_cb.pdf`, `MFC-1A_MP.png`: schéma rev. 1.0 překreslené EC1045.01 (6. 6. 2010),
-    Eagle `.sch`, `.brd` (binární Eagle 4/5), `MFC-1A_8_4.sch` (2015), destičky `redukce*` (redukce konektorů,
-    `doc\FRB_MFC_PC*.xls`: zapojení FRB na konektor mechanik PC);
-  - `soucastky.txt` (rozpiska Eagle), `doc\MFC_1A.xls`;
-  - `doc\ADRESOVY_DEKODER.BIN` (PROM DD9) a `doc\EPROM_FAZOVY_ZAVES.BIN` (PROM DD25, číslicový fázový závěs
-    datového separátoru);
-  - `doc\Snímek_004`–`016.jpg`: návod Tesla Liberec (obsah, základní údaje, blokové schéma, technické a provozní
-    údaje, popis funkce, instalace, programování), fotky desky a schémat `Schema001–003.jpg`.
-- Ovladač: BIOS EC1045 `ECBIM8.MAC` („OVLADAC MFC-1 V281211JB“, `..\SAPI-karty\FDC-1\sw\`), v systému na RAM disku
-  ZRMD-1 jako varianta 2 „B,C: MFC8“ menu ECMON.
+- **`..\SAPI_DOKU\MFC-1A\`** (aktuální kopie 2026-10-05, nejúplnější):
+  - `Snímek_004`–`027.jpg`: **celý návod Tesla Liberec** (TPTE 82-251/89). Strana návodu = číslo snímku − 3:
+    programování str. 12–14 (**registr 0FH str. 14** = `Snímek_017`), obsah PROM str. 15, konektor XP1 str. 16,
+    XP2 str. 17, připojení mechanik str. 18 (`Snímek_021`), dál rozložení součástek a rozpiska;
+  - `Schema001`–`003.jpg`: **sken originálního schématu Tesla** (DD11, DD23, DD18, DD19 na `Schema002/003`);
+  - `MFC1.ASM`: program „Práce s MFC-1A“ (19. 9. 2000, ORG 7000H, 5,25" DD 9 × 512 B, volá rutiny monitoru);
+  - `ADRESOVY_DEKODER.BIN`, `EPROM_FAZOVY_ZAVES.BIN`, `MFC-1A.ZIP`, fotky desky a spojů, `FRB_MFC_PC*.xls`
+    (redukce na konektor mechanik PC).
+- **`..\SAPI-karty\MFC-1A\`** (autor): překreslení EC1045.01 rev. 1.0 (6. 6. 2010): `MFC-1A_MP.pdf`, `_cb.pdf`,
+  `.png`, Eagle `.sch`/`.brd` (binární Eagle 4/5), `MFC-1A_8_4.sch` (2015), destičky `redukce*`, `soucastky.txt`,
+  `doc\MFC_1A.xls`, návod jen do str. 13.
+- Ovladač CP/M: BIOS EC1045 `ECBIM8.MAC` („OVLADAC MFC-1 V281211JB“, `..\SAPI-karty\FDC-1\sw\`), v systému na RAM
+  disku ZRMD-1 jako varianta 2 „B,C: MFC8“ menu ECMON (ne v ROM).
 
 ## Návod (Tesla Liberec, TPTE 82-251/89)
 
@@ -39,10 +44,10 @@ sestava `machines/cpm_zrmd_mfc1a.sapi`, test `test_fdc_ecmon`.
   datový separátor (stavový automat s PROM DD25, registrem DD24 a DD22), fázová prekompenzace (DD20 74LS175,
   multiplexer DD21 podle PS0, PS1), registr volby mechanik DD11 + DD23, dekodéry DD18, DD19 (74LS145) pro MO0–3
   a SEL0–3, budiče KC635 (VT2–VT8), vstupy tvarované 74LS14 (DD17).
-- **Signály DS0, DS1 z 8272 nejsou využité**, mechaniku vybírá registr.
+- **Signály DS0, DS1 z 8272 nejsou využité**, mechaniku vybírá registr 0FH.
 - Z kanálů 8257 se používá jen kanál 2, ostatní DRQ jsou uzemněné. HLDA je zpožděná o jednu periodu hodin
   (DD3A, B). Dekodér je při DMA blokovaný.
-- **Obsazení adres (standardní PROM):**
+- **Obsazení adres (standardní PROM DD9):**
 
 | Adresa | R/W | Význam |
 |---|---|---|
@@ -54,53 +59,66 @@ sestava `machines/cpm_zrmd_mfc1a.sapi`, test `test_fdc_ecmon`.
 | 0DH | R/W | datový registr 8272 |
 | 0FH | W | registr volby mechaniky |
 
+- **Registr 0FH podle návodu (str. 14):** D7 nevyužit, D6 „povolení činnosti mechaniky“ (rukou dopsáno „40H“),
+  D5 povolení přerušení od 8272, D4 reset 8272, D3 D2 číslo mechaniky pro signál MOTOR ON, D1 D0 číslo mechaniky
+  pro signál SELECT. Polaritu D6 návod neuvádí (podle originálního schématu a `MFC1.ASM` je aktivní v nule).
+- **Obsah PROM (str. 15):** tabulky DD9 a DD25 se shodují s dumpy `ADRESOVY_DEKODER.BIN` a `EPROM_FAZOVY_ZAVES.BIN`.
+- **XP1** (sběrnice, klíč C6, vidlice TY 517 4311 08, str. 16): standardní sběrnice SAPI, tabulka je částečně
+  doplněná rukou.
+- **XP2** (mechaniky, klíč A5, vidlice TY 513 3011 30, str. 17): sudé kolíky 2 HLn, 4 STEPn, 6 SEL0n, 8 RDn,
+  10 WEn, 12 WDn, 14 T00n, 16 WPn, 18 IDXn, 20 MO0n, 22 T43n, 24 SEL1n, 26 MO2n, 28 DIR, 30 MO3n; liché 1–17 a 29
+  zem, 19 RDYn (vstup „jednotka připravena“), 21 MO1n, 23 HD1n, 25 SEL2n, 27 SEL3n. Zapojení sudé řady je shodné
+  s výstupním konektorem X3 desky RPD-1B.
+- **Připojení mechanik (str. 18):** 5,25" DS/DD jako systémová mechanika A (SEL0n, MO0n, HD1n) a 8" Consul 7115
+  SS/SD jako přídavná mechanika D (SEL3n, T43n). Při využití HD1 (propojit 23-14) lze C 7115 použít pro DS/SD.
+  **V žádném příkladu není zapojený RDYn (XP2-19).**
 - Instalace: deska do libovolné pozice (kromě pozic RTI-1 a JPR-1x), kabel k mechanikám na **XP2**. Mechaniky
   zapínat před mikropočítačem, pokud nejsou napájené ze systémového zdroje.
 
-## Registr volby mechaniky 0FH (podle schématu `MFC-1A_MP.pdf`)
+## Registr volby mechaniky 0FH ve schématech
 
-Ve schématu je vpravo nahoře od 8272 (DD10): DD11 (74LS174), pod ním DD23A a DD23B (74LS74), nad ním DD4B
-(74LS32), DD12A (74LS08) je pod 8272 vlevo, DD4D (74LS32) pod ním, dekodéry DD18 a DD19 (74LS145) vpravo.
+Zápis: PROM DD9 výstup O4 (vývod 9, REGN) je aktivní pro port 0FH; DD4D (74LS32, vývody 12 IOWN, 13 REGN,
+výstup 11) dává WREG = /IOW OR /REG. WREG je hodiny DD11 (74LS174, vývod 9) a DD23A (74LS74, vývod 3), data se
+zapíšou náběžnou hranou na konci zápisu. /RES (RESN) nuluje DD11. V překreslení je DD11 vpravo nahoře od 8272
+(DD10), pod ním DD23A a DD23B, nad ním DD4B, DD12A pod 8272 vlevo, dekodéry DD18 a DD19 vpravo.
 
-- **Zápis:** PROM DD9 výstup O4 (vývod 9, REGN) je aktivní pro port 0FH. DD4D (vývody 12 IOWN, 13 REGN, výstup 11
-  WREG) dává WREG = /IOW OR /REG. WREG je hodiny DD11 (vývod 9) a DD23A (vývod 3), data se zapíšou náběžnou
-  hranou na konci zápisu. DD11 nuluje /RES (RESN, vývod 1).
-- **Vstupy DD11:** D0 → vývod 3 (D1), D1 → 4 (D2), D2 → 6 (D3), D3 → 11 (D4), **D5 → 13 (D5), D4 → 14 (D6)**
-  (bity 4 a 5 jsou na vstupech prohozené).
-
-| Bit | Obvod | Význam |
+| Bit | Originál Tesla (`Schema002/003.jpg`, návod) | Překreslení EC1045 (`MFC-1A_MP.pdf`) |
 |---|---|---|
-| D0, D1 | DD11 Q1, Q2 (vývody 2, 5) → DD19 | vybraná mechanika /SEL0–/SEL3; její READY, INDEX, TRACK 0, WP a data vidí 8272 |
-| D2, D3 | DD11 Q3, Q4 (vývody 7, 10) → DD18 | mechanika, které běží motor /MO0–/MO3 |
-| D4 | DD11 Q6 (vývod 15) → DD12A vývod 1 | povolení přerušení: INT (DD12A vývod 3 → TV1 → /INT0) = INT 8272 (vývod 18) AND Q6 |
-| D5 | DD11 Q5 (vývod 12) → DD4B vývod 4 | **reset 8272:** RES72 (DD4B vývod 6) = Q5 OR RES → RESET 8272 (vývod 1). Drží, dokud je 1 |
-| D6 | DD23A (D vývod 2, Q, /Q) → DD19 | povolení mechanik; bez něj DD19 nevybere žádnou |
-| D7 | – | nezapojený |
+| D0, D1 | DD11 vývody 3, 4 → Q1, Q2 → DD19 → SEL0n–SEL3n | stejně |
+| D2, D3 | vývody 6, 11 → Q3, Q4 → DD18 → MO0n–MO3n | stejně |
+| **D4** | vývod 13 → Q5 (12) → DD4B (OR s RES) → RES72 → **RESET 8272** (vývod 1) | vývod 14 → Q6 → DD12A → **povolení INT** |
+| **D5** | vývod 14 → Q6 (15) → DD12A (AND s INT 8272) → TV1 → INT0n: **povolení INT** | vývod 13 → Q5 → DD4B → RES72 → **RESET 8272** |
+| **D6** | DD23A **Q** → vstup C (vývod 4) DD18 i DD19: **D6 = 1 žádná mechanika ani motor** | DD23A **/Q** → dekodéry: **D6 = 1 mechaniky zapnuté** |
+| D7 | nezapojený | nezapojený |
 
 - **DD23B:** D (vývod 12) = RES72, hodiny RCLK (vývod 11), /Q (vývod 8) → CLR DD23A (vývod 1). Když je 8272
-  v resetu, s nejbližším RCLK se vynuluje DD23A, tedy zruší se výběr mechaniky (D6).
-- Komentáře v BIOSu ECBIM8 mají bity 4 a 5 prohozené („bit 5 povolení přerušení, bit 4 reset 8272“). Emulace se
-  řídí schématem.
+  v resetu, s nejbližším RCLK vynuluje DD23A. V originálu to znamená mechaniky zapnuté (Q = 0), v překreslení
+  vypnuté (/Q = 1 → C = 1).
+- 74145 se vstupem C = 1 vybere výstupy 4–7, které nejsou zapojené: žádná mechanika (DD19) ani motor (DD18).
+- **Komu které zapojení odpovídá:**
+  - Originál Tesla souhlasí s návodem (D4 reset, D5 INT) a s programem `MFC1.ASM`: ten pro práci zapisuje
+    motor | mechanika s D6 = 0 a na konci `DRVOF .EQU 40H ;konec prace s radicem` („vypni jednotku“).
+  - BIOS ECBIM8 má v komentářích D4/D5 podle návodu, ale pro práci nastavuje D6 = 1 (`SET 6,A`), tedy podle
+    překreslení. Na originální desce by ECBIM8 nevybral žádnou mechaniku ani po opravě `RET`.
 
 ## Co dělá BIOS ECBIM8 při inicializaci (proč se zasekne)
 
-BIOS CP/M (varianta 2 menu ECMON, zdroj `..\SAPI-karty\FDC-1\sw\ECBIM8.MAC`):
+BIOS CP/M (varianta 2 menu ECMON, zdroj `..\SAPI-karty\FDC-1\sw\ECBIM8.MAC`, na RAM disku ZRMD-1):
 
 1. `BOOT`: `LOG_DISK` = 0 (disk A: = RAM disk ZRMD-1), vypíše hlavičku a zavolá `INIT_MFC`.
 2. `INIT_MFC`: počká na RQM 8272 (`READY_BUSY`), pošle SPECIFY 03 7F 30. Pak je `LD C,0 ;disk 0` a **chybí
    `RET`**, takže pokračuje rovnou do `READ_MFC` (u FDC-1 v ECBIF8 je na tom místě `RET`).
 3. `READ_MFC` → `SEL_DIS_MFC`: číslo disku = `LOG_DISK − 1` = 0 − 1 = **FFh** (počítá s B: = 1), `SET 6,A`, a
-   `OUT (0FH),A` zapíše **FFh**: vybraná mechanika 3, motor 3, **D4 = 1 (přerušení), D5 = 1 (reset 8272)**, D6 = 1.
-   Další smyčka `DJNZ` s B = 0 proběhne 256× a čte bajt za tabulkou `STD_A` (druhá chyba).
-4. Podle schématu je teď 8272 v resetu (a DD23B zruší výběr mechaniky). `RECALIBR`/`READY_BUSY` čte MSR (0CH) a
-   čeká na RQM. Řadič v resetu RQM nedá (v emulátoru čte 00h), BIOS stojí navěky (E6CD–E6D2).
-5. Při normální práci BIOS zapisuje 40h + číslo mechaniky (D4 = D5 = 0), to je v pořádku.
+   `OUT (0FH),A` zapíše **FFh**: mechanika 3, motor 3, D4 = D5 = D6 = D7 = 1. Další smyčka `DJNZ` s B = 0
+   proběhne 256× a čte bajty za tabulkou `STD_A` (druhá chyba).
+4. V obou zapojeních je teď 8272 v resetu (D4 v originálu, D5 v překreslení). `RECALIBR`/`READY_BUSY` čte MSR
+   (0CH) a čeká na RQM. Řadič v resetu RQM nedá (v emulátoru čte 00h), BIOS stojí navěky (E6CD–E6D2).
+5. Při normální práci BIOS zapisuje 40h + číslo mechaniky (D4 = D5 = 0, D6 = 1).
 
-**Oprava BIOSu:** doplnit `RET` za SPECIFY v `INIT_MFC` (jako u ECBIF8). Pak FFh nikdy nezapíše a deska podle
-schématu funguje. Systém je na RAM disku ZRMD-1 (varianta 2), oprava znamená přeložit BIOS a zapsat ho na RAM disk.
-
-**Emulace (`reset_d5 = "pulse"`):** náběžná hrana D5 jen resetuje 8272 a mechanika zůstane vybraná. Inicializace
-pak zkusí číst z jednotky 3, bez diskety v ní (READY z mechaniky) to po třech pokusech vzdá a CP/M naběhne.
+**Oprava BIOSu:** doplnit `RET` za SPECIFY v `INIT_MFC` (jako u ECBIF8). V obrazu RAM disku ZRMD-1 je kód
+varianty 2 dvakrát (offsety 22574 a 243747); za SPECIFY stačí přepsat `0E 00` (`LD C,0`) na `C9 00` (`RET`, `NOP`).
+Registr C po návratu nevadí: `INIT_MFC` volá jen `BOOT`, ten pak volá `MCHECK`, který C nebere (ECBIF8 vrací C =
+30h stejně). Na originální desce Tesla by BIOS musel navíc pracovat s D6 = 0.
 
 ## PROM DD9 (dekodér portů)
 
@@ -113,19 +131,26 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
 ## Emulace
 
 - Stejný 8272 a 8257 jako u FDC-1 (`docs/desky/FDC-1.md`: povely, časování, přerušení, DMA a HOLD).
-- 8272 vidí mechaniku vybranou registrem 0FH (D6 a D1 D0), bez ohledu na US v povelu.
-- **READY:** parametr `rdy_ground`. Výchozí je ne: READY dává mechanika, když je v ní disketa (jako 5,25"
-  mechaniky). Ano = X2-19 uzemněný (8" Consul 7113 READY nemají); pak 8272 bez diskety čeká na index věčně, a
-  protože ECBIM8 při inicializaci čte z jednotky 3, sestava by bez diskety v D nenabootovala.
-- **Mechaniky:** 4 × 8" SS SD (IBM 3740, obrazy `.img` jako u RPD-1). Motory (D3 D2) a 5,25" mechaniky ani dvojitá
+- 8272 vidí mechaniku vybranou registrem 0FH (D1 D0, zapnutou podle D6 a zapojení), bez ohledu na US v povelu.
+- **Parametry:**
+  - `wiring`: `tesla` (výchozí, originální schéma a návod) / `ec1045` (překreslení, replika; BIOS ECBIM8);
+  - `reset_mode`: `level` (výchozí, schéma: bit resetu drží 8272 v resetu a DD23B vynuluje DD23A) / `pulse`
+    (**odchylka**: náběžná hrana bitu jen resetuje 8272 a D6 zůstane, jak byl zapsán);
+  - `rdy_ground`: výchozí ne = READY dává mechanika, když je v ní disketa (jako 5,25" mechaniky); ano = RDY
+    trvale aktivní (pak 8272 bez diskety čeká na index věčně a ECBIM8 by bez diskety v D nenabootoval);
+  - `drive_a`–`drive_d`, `working_copy`, `decoder` (PROM DD9).
+- **Sestava `cpm_zrmd_mfc1a.sapi`:** `wiring = ec1045`, `reset_mode = pulse`. Inicializace ECBIM8 pak zkusí číst
+  z jednotky 3, bez diskety v ní to po třech pokusech vzdá a CP/M naběhne. Test ověřuje i to, že s `reset_mode =
+  level` se BIOS v obou zapojeních zasekne.
+- **Mechaniky:** 4 × 8" SS SD (IBM 3740, obrazy `.img` jako u RPD-1). Motory (D3 D2), 5,25" mechaniky a dvojitá
   hustota (MFM, hodiny 4 MHz) se zatím neemulují.
-- Parametry: `drive_a`–`drive_d`, `working_copy`, `decoder` (PROM DD9), `rdy_ground`, `reset_d5` (`pulse` / `level`).
 - Okno Média ukazuje mechaniky A–D.
 
 ## Nejasnosti k ověření na HW
 
-- **D5 registru 0FH:** fungoval BIOS ECBIM8 s MFC-1A na skutečném stroji? Podle schématu by se zasekl (chybí
-  `RET` v `INIT_MFC`). Při stavbě repliky ověřit, jaké MSR 8272 vrací v resetu.
-- Které mechaniky se k MFC-1A připojovaly (5,25" s READY, nebo 8" Consul s uzemněným RDY X2-19)?
-- Strany návodu za „Programováním“ (obsah PROM, vstupy a výstupy, připojení mechanik, rozpiska) v podkladech
-  chybí.
+- **Které zapojení mají vyrobené desky Tesla a podle kterého je postavená replika** (D4/D5, Q nebo /Q z DD23A)?
+  Sken originálu a návod se s překreslením EC1045 neshodují. Při stavbě repliky doporučeno originál.
+- Fungoval BIOS ECBIM8 s MFC-1A na skutečném stroji? Podle obou schémat by se zasekl (chybí `RET` v `INIT_MFC`)
+  a na originálu by navíc D6 = 1 mechaniky vypínal. Jaké MSR vrací 8272 v resetu?
+- RDYn (XP2-19) není v příkladech připojení mechanik zapojený. Jakou úroveň pak vidí 8272 na RDY?
+- Které mechaniky se k MFC-1A u SAPI skutečně připojovaly (5,25" s READY, nebo 8" Consul)?

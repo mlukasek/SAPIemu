@@ -696,13 +696,19 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   okno Média. FDC-1 a MFC-1A se liší jen dekodérem, registry a tím, kdo vybírá mechaniku. Formát stavu FDC-1 se
   tím změnil (karta je z téhož dne, starší stavy s ní nejsou).
 - **MFC-1A:** porty podle dumpu PROM DD9, mechaniku vybírá registr 0FH (DS0/DS1 z 8272 nejsou zapojené).
-- **Bity registru 0FH podle schématu:** D4 = povolení přerušení (DD12A), D5 = reset 8272 (DD4B → RES72), D6 =
-  povolení mechanik (DD23A, DD23B ho při resetu nuluje). Komentáře v ECBIM8 mají D4 a D5 prohozené (zjištěno
-  ze schématu ve vysokém rozlišení, PyMuPDF).
-- **D5 registru 0FH jako pulz** (parametr `reset_d5`, výchozí `pulse`): podle schématu drží 8272 v resetu, ale
-  BIOS ECBIM8 (ECMON varianta 2) kvůli chybějícímu `RET` v `INIT_MFC` zapíše FFh a zasekl by se. Autor: emulovat
-  tak, aby varianta 2 bootovala, a **důrazně upozornit na rozdíl proti schématu** (důležité pro repliku).
-  `level` = schéma. V režimu pulse zůstane mechanika vybraná (jinak by BIOS čekal v RECALIBRATE).
+- **Registr 0FH podle originálu Tesla, překreslení EC1045 jako volba** (parametr `wiring`, výchozí `tesla`).
+  Původní verze (commit 48910b8) se řídila překreslením EC1045 (`MFC-1A_MP.pdf`). Sken originálního schématu
+  Tesla a celý návod (`..\SAPI_DOKU\MFC-1A\`) ale ukázaly, že překreslení se liší ve dvou místech:
+  - originál: D4 = reset 8272, D5 = povolení přerušení, DD23A Q do vstupu C dekodérů DD18 a DD19 (D6 = 1
+    mechaniky vypnuté); souhlasí s návodem (str. 14) i s `MFC1.ASM` (`DRVOF = 40H` „konec práce s řadičem“);
+  - překreslení: D4 a D5 prohozené, do dekodérů /Q (D6 = 1 mechaniky zapnuté); s tím počítá BIOS ECBIM8.
+  Originál má přednost (pravidlo: původní skeny před překreslením), `ec1045` zůstává kvůli replice a ECBIM8.
+- **Bit resetu 8272** (parametr `reset_mode`, výchozí `level` = schéma; nahradil `reset_d5`): BIOS ECBIM8 (ECMON
+  varianta 2) kvůli chybějícímu `RET` v `INIT_MFC` zapíše FFh, v obou zapojeních tím drží 8272 v resetu a zasekne
+  se. Autor: emulovat tak, aby varianta 2 bootovala, a **důrazně upozornit na rozdíl proti schématu** (důležité
+  pro repliku). Sestava `cpm_zrmd_mfc1a.sapi` proto má `wiring = ec1045` a `reset_mode = pulse` (odchylka:
+  náběžná hrana jen resetuje 8272 a D6 zůstane, jinak by BIOS čekal v RECALIBRATE). Výchozí hodnoty parametrů
+  jsou podle originálu, odchylku zapíná jen sestava.
 - **READY u MFC-1A z mechaniky** (výchozí `rdy_ground = false`): ECBIM8 při inicializaci čte z jednotky 3 a
   s uzemněným RDY by bez diskety čekal věčně.
 - Sestavy `cpm_zrmd_fdc1.sapi` a `cpm_zrmd_mfc1a.sapi` (B: = disketa CP/M 2.2/P jako data). Test `test_fdc_ecmon`

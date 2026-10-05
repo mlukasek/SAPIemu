@@ -51,7 +51,7 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
 |---|---|
 | 0 (FDC8) | BIOS ECBIF8 inicializuje řadič FDC-1 (8272, porty 0Ch/0Dh). Bez karty čte FFh a skončí na `HALT` (E6D0). **S FDC-1** (`cpm_zrmd_fdc1.sapi`) nabootuje, B: a C: jsou 8" diskety („B,C: FDC1; 8" SS,SD“). |
 | 1 (RPD8) | **Nabootuje až do `A>`**, `DIR` vypíše RAM disk. Hlásí „PMD32-SD nenalezen“. |
-| 2 (MFC8) | Bez karty jako 0, skončí na `HALT` při inicializaci řadiče. **S MFC-1A** (`cpm_zrmd_mfc1a.sapi`) nabootuje („B,C: MFC1; 8" SS,SD“), jen s D5 registru 0FH (reset 8272) jako pulz; BIOS ECBIM8 při inicializaci kvůli chybějícímu `RET` zapíše 0FH = FFh (`docs/desky/MFC-1A.md`). |
+| 2 (MFC8) | Bez karty jako 0, skončí na `HALT` při inicializaci řadiče. **S MFC-1A** (`cpm_zrmd_mfc1a.sapi`) nabootuje („B,C: MFC1; 8" SS,SD“), jen se zapojením podle překreslení EC1045 (D6 = 1 mechaniky zapnuté) a s bitem resetu 8272 jako pulz (odchylka); BIOS ECBIM8 při inicializaci kvůli chybějícímu `RET` zapíše 0FH = FFh (`docs/desky/MFC-1A.md`). |
 | 3 (HDD) | „INIT HDD“ chvíli hledá IDE disk, pak hlásí „INIT HDD - nenalezen!“ a nabootuje do `A>` (ověřil autor na GUI). |
 
 S IDE-1 a ROM `ECMON_2k_IDE-1` (sestava `machines/cpm_ide.sapi`) najde volba 3 PMD32-SD i IDE disk:

@@ -16,7 +16,10 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `..\SAPI-karty\AND-1Z-89`, …), pokud jsou na daném PC naklonované. Jde o desky, které nejsou na GitHubu, nové
   karty přibývají tamtéž. Repa z GitHubu (`..\MikroMon`, `..\ZPS-3`, `..\SAPI_DPI-1`…) jsou přímo vedle SAPIemu.
   Do 2026-10-05 byly i desky přímo vedle (`..\<deska>`), testy proto zkoušejí obě místa. Podklady k sestavám
-  (ROM, obrazy disket, které autor připravil) jsou v `..\SAPI-sestavy\<sestava>` (např. `ZPS-3`). Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`).
+  (ROM, obrazy disket, které autor připravil) jsou v `..\SAPI-sestavy\<sestava>` (např. `ZPS-3`). **Aktuální kopie
+  archivů (stažené 2026-10-05, používat přednostně před staršími na `H:`):** `..\SAPI_DOKU` (dokumentace SAPI_DOKU,
+  např. `MFC-1A` s celým návodem a originálními skeny schémat) a `..\SAPI.CZ` (záloha webu sapi.cz: `sapi`, `pdf`…).
+  Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`).
 - **Původní zadání:** `zadani.md`.
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
