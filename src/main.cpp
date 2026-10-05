@@ -42,8 +42,8 @@ static void print_help(void)
            "  --settings FILE    GUI: settings file instead of sapiemu-settings.json next to the exe\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
-           "                     --ui-map: the port and memory map, --ui-state FILE: load a saved state\n"
-           "                     first, --ui-size WxH: the window size)\n"
+           "                     --ui-map: the port and memory map, --ui-media: the Media window,\n"
+           "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"
@@ -187,6 +187,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-rack" && i + 1 < argc) { snap.rack = true; snap.rack_slot = atoi(argv[++i].c_str()); }
         else if (a == "--ui-open" && i + 1 < argc) snap.open = argv[++i];
         else if (a == "--ui-map") { snap.map = true; snap.rack = true; }
+        else if (a == "--ui-media") snap.media = true;
         else if (a == "--ui-state" && i + 1 < argc) snap.state = argv[++i];
         else if (a == "--ui-size" && i + 1 < argc) sscanf(argv[++i].c_str(), "%dx%d", &snap.w, &snap.h);
         else if (a == "--settings" && i + 1 < argc) settings_file = argv[++i];

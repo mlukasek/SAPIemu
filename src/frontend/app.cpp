@@ -881,6 +881,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     int snap_frames = 0;
     if (snap) {
         app.ui.show_rack = snap->rack || !snap->open.empty();
+        app.ui.show_media = snap->media;
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;
     }

@@ -433,6 +433,16 @@ static void bin_load_question(UiState& ui, Machine* m)
 static void draw_floppies(UiState& ui, Card* r)
 {
     ImGui::PushID(r);
+    const FloppyGeom* const* geoms = floppy_geoms();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("Format of a new disk"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 11);
+    if (ImGui::BeginCombo("##fmt", geoms[s_new_disk_fmt]->name)) {
+        for (int g = 0; geoms[g]; g++)
+            if (ImGui::Selectable(geoms[g]->name, g == s_new_disk_fmt)) s_new_disk_fmt = g;
+        ImGui::EndCombo();
+    }
     for (int i = 0; r->floppy_drive(i); i++) {
         FloppyDrive& d = *r->floppy_drive(i);
         ImGui::PushID(i);
@@ -448,15 +458,6 @@ static void draw_floppies(UiState& ui, Card* r)
         if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 4, r->name, i);
         ImGui::SameLine();
         if (ImGui::Button(tr("New disk..."))) tape_dialog(ui, 5, r->name, i);
-        ImGui::SameLine();
-        const FloppyGeom* const* geoms = floppy_geoms();
-        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 11);
-        if (ImGui::BeginCombo("##fmt", geoms[s_new_disk_fmt]->name)) {
-            for (int g = 0; geoms[g]; g++)
-                if (ImGui::Selectable(geoms[g]->name, g == s_new_disk_fmt)) s_new_disk_fmt = g;
-            ImGui::EndCombo();
-        }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Format of a new disk"));
         ImGui::SameLine();
         ImGui::BeginDisabled(!d.present());
         if (ImGui::Button(tr("Eject"))) r->floppy_eject(i);
@@ -477,7 +478,7 @@ void draw_media(UiState& ui)
     hex_load_question(ui, ui.host->machine());
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
-    ImGui::SetNextWindowSize(ImVec2(560, 300), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(760, 340), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr("Media"), &ui.show_media) || !m) {
         ImGui::End();
         return;

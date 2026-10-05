@@ -92,7 +92,8 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    `media/sapiman/` jako knihovna softwaru.
 4. **`cpmrun`:** malý test v ctestu (vlastní mini program `.COM`, M80 je od Microsoftu a do repa nepatří);
    zjistit, proč L80 s příkazem v příkazové řádce bere `/P:0` jako jméno souboru (z konzole funguje).
-5. **Okno Média:** ověřit vzhled výběru formátu nové diskety (`sapiemu --ui-snapshot`).
+5. ~~**Okno Média:** ověřit vzhled výběru formátu nové diskety~~ hotové 2026-10-05: výběr je jednou nad
+   mechanikami řadiče, snímek `sapiemu --ui-snapshot X.png --ui-media`.
 6. **Otázky na EC1045** (sekce výše): `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A.
 7. **Pracovní kopie autora** `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`: oprava `RET` v ECBIM8 (bajt 583Dh
    0Eh → C9h) jen se souhlasem autora; sestava `cpm_zrmd_mfc1a` má zatím vlastní opravený obraz `_fixMFC`.

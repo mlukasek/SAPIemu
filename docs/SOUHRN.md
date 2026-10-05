@@ -45,7 +45,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      c) sestavy s RAM diskem RMD-1 z bootovacích disket SAPIMANa (`m1_281211_rmd`, `f1_rmd1m_*`, `r1_rmd1m_*`)
         a další jeho 8" diskety (překladače, texty, zdrojáky) jako datové;
      d) `cpmrun`: malý test v ctestu (bez M80), proč L80 nebere `/P:0` z příkazové řádky;
-     e) ověřit vzhled okna Média s výběrem formátu nové diskety (`--ui-snapshot`);
+     e) ~~vzhled okna Média s výběrem formátu~~ hotové 2026-10-05 (výběr jednou nad mechanikami, `--ui-media`);
      f) otázky na EC1045 (Petr Všijanský): složka `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A;
      g) případně opravit `RET` v ECBIM8 i v autorově pracovní kopii RAM disku (`work/zrmd-1`, jen se souhlasem).
   0b. **Z archivu EC1045 v `..\SAPI_DOKU_FTP`** (2026-10-05, `docs/software/CPM_SAPIMAN.md`):
