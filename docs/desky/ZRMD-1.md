@@ -1,10 +1,10 @@
 # ZRMD-1 / ZRD-1V – zálohovaný RAM disk
 
 Zdroje:
-- `..\ZRMD-1\GAL\deport60.eqn`, `mem.eqn`, `porty.eqn`
-- `..\ZRMD-1\ZRMD-1.pdf`
+- `..\SAPI-karty\ZRMD-1\GAL\deport60.eqn`, `mem.eqn`, `porty.eqn`
+- `..\SAPI-karty\ZRMD-1\ZRMD-1.pdf`
 - `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\zrmd-1.php`
-- `..\ZRD-1V\DESCRIPTION`
+- `..\SAPI-karty\ZRD-1V\DESCRIPTION`
 
 ## ZRMD-1
 
@@ -66,7 +66,7 @@ Zdroje:
   - Jedna „stopa“ = 256 B: port 62/63 je stopa, port 61 bit 7 vybírá záznam.
 - **Adresář** začíná na 0x8000, blok n leží na `0x8000 + n*4096`.
 - **Systémová oblast** obsahuje zřejmě 4 kopie 8KB systému.
-- **Referenční obrazovka:** fotka `..\AND-1Z-89\Foto\*cpm-scr.jpg` ukazuje start „JPR-1Z 62K CP/M V2.2Z, A: ZRMD1/4MB BOOT SS256“.
+- **Referenční obrazovka:** fotka `..\SAPI-karty\AND-1Z-89\Foto\*cpm-scr.jpg` ukazuje start „JPR-1Z 62K CP/M V2.2Z, A: ZRMD1/4MB BOOT SS256“.
 
 ## Emulace
 
@@ -101,7 +101,7 @@ Zdroje:
 ## ZRD-1V – doplnění z rozboru 2026-10-04
 
 Zdroje:
-- `..\ZRD-1V\DESCRIPTION`, rozpiska, řetězce v binárním `ZRD-1V.sch` (PDF schéma chybí);
+- `..\SAPI-karty\ZRD-1V\DESCRIPTION`, rozpiska, řetězce v binárním `ZRD-1V.sch` (PDF schéma chybí);
 - https://www.pmd85.cz/?page_id=2245;
 - rev 2.0-alpha v `H:\SAPI-1\LiborLasota\ZRD-1V\ZRD-1V_2-0-alpha_2025-10-16\`.
 
@@ -123,7 +123,7 @@ Zdroje:
 - **Zálohování:** 2× alkalický článek AAA v držáku a vnější svorky +BAT/− (K2/K3) přes R2 100R. D1/D2 BAT41,
   dohled MAX808L. Web odhaduje výdrž přes 2 roky. Propojka S2: STDBY = napájení z +5V/S4 sběrnice, nebo NO
   STDBY.
-- **Schéma** `..\ZRD-1V\ZRD-1V.pdf` (rev 1.1, doplnil autor):
+- **Schéma** `..\SAPI-karty\ZRD-1V\ZRD-1V.pdf` (rev 1.1, doplnil autor):
   - **/RES nic nenuluje.** Čítače 74LS193 mají CLR na zemi, registry 374 nulování nemají, /RES jen vypne
     dekodér. Emulátor proto u ZRD-1V adresu po resetu ponechá.
   - Číst jde jen 60h. Čtení 61h–63h je dekódované, ale vnitřní sběrnici nic nebudí: vrací nedefinovanou
@@ -142,7 +142,7 @@ Zdroje:
 
 ## ZRD-1V rev 2.1 – zámek zápisu a měření baterie (schéma 2026-09-05)
 
-Zdroj: `..\ZRD-1V\ZRD-1V_rev20\` (`ZRD-1V.pdf` 3 listy, `schema1-3.png`, Eagle, `DESCRIPTION` rev 2.1). Proti 2.0
+Zdroj: `..\SAPI-karty\ZRD-1V\ZRD-1V_rev20\` (`ZRD-1V.pdf` 3 listy, `schema1-3.png`, Eagle, `DESCRIPTION` rev 2.1). Proti 2.0
 vypuštěno zálohování ze sběrnice signálem S4 a doplněny sériové odpory u 74AC138. Emulace: parametr
 `revision` (`2.1` výchozí, `1.1`), `battery_mv` (výchozí 3000, platí hned). Test `test_sapi1v` (`zrd_lock`).
 

@@ -1,6 +1,6 @@
 # MPH-1V – zvuková a joysticková karta (Libor Lasota)
 
-Podklady (mimo repo): `..\MPH-1V\`:
+Podklady (mimo repo): `..\SAPI-karty\MPH-1V\`:
 - **`Eagle\`: schéma hotové desky rev 1.0** (6. 9. 2025): `MPH-1V.pdf` (4 listy), `schema_MPH1V_1.png` až `_4.png`,
   `MPH-1V.sch`, `.brd` a `DESCRIPTION` („YM3812, i82C54, připojení 2× Atari JOY nebo JOY/MOUSE a blok řízení
   přerušení, báze 00h–F8h po 8, výchozí 50h“). Podle něj je emulace.
@@ -102,7 +102,7 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
 ## Nejasnosti
 
 - ~~Rozložení bitů STATUS/IEN/IACK, zdroj F1, IACK D2/D1, STATUS D2/D1, JOY D7/D6, oscilátor~~: vyřešeno
-  schématem hotové desky (`..\MPH-1V\Eagle`, 6. 9. 2025). Starší PNG z 10. 8. a PDF z 24. 8. byly rozpracované
+  schématem hotové desky (`..\SAPI-karty\MPH-1V\Eagle`, 6. 9. 2025). Starší PNG z 10. 8. a PDF z 24. 8. byly rozpracované
   verze.
 - /RST YM3812 se po /IRES uvolní o 8 taktů 224 kHz později (asi 36 µs). Emulace to nezdržuje. Program, který by
   hned po resetu zapisoval do YM, by se na desce choval jinak (zatím žádný takový neznáme).

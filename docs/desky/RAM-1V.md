@@ -4,7 +4,7 @@ Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/t
 Karta `RAM-1V` (`src/cards/ram1v.*`):
 - parametry pro všechny propojky S1–S6, osazení A/B a patici C (`none`, `sram`, `m48t35`);
 - RTC M48T35 na 7FF8–7FFF obvodu C je volitelné podle autora, čas bere z PC.
-- **Výchozí jako autorova deska** (fotka `..\RAM-1V\mRAM-1V rev. 1.1.jpg`, shodné s potiskem „ZPS-3/4 SETUP“
+- **Výchozí jako autorova deska** (fotka `..\SAPI-karty\RAM-1V\mRAM-1V rev. 1.1.jpg`, shodné s potiskem „ZPS-3/4 SETUP“
   na rev 1.2):
   - **registr MAP na portu 63h**, MAP1 = bit 6, MAP2 = bit 7, oba buzené. Je to stejný port a stejné bity
     jako u ZRMD-1, MikroMonovo `OUT 63h,3F` tedy dá MAP1 = MAP2 = 0.
@@ -15,9 +15,9 @@ Karta `RAM-1V` (`src/cards/ram1v.*`):
 - Při MAP1 = H je na C000–FFFF **CGA-1V** (autor), proto tam díra 16 KB.
 
 Zdroje:
-- schéma `..\RAM-1V\RAM-1V.pdf` (DPLA0059RAM rev 1.1, 07.04.2024);
-- popis `..\RAM-1V\Popis-RAM-1V-rev.-1.1.pdf`;
-- fotka `..\RAM-1V\Foto_moje\RAM-1V_front.jpg`;
+- schéma `..\SAPI-karty\RAM-1V\RAM-1V.pdf` (DPLA0059RAM rev 1.1, 07.04.2024);
+- popis `..\SAPI-karty\RAM-1V\Popis-RAM-1V-rev.-1.1.pdf`;
+- fotka `..\SAPI-karty\RAM-1V\Foto_moje\RAM-1V_front.jpg`;
 - https://www.pmd85.cz/?page_id=1993.
 
 **Bez PROM a GAL:** vše je logika 74LS a propojky, do `roms/` nic nepatří.

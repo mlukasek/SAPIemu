@@ -1,7 +1,7 @@
 #pragma once
 // MPH-1V rev 1.0 - sound and joystick card (Libor Lasota), see docs/desky/MPH-1V.md.
 //
-// From the schematic rev 1.0 of 2025-09-06 (..\MPH-1V\Eagle, sheets 1-4) and the parts list;
+// From the schematic rev 1.0 of 2025-09-06 (..\SAPI-karty\MPH-1V\Eagle, sheets 1-4) and the parts list;
 // MPH-test 0.99, SPLAY, RAT PLAYER and y1stdemo use the same bits.
 // - 8 ports from the base set by S1 (74LS688 on A3-A7):
 //   +0..+2 8253 counters, +3 read STATUS / write the 8253 control word,

@@ -1,6 +1,6 @@
 # CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)
 
-Podklady (mimo repo): `..\CGA-1V\` – `CGA-1V_datasheet.pdf` (16 stran, registry jen jako obrázky na str. 6–7),
+Podklady (mimo repo): `..\SAPI-karty\CGA-1V\` – `CGA-1V_datasheet.pdf` (16 stran, registry jen jako obrázky na str. 6–7),
 `schema\cga1v11(3).zip` (7 listů PNG, rev 1.1), `foto\cga1v_timing.png` (časové průběhy), fotka desky
 `mCGA-1V rev. 1.1.jpg`, programy v `sw\` (Intel HEX, CP/M `.COM` od 0100h). Kopie programů jsou
 v `media/cga-1v/`.
@@ -115,7 +115,7 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 ## Nejasnosti k ověření
 
-- `..\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
+- `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
   to omylem, nebo k jiné desce?
 - Přesné číslo čekacích taktů (synchronizace IC7A/B, IC9B) při 2 a 4 MHz.
 - Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).

@@ -16,8 +16,8 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
 - **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z), viz „Na promyšlení“ v SOUHRN.
 
 Zdroje:
-- [S1] schéma `..\JPR-1V\JPR-1V.pdf` (rev 1.1, 4 listy);
-- [S2] `..\JPR-1V\DESCRIPTION`;
+- [S1] schéma `..\SAPI-karty\JPR-1V\JPR-1V.pdf` (rev 1.1, 4 listy);
+- [S2] `..\SAPI-karty\JPR-1V\DESCRIPTION`;
 - [S3] monitor `H:\SAPI-1\LiborLasota\JPR-1V\@orig\JPR-1V_monitor.zip` (mimo GIT);
 - [S4] https://www.pmd85.cz/?page_id=2120.
 

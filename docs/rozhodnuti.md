@@ -419,7 +419,7 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   - DSM-1V má dva sériové kanály a nemá kazetu;
   - ZRD-1V se zálohuje tužkovými články AAA, nemá RTC ani mapování.
 - Na deskách V běží stejný systém jako se ZRMD-1 (ECMON, CP/M z RAM disku) a funguje s nimi boot ROM i IDE-1.
-- Informace: podklady v `..\JPR-1V`, `..\RAM-1V`, `..\AND-1V`, `..\DSM-1V`, `..\ZRD-1V` a
+- Informace: podklady v `..\SAPI-karty\JPR-1V`, `..\SAPI-karty\RAM-1V`, `..\SAPI-karty\AND-1V`, `..\SAPI-karty\DSM-1V`, `..\SAPI-karty\ZRD-1V` a
   https://www.pmd85.cz/?page_id=292. Další doplní autor.
 
 ## 2026-10-04 – Desky V: odpovědi autora
@@ -615,7 +615,7 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   110. Jádro běží na nativních 49716 Hz, převzorkování dělá SDL.
 - **Bity registrů nejdřív podle programů:** dostupná PNG a PDF byla rozpracovaná, MPH-test 0.99 a SPLAY, RAT,
   y1stdemo se shodovaly na STATUS `F2 F1 T2 T1 T0 0 0 YM`, IEN `F2 F1 G2 G1 G0 – – YM`, IACK `F2 F1`. Schéma hotové
-  desky (`..\MPH-1V\Eagle`, 6. 9. 2025) to potvrdilo včetně F1 z OUT1.
+  desky (`..\SAPI-karty\MPH-1V\Eagle`, 6. 9. 2025) to potvrdilo včetně F1 z OUT1.
 - **Časovač 82C54** (kusovník CP82C54-10): třída `I8253` má přepínač `is_8254` pro read-back a stavový bajt.
   8253 na jiných deskách zůstává bez read-back (tam je SC = 11 neplatné).
 - **Čas:** 8253 a YM odvozují takty od bázového času sběrnice (14,31818 MHz, zbytek se přenáší). Karta dohání
@@ -689,3 +689,13 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   `Bus::audio`. Zvuk je tak pro přehrávání, WAV i MCP stejný, ať zní MPH-1V, bzučák, nebo obojí.
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
+
+## 2026-10-06 – Podklady desek ve složce SAPI-karty
+
+- **Autor přesunul složky desek, které nejsou na GitHubu,** z `E:\SAPI_GIT\<deska>` do
+  `E:\SAPI_GIT\SAPI-karty\<deska>`: EKL-1, ZRMD-1, AND-1Z-89, IDE-1, DMR-1, JPR-1ZI, PMD32-SD, RAM-1Z, DSM-1,
+  ARB-1C_8slot, JPR-1V, DSM-1V, AND-1V, RAM-1V, CGA-1V, DGD-1V, ZRD-1V, MPH-1V. Nové karty přibývají tamtéž.
+- Repa z GitHubu (MikroMon, ZPS-3, SAPI_DPI-1, SAPI_DPI-1L, SAPI_DTR-1…) zůstávají přímo v `E:\SAPI_GIT`.
+- Odkazy v `docs/`, `media/`, `roms/`, `CLAUDE.md` a v komentářích kódu jsou teď `..\SAPI-karty\<deska>`.
+- `test_mph1v` hledá hudbu (SPLAY, RAT PLAYER) nejdřív v `..\SAPI-karty\MPH-1V`, pak ve starém `..\MPH-1V`, aby
+  fungoval i na PC, kde ještě je staré rozložení.

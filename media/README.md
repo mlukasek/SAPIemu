@@ -5,7 +5,7 @@ v `.gitignore`, a pracuje jen s kopiemi. Originál se změní pouze tehdy, když
 
 ## `pmd32sd/` – obsah SD karty PMD32-SD
 
-Zdroj: `..\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
+Zdroj: `..\SAPI-karty\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
 
 | Soubor | Formát | Obsah |
 |---|---|---|
@@ -22,7 +22,7 @@ Zdroj: `..\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
 
 ## `zrmd-1/` – obsah RAM disku ZRMD-1
 
-Zdroj: `..\ZRMD-1\SW`.
+Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 
 - `SAPI_CPM_Martin_2019-10-07.bin`: celý obsah 4 MB RAM disku.
   - Offset v souboru = `(port63 & 3F) << 16 | port62 << 8 | port61`.
@@ -52,7 +52,7 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 
 ## `cga-1v/` – programy pro CGA-1V (Intel HEX, CP/M `.COM` od 0100h)
 
-Zdroj: `..\CGA-1V\sw\` (Libor Lasota). V CP/M sestavy V:
+Zdroj: `..\SAPI-karty\CGA-1V\sw\` (Libor Lasota). V CP/M sestavy V:
 1. nahrát HEX (Soubor → Nahrát program do paměti, MCP `load_hex`);
 2. uložit `SAVE n JMENO.COM`;
 3. spustit.
@@ -66,8 +66,8 @@ Zdroj: `..\CGA-1V\sw\` (Libor Lasota). V CP/M sestavy V:
 
 ## `mph-1v/` – programy pro zvukovou kartu MPH-1V (Intel HEX, CP/M `.COM` od 0100h)
 
-Zdroj: `..\MPH-1V\` (Libor Lasota), do repa se souhlasem autora. Hudba (VGM v `SPLAY\*.hex`, RAD
-v `RATplayer\*.rad`) v repu není, testy ji berou z `..\MPH-1V`, pokud tam je. Postup v CP/M sestavy V
+Zdroj: `..\SAPI-karty\MPH-1V\` (Libor Lasota), do repa se souhlasem autora. Hudba (VGM v `SPLAY\*.hex`, RAD
+v `RATplayer\*.rad`) v repu není, testy ji berou z `..\SAPI-karty\MPH-1V`, pokud tam je. Postup v CP/M sestavy V
 (`sapi1v.sapi`, karta na 50h) je stejný jako u CGA-1V: nahrát HEX, `SAVE n JMENO.COM`, spustit.
 
 | Soubor | Program | `SAVE` |
@@ -77,7 +77,7 @@ v `RATplayer\*.rad`) v repu není, testy ji berou z `..\MPH-1V`, pokud tam je. P
 | `rat_0_99_93.txt` | RAT PLAYER 0.99.93, přehrávač RAD v1 (`RAT SMJOOP.RAD`) | 18 |
 | `y1stdemo_2025_10_26.hex` | y1stdemo (2025-10-26), hudební demo | 154 |
 
-Skladby pro SPLAY (`..\MPH-1V\SPLAY\*.hex`, také od 0100h): `SAVE 17 BUBBLE.VGM`, `SAVE 33 BIRDIE.VGM`,
+Skladby pro SPLAY (`..\SAPI-karty\MPH-1V\SPLAY\*.hex`, také od 0100h): `SAVE 17 BUBBLE.VGM`, `SAVE 33 BIRDIE.VGM`,
 `SAVE 47 DEMON.VGM`, `SAVE 46 DINOISLE.VGM`, `SAVE 109 FURY.VGM`, `SAVE 28 HELLFIRE.VGM`,
 `SAVE 152 MONKISLA.VGM`, `SAVE 75 OLMANG.VGM`, `SAVE 54 SUPAPLEX.VGM`, `SAVE 180 TYRIAN.VGM`,
 `SAVE 22 VIMANA.VGM`. Soubor RAD se nahraje binárně od 0100h (GUI Soubor → Nahrát binární soubor do paměti…,

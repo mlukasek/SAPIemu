@@ -62,7 +62,7 @@ Michal Medek), repo zůstává neveřejné, dokud to neodsouhlasí. Pak:
 - `test_state` ověří u každé sestavy z `machines/`, že běh z načteného stavu je bajt po bajtu stejný jako
   původní. **Nová karta musí mít `state()`**, jinak to test pozná.
 
-**Hotové: ZRD-1V rev 2.1** podle nového schématu (`..\ZRD-1V\ZRD-1V_rev20`): parametr `revision` (2.1 / 1.1).
+**Hotové: ZRD-1V rev 2.1** podle nového schématu (`..\SAPI-karty\ZRD-1V\ZRD-1V_rev20`): parametr `revision` (2.1 / 1.1).
 - Zámek zápisu: zápis na 60h jen do 20 ms po přístupu na 62h, jinak se karta zamkne do resetu (tak ji zamyká
   MikroMon).
 - LED podle desky: ZAM červená = zamčeno, DSK zelená = přístup.
@@ -75,10 +75,10 @@ Michal Medek), repo zůstává neveřejné, dokud to neodsouhlasí. Pak:
 - YM3812 na jádru Nuked-OPL3 (third_party, LGPL) s časovači a stavem OPL2 a bitem WSE, 8253 (režimy 0–5,
   kaskáda), výstupní filtr karty. Zvuk v GUI (Stroj → Zvuk a joystick, jen při 100 %), joystick z gamepadu
   a volitelně šipky + mezerník, `sapiemu-cli --audio-wav`, MCP `audio_record` a `joystick`.
-- Podle **schématu hotové desky** (`..\MPH-1V\Eagle`, 6. 9. 2025, autor ho sehnal později): souhlasí s tím,
+- Podle **schématu hotové desky** (`..\SAPI-karty\MPH-1V\Eagle`, 6. 9. 2025, autor ho sehnal později): souhlasí s tím,
   co emulace dělala podle MPH-test 0.99 (STATUS `F2 F1 T2 T1 T0 0 0 YM`, F1 z OUT1). Časovač je **82C54**
   (kusovník), emulace umí jeho read-back. SPLAY, RAT PLAYER, y1stdemo i MPH-test fungují.
-- Programy v `media/mph-1v/`, hudba (VGM, RAD) v repu není, test ji bere z `..\MPH-1V`.
+- Programy v `media/mph-1v/`, hudba (VGM, RAD) v repu není, test ji bere z `..\SAPI-karty\MPH-1V`.
 - Soubor → Nahrát binární soubor do paměti… (adresa, velikost, počet stránek pro `SAVE`), `sapiemu-cli --load-bin`.
 - **Myš** na K2 (výchozí, Atari ST nebo Amiga), konektory K4/K2 jako parametry karty (nic / joystick / myš, platí
   hned), dva gamepady. GUI myš zachytí kliknutím do okna obrazovky po zapnutí v menu (výchozí vypnuto), prostřední tlačítko /
@@ -252,7 +252,7 @@ Dřív hotové fáze:
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
-| F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
+| F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -336,8 +336,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       neobsloužené klávesy. Mohl to být i software. Zatím nevyhodnocovat, potřebuje to víc testování.
 
 **Odpovědi autora k deskám V (2026-10-04)**, platí pro body 21 a 22:
-- Do složek s podklady (`..\JPR-1V` atd.) doplnil **fotky hotových desek s výchozími propojkami** a do
-  `..\ZRD-1V` **PDF schématu**.
+- Do složek s podklady (`..\SAPI-karty\JPR-1V` atd.) doplnil **fotky hotových desek s výchozími propojkami** a do
+  `..\SAPI-karty\ZRD-1V` **PDF schématu**.
 - **JPR-1V:** 28C64 nemá, programuje si ho dynamicky (PicoROM). Rozhodnutí: **banka 0 = MikroBIOS 3.0,
   banka 1 = ECMON IDE-1**.
 - **AND-1V:** rev 2.3, font neví. U něj je nastavená na **MAP1 = L** kvůli CGA-1V (deska přijde později).
@@ -373,11 +373,11 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       kolizi, bude potřeba výjimka.
 
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
-    - `..\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
+    - `..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
     - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
-24. ~~**MPH-1V**~~: vyřešeno schématem hotové desky (`..\MPH-1V\Eagle`), viz `docs/desky/MPH-1V.md`.
+24. ~~**MPH-1V**~~: vyřešeno schématem hotové desky (`..\SAPI-karty\MPH-1V\Eagle`), viz `docs/desky/MPH-1V.md`.
 
 25. **Bzučák** (`docs/desky/klavesnice.md`):
     - Mají Consul 262.3 a 259.11 bzučák na X2 pin 14 (P0-OUT1)? Emulace předpokládá stejný jako EKL-1.
@@ -399,10 +399,10 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
    a otázky pro autora se zapíšou do `docs/desky/JPR-1V.md`, `RAM-1V.md`, `AND-1V.md`, `DSM-1V.md` a
    `ZRMD-1.md` (ZRD-1V). ZPS-1 až ZPS-4 běží (2026-10-04).
    - Pokud se rozbor ztratí, zopakovat ho:
-     - schémata `..\JPR-1V\JPR-1V.pdf`, `..\AND-1V\AND-1V_sch.pdf` (+ `rev2.3\Popis-AND-1V-rev.-2.3.pdf`,
-       `FontROM\`), `..\RAM-1V\RAM-1V.pdf` (+ `Popis-RAM-1V-rev.-1.1.pdf`), `..\DSM-1V\DSM-1V.pdf` (+ xlsx
+     - schémata `..\SAPI-karty\JPR-1V\JPR-1V.pdf`, `..\SAPI-karty\AND-1V\AND-1V_sch.pdf` (+ `rev2.3\Popis-AND-1V-rev.-2.3.pdf`,
+       `FontROM\`), `..\SAPI-karty\RAM-1V\RAM-1V.pdf` (+ `Popis-RAM-1V-rev.-1.1.pdf`), `..\SAPI-karty\DSM-1V\DSM-1V.pdf` (+ xlsx
        s rychlostmi);
-     - `..\ZRD-1V\DESCRIPTION` (PDF chybí, Eagle je binární);
+     - `..\SAPI-karty\ZRD-1V\DESCRIPTION` (PDF chybí, Eagle je binární);
      - stránka https://www.pmd85.cz/?page_id=292.
    - Porovnat s emulovanými JPR-1ZI/1Z, AND-1Z-89, RAM-1/1A, DSM-1 a ZRMD-1. Výsledek a otázky zapsat do
      `docs/desky/`.

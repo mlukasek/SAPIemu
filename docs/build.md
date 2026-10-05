@@ -83,7 +83,7 @@ sapiemu-cli --machine machines/zps/ZPS-2_MIKOS_V5.sapi --run-ms 1000 --load-hex 
     --type B --run-ms 2000 --type "CLSG:MOVE 0,0:PLOT 319,239\r" --run-ms 3000 --display DGD-1 --screenshot grafika.png
 sapiemu-cli --machine machines/sapi1v.sapi --wait-text "Zadej 0-3" --type 1 --wait-text "A>" \
     --load-hex media/mph-1v/splay.hex --type "SAVE 4 SPLAY.COM\r" --run-ms 1500 \
-    --load-hex ../MPH-1V/SPLAY/hellfire.hex --type "SAVE 28 HELLFIRE.VGM\r" --run-ms 1500 \
+    --load-hex ../SAPI-karty/MPH-1V/SPLAY/hellfire.hex --type "SAVE 28 HELLFIRE.VGM\r" --run-ms 1500 \
     --audio-wav hellfire.wav --type "SPLAY HELLFIRE.VGM\r" --run-ms 30000
 ```
 

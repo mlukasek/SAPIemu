@@ -1,6 +1,6 @@
 # DGD-1V – grafický displej 320×240 s výstupem VGA (Libor Lasota)
 
-Podklady (mimo repo, `..\DGD-1V\`): popis `Popis-DGD-1V-rev.-1.1.pdf` (specifikace, mapa videoram, propojky S1
+Podklady (mimo repo, `..\SAPI-karty\DGD-1V\`): popis `Popis-DGD-1V-rev.-1.1.pdf` (specifikace, mapa videoram, propojky S1
 a S2, schéma, rozpiska), schéma `DGD-1V\schema1–6.png` (DPLA0048DGD rev 1.0), fotky autorovy desky
 `Foto_moje\DGD-1V_Martin_*.jpg`, testovací program `TEST.BAS` a jeho výstup `DGD-1V_Martin_SCR.jpg`.
 

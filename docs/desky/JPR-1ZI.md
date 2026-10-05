@@ -2,7 +2,7 @@
 
 Zdroje:
 - `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\jpr-1z.php` (manuál Tesla včetně obsahu PROM a zapojení X1–X3) a `jpr-1zi.php`
-- `..\JPR-1ZI\JPR-1ZI.pdf`, `JPR-1ZI_BOM.xlsx`
+- `..\SAPI-karty\JPR-1ZI\JPR-1ZI.pdf`, `JPR-1ZI_BOM.xlsx`
 - PROM dumpy v `roms/jpr-1zi/`
 
 ## Obvody
@@ -96,7 +96,7 @@ Dekodér D6B (`JPR-1ZI_D6B.bin`: bajty 07, 0B, 0D, 0E pro adresy 0–3, jinde 0F
 
 ## JPR-1V (modernější reinkarnace)
 
-Zdroje: `..\JPR-1V\DESCRIPTION`, `schema\*.png`.
+Zdroje: `..\SAPI-karty\JPR-1V\DESCRIPTION`, `schema\*.png`.
 
 - **Hodiny:** oscilátor 8 MHz a 74HCT175. Jumper TURBO přepíná CPU mezi 2 a 4 MHz. Že sběrnice zůstává na 2 MHz, je jen odvozeno z popisu.
 - **Reset:** MCP100.

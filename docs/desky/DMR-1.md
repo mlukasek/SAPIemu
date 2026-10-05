@@ -3,7 +3,7 @@
 DMR-1 vznikla sloučením a zjednodušením desek [DSM-1](DSM-1.md) a [RAM-1Z](RAM-1Z.md).
 
 Zdroje:
-- `..\DMR-1\DMR-1_sch.pdf`
+- `..\SAPI-karty\DMR-1\DMR-1_sch.pdf`
 - `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\dmr-1a.php`
 - `roms/dmr-1/DMR-1_D2C.bin`
 

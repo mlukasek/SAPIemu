@@ -3,7 +3,7 @@
 V emulátoru se implementuje **protokol na úrovni 8255 desky IDE-1**, ne vnitřek s ATmega.
 
 Zdroje:
-- firmware v3.2 (26. 2. 2012, Roman Bórik): `..\PMD32-SD\Firmware\pmd32sd-v32-src\pmd32sd-v32\src\pmd32.c`, `pmd32.h`, `config.c`, `timer.c`
+- firmware v3.2 (26. 2. 2012, Roman Bórik): `..\SAPI-karty\PMD32-SD\Firmware\pmd32sd-v32-src\pmd32sd-v32\src\pmd32.c`, `pmd32.h`, `config.c`, `timer.c`
 - popis protokolu: `...\pmd32-protokol.txt`
 - ovladač pro PMD-85: `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\Borik\pmd32sd-doc\pmd85-3_pmd32.asm`
 - ovladač pro SAPI: P3112C.MAC od řádku 799 (je uvnitř obrazu disku, viz [IDE-1.md](IDE-1.md))

@@ -1,7 +1,7 @@
 # IDE-1 – IDE disk + připojení PMD32-SD
 
 Zdroje:
-- `..\IDE-1\IDE-1_M_u_SCH.pdf` (rev 2.1, 13.10.2019), `IDE-1_M_u_BOM.xlsx`, `IDE-1_jumpers.xlsx`, `SAPI_IDE_pokusy.txt`
+- `..\SAPI-karty\IDE-1\IDE-1_M_u_SCH.pdf` (rev 2.1, 13.10.2019), `IDE-1_M_u_BOM.xlsx`, `IDE-1_jumpers.xlsx`, `SAPI_IDE_pokusy.txt`
 - `H:\SAPI-1\IDE-1\IDE_POPIS.TXT`
 
 Nejlepší zdroje jsou ale zdrojové kódy uvnitř obrazů disků v SD dumpu `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\`:

@@ -5,7 +5,7 @@ Karta `AND-1V` (`src/cards/and1v.*`), rev 2.3:
 - parametry `base`, `map` (`always`, `map1_h`, `map1_l`, `never`), `color` (propojky S1: white, green, amber, red,
   blue, cyan, yellow, magenta; mění se i za běhu přes Zobrazení → Barva, viz `docs/sestavy.md`), `font`;
 - čekací stavy se neemulují.
-- **Výchozí jako autorova deska** (fotka `..\AND-1V\mAND-1V rev. 2.3.jpg`, autor): F800, **MAP1 = L** (kvůli
+- **Výchozí jako autorova deska** (fotka `..\SAPI-karty\AND-1V\mAND-1V rev. 2.3.jpg`, autor): F800, **MAP1 = L** (kvůli
   budoucí CGA-1V). Barvu si každý nastaví podle sebe (autor), výchozí je bílá, sestava V má jantarovou
   (autor). Font vypálený
   v desce autor neví, výchozí je typ 1.
@@ -13,8 +13,8 @@ Karta `AND-1V` (`src/cards/and1v.*`), rev 2.3:
 Zdroje:
 - [S5] https://www.pmd85.cz/?page_id=1924 (rev 2.x);
 - [S6] https://www.pmd85.cz/?page_id=1765 (rev 1.x);
-- [S7] `..\AND-1V\rev2.3\Popis-AND-1V-rev.-2.3.pdf` (strany 6–12 = schéma rev 2.3, listy 1/7–7/7);
-- [S8] `..\AND-1V\AND-1V_sch.pdf` = **rev 1.1** (2022), `AND-1V_BOM.csv` je také rev 1.1 (15,36 MHz, 28C64,
+- [S7] `..\SAPI-karty\AND-1V\rev2.3\Popis-AND-1V-rev.-2.3.pdf` (strany 6–12 = schéma rev 2.3, listy 1/7–7/7);
+- [S8] `..\SAPI-karty\AND-1V\AND-1V_sch.pdf` = **rev 1.1** (2022), `AND-1V_BOM.csv` je také rev 1.1 (15,36 MHz, 28C64,
   6116).
 
 ## Rev 2.3 (aktuální)
@@ -59,7 +59,7 @@ Zdroje:
 - Dekódování: S2 pin 14 = MAP1, pin 12 = GND, legenda „MAP1 IGNORE / MAP1=H / MAP1=L / DISABLE“ [S8 list 4].
 - 28C64: A0–A3 = řádek, A4–A11 = kód, **A12 = sada fontu z S1 9-10**. 16 B na znak (řádky 0–5 a 8–13), body
   D7 (vlevo) až D2, stejně jako AND-1Z.
-- Dvě sady po 256 znacích: `..\AND-1V\FontROM\FontAND1V.bmp.bin` (alternativní a standardní).
+- Dvě sady po 256 znacích: `..\SAPI-karty\AND-1V\FontROM\FontAND1V.bmp.bin` (alternativní a standardní).
 
 ## Plán emulace
 
@@ -69,7 +69,7 @@ Zdroje:
   - vykreslení 640×480 (rev 2) nebo 384×480 zdvojeně (rev 1), VRAM 32 řádků;
   - čekání jako u AND-1Z, ale bez čekání při I/O.
 - **Soubory do `roms/and-1v/`:**
-  - z `..\AND-1V\rev2.3\font_and1v22\`: `font_and1v22_1024.bin` (typ 1), `newfont_and1v22_1024.bin` (typ 2),
+  - z `..\SAPI-karty\AND-1V\rev2.3\font_and1v22\`: `font_and1v22_1024.bin` (typ 1), `newfont_and1v22_1024.bin` (typ 2),
     `font_and1v22_1012.bin` (rev 2.1);
-  - z `..\AND-1V\FontROM\`: `FontAND1V.bmp.bin` (rev 1.x).
+  - z `..\SAPI-karty\AND-1V\FontROM\`: `FontAND1V.bmp.bin` (rev 1.x).
   - Stejné kopie jsou v `H:\SAPI-1\Klasika\AND-1V\`.

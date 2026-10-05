@@ -1,6 +1,6 @@
 # ROM a PROM dumpy
 
-Dumpy pocházejí z autorových repozitářů desek (`..\<deska>\ROM_PROM`, `..\DMR-1\PROM`, `..\MikroMon`).
+Dumpy pocházejí z autorových repozitářů desek (`..\SAPI-karty\<deska>\ROM_PROM`, `..\SAPI-karty\DMR-1\PROM`, `..\MikroMon`).
 Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dekodéry adres, jak je to na skutečné desce.
 
 | Soubor | Deska / pozice | Popis |
@@ -44,9 +44,9 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `rmd-1/RMD-1_74S287.bin` | RMD-1 PROM | Dekodér portů (40–43, 45), z návodu `rmd-1.php`. Přiřazení O3/O4 je k ověření. |
 | `jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin` | JPR-1V EEPROM 28C64 | Banka 0 (0000–07FF) MikroBIOS 3.0 AllRAM (Libor Lasota 2024, „JPR-1V/RAM-1V/AND-1V, Consul 262.3“), banka 1 ECMON IDE-1 (= `jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin`), zbytek FF. Rozdělení bank je rozhodnutí autora. |
 | `jpr-1v/JPR-1V_MikroBIOS_3.0.hex` | | MikroBIOS 3.0 v Intel HEX, z `H:\SAPI-1\LiborLasota\JPR-1V\@orig\JPR-1V_monitor.zip` (`JPR-1V/jpr1v.txt`). Binárka se souhlasem autora, zdroje ne. |
-| `and-1v/font_and1v22_1024.bin`, `newfont_and1v22_1024.bin` | AND-1V rev 2.x 27C256 | Fonty 10×24 typ 1 a typ 2, z `..\AND-1V\rev2.3\font_and1v22\`. |
+| `and-1v/font_and1v22_1024.bin`, `newfont_and1v22_1024.bin` | AND-1V rev 2.x 27C256 | Fonty 10×24 typ 1 a typ 2, z `..\SAPI-karty\AND-1V\rev2.3\font_and1v22\`. |
 | `and-1v/font_and1v22_1012.bin` | AND-1V rev 2.1 28C64 | Font 10×12. |
-| `and-1v/FontAND1V_rev1.bin` | AND-1V rev 1.x 28C64 | Dvě sady 6×12, z `..\AND-1V\FontROM\FontAND1V.bmp.bin`. |
+| `and-1v/FontAND1V_rev1.bin` | AND-1V rev 1.x 28C64 | Dvě sady 6×12, z `..\SAPI-karty\AND-1V\FontROM\FontAND1V.bmp.bin`. |
 | `and-1/MHB2501.bin` | AND-1 znakový generátor MHB 2501 (latinka) | **Překreslený**, ne dump (p-MOS ROM, dump neexistuje). Podle tabulky v katalogu MHB250x (`Foto\Jiri_Slansky\Dokumentace\AND-1 a 1A\MHB250x.png`), automaticky převedeno, několik vad skenu opraveno ručně. 64 znaků × 8 řádků, bity 4–0 = sloupce zleva, řádek 8 nevyužit. |
 | `and-1/MHB2502.bin` | AND-1 MHB 2502 (azbuka) | Překreslený stejně. Kódy 20–3Fh převzaté z MHB 2501. |
 | `and-1/AND-1_D3C_74188.bin` | AND-1 D3C (74188) | Kurzor, blikání a dvojitá šířka, 32 B z výpisu na sapi.cz (`and-1.php`). |

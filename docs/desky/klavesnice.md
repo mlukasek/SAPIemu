@@ -72,8 +72,8 @@ v nástroji `press_key`.
 ## EKL-1
 
 Zdroje:
-- `..\EKL-1\Firmware\EKL-1_SOFT_updated\KEYB_REPAIR.a51` (rutina OUTPUT a tabulky kódů na řádcích ~860–905)
-- `..\EKL-1\EKL-1.pdf`
+- `..\SAPI-karty\EKL-1\Firmware\EKL-1_SOFT_updated\KEYB_REPAIR.a51` (rutina OUTPUT a tabulky kódů na řádcích ~860–905)
+- `..\SAPI-karty\EKL-1\EKL-1.pdf`
 
 ### Signály
 

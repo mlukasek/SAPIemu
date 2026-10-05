@@ -12,7 +12,10 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **HW poznatky po deskách:** `docs/desky/*.md` (porty, PROM, jumpery, časování, **nejasnosti k ověření na HW**). Mapa portů je v `docs/porty.md`, software v `docs/software/`.
 - **ROM, PROM a média:** `roms/` (dumpy, popis v `roms/README.md`) a `media/` (nedotčené originály obrazů, emulátor pracuje s kopiemi ve `work/`).
 - **Knihovny:** `third_party/` (vendorované, popis v `third_party/README.md`). SDL3 se stahuje přes CMake FetchContent.
-- **Podklady k deskám** jsou mimo repo, o složku výš (`..\JPR-1ZI`, `..\AND-1Z-89`, …), pokud jsou na daném PC naklonované. Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`).
+- **Podklady k deskám** jsou mimo repo, o složku výš ve složce `SAPI-karty` (`..\SAPI-karty\JPR-1ZI`,
+  `..\SAPI-karty\AND-1Z-89`, …), pokud jsou na daném PC naklonované. Jde o desky, které nejsou na GitHubu, nové
+  karty přibývají tamtéž. Repa z GitHubu (`..\MikroMon`, `..\ZPS-3`, `..\SAPI_DPI-1`…) jsou přímo vedle SAPIemu.
+  Do 2026-10-05 byly i desky přímo vedle (`..\<deska>`), testy proto zkoušejí obě místa. Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`).
 - **Původní zadání:** `zadani.md`.
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
@@ -71,7 +74,7 @@ Pasti ověřené 2026-10-05:
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
 - **Linux (později):** `cmake --preset linux-debug && cmake --build --preset linux-debug`.
 - **Umístění na autorově hlavním PC (od 2026-10-04):** repo je na lokálním disku v `E:\SAPI_GIT\SAPIemu`, podpůrné
-  repozitáře desek vedle něj v `E:\SAPI_GIT\<deska>` (relativní odkazy `..\JPR-1V` atd. platí dál). Archiv
+  repozitáře desek v `E:\SAPI_GIT\SAPI-karty\<deska>` (od 2026-10-06, relativní odkazy `..\SAPI-karty\JPR-1V`). Archiv
   `H:\SAPI-1\` (záloha sapi.cz, `LiborLasota`, `_ROM`, nahrávky kazet…) zůstává na síťovém disku `H:`
   (`\\Luksrv1\history`). Dřív bylo repo v `H:\SAPI-1\GIT\SAPIemu` a VS na síťovém disku zlobilo (IntelliSense
   do `.vs\`, pomalé sestavení). Lokální preset `local-debug` proto na tomto PC není potřeba.

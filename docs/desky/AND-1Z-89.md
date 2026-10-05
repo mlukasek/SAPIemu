@@ -2,7 +2,7 @@
 
 Zdroje:
 - `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\and-1z.php` (OCR manuálu Tesla)
-- `..\AND-1Z-89\AND-1Z-89.pdf`, `X2_connector_pinout.txt`
+- `..\SAPI-karty\AND-1Z-89\AND-1Z-89.pdf`, `X2_connector_pinout.txt`
 - dumpy v `roms/and-1z-89/`
 
 Rozdíl mezi AND-1Z a AND-1Z/89: místo 4× MHB2114 (NM6514) je osazena 1× 6116, desky jsou „plně záměnné“.

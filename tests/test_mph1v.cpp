@@ -323,10 +323,18 @@ static double rms_of(const std::vector<int16_t>& a)
     return a.empty() ? 0 : sqrt(sum / (double)a.size());
 }
 
-// Libor's VGM player with a tune from ..\MPH-1V (not in the repository)
+// Board sources outside the repository: ..\SAPI-karty\MPH-1V (since 2026-10-06), else ..\MPH-1V
+static std::string board_file(const char* rel)
+{
+    std::string p = data_path(std::string("../SAPI-karty/MPH-1V/") + rel);
+    if (file_exists(p)) return p;
+    return data_path(std::string("../MPH-1V/") + rel);
+}
+
+// Libor's VGM player with a tune from ..\SAPI-karty\MPH-1V (not in the repository)
 static void splay(void)
 {
-    std::string tune = data_path("../MPH-1V/SPLAY/bubble.hex");
+    std::string tune = board_file("SPLAY/bubble.hex");
     if (!file_exists(tune)) {
         printf("splay: %s not found, skipped\n", tune.c_str());
         return;
@@ -345,11 +353,11 @@ static void splay(void)
 }
 
 
-// RAT PLAYER with a RAD tune from ..\MPH-1V (not in the repository), copied to the RAM disk
+// RAT PLAYER with a RAD tune from ..\SAPI-karty\MPH-1V (not in the repository), copied to the RAM disk
 // like over a serial line: the player checks the 8253 (50 Hz on counter 2, F2) and plays.
 static void rat(void)
 {
-    std::string tune = data_path("../MPH-1V/RATplayer/smjoop.rad");
+    std::string tune = board_file("RATplayer/smjoop.rad");
     if (!file_exists(tune)) {
         printf("rat: %s not found, skipped\n", tune.c_str());
         return;
