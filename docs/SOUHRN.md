@@ -35,8 +35,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **Možné další kroky (autor vybírá):**
   0. **Diskety (průzkum 2026-10-05, `docs/software/CPM_SAPIMAN.md`):** a) 3,5"/5,25" HD v PC formátu (MFM, 512 B,
      2 strany) pro FDC-1 a MFC-1A a sestava EC1045 (ECMON_cd s menu FDC8/FDC3/FDC5/HDD, BIOSy `ECBIF3/F5`
-     ze zdrojáků), obrazy se dají vyrobit na PC; b) sestavy bootující CP/M z 8" diskety SAPIMANa
-     (`PMD32-SD_IMAGE8`: MFC-1A `m1_281211_*`, FDC-1 `f1_*`, RPD-1 `r1_*`) s EPROM ze `ZMENA_CPM`.
+     ze zdrojáků), obrazy se dají vyrobit na PC; b) ~~sestavy bootující CP/M z 8" diskety SAPIMANa~~
+     hotové 2026-10-05: `cpm_boot_mfc1a/fdc1/rpd1.sapi`.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle

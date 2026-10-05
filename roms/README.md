@@ -11,6 +11,9 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin/.HEX` | EPROM JPR-1ZI | Monitor ECMON 2k „JPR-1Z 62K MON CZ“. |
 | `jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` | EPROM JPR-1ZI | ECMON s podporou IDE-1 (porty 5C–5Fh). |
 | `jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin`, `_epr8k.bin` | EPROM JPR-1ZI | Zavaděč CP/M z RAM disku ZRMD-1. |
+| `jpr-1zi/JPR-1ZI_MON281211_JB_MFC.bin` | EPROM JPR-1ZI | Monitor J. Bíby „JPR-1Z 62K MON CZ 281211JB“ (2 KB BIOS v ROM), boot CP/M z 8" diskety přes MFC-1A. Z `mon281211.hex` (`..\SAPI_DOKU\SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\MFC\MFC281211_ZRMD0`), zbytek FFh. Zdroják `mon281211.txt` se přeloží (`cpmrun`) na stejné bajty kromě proměnných (DS). |
+| `jpr-1zi/JPR-1ZI_MON130711_JB_FDC.bin` | EPROM JPR-1ZI | Totéž pro FDC-1 (`mon130711`, složka `FDC\FDC130711_ZRMD0`). |
+| `jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin` | EPROM JPR-1ZI | Totéž pro RPD-1 (`MON271111`, složka `RPD\RPD271111_ZRMD0`). |
 | `jpr-1zi/JPR-1ZI_PROM_Info.txt` | | Poznámka o označení: D3C = D14, D6B = D10 (původně). |
 | `and-1z-89/AND-1Z_CharGen.bin/.hex` | AND-1Z-89 (2732) | Znakový generátor, 4 KB, 16 B na znak. |
 | `and-1z-89/AND-1Z_CharGen_upr10-1F.bin/.hex` | AND-1Z-89 | Varianta s upravenými znaky 10–1Fh. |

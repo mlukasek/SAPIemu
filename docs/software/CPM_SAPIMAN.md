@@ -45,6 +45,23 @@ Průzkum 2026-10-05 v `..\SAPI_DOKU` a `..\SAPI.CZ`, zaměřený na diskety pro 
   a čtení/zápis 3,5", 5,25" a 8" disket ve FM i MFM s různými délkami sektorů (`fd5M_512_8`, `fd3M_512_9`,
   `RW…`). Dále `FORMATOVANI`, `Format_FDC_8`, `DUP_fyz_ kopie_8_disket`.
 
+## Sestavy s bootem z 8" diskety (2026-10-05)
+
+`machines/cpm_boot_mfc1a.sapi`, `cpm_boot_fdc1.sapi`, `cpm_boot_rpd1.sapi`: JPR-1ZI s EPROM J. Bíby, DMR-1,
+AND-1Z-89, ZRMD-1 (C:), řadič s bootovací disketou v A: a datovou disketou CP/M 2.2/P v B:.
+
+- **EPROM:** `mon281211` (MFC-1A), `mon130711` (FDC-1), `MON271111` (RPD-1) z `.hex` ve `ZMENA_CPM`. Zdrojáky
+  (`mon*.txt`) se přeloží přes `cpmrun` na stejné bajty, liší se jen proměnné (DS). Monitor se jako ECMON kopíruje
+  na F000h a nese hlavní část BIOSu (2 KB), 1 KB CBIOSu („BIOS-1K“, EC00h) se načte z diskety.
+- **Ověřeno:** všechny tři nabootují do `A>` („JPR-1Z 62K MON CZ …JB“, „Uzivatel: J. Biba“), `DIR A:` a `DIR B:`
+  čtou diskety, `SAVE` na C: funguje.
+- **RAM disk ZRMD-1:** tyto systémy mají DPB s OFF 0 a DSM 1023 (CP/M přes celé 4 MB, adresář od 0), ECMON
+  od roku 2015 má OFF 128 (prvních 32 KB systém). Proto mají vlastní prázdný obraz `ZRMD-1_prazdny_OFF0.bin`.
+  S obrazem pro ECMON by `DIR C:` vypsal nesmysly.
+- **MFC-1A** v sestavě: `wiring = ec1045`, `reset_mode = level`. Systém zapíná mechaniky D6 = 1; se zapojením
+  podle originálu Tesla se boot zastaví (ověřeno).
+- Konzole podle hlášení „AND1Z + C259.11“: v sestavách je klávesnice EKL-1 jako u ostatních sestav autora.
+
 ## Původ chyby ECBIM8
 
 Monitor `mon281211` (MFC-1A, 8" boot, 2011) má v `INIT_MFC` za SPECIFY také `LD C,0 ;disk 0` bez `RET`. Tam je

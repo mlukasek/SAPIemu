@@ -24,6 +24,8 @@ Zdroj: `..\SAPI-karty\PMD32-SD\SW`. Geometrii obrazů určuje `images.cfg`.
 
 Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 
+- `ZRMD-1_prazdny_OFF0.bin`: prázdný RAM disk (E5h) pro systémy J. Bíby z roku 2011, které mají CP/M přes celé
+  4 MB (DPB OFF 0, DSM 1023). S obrazy pro ECMON (OFF 128, systém v prvních 32 KB) se nedá sdílet.
 - `SAPI_CPM_Martin_2019-10-07_fixMFC.bin` (2026-10-05): totéž s novou systémovou oblastí (0–7FFF) přeloženou
   ze zdrojáků `..\SAPI-karty\ZRMD-1\SRC` (`build.py --image`). Proti originálu se liší jediný bajt kódu, oprava
   `RET` v BIOSu ECBIM8 (583Dh: 0Eh → C9h). Neinicializované buffery v systémových blocích jsou vynulované, data od
@@ -54,6 +56,18 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 | `CPM22P_62Z_Perina.img` | CP/M 2.2/P 62K (R. Peřina 1988) pro ZPS-4 (JPR-1Z, AND-1Z, RPD-1, RAM disk RMD-1 jako E:). Zdroj sapi.cz `data2/cpm62z_img.rar`. |
 | `ELIS_61K.img` | ELIS 61k CP/M V2.2 (A, B: RPD-1, C: RMD-1, AND-1Z, Consul). Zdroj sapi.cz `data2/elis_img.rar` (= `MELSOFT\001.8SD` na SD kartě EC1045). ED, PIP, STAT, MBASIC, SYSGEN, INIRMD5 (JB 2011). |
 | `MIKOS_D_V5.0_system.img` | Systémová disketa MIKOS/D V5.0 („ZALOZNI“), 77 × 26 × 128 B v logickém pořadí. Zdroj `H:\SAPI-1\Klasika\mikos5\m5mid_img.rar` = sapi.cz `data2/m5mid_img.rar`, shodná s daty v `m5mid.IMD`. Obsahuje BAS5C, TEDIT, TOOL, BASIMS4, KONVERT, COPYSYS, X2 a dokumentaci (.DOC). |
+
+## `sapiman/` – bootovací 8" diskety CP/M J. Bíby (SAPIMAN, 2011)
+
+Zdroj `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\` (obrazy `.8sd` = 77 × 26 × 128 B, přejmenované na `.img`). Bootují
+z EPROM `roms/jpr-1zi/JPR-1ZI_MON*_JB_*.bin`, C: je RAM disk ZRMD-1 se souborovým systémem přes celé 4 MB
+(`zrmd-1/ZRMD-1_prazdny_OFF0.bin`). Na disketách jsou i zdrojáky systému (`docs/software/CPM_SAPIMAN.md`).
+
+| Soubor | Obsah |
+|---|---|
+| `m1_281211_zrmd.img` | CP/M pro MFC-1A, „BIOS-1K V281211JB“, A, B, D, E = MFC-1A. Zdrojáky BI2812*, MO2812, BO1307D6, CCPD6, BDOSDE. (`MFC\m1_281211_zrmd.8sd`) |
+| `f1_zrmd4_130711.img` | CP/M pro FDC-1, „BIOS-1K V130711JB“. (`FDC\f1_zrmd4_130711.8sd`) |
+| `r1_zrmd4m_271111.img` | CP/M pro RPD-1, „BIOS-1K V271111JB“. (`RPD\r1_zrmd4m_271111.8sd`) |
 
 ## `fdc-1/` – diskety 8" pro FDC-1
 

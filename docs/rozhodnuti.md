@@ -690,6 +690,16 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
+## 2026-10-05 – Sestavy s bootem CP/M z 8" diskety (J. Bíba 2011)
+
+- **EPROM z `.hex` J. Bíby, ne z našeho překladu:** `mon281211`, `mon130711`, `MON271111` jsou přesně tak, jak je
+  autor systému vypálil. Překlad zdrojáků přes `cpmrun` je ověřený (liší se jen proměnné DS), slouží jako kontrola.
+- **Vlastní prázdný RAM disk `ZRMD-1_prazdny_OFF0.bin`:** systémy z roku 2011 mají CP/M přes celé 4 MB (OFF 0),
+  ECMON od roku 2015 OFF 128. Sdílet obraz nejde, adresáře by se přepisovaly.
+- **Diskety `.8sd` ze `SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8` přejmenované na `.img`** do `media/sapiman/`, obsah
+  beze změny.
+- **MFC-1A v sestavě `wiring = ec1045`:** systém zapíná mechaniky D6 = 1, jinak nenabootuje.
+
 ## 2026-10-05 – Zdrojáky systému ZRMD-1 a nástroj cpmrun
 
 - **`tools/cpmrun.cpp`** (cíl `cpmrun` v CMake): spouští programy pro CP/M 2.2 na PC nad Z80 jádrem emulátoru

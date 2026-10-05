@@ -27,6 +27,12 @@ static const ParamOption k_jpr_roms[] = {
     { "\"roms/mikromon/MikroMon1_3_f000.txt\"", "MikroMon 1.3", "MikroMon 1.3" },
     { "\"roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin\"", "ECMON 2k", "ECMON 2k" },
     { "\"roms/jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin\"", "ECMON 2k with IDE-1", "ECMON 2k s IDE-1" },
+    { "\"roms/jpr-1zi/JPR-1ZI_MON281211_JB_MFC.bin\"", "MON 281211 J. Biba (CP/M from an 8\" disk, MFC-1A)",
+      "MON 281211 J. Bíba (CP/M z 8\" diskety, MFC-1A)" },
+    { "\"roms/jpr-1zi/JPR-1ZI_MON130711_JB_FDC.bin\"", "MON 130711 J. Biba (CP/M from an 8\" disk, FDC-1)",
+      "MON 130711 J. Bíba (CP/M z 8\" diskety, FDC-1)" },
+    { "\"roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin\"", "MON 271111 J. Biba (CP/M from an 8\" disk, RPD-1)",
+      "MON 271111 J. Bíba (CP/M z 8\" diskety, RPD-1)" },
     { "\"roms/jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin\"", "ZZRMD 2k", "ZZRMD 2k" },
     { "\"roms/jpr-1zi/JPR-1ZI_ZZRMD_epr8k.bin\"", "ZZRMD 8k", "ZZRMD 8k" },
     { "\"\"", "none (FFh)", "žádná (FFh)" },
@@ -404,6 +410,8 @@ static const ParamOption k_rpd1_disks[] = {
     { "\"media/rpd-1/MIKOS_D_V5.0_system.img\"", "MIKOS/D V5.0 system disk", "Systémová disketa MIKOS/D V5.0" },
     { "\"media/rpd-1/CPM22P_48A_Perina.img\"", "CP/M 2.2/P 48K (Perina, AND-1A)", "CP/M 2.2/P 48K (Peřina, AND-1A)" },
     { "\"media/rpd-1/CPM22P_62A_Perina.img\"", "CP/M 2.2/P 62K (Perina, AND-1A)", "CP/M 2.2/P 62K (Peřina, AND-1A)" },
+    { "\"media/sapiman/r1_zrmd4m_271111.img\"", "CP/M boot disk J. Biba (MON 271111, C: ZRMD-1)",
+      "Bootovací CP/M J. Bíba (MON 271111, C: ZRMD-1)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_rpd1[] = {
@@ -427,6 +435,8 @@ static const ParamOption k_fdc1_disks[] = {
       "CP/M 2.2/P 48K pro FDC-1 (Peřina, AND-1A)" },
     { "\"media/fdc-1/CPM22P_62AF_Perina.img\"", "CP/M 2.2/P 62K for FDC-1 (Perina, AND-1A)",
       "CP/M 2.2/P 62K pro FDC-1 (Peřina, AND-1A)" },
+    { "\"media/sapiman/f1_zrmd4_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: ZRMD-1)",
+      "Bootovací CP/M J. Bíba (MON 130711, C: ZRMD-1)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_fdc1_dec[] = {
@@ -471,6 +481,8 @@ static const ParamOption k_mfc1a_disks[] = {
       "CP/M 2.2/P 48K (Peřina), jako datová disketa" },
     { "\"media/fdc-1/CPM22P_48AF_Perina.img\"", "CP/M 2.2/P 48K for FDC-1 (Perina), as a data disk",
       "CP/M 2.2/P 48K pro FDC-1 (Peřina), jako datová disketa" },
+    { "\"media/sapiman/m1_281211_zrmd.img\"", "CP/M boot disk J. Biba (MON 281211, C: ZRMD-1)",
+      "Bootovací CP/M J. Bíba (MON 281211, C: ZRMD-1)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_mfc1a_dec[] = {
@@ -733,6 +745,8 @@ static const ParamOption k_zrmd_images[] = {
     { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin\"", "CP/M (Martin 2019)", "CP/M (Martin 2019)" },
     { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin\"", "CP/M (Martin 2019), BIOS ECBIM8 (MFC-1A) fixed",
       "CP/M (Martin 2019), opravený BIOS ECBIM8 (MFC-1A)" },
+    { "\"media/zrmd-1/ZRMD-1_prazdny_OFF0.bin\"", "empty, CP/M over all 4 MB (systems of J. Biba 2011)",
+      "prázdný, CP/M přes celé 4 MB (systémy J. Bíby 2011)" },
     { "\"media/zrmd-1/ECSYS_zaloha_0-3.hex\"", "ECSYS 0-3 (HEX)", "ECSYS 0-3 (HEX)" },
     { "\"media/zrmd-1/puvodni_SYS0_3_s_CD.HEX\"", "original SYS 0-3 with CD (HEX)", "původní SYS 0-3 s CD (HEX)" },
     { "\"\"", "empty", "prázdný" },

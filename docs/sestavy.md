@@ -133,6 +133,9 @@ systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 `docs/desky/FDC-1.md`). Sestavy 62K mají druhou RAM-1A na C000–F7FF a AND-1A na F800.
 `cpm_zrmd_fdc1.sapi` a `cpm_zrmd_mfc1a.sapi` jsou `cpm_zrmd.sapi` s řadičem FDC-1 nebo MFC-1A (`docs/desky/MFC-1A.md`)
 a 8" mechanikami. Při prvním zapnutí zvolit 0 (FDC8) nebo 2 (MFC8), B: je disketa CP/M 2.2/P, C: druhá mechanika.
+`cpm_boot_mfc1a.sapi`, `cpm_boot_fdc1.sapi` a `cpm_boot_rpd1.sapi` bootují CP/M J. Bíby (2011) z 8" diskety A:
+přes MFC-1A, FDC-1 nebo RPD-1 (EPROM `JPR-1ZI_MON*_JB_*`), C: je vlastní RAM disk ZRMD-1, B: disketa CP/M 2.2/P
+jako data (`docs/software/CPM_SAPIMAN.md`).
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,

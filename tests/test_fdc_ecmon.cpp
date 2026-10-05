@@ -4,6 +4,9 @@
 // MFC-1A is wired as the EC1045 redraw with the reset as in the schematic and the fixed BIOS
 // ECBIM8 (RAM disk ..._fixMFC.bin). The original BIOS (RET missing in INIT_MFC) hangs with the
 // schematic reset in both wirings and boots only with the reset bit as a pulse (deviation).
+// CP/M of J. Biba (2011) booted from an 8" disk through MFC-1A, FDC-1 and RPD-1
+// (machines/cpm_boot_*.sapi): DIR A: lists the system sources on the disk, SAVE to the
+// RAM disk C: (CP/M over all 4 MB).
 #include "core/headless.h"
 #include "core/machine.h"
 #include "core/util.h"
@@ -84,11 +87,55 @@ static void mfc_orig(const char* wiring, const char* reset, bool boots)
     CHECK(run_until_text(m, "\nA>", 10.0) == boots);
 }
 
+// boot disk in A: (a copy in work/test), empty RAM disk C:
+static void boot_jb(const char* file, const char* type, const char* disk, const char* banner, const char* file_on_a)
+{
+    printf("--- %s\n", file);
+    std::string t;
+    CHECK(file_read_text(data_path(file), t));
+    json cfg = json::parse(t, nullptr, false, true);
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path(disk), img));
+    CHECK(file_write_all(data_path("work/test/jb_a.img"), img.data(), img.size()));
+    for (json& c : cfg["cards"]) {
+        std::string ty = c.value("type", std::string());
+        if (ty == "ZRMD-1") {
+            c["mode"] = "nosave";
+            c["working_copy"] = false;
+        }
+        if (ty == type) {
+            c["drive_a"] = { { "image", "work/test/jb_a.img" }, { "write_protect", true } };
+            c.erase("drive_b");
+            c["working_copy"] = false;
+        }
+    }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    CHECK(run_until_text(m, banner, 5.0));
+    CHECK(run_until_text(m, "\nA>", 20.0));
+    m.run_seconds(0.3);
+    m.type_text("DIR A:\r");
+    CHECK(run_until_text(m, file_on_a, 10.0));
+    m.run_seconds(4.0);   // the rest of the listing (a key typed during DIR is taken by its break check)
+    m.type_text("SAVE 4 C:TEST.COM\r");
+    m.run_seconds(2.0);
+    m.type_text("DIR C:\r");
+    CHECK(run_until_text(m, "TEST     COM", 10.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 int main(void)
 {
     test_init();
     controller("machines/cpm_zrmd_fdc1.sapi", "FDC-1", "0", "B,C: FDC1");
     controller("machines/cpm_zrmd_mfc1a.sapi", "MFC-1A", "2", "B,C: MFC1");
+    boot_jb("machines/cpm_boot_mfc1a.sapi", "MFC-1A", "media/sapiman/m1_281211_zrmd.img", "MON CZ 281211JB",
+            "BI2812ZS MAC");
+    boot_jb("machines/cpm_boot_fdc1.sapi", "FDC-1", "media/sapiman/f1_zrmd4_130711.img", "MON CZ 130711JB",
+            "BI1307ZS MAC");
+    boot_jb("machines/cpm_boot_rpd1.sapi", "RPD-1", "media/sapiman/r1_zrmd4m_271111.img", "MON CS 271111JB",
+            "B2711Z4  MAC");
     mfc_orig("tesla", "level", false);
     mfc_orig("ec1045", "level", false);
     mfc_orig("ec1045", "pulse", true);
