@@ -53,8 +53,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         jsou diskety MS-DOS se soubory SAPI, čitelné, ale ne CP/M);
      2) ~~sestavy podle systémových disket `PETR\SAPI_SYS`~~ hotové 2026-10-05 (`cpm_boot_*_ss256`, `cpm_boot_mfc1a_rmd`,
         `cpm_term64k_fdc1`); „dlouhé CP/M“ RPD-1 + FDC-1 5,25" HD hotové
-        (`cpm_boot_dlouhe_rpd1_fdc1.sapi`, bootovací disketa poskládaná ze zdrojáků); zbývá RPD 170212 + PMD32-SD (Z7)
-        a varianta dlouhého CP/M pro 3,5";
+        (`cpm_boot_dlouhe_rpd1_fdc1.sapi`, bootovací disketa poskládaná ze zdrojáků); i pro 3,5" (`…_35.sapi`);
+        zbývá RPD 170212 + PMD32-SD (Z7);
      3) obrazy `PETR\2MB` (5,25" diskety J. Bíby) jako disky D: PMD32-SD.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.

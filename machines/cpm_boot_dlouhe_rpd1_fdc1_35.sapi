@@ -1,0 +1,86 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "Dlouhé CP/M 2.2 (3K BIOS): RPD-1 8\" + FDC-1 3,5\" HD, ZRMD-1 (J. Bíba 050412)",
+    "description": "„Dlouhé“ CP/M J. Bíby (verze 26, CPM050412, 3K BIOS): A:, B: = RPD-1 8\", C: = RAM disk ZRMD-1 SS256 (obraz sestavy cpm_zrmd), D:, E: = FDC-1 3,5\" DS HD 512 × 36 v PC formátu. EPROM MON 260112. A: = disketa Z9 (programy) se systémem doplněným ze zdrojáků (stopy 0, 1 a 6 sektorů na stopě 76; BIOS a zavaděč souhlasí s původními výpisy), B: = Z3 (zdroje systému), v D: prázdná 3,5\" HD. docs/software/CPM_SAPIMAN.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1ZI",              // CPU card Z80 (new design)
+            "rom": "roms/jpr-1zi/JPR-1ZI_MON260112_JB_RPD_FDC.bin",
+            "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
+            "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
+            "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
+            "keyboard": { "type": "Consul 259.11", "code": "koi8cs" }  // Keyboard (connector X2) - the monitor drives CONSUL 259.11 KOI8 CS2
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "DMR-1",                // 128 KB RAM and serial port
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "battery": false,               // JP7: battery backup of the SRAM
+            "uart_base": "10h",             // JP2: UART ports
+            "baud": 9600,                   // JP8: baud rate - 9600 Bd
+            "connected": false,             // Terminal connected at start (DCD)
+            "serial": {
+                "pacing": true,             // PC side: no overrun (pacing)
+                "tcp": {                    // PC side: TCP server
+                    "port": 2323,           // TCP port
+                    "bind": "127.0.0.1",    // Address (127.0.0.1 = this PC only)
+                    "protocol": "telnet",   // Protocol
+                    "dcd_follows": true     // DCD follows the client connection
+                }
+            }
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1Z-89",            // Alphanumeric display "Z" 1989
+            "map_enabled": false            // S1: MAP1 disconnects the card
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "ZRMD-1",               // RAM disk 4 MB with RTC
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - the RAM disk of cpm_zrmd (layout SS256)
+            "mode": "rw",                   // Mode - read/write, saved
+            "write_enable": [
+                true,                       // S1: write enable, 1st MB
+                true,                       // S2: write enable, 2nd MB
+                true,                       // S3: write enable, 3rd MB
+                true                        // S4: write enable, 4th MB
+            ],
+            "rtc": true,                    // RTC 72421
+            "rtc_int": "none",              // JP3: RTC interrupt
+            "map_jp2": false                // JP2: port 63h b6/b7 drive MAP1/MAP2
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "RPD-1",                // Floppy disk controller (boards A + B)
+            "drive_a": {
+                "image": "media/sapiman/Z9_RPD050412_dlouhe_CPM_boot_3.5HD.img",  // Boot disk (J. Biba)
+                "write_protect": false
+            },
+            "drive_b": {
+                "image": "media/sapiman/Z3_RPD050412_dlouhe_CPM_zdroje.img",  // the other system disk
+                "write_protect": false
+            },
+            "working_copy": true,           // Work on copies in work/
+            "step_ms": 8,                   // Drive: step period - 8 ms (Consul 7213)
+            "settle_ms": 35                 // Drive: head load settle time (ms)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
+            "drive_a": {                    // D: 3.5" DS HD
+                "image": "media/fdc-1/prazdna_3.5HD_CPM.img",  // empty 3.5" HD 1.44 MB
+                "write_protect": false
+            },
+            "working_copy": true,           // Work on copies in work/
+            "rdy_ground": true,             // /RDY grounded: all drives ready
+            "sa2_a": "8dd",                 // drive A: 8" clock (8 MHz), PC HD drive
+            "sa2_b": "8dd"                  // drive B: 8" clock (8 MHz), PC HD drive
+        }
+    ]
+}

@@ -424,6 +424,8 @@ static const ParamOption k_rpd1_disks[] = {
       "J. Bíba Z2: zdroje systému pro RPD-1" },
     { "\"media/sapiman/Z9_RPD050412_dlouhe_CPM_boot.img\"", "J. Biba Z9 + long CP/M 050412 (MON 260112, FDC-1 HD)",
       "J. Bíba Z9 + dlouhé CP/M 050412 (MON 260112, FDC-1 HD)" },
+    { "\"media/sapiman/Z9_RPD050412_dlouhe_CPM_boot_3.5HD.img\"", "J. Biba Z9 + long CP/M 050412 for 3.5\" HD",
+      "J. Bíba Z9 + dlouhé CP/M 050412 pro 3,5\" HD" },
     { "\"media/sapiman/Z3_RPD050412_dlouhe_CPM_zdroje.img\"", "J. Biba Z3: sources of the long CP/M",
       "J. Bíba Z3: zdroje dlouhého CP/M" },
     { nullptr, nullptr, nullptr },

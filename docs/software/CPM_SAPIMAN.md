@@ -157,6 +157,8 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
 - BIOS a zavaděč z překladu souhlasí s původními výpisy `.PRN` bajt po bajtu; EPROM je z `MON260112MO.HEX`
   (zdroják `.txt` je o 3 bajty novější).
 - Ověřeno: boot, `DIR B:`, `SAVE` a `STAT` na D: (1174K); test `test_sapi_sys`.
+- Varianta pro 3,5" HD 512 × 36: `cpm_boot_dlouhe_rpd1_fdc1_35.sapi`, disketa `Z9_…_boot_3.5HD.img` (jiný jen BIOS
+  `bi0504E4_3_512_36_PC_mo_s`, také shodný s výpisem), `STAT D:` 1412K.
 
 - `cpm_boot_rpd1_ss256.sapi`, `cpm_boot_fdc1_ss256.sapi`: A: programy (bootovací), B: zdroje. **C: = RAM disk ZRMD-1
   v rozložení SS256** (DPB OFF 128 jako ECMON), tedy stejný obraz jako `cpm_zrmd` (`DIR C:` vypíše tvoje soubory).
