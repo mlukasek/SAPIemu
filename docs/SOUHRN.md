@@ -41,7 +41,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   0. **Diskety a CP/M, dodělávky z 2026-10-05** (podrobně v `docs/software/CPM_SAPIMAN.md`, „Dodělávky“):
      a) ověřit FDC-1 a MFC-1A, i DD a formátování, originálními programy SAPIMANa (`CPM_PROGRAMY\CISLOVANI
         SEKTORU`, `FORMATOVANI`, `Format_FDC_8`) a `MFC1.ASM`; **většinou hotové 2026-10-05**: formátování FDC-1 HD
-        a 8", MFC-1A DD, FM a 8", číslování sektorů (doraz hlavy 82, nová disketa jako `.imd`), zbývá DUP a MFC1.ASM;
+        a 8", MFC-1A DD, FM a 8", číslování sektorů (doraz hlavy 82, nová disketa jako `.imd`), `mfc1test` se shoduje s výpisy z reálných
+        MFC-1A (`docs/desky/MFC-1A.md`, otázka na výchozí `rdy_ground`), zbývá DUP;
      b) motory mechanik (FDC-1 0FH, MFC-1A D3 D2, BIOSy F3/F5 je časují);
      c) sestavy s RAM diskem RMD-1 z bootovacích disket SAPIMANa (`m1_281211_rmd`, `f1_rmd1m_*`, `r1_rmd1m_*`)
         a další jeho 8" diskety (překladače, texty, zdrojáky) jako datové;

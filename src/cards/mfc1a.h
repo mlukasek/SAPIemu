@@ -40,7 +40,8 @@ public:
 
     // I8272Host: the drive register selects the drive
     FloppyDrive* fdc_drive(int unit) override { return drives_on() ? &drives[reg & 3] : nullptr; }
-    bool fdc_ready(int unit) override { return drives_on() && (rdy_ground || drives[reg & 3].present()); }
+    // RDY tied active (rdy_ground) does not depend on the drive selection
+    bool fdc_ready(int unit) override { return rdy_ground || (drives_on() && drives[reg & 3].present()); }
     // CLK 8 MHz for SD (FM), 4 MHz for DD (MFM), as in the manual: 250 kbit/s either way,
     // so 8" SD and DD disks, no HD.
     int fdc_kbps(int unit, bool mfm) override { return 250; }

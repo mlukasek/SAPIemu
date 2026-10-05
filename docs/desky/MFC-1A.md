@@ -146,7 +146,7 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
   - `reset_mode`: `level` (výchozí, schéma: bit resetu drží 8272 v resetu a DD23B vynuluje DD23A) / `pulse`
     (**odchylka**: náběžná hrana bitu jen resetuje 8272 a D6 zůstane, jak byl zapsán);
   - `rdy_ground`: výchozí ne = READY dává mechanika, když je v ní disketa (jako 5,25" mechaniky); ano = RDY
-    trvale aktivní (pak 8272 bez diskety čeká na index věčně a ECBIM8 by bez diskety v D nenabootoval);
+    trvale aktivní, i při vypnutých mechanikách (D6) (pak 8272 bez diskety čeká na index věčně a ECBIM8 by bez diskety v D nenabootoval);
   - `drive_a`–`drive_d`, `working_copy`, `decoder` (PROM DD9).
 - **Sestava `cpm_zrmd_mfc1a.sapi`:** `wiring = ec1045`, `reset_mode = level`, RAM disk s opraveným ECBIM8
   (`..._fixMFC.bin`). Test `test_fdc_ecmon` ověřuje i původní obraz: s `level` se BIOS v obou zapojeních zasekne,
@@ -160,11 +160,35 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
   MFC-1A s DD nemáme. Motory (D3 D2) se neemulují, disketa se točí stále.
 - Okno Média ukazuje mechaniky A–D.
 
+## Testy z reálného HW: `SAPI15\MFC_TEST_CPM` (2010)
+
+V `..\SAPI_DOKU\SAPI15\MFC_TEST_CPM` je `mfc1test.asm` (CP/M verze `MFC1.ASM`, slovenské komentáře, assembler
+AS, 15. 9. 2010) a výpisy `TEST_VYPIS.TXT`, `TEST_SHORT.TXT` (9. 9. 2010) z desek „Original MFC1A“, „repl1“,
+„repl_n1“, „repl_n2“. Program seekne na zadanou stopu (bez SENSE), čte sektor 512 B (46h), pak vypíše MSR
+a výsledky po SENSE INTERRUPT STATUS (ST0, PCN a zbytek výsledku READ), po READ ID (4Ah, jednotka 0) a po
+RECALIBRATE. Mechaniky zapíná `DRVON EQU 40H` (D6 = 1), vypíná `DRVOF EQU 00H`.
+
+- **Originál, mechanika A, stopa 20h, sektor 5:** `80 20 20 00 20 00 06 02` (SENSE: ST0 = 20h, PCN = 20h; zbytek READ:
+  ST2 00, C 20, H 00, R 06, N 02 = sektor 512 B nenalezen), READ ID `80 00 00 00 20 00 02 01` (disketa má sektory
+  256 B), po RECALIBRATE MSR 80.
+- **Emulátor** (2026-10-05, `cpm_boot_mfc1a`, jednotka 1 s disketou DD 16 × 256 B, M80 s `ASEG` před `ORG 0100h`):
+  s `rdy_ground = true` `80 21 20 00 20 00 06 02`, READ ID `80 00 00 00 20 00 01 01`, MSR 80. **Shoduje se**
+  (R z READ ID záleží na poloze disku, na HW 02, 09, 01). Výchozí `rdy_ground = false` dá místo toho `C8`
+  (READY changed, not ready, jednotka 0), protože READY sleduje D6 a program mechaniky vypíná a zapíná.
+- **Co z toho plyne:**
+  - 8272 na těch deskách nehlásil změnu READY při zapínání a vypínání mechanik. RDY byl tedy stálý (RDYn
+    nezapojený?), což odpovídá `rdy_ground = true`.
+  - Deska „Original MFC1A“ s tímto programem četla, tedy mechaniky zapnula s D6 = 1 jako překreslení EC1045.
+    Pozor: zdroják je o 6 dní mladší než výpisy, `DRVON` mohl být při testu jiný.
+  - Stav dokončeného SEEKu přežije READ a vyzvedne ho až SENSE (emulace stejně).
+
 ## Nejasnosti k ověření na HW
 
 - **Které zapojení mají vyrobené desky Tesla a podle kterého je postavená replika** (D4/D5, Q nebo /Q z DD23A)?
   Sken originálu a návod se s překreslením EC1045 neshodují. Při stavbě repliky doporučeno originál.
 - Fungoval BIOS ECBIM8 s MFC-1A na skutečném stroji? Podle obou schémat by se zasekl (chybí `RET` v `INIT_MFC`)
   a na originálu by navíc D6 = 1 mechaniky vypínal. Jaké MSR vrací 8272 v resetu?
-- RDYn (XP2-19) není v příkladech připojení mechanik zapojený. Jakou úroveň pak vidí 8272 na RDY?
+- RDYn (XP2-19) není v příkladech připojení mechanik zapojený. Jakou úroveň pak vidí 8272 na RDY? Výpisy
+  `SAPI15\MFC_TEST_CPM` (sekce výše) ukazují stálé RDY (`rdy_ground = true`). Má to být výchozí nastavení?
+- Kdo dělal testy `SAPI15\MFC_TEST_CPM` (2010) a s jakým `DRVON` (40h, nebo 00h) běžel test na „Original MFC1A“?
 - Které mechaniky se k MFC-1A u SAPI skutečně připojovaly (5,25" s READY, nebo 8" Consul)?

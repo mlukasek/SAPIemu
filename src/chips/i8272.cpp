@@ -188,6 +188,7 @@ void I8272::set_int(uint8_t st0, uint8_t p)
 void I8272::poll_ready(void)
 {
     for (int u = 0; u < 4; u++) {
+        if (pend[u]) continue;   // a pending status of the unit is kept, the change is seen after it is read (MAME)
         bool r = ready(u);
         if (r == last_ready[u]) continue;
         last_ready[u] = r;

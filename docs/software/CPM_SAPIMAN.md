@@ -85,8 +85,9 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    pro FDC-1 i MFC-1A), `FORMATOVANI`, `Format_FDC_8`, `DUP_fyz_ kopie_8_disket`; program `SAPI_DOKU\MFC-1A\MFC1.ASM`
    (5,25" DD na MFC-1A). Prověří MFM, DD na MFC-1A (zatím neověřené žádným softwarem), FORMAT a READ ID.
    **Většinou hotové 2026-10-05** (sekce „Formátovací programy SAPIMANa“): FORMAT a READ TRACK na FDC-1 (HD, 8")
-   a MFC-1A (DD, FM, 8"), číslování sektorů 8". READ ID programy nepoužívají. Zbývá `DUP_fyz_ kopie` a
-   `MFC1.ASM`.
+   a MFC-1A (DD, FM, 8"), číslování sektorů 8". READ ID programy nepoužívají. Místo `MFC1.ASM` (monitor) jeho
+   CP/M verze `SAPI15\MFC_TEST_CPM\mfc1test.asm` s výpisy z reálných desek: emulace se shoduje
+   (`docs/desky/MFC-1A.md`). Zbývá `DUP_fyz_ kopie`.
 2. **Motory mechanik:** FDC-1 registr 0FH (M3–M0), MFC-1A D3 D2 registru 0FH. BIOSy `ECBIF3/F5` motory zapínají
    a časují (`MOTOR`, `TIM_Mx`). Emulovat rozběh a to, že bez motoru disketa nečte (index, data).
 3. **Další sestavy a diskety SAPIMANa:** bootovací diskety s RAM diskem RMD-1 (`MFC\m1_281211_rmd.8sd`,

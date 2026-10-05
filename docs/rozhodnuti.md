@@ -830,3 +830,12 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   (`FloppyDrive::create`). Ten pak přijme libovolný formát FORMATu, třeba číslování sektorů 10–18 na straně 1,
   které používají programy SAPIMANa pro MFC-1A a které obyčejný obraz PC neumí. Prázdné (nenaformátované) IMD se
   nedělá: ImageDisk nemá údaj o otáčkách, ty se odvozují z obsahu.
+
+## 2026-10-05 – 8272: změna READY nepřepíše čekající stav, MFC-1A `rdy_ground` nezávisí na D6
+
+- **Polling READY 8272** přeskočí jednotku, která má nevyzvednutý stav (jako MAME: změna se ohlásí, až se stav
+  přečte). Dřív „ready changed“ přepsal třeba dokončený SEEK.
+- **MFC-1A `rdy_ground = true`** dává RDY trvale, i při vypnutých mechanikách (D6). Dřív READY sledovalo D6 vždy.
+- Podklad: výpisy z reálných desek v `SAPI15\MFC_TEST_CPM` (2010, `docs/desky/MFC-1A.md`). S `rdy_ground = true`
+  dává emulace stejné bajty jako originál. Výchozí `rdy_ground = false` zatím zůstává (ECBIM8 by s trvalým RDY bez
+  diskety v jednotce 3 čekal věčně), změna výchozího nastavení je otázka pro autora.
