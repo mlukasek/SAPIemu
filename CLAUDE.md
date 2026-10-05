@@ -46,6 +46,24 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Zdrojové kódy MikroMonu** se do repa nedávají (binárka ano, se souhlasem autora).
 - **Emulátor Stan6314** ignorovat, nanejvýš do něj nahlédnout při nejasnostech.
 
+## Software pro SAPI v asm: pasmo
+
+Assembler **pasmo 0.5.3** (u autora `E:\SAPI_GIT\Tools\pasmo-0.5.3\pasmo.exe`, používá ho SAPI-Bomberman).
+Pasti ověřené 2026-10-05:
+
+- **Unární minus na začátku výrazu neguje celý zbytek výrazu.**
+  - Příklady: `-1*40+1` = −41 (ne −39), `-1+2` = −3.
+  - Správně: `(-1)*40+1`, `0-1*40+1` nebo hotové číslo.
+  - Za operátorem (`5+-1`, `2*-3`) se nepřeloží, pomohou závorky.
+  - Tabulky posunů po překladu zkontrolovat v binárce. Takhle vznikla chyba ramene výbuchu v SAPI-Bomberman.
+- **Operand začínající závorkou** je adresa: `ld a,(X+3) & 0FFh` nejde. Použít `ld a,0+(X+3) & 0FFh` nebo
+  `low`/`high`.
+- **Zarovnání:** ALIGN není, použít `defs (256 - ($ & 0FFh)) & 0FFh`. `DEFL` jako počitadlo v `REPT`
+  nefunguje, tabulky generovat skriptem.
+- **Návěští `.x`** jsou globální, musí být jedinečná. Při „Relative jump out of range“ použít `jp`.
+- **MCP při ladění:** `read_memory` vrací nejvýš 4096 bajtů (víc = chybový text). `cycles` počítá takty
+  4 MHz i při CPU 2 MHz.
+
 ## Sestavení
 
 - **Visual Studio 2022:** Open Folder, CMake presety `windows-debug` / `windows-release`.
