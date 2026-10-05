@@ -25,6 +25,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   originálního schématu Tesla (`..\SAPI_DOKU\MFC-1A\`); **překreslení EC1045 se od něj liší** (D4/D5 prohozené,
   polarita D6), je jako volba `wiring = ec1045`. **Pozor:** sestava `cpm_zrmd_mfc1a.sapi` má `ec1045` a reset 8272
   jako pulz, ne podle schématu (BIOS ECBIM8 by se jinak zasekl, chybí mu `RET` v `INIT_MFC`), bod 27 Nejasností.
+- **Hotové 2026-10-05 večer:** **zdrojáky systému JPR-1Z / ZRMD-1** (ECMON + CP/M se 4 variantami CBIOS)
+  v `..\SAPI-karty\ZRMD-1\SRC\`, překlad přes M80/L80 pod novým nástrojem **`cpmrun`** (`docs/build.md`). Překlad
+  souhlasí s EPROM i obrazem RAM disku. ECBIM8 je ve zdrojáku opravený a s opravou MFC-1A funguje i s resetem podle
+  schématu (`docs/software/ECMON.md`). Baterie DMR-1 je ve všech sestavách vypnutá (autor ji nemá), takže ECMON
+  po zapnutí nabídne menu. Chybí jen zdroják CCPZ V4.1 (v systému je binárka).
 - **Možné další kroky (autor vybírá):**
   1. Seznam otázek k ověření na HW, sestavený po deskách z „Nejasností“ (body 1–25). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
@@ -414,7 +419,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       D5 INT, D6 = 1 mechaniky vypnuté; překreslení EC1045: D4/D5 prohozené, D6 = 1 zapnuté.
     - Bit resetu podle schématu drží 8272 v resetu. Fungoval BIOS ECBIM8 (ECMON varianta 2) s MFC-1A? Autor neví,
       desku zatím nemá, plánuje repliku. Emulace v sestavě: `ec1045` + pulz (odchylka, parametry `wiring`,
-      `reset_mode`). Oprava BIOSu: `RET` za SPECIFY v `INIT_MFC` (`0E 00` → `C9 00`).
+      `reset_mode`). Oprava BIOSu: `RET` za SPECIFY v `INIT_MFC` (`0E 00` → `C9 00`), je ve zdrojáku
+      `..\SAPI-karty\ZRMD-1\SRC\ECBIM8C.MAC`. S opravou funguje i `reset_mode = level`.
     - RDYn (XP2-19) v příkladech připojení mechanik v návodu zapojený není. Jaké mechaniky se připojovaly?
 
 ## Jak pokračovat

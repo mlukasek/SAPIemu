@@ -102,6 +102,10 @@ endif()
 add_executable(sapiemu-cli src/main.cpp)
 target_link_libraries(sapiemu-cli PRIVATE sapicore)
 
+# Runs CP/M programs on the PC (M80/L80 for the SAPI system sources)
+add_executable(cpmrun tools/cpmrun.cpp)
+target_link_libraries(cpmrun PRIVATE chips_z80)
+
 if(SAPIEMU_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

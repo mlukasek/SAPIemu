@@ -68,6 +68,24 @@ S IDE-1 a ROM `ECMON_2k_IDE-1` (sestava `machines/cpm_ide.sapi`) najde volba 3 P
 „PMD32-SD OK“, „INIT HDD SAPIemu IDE disk“, „OFFSET B: 0000H, C: 0200H“. B: a C: jsou na IDE, D: a E:
 na PMD32-SD.
 
+## Zdrojové kódy a překlad (2026-10-05)
+
+Ve složce **`..\SAPI-karty\ZRMD-1\SRC\`** (mimo repo, popis v jejím `README.md`) jsou zdrojáky celého systému
+a skript `build.py`, který je přeloží přes M80/L80 pod `cpmrun` (`docs/build.md`). **Překlad souhlasí
+s originály bajt po bajtu**, kromě neinicializovaných oblastí DS:
+
+- **ECMON:** `ECMONM.MAC` = `ECMON_cd.MAC` (J. Bíba „V050815JB“, úprava EC1045 2016 „V100416EC“ s vektory
+  PMD32-SD pro CD.COM) se změněnými texty menu (1 RPD8, 2 MFC8) a uživatelem. Dává přesně EPROM
+  `JPR-1ZI_ECMON_2k_Martin.bin`. Pro `ECMON_2k_IDE-1` zdroják není.
+- **Systém na RAM disku:** 4 bloky po 8 KB na začátku obrazu (varianta n na n × 2000h): zavaděč 128 B
+  (`bo200412`), CCP = **CCPZ V4.1** (R. L. Conn, jen binárka, zdroják se nenašel), BDOS = **originální BDOS DRI
+  CP/M 2.2** (výřez z rekonstrukce C. A. Calkinse, 3 bajty vrácené na původní stav), CBIOS `ECBIF8_cd`,
+  `ECBIR8_cd`, `ECBIM8_cd`, `ECBIHD_cd` (všechny „BIOS-3K V050815JB“). Verze bez `_cd` jsou na RAM disku
+  v souborech `ECBI*.BIN`.
+- **ECBIM8C (MFC-1A) má ve zdrojáku opravu** chybějícího `RET` v `INIT_MFC` (`docs/desky/MFC-1A.md`).
+  `build.py --image` ji zapíše do kopie obrazu RAM disku.
+- Starší česká CCP a BDOS ze sady 4XBOOT (2012) v tomto systému nejsou.
+
 ## ZZRMD – „přenos systému na RAM disk“
 
 Soubory `roms/jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin` a `_epr8k.bin`. **Nejde o zavaděč CP/M**:

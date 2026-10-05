@@ -690,6 +690,20 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
+## 2026-10-05 – Zdrojáky systému ZRMD-1 a nástroj cpmrun
+
+- **`tools/cpmrun.cpp`** (cíl `cpmrun` v CMake): spouští programy pro CP/M 2.2 na PC nad Z80 jádrem emulátoru
+  s jednoduchým BDOS (soubory v jedné složce). Vlastní nástroj místo cizího emulátoru CP/M nebo křížového
+  assembleru: bez závislostí, přeloží zdrojáky M80 tak, jak je překládal autor na SAPI, a hodí se i pro další
+  software (doporučení, autor schválil).
+- **Zdrojáky systému JPR-1Z / ZRMD-1 jsou mimo repo** v `..\SAPI-karty\ZRMD-1\SRC\` (rozhodnutí autora: patří
+  k ZRMD-1, vedle stávající `SW`). Jde o zdrojáky J. Bíby a EC1045. Originály jsou beze změny v `orig\`, pracovní
+  verze mají jména 8.3 kvůli CP/M. `build.py` přeloží EPROM a systémovou oblast RAM disku a ověří je proti
+  originálům.
+- **Oprava ECBIM8 (MFC-1A) jen ve zdrojáku a kopiích obrazu:** `RET` + `NOP` místo `LD C,0` (stejná délka).
+  Původní obraz v `media/` a pracovní kopie autora se nemění. Opravený systém funguje s resetem 8272 přesně podle
+  schématu.
+
 ## 2026-10-05 – Řadič MFC-1A
 
 - **Společná základní třída `Fdc8272Card`** (`src/cards/fdc8272.*`) pro desky s 8272 + 8257: mechaniky, DMA, stav,

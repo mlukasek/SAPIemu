@@ -115,10 +115,18 @@ BIOS CP/M (varianta 2 menu ECMON, zdroj `..\SAPI-karty\FDC-1\sw\ECBIM8.MAC`, na 
    (0CH) a čeká na RQM. Řadič v resetu RQM nedá (v emulátoru čte 00h), BIOS stojí navěky (E6CD–E6D2).
 5. Při normální práci BIOS zapisuje 40h + číslo mechaniky (D4 = D5 = 0, D6 = 1).
 
-**Oprava BIOSu:** doplnit `RET` za SPECIFY v `INIT_MFC` (jako u ECBIF8). V obrazu RAM disku ZRMD-1 je kód
-varianty 2 dvakrát (offsety 22574 a 243747); za SPECIFY stačí přepsat `0E 00` (`LD C,0`) na `C9 00` (`RET`, `NOP`).
+**Oprava BIOSu:** doplnit `RET` za SPECIFY v `INIT_MFC` (jako u ECBIF8). Za SPECIFY stačí přepsat `0E 00`
+(`LD C,0`) na `C9 00` (`RET`, `NOP`):
+- v systémové oblasti obrazu RAM disku ZRMD-1 je to bajt na offsetu 583Dh (22589, blok varianty 2);
+- druhá kopie (verze bez `_cd`) je v souboru `ECBIM8.BIN` na RAM disku (offset obrazu 243762).
+
 Registr C po návratu nevadí: `INIT_MFC` volá jen `BOOT`, ten pak volá `MCHECK`, který C nebere (ECBIF8 vrací C =
 30h stejně). Na originální desce Tesla by BIOS musel navíc pracovat s D6 = 0.
+
+**Oprava je ve zdrojáku** `..\SAPI-karty\ZRMD-1\SRC\ECBIM8C.MAC` (`docs/software/ECMON.md`, překlad `build.py`).
+**Ověřeno 2026-10-05:** systém přeložený s opravou nabootuje variantu 2 i s `wiring = ec1045`
+a `reset_mode = level`, tedy s resetem 8272 přesně podle schématu, a `DIR B:` čte disketu. Odchylka `pulse` je
+potřeba jen pro neopravený obraz.
 
 ## PROM DD9 (dekodér portů)
 

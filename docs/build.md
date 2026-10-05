@@ -127,6 +127,14 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 - **Testovací programy pro SAPI:** `python tools/asm8080.py ZDROJ.ASM VYSTUP.HEX [VYSTUP.COM]` je malý
   assembler 8080 (syntaxe M80: ORG, EQU, DB, DW, DS, výrazy). Píše Intel HEX a vypíše počet stránek pro `SAVE`.
   Použitý pro `media/zrd-1v/ZRDTEST.ASM`.
+- **Programy pro CP/M na PC (`cpmrun`):** `out/build/<preset>/cpmrun.exe [-d SLOŽKA] PROGRAM [parametry]` spustí
+  `.COM` pro CP/M 2.2 nad Z80 jádrem emulátoru (`tools/cpmrun.cpp`). Konzole jde na stdout/stdin, soubory jsou ve
+  složce pro všechny jednotky. BDOS umí funkce 0–40, které potřebují překladače (sekvenční a náhodné soubory,
+  hledání s `?`, mazání, přejmenování). Slouží k překladu zdrojáků SAPI v M80/L80, třeba
+  `cpmrun M80 =ECMONM/L`. L80 je spolehlivější s příkazem na stdin (`echo X,X/N/X/E | cpmrun L80`), protože
+  s parametry v příkazové řádce nepřijme `/P:0`. Když program čeká na řádek z konzole a stdin skončil, `cpmrun`
+  skončí. `CPMRUN_TRACE=1` vypisuje volání BDOS. Použití: `..\SAPI-karty\ZRMD-1\SRC\build.py`
+  (`docs/software/ECMON.md`).
 - **`sapiemu-cli`:** `--timeout-ms` musí být **před** `--wait-text`, kterého se týká. `--load-hex` nahraje
   program, `--load-bin SOUBOR ADRESA` binární soubor (adresa hex, třeba `100`), `--display DGD-1` určí obrazovku
   pro `--screenshot`. `--save-state` / `--load-state SOUBOR` uloží a načte stav stroje (`docs/stav.md`).
