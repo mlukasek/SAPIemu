@@ -690,6 +690,21 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
+## 2026-10-05 – Obrazy ImageDisk (.imd) v mechanikách
+
+- **Mechanika drží disketu jako stopy** (`FloppyTrack`): záznam FM/MFM, rychlost, délka sektoru a sektory v pořadí
+  od indexu s ID (C H R N), příznaky (deleted, chyba CRC dat, bez datové značky) a daty. Obyčejné obrazy se do
+  stop převedou při načtení, 8272 hledá sektory podle ID na stopě (libovolné číslování, prokládání, smíšené
+  FM/MFM, 8" DD, 9 × 512 FM…).
+- **ImageDisk:** módy 0–5 = rychlost řadiče PC; disketa dostane svou skutečnou rychlost (FM 500 → 250 kbit/s 8",
+  MFM 500 → 500, „300“ a „250“ → disk 300 ot/min s 250 MFM / 125 FM). Otáčky: 360 pro 500 kbit/s, 300 když se
+  stopa nevejde (3,5" HD) nebo pro DD. Zápisy a FORMAT se ukládají zpět jako ImageDisk (stejnorodé sektory
+  komprimované, hlavička zachovaná). FORMAT stopu IMD přestaví podle zadaných ID; obyčejný obraz přijme jen svůj
+  vlastní formát.
+- **8" SS SD v IMD se standardními ID** drží data v logickém pořadí jako obyčejný obraz, takže ho bere i RPD-1
+  (ověřeno: MIKOS/D z Jílkovy diskety `JILEK\01\01.IMD` nabootuje na ZPS-2).
+- MAX hlavy zůstává 79, RECALIBRATE dál 77 kroků (jako čip).
+
 ## 2026-10-05 – Diskety PC (MFM, HD/DD) pro FDC-1 a MFC-1A
 
 - **Formát diskety podle velikosti obrazu** (`FloppyGeom`): 8" SS SD a formáty PC (3,5" HD, 5,25" HD, DD 720/360 KB).

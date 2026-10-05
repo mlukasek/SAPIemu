@@ -13,8 +13,8 @@ static const int MAX_TRACK = 79;   // mechanical stop of the head
 // ST0 interrupt codes
 static const uint8_t IC_NORMAL = 0x00, IC_ABNORMAL = 0x40, IC_INVALID = 0x80, IC_READY = 0xC0;
 static const uint8_t ST0_SE = 0x20, ST0_EC = 0x10, ST0_NR = 0x08;
-static const uint8_t ST1_EN = 0x80, ST1_OR = 0x10, ST1_ND = 0x04, ST1_NW = 0x02, ST1_MA = 0x01;
-static const uint8_t ST2_CM = 0x40, ST2_WC = 0x10, ST2_BC = 0x02;
+static const uint8_t ST1_EN = 0x80, ST1_DE = 0x20, ST1_OR = 0x10, ST1_ND = 0x04, ST1_NW = 0x02, ST1_MA = 0x01;
+static const uint8_t ST2_CM = 0x40, ST2_DD = 0x20, ST2_WC = 0x10, ST2_BC = 0x02, ST2_MD = 0x01;
 
 static int command_length(uint8_t c)
 {
@@ -27,18 +27,48 @@ static int command_length(uint8_t c)
     }
 }
 
-uint64_t I8272::byte_cyc(void) const
+FloppyTrack* I8272::trk(void)
 {
-    FloppyDrive* d = host ? host->fdc_drive(unit) : nullptr;
-    int bu = d ? d->geom->byte_us : 32;   // the disk's own byte time (32 us 8" FM, 16 us MFM HD)
+    FloppyDrive* d = drive(unit);
+    return d && d->present() ? d->track_at(d->track, head) : nullptr;
+}
+
+uint64_t I8272::byte_cyc(void)
+{
+    int bu;
+    if (phase == PH_EXEC && op == OP_FORMAT) {
+        bu = 8000 / (fmt_kbps > 0 ? fmt_kbps : 250);   // FORMAT writes with the controller's rate
+    } else if (FloppyTrack* t = trk()) {
+        bu = t->byte_us;                                // the track's own byte time
+    } else {
+        int k = host ? host->fdc_kbps(unit, mfm) : 250;   // no track: index pulses only
+        bu = 8000 / (k > 0 ? k : 250);
+    }
     uint64_t c = ((uint64_t)hz * (uint64_t)bu + 500000) / 1000000;
     return c ? c : 1;
 }
 
-const FloppyGeom& I8272::geom(void)
+void I8272::lay(int& track_len, int& first, int& sector_len, int& id_mark)
 {
     FloppyDrive* d = drive(unit);
-    return d ? *d->geom : *floppy_geoms()[0];
+    FloppyTrack t;
+    if (phase == PH_EXEC && op == OP_FORMAT) {   // the track being written
+        t.mfm = mfm;
+        t.kbps = fmt_kbps;
+        t.size = n_ <= 6 ? 128 << n_ : 8192;
+        t.sec.resize(eot ? eot : 1);
+        if (d) d->layout(t);
+    } else if (FloppyTrack* p = trk()) {
+        t = *p;
+    } else {
+        t.kbps = host ? host->fdc_kbps(unit, mfm) : 250;
+        t.mfm = mfm;
+        if (d) d->layout(t);
+    }
+    track_len = t.track_len;
+    first = t.first_sector;
+    sector_len = t.sector_len;
+    id_mark = t.id_mark;
 }
 
 void I8272::reset(uint64_t now)
@@ -69,10 +99,8 @@ bool I8272::has_index(void)
 
 bool I8272::ids_readable(void)
 {
-    FloppyDrive* d = drive(unit);
-    if (!d || !d->present()) return false;
-    const FloppyGeom& g = *d->geom;
-    return head < g.heads && mfm == g.mfm && host->fdc_kbps(unit, mfm) == g.kbps && d->track < g.tracks;
+    FloppyTrack* t = trk();
+    return t && !t->sec.empty() && t->mfm == mfm && host->fdc_kbps(unit, mfm) == t->kbps;
 }
 
 uint8_t I8272::msr(uint64_t now) const
@@ -185,7 +213,7 @@ void I8272::command(uint64_t now)
         if (ready(u)) st3 |= 0x20;
         if (d && d->track == 0) st3 |= 0x10;
         if (d && d->present() && d->write_protect) st3 |= 0x40;
-        if (d && d->present() && d->geom->heads > 1) st3 |= 0x08;   // TWO SIDE
+        if (d && d->present() && d->heads > 1) st3 |= 0x08;   // TWO SIDE
         result(&st3, 1, false, now);
         return;
     }
@@ -304,6 +332,7 @@ void I8272::start_exec(uint64_t now)
         eot = cmd[3];   // sectors per track
         gpl = cmd[4];
         fill = cmd[5];
+        fmt_kbps = host ? host->fdc_kbps(unit, mfm) : 250;
     } else if (op != OP_READ_ID) {
         c_ = cmd[2];
         h_ = cmd[3];
@@ -316,12 +345,12 @@ void I8272::start_exec(uint64_t now)
     st1 = st2 = 0;
     tc = overrun = false;
     saw_id = false;
+    skip_sec = false;
     sectors_done = 0;
     nd_full = false;
     int_byte = false;
     phase = PH_EXEC;
     ev_t = now;
-    uint8_t hd = (uint8_t)(head << 2 | unit);
     if (!ready(unit)) {
         finish((uint8_t)(IC_ABNORMAL | ST0_NR), 0, 0, c_, h_, r_, n_);
         rqm_at = now + us(RQM_US);
@@ -333,7 +362,6 @@ void I8272::start_exec(uint64_t now)
         rqm_at = now + us(RQM_US);
         return;
     }
-    (void)hd;
     ex = X_LOAD;
     if (!hd_loaded) {
         hd_loaded = true;
@@ -379,41 +407,63 @@ void I8272::search(uint64_t from_b)
         ev_t = NEVER;
         return;
     }
-    const FloppyGeom& g = geom();
-    uint64_t L = (uint64_t)g.track_len;
+    int len, first, slen, idm;
+    lay(len, first, slen, idm);
+    uint64_t L = (uint64_t)len;
     search_end_b = (from_b / L + 1) * L + L;
     if (ids_readable()) {
         FloppyDrive* d = drive(unit);
+        FloppyTrack* t = trk();
         for (uint64_t rev = from_b / L; rev * L < search_end_b; rev++) {
-            for (int s = 0; s < g.sectors; s++) {
-                uint64_t start = rev * L + (uint64_t)g.first_sector + (uint64_t)s * (uint64_t)g.sector_len;
-                uint64_t id_b = start + (uint64_t)g.id_mark;
+            for (size_t s = 0; s < t->sec.size(); s++) {
+                uint64_t start = rev * L + (uint64_t)first + (uint64_t)s * (uint64_t)slen;
+                uint64_t id_b = start + (uint64_t)idm;
                 if (id_b < from_b) continue;
                 if (id_b + 6 >= search_end_b) break;
                 saw_id = true;
-                uint8_t c = (uint8_t)d->track, h = (uint8_t)head, r = (uint8_t)(s + 1), n = (uint8_t)g.n;
+                const FloppySector& fs = t->sec[s];
+                bool same = fs.c == c_ && fs.h == h_ && fs.r == r_ && fs.n == n_;
                 bool match;
                 if (op == OP_READ_ID) match = true;
-                else if (op == OP_READ_TRACK) match = s == sectors_done;
-                else match = c == c_ && h == h_ && r == r_ && n == n_;
-                if (op == OP_READ_TRACK && !(c == c_ && h == h_ && r == r_ && n == n_)) st1 |= ST1_ND;
+                else if (op == OP_READ_TRACK) match = (int)s == sectors_done;
+                else match = same;
+                if (op == OP_READ_TRACK && !same) st1 |= ST1_ND;
                 if (!match) {
-                    if (c != c_) st2 |= c_ == 0xFF ? ST2_BC : ST2_WC;
+                    if (fs.c != c_) st2 |= c_ == 0xFF ? ST2_BC : ST2_WC;
                     continue;
                 }
-                sec_found = s + 1;
+                sec_found = (int)s;
+                sec_flags = fs.flags;
                 if (op == OP_READ_ID) {
-                    c_ = c, h_ = h, r_ = r, n_ = n;
+                    c_ = fs.c, h_ = fs.h, r_ = fs.r, n_ = fs.n;
                     ex = X_SECEND;
                     ev_t = byte_end(id_b + 6);
                     return;
                 }
                 st2 &= (uint8_t)~(ST2_WC | ST2_BC);
-                data_b = start + (uint64_t)g.data_mark + 1;
+                data_b = start + (uint64_t)t->data_mark + 1;
                 data_i = 0;
-                data_len = (n_ == 0 && dtl < 128) ? dtl : 128 << n_;
-                if (op != OP_WRITE) memcpy(buf, d->sector(d->track, head, sec_found), (size_t)(128 << n_));
-                if (deleted && op != OP_WRITE) st2 |= ST2_CM;   // a normal data mark where deleted was wanted
+                int size = t->size <= (int)sizeof(buf) ? t->size : (int)sizeof(buf);
+                data_len = (n_ == 0 && dtl < 128) ? dtl : size;
+                skip_sec = false;
+                if (op != OP_WRITE) {
+                    if (fs.flags & FS_NO_DATA) {   // no data mark after the ID
+                        ex = X_NODATA;
+                        ev_t = byte_end(data_b);
+                        return;
+                    }
+                    bool del = (fs.flags & FS_DELETED) != 0;
+                    if (op == OP_READ && del != deleted) {   // the other data mark
+                        st2 |= ST2_CM;
+                        if (sk) {   // skipped: on to the next sector
+                            skip_sec = true;
+                            ex = X_SECEND;
+                            ev_t = byte_end(data_b + (uint64_t)size + 1);
+                            return;
+                        }
+                    }
+                    memcpy(buf, &d->data[fs.off], (size_t)size);
+                }
                 ex = X_DATA;
                 ev_t = byte_end(data_b);
                 return;
@@ -437,20 +487,34 @@ void I8272::sector_done(void)
         return;
     }
     size_t size = (size_t)(128 << n_);
-    if (op == OP_WRITE && d && d->present()) {
-        uint8_t* p = d->sector(d->track, head, sec_found);
-        if (p && memcmp(p, buf, size) != 0) {
-            memcpy(p, buf, size);
-            d->dirty = true;
+    if (size > sizeof(buf)) size = sizeof(buf);
+    if (!skip_sec) {
+        if (op == OP_WRITE && d && d->present()) {
+            FloppyTrack* t = trk();
+            if (t && sec_found < (int)t->sec.size()) {
+                FloppySector& fs = t->sec[sec_found];
+                uint8_t nf = deleted ? FS_DELETED : 0;   // a new data mark, a good CRC
+                uint8_t* p = &d->data[fs.off];
+                if (memcmp(p, buf, size) != 0 || fs.flags != nf) {
+                    memcpy(p, buf, size);
+                    fs.flags = nf;
+                    d->dirty = true;
+                }
+            }
+        }
+        sectors_done++;
+        if (op != OP_WRITE && (sec_flags & FS_DATA_CRC)) {   // data error: the transfer ends here
+            finish(IC_ABNORMAL, ST1_DE | st1, ST2_DD | st2, c_, h_, r_, n_);
+            return;
         }
     }
-    sectors_done++;
+    skip_sec = false;
     uint8_t nc = c_, nh = h_, nr = (uint8_t)(r_ + 1);
     if (r_ == eot) {
         if (mt && h_ == 0) nh = 1, nr = 1;
         else nc = (uint8_t)(c_ + 1), nr = 1;
     }
-    if (tc || (deleted && op == OP_READ && !sk)) {   // TC, or a sector with the other data mark
+    if (tc || (op == OP_READ && (st2 & ST2_CM) && !sk)) {   // TC, or a sector with the other data mark
         finish(IC_NORMAL, st1, st2, nc, nh, nr, n_);
         return;
     }
@@ -459,7 +523,7 @@ void I8272::sector_done(void)
             finish(IC_NORMAL, st1, st2, nc, nh, nr, n_);
             return;
         }
-        if (mt && h_ == 0) {   // multi-track: on to head 1 (single sided disks have none)
+        if (mt && h_ == 0) {   // multi-track: on to head 1
             h_ = 1, r_ = 1, head = 1;
             search(data_b + size + 2);
             return;
@@ -477,7 +541,9 @@ void I8272::exec_event(void)
     switch (ex) {
     case X_LOAD: {
         uint64_t b = ev_t / byte_cyc();
-        uint64_t L = (uint64_t)geom().track_len;
+        int len, first, slen, idm;
+        lay(len, first, slen, idm);
+        uint64_t L = (uint64_t)len;
         if (op == OP_FORMAT || op == OP_READ_TRACK) {
             if (!has_index()) {
                 ex = X_SEARCH;
@@ -499,7 +565,12 @@ void I8272::exec_event(void)
     case X_SEARCH:
         fail_search();
         return;
+    case X_NODATA:
+        finish(IC_ABNORMAL, ST1_MA | st1, ST2_MD | st2, c_, h_, r_, n_);
+        return;
     case X_DATA: {
+        int size = 128 << n_;
+        if (size > (int)sizeof(buf)) size = (int)sizeof(buf);
         if (data_i < data_len && !tc) {
             uint8_t b = buf[data_i];
             if (!data_byte(b, op != OP_WRITE)) {
@@ -511,9 +582,9 @@ void I8272::exec_event(void)
             buf[data_i] = 0;   // after TC or DTL the rest of the sector is written with zeros
         }
         data_i++;
-        if (data_i >= 128 << n_) {
+        if (data_i >= size) {
             ex = X_SECEND;
-            ev_t = byte_end(data_b + (uint64_t)(128 << n_) + 1);   // after the CRC
+            ev_t = byte_end(data_b + (uint64_t)size + 1);   // after the CRC
         } else {
             ev_t = byte_end(data_b + (uint64_t)data_i);
         }
@@ -523,51 +594,58 @@ void I8272::exec_event(void)
         sector_done();
         return;
     case X_FMT_INDEX: {
-        const FloppyGeom& g = geom();
+        int len, first, slen, idm;
+        lay(len, first, slen, idm);
         fmt_sec = 0;
         fmt_i = 0;
         ex = X_FMT_ID;
-        ev_t = byte_end(index_b + (uint64_t)(g.first_sector + g.id_mark + 1));
+        ev_t = byte_end(index_b + (uint64_t)(first + idm + 1));
         return;
     }
     case X_FMT_ID: {
-        const FloppyGeom& g = geom();
+        int len, first, slen, idm;
+        lay(len, first, slen, idm);
         uint8_t b = 0;
         if (!data_byte(b, false)) {
             finish(IC_ABNORMAL, ST1_OR, 0, fmt_id[0], fmt_id[1], fmt_id[2], fmt_id[3]);
             return;
         }
         fmt_id[fmt_i++] = b;
-        uint64_t sec_b = index_b + (uint64_t)g.first_sector + (uint64_t)fmt_sec * (uint64_t)g.sector_len;
+        uint64_t sec_b = index_b + (uint64_t)first + (uint64_t)fmt_sec * (uint64_t)slen;
         if (fmt_i < 4) {
-            ev_t = byte_end(sec_b + (uint64_t)g.id_mark + 1 + (uint64_t)fmt_i);
+            ev_t = byte_end(sec_b + (uint64_t)idm + 1 + (uint64_t)fmt_i);
             return;
         }
-        // the sector is written: the image keeps the data of sectors in the disk's own format
-        if (ids_readable() && n_ == g.n && fmt_id[3] == g.n && fmt_id[1] == head) {
-            if (fmt_id[0] != d->track) LOGW("8272: FORMAT writes C=%d on track %d", fmt_id[0], d->track);
-            uint8_t* p = d->sector(d->track, head, fmt_id[2]);
-            if (p) {
-                memset(p, fill, (size_t)g.sector_size());
-                d->dirty = true;
-            }
-        } else if (fmt_sec == 0) {
-            LOGW("8272: FORMAT %s N=%d head %d does not fit the disk (%s), not kept in the image",
-                 mfm ? "MFM" : "FM", n_, head, g.name);
-        }
+        memcpy(fmt_ids[fmt_sec], fmt_id, 4);
         fmt_sec++;
         fmt_i = 0;
-        if (!tc && fmt_sec < eot && fmt_sec < g.sectors) {
-            ev_t = byte_end(sec_b + (uint64_t)(g.sector_len + g.id_mark + 1));
+        if (!tc && fmt_sec < eot && fmt_sec < 256) {
+            ev_t = byte_end(sec_b + (uint64_t)(slen + idm + 1));
         } else {
             ex = X_FMT_END;
-            ev_t = (index_b + (uint64_t)g.track_len) * byte_cyc();   // until the next index pulse
+            ev_t = (index_b + (uint64_t)len) * byte_cyc();   // until the next index pulse
         }
         return;
     }
-    case X_FMT_END:
+    case X_FMT_END: {
+        // the track is written: the image keeps it when it can (ImageDisk always, a plain image
+        // in its own format)
+        if (d && d->present()) {
+            std::vector<FloppySector> ids;
+            for (int k = 0; k < fmt_sec; k++) {
+                FloppySector s;
+                s.c = fmt_ids[k][0], s.h = fmt_ids[k][1], s.r = fmt_ids[k][2], s.n = fmt_ids[k][3];
+                ids.push_back(s);
+            }
+            if (fmt_sec && fmt_ids[0][0] != d->track)
+                LOGW("8272: FORMAT writes C=%d on track %d", fmt_ids[0][0], d->track);
+            if (n_ > 6 || !d->format_track(d->track, head, mfm, fmt_kbps, n_, ids, fill))
+                LOGW("8272: FORMAT %s N=%d x %d head %d does not fit the disk (%s), not kept in the image",
+                     mfm ? "MFM" : "FM", n_, fmt_sec, head, d->format.c_str());
+        }
         finish(IC_NORMAL, 0, 0, fmt_id[0], fmt_id[1], fmt_id[2], fmt_id[3]);
         return;
+    }
     default:
         ev_t = NEVER;
         return;
@@ -630,6 +708,8 @@ void I8272::state(StateIO& io)
     io.e(data_i);
     io.e(data_len);
     io.e(sec_found);
+    io.v(sec_flags);
+    io.v(skip_sec);
     io.v(tc);
     io.v(overrun);
     io.arr(buf, sizeof(buf));
@@ -640,5 +720,7 @@ void I8272::state(StateIO& io)
     io.e(fmt_sec);
     io.e(fmt_i);
     io.arr(fmt_id, sizeof(fmt_id));
+    io.arr(&fmt_ids[0][0], sizeof(fmt_ids));
+    io.e(fmt_kbps);
     io.v(fill);
 }

@@ -42,7 +42,8 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   PROM D5B (74S287) na A0–A7, monostabil 555.
 - Řadič umí až 4 mechaniky, 8" i 5,25", SS i DS, SD i DD (návod). **Emulace má 4 mechaniky, formát podle
   velikosti obrazu** (`src/chips/floppy.h`): 8" SS SD (IBM 3740, 77 × 26 × 128 B, jako u RPD-1) a formáty PC
-  3,5" HD 1,44 MB, 5,25" HD 1,2 MB, DD 720 a 360 KB (MFM, 512 B, dvě strany). PC mechaniky HD používal EC1045
+  3,5" HD 1,44 MB, 5,25" HD 1,2 MB, DD 720 a 360 KB (MFM, 512 B, dvě strany). **Obrazy ImageDisk (`.imd`)**
+  s libovolnou geometrií po stopách (FM/MFM, délka a číslování sektorů, deleted, chyby CRC; `docs/rozhodnuti.md`). PC mechaniky HD používal EC1045
   (BIOSy `ECBIF3`, `ECBIF5`, sestava `machines/cpm_ec1045.sapi`).
 - Od roku 1989 dodávaný místo RPD-1 (FDC.DOC). Tiskárnu DPP-1 je kvůli kolizi portů nutné přeadresovat z 08H na 18H.
 - **Propojení desek:** horní konektory (X2) obou desek spojuje stejný plochý kabel jako u RPD-1 (KB-17, návod:

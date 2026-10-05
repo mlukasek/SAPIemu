@@ -10,9 +10,11 @@
 //
 // Commands: READ DATA, READ DELETED DATA, WRITE DATA, WRITE DELETED DATA, READ TRACK,
 // READ ID, FORMAT A TRACK, RECALIBRATE, SEEK, SENSE INTERRUPT STATUS, SENSE DRIVE STATUS,
-// SPECIFY. SCAN is not emulated (answered as an invalid command). The head sees ID marks when
-// the disk has the head, its recording (FM/MFM, the command's MF bit) and the data rate the
-// board gives the chip for the drive (fdc_kbps); sector sizes N = 0-3.
+// SPECIFY. SCAN is not emulated (answered as an invalid command). The head sees the sector IDs
+// of the track under it (any numbering, C H R N, from ImageDisk images) when the track has the
+// command's recording (MF bit) and the data rate the board gives the chip for the drive
+// (fdc_kbps). Deleted data marks (CM, SK), data CRC errors (DE, DD) and sectors without a data
+// mark (MA, MD) come from the image; FORMAT rebuilds the track (FloppyDrive::format_track).
 //
 // Timing: the disk turns with its own rpm and data rate (a byte every 32 us FM 8" or 16 us MFM
 // HD); step rate 16 - SRT ms, head load HLT x 2 ms, head unload HUT x 16 ms after the last
@@ -21,7 +23,7 @@
 
 class StateIO;
 struct FloppyDrive;
-struct FloppyGeom;
+struct FloppyTrack;
 
 // What the board connects to the chip.
 class I8272Host {
@@ -57,17 +59,18 @@ struct I8272 {
 
 private:
     enum Phase { PH_CMD, PH_EXEC, PH_RESULT };
-    enum Exec { X_NONE, X_LOAD, X_SEARCH, X_DATA, X_SECEND, X_FMT_INDEX, X_FMT_ID, X_FMT_DATA, X_FMT_END };
+    enum Exec { X_NONE, X_LOAD, X_SEARCH, X_DATA, X_SECEND, X_FMT_INDEX, X_FMT_ID, X_FMT_DATA, X_FMT_END, X_NODATA };
     enum Op { OP_READ, OP_WRITE, OP_READ_ID, OP_FORMAT, OP_READ_TRACK };
 
-    uint64_t byte_cyc(void) const;
+    uint64_t byte_cyc(void);            // time of a disk byte (bus cycles) on the track under the head
     uint64_t us(uint32_t n) const { return (uint64_t)hz * n / 1000000; }
-    uint64_t byte_end(uint64_t b) const { return (b + 1) * byte_cyc(); }   // time a disk byte has passed
+    uint64_t byte_end(uint64_t b) { return (b + 1) * byte_cyc(); }   // time a disk byte has passed
     FloppyDrive* drive(int u) { return host ? host->fdc_drive(u) : nullptr; }
     bool ready(int u) { return host && host->fdc_ready(u); }
     bool has_index(void);               // a disk turns in the drive: index pulses
-    bool ids_readable(void);            // the head sees ID marks (disk, head, recording, data rate, track)
-    const FloppyGeom& geom(void);       // format of the disk in the unit (8" SS SD when none)
+    FloppyTrack* trk(void);             // track under the head of the unit, nullptr when none
+    bool ids_readable(void);            // the head sees ID marks (track, recording, data rate)
+    void lay(int& track_len, int& first, int& sector_len, int& id_mark);   // layout of the track (or FORMAT)
     void command(uint64_t now);
     void start_exec(uint64_t now);
     void exec_event(void);
@@ -126,10 +129,12 @@ private:
     bool saw_id = false;
     uint64_t data_b = 0;                // disk byte of the first data byte of the sector
     int data_i = 0, data_len = 0;
-    int sec_found = 0;                  // sector found (from 1)
+    int sec_found = 0;                  // index of the sector found on the track
+    uint8_t sec_flags = 0;              // its FS_* flags
+    bool skip_sec = false;              // SK: a sector with the other data mark is passed over
     bool tc = false;
     bool overrun = false;
-    uint8_t buf[1024] = {};
+    uint8_t buf[8192] = {};
     int sectors_done = 0;
     // non-DMA mode: one data byte waiting for the CPU (read) or wanted from it (write)
     bool nd_full = false;
@@ -138,5 +143,7 @@ private:
     uint64_t index_b = 0;
     int fmt_sec = 0, fmt_i = 0;
     uint8_t fmt_id[4] = {};
+    uint8_t fmt_ids[256][4] = {};       // the IDs written by FORMAT
+    int fmt_kbps = 250;                 // data rate of the track being formatted
     uint8_t fill = 0xE5;
 };

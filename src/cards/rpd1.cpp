@@ -63,7 +63,7 @@ bool Rpd1::insert(int i, const std::string& image, bool wp, std::string& err)
     Drive& d = drives[i];
     if (!d.load(image, work_copy, err)) return false;
     if (!d.is_8sssd()) {   // the RPD-1 data separator and its PROM know FM 8" disks only
-        err = image + ": RPD-1 reads 8\" SS SD disks only (this one is " + d.geom->name + ")";
+        err = image + ": RPD-1 reads 8\" SS SD disks only (this one is " + d.format + ")";
         d.unload(name.c_str());
         return false;
     }

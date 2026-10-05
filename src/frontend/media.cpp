@@ -20,7 +20,7 @@
 static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3)", "wav;mp3" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
-static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG)", "img;8sd" } };
+static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD)", "img;8sd;imd" } };
 static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
 
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
@@ -438,12 +438,12 @@ static void draw_floppies(UiState& ui, Card* r)
         ImGui::PushID(i);
         ImGui::Text("%s %c:", tr("Drive"), 'A' + i);
         ImGui::SameLine();
-        if (d.data.empty()) ImGui::TextDisabled("%s", tr("(no disk)"));
+        if (!d.present()) ImGui::TextDisabled("%s", tr("(no disk)"));
         else {
             ImGui::TextUnformatted(d.path.c_str());
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", d.path.c_str());
             ImGui::SameLine();
-            ImGui::TextDisabled("(%s)", d.geom->name);
+            ImGui::TextDisabled("(%s)", d.format.c_str());
         }
         if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 4, r->name, i);
         ImGui::SameLine();
@@ -458,7 +458,7 @@ static void draw_floppies(UiState& ui, Card* r)
         }
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Format of a new disk"));
         ImGui::SameLine();
-        ImGui::BeginDisabled(d.data.empty());
+        ImGui::BeginDisabled(!d.present());
         if (ImGui::Button(tr("Eject"))) r->floppy_eject(i);
         ImGui::SameLine();
         ImGui::Checkbox(tr("Write protect"), &d.write_protect);

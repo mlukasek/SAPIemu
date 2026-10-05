@@ -45,7 +45,9 @@ skoro stejný konektor mechanik; rozdíly kolíků jsou v FDC-1.md.
 
 - Karta zabírá **dva sloty**.
 - **Parametry:**
-  - `drive_a` / `drive_b` s `image` (.img, 256 256 B v logickém pořadí sektorů) a `write_protect`;
+  - `drive_a` / `drive_b` s `image` (.img, 256 256 B v logickém pořadí sektorů, nebo ImageDisk `.imd` diskety
+    8" SS SD s ID 1–26 v libovolném pořadí; data se drží v logickém pořadí a zápisy se ukládají zpět do `.imd`)
+    a `write_protect`;
   - `working_copy` (obrazy z `media/` se kopírují do `work/`);
   - `step_ms` (perioda kroku, 8 ms Consul 7213, 12 ms Consul 7212);
   - `settle_ms` (ustálení přiklopené hlavy, předpoklad 35 ms).

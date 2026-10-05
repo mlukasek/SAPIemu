@@ -418,11 +418,11 @@ static const ParamOption k_rpd1_disks[] = {
 };
 static const CardParam k_rpd1[] = {
     { "drive_a", PK_SECTION, "Drive A (8\" SS SD)", "Mechanika A (8\" SS SD)", "true", nullptr, 0, 0 },
-    { "drive_a.image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",
+    { "drive_a.image", PK_FILE, "Disk image (.img 77 x 26 x 128 B, or ImageDisk .imd of such a disk)", "Obraz diskety (.img 77 x 26 x 128 B, nebo ImageDisk .imd takové diskety)", "\"\"",
       k_rpd1_disks, 0, 0 },
     { "drive_a.write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
     { "drive_b", PK_SECTION, "Drive B (8\" SS SD)", "Mechanika B (8\" SS SD)", "false", nullptr, 0, 0 },
-    { "drive_b.image", PK_FILE, "Disk image (.img, 77 x 26 x 128 B)", "Obraz diskety (.img, 77 x 26 x 128 B)", "\"\"",
+    { "drive_b.image", PK_FILE, "Disk image (.img 77 x 26 x 128 B, or ImageDisk .imd of such a disk)", "Obraz diskety (.img 77 x 26 x 128 B, nebo ImageDisk .imd takové diskety)", "\"\"",
       k_rpd1_disks, 0, 0 },
     { "drive_b.write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
     { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
@@ -462,8 +462,8 @@ static const ParamOption k_fdc1_sw[] = {
 };
 #define FDC1_DRIVE(k, l, def)                                                                                            \
     { k, PK_SECTION, "Drive " l, "Mechanika " l, def, nullptr, 0, 0 },                    \
-    { k ".image", PK_FILE, "Disk image (.img: 8\" SS SD, PC 3.5\"/5.25\" HD or DD by its size)",                \
-      "Obraz diskety (.img: 8\" SS SD, PC 3,5\"/5,25\" HD nebo DD podle velikosti)", "\"\"",         \
+    { k ".image", PK_FILE, "Disk image (.img by its size: 8\" SS SD, PC 3.5\"/5.25\" HD/DD; or ImageDisk .imd)",                \
+      "Obraz diskety (.img podle velikosti: 8\" SS SD, PC 3,5\"/5,25\" HD/DD; nebo ImageDisk .imd)", "\"\"",         \
       k_fdc1_disks, 0, 0 },                                                                                              \
     { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
 static const CardParam k_fdc1[] = {
@@ -516,8 +516,8 @@ static const ParamOption k_mfc1a_wiring[] = {
 };
 #define MFC1A_DRIVE(k, l, def)                                                                                           \
     { k, PK_SECTION, "Drive " l, "Mechanika " l, def, nullptr, 0, 0 },                    \
-    { k ".image", PK_FILE, "Disk image (.img: 8\" SS SD, PC 3.5\"/5.25\" HD or DD by its size)",                \
-      "Obraz diskety (.img: 8\" SS SD, PC 3,5\"/5,25\" HD nebo DD podle velikosti)", "\"\"",         \
+    { k ".image", PK_FILE, "Disk image (.img by its size: 8\" SS SD, PC 3.5\"/5.25\" HD/DD; or ImageDisk .imd)",                \
+      "Obraz diskety (.img podle velikosti: 8\" SS SD, PC 3,5\"/5,25\" HD/DD; nebo ImageDisk .imd)", "\"\"",         \
       k_mfc1a_disks, 0, 0 },                                                                                             \
     { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
 static const CardParam k_mfc1a[] = {

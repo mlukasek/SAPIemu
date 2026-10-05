@@ -44,8 +44,8 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 - **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů
   a paměti. Kartu změníte kliknutím na slot. Některé propojky platí hned („platí hned“).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV.
-- **Média:** Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (nová disketa
-  v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD), IDE disk a PMD32-SD.
+- **Média:** Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
+  ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD), IDE disk a PMD32-SD.
 - **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX) nebo binární soubor. V CP/M pak
   `SAVE n JMENO.COM` (okno počet stránek napoví).
 - **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš. Zvuk hraje jen při rychlosti 100 %.

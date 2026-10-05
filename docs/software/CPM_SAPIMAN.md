@@ -129,7 +129,10 @@ souborů, z toho 4793 v **`ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\`** (archiv E
   `Jarda\STD-BUS`, `PS-Mikro`, `skeny_dokumentace_bez_retusi_Petr` (BT100, SP210T, KP311), `_SAPIDOKU_Archive`
   (celé SAPI_DOKU z 2020-01-01, zip 1,6 GB).
 
-**Plán (autor schválil 2026-10-05):** 1) čtení **ImageDisk** v mechanikách (hned), 2) sestavy podle `SAPI_SYS`,
+**Plán (autor schválil 2026-10-05):** 1) ~~čtení **ImageDisk** v mechanikách~~ (hotové: RPD-1, FDC-1, MFC-1A
+čtou i zapisují `.imd`; MIKOS/D z `JILEK\01\01.IMD` nabootuje na RPD-1; `JILEK\04` jsou ve skutečnosti diskety
+MS-DOS 1,2 MB (FAT12, složky `CPM`, `MONV5_FZ`), na kterých Peřina a Jílek přenášeli soubory SAPI přes PC),
+2) sestavy podle `SAPI_SYS`,
 3) `PETR\2MB` pro PMD32-SD. Slučování obou kopií SAPI_DOKU dělá autor, zatím neřešit.
 
 **Pro emulátor z toho plyne:** čtení obrazů **ImageDisk** (`.imd`) přímo v mechanice (libovolná geometrie, smíšené

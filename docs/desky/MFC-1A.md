@@ -152,7 +152,7 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
   (`..._fixMFC.bin`). Test `test_fdc_ecmon` ověřuje i původní obraz: s `level` se BIOS v obou zapojeních zasekne,
   s `pulse` nabootuje. Neopravená inicializace pak zkusí číst z jednotky 3, bez diskety v ní to po třech pokusech
   vzdá a CP/M naběhne.
-- **Mechaniky:** 4, formát podle velikosti obrazu (`src/chips/floppy.h`): 8" SS SD (IBM 3740) a DD 720/360 KB
+- **Mechaniky:** 4, obrazy ImageDisk (`.imd`) nebo formát podle velikosti (`src/chips/floppy.h`): 8" SS SD (IBM 3740) a DD 720/360 KB
   (MFM 250 kbit/s, 512 B, dvě strany). Hodiny podle návodu: 8 MHz pro SD (FM), 4 MHz pro DD (MFM), takže
   rychlost je vždy 250 kbit/s a diskety HD (500 kbit/s) MFC-1A nepřečte. Režim DD zatím neověřil žádný software
   (CP/M pro MFC-1A s DD nemáme). Motory (D3 D2) se neemulují, disketa se točí stále.
