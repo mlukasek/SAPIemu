@@ -84,9 +84,9 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    `CISLOVANI SEKTORU\CIS_FDC_MFC_DE` (formátování a čtení/zápis 3,5", 5,25" a 8" ve FM i MFM, sektory 128–1024 B,
    pro FDC-1 i MFC-1A), `FORMATOVANI`, `Format_FDC_8`, `DUP_fyz_ kopie_8_disket`; program `SAPI_DOKU\MFC-1A\MFC1.ASM`
    (5,25" DD na MFC-1A). Prověří MFM, DD na MFC-1A (zatím neověřené žádným softwarem), FORMAT a READ ID.
-   **Částečně hotové 2026-10-05** (sekce „Formátovací programy SAPIMANa“): FORMAT a READ TRACK na FDC-1 (HD) a
-   MFC-1A (DD, FM). Zbývá: 8" programy (`Format_FDC_8`, `FORM_MFC_AB`), `CISLOVANI SEKTORU`, `DUP_fyz_ kopie`,
-   `MFC1.ASM` a READ ID.
+   **Většinou hotové 2026-10-05** (sekce „Formátovací programy SAPIMANa“): FORMAT a READ TRACK na FDC-1 (HD, 8")
+   a MFC-1A (DD, FM, 8"), číslování sektorů 8". READ ID programy nepoužívají. Zbývá `DUP_fyz_ kopie` a
+   `MFC1.ASM`.
 2. **Motory mechanik:** FDC-1 registr 0FH (M3–M0), MFC-1A D3 D2 registru 0FH. BIOSy `ECBIF3/F5` motory zapínají
    a časují (`MOTOR`, `TIM_Mx`). Emulovat rozběh a to, že bez motoru disketa nečte (index, data).
 3. **Další sestavy a diskety SAPIMANa:** bootovací diskety s RAM diskem RMD-1 (`MFC\m1_281211_rmd.8sd`,
@@ -214,6 +214,11 @@ stopy 0–80 po stranách a pak každou stranu zkontroluje povelem READ TRACK (4
     disketu D: zkopíroval celý B: s ověřením (`[V]`), STAT ukazuje 1038K volných.
   - MFC-1A, `fd3m_512_18` (3,5" DD, MFM 2 × 9 × 512, strana 1 sektory 10–18) a `fd5_256_16` (5,25" FM 2 × 8 × 256)
     v `cpm_boot_mfc1a` na jednotce 1 (E:): „Disketa je OK“.
+  - 8" `fa128_26` (`FORM_MFC_AB`, FM 26 × 128, A: B:) na B: v `cpm_boot_mfc1a` (MFC-1A) i `cpm_boot_fdc1` (FDC-1):
+    „Disketa je OK“, `SAVE` a `DIR B:` na nové disketě fungují.
+  - Číslování sektorů `cis_8_128_26` (`CISLOVANI SEKTORU`, zápis značky stopy a čísla sektoru do každého sektoru)
+    na D: (FDC-1 jednotka 0, 8" disketa) v dlouhém CP/M: všech 2002 sektorů obrazu má správné značky.
+  - READ ID žádný z programů SAPIMANa nepoužívá.
 - **Poznatky:**
   - 81 stop (0–80): emulovaná hlava teď dojede na stopu 82. Dřív se 81. stopa zapsala přes stopu 79.
   - Formáty MFC-1A s číslováním 10–18 na straně 1 a FM na 5,25" uloží jen ImageDisk. Novou disketu `.imd` založí
