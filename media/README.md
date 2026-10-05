@@ -71,6 +71,16 @@ z EPROM `roms/jpr-1zi/JPR-1ZI_MON*_JB_*.bin`, C: je RAM disk ZRMD-1 se souborov�
 | `f1_zrmd4_130711.img` | CP/M pro FDC-1, „BIOS-1K V130711JB“. (`FDC\f1_zrmd4_130711.8sd`) |
 | `r1_zrmd4m_271111.img` | CP/M pro RPD-1, „BIOS-1K V271111JB“. (`RPD\r1_zrmd4m_271111.8sd`) |
 
+Systémové diskety J. Bíby z `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\PETR\SAPI_SYS\` (Z1–Z10,
+soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
+
+| Soubor | Obsah |
+|---|---|
+| `Z1_RPD271111_programy.img`, `Z2_RPD271111_zdroje.img` | RPD-1, MON 271111, C: ZRMD-1 SS256 (rozložení ECMON); programy a zdroje systému. |
+| `Z4_FDC130711_programy.img`, `Z10_FDC130711_zdroje.img` | FDC-1, MON 130711, C: ZRMD-1 SS256. |
+| `Z6_MFC281211_RMD_programy.img`, `Z5_MFC281211_RMD_zdroje.img` | MFC-1A, MON 281211, C: RMD-1 1 MB na 40h. |
+| `Z8_FDC64K_TERM_zdroje.img` | CP/M 64K jen s terminálem (MON 151111 64K, CCP DE00), FDC-1, RMD-1; zdroje včetně `MON64.MAC`. |
+
 ## `fdc-1/` – diskety 8" pro FDC-1
 
 | Soubor | Obsah |

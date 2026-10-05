@@ -132,12 +132,31 @@ souborů, z toho 4793 v **`ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\`** (archiv E
 **Plán (autor schválil 2026-10-05):** 1) ~~čtení **ImageDisk** v mechanikách~~ (hotové: RPD-1, FDC-1, MFC-1A
 čtou i zapisují `.imd`; MIKOS/D z `JILEK\01\01.IMD` nabootuje na RPD-1; `JILEK\04` jsou ve skutečnosti diskety
 MS-DOS 1,2 MB (FAT12, složky `CPM`, `MONV5_FZ`), na kterých Peřina a Jílek přenášeli soubory SAPI přes PC),
-2) sestavy podle `SAPI_SYS`,
+2) ~~sestavy podle `SAPI_SYS`~~ (hotové, níže),
 3) `PETR\2MB` pro PMD32-SD. Slučování obou kopií SAPI_DOKU dělá autor, zatím neřešit.
 
 **Pro emulátor z toho plyne:** čtení obrazů **ImageDisk** (`.imd`) přímo v mechanice (libovolná geometrie, smíšené
 FM/MFM, 8" DD, DS, 9 × 512) by zpřístupnilo stovky disket; 5,25" diskety z `JILEK\04` a sestavy podle `SAPI_SYS`
 (RPD + FDC 5,25" HD, FDC 64K) jsou materiál pro další sestavy; `PETR\2MB` pro PMD32-SD.
+
+## Sestavy ze systémových disket SAPI_SYS (2026-10-05)
+
+Diskety Z1–Z10 jsou v `media/sapiman/Z*.img` (disky 1–10 jsou totožné). Bootovací: Z1/Z2 (RPD 271111), Z4/Z10
+(FDC 130711), Z5/Z6 (MFC 281211 s RMD-1), Z8 (CP/M 64K s terminálem); Z3, Z7, Z9 jsou jen zdroje (RPD 3K 050412 +
+FDC-1 5,25" HD, RPD 170212 + PMD32-SD). Systém z Z3/Z9 („dlouhé CP/M“, 3K BIOS, verze 26) bootuje z 8" diskety
+na RPD-1 s EPROM 260112 (`ZMENA_CPM\FUNKCNI\8 A 3,5 A 5,25\…\MON260112MO.HEX`) a má D: a E: jako 3,5"/5,25" HD na
+druhém řadiči FDC-1. Bootovací disketu nemáme, na Z3/Z9 je systém jen jako `.BIN` (`CP142ZD1/2.BIN`); disketu by
+šlo vyrobit SYSGENem v emulátoru.
+
+- `cpm_boot_rpd1_ss256.sapi`, `cpm_boot_fdc1_ss256.sapi`: A: programy (bootovací), B: zdroje. **C: = RAM disk ZRMD-1
+  v rozložení SS256** (DPB OFF 128 jako ECMON), tedy stejný obraz jako `cpm_zrmd` (`DIR C:` vypíše tvoje soubory).
+  Výzva CCP je `U0A>` (číslo uživatele).
+- `cpm_boot_mfc1a_rmd.sapi`: MFC-1A s RAM diskem RMD-1 1 MB na 40h (náhodný obsah po zapnutí jako DRAM;
+  `IRMD40` ho inicializuje, ptá se „Pokracovat? (A/N)“).
+- `cpm_term64k_fdc1.sapi`: **CP/M 64K** (CCP DE00, BDOS E600, BIOS F400) s EPROM „64K MONTERM CZ 151111JB“, která
+  se po startu odpojí; DMR-1 s celými 64 KB, konzole jen přes DSM-1/1 (DMR-1 na 10h, DCD aktivní), bez klávesnice
+  a AND-1Z. A: Z8 (zdroje, `MON64.MAC`), B: Z4 (programy). Hlásí „CON: TERMINAL PRES DSM1.1“.
+- Ověřeno testem `test_sapi_sys` (boot, `DIR B:`, `DIR C:`; 64K: přes sériovou linku `DIR`, `IRMD40`, `SAVE` na C:).
 
 ## Otázky na EC1045 (Petr Všijanský)
 

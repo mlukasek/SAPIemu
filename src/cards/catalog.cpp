@@ -35,6 +35,8 @@ static const ParamOption k_jpr_roms[] = {
       "MON 130711 J. Bíba (CP/M z 8\" diskety, FDC-1)" },
     { "\"roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin\"", "MON 271111 J. Biba (CP/M from an 8\" disk, RPD-1)",
       "MON 271111 J. Bíba (CP/M z 8\" diskety, RPD-1)" },
+    { "\"roms/jpr-1zi/JPR-1ZI_MON151111_JB_64K_TERM.bin\"", "MON 151111 64K J. Biba (CP/M 64K, terminal only, FDC-1)",
+      "MON 151111 64K J. Bíba (CP/M 64K, jen terminál, FDC-1)" },
     { "\"roms/jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin\"", "ZZRMD 2k", "ZZRMD 2k" },
     { "\"roms/jpr-1zi/JPR-1ZI_ZZRMD_epr8k.bin\"", "ZZRMD 8k", "ZZRMD 8k" },
     { "\"\"", "none (FFh)", "žádná (FFh)" },
@@ -414,6 +416,10 @@ static const ParamOption k_rpd1_disks[] = {
     { "\"media/rpd-1/CPM22P_62A_Perina.img\"", "CP/M 2.2/P 62K (Perina, AND-1A)", "CP/M 2.2/P 62K (Peřina, AND-1A)" },
     { "\"media/sapiman/r1_zrmd4m_271111.img\"", "CP/M boot disk J. Biba (MON 271111, C: ZRMD-1)",
       "Bootovací CP/M J. Bíba (MON 271111, C: ZRMD-1)" },
+    { "\"media/sapiman/Z1_RPD271111_programy.img\"", "J. Biba Z1: CP/M boot, programs (C: ZRMD-1 SS256)",
+      "J. Bíba Z1: bootovací CP/M, programy (C: ZRMD-1 SS256)" },
+    { "\"media/sapiman/Z2_RPD271111_zdroje.img\"", "J. Biba Z2: sources of the RPD-1 system",
+      "J. Bíba Z2: zdroje systému pro RPD-1" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_rpd1[] = {
@@ -439,6 +445,12 @@ static const ParamOption k_fdc1_disks[] = {
       "CP/M 2.2/P 62K pro FDC-1 (Peřina, AND-1A)" },
     { "\"media/sapiman/f1_zrmd4_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: ZRMD-1)",
       "Bootovací CP/M J. Bíba (MON 130711, C: ZRMD-1)" },
+    { "\"media/sapiman/Z4_FDC130711_programy.img\"", "J. Biba Z4: CP/M boot, programs (C: ZRMD-1 SS256)",
+      "J. Bíba Z4: bootovací CP/M, programy (C: ZRMD-1 SS256)" },
+    { "\"media/sapiman/Z10_FDC130711_zdroje.img\"", "J. Biba Z10: CP/M boot, sources of the FDC-1 system",
+      "J. Bíba Z10: bootovací CP/M, zdroje systému pro FDC-1" },
+    { "\"media/sapiman/Z8_FDC64K_TERM_zdroje.img\"", "J. Biba Z8: CP/M 64K terminal (MON 151111 64K), sources",
+      "J. Bíba Z8: CP/M 64K s terminálem (MON 151111 64K), zdroje" },
     { "\"media/fdc-1/prazdna_3.5HD_CPM.img\"", "empty 3.5\" HD 1.44 MB (CP/M, BIOS ECBIF3)",
       "prázdná 3,5\" HD 1,44 MB (CP/M, BIOS ECBIF3)" },
     { "\"media/fdc-1/prazdna_5.25HD_CPM.img\"", "empty 5.25\" HD 1.2 MB (CP/M, BIOS ECBIF5)",
@@ -493,6 +505,10 @@ static const ParamOption k_mfc1a_disks[] = {
       "CP/M 2.2/P 48K pro FDC-1 (Peřina), jako datová disketa" },
     { "\"media/sapiman/m1_281211_zrmd.img\"", "CP/M boot disk J. Biba (MON 281211, C: ZRMD-1)",
       "Bootovací CP/M J. Bíba (MON 281211, C: ZRMD-1)" },
+    { "\"media/sapiman/Z6_MFC281211_RMD_programy.img\"", "J. Biba Z6: CP/M boot, programs (C: RMD-1)",
+      "J. Bíba Z6: bootovací CP/M, programy (C: RMD-1)" },
+    { "\"media/sapiman/Z5_MFC281211_RMD_zdroje.img\"", "J. Biba Z5: CP/M boot, sources of the MFC-1A system",
+      "J. Bíba Z5: bootovací CP/M, zdroje systému pro MFC-1A" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_mfc1a_dec[] = {

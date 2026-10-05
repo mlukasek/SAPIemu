@@ -135,7 +135,9 @@ systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 a 8" mechanikami. Při prvním zapnutí zvolit 0 (FDC8) nebo 2 (MFC8), B: je disketa CP/M 2.2/P, C: druhá mechanika.
 `cpm_boot_mfc1a.sapi`, `cpm_boot_fdc1.sapi` a `cpm_boot_rpd1.sapi` bootují CP/M J. Bíby (2011) z 8" diskety A:
 přes MFC-1A, FDC-1 nebo RPD-1 (EPROM `JPR-1ZI_MON*_JB_*`), C: je vlastní RAM disk ZRMD-1, B: disketa CP/M 2.2/P
-jako data (`docs/software/CPM_SAPIMAN.md`). `cpm_ec1045.sapi` je systém EC1045 s menu FDC8/FDC3/FDC5/HDD
+jako data (`docs/software/CPM_SAPIMAN.md`). Ze systémových disket J. Bíby (`SAPI_SYS`): `cpm_boot_rpd1_ss256.sapi` a `cpm_boot_fdc1_ss256.sapi` (C: je RAM
+disk ZRMD-1 sestavy `cpm_zrmd`, stejné rozložení), `cpm_boot_mfc1a_rmd.sapi` (C: RMD-1, inicializace `IRMD40`) a
+`cpm_term64k_fdc1.sapi` (CP/M 64K jen s terminálem: okno Terminál nebo TCP 2323). `cpm_ec1045.sapi` je systém EC1045 s menu FDC8/FDC3/FDC5/HDD
 a disketami PC 3,5" a 5,25" HD na FDC-1 (volba 1 nebo 2).
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má

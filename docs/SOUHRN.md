@@ -6,7 +6,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 28 v debug (v release navíc pomalé ZEX). Vše prochází.
+  - Testy: 29 v debug (v release navíc pomalé ZEX). Vše prochází.
   - Podklady mimo repo, které dnes vznikly: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`).
 - **Alfa 0.1.0-alpha:**
   - Zip `out/package/SAPIemu-0.1.0-alpha-win64.zip` (vzniká `python tools/package.py`, přibalí i autorův IDE
@@ -51,8 +51,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   0b. **Z archivu EC1045 v `..\SAPI_DOKU_FTP`** (2026-10-05, `docs/software/CPM_SAPIMAN.md`):
      1) ~~obrazy ImageDisk (`.imd`) přímo v mechanikách~~ hotové 2026-10-05 (test `test_floppy_imd`; `JILEK\04`
         jsou diskety MS-DOS se soubory SAPI, čitelné, ale ne CP/M);
-     2) sestavy podle systémových disket `PETR\SAPI_SYS` (RPD-1 + FDC-1 5,25" HD, FDC 64K PC-MONITOR, MFC s RMD-1,
-        RPD + PMD32-SD);
+     2) ~~sestavy podle systémových disket `PETR\SAPI_SYS`~~ hotové 2026-10-05 (`cpm_boot_*_ss256`, `cpm_boot_mfc1a_rmd`,
+        `cpm_term64k_fdc1`); zbývá systém RPD 3K 050412 + FDC-1 5,25" HD a RPD 170212 + PMD32-SD (bootují z RAM
+        disku, chybí EPROM 260112, zdroje na Z3/Z7/Z9);
      3) obrazy `PETR\2MB` (5,25" diskety J. Bíby) jako disky D: PMD32-SD.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
