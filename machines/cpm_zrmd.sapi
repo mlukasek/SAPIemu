@@ -18,6 +18,7 @@
             "slot": 2,
             "type": "DMR-1",
             "ram_config": 1,        // RAM 0000-F7FF (62 KB)
+            "battery": false,       // JP7: no battery, the RAM is cleared at power off (ECMON shows its menu)
             "uart_base": "10h",
             "baud": 9600,
             "connected": false,     // no terminal on the line (DCD inactive): ECMON uses the screen and keyboard

@@ -47,11 +47,11 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
     vypíše menu a stisknutou klávesu rovnou bere jako volbu. Když ne, spustí variantu uloženou na 003Bh.
   - Pak načte 128 B zavaděče z RAM disku (porty 60h–63h, oblast podle varianty) na 0080h, zapíše podpis a skočí
     na 0080h.
-- **V emulátoru drží RAM DMR-1 baterie** (výchozí `battery = true`, soubor `work/dmr-1/sram.bin`, sdílený všemi
-  sestavami jako jedna fyzická karta, `docs/desky/DMR-1.md`). Podpis i volba proto přežijí vypnutí i ukončení
-  emulátoru a menu se po zapnutí neukáže. Menu vyvolá stisk klávesy hned po zapnutí (během prodlevy), nebo
-  sestava s `"battery": false` u DMR-1, nebo smazání `sram.bin` při vypnutém emulátoru. Menu i volba jsou celé
-  v ROM, na obrazu RAM disku nezáleží.
+- **Baterie DMR-1:** autor ji na svých strojích nemá, sestavy v `machines/` proto mají u DMR-1 `"battery": false`
+  (od 2026-10-05) a menu se ukáže po každém zapnutí. S baterií (výchozí hodnota parametru, soubor
+  `work/dmr-1/sram.bin` sdílený sestavami jako jedna fyzická karta, `docs/desky/DMR-1.md`) podpis i volba
+  přežijí vypnutí i ukončení emulátoru a menu vyvolá jen stisk klávesy hned po zapnutí (během prodlevy) nebo
+  smazání `sram.bin` při vypnutém emulátoru. Menu i volba jsou celé v ROM, na obrazu RAM disku nezáleží.
 - Testy mají soubory baterií vypnuté (RAM po zapnutí vynulovaná), číslo varianty píšou hned po zapnutí. Klávesnice
   ho podrží, takže funguje s podpisem i bez něj.
 

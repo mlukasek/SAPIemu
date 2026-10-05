@@ -20,6 +20,7 @@
             "slot": 2,                      // position X2
             "type": "DMR-1",                // 128 KB RAM and serial port
             "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "battery": false,               // JP7: battery backup of the SRAM
             "uart_base": "10h",             // JP2: UART ports
             "baud": 9600,                   // JP8: baud rate - 9600 Bd
             "connected": false,             // Terminal connected at start (DCD)

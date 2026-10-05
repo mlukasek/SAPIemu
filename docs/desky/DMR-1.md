@@ -60,7 +60,8 @@ Konfigurace podle vstupů A8, A7, A6:
 Emulátor řeší konfiguraci jumperem `ram_config` 0–7, případně připojením A6 a A7 na MAP1 a MAP2. Baterie (JP7, parametr `battery`, výchozí zapnuto): obsah 128 KB SRAM přežije vypnutí počítače i ukončení
 emulátoru, drží se v souboru `sram_file` (výchozí `work/dmr-1/sram.bin`, uloží se při vypnutí a ukončení). Bez baterie
 je RAM po zapnutí vynulovaná. Více sestav se stejným souborem se chová jako jedna fyzická karta přenášená mezi nimi.
-Reset (/RES) obsah RAM nemění.
+Reset (/RES) obsah RAM nemění. Autor baterii na svých kartách standardně nemá, sestavy v `machines/` proto mají
+`"battery": false` (2026-10-05, jinak ECMON po zapnutí nenabídne volbu systému, `docs/software/ECMON.md`).
 
 Karet DMR-1 může být v sestavě víc. Další se používají jako sériové porty: RAM se vypne (parametr `ram`) a UART se
 nastaví na jiný port (JP2). Sériový kanál se jmenuje podle portu, např. „DMR-1 #14“.
