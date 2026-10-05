@@ -7,7 +7,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | Porty | Deska |
 |---|---|
 | 00–03 | JPR-1Z/ZI (00 = BOOT off, 01–03 = P0–P2) |
-| 04–0F | FDC-1 |
+| 04–0F | FDC-1 (8257 04–0B, 8272 0C–0D, FDC-1B 0E–0F; PROM D5B, `docs/desky/FDC-1.md`) |
 | 10–13, 14–17, 18–1B, 1C–1F | DSM-1 / DMR-1, kanály #1–#4 |
 | 20–25 | RPD-1A (8253 20–23, data 24, řízení/stav 25; ověřeno z EBIOS) |
 | 22–29 | DPP-1/6 (ECMON používá 28–2Fh) |
@@ -32,6 +32,6 @@ Druhý průzkum přečetl některé rozsahy z XLS jinak: RPD-1A 24–25, DPP-1/6
 | Sestava | Rozložení |
 |---|---|
 | CP/M ZPS-4 | RAM 0000–F7FF (62 KB), AND-1Z na F800–FFFF |
-| CP/M ZPS-3 s AND-1A | displej na E800h |
+| CP/M ZPS-3 s AND-1A | displej na E800h (48K), na F800h (62K, RAM 0000–F7FF) |
 | MIKOS | displej na 3800h. MAP odebere 0000–3FFF z RAM-1Z/DMR-1, aby tam mohla být ROM. Autoritativní mapu MIKOS zatím nemáme |
 | JPR-1ZI při BOOT=1 | EPROM přes 0000–07FF (nebo 0000–1FFF). Zápisy jdou do RAM pod ní |

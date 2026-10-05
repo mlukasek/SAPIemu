@@ -17,9 +17,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
   - GUI: nahrávání binárních souborů a HEX s dotazem, větší pole Popis;
   - nástroje: ZRDTEST (`media/zrd-1v`), assembler `tools/asm8080.py`, balík a obrázky do README.
+- **Hotové 2026-10-05 odpoledne:** řadič **FDC-1** (8272 + DMA 8257, `docs/desky/FDC-1.md`) a sestavy ZPS-3
+  s CP/M 2.2/P 48K a 62K pro RPD-1 i FDC-1 (`machines/zps/ZPS-3_CPM*.sapi`, `docs/software/CPM_ZPS-3.md`).
+  Podklady od autora: `..\SAPI-sestavy\ZPS-3\`, `..\SAPI-karty\FDC-1\`. Nové otázky na HW jsou v bodě 26.
 - **Možné další kroky (autor vybírá):**
   1. Seznam otázek k ověření na HW, sestavený po deskách z „Nejasností“ (body 1–25). ZRD-1V se ZRDTEST.
-  2. Neemulované karty: DPP-1, RTC-1, FDC-1, MFC-1A, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
+  2. Neemulované karty: DPP-1, RTC-1, MFC-1A, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
      podkladů, které autor má.
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
   4. Převod HEX na kazetu (WAV) pro DSM-1.
@@ -130,6 +133,15 @@ Michal Medek), repo zůstává neveřejné, dokud to neodsouhlasí. Pak:
   klávesnici.
 - Test `test_zps4`, celkem 23 testů. Popis v `docs/software/CPM_ZPS-4.md`.
 
+
+**Hotové: řadič FDC-1 a CP/M 48K/62K pro ZPS-3** (2026-10-05).
+- Karta `FDC-1` (desky A + B, dva sloty): 8272 (`src/chips/i8272.*`), DMA 8257 (`i8257.*`), dekodér portů podle dumpu
+  PROM D5B, registry FDC-1B 0EH/0FH, přepínače SA2. Mechanika 8" a obraz diskety jsou společné s RPD-1
+  (`src/chips/floppy.*`, `FloppyDrive`), okno Média obslouží každou kartu s mechanikami.
+- DMA bere CPU 4 takty na bajt (`Bus::hold`, spotřebuje CPU karta).
+- Sestavy `ZPS-3_CPM48K`, `ZPS-3_CPM62K` (RPD-1) a `ZPS-3_CPM48K_FDC-1`, `ZPS-3_CPM62K_FDC-1` s Peřinovými MOR48A,
+  MOR62A, MOR48AF, MOR62AF a disketami od autora. 62K: druhá RAM-1A na C000–F7FF (předpoklad), AND-1A na F800.
+- FORM6.COM z diskety FDC formátuje 8" disketu na B:, test `test_zps3` projde všechny čtyři sestavy.
 
 **Hotové: ZPS-3** (`machines/zps/ZPS-3.sapi`).
 - Nové karty JPR-1A (varianta JPR-1: BOOT, porty 01–03, D2C), AND-1A (D3A, E800) a RAM-1A (D1A,
@@ -253,7 +265,7 @@ Dřív hotové fáze:
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
-| F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 62K/64K); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
+| F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 64K; 62K a FDC-1 hotové 2026-10-05); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
@@ -320,7 +332,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Jsou na AND-1A D3A vstupy A6/A7 (G/H) na +5 V?
     - Dumpy PROM D2C, D3A, D1A pro potvrzení přepsaných tabulek.
     - Má AND-1A 1 KB, nebo 2 KB video RAM?
-    - Pro 62K a 64K: PROM D3A pro F800 a F000 a jak se dvě RAM-1A vyhnou displeji.
+    - Pro 62K a 64K: PROM D3A pro F800 a F000 a jak se dvě RAM-1A vyhnou displeji. Emulace 62K: druhá RAM-1A
+      s upravenou D1A (S1 S2 = 10 → C000–F7FF) a domácí D3A pro F800 (`docs/software/CPM_ZPS-3.md`).
 
 20. **ZPS-4** (odpovědi autora 2026-10-04):
     - **RMD-1 PROM:** bit 2 (O3) = port 40 (řada), bit 3 (O4) = 43 (příprava čtení)? Schéma má popisky
@@ -384,6 +397,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Jaký tón má bzučák EKL-1 (SG1 F/CM12P)? Emulace: 2,4 kHz.
     - Pípne skutečný SAPI po resetu? Podle zapojení ano (3212 se nuluje, P0-OUT1 = 0, 25–50 ms do zápisu
       monitoru).
+
+26. **FDC-1** (`docs/desky/FDC-1.md`):
+    - Polarita D0 (DD/SD) přepínačů SA2 při čtení 0EH a k čemu je dvoupólový přepínač SA1.
+    - Hlásí 8272 po resetu „ready changed“ pro všechny 4 jednotky (SENSE INTERRUPT STATUS po resetu)?
+    - Kolik taktů CPU zabere přenos DMA (emulace 4) a doba RQM po bajtu povelu (emulace 12 µs).
+    - Používá něco registr 0FH (motory, hlavy) a výběr 0EH D1 D0 kromě FORM6?
 
 ## Jak pokračovat
 

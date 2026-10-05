@@ -690,7 +690,30 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - Hrany bzučáku jsou na přesném čase sběrnice. Vzorek je průměr úrovně za svou periodu, ustálená úroveň je díky
   potlačení stejnosměrné složky ticho.
 
-## 2026-10-06 – Podklady desek ve složce SAPI-karty
+## 2026-10-05 – Řadič FDC-1 a sestavy ZPS-3 CP/M 48K/62K
+
+Zadání autora: otestovat ROM a diskety z `..\SAPI-sestavy\ZPS-3\` (MOR*.hex, CPM*.img; 48/62 = paměť, F = FDC-1),
+udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty\FDC-1\`.
+
+- **FDC-1 je jedna karta přes dva sloty** jako RPD-1 (FDC-1A v prvním, FDC-1B ve druhém).
+- **Porty podle dumpu PROM D5B** (soubor `roms/fdc-1/FDC-1A_D5B_74S287.bin`, parametr `decoder`), vstupy A0–A7 přímo.
+- **8272 a 8257 jako samostatné obvody** v `src/chips` (hostitelské rozhraní `I8272Host` pro mechaniky a DMA).
+  Mechanika a obraz 8" diskety jsou nově společné s RPD-1 (`FloppyDrive`). Media okno používá virtuální
+  `Card::floppy_drive`, `floppy_insert`, `floppy_eject`, takže další řadiče nic dalšího nepotřebují.
+- **Přerušení 8272: jeden stav na jednotku** (jako MAME), po resetu „ready changed“ pro připravené jednotky, nový
+  SEEK/RECALIBRATE stav své jednotky smaže. Fronta stavů dávala MOR po RESETu s hlavou na stopě 0 „BOOT ERROR“.
+- **DMA bere čas CPU:** `Bus::hold` (cykly, kdy DMA drží sběrnici) přičte CPU karta před další instrukcí, 4 takty na
+  bajt. Zbytek patří do stavu karty FDC-1, aby se nezměnil formát stavu sběrnice (starší uložené stavy platí).
+- **Čtení 0EH vrací přepínače SA2 vybrané mechaniky** (D1 = 8", D0 = DD): odvozeno z FORM6, které před
+  formátováním 8" disket čeká D1 = 1. Parametry `sa2_a`–`sa2_d`. Emulované mechaniky jsou vždy 8" SS SD.
+- **/RDY uzemněný** (parametr `rdy_ground`, výchozí ano) podle návodu a FDC.DOC. Bez diskety pak 8272 čeká na
+  index věčně, jako skutečný řadič.
+- **62K:** druhá RAM-1A na C000–F7FF s upravenou PROM D1A (předpoklad, jiný soubor podle pravidla „jiná adresace =
+  jiný soubor“) a AND-1A s domácí PROM D3A pro F800 z archivu SAPIMAN.
+- **ROM a diskety:** MOR62A, MOR48AF, MOR62AF jako `.bin` vedle MOR48A, diskety v `media/rpd-1` a `media/fdc-1`.
+  CPM48A.img od autora je shodný s dřívějším `CPM22P_48A_Perina.img`.
+
+## 2026-10-05 – Podklady desek ve složce SAPI-karty
 
 - **Autor přesunul složky desek, které nejsou na GitHubu,** z `E:\SAPI_GIT\<deska>` do
   `E:\SAPI_GIT\SAPI-karty\<deska>`: EKL-1, ZRMD-1, AND-1Z-89, IDE-1, DMR-1, JPR-1ZI, PMD32-SD, RAM-1Z, DSM-1,

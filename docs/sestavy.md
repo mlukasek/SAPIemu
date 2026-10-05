@@ -126,6 +126,9 @@ totéž s Liborovou DGD-1V (VGA, jantarová) místo DGD-1 (`docs/desky/DGD-1V.md
 systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 (bastldeska) je prázdná deska pro vlastní zapojení uživatele, na sběrnici nic nedělá a jen zabírá slot.
 **ZPS-3 běží** s originálním monitorem 48K MON V1.0-C1 a CP/M 2.2/P z diskety (`docs/software/CPM_ZPS-3.md`).
+`ZPS-3_CPM48K.sapi` a `ZPS-3_CPM62K.sapi` jsou ZPS-3 s Peřinovými monitory MOR48A a MOR62A a řadičem RPD-1,
+`ZPS-3_CPM48K_FDC-1.sapi` a `ZPS-3_CPM62K_FDC-1.sapi` totéž s řadičem FDC-1 (8272 + DMA, dva sloty,
+`docs/desky/FDC-1.md`). Sestavy 62K mají druhou RAM-1A na C000–F7FF a AND-1A na F800.
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,

@@ -323,7 +323,7 @@ static double rms_of(const std::vector<int16_t>& a)
     return a.empty() ? 0 : sqrt(sum / (double)a.size());
 }
 
-// Board sources outside the repository: ..\SAPI-karty\MPH-1V (since 2026-10-06), else ..\MPH-1V
+// Board sources outside the repository: ..\SAPI-karty\MPH-1V (since 2026-10-05), else ..\MPH-1V
 static std::string board_file(const char* rel)
 {
     std::string p = data_path(std::string("../SAPI-karty/MPH-1V/") + rel);

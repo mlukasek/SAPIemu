@@ -30,6 +30,11 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `mikos/MONITOR_V5.0F_MIKOS_D_V5.0.bin` | REM-1 EPROM 0000–1FFF (8× 2708) | Monitor V5.0F + MIKOS/D V5.0 + EBIOS (ovladač RPD-1) pro diskety. Z `H:\SAPI-1\Klasika\mikos5\m5mid.hex` (= sapi.cz `m5mid_hex`), MD5 428eb954…. EBIOS 1300–17DA shodný s výpisem `ebios_lst`. |
 | `jpr-1a/JPR-1A_MON_V1.0-C1.bin` | JPR-1A EPROM D3B (0000–07FF) | JPR-1A 48K MON V1.0-C1 (Tesla Eltos IMA 2/86), boot CP/M ZPS-3 z RPD-1. Zdroj `H:\SAPI-1\SAPI_DOKU_2011-09-10\SAPI_EPROM\BOOT_pro_CPM\B_V10_JPR-1A_RPD-1_ZPS-3.BIN` (shodné s `Foto\Jiri_Slansky\SW\JPR-1A 48K MON V1.0-C1`), MD5 2eb1690d…. Zdrojový kód MON48C1.MAC je v `cpmzps3_soubory.rar` na sapi.cz. |
 | `jpr-1a/MOR48A.bin` | JPR-1A EPROM 0000–080B | CP/M 2.2/P 48K boot (R. Peřina 1988), z sapi.cz `data/mor48a_hex.php` (= `rpd_soubory\MOR48A.HEX`), zdroj MOR24.MAC. |
+| `jpr-1a/MOR62A.bin` | JPR-1A EPROM 0000–080B | CP/M 2.2/P 62K boot pro RPD-1 (Peřina 1988, „SAPI-1 ZPS3-62K“), kopíruje se na F000. Zdroj autor `..\SAPI-sestavy\ZPS-3\MOR62A.hex`. |
+| `jpr-1a/MOR48AF.bin`, `MOR62AF.bin` | JPR-1A EPROM 0000–06C7 | Totéž pro řadič FDC-1 („SAPI-1 ZPS3-48K/FDC-1“, „…62K/FDC-1“), z `MOR48AF.hex`, `MOR62AF.hex`. Zdroj MOR24F.MAC je na disketě. |
+| `fdc-1/FDC-1A_D5B_74S287.bin` | FDC-1A PROM D5B (74S287) | Dekodér portů FDC-1: 04–0BH 8257, 0CH–0DH 8272, 0EH–0FH FDC-1B. **Dump** `..\SAPI-karty\FDC-1\PROM_D5B.hex`. |
+| `and-1a/AND-1A_D3A_CPM62K_74S287.bin` | AND-1A PROM D3A | Domácí varianta pro CP/M 62K: F800 (S1 sepnutá 3800). Podle tabulky `SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\FDC\FDC_AND1A130711_RMD\dekoder AND1ACPM.txt`. |
+| `ram-1a/RAM-1A_D1A_62K_74S287.bin` | RAM-1A PROM D1A | Standardní D1A, jen S1 S2 = 10 dává C000–F7FF místo C000–FFFF (druhá RAM-1A pro CP/M 62K). **Předpoklad**, ne doložená PROM. |
 | `jpr-1a/JPR-1A_D2C_74S571.bin` | JPR-1A PROM D2C (74S571, 512 × 4) | Dekodér EPROM a portů. **Přepis tabulky** z návodu (sapi.cz `jpr-1a.php`), ne dump. |
 | `and-1a/AND-1A_D3A_74S287.bin` | AND-1A PROM D3A (74S287) | Dekodér video RAM (E800, s S1 3800). Přepis z návodu (`and-1a.php`). D3C AND-1A je shodná s `and-1/AND-1_D3C_74188.bin`. |
 | `ram-1/RAM-1_D1A_74S287.bin` | RAM-1 PROM D1A | Standardní dekodér RAM-1 (4000–…, tab. 1). Přepis z návodu (`ram-1.php`, 1. tabulka). |
