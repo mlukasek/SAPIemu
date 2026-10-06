@@ -855,3 +855,20 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Zapnuté** v `cpm_ec1045` a `cpm_boot_dlouhe_rpd1_fdc1*` (mechaniky PC): BIOS zapne motor při SELECT a
   nečeká, rozběh odčeká 8272. Monitor motory po nečinnosti vypíná (časovače `TIM_Mx` v CONST, vstup BIOSu `MOTOR`).
 - `/RES` nuluje registr 0FH FDC-1 (předpoklad, Nejasnost). Stav karet má nově masku motorů a časy rozběhu.
+
+## 2026-10-06 – Tiskárna Centronics (X3 karet JPR, DPP-1)
+
+- **Kde:** ECMON i monitory J. Bíby tisknou `LST:` přes X3 procesorové karty (P2 data, P1-OUT1 /STROBE, P2-IN6
+  BUSY, P2-IN7 = kolík 16). DPP-1 kanál 1 je u nich `PUN:` (mód 1). Dřívější zápis „kanál 1 = tiskárna“ byl omyl.
+  Autor chtěl tiskárnu na obou místech.
+- **Jedno zařízení** `Printer` (`src/chips/printer.*`) pro obě připojení. Bajty jdou beze změny do souboru,
+  textové zobrazení vynechá ESC/P a mapuje 80h–FFh podle znakové sady (výchozí KOI-8 čs2).
+- **Časování:** BUSY drží `busy_us` po bajtu (výchozí 100 µs jako tiskárna s vyrovnávací pamětí), pak přijde
+  /ACK. Hodnota 0 je odchylka (okamžitě).
+- **X3:** bajt se bere při náběžné hraně /STROBE (předpoklad). Kolík 16 je podle autora 0. Úvodní bajt 00h po
+  `CINIT` ECMONu se zapíše, protože ho dostane i skutečná tiskárna. JPR-1/1A (8080) tiskárnu nemají
+  (P2-IN = přerušení).
+- **DPP-1:** 8255 dostal mód 1 na portu A (vstup i výstup), /OBF = /STROBE, /ACK tiskárny na PC6.
+- **Testy** do souborů tiskárny nepíšou (stejný přepínač jako soubory baterií), `test_printer` si ho zapne pro
+  soubory v `work/test/`.
+- **Sestavy:** `cpm_zrmd` (X3), `cpm_zrmd_dpp1` (X3 a DPP-1 kanál 1).

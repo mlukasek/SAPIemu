@@ -1,8 +1,9 @@
 # DPP-1 – deska paralelních portů
 
 Stav: **emulovaná** (typ `DPP-1`, `src/cards/dpp1.*`), od 2026-10-05. Na kanál 2 (nebo 1) jde připojit emulátor disket
-PMD32-SD (`docs/desky/PMD32-SD.md`), jak ho používají ECMON a CP/M J. Bíby. Sestavy `cpm_zrmd_dpp1.sapi`,
-`cpm_pmd_rpd1.sapi`, test `test_sapi_sys`.
+PMD32-SD (`docs/desky/PMD32-SD.md`), jak ho používají ECMON a CP/M J. Bíby. Od 2026-10-06 jde na druhý kanál
+připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi`, `cpm_pmd_rpd1.sapi`, testy
+`test_sapi_sys`, `test_printer`.
 
 ## Podklady
 
@@ -44,11 +45,17 @@ PMD32-SD (`docs/desky/PMD32-SD.md`), jak ho používají ECMON a CP/M J. Bíby. 
   předpokládá se nastavení, které připojené zařízení potřebuje (směr 3216 a polarita PC pro mód 2). Druhý kanál
   nemá nic připojeno (vstupy čtou 1).
 - ECMON (verze bez IDE-1) i CP/M J. Bíby používají PMD32-SD na kanálu 2 desky na 28h (2Ch–2Fh, řídicí slovo C4h na
-  2Fh). Kanál 1 (28h–2Bh) je v jejich výpisech tiskárna (`LST: CENTRONIX`), ta se zatím neemuluje.
+  2Fh). **Kanál 1 (28h–2Bh) je u nich `PUN:` (děrovač)**, ne tiskárna: řídicí slovo AEh (PA výstup v módu 1),
+  výstup čeká na /OBF a INTR. Tiskárna („CENTRONIX“, `LST:`) je na X3 procesorové karty (`docs/tiskarna.md`).
+  Dřívější poznámka, že kanál 1 je tiskárna, byla omyl (opraveno 2026-10-06).
+- **Tiskárna** (sekce `printer`, `printer_channel`, výchozí kanál 1): port A v módu 1, /OBF = /STROBE, /ACK
+  tiskárny na PC6. ECMON na ni tiskne při `LST: = UL1:`. 8255 má od 2026-10-06 mód 1 i na portu A (vstup
+  i výstup).
 - Okno Média a nástroje MCP (`pmd32_images`, `pmd32_mount`) najdou PMD32-SD na IDE-1 i na DPP-1.
 
 ## Nejasnosti k ověření na HW
 
 - Přepínače S2–S4 (směr 3216, polarita PC) při připojení PMD32-SD a tiskárny: jaké nastavení a jaký kabel se
   používaly? Zapojení konektoru PMD32-SD na X3?
-- Kanál 1 jako tiskárna Centronics: zapojení signálů (STROBE, BUSY, ACK) na 1PA/1PC.
+- Kanál 1: děrovač (`PUN:`), nebo tiskárna přes `UL1:`? Zapojení signálů (STROBE, BUSY, ACK) na 1PA/1PC
+  (emulace: /OBF → /STROBE, /ACK → PC6, BUSY nezapojený).

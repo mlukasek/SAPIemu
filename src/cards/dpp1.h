@@ -7,11 +7,14 @@
 // (manual tab. 2, 3). A2 selects the channel: base+0..3 channel 1 (1PA, 1PB, 1PC, control),
 // base+4..7 channel 2. /RES resets both 8255.
 // Connected here: the PMD32-SD floppy emulator on port A of one channel in mode 2, as the CP/M
-// of ECMON and J. Biba use it (channel 2, 2Ch-2Fh). The switches S2-S4 (direction of the 3216
-// buffers, polarity of the PC signals) are assumed set as that device needs; the other channel
-// has nothing connected (inputs read high).
+// of ECMON and J. Biba use it (channel 2, 2Ch-2Fh), and a Centronics printer on port A of a
+// channel in mode 1 output: /OBF (PC7) is its /STROBE, its /ACK goes to PC6 (/ACK of the 8255).
+// ECMON and J. Biba send PUN: (and LST: = UL1:) there, channel 1 (28h-2Bh, control word AEh).
+// The switches S2-S4 (direction of the 3216 buffers, polarity of the PC signals) are assumed
+// set as the devices need; a channel without a device reads high.
 #include "chips/i8255.h"
 #include "chips/pmd32sd.h"
+#include "chips/printer.h"
 #include "core/card.h"
 
 class Dpp1 : public Card {
@@ -30,6 +33,7 @@ public:
     int decode_io(uint8_t port, const char** what) override;
     unsigned panel_leds() override;
     Pmd32Sd* pmd32sd() override { return pmd_enabled ? &pmd : nullptr; }
+    Printer* printer() override { return prn_enabled ? &prn : nullptr; }
 
 private:
     uint8_t base = 0x28;          // S1
@@ -37,6 +41,11 @@ private:
     bool pmd_enabled = false;
     I8255 ppi[2];
     Pmd32Sd pmd;
+    int prn_channel = 0;          // 0 = channel 1, 1 = channel 2
+    bool prn_enabled = false;
+    Printer prn;
+    bool prn_wait_ack = false;    // the printer has the byte of /OBF, its /ACK is to come
+    void printer_service(uint64_t now);
     uint64_t access_at = 0;       // activity LED of the panel drawing (not on the real card)
     bool accessed = false;
 };

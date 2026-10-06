@@ -29,7 +29,19 @@ bool Dpp1::configure(const json& cfg, std::string& err)
         return false;
     }
     pmd_channel = (int)v - 1;
+    if (!cfg_number(cfg, "printer_channel", v, 1, err)) return false;
+    if (v != 1 && v != 2) {
+        err = "printer_channel must be 1 or 2";
+        return false;
+    }
+    prn_channel = (int)v - 1;
     pmd_enabled = cfg.contains("pmd32sd") && !cfg["pmd32sd"].is_null();
+    prn_enabled = cfg.contains("printer") && !cfg["printer"].is_null();
+    if (pmd_enabled && prn_enabled && pmd_channel == prn_channel) {
+        err = "the PMD32-SD and the printer cannot share a channel";
+        return false;
+    }
+    if (prn_enabled && !prn.configure(cfg["printer"], err)) return false;
     if (pmd_enabled) {
         pmd.attach(&ppi[pmd_channel]);
         if (!pmd32_configure(pmd, cfg["pmd32sd"], probe, bus->now, name, err)) return false;
@@ -41,12 +53,29 @@ void Dpp1::reset()
 {
     ppi[0].reset();
     ppi[1].reset();
+    prn_wait_ack = false;   // /OBF is high after the reset; a byte being printed is acknowledged to nobody
     // /RES does not reach the PMD32-SD: it keeps running
 }
 
 void Dpp1::advance(uint64_t now)
 {
     if (pmd_enabled) pmd.advance(now, bus->cpu_hz);
+    if (prn_enabled) printer_service(now);
+}
+
+// mode 1 output: the byte goes to the printer while /OBF is low, its /ACK sets /OBF high again
+void Dpp1::printer_service(uint64_t now)
+{
+    I8255& p = ppi[prn_channel];
+    if (prn_wait_ack) {
+        if (!prn.ack_due(now)) return;
+        prn_wait_ack = false;
+        if (p.mode1_a() && p.a_output_full()) p.ack_a();
+    }
+    if (p.mode1_a() && p.strobed_out_a() && p.a_output_full()) {
+        prn.take(p.out_a, now, bus->cpu_hz);
+        prn_wait_ack = true;
+    }
 }
 
 int Dpp1::decode_io(uint8_t port, const char** what)
@@ -54,6 +83,7 @@ int Dpp1::decode_io(uint8_t port, const char** what)
     if ((port & 0xF8) != base) return 0;
     int ch = (port >> 2) & 1;
     if (pmd_enabled && ch == pmd_channel) *what = ch ? "DPP-1 channel 2 (8255), PMD32-SD" : "DPP-1 channel 1 (8255), PMD32-SD";
+    else if (prn_enabled && ch == prn_channel) *what = ch ? "DPP-1 channel 2 (8255), printer" : "DPP-1 channel 1 (8255), printer";
     else *what = ch ? "DPP-1 channel 2 (8255)" : "DPP-1 channel 1 (8255)";
     return DEC_READ | DEC_WRITE;
 }
@@ -66,6 +96,7 @@ unsigned Dpp1::panel_leds()
 bool Dpp1::io_read(uint8_t port, uint8_t& data)
 {
     if ((port & 0xF8) != base) return false;
+    if (prn_enabled) printer_service(bus->now);
     data = ppi[(port >> 2) & 1].read(port & 3);
     accessed = true;
     access_at = bus->now;
@@ -80,12 +111,17 @@ bool Dpp1::io_write(uint8_t port, uint8_t data)
     accessed = true;
     access_at = bus->now;
     if (pmd_enabled && ch == pmd_channel) pmd.advance(bus->now, bus->cpu_hz);   // the ATmega reacts within microseconds
+    if (prn_enabled && ch == prn_channel) {
+        if (!ppi[ch].a_output_full()) prn_wait_ack = false;   // a new mode cleared /OBF
+        printer_service(bus->now);
+    }
     return true;
 }
 
 void Dpp1::flush()
 {
     pmd.flush();
+    prn.flush();
 }
 
 void Dpp1::describe(json& out)
@@ -95,6 +131,8 @@ void Dpp1::describe(json& out)
     out["base"] = buf;
     out["pmd_channel"] = pmd_channel + 1;
     if (pmd_enabled) pmd32_describe(pmd, out);
+    if (prn_enabled)
+        out["printer"] = json{ { "channel", prn_channel + 1 }, { "output", prn.path() }, { "bytes", prn.bytes } };
 }
 
 void Dpp1::state(StateIO& io)
@@ -106,4 +144,6 @@ void Dpp1::state(StateIO& io)
     io.begin("pmd32sd");
     pmd.state(io);
     io.end();
+    io.v(prn_wait_ack);
+    prn.state(io);
 }

@@ -63,7 +63,8 @@ Dekodér D6B (`JPR-1ZI_D6B.bin`: bajty 07, 0B, 0D, 0E pro adresy 0–3, jinde 0F
 - Výstupy 3212 nuluje reset (/CLR).
 - STB a /INT jednotlivých 3212 jsou vyvedeny jen na konektory, k CPU nevedou.
 - Konektor X2 (klávesnice): P1-IN, P0-OUT, P0-IN, P0-STB, P1-STB a +5 V pro klávesnici.
-- Konektor X3 (tiskárna): P2-IN, P2-OUT, P1-OUT.
+- Konektor X3 (tiskárna): P2-IN, P2-OUT, P1-OUT. Emulace tiskárny Centronics (sekce `printer`, kabel podle
+  návodu JPR-1Z: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6, kolík 16 = P2-IN7): `docs/tiskarna.md`.
 - Podrobnosti zapojení klávesnic jsou v [klavesnice.md](klavesnice.md).
 
 ## Sběrnice a řízení

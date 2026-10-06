@@ -35,6 +35,7 @@ sapi_test(test_zps4)
 sapi_test(test_sapi1v)
 sapi_test(test_mph1v)
 sapi_test(test_state)
+sapi_test(test_printer)
 
 # tools/cpmrun runs as a separate program (M80 and L80 are not in the repository)
 sapi_test(test_cpmrun)

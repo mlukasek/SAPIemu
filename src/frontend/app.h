@@ -13,6 +13,7 @@ struct UiSnapshot {
     std::string open;        // machine description opened in the configurator (not started)
     bool map = false;        // show the port and memory map tab
     bool media = false;      // show the Media window
+    bool printer = false;    // show the Printer window
     std::string state;       // a saved state loaded first (pictures for the documentation)
     int w = 0, h = 0;        // window size in points (0 = the default)
 };

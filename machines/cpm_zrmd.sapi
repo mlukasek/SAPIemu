@@ -12,7 +12,12 @@
             "bus_mhz": 2,
             "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin",
             "decoder": "2k",
-            "keyboard": { "type": "EKL-1" }
+            "keyboard": { "type": "EKL-1" },
+            "printer": {                    // X3: printer (Centronics cable), ECMON LST: (^P, LIST)
+                "output": "work/printer/tiskarna.prn",  // the bytes as received
+                "charset": "koi8cs",
+                "busy_us": 100
+            }
         },
         {
             "slot": 2,

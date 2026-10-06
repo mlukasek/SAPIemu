@@ -104,6 +104,11 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
         if (!kbd) return false;
         kbd->bus = bus;
     }
+    if (cfg.contains("printer") && !cfg["printer"].is_null()) {
+        prn.reset(new Printer());
+        if (!prn->configure(cfg["printer"], err)) return false;
+        if (!cfg_bool(cfg["printer"], "pin16", prn_pin16, false, err)) return false;
+    }
     return true;
 }
 
@@ -186,7 +191,9 @@ bool Jpr1zi::io_read(uint8_t port, uint8_t& data)
     switch (io_select(port)) {
     case 1: data = kbd ? kbd->p0_in() : 0xFF; return true;
     case 2: data = kbd ? kbd->p1_in() : 0xFF; return true;
-    case 3: data = 0xFF; return true;   // P2-IN: printer connector X3, not connected
+    case 3:   // P2-IN: printer connector X3; free inputs read 1
+        data = prn ? (uint8_t)(0x3F | (prn->busy(bus->now) ? 0x40 : 0) | (prn_pin16 ? 0x80 : 0)) : 0xFF;
+        return true;
     default: return false;              // port 00h is write only
     }
 }
@@ -198,6 +205,8 @@ bool Jpr1zi::io_write(uint8_t port, uint8_t data)
     if (sel == 0) {
         boot = false;
     } else {
+        if (sel == 2 && prn && !(port_out[1] & 0x02) && (data & 0x02))
+            prn->take(port_out[2], bus->now, bus->cpu_hz);   // /STROBE (P1-OUT1) released
         port_out[sel - 1] = data;
         if (sel == 1 && kbd) kbd->p0_out(data);
     }
@@ -327,6 +336,7 @@ void Jpr1zi::describe(json& out)
     out["bus_hz"] = bus_hz;
     out["boot"] = boot;
     out["keyboard"] = kbd ? kbd->type_name() : "none";
+    if (prn) out["printer"] = json{ { "output", prn->path() }, { "bytes", prn->bytes } };
 }
 
 void Jpr1zi::state(StateIO& io)
@@ -345,4 +355,5 @@ void Jpr1zi::state(StateIO& io)
     io.arr(port_out, sizeof(port_out));
     io.v(at_boundary);
     io.v(instr_pc);
+    if (prn) prn->state(io);
 }

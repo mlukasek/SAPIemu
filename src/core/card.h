@@ -14,6 +14,7 @@ class SerialChannel;
 class StateIO;
 struct FloppyDrive;
 class Pmd32Sd;
+struct Printer;
 
 enum IrqLine {
     IRQ_INT0 = 1,   // /INT0 -> Z80 /INT on JPR-1ZI
@@ -65,6 +66,8 @@ public:
     virtual FloppyDrive* floppy_drive(int index) { return nullptr; }
     // PMD32-SD floppy emulator connected through the card (IDE-1, DPP-1), nullptr if none.
     virtual Pmd32Sd* pmd32sd() { return nullptr; }
+    // Printer connected to the card (JPR X3, DPP-1), nullptr if none.
+    virtual Printer* printer() { return nullptr; }
     virtual bool floppy_insert(int index, const std::string& image, bool write_protect, std::string& err)
     {
         err = "no such drive";

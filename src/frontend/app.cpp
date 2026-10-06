@@ -129,7 +129,7 @@ nlohmann::json settings_json(App& app)
                     { "position", app.win_pos_known }, { "maximized", maximized } };
     j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
                      { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
-                     { "configuration", ui.show_rack } };
+                     { "printer", ui.show_printer }, { "configuration", ui.show_rack } };
     j["screen"] = { { "integer_scale", app.integer_scale },
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
     j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
@@ -177,6 +177,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(w, "io_log", ui.show_iolog);
     get_opt(w, "log", ui.show_log);
     get_opt(w, "media", ui.show_media);
+    get_opt(w, "printer", ui.show_printer);
     get_opt(w, "configuration", ui.show_rack);
     const nlohmann::json& s = j.value("screen", nlohmann::json::object());
     get_opt(s, "integer_scale", app.integer_scale);
@@ -535,6 +536,7 @@ void draw_menu(App& app)
     if (ImGui::BeginMenu(tr("View"))) {
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
+        ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer);
         ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
         ImGui::Separator();
         ink_menu(app, m);
@@ -882,6 +884,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     if (snap) {
         app.ui.show_rack = snap->rack || !snap->open.empty();
         app.ui.show_media = snap->media;
+        app.ui.show_printer = snap->printer;
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;
     }
@@ -954,6 +957,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_iolog(app.ui);
         draw_terminal(app.ui);
         draw_media(app.ui);
+        draw_printer(app.ui);
         draw_rack(app.ui);
         draw_log(app);
         draw_error(app);

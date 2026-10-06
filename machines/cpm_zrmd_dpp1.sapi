@@ -13,7 +13,12 @@
             "bus_mhz": 2,
             "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin",
             "decoder": "2k",
-            "keyboard": { "type": "EKL-1" }
+            "keyboard": { "type": "EKL-1" },
+            "printer": {                    // X3: printer (Centronics cable), ECMON LST: (^P, LIST)
+                "output": "work/printer/tiskarna.prn",  // the bytes as received
+                "charset": "koi8cs",
+                "busy_us": 100
+            }
         },
         {
             "slot": 2,
@@ -63,6 +68,12 @@
                 ],
                 "card_locked": false,       // SD card write protected
                 "startup_ms": 0             // Start-up delay (ms, real 3000)
+            },
+            "printer_channel": 1,           // printer on channel 1 (28h-2Bh): ECMON PUN:, LST: = UL1:
+            "printer": {
+                "output": "work/printer/dpp1.prn",
+                "charset": "koi8cs",
+                "busy_us": 100
             }
         }
     ]

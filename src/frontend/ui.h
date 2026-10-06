@@ -73,6 +73,7 @@ struct UiState {
     bool show_iolog = false;
     bool show_log = false;
     bool show_media = false;
+    bool show_printer = false;
     bool show_rack = false;
     bool quit = false;             // exit confirmed (no unsaved machine description)
     std::string error;             // error for the message box of the main window
@@ -131,6 +132,7 @@ void draw_memory(UiState& ui);
 void draw_iolog(UiState& ui);
 void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
+void draw_printer(UiState& ui);
 // File -> Load program (Intel HEX): native dialog, then a confirmation with the addresses.
 void hex_load_dialog(UiState& ui);
 // File -> Load binary file: native dialog, then the address; the file goes into memory as is.

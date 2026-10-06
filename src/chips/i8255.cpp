@@ -12,7 +12,8 @@ void I8255::reset(void)
 
 bool I8255::intr_a(void) const
 {
-    // level: output buffer empty with INTE1, or input buffer full with INTE2
+    // level: output buffer empty with INTE1, or input buffer full with INTE2 (mode 1: the one
+    // of its direction)
     return (inte1 && !obf_a) || (inte2 && ibf_a);
 }
 
@@ -26,6 +27,20 @@ uint8_t I8255::pc_value(void)
         v |= inte1 ? 0x40 : 0;
         v |= ibf_a ? 0x20 : 0;
         v |= inte2 ? 0x10 : 0;
+        v |= intr_a() ? 0x08 : 0;
+    } else if (mode1_a()) {
+        uint8_t io = (ctrl & 0x08) ? pins : out_c;   // the two free upper lines, per D3
+        if (ctrl & 0x10) {
+            // input: PC5 IBF, PC4 INTE (the /STB pin), PC3 INTR; PC6, PC7 free
+            v |= ibf_a ? 0x20 : 0;
+            v |= inte2 ? 0x10 : 0;
+            v |= io & 0xC0;
+        } else {
+            // output: PC7 /OBF, PC6 INTE (the /ACK pin), PC3 INTR; PC4, PC5 free
+            v |= obf_a ? 0 : 0x80;
+            v |= inte1 ? 0x40 : 0;
+            v |= io & 0x30;
+        }
         v |= intr_a() ? 0x08 : 0;
     } else {
         // mode 0: upper half (PC4-7) per D3, lower half (PC0-3) per D0
@@ -48,7 +63,7 @@ uint8_t I8255::read(int reg)
 {
     switch (reg & 3) {
     case 0:
-        if (mode2_a()) {
+        if (strobed_in_a()) {
             ibf_a = false;   // RD clears IBF
             return in_a;
         }
@@ -70,6 +85,11 @@ void I8255::set_pc_bit(int bit, bool v)
         if (bit == 6) { inte1 = v; return; }
         if (bit == 4) { inte2 = v; return; }
         if (bit >= 3) return;          // PC3-PC7 are control lines in mode 2
+    } else if (mode1_a()) {
+        bool in = (ctrl & 0x10) != 0;
+        if (in && bit == 4) { inte2 = v; return; }
+        if (!in && bit == 6) { inte1 = v; return; }
+        if (bit == 3 || (in ? bit == 5 : bit == 7)) return;   // INTR, IBF / /OBF
     }
     if ((ctrl & 0x04) && bit <= 2) {
         if (bit == 2) inte_b = v;
@@ -85,7 +105,7 @@ void I8255::write(int reg, uint8_t value)
     switch (reg & 3) {
     case 0:
         out_a = value;
-        if (mode2_a()) obf_a = true;   // /OBF low until the peripheral acknowledges
+        if (strobed_out_a()) obf_a = true;   // /OBF low until the peripheral acknowledges
         else if (dev && !(ctrl & 0x10)) dev->outputs_changed(0, out_a);
         break;
     case 1:

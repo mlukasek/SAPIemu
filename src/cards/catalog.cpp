@@ -44,6 +44,22 @@ static const ParamOption k_jpr_roms[] = {
     { "\"\"", "none (FFh)", "žádná (FFh)" },
     { nullptr, nullptr, nullptr },
 };
+// printer (chips/printer.h): on the JPR cards (X3) and on DPP-1
+static const ParamOption k_prn_charset[] = {
+    { "\"koi8cs\"", "KOI-8 cs2 (as SAPI)", "KOI-8 čs2 (jako SAPI)" },
+    { "\"kamenicky\"", "Kamenicky (KEYBCS2)", "Kamenických (KEYBCS2)" },
+    { "\"cp852\"", "CP852 (Latin 2)", "CP852 (Latin 2)" },
+    { "\"ascii\"", "ASCII only", "jen ASCII" },
+    { nullptr, nullptr, nullptr },
+};
+#define PRINTER_PARAMS                                                                                                 \
+    { "printer.output", PK_FILE, "Printer: output file (the bytes as received, ESC/P kept)",                           \
+      "Tiskárna: výstupní soubor (bajty, jak přišly, i ESC/P)", "\"work/printer/tiskarna.prn\"", k_none, 0, 0 },     \
+    { "printer.charset", PK_CHOICE, "Printer: character set of the text view (80h-FFh)",                              \
+      "Tiskárna: znaková sada textového zobrazení (80h-FFh)", "\"koi8cs\"", k_prn_charset, 0, 0 },                   \
+    { "printer.busy_us", PK_INT, "Printer: BUSY after each byte (us; 0 = at once, a deviation)",                       \
+      "Tiskárna: BUSY po každém bajtu (µs; 0 = hned, odchylka)", "100", nullptr, 0, 1000000 },
+
 static const CardParam k_jpr1zi[] = {
     { "rom", PK_FILE, "EPROM 2764", "EPROM 2764", "\"\"", k_jpr_roms, 0, 0 },
     { "decoder", PK_CHOICE, "PROM D3C: memory decoder", "PROM D3C: dekodér paměti", "\"2k\"", k_d3c, 0, 0 },
@@ -57,6 +73,11 @@ static const CardParam k_jpr1zi[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "printer", PK_SECTION, "X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)",
+      "X3: tiskárna (kabel Centronics: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)", "false", nullptr, 0, 0 },
+    PRINTER_PARAMS
+    { "printer.pin16", PK_BOOL, "Printer: X3 pin 16 (P2-IN7) at 1 (ECMON then drops the characters)",
+      "Tiskárna: X3 kolík 16 (P2-IN7) v 1 (ECMON pak znaky zahodí)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -81,6 +102,11 @@ static const CardParam k_jpr1z[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "printer", PK_SECTION, "X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)",
+      "X3: tiskárna (kabel Centronics: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)", "false", nullptr, 0, 0 },
+    PRINTER_PARAMS
+    { "printer.pin16", PK_BOOL, "Printer: X3 pin 16 (P2-IN7) at 1 (ECMON then drops the characters)",
+      "Tiskárna: X3 kolík 16 (P2-IN7) v 1 (ECMON pak znaky zahodí)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -108,6 +134,11 @@ static const CardParam k_jpr1v[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "printer", PK_SECTION, "X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)",
+      "X3: tiskárna (kabel Centronics: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)", "false", nullptr, 0, 0 },
+    PRINTER_PARAMS
+    { "printer.pin16", PK_BOOL, "Printer: X3 pin 16 (P2-IN7) at 1 (ECMON then drops the characters)",
+      "Tiskárna: X3 kolík 16 (P2-IN7) v 1 (ECMON pak znaky zahodí)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -872,6 +903,11 @@ static const ParamOption k_dpp1_channel[] = {
     { "1", "channel 1 (base+0..3, X2)", "kanál 1 (základ+0..3, X2)" },
     { nullptr, nullptr, nullptr },
 };
+static const ParamOption k_dpp1_prn_channel[] = {
+    { "1", "channel 1 (base+0..3, X2), as ECMON and J. Biba", "kanál 1 (základ+0..3, X2), jako ECMON a J. Bíba" },
+    { "2", "channel 2 (base+4..7, X3)", "kanál 2 (základ+4..7, X3)" },
+    { nullptr, nullptr, nullptr },
+};
 static const CardParam k_dpp1[] = {
     { "base", PK_CHOICE, "S1: ports", "S1: porty", "\"28h\"", k_dpp1_base, 0, 0 },
     { "pmd_channel", PK_CHOICE, "PMD32-SD on", "PMD32-SD na", "2", k_dpp1_channel, 0, 0 },
@@ -887,6 +923,11 @@ static const CardParam k_dpp1[] = {
       nullptr, 0, 0 },
     { "pmd32sd.startup_ms", PK_INT, "Start-up delay (ms, real 3000)", "Prodleva po zapnutí (ms, skutečně 3000)",
       "0", nullptr, 0, 10000 },
+    { "printer_channel", PK_CHOICE, "Printer on (8255 mode 1: /OBF = /STROBE, /ACK)",
+      "Tiskárna na (8255 mód 1: /OBF = /STROBE, /ACK)", "1", k_dpp1_prn_channel, 0, 0 },
+    { "printer", PK_SECTION, "Printer (Centronics), ECMON and J. Biba: PUN:, LST: = UL1:",
+      "Tiskárna (Centronics), ECMON a J. Bíba: PUN:, LST: = UL1:", "false", nullptr, 0, 0 },
+    PRINTER_PARAMS
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

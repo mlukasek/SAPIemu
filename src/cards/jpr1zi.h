@@ -7,6 +7,7 @@
 // - Keyboard on connector X2 (P0/P1).
 #include <memory>
 #include <vector>
+#include "chips/printer.h"
 #include "core/devices.h"
 #include "z80.h"
 
@@ -45,6 +46,8 @@ public:
     uint32_t cpu_display_hz() const override { return turbo_switch && !turbo_on ? cpu_hz / 2 : cpu_hz; }
     int decode_io(uint8_t port, const char** what) override;
     int decode_mem(uint16_t addr, int map, const char** what) override;
+    Printer* printer() override { return prn.get(); }
+    void flush() override { if (prn) prn->flush(); }
 
     bool boot = true;
     unsigned panel_leds() override { return boot ? 1u : 0u; }   // the BOOT LED (D2), lit from reset to OUT (00h)
@@ -72,4 +75,8 @@ private:
     std::vector<uint8_t> d6b;     // I/O decoder PROM
     uint8_t port_out[3] = {0, 0, 0};
     std::unique_ptr<KeyboardDevice> kbd;
+    // printer on X3 (the Centronics cable of the manual): data P2-OUT, /STROBE P1-OUT1 (the byte
+    // is taken at its rising edge), BUSY P2-IN6, pin 16 = P2-IN7 (ECMON drops the bytes at 1)
+    std::unique_ptr<Printer> prn;
+    bool prn_pin16 = false;
 };

@@ -2,6 +2,7 @@
 #include "cards/catalog.h"
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
+#include "chips/printer.h"
 #include "core/charset.h"
 #include "core/headless.h"
 #include "core/host.h"
@@ -1087,6 +1088,22 @@ json t_pmd32_mount(EmuHost& h, const json& a)
     return text_result("drive " + drv + ": " + image + (p->drive_wp(d) ? " (write protected)" : ""));
 }
 
+json t_printer_output(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    std::string want = arg_str(a, "card", "");
+    for (auto& c : m.cards) {
+        Printer* p = c->printer();
+        if (!p || (!want.empty() && want != c->type && want != c->name)) continue;
+        long long n = arg_num(a, "lines", 200);
+        std::string text = p->text((size_t)std::max<long long>(1, std::min<long long>(n, 100000)));
+        if (arg_bool(a, "clear", false)) p->new_sheet();
+        return json_result(json{ { "card", c->type }, { "output", p->path() }, { "bytes", p->bytes },
+                                 { "busy", p->busy(m.bus.now) }, { "text", text } });
+    }
+    throw ToolError{ want.empty() ? "machine has no printer (JPR X3 or DPP-1 printer section)" : "no printer on " + want };
+}
+
 json t_io_log(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1206,6 +1223,8 @@ const Tool k_tools[] = {
       S_NONE, t_pmd32_images },
     { "pmd32_mount", "Insert an image into a PMD32-SD drive (A-D; in SAPI CP/M A = D:, B = E:), or eject it with an empty image name. The image type must be listed in images.cfg.",
       R"({"type":"object","properties":{"drive":{"type":"string","enum":["A","B","C","D"]},"image":{"type":"string"},"wp":{"type":"boolean","default":false}},"required":["drive"]})", t_pmd32_mount },
+    { "printer_output", "Text printed so far by the printer (JPR X3 or DPP-1): the last lines, form feeds as \\f; ESC/P sequences left out (the raw bytes are in the output file). clear=true starts a new sheet after reading.",
+      R"({"type":"object","properties":{"card":{"type":"string","description":"card type or name; the first printer when omitted"},"lines":{"type":"integer","default":200},"clear":{"type":"boolean","default":false}}})", t_printer_output },
     { "io_log", "Show recent I/O port accesses; enable=true starts logging (clear=true empties the log).",
       R"({"type":"object","properties":{"enable":{"type":"boolean"},"clear":{"type":"boolean"},"count":{"type":"integer","default":50}}})", t_io_log },
     { "get_log", "Recent emulator log messages (warnings, bus conflicts...).",

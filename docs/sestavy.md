@@ -189,7 +189,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 
 ## Ověření vzhledu bez snímku plochy
 
-`sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media]`
-vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média. Rozložení oken uživatele
+`sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
+vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna. Rozložení oken uživatele
 (`imgui.ini`) se nemění. Se `--settings X.json` se ale rozložení ukládá do `X.json.imgui.ini` a při dalším snímku se
 použije, proto ho před snímkem smazat.
