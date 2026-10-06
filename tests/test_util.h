@@ -1,13 +1,21 @@
 #pragma once
 // Minimal test helpers: CHECK prints the failing expression and counts failures.
 #include <stdio.h>
+#include <filesystem>
 #include "core/util.h"
 
 // Data root of the repository; battery backed RAM is not saved (user's work/ files stay untouched).
+// The folders for the tests' own files exist from the start: tests run in parallel (ctest -j) and
+// must not rely on another test having created them.
 static inline void test_init(void)
 {
     data_root_init();
     battery_files_enable(false);
+    std::error_code ec;
+    for (const char* d : { "work/test", "work/tests", "work/test-state" }) {
+        std::string p = data_path(d);   // UTF-8
+        std::filesystem::create_directories(std::filesystem::path(std::u8string(p.begin(), p.end())), ec);
+    }
 }
 
 // A real tape recording of the SAPI_DOKU archive: next to the repository (../SAPI_DOKU, the current copy),

@@ -952,3 +952,15 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Opravy:** `static constexpr` místo `static const` u konstant AND-1 a AND-1Z (GCC chtěl definici), `\r` místo
   doslovného CR v `test_mph1v.cpp` (soubor se tím v Gitu normalizuje na LF). Jinak se kód přeložil beze změn.
 - **CI** zatím ne (soukromé repo, minuty), viz SOUHRN.
+
+## 2026-10-06 – Úrovně testů a paralelní běh
+
+- **Proč:** celá sada trvala 100 s (debug) a release s testy procesoru 264 s, autor nechce pouštět všechno vždy.
+- **Paralelně** (`execution.jobs: 8` v test presetech): debug 25 s, release bez pomalých 9 s, `release full` 161 s.
+  Překážky byly dvě a obě jsou opravené: testy spoléhaly, že složku `work/test` vytvořil dřívější test
+  (`test_init()` ji teď vytvoří), a dva procesy mohly současně vytvářet stejnou pracovní kopii média (teď
+  dočasné jméno a přejmenování v `media_path()`, prospěje i dvěma spuštěným emulátorům).
+- **Release ve výchozím stavu bez pomalých testů** (label `slow`: ZEXDOC, ZEXALL, 8080EXM), všechny jen
+  `tools\build.cmd release full` (preset `windows-release-full`). `build.cmd debug test REGEX` spustí jen vybrané.
+- **Úrovně** podle změny (tabulka v `docs/build.md`): dotčené testy během práce, celá debug sada před commitem,
+  release před pushem, `full` po změně jader CPU a před vydáním, Linux ve WSL po změně kódu závislého na platformě.

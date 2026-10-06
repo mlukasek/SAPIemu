@@ -6,6 +6,7 @@
 #include <string.h>
 #include <algorithm>
 #include <filesystem>
+#include <random>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -264,20 +265,19 @@ bool media_path(const std::string& rel, bool work_copy, std::string& out, std::s
         return false;
     }
     fs::create_directories(dst.parent_path(), ec);
-    if (fs::is_directory(src, ec)) {
-        // a directory (e.g. the PMD32-SD "SD card"): copy it recursively
-        fs::copy(src, dst, fs::copy_options::recursive, ec);
-        if (ec) {
-            err = "cannot create working copy " + out + ": " + ec.message();
-            return false;
-        }
-        return true;
-    }
-    if (!fs::copy_file(src, dst, ec)) {
-        err = "cannot create working copy " + out + ": " + ec.message();
-        return false;
-    }
-    return true;
+    // Copied under a temporary name and renamed: another emulator or test process creating the same
+    // copy at the same time never sees a half written file, and the copy that came first is kept.
+    fs::path tmp = dst;
+    tmp += ".tmp" + std::to_string((unsigned long long)std::random_device()());
+    bool dir = fs::is_directory(src, ec);
+    if (dir) fs::copy(src, tmp, fs::copy_options::recursive, ec);   // e.g. the PMD32-SD "SD card"
+    else fs::copy_file(src, tmp, ec);
+    std::error_code ec2;
+    if (!ec && !fs::exists(dst, ec2)) fs::rename(tmp, dst, ec);
+    if (fs::exists(tmp, ec2)) fs::remove_all(tmp, ec2);   // not needed: created meanwhile, or failed
+    if (fs::exists(dst, ec2)) return true;
+    err = "cannot create working copy " + out + ": " + ec.message();
+    return false;
 }
 
 bool parse_number(const std::string& text, long long& out)

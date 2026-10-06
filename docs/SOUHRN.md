@@ -57,6 +57,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
   - **všechny bootovací diskety J. Bíby** ze `SAPIMAN\PMD32-SD_IMAGE8` vyzkoušené; nová sestava jen
     `cpm_boot_fdc1_irmd` (BIOS si RAM disk připraví sám), výsledky ostatních v `CPM_SAPIMAN.md`;
+  - **testy paralelně a po úrovních** (`docs/build.md`, „Kdy které testy“): debug 25 s místo 100 s, release bez
+    ZEX 9 s, `tools\build.cmd release full` se ZEX asi 3 min, `tools\build.cmd debug test "zps3|rpd1"` jen vybrané;
   - **Linux build ve WSL** (Ubuntu 24.04, GCC 13): přeloží se, všech 33 testů projde, GUI přes WSLg; opravy pro
     GCC (`static constexpr`, CR v řetězci), Windows build beze změny chování (`docs/build.md`);
   - **přepínání jazyka GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, výchozí podle jazyka Windows, `--lang cs|en`, pevná ID oken (rozložení zůstane), test `test_i18n`;

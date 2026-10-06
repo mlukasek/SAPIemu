@@ -82,6 +82,10 @@ Pasti ověřené 2026-10-05:
 
 - **Visual Studio 2022:** Open Folder, CMake presety `windows-debug` / `windows-release`.
 - **Příkazová řádka:** `tools\build.cmd debug test`. Skript sám najde VS přes vswhere (přednost má VS 2022) a spustí configure, build a ctest.
+- **Kdy které testy** (autor nechce pouštět vše vždy, tabulka v `docs/build.md`): během práce jen dotčené
+  (`tools\build.cmd debug test "zps3|rpd1"`), před commitem celá debug sada (paralelně asi 25 s), před pushem
+  i `release test`, `release full` (ZEX, asi 3 min) jen po změně jader CPU nebo před vydáním, Linux ve WSL po změně
+  kódu závislého na platformě nebo před vydáním.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
 - **Linux:** `cmake --preset linux-debug && cmake --build --preset linux-debug`, ověřeno ve WSL 2 (Ubuntu 24.04,
   klon v `~/SAPIemu`, ne na `/mnt/e`; postup a pasti GCC v `docs/build.md`). Windows build má přednost, změny

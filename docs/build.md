@@ -10,9 +10,30 @@
 
 ```
 tools\build.cmd debug test          # preset windows-debug, výstup v out\build\windows-debug
+tools\build.cmd debug test "zps3|rpd1"   # jen testy, jejichž jméno odpovídá
+tools\build.cmd release test        # release, bez pomalých testů procesoru
+tools\build.cmd release full        # release se všemi testy včetně ZEXDOC/ZEXALL/8080EXM
 tools\build.cmd local-debug test    # lokální preset (výstup mimo repo)
-tools\build.cmd release             # release build, zahrnuje pomalé testy ZEXDOC/ZEXALL
 ```
+
+### Kdy které testy (2026-10-06)
+
+Testy běží paralelně (8 najednou, `execution.jobs` v `CMakePresets.json`). Časy na autorově PC:
+
+| Kdy | Příkaz | Trvá |
+|---|---|---|
+| během práce, po každé úpravě | `tools\build.cmd debug test "<testy dotčené změnou>"` | sekundy |
+| před každým commitem | `tools\build.cmd debug test` (všech 33) | asi 25 s |
+| před pushem, po změně časování nebo výkonu | navíc `tools\build.cmd release test` | asi 10 s + překlad |
+| změna jader CPU (`src/cpu`, `third_party/i8080`, `z80.h`), před vydáním zipu | `tools\build.cmd release full` | asi 3 min |
+| změna kódu závislého na platformě (`#ifdef _WIN32`, soubory, sériová linka, CMake, nové knihovny), před vydáním | Linux ve WSL (níže) | asi 1 min + překlad |
+
+Dotčené testy podle oblasti: deska nebo sestava → testy, které ji načítají (`grep machines/… tests/*.cpp`); diskové
+řadiče → `fdc_ecmon|floppy_imd|sapi_sys|drive_letters|rpd1|zps3|zps4`; GUI texty → `i18n`; MCP → `mcp`; stav → `state`.
+
+Testy smějí běžet souběžně: každý zapisuje jen do vlastních souborů ve `work/test*` (složky vytvoří `test_init()`),
+pracovní kopie médií ve `work/` jen čte. Pracovní kopie vzniká pod dočasným jménem a přejmenuje se, takže
+ji souběžně nevytvoří dva procesy napůl (dřív na čistém `work/` padaly `test_zps3`, `test_state`).
 
 Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
 
@@ -50,7 +71,7 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    /mnt/e/SAPI_GIT/SAPI-karty ~/SAPI-karty` a `ln -s /mnt/e/SAPI_GIT/SAPI_DOKU ~/SAPI_DOKU` (testy MPH-1V hledají
    `../SAPI-karty`, testy kazet nahrávky v `../SAPI_DOKU/Kazetopáskové vybavení AUDIO WAV`).
 3. `cmake --preset linux-debug && cmake --build --preset linux-debug`, testy `ctest --preset linux-debug`
-   (postupně jako na Windows: s `-j` se testy se společnými sestavami a soubory ve `work/` navzájem ruší).
+   (paralelně jako na Windows, asi 16 s).
 4. GUI: `out/build/linux-debug/sapiemu` (ve WSL se okno ukáže na ploše Windows). Nastavení se ukládá vedle exe,
    jinak do `~/.local/share/SAPIemu/SAPIemu`. COM port je na Linuxu zařízení (`/dev/ttyUSB0`), ve WSL fyzické porty
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
