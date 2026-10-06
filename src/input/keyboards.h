@@ -9,6 +9,7 @@
 //   { "type": "Consul 262.3", "latch_mod": true }     // 7474 modification
 //   { "type": "Consul 259.11", "code": "koi7" }       // or "koi8cs"
 //   { "type": "ANK-1" }
+//   { "type": "ANK-1M2", "joyport": "joystick" }       // or none, mouse_atari, mouse_amiga
 // Returns nullptr and fills err on error.
 KeyboardDevice* keyboard_from_config(const nlohmann::json& cfg, uint32_t cpu_hz, std::string& err);
 

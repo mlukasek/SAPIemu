@@ -1,5 +1,6 @@
 // Keyboards on connector X2: EKL-1, Consul 259.11, Consul 262.3, ANK-1 at port
-// level, and MikroMon 1.3 working with every parallel keyboard.
+// level, and MikroMon 1.3 working with every parallel keyboard. ANK-1M2 under
+// MIKROBASIC (ZPS-1) with its joystick connector: joystick, mouse, plugged in live.
 #include <memory>
 #include "core/headless.h"
 #include "core/machine.h"
@@ -153,6 +154,61 @@ static void test_ank1(void)
     CHECK(!k->host_key(HK_UP, 0));
 }
 
+// ANK-1M2: MIKROBASIC types as with ANK-1; the joystick connector on P1-IN D5..D0 (active low:
+// D0 down, D1 up, D2 right, D3 left, D4 fire, D5 fire 2), a mouse plugged in while running.
+static void test_ank1m2(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_file("machines/zps/ZPS-1.sapi", err));
+    CHECK(run_until_text(m, "READY", 2.0));
+    CHECK(m.set_keyboard("ANK-1M2", err));
+    KeyboardDevice* k = m.keyboard();
+    CHECK(k && std::string(k->type_name()) == "ANK-1M2");
+    if (!k) return;
+    m.type_text("PRINT 12*34+5\r");
+    CHECK(run_until_text(m, "413", 5.0));
+    CHECK_EQ(k->joyport(), JOY_DEV_JOYSTICK);
+    CHECK_EQ(k->p1_in(), 0xFF);
+    m.bus.joystick[0] = JOY_UP | JOY_FIRE1;
+    CHECK_EQ(k->p1_in(), 0xED);
+    m.bus.joystick[0] = JOY_DOWN | JOY_LEFT | JOY_FIRE2;
+    CHECK_EQ(k->p1_in(), 0xD6);
+    CHECK(k->host_key(HK_F6, 0));   // INT on D7 as with ANK-1
+    CHECK_EQ(k->p1_in(), 0x56);
+    m.bus.joystick[0] = 0;
+    m.run_seconds(0.2);
+    CHECK_EQ(k->p1_in(), 0xFF);
+    CHECK(!m.bus.mouse_connected);
+    // an Atari ST mouse plugged in while running: 3 steps right -> phase 3 (XA 0, XB 1)
+    CHECK(m.cpu->set_live_param("keyboard.joyport", nlohmann::json("mouse_atari"), err));
+    m.run_seconds(0.01);
+    CHECK(m.bus.mouse_connected & MOUSE_PORT_KEYBOARD);
+    CHECK_EQ(k->p1_in(), 0xF0);
+    m.bus.mouse_dx = 3;
+    m.run_seconds(0.02);
+    CHECK_EQ(m.bus.mouse_dx, 0);
+    CHECK_EQ(k->p1_in(), 0xF2);
+    m.bus.mouse_buttons = MOUSE_LEFT;
+    CHECK_EQ(k->p1_in(), 0xE2);
+    m.bus.mouse_buttons = 0;
+    CHECK(m.cpu->set_live_param("keyboard.joyport", nlohmann::json("none"), err));
+    m.run_seconds(0.01);
+    CHECK(!m.bus.mouse_connected);
+    CHECK_EQ(k->p1_in(), 0xFF);
+    CHECK(!m.cpu->set_live_param("keyboard.joyport", nlohmann::json("lightpen"), err));
+    // back to a mouse, then the plain ANK-1: unplugged with the keyboard
+    CHECK(m.cpu->set_live_param("keyboard.joyport", nlohmann::json("mouse_amiga"), err));
+    m.run_seconds(0.01);
+    CHECK(m.bus.mouse_connected);
+    CHECK(m.set_keyboard("ANK-1", err));
+    CHECK(!m.bus.mouse_connected);
+    CHECK(!m.cpu->set_live_param("keyboard.joyport", nlohmann::json("joystick"), err));   // ANK-1 has none
+    m.bus.joystick[0] = JOY_UP;
+    CHECK_EQ(m.keyboard()->p1_in(), 0xFF);
+    m.bus.joystick[0] = 0;
+}
+
 // MikroMon reads every parallel keyboard with the same handshake.
 static void test_mikromon(void)
 {
@@ -186,6 +242,7 @@ int main(void)
     test_consul25911();
     test_consul2623();
     test_ank1();
+    test_ank1m2();
     test_mikromon();
     return TEST_RESULT();
 }

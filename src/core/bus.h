@@ -22,6 +22,8 @@ enum HostJoy {
 
 // Host mouse buttons (Bus::mouse_buttons), 1 = pressed.
 enum MouseButton { MOUSE_LEFT = 1, MOUSE_RIGHT = 2 };
+// Who has a mouse plugged in (Bus::mouse_connected), each keeps its own bit.
+enum MousePort { MOUSE_PORT_MPH1V = 1, MOUSE_PORT_KEYBOARD = 2 };
 
 struct IoLogEntry {
     uint64_t time;      // CPU cycles
@@ -73,7 +75,8 @@ struct Bus {
     // card takes it at the rate of a real mouse), buttons (MouseButton)
     int mouse_dx = 0, mouse_dy = 0;
     uint8_t mouse_buttons = 0;
-    bool mouse_connected = false;   // a card has a mouse on a connector: the GUI captures the host mouse
+    // connectors with a mouse plugged in (MousePort bits; nonzero: the GUI captures the host mouse)
+    uint8_t mouse_connected = 0;
 
     // debugging
     uint8_t mem_watch[65536];   // WatchFlags per address

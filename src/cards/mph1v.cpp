@@ -34,16 +34,7 @@ static void filter_init(void)
 
 static bool device_of(const json& v, int& out, std::string& err, const char* key)
 {
-    std::string s = v.is_string() ? v.get<std::string>() : std::string("?");
-    if (s == "none") out = Mph1v::DEV_NONE;
-    else if (s == "joystick") out = Mph1v::DEV_JOYSTICK;
-    else if (s == "mouse_atari") out = Mph1v::DEV_MOUSE_ATARI;
-    else if (s == "mouse_amiga") out = Mph1v::DEV_MOUSE_AMIGA;
-    else {
-        err = std::string(key) + " must be none, joystick, mouse_atari or mouse_amiga";
-        return false;
-    }
-    return true;
+    return joy_device_parse(v, out, err, key);
 }
 
 bool Mph1v::configure(const json& cfg, std::string& err)
@@ -100,7 +91,9 @@ void Mph1v::pit_clock(void)
 
 void Mph1v::update_mouse_flag(void)
 {
-    if (bus) bus->mouse_connected = dev[0] >= DEV_MOUSE_ATARI || dev[1] >= DEV_MOUSE_ATARI;
+    if (!bus) return;
+    if (joy_device_is_mouse(dev[0]) || joy_device_is_mouse(dev[1])) bus->mouse_connected |= MOUSE_PORT_MPH1V;
+    else bus->mouse_connected &= (uint8_t)~MOUSE_PORT_MPH1V;
 }
 
 bool Mph1v::live_param(const char* path) const
@@ -117,49 +110,11 @@ bool Mph1v::set_live_param(const char* path, const json& v, std::string& err)
     return true;
 }
 
-// One step of each wheel towards the movement the host still owes (a real mouse cannot turn
-// its wheels faster; a program polling the port would miss steps).
-void Mph1v::mouse_step(void)
-{
-    const int cap = MOUSE_RATE / 4;   // at most 250 ms behind the host, then it is dropped
-    int& dx = bus->mouse_dx;
-    int& dy = bus->mouse_dy;
-    if (dx > cap) dx = cap;
-    if (dx < -cap) dx = -cap;
-    if (dy > cap) dy = cap;
-    if (dy < -cap) dy = -cap;
-    if (dx > 0) { mx = (uint8_t)((mx + 1) & 3); dx--; }
-    else if (dx < 0) { mx = (uint8_t)((mx + 3) & 3); dx++; }
-    if (dy > 0) { my = (uint8_t)((my + 1) & 3); dy--; }
-    else if (dy < 0) { my = (uint8_t)((my + 3) & 3); dy++; }
-}
-
 uint8_t Mph1v::connector(int k)
 {
-    switch (dev[k]) {
-    case DEV_JOYSTICK: {
-        // the first joystick connector gets the first host controller, the second the second
-        int j = (k == 1 && dev[0] == DEV_JOYSTICK) ? 1 : 0;
-        return (uint8_t)(~bus->joystick[j] | 0xC0);
-    }
-    case DEV_MOUSE_ATARI:
-    case DEV_MOUSE_AMIGA: {
-        // quadrature: phase 0-3 -> (A, B) = 00, 10, 11, 01; A leads B moving right / down
-        static const uint8_t qa[4] = { 0, 1, 1, 0 }, qb[4] = { 0, 0, 1, 1 };
-        uint8_t v = 0xFF;
-        if (bus->mouse_buttons & MOUSE_LEFT) v &= (uint8_t)~0x10;    // pin 6
-        if (bus->mouse_buttons & MOUSE_RIGHT) v &= (uint8_t)~0x20;   // pin 9
-        v &= 0xF0;
-        uint8_t xa = qa[mx], xb = qb[mx], ya = qa[my], yb = qb[my];
-        if (dev[k] == DEV_MOUSE_ATARI)   // pin 2 XA, pin 1 XB, pin 4 YB, pin 3 YA
-            v |= (uint8_t)(xa | xb << 1 | yb << 2 | ya << 3);
-        else                             // pin 2 H, pin 1 V, pin 4 HQ, pin 3 VQ
-            v |= (uint8_t)(xa | ya << 1 | xb << 2 | yb << 3);
-        return v;
-    }
-    default:
-        return 0xFF;   // nothing plugged in: the pull-ups
-    }
+    // the first joystick connector gets the first host controller, the second the second
+    int j = (k == 1 && dev[0] == DEV_JOYSTICK) ? 1 : 0;
+    return joy_port_read(dev[k], j, mouse, bus);
 }
 
 int16_t Mph1v::filter(int16_t s)
@@ -197,7 +152,7 @@ void Mph1v::advance(uint64_t now)
         mouse_phase += (uint32_t)ticks;
         while (mouse_phase >= MASTER_HZ / MOUSE_RATE) {
             mouse_phase -= MASTER_HZ / MOUSE_RATE;
-            mouse_step();
+            mouse.step(bus);
         }
     }
     ym_phase += (uint32_t)ticks;
@@ -295,9 +250,8 @@ void Mph1v::describe(json& out)
     out["out"] = { pit.out(0), pit.out(1), pit.out(2) };
     out["ym_status"] = ym.status();
     out["int0"] = irq_lines() != 0;
-    static const char* devs[4] = { "none", "joystick", "mouse_atari", "mouse_amiga" };
-    out["k4"] = devs[dev[0]];
-    out["k2"] = devs[dev[1]];
+    out["k4"] = joy_device_name(dev[0]);
+    out["k2"] = joy_device_name(dev[1]);
 }
 
 void Mph1v::state(StateIO& io)
@@ -317,8 +271,8 @@ void Mph1v::state(StateIO& io)
     io.e(dev[0]);
     io.e(dev[1]);
     io.v(mouse_phase);
-    io.v(mx);
-    io.v(my);
+    io.v(mouse.mx);
+    io.v(mouse.my);
     io.v(lp_x1);
     io.v(lp_x2);
     io.v(lp_y1);

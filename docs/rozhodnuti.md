@@ -964,3 +964,17 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   `tools\build.cmd release full` (preset `windows-release-full`). `build.cmd debug test REGEX` spustí jen vybrané.
 - **Úrovně** podle změny (tabulka v `docs/build.md`): dotčené testy během práce, celá debug sada před commitem,
   release před pushem, `full` po změně jader CPU a před vydáním, Linux ve WSL po změně kódu závislého na platformě.
+
+## 2026-10-06 – Klávesnice ANK-1M2 a společný joyport
+
+- **ANK-1M2 = ANK-1 + konektor joysticku** podle schématu rev. 1.2: matice, LED, bzučák a INT/„T“ jsou zapojené
+  stejně, proto stejný kód (`Ank1` s příznakem `m2`) a programy pro ANK-1 běží beze změny.
+- **Jedno jméno** „ANK-1M2“ v menu, konfigurátoru a MCP (autor), mapování pro MIKOS jen parametrem `software`.
+  Stávající sestavy se nemění (autor), ANK-1M2 se vybírá v Stroj → Klávesnice nebo v konfigurátoru.
+- **Joystick i myš** (autor): joyport má stejné pořadí bitů jako konektory MPH-1V, proto společný kód
+  `input/joyport.*` (zařízení, kvadraturní myš). MPH-1V ho používá také, formát uloženého stavu se nezměnil.
+- **`Bus::mouse_connected`** je maska (MPH-1V, klávesnice), aby jedno zařízení nevypnulo zachytávání myši
+  druhému. Klávesnice svůj bit smaže, když se vymění.
+- **Konfigurátor:** volby s vlastním ovládáním (`strict`, `beeper`, `joyport`) nejsou součástí předvolby klávesnice,
+  proto se ANK-1M2 s myší dál ukazuje jako „ANK-1M2“ a volby zůstanou při výměně klávesnice (`joyport` jen pro
+  ANK-1M2). Dřív se vypnutý bzučák ukazoval jako „vlastní: …“.

@@ -2,8 +2,8 @@
 
 Všechny klávesnice se připojují na porty 3212 desky JPR-1ZI: P0 je port 01h, P1 je port 02h.
 
-Emulátor umí **EKL-1**, **Consul 262.3** (s úpravou 7474 i bez ní), **Consul 259.11** (KOI-7 i KOI-8 cs)
-a **ANK-1**. Klávesnice se volí v sestavě (`"keyboard": { "type": ... }` u JPR-1ZI), za běhu v menu
+Emulátor umí **EKL-1**, **Consul 262.3** (s úpravou 7474 i bez ní), **Consul 259.11** (KOI-7 i KOI-8 cs),
+**ANK-1** a **ANK-1M2** (Libor Lasota, s konektorem joysticku). Klávesnice se volí v sestavě (`"keyboard": { "type": ... }` u JPR-1ZI), za běhu v menu
 Stroj → Klávesnice, v MCP nástrojem `set_keyboard` a v `sapiemu-cli` volbou `--keyboard NAME`.
 Vnitřek klávesnic (AT89C2051 v EKL-1, logika Consulů) se neemuluje, jen chování na portech.
 
@@ -26,6 +26,7 @@ Vnitřek klávesnic (AT89C2051 v EKL-1, logika Consulů) se neemuluje, jen chov�
 | Consul 259.11 | KOI-7 (ASCII) | drží do /AC | ano | /CLR | `consul.*` |
 | Consul 259.11 (KOI-8 cs) | KOI-8 cs, české s prohozenou velikostí | drží do /AC | ano | BIT8 | `consul.*` |
 | ANK-1 | matice 5×8 | — | — | INT | `ank1.*` |
+| ANK-1M2 | matice 5×8, joystick nebo myš na P1-IN D5–D0 | — | — | INT | `ank1.*`, `joyport.*` |
 
 Paralelní klávesnice (všechny kromě ANK-1) mají společný základ `parallel_kbd.*`. Volby v sestavě:
 
@@ -208,6 +209,36 @@ Překreslená schémata EC1045.01 (2010): `BKP\obrazky\ank-1_logika.png` a `ank-
   RES vede přímo na reset.
 - Legendy se SHIFT na klávesách odpovídají tabulce výše. Na T je „←“ (MIKOS: 08h), na P „DEL“.
 
+## ANK-1M2 (Libor Lasota)
+
+Podklady: `..\SAPI-karty\ANK-1M2\` (schéma rev. 1.2 `ank1m2r12_sch.png`, 14. 10. 2024; rev. 1.0 v `ANK-1M2.pdf`;
+návod k sestavení, kusovník, 3D tisk krytu). Předchůdce **ANK-1M5** (2021) je popsaný na
+<https://www.pmd85.cz/?page_id=1527> (dokumentace `ank1m5.zip`). Liborův komentář tam z 9. 5. 2024 slibuje vrátit
+boční tlačítka pro MIKROBASIC, a ta ANK-1M2 má (INT a „T“).
+
+- **Náhrada ANK-1** se 40 spínači Cherry MX a dvěma tlačítky APEM (INT, „T“). Matice, LED, bzučák i tlačítka jsou
+  zapojené kolík po kolíku jako u ANK-1, programy pro ANK-1 (MIKROBASIC, MIKOS) fungují beze změny.
+- **Připojení:** IDC34 na klávesnici, plochý kabel, na kartě JPR redukce FRB30 na IDC34 do konektoru K2 (X2).
+  Kolíky K3 klávesnice = kolíky K2 karty, jen +5 V (K2-22) je v redukci přesměrované na kolíky 33 a 34 (zkraty
+  levných samořezných konektorů s GND na kolíku 21).
+- **Matice:** výstupy K3-17, 19, 20, 14, 13 = P0-OUT D4–D0 (přes diody BAT41), vstupy K3-25, 24, 26, 23, 29, 27, 28, 30
+  = P0-IN D7–D0. Rozložení kláves je stejné jako v tabulce ANK-1.
+- **LED a bzučák:** K3-15 (P0-OUT D5) zelená, K3-18 (D7) červená, K3-16 (D6) přes 74LS06 a PNP tranzistor
+  magnetický měnič KSSG1201 s potenciometrem hlasitosti (zní při 1, průběh dělá program jako u ANK-1).
+- **INT, „T“:** RS klopné obvody (74LS00) a 74LS06 na K3-7 (P1-IN7) a K3-9 (P1-IN6).
+- **Konektor joysticku** (DSUB9, Atari): pin 1 → K3-4 (P1-IN1), 2 → K3-6 (IN0), 3 → K3-5 (IN3), 4 → K3-3 (IN2),
+  6 → K3-2 (IN4), 9 → K3-8 (IN5), pin 7 +5 V přes vratnou pojistku BK60-030, pin 8 GND. P1-IN D5–D0 jsou tedy
+  FR FL vlevo vpravo nahoru dolů (aktivní 0), **stejně jako konektory MPH-1V**. Přiřazení K2 → P1-IN podle
+  tabulky Consulu 259.11 (P1-IN0–7 = K2 kolíky 6, 4, 3, 5, 2, 8, 9, 7). Libor uvádí, že port čte i paralelní myš
+  s kvadraturními výstupy a dvěma tlačítky.
+- **Emulace** (typ `ANK-1M2`, kód ANK-1 s joyportem): parametr `joyport` = `joystick` (výchozí), `mouse_atari`,
+  `mouse_amiga` nebo `none`; v konfigurátoru „Klávesnice ANK-1M2: konektor joysticku“, platí hned i za chodu.
+  Joystick je první hostitelský ovladač: gamepad, nebo šipky + mezerník
+  (Stroj → Zvuk, joystick a myš, **Ctrl+F8**; šipky a mezerník pak nejdou do klávesnice). Myš z myši PC jako
+  u MPH-1V (zachycení kliknutím do obrazovky). Joystick i myš jsou společný kód `input/joyport.*` s MPH-1V.
+  Volba `software` (`mikrobasic`, `mikos`) platí jako u ANK-1, v menu je jen jedno jméno „ANK-1M2“ (autor).
+- **Test:** `test_keyboards` (`test_ank1m2`): MIKROBASIC na ZPS-1 s ANK-1M2, joystick, myš Atari ST, zapojení za chodu.
+
 ### ANK-1 a programy
 
 - **MIKROBASIC 2.4** (tabulky 0DFA/0E22): klávesa vedle CR je BS (08h), SHIFT+P = DEL (7Fh), SHIFT+písmeno =
@@ -215,3 +246,8 @@ Překreslená schémata EC1045.01 (2010): `BKP\obrazky\ank-1_logika.png` a `ank-
 - **MIKOS V4.0:** klávesa vedle CR je LF (ESC), SHIFT+LF = 0Ah, SHIFT+T = 08h, SHIFT+Q/W/A/S/X = 11h/17h/10h/13h/03h.
 - Znaky se SHIFT u číslic a ostatních kláves (!?"$^'<>() /:@# +-*=;,._%&\[]) jsou v obou programech stejné.
 - Ověřeno s MIKROBASICem na emulované JPR-1 (`tests/test_mikrobasic.cpp`).
+
+## Nejasnosti ANK-1M2
+
+- Který program joyport ANK-1M2 používá (hry, myš)? Emulace je jen podle schématu.
+- Má JPR-1 na vstupech P1-IN pull-upy (bez zapojeného joysticku se čte 1)? Emulace: 1.

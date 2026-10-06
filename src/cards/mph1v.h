@@ -23,6 +23,7 @@
 // - Sound: YM3014B DAC, Sallen-Key low pass (2k2, 2k2, 6n8, 3n3: 15.3 kHz,
 //   Q 0.72), C8 10u + R3 47k high pass; mono on both channels of K3.
 #include "chips/i8253.h"
+#include "input/joyport.h"
 #include "chips/ym3812.h"
 #include "core/card.h"
 
@@ -43,8 +44,9 @@ public:
     bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
 
     // what is plugged into K4 / K2
-    enum Device { DEV_NONE = 0, DEV_JOYSTICK, DEV_MOUSE_ATARI, DEV_MOUSE_AMIGA };
-    static const int MOUSE_RATE = 1000;   // quadrature steps per second and axis at most
+    enum Device { DEV_NONE = JOY_DEV_NONE, DEV_JOYSTICK = JOY_DEV_JOYSTICK, DEV_MOUSE_ATARI = JOY_DEV_MOUSE_ATARI,
+                  DEV_MOUSE_AMIGA = JOY_DEV_MOUSE_AMIGA };   // input/joyport.h
+    static const int MOUSE_RATE = QuadMouse::RATE;
 
     static const uint32_t MASTER_HZ = 14318182;   // 14.31818 MHz
     static const uint32_t SAMPLE_HZ = 49716;      // MASTER_HZ / 288
@@ -57,7 +59,6 @@ private:
     void set_gates(void);
     int16_t filter(int16_t s);
     uint8_t connector(int k);   // what a read of +4 (k = 0, K4) or +5 (k = 1, K2) sees
-    void mouse_step(void);
     void update_mouse_flag(void);
 
     uint8_t base = 0x50;
@@ -75,7 +76,7 @@ private:
     // connectors and the mouse
     int dev[2] = { DEV_JOYSTICK, DEV_MOUSE_ATARI };   // K4, K2
     uint32_t mouse_phase = 0;     // master clocks into the step period
-    uint8_t mx = 0, my = 0;       // quadrature phase 0-3 of the X and Y wheels
+    QuadMouse mouse;              // the wheels
     // output filter state
     float lp_x1 = 0, lp_x2 = 0, lp_y1 = 0, lp_y2 = 0;
     float hp_x1 = 0, hp_y1 = 0;

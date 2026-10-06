@@ -7,6 +7,14 @@
 static const ParamOption k_none[] = { { nullptr, nullptr, nullptr } };
 
 // JPR-1ZI
+// what is plugged into an Atari joystick connector (input/joyport.h): MPH-1V K4/K2, ANK-1M2
+static const ParamOption k_joyport[] = {
+    { "\"none\"", "nothing", "nic" },
+    { "\"joystick\"", "joystick (Atari)", "joystick (Atari)" },
+    { "\"mouse_atari\"", "mouse Atari ST", "myš Atari ST" },
+    { "\"mouse_amiga\"", "mouse Amiga", "myš Amiga" },
+    { nullptr, nullptr, nullptr },
+};
 static const ParamOption k_cpu_mhz[] = {
     { "2", "2 MHz (position 3)", "2 MHz (poloha 3)" },
     { "4", "4 MHz (position 4)", "4 MHz (poloha 4)" },
@@ -73,6 +81,8 @@ static const CardParam k_jpr1zi[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
     { "printer", PK_SECTION, "X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)",
       "X3: tiskárna (kabel Centronics: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)", "false", nullptr, 0, 0 },
     PRINTER_PARAMS
@@ -104,6 +114,8 @@ static const CardParam k_jpr1z[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
     { "printer", PK_SECTION, "X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)",
       "X3: tiskárna (kabel Centronics: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)", "false", nullptr, 0, 0 },
     PRINTER_PARAMS
@@ -136,6 +148,8 @@ static const CardParam k_jpr1v[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
     { "printer", PK_SECTION, "X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)",
       "X3: tiskárna (kabel Centronics: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)", "false", nullptr, 0, 0 },
     PRINTER_PARAMS
@@ -307,6 +321,8 @@ static const CardParam k_jpr1[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -348,6 +364,8 @@ static const CardParam k_jpr1a[] = {
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
     { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -924,17 +942,10 @@ static const CardParam k_zrd1v[] = {
 };
 
 // MPH-1V
-static const ParamOption k_mph_device[] = {
-    { "\"none\"", "nothing", "nic" },
-    { "\"joystick\"", "joystick (Atari)", "joystick (Atari)" },
-    { "\"mouse_atari\"", "mouse Atari ST", "myš Atari ST" },
-    { "\"mouse_amiga\"", "mouse Amiga", "myš Amiga" },
-    { nullptr, nullptr, nullptr },
-};
 static const CardParam k_mph1v[] = {
     { "base", PK_HEX, "S1: port base (8 ports)", "S1: báze portů (8 portů)", "\"50h\"", nullptr, 0, 0xF8 },
-    { "k4", PK_CHOICE, "K4 (OVL): plugged in", "K4 (OVL): připojeno", "\"joystick\"", k_mph_device, 0, 0 },
-    { "k2", PK_CHOICE, "K2 (MYŠ): plugged in", "K2 (MYŠ): připojeno", "\"mouse_atari\"", k_mph_device, 0, 0 },
+    { "k4", PK_CHOICE, "K4 (OVL): plugged in", "K4 (OVL): připojeno", "\"joystick\"", k_joyport, 0, 0 },
+    { "k2", PK_CHOICE, "K2 (MYŠ): plugged in", "K2 (MYŠ): připojeno", "\"mouse_atari\"", k_joyport, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

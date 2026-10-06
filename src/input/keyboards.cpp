@@ -45,14 +45,20 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         k->hold_cycles = us_to_cycles(100000, cpu_hz);
         return k;
     }
-    if (type == "ANK-1") {
+    if (type == "ANK-1" || type == "ANK-1M2") {
         Ank1* a = new Ank1();
+        a->m2 = type == "ANK-1M2";
+        if (a->m2 && !joy_device_parse(cfg.value("joyport", json("joystick")), a->joy_dev, err, "joyport")) {
+            delete a;
+            return nullptr;
+        }
+        a->mouse_period = cpu_hz / QuadMouse::RATE;
         a->set_beeper(cfg.value("beeper", true));
         long long press_ms;
         if (!cfg_number(cfg, "press_ms", press_ms, 40, err)) { delete a; return nullptr; }
         std::string sw = cfg.value("software", std::string("mikrobasic"));
         if (sw != "mikrobasic" && sw != "mikos") {
-            err = "ANK-1 software must be mikrobasic or mikos";
+            err = type + " software must be mikrobasic or mikos";
             delete a;
             return nullptr;
         }
@@ -61,7 +67,7 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         a->hold_cycles = us_to_cycles(100000, cpu_hz);
         return a;
     }
-    err = "unknown keyboard type '" + type + "' (EKL-1, Consul 262.3, Consul 259.11, ANK-1)";
+    err = "unknown keyboard type '" + type + "' (EKL-1, Consul 262.3, Consul 259.11, ANK-1, ANK-1M2)";
     return nullptr;
 }
 
@@ -75,6 +81,7 @@ const std::vector<KeyboardPreset>& keyboard_presets(void)
         { "Consul 259.11 (KOI-8 cs)", R"({"type":"Consul 259.11","code":"koi8cs"})" },
         { "ANK-1", R"({"type":"ANK-1"})" },
         { "ANK-1 (MIKOS)", R"({"type":"ANK-1","software":"mikos"})" },
+        { "ANK-1M2", R"({"type":"ANK-1M2"})" },   // joyport: joystick unless set
     };
     return presets;
 }

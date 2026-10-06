@@ -398,6 +398,7 @@ void Jpr1::describe(json& out)
     out["eprom_bytes"] = eprom.size();
     out["ram"] = ram_fitted;
     out["keyboard"] = kbd ? kbd->type_name() : "none";
+    if (kbd && kbd->joyport() >= 0) out["keyboard_joyport"] = joy_device_name(kbd->joyport());
 }
 
 void Jpr1::state(StateIO& io)

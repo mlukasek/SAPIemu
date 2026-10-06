@@ -341,6 +341,7 @@ void Jpr1zi::describe(json& out)
     out["bus_hz"] = bus_hz;
     out["boot"] = boot;
     out["keyboard"] = kbd ? kbd->type_name() : "none";
+    if (kbd && kbd->joyport() >= 0) out["keyboard_joyport"] = joy_device_name(kbd->joyport());
     if (prn) out["printer"] = json{ { "output", prn->path() }, { "bytes", prn->bytes } };
 }
 

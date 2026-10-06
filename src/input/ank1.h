@@ -11,12 +11,20 @@
 // the program is busy (MIKROBASIC beeps ~65 ms after every key).
 // The shifted legends differ between the programs reading the matrix:
 // MIKROBASIC (default) and MIKOS V4.
+// ANK-1M2 (Libor Lasota, 2024): the same matrix, LEDs, beeper and INT / T keys, plus an Atari
+// joystick connector on P1-IN D5..D0 (input/joyport.h: a joystick or a parallel mouse).
 #include <deque>
 #include "core/devices.h"
+#include "input/joyport.h"
 
 class Ank1 : public KeyboardDevice {
 public:
-    const char* type_name() const override { return software == SW_MIKOS ? "ANK-1 (MIKOS)" : "ANK-1"; }
+    ~Ank1() override;
+    const char* type_name() const override
+    {
+        if (m2) return "ANK-1M2";
+        return software == SW_MIKOS ? "ANK-1 (MIKOS)" : "ANK-1";
+    }
     void reset() override {}
     void advance(uint64_t now) override;
     uint8_t p0_in() override;
@@ -31,6 +39,12 @@ public:
     std::string status() const override;
     void state(StateIO& io) override;
     int beeper_kind() const override { return Beeper::SPEAKER; }   // P0-OUT D6 drives it
+    int joyport() const override { return m2 ? joy_dev : -1; }
+    bool set_joyport(int dev) override;
+
+    bool m2 = false;                   // ANK-1M2: the joystick connector
+    int joy_dev = JOY_DEV_JOYSTICK;    // what is plugged into it
+    uint64_t mouse_period = 2000;      // CPU cycles per quadrature step (cpu_hz / QuadMouse::RATE)
 
     uint64_t press_cycles = 80000;     // 40 ms at 2 MHz
     uint64_t release_cycles = 80000;
@@ -54,4 +68,7 @@ private:
     uint8_t out = 0;           // P0-OUT latch
     bool int_key = false, t_key = false;
     uint64_t int_until = 0, t_until = 0;
+    QuadMouse mouse;                   // ANK-1M2 with a mouse plugged in
+    uint64_t mouse_next = 0;           // time of its next step
+    void update_mouse_flag(void);
 };

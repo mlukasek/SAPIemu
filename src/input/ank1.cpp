@@ -97,10 +97,40 @@ bool Ank1::key_down(int key) const
     return key == cur_key || (cur_shift && key == SHIFT_KEY);
 }
 
+Ank1::~Ank1()
+{
+    if (bus) bus->mouse_connected &= (uint8_t)~MOUSE_PORT_KEYBOARD;   // unplugged with the keyboard
+}
+
+bool Ank1::set_joyport(int dev)
+{
+    if (!m2) return false;
+    joy_dev = dev;
+    update_mouse_flag();
+    return true;
+}
+
+void Ank1::update_mouse_flag(void)
+{
+    if (!bus) return;
+    if (m2 && joy_device_is_mouse(joy_dev)) bus->mouse_connected |= MOUSE_PORT_KEYBOARD;
+    else bus->mouse_connected &= (uint8_t)~MOUSE_PORT_KEYBOARD;
+}
+
 void Ank1::advance(uint64_t t)
 {
     beeper.advance(bus);
     now = t;
+    if (m2 && bus) {
+        update_mouse_flag();   // the bus is known only after the keyboard was made
+        if (joy_device_is_mouse(joy_dev)) {
+            if (now > mouse_next + 1000 * mouse_period) mouse_next = now;   // long pause: no catching up
+            while (now >= mouse_next) {
+                mouse.step(bus);
+                mouse_next += mouse_period;
+            }
+        }
+    }
     if (int_key && now >= int_until) int_key = false;
     if (t_key && now >= t_until) t_key = false;
     // each phase lasts its minimum time and until the program has scanned the key's row
@@ -144,6 +174,7 @@ uint8_t Ank1::p1_in()
     uint8_t v = 0xFF;
     if (int_key) v &= 0x7F;
     if (t_key) v &= 0xBF;
+    if (m2 && bus) v &= (uint8_t)(0xC0 | joy_port_read(joy_dev, 0, mouse, bus));   // the joystick connector
     return v;
 }
 
@@ -182,4 +213,11 @@ void Ank1::state(StateIO& io)
     io.v(int_until);
     io.v(t_until);
     beeper.state(io);
+    if (m2) {   // the type is in the machine description: ANK-1 states stay as they were
+        io.e(joy_dev);
+        io.v(mouse.mx);
+        io.v(mouse.my);
+        io.v(mouse_next);
+        if (io.loading) update_mouse_flag();
+    }
 }

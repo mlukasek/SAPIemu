@@ -79,7 +79,8 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
   podle emulovaného času. Zvuk jde do `Bus::audio` (mono, 49716 Hz).
 - GUI hraje zvuk jen při rychlosti emulace 100 % a mimo pauzu (Stroj → Zvuk a joystick: zapnutí, hlasitost).
   Latence je asi 60 ms. Při zpoždění se nejstarší vzorky zahodí, po vyprázdnění se zvuk znovu nabuferuje.
-- **Co je na konektorech** (parametry `k4`, `k2`, platí hned i za chodu): `none`, `joystick`, `mouse_atari`,
+- **Co je na konektorech** (parametry `k4`, `k2`, platí hned i za chodu; kód `input/joyport.*` sdílí
+  s konektorem joysticku klávesnice ANK-1M2): `none`, `joystick`, `mouse_atari`,
   `mouse_amiga`. Výchozí K4 = joystick, K2 = myš Atari ST (podle štítků OVL a MYŠ).
 - **Joystick:** první konektor s joystickem dostane první gamepad, druhý druhý (SDL3: křížový ovladač nebo levá
   páčka, A/X = FL, B/Y = FR). Volitelně šipky a mezerník (FL) jako první joystick, které pak nejdou do klávesnice

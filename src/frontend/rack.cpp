@@ -1218,13 +1218,15 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     }
     case PK_KEYBOARD: {
         const std::vector<KeyboardPreset>& kp = keyboard_presets();
-        // the faithful mode ("strict", its own checkbox) is not a part of the preset
-        json plain = v;
-        bool strict = false;
-        if (plain.is_object() && plain.contains("strict")) {
-            strict = plain["strict"].is_boolean() && plain["strict"].get<bool>();
-            plain.erase("strict");
-        }
+        // the options with their own controls (faithful mode, beeper, joystick connector) are not
+        // a part of the preset; they stay when another keyboard is chosen
+        json plain = v, own = json::object();
+        if (plain.is_object())
+            for (const char* o : { "strict", "beeper", "joyport" })
+                if (plain.contains(o)) {
+                    own[o] = plain[o];
+                    plain.erase(o);
+                }
         int cur = -2;
         if (v.is_null()) cur = -1;
         for (size_t i = 0; i < kp.size(); i++)
@@ -1236,7 +1238,8 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
             for (size_t i = 0; i < kp.size(); i++)
                 if (ImGui::Selectable(kp[i].name, cur == (int)i)) {
                     json k = json::parse(kp[i].config);
-                    if (strict) k["strict"] = true;   // keep the faithful mode with another keyboard
+                    for (auto& it : own.items())
+                        if (it.key() != "joyport" || k.value("type", std::string()) == "ANK-1M2") k[it.key()] = it.value();
                     card_set_param(card, ci, p, k);
                 }
             ImGui::EndCombo();
@@ -1346,10 +1349,12 @@ void draw_slot_props(UiState& ui, int slot)
     }
     for (const CardParam* p = ci->params; p->path; p++) {
         if (!card_param_active(*card, ci, p)) continue;
-        if (!strcmp(p->path, "keyboard.strict")) {   // parallel keyboards only (not none, not ANK-1)
+        if (!strcmp(p->path, "keyboard.strict") || !strcmp(p->path, "keyboard.joyport")) {
             const json* kb = cfg_find(*card, "keyboard");
             std::string kt = kb && kb->is_object() ? kb->value("type", std::string()) : std::string();
-            if (kt.empty() || kt == "ANK-1") continue;
+            bool ank = kt == "ANK-1" || kt == "ANK-1M2";
+            if (p->path[9] == 's' && (kt.empty() || ank)) continue;   // strict: parallel keyboards only
+            if (p->path[9] == 'j' && kt != "ANK-1M2") continue;      // joyport: ANK-1M2 only
         }
         bool nested = param_section(ci, p) != nullptr;
         if (nested) ImGui::Indent();

@@ -826,7 +826,7 @@ json t_joystick(EmuHost& h, const json& a)
 json t_mouse(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
-    if (!m.bus.mouse_connected) return error_result("no mouse is plugged in (MPH-1V parameters k4 / k2)");
+    if (!m.bus.mouse_connected) return error_result("no mouse is plugged in (MPH-1V parameters k4 / k2, ANK-1M2 keyboard.joyport)");
     m.bus.mouse_dx += (int)arg_num(a, "dx", 0);
     m.bus.mouse_dy += (int)arg_num(a, "dy", 0);
     if (a.contains("buttons")) {
@@ -1197,13 +1197,13 @@ const Tool k_tools[] = {
     { "press_key", "Press a key without text on the SAPI keyboard, mapped like the host key in the GUI (docs/desky/klavesnice.md): cursor keys, f1-f4/f6/f7 (Consul ROL/COPY/BREAK and keys D0-D2; ANK-1 f6 = INT, f7 = T), pause (Consul 259.11 CLEAR), numeric keypad (Consul 262.3 B0-B9/AE). Optionally run run_ms of emulated time.",
       R"({"type":"object","properties":{"key":{"type":"string","enum":["enter","backspace","tab","esc","up","down","left","right","home","end","pgup","pgdn","insert","delete","pause","f1","f2","f3","f4","f6","f7","kp0","kp1","kp2","kp3","kp4","kp5","kp6","kp7","kp8","kp9","kp.","kp_enter"]},"shift":{"type":"boolean","default":false},"ctrl":{"type":"boolean","default":false},"run_ms":{"type":"integer","default":0}},"required":["key"]})", t_press_key },
     { "set_keyboard", "Plug another keyboard into the CPU card (connector X2). The machine keeps running; software must support the keyboard's protocol.",
-      R"J({"type":"object","properties":{"name":{"type":"string","enum":["EKL-1","Consul 262.3","Consul 262.3 (bez 7474)","Consul 259.11","Consul 259.11 (KOI-8 cs)","ANK-1"]}},"required":["name"]})J", t_set_keyboard },
+      R"J({"type":"object","properties":{"name":{"type":"string","enum":["EKL-1","Consul 262.3","Consul 262.3 (bez 7474)","Consul 259.11","Consul 259.11 (KOI-8 cs)","ANK-1","ANK-1 (MIKOS)","ANK-1M2"]}},"required":["name"]})J", t_set_keyboard },
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
     { "cpu_turbo", "TURBO switch of the CPU card (JPR-1V: CPU 2 or 4 MHz, bus 2 MHz) while running; without 'on' it only reports.",
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
-    { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 set to joystick): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
+    { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 or the ANK-1M2 keyboard connector set to joystick; ANK-1M2 follows port 0): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
       R"({"type":"object","properties":{"port":{"type":"integer","default":0},"pressed":{"type":"array","items":{"type":"string","enum":["down","up","right","left","fire1","fire2"]}}}})", t_joystick },
-    { "mouse", "Mouse of the machine (MPH-1V connector set to mouse_atari / mouse_amiga): dx, dy = counts to move (+x right, +y down), sent as quadrature steps at 1000 per second and axis; 'buttons' sets what is held (left, right). Reports the counts still pending.",
+    { "mouse", "Mouse of the machine (an MPH-1V connector or the ANK-1M2 keyboard connector set to mouse_atari / mouse_amiga): dx, dy = counts to move (+x right, +y down), sent as quadrature steps at 1000 per second and axis; 'buttons' sets what is held (left, right). Reports the counts still pending.",
       R"({"type":"object","properties":{"dx":{"type":"integer","default":0},"dy":{"type":"integer","default":0},"buttons":{"type":"array","items":{"type":"string","enum":["left","right"]}}}})", t_mouse },
     { "save_state", "Save the state of the whole machine (CPU, memories incl. RAM disks, cards, keyboard, serial channels; large media such as the IDE disk only by reference): into memory under 'name' (default \"default\") for quick checkpoints, or into 'file' (.sapistate, relative paths from the data root).",
       R"({"type":"object","properties":{"name":{"type":"string"},"file":{"type":"string"}}})", t_save_state },

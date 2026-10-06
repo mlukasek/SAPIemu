@@ -9,6 +9,7 @@
 #include <vector>
 #include "core/beeper.h"
 #include "core/card.h"
+#include "input/joyport.h"
 
 class StateIO;
 
@@ -61,6 +62,10 @@ public:
     // the beeper (core/beeper.h): the kind this keyboard has, switched on or off
     virtual int beeper_kind() const { return Beeper::NONE; }
     void set_beeper(bool on) { beeper.kind = on ? beeper_kind() : Beeper::NONE; }
+    // A joystick connector on the keyboard (ANK-1M2): what is plugged in (input/joyport.h JoyDevice),
+    // -1 = the keyboard has none. set_joyport() returns false then.
+    virtual int joyport() const { return -1; }
+    virtual bool set_joyport(int dev) { return false; }
     Bus* bus = nullptr;   // set by the CPU card: the beeper sounds on its bus
     Beeper beeper;
 };
@@ -69,13 +74,21 @@ public:
 class CpuCard : public Card {
 public:
     explicit CpuCard(const char* type_name) : Card(type_name) {}
-    // While running: "keyboard.strict" of the keyboard on the connector.
+    // While running: "keyboard.strict", "keyboard.beeper" and "keyboard.joyport" of the keyboard
+    // on the connector.
     bool live_param(const char* path) const override
     {
-        return !strcmp(path, "keyboard.strict") || !strcmp(path, "keyboard.beeper");
+        return !strcmp(path, "keyboard.strict") || !strcmp(path, "keyboard.beeper") || !strcmp(path, "keyboard.joyport");
     }
     bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override
     {
+        if (!strcmp(path, "keyboard.joyport")) {
+            KeyboardDevice* k = keyboard();
+            int dev;
+            if (!joy_device_parse(v, dev, err, path)) return false;
+            if (!k || !k->set_joyport(dev)) { err = "this keyboard has no joystick connector (keyboard.joyport)"; return false; }
+            return true;
+        }
         if (!strcmp(path, "keyboard.beeper")) {
             KeyboardDevice* k = keyboard();
             if (!k || !v.is_boolean()) { err = "keyboard.beeper must be true or false"; return false; }
