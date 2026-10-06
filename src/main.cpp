@@ -46,7 +46,7 @@ static void print_help(void)
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer: those windows,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
-           "                     --ui-set SLOT:KEY=VALUE: change a card in the configurator, not applied)\n"
+           "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"

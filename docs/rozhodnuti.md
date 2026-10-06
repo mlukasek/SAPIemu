@@ -1052,3 +1052,8 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   podle parametrů katalogu (hodnota zapsaná stejná jako výchozí není změna). Parametry „(platí hned)“ se posílají
   stroji hned, značku nedostanou.
 - Ověřeno snímky (`--ui-set` pro snímek se změnou) a na všech 44 sestavách bez falešného označení po startu.
+- **Vrátit změny** (autor: po smazání karty bylo neaktivní, protože soubor byl uložený nebo sestava nová): při
+  oranžových změnách vrací na sestavu běžícího stroje, jinak na uložený soubor.
+- **Parametry „(platí hned)“ oběma směry:** konfigurátor si pamatuje hodnotu běžícího stroje z minulého snímku.
+  Změnil-li ji stroj (MCP `turbo`), převezme ji, jinak pošle stroji hodnotu z konfigurátoru. Dřív konfigurátor
+  změnu z MCP hned vracel.

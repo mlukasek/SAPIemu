@@ -415,22 +415,38 @@ DisplayDevice* running_display(UiState& ui, const json& card, int slot)
 // write mode of a RAM disk...): a change in the editor goes to the running machine at once.
 void sync_live_params(UiState& ui)
 {
-    if (!editor_on_running(ui) || !ui.rack.cfg.contains("cards")) return;
+    RackEditor& r = ui.rack;
+    if (!editor_on_running(ui) || !r.cfg.contains("cards")) return;
     Machine* m = ui.host->machine();
-    for (const json& card : ui.rack.cfg["cards"]) {
+    if (r.live_gen != ui.host->machine_generation()) {   // another machine: nothing seen yet
+        r.live_gen = ui.host->machine_generation();
+        r.live_seen = json::object();
+    }
+    for (json& card : r.cfg["cards"]) {
         Card* c = running_card(ui, card, card_first_slot(card));
         const CardInfo* ci = card_info(card.value("type", std::string()));
         json* rc = c ? m->card_config(c) : nullptr;
         if (!rc || !ci) continue;
         for (const CardParam* p = ci->params; p && p->path; p++) {
             if (p->kind == PK_SECTION || !m->live_param(c, p->path)) continue;
+            std::string key = std::to_string(c->slot) + "/" + p->path;
+            json run = card_param_value(*rc, p);
             json v = card_param_value(card, p);
-            if (cfg_values_equal(v, card_param_value(*rc, p))) continue;
+            bool seen = r.live_seen.contains(key);
+            if (seen && !cfg_values_equal(run, r.live_seen[key])) {
+                // the machine changed it (MCP turbo...): the editor follows
+                if (!cfg_values_equal(v, run)) card_set_param(card, ci, p, run);
+                r.live_seen[key] = run;
+                continue;
+            }
+            r.live_seen[key] = run;
+            if (cfg_values_equal(v, run)) continue;
             std::string err;
             if (!m->set_live_param(c, p->path, v, err)) {
                 LOGW("%s: %s", c->name.c_str(), err.c_str());
                 card_set_param(*rc, ci, p, v);   // do not try again in every frame
             }
+            r.live_seen[key] = card_param_value(*rc, p);
         }
     }
 }
@@ -1872,11 +1888,21 @@ void draw_rack(UiState& ui)
                                    "the real machine."));
     ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::BeginDisabled(!dirty || r.saved.is_null());
+    // back to what the running machine has (the orange changes), else to the saved file
+    bool to_file = dirty && !r.saved.is_null();
+    ImGui::BeginDisabled(!pending && !to_file);
     if (ImGui::Button(tr("Revert"))) {
-        r.cfg = r.saved;
-        set_message(r, tr("Changes reverted."), false);
+        if (pending) {
+            r.cfg = ui.host->machine()->config;
+            set_message(r, tr("Changes reverted to the running machine."), false);
+        } else {
+            r.cfg = r.saved;
+            set_message(r, tr("Changes reverted."), false);
+        }
     }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", pending ? tr("Back to the configuration of the running machine (the orange changes).")
+                                        : tr("Back to the configuration as last saved."));
     ImGui::EndDisabled();
     ImGui::TextDisabled("%s%s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str(),
                         dirty ? tr("  - unsaved changes") : "");

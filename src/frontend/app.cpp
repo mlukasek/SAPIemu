@@ -1043,8 +1043,16 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             for (const std::string& e : snap->set) {   // SLOT:KEY=VALUE into the card of the slot
                 size_t colon = e.find(':'), eq = e.find('=');
                 nlohmann::json& cards = app.ui.rack.cfg["cards"];
-                if (colon == std::string::npos || eq == std::string::npos || eq < colon || !cards.is_array()) continue;
                 int slot = atoi(e.c_str());
+                if (colon != std::string::npos && e.substr(colon + 1) == "remove" && cards.is_array()) {   // SLOT:remove
+                    for (size_t i = 0; i < cards.size(); i++)
+                        if (cards[i].value("slot", 0) == slot) {
+                            cards.erase(i);
+                            break;
+                        }
+                    continue;
+                }
+                if (colon == std::string::npos || eq == std::string::npos || eq < colon || !cards.is_array()) continue;
                 std::string key = e.substr(colon + 1, eq - colon - 1), val = e.substr(eq + 1);
                 nlohmann::json v = nlohmann::json::parse(val, nullptr, false);
                 if (v.is_discarded()) v = val;

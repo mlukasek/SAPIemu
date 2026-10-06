@@ -60,6 +60,10 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   běžícího stroje. I se zavřeným konfigurátorem je vpravo nahoře „● Sestava změněna: restartovat“ (kliknutí
   otevře konfigurátor). Porovnává se s popisem, se kterým stroj běží; název a popis sestavy ani hodnota
   zapsaná stejná jako výchozí se nepočítají, parametry „(platí hned)“ se neoznačují.
+- **Vrátit změny:** když jsou oranžové změny, vrátí konfigurátor na sestavu běžícího stroje (i třeba smazanou
+  kartu po uložení nebo u neuložené nové sestavy), jinak na naposledy uloženou sestavu.
+- Parametr „(platí hned)“ změněný jinde než v konfigurátoru (MCP `turbo`) se do konfigurátoru převezme, změna
+  v konfigurátoru jde do stroje.
 - **Výjimka: parametry označené „(platí hned)“** se u běžící sestavy použijí okamžitě, jako přepínač na skutečné
   desce: barva obrazu, režim zápisu RAM disku ZRMD-1/ZRD-1V (`mode`), přepínače S1–S4 ZRMD-1, TURBO a BIOS
   JPR-1V a věrný režim klávesnice („Klávesnice: věrně jako hardware“, `keyboard.strict`). Uložit je potřeba
@@ -218,7 +222,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 `sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
 `--ui-set SLOT:KLÍČ=HODNOTA` změní kartu v konfigurátoru bez restartu (třeba `--ui-set 5:baud=1200`, ukáže
-oranžové značení),
+oranžové značení), `--ui-set SLOT:remove` kartu vyjme,
 `--lang en` (nebo `cs`) vybere jazyk. Rozložení oken uživatele
 (`imgui.ini`) se nemění. Se `--settings X.json` se ale rozložení ukládá do `X.json.imgui.ini` a při dalším snímku se
 použije, proto ho před snímkem smazat.

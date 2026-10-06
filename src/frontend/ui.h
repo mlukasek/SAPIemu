@@ -35,6 +35,10 @@ struct RackEditor {
     nlohmann::json saved;          // as last opened / saved (unsaved changes = cfg != saved)
     std::string path;              // file (data root relative when inside it), empty = not saved yet
     uint64_t machine_gen = ~0ull;  // generation of the running machine the editor follows
+    // live parameters as the running machine had them last frame ("slot/path" -> value): a value
+    // changed by the machine side (MCP) goes into the editor, a change in the editor to the machine
+    nlohmann::json live_seen;
+    uint64_t live_gen = ~0ull;
     int sel = 0;                   // selected slot, 0 = the bus
     bool show_types = true;        // exact card type across the panels
     // port and memory map of `cfg`, rebuilt when it changes
