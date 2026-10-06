@@ -47,14 +47,16 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    libdbus-1-dev`. SDL3 se stáhne přes FetchContent jako na Windows.
 2. **Repo na linuxovém disku**, ne na `/mnt/e` (tam je překlad ve WSL velmi pomalý): např.
    `git clone /mnt/e/SAPI_GIT/SAPIemu ~/SAPIemu`. Podklady vedle repa jako u autora: `ln -s
-   /mnt/e/SAPI_GIT/SAPI-karty ~/SAPI-karty` (testy MPH-1V je hledají v `../SAPI-karty`).
+   /mnt/e/SAPI_GIT/SAPI-karty ~/SAPI-karty` a `ln -s /mnt/e/SAPI_GIT/SAPI_DOKU ~/SAPI_DOKU` (testy MPH-1V hledají
+   `../SAPI-karty`, testy kazet nahrávky v `../SAPI_DOKU/Kazetopáskové vybavení AUDIO WAV`).
 3. `cmake --preset linux-debug && cmake --build --preset linux-debug`, testy `ctest --preset linux-debug`
    (postupně jako na Windows: s `-j` se testy se společnými sestavami a soubory ve `work/` navzájem ruší).
 4. GUI: `out/build/linux-debug/sapiemu` (ve WSL se okno ukáže na ploše Windows). Nastavení se ukládá vedle exe,
    jinak do `~/.local/share/SAPIemu/SAPIemu`. COM port je na Linuxu zařízení (`/dev/ttyUSB0`), ve WSL fyzické porty
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
-Výsledek 2026-10-06: všech 33 testů prošlo. Nahrávky kazet z `H:` (`test_cassette`, `test_mikos`) se na Linuxu
+Výsledek 2026-10-06: všech 33 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX).
+Testy `test_cassette` a `test_mikos` je hledají v `../SAPI_DOKU`, pak ve starém archivu na `H:`, jinak tu část
 přeskočí. Co GCC na rozdíl od MSVC nepromine (pro další vývoj):
 - statická konstanta třídy použitá odkazem (`std::min`, JSON) bez definice: psát `static constexpr int`, ne
   `static const int` (linker hlásí `undefined reference to And1::COLS`);

@@ -65,8 +65,8 @@ static void save_load(void)
 // 10 10 10 01 "TOOL 48" in 8N2 frames without framing errors.
 static void real_tape(void)
 {
-    const char* f = "H:/SAPI-1/SAPI_DOKU_2024-01-03/Kazetopáskové vybavení AUDIO WAV/tool_48.wav";
-    if (!file_exists(f)) {
+    std::string f = real_tape_path("tool_48.wav");
+    if (f.empty()) {
         printf("real tape not available, skipped\n");
         return;
     }

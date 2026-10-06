@@ -8,8 +8,6 @@
 #include "core/util.h"
 #include "test_util.h"
 
-static const char* REAL_TAPES = "H:/SAPI-1/SAPI_DOKU_2024-01-03/Kazetopáskové vybavení AUDIO WAV/";
-
 static Dsm1* find_dsm(Machine& m)
 {
     for (auto& c : m.cards)
@@ -101,8 +99,8 @@ static void save_load(void)
 static void real_tape(const char* file, const char* name, int blocks, const char* banner,
                       const char* input = nullptr, const char* expect = nullptr)
 {
-    std::string path = std::string(REAL_TAPES) + file;
-    if (!file_exists(path)) {
+    std::string path = real_tape_path(file);
+    if (path.empty()) {
         printf("%s not available, skipped\n", file);
         return;
     }
@@ -180,8 +178,8 @@ static void v5_save_load(void)
 
 static void v5_real_tape(void)
 {
-    std::string path = std::string(REAL_TAPES) + "BASIC EX V4.0.mp3";
-    if (!file_exists(path)) {
+    std::string path = real_tape_path("BASIC EX V4.0.mp3");
+    if (path.empty()) {
         printf("BASIC EX V4.0.mp3 not available, skipped\n");
         return;
     }
