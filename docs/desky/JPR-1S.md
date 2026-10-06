@@ -434,7 +434,8 @@ Všechny jsou v Intel HEX (24 B na záznam, CR LF, závěr `:00000001FF` bez sta
    převodník se používá na straně PC (COM, USB-RS232) a jaký program posílá soubor?
 3. Deska diagnostiky: zapojení je vyřešené (segmenty a–g, dp = bity 0–7). Otázka je jen, zda ji emulovat (autor
    ji asi má, fotka `diagnostika.jpg`).
-4. Manic Miner: ovládání je odvozené z kódu (O/P, SHIFT, S pauza, CR, SHIFT+LF konec). Jestli čte zpět videoram
+4. Manic Miner: ovládání je odvozené z kódu (O/P, SHIFT, S pauza, CR, SHIFT+LF konec; v emulátoru s režimem
+   pro hry Ctrl+F7, Shift na PC = SHIFT). Jestli čte zpět videoram
    (tj. jestli je RAM pod BGP-1S povinná), se nezjistilo. S RAM pod kartou v emulátoru běží.
 5. Kam vede K1 /RTL na skutečné sestavě (tlačítko reset)? Na desce tlačítko reset není, ANK-1 RES na K2 nevede.
 6. IC4: 74HCT04 (2021) / 74LS04 (2.2) vs. 74HCT14 [WEB]. Jen nesoulad v dokumentaci, pro emulaci nepodstatné.

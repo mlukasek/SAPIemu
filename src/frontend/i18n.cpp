@@ -97,6 +97,14 @@ static const Translation k_table[] = {
     { "joystick from the keyboard (Ctrl+F8)", "joystick z klávesnice (Ctrl+F8)" },
     { "Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse",
       "Ctrl+F8 joystick z klávesnice zap/vyp, Ctrl+F10 pustí zachycenou myš" },
+    { "Ctrl+F7 game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)",
+      "Ctrl+F7 režim pro hry klávesnice ANK-1 (klávesy podle polohy, Shift = SHIFT)" },
+    { "Game mode: keys by position, Shift = SHIFT", "Režim pro hry: klávesy podle polohy, Shift = SHIFT" },
+    { "ANK-1: letters by their label, digits by position, Shift of the PC = SHIFT, keys pressed together stay "
+      "together. Symbols as on the ANK-1 (SHIFT + key). Off: typing by characters (comma = SHIFT + N).",
+      "ANK-1: písmena podle popisu, číslice podle polohy, Shift na PC = SHIFT, klávesy stisknuté naráz jsou "
+      "stisknuté naráz. Symboly jako na ANK-1 (SHIFT + klávesa). Vypnuto: psaní podle znaků (čárka = SHIFT + N)." },
+    { "game mode (Ctrl+F7)", "režim pro hry (Ctrl+F7)" },
     { "Load binary file into memory...", "Nahrát binární soubor do paměti…" },
     { "Load binary file into memory", "Nahrát binární soubor do paměti" },
     { "Size:", "Velikost:" },

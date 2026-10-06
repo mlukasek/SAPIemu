@@ -1057,3 +1057,22 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Parametry „(platí hned)“ oběma směry:** konfigurátor si pamatuje hodnotu běžícího stroje z minulého snímku.
   Změnil-li ji stroj (MCP `turbo`), převezme ji, jinak pošle stroji hodnotu z konfigurátoru. Dřív konfigurátor
   změnu z MCP hned vracel.
+
+## 2026-10-06 – ANK-1 z klávesnice PC: držíš = drží, režim pro hry
+
+- **Proč** (autor): v Manic Mineru a hře s autem se klávesy hromadily, na české klávesnici se občas psaly dva
+  znaky a u „,“ i „N“. ANK-1 je matice, kterou čte program, fronta stisků tam nemá co dělat.
+- **Příčiny:** každý znak z PC (i autorepeat Windows při držení) šel do fronty ťuků po 40 ms; „,“ = SHIFT + N
+  šlo dolů naráz, a když to padlo doprostřed skenování, MIKROBIOS přečetl N bez SHIFT a pak „,“.
+- **Řešení** (autor: „držíš = drží“ a režim pro hry, jen ANK-1, ANK-1 MIKOS a ANK-1M2; kódované EKL-1 a Consul
+  zůstávají s frontou, odpovídá to jejich hardwaru):
+  - klávesa matice je dole, dokud je dole klávesa PC (aspoň `press_ms` a dokud ji program nepřečte), autorepeat
+    PC se zahazuje;
+  - SHIFT dolů dřív, klávesa až po přečtení řádku se SHIFT; nahoru opačně;
+  - psané klávesy po sobě s fází uvolnění jako dřív fronta (MIKROBASIC chce mezi klávesami kolo bez stisku);
+  - režim pro hry (Ctrl+F7): podle polohy, Shift = SHIFT, klávesy naráz. Zkratka vedle Ctrl+F8 (joystick);
+    F6 a F7 bez Ctrl zůstávají INT a T;
+  - fronta (vkládání, MCP) používá stejný mechanismus ťuků, takže i ona už „N,“ nepíše.
+- **Ověřeno:** `test_keyboards` (porty: pořadí SHIFT a klávesy, ťuk kratší než sken, režim pro hry; MIKROBASIC
+  třikrát řádek s „,;?“ psaný překrývajícími se klávesami, klávesa držená 2 s = jeden znak; MIKROBIOS: obraz po
+  psaní drženými klávesami je stejný jako po frontě, „D 4400,44;FF?“; dřív fronta psala „D 4400N,44B;FF2?“).

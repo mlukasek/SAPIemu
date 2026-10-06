@@ -52,6 +52,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   - F9 nebo F12 reset;
   - F10 / F11 krok v debuggeru;
   - **Ctrl+F2 / Ctrl+F3** rychlé uložení a načtení stavu;
+  - Ctrl+F7 režim pro hry u klávesnice ANK-1 / ANK-1M2 (klávesy podle polohy, Shift = SHIFT; Manic Miner);
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
 - **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů

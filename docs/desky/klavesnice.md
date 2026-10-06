@@ -37,9 +37,21 @@ Paralelní klávesnice (všechny kromě ANK-1) mají společný základ `paralle
 - Consul 262.3: `latch_mod` (úprava 7474, výchozí `true`);
 - Consul 259.11: `code` (`koi7` nebo `koi8cs`);
 - ANK-1: `press_ms` (nejkratší doba stisku i uvolnění, výchozí 40 ms), `software` (`mikrobasic`, výchozí, nebo
-  `mikos`: jinak se mapují klávesy PC na klávesy matice). Klávesa zůstane stisknutá, dokud program nepřečte její
-  řádek, a stejně tak uvolněná. Při psaní přes MCP nebo vkládání textu se tak nic neztratí, ani když program
-  zrovna počítá nebo pípá. Preset „ANK-1“ je pro MIKROBASIC, „ANK-1 (MIKOS)“ pro MIKOS V4.
+  `mikos`: jinak se mapují klávesy PC na klávesy matice). Preset „ANK-1“ je pro MIKROBASIC, „ANK-1 (MIKOS)“ pro
+  MIKOS V4 (i MIKROBIOS JPR-1S).
+- **ANK-1 a ANK-1M2 z klávesnice PC (od 2026-10-06):**
+  - **Držíš = drží:** klávesa matice je stisknutá, dokud držíš klávesu na PC. Žádná fronta, autorepeat Windows
+    se nepoužívá (opakuje si to program sám jako na skutečném stroji, třeba MIKROBIOS).
+  - **Psaní podle znaku:** znak z PC se přeloží na klávesu ANK-1 (české rozložení: „,“ = SHIFT + N). SHIFT jde
+    dolů dřív a klávesa až potom, co program přečetl řádek se SHIFT; při puštění jde nahoru nejdřív klávesa a
+    SHIFT až potom. Žádné skenování tak nenajde N bez SHIFT. Psané klávesy jdou po sobě: překrývající se klávesy
+    rychlého psaní čekají, až program přečte předchozí klávesu puštěnou (MIKROBASIC jinak další klávesu
+    zahodí). Každá klávesa je stisknutá aspoň `press_ms` a dokud ji program nepřečte, krátký ťuk se neztratí.
+  - **Režim pro hry** (Ctrl+F7, Stroj → Klávesnice, ve stavovém řádku „režim pro hry“): písmena podle popisu,
+    číslice podle polohy (horní řada, i v českém rozložení), Shift na PC = SHIFT, mezerník a Enter. Klávesy
+    stisknuté naráz jsou stisknuté naráz (Manic Miner: O/P a SHIFT). Symboly jako na ANK-1 (SHIFT + klávesa).
+  - **Vkládání textu a MCP** (`type_text`) jdou přes frontu: každý znak jako ťuk stejným mechanismem (i SHIFT
+    předem). Dřív MIKROBIOS při psaní „,“ občas dostal i „N“ (stisk uprostřed skenování matice).
 
 Emulace (kromě „strict“) nepošle další znak, dokud program nevrátí ACK do 0, aby se znaky z PC neztrácely.
 U pulzního STROBE (Consul 262.3 bez 7474) pošle klávesu znovu, když program během pulzu port 01h vůbec nečetl
@@ -190,8 +202,9 @@ Zdroj: `sapi\ank-1.php`, příloha VII manuálu (`ank-1pri07.png`), tabulky MIKO
 - **Znaky se SHIFT** (MIKOS V4.0): 1 `!`, 2 `?`, 3 `"`, 4 `$`, 5 `^`, 6 `'`, 7 `<`, 8 `>`, 9 `(`, 0 `)`,
   T 08h, Y `/`, U `:`, I `@`, O `#`, P 7Fh, H `+`, J `-`, K `*`, L `=`, B `;`, N `,`, M `.`, G `_`, R `%`,
   D `&`, F `\`, C `[`, V `]`, Q 11h, W 17h, A 10h, S 13h, X 03h. SHIFT+LF = 0Ah, SHIFT+SP = Tab.
-- **Emulace:** text z PC se převádí na stisky kláves (SHIFT + klávesa pro horní znaky, jen velká písmena).
-  Každá klávesa je 40 ms stisknutá a 40 ms uvolněná kvůli odrušení zákmitů v programu.
+- **Emulace:** klávesy PC drží klávesy matice, text z fronty se převádí na ťuky (SHIFT + klávesa pro horní
+  znaky, jen velká písmena), každá klávesa aspoň 40 ms stisknutá a 40 ms uvolněná kvůli odrušení zákmitů
+  v programu. Režim pro hry (Ctrl+F7) drží klávesy podle polohy. Podrobně v kapitole o volbách výše.
 - **Adresy:** u paměťově mapované JPR-1 byly porty na 2400h/2800h, u JPR-1A/Z/ZI jde o I/O porty 01h/02h.
 - **Software:** veškerý známý software pro ANK-1 (MIKROBASIC, MIKOS V4) je pro paměťově mapovanou JPR-1,
   na JPR-1ZI tedy zatím nepoběží. Emulace ANK-1 je ověřená testem na úrovni portů (`test_keyboards`).

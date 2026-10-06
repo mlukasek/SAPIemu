@@ -65,6 +65,7 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         }
         a->software = sw == "mikos" ? Ank1::SW_MIKOS : Ank1::SW_MIKROBASIC;
         a->press_cycles = a->release_cycles = us_to_cycles(press_ms * 1000, cpu_hz);
+        a->min_hold = us_to_cycles(20000, cpu_hz);   // a held key: at least 20 ms
         a->hold_cycles = us_to_cycles(100000, cpu_hz);
         return a;
     }

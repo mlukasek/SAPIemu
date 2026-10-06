@@ -29,6 +29,7 @@ enum HostKey {
     HK_PAUSE, HK_F1, HK_F2, HK_F3, HK_F4, HK_F6, HK_F7,
     HK_KP0, HK_KP1, HK_KP2, HK_KP3, HK_KP4, HK_KP5, HK_KP6, HK_KP7, HK_KP8, HK_KP9,
     HK_KP_DOT, HK_KP_ENTER,
+    HK_SHIFT,   // the Shift key itself (held keys in the game mode)
 };
 enum HostMod { HM_SHIFT = 1, HM_CTRL = 2 };
 
@@ -50,6 +51,15 @@ public:
     // Host pressed a key without text (cursor keys, F-keys, keypad...). Returns
     // false when this keyboard has no such key.
     virtual bool host_key(int key, int mods) { return false; }
+    // Keys held on the PC (a matrix scanned by the program, ANK-1): the key is down while the PC
+    // key is held, no queue and no host autorepeat. `id` names the PC key (its scancode). The key
+    // is the character it typed (cp) or a HostKey (hk, cp = 0); raw = the game mode: letters and
+    // digits as they are, HK_SHIFT = the SHIFT key, no SHIFT added for symbols. Returns false when
+    // the keyboard has no such key (or types text only: held_keys() false).
+    virtual bool held_keys() const { return false; }
+    virtual bool hold_key(int id, uint32_t cp, int hk, bool raw) { return false; }
+    virtual void release_key(int id) {}
+    virtual void release_all() {}
     virtual size_t pending() const = 0;
     virtual void clear() = 0;
     // Short state for the status bar (LEDs...), empty if none.

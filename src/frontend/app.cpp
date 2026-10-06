@@ -77,6 +77,12 @@ struct App {
     bool tv_aspect = false;
     bool smooth = false;          // linear filtering of the screen texture
     char suppress_text = 0;       // text event of a keypad key already sent as a key
+    // keyboards with held keys (ANK-1): the PC key whose text event is awaited, the text of
+    // an autorepeat (not typed: the program repeats by itself), the game mode (keys by position,
+    // Shift = SHIFT, Ctrl+F7)
+    int held_text_id = -1;
+    bool held_drop_text = false;
+    bool game_keys = false;
     std::string ini_path;
 
     // settings (sapiemu-settings.json next to the exe, else in the user's AppData)
@@ -316,11 +322,68 @@ void debug_step(App& app, bool over)
     app.ui.show_debugger = true;
 }
 
+// The keyboard of the machine when it takes held keys (ANK-1), else nullptr.
+static KeyboardDevice* held_keyboard(App& app)
+{
+    Machine* m = app.host.machine();
+    KeyboardDevice* k = m ? m->keyboard() : nullptr;
+    return k && k->held_keys() ? k : nullptr;
+}
+
+// The game mode: a PC key by its position (digits) or its label (letters), Shift, Space, Enter.
+static bool game_key(KeyboardDevice* k, const SDL_KeyboardEvent& ev)
+{
+    int id = (int)ev.scancode;
+    if (ev.scancode == SDL_SCANCODE_LSHIFT || ev.scancode == SDL_SCANCODE_RSHIFT) return k->hold_key(id, 0, HK_SHIFT, true);
+    if (ev.key >= SDLK_A && ev.key <= SDLK_Z) return k->hold_key(id, (uint32_t)('A' + (ev.key - SDLK_A)), HK_NONE, true);
+    if (ev.scancode >= SDL_SCANCODE_1 && ev.scancode <= SDL_SCANCODE_0)   // the top row, whatever the layout
+        return k->hold_key(id, ev.scancode == SDL_SCANCODE_0 ? '0' : (uint32_t)('1' + (ev.scancode - SDL_SCANCODE_1)), HK_NONE, true);
+    if (ev.key == SDLK_SPACE) return k->hold_key(id, ' ', HK_NONE, true);
+    int hk = keymap_host_key(ev.key);
+    return hk != HK_NONE && k->hold_key(id, 0, hk, true);
+}
+
+// Held keys (ANK-1) on the screen: the key goes down here, its character comes with the text
+// event (handle_text), it goes up with the key-up event. An autorepeat of the PC is dropped.
+// Returns true when the key was taken.
+static bool held_key_down(App& app, const SDL_KeyboardEvent& ev)
+{
+    KeyboardDevice* k = app.ui.screen_focused ? held_keyboard(app) : nullptr;
+    app.held_text_id = -1;
+    app.held_drop_text = false;
+    if (!k || ((ev.mod & SDL_KMOD_CTRL) && !(ev.mod & SDL_KMOD_ALT))) return false;   // Ctrl+key: as before
+    if (ev.repeat) {
+        app.held_drop_text = true;
+        return true;
+    }
+    if (app.game_keys) {
+        app.held_drop_text = true;   // no text in the game mode
+        game_key(k, ev);
+        return ev.key != SDLK_F6 && ev.key != SDLK_F7;   // INT and T keys as before
+    }
+    int hk = keymap_host_key(ev.key);
+    if (hk != HK_NONE) return k->hold_key((int)ev.scancode, 0, hk, false);   // Enter, Backspace...: no text
+    app.held_text_id = (int)ev.scancode;   // its character comes as text
+    return true;
+}
+
+void handle_key_up(App& app, const SDL_KeyboardEvent& ev)
+{
+    if (KeyboardDevice* k = held_keyboard(app)) k->release_key((int)ev.scancode);
+}
+
 void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
     switch (ev.key) {
     case SDLK_F5: app.host.paused = !app.host.paused; return;
+    case SDLK_F7:   // Ctrl+F7: the game mode of the ANK-1 keyboard on/off
+        if (ev.mod & SDL_KMOD_CTRL) {
+            app.game_keys = !app.game_keys;
+            if (KeyboardDevice* k = held_keyboard(app)) k->release_all();
+            return;
+        }
+        break;
     case SDLK_F8:   // Ctrl+F8: the joystick from the keyboard on/off (arrows, space = fire)
         if (ev.mod & SDL_KMOD_CTRL) app.joy.keyboard = !app.joy.keyboard;
         else app.host.cycle_speed();
@@ -366,6 +429,7 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     int tcode = ctrl >= 0 ? ctrl : (hk != HK_NONE ? wordstar_code(hk, mods) : -1);
     if (tcode >= 0 && terminal_key(app.ui, tcode)) return;
     if (!app.ui.screen_focused) return;
+    if (held_key_down(app, ev)) return;   // ANK-1: held while held
     if (ctrl >= 0) {
         char c[2] = { (char)ctrl, 0 };
         m->type_text(c);
@@ -384,7 +448,24 @@ void handle_text(App& app, const char* text)
     if (sup && text[1] == 0 && (text[0] == sup || (sup == '.' && text[0] == ','))) return;
     if (terminal_text(app.ui, text)) return;
     if (app.ui.screen_focused && app.joy.keyboard && !strcmp(text, " ")) return;   // fire of the joystick
-    if (app.ui.screen_focused) m->type_text(text);
+    if (!app.ui.screen_focused) return;
+    int id = app.held_text_id;
+    bool drop = app.held_drop_text;
+    app.held_text_id = -1;
+    app.held_drop_text = false;
+    if (drop) return;   // an autorepeat or the game mode
+    KeyboardDevice* k = held_keyboard(app);
+    if (k && id >= 0) {   // the character of the key just pressed: held until the key goes up
+        const unsigned char* s = (const unsigned char*)text;
+        uint32_t cp = s[0];
+        int n = 1;
+        if (s[0] >= 0xF0) { cp = s[0] & 0x07; n = 4; }
+        else if (s[0] >= 0xE0) { cp = s[0] & 0x0F; n = 3; }
+        else if (s[0] >= 0xC0) { cp = s[0] & 0x1F; n = 2; }
+        for (int i = 1; i < n && s[i]; i++) cp = (cp << 6) | (s[i] & 0x3F);
+        if (!s[n] && k->hold_key(id, cp, HK_NONE, false)) return;
+    }
+    m->type_text(text);   // several characters (a dead key...) or none of this keyboard: typed
 }
 
 // Window title of a display output: the card name and the current zoom ("CGA-1V  200 %").
@@ -546,6 +627,13 @@ void draw_menu(App& app)
                     kb = m->keyboard();   // the old keyboard is gone
                 }
             }
+            ImGui::Separator();
+            if (ImGui::MenuItem(tr("Game mode: keys by position, Shift = SHIFT"), "Ctrl+F7", &app.game_keys, kb && kb->held_keys()))
+                kb->release_all();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("%s", tr("ANK-1: letters by their label, digits by position, Shift of the PC = SHIFT, keys "
+                                           "pressed together stay together. Symbols as on the ANK-1 (SHIFT + key). Off: "
+                                           "typing by characters (comma = SHIFT + N)."));
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(tr("Sound, joystick and mouse"))) {
@@ -608,6 +696,7 @@ void draw_menu(App& app)
     if (ImGui::BeginMenu(tr("Help"))) {
         ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
+        ImGui::TextUnformatted(tr("Ctrl+F7 game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)"));
         ImGui::TextUnformatted(tr("Ctrl+F2 quick save of the state, Ctrl+F3 quick load"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
@@ -637,6 +726,10 @@ void draw_menu(App& app)
             size_t colon = n.find(": ");
             if (slash != std::string::npos && colon != std::string::npos) n = n.substr(0, colon + 2) + n.substr(slash + 1);
             ks += "  " + n;
+        }
+        if (app.game_keys && kb && kb->held_keys()) {
+            ks += "  ";
+            ks += tr("game mode (Ctrl+F7)");
         }
         if (app.joy.keyboard) {   // arrows and space do not type now
             ks += "  ";
@@ -973,6 +1066,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (ev.type == SDL_EVENT_QUIT) rack_request_exit(app.ui);
             else if (ev.type == SDL_EVENT_WINDOW_MOVED || ev.type == SDL_EVENT_WINDOW_RESIZED) track_window(app);
             else if (ev.type == SDL_EVENT_KEY_DOWN) handle_key(app, ev.key);
+            else if (ev.type == SDL_EVENT_KEY_UP) handle_key_up(app, ev.key);
+            else if (ev.type == SDL_EVENT_WINDOW_FOCUS_LOST) {   // keys released elsewhere are not seen
+                if (KeyboardDevice* k = held_keyboard(app)) k->release_all();
+            }
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
             else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
         }
