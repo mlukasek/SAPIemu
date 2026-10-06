@@ -58,7 +58,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      a) ověřit FDC-1 a MFC-1A, i DD a formátování, originálními programy SAPIMANa (`CPM_PROGRAMY\CISLOVANI
         SEKTORU`, `FORMATOVANI`, `Format_FDC_8`) a `MFC1.ASM`; **většinou hotové 2026-10-05**: formátování FDC-1 HD
         a 8", MFC-1A DD, FM a 8", číslování sektorů (doraz hlavy 82, nová disketa jako `.imd`), `mfc1test` se shoduje s výpisy z reálných
-        MFC-1A (`docs/desky/MFC-1A.md`; sestavy SAPIMANa mají `rdy_ground = true`), zbývá DUP (fyzická kopie 8");
+        MFC-1A (`docs/desky/MFC-1A.md`; sestavy SAPIMANa mají `rdy_ground = true`), DUP-80 (fyzická kopie) hotové 2026-10-06, test `dup8`; **bod a) je celý hotový**;
      b) ~~motory mechanik~~ hotové 2026-10-06 (`motor_line`, `spinup_ms`; sestavy s mechanikami PC);
      c) ~~sestavy s RAM diskem RMD-1 a s PMD32-SD na FDC-1~~ hotové 2026-10-06 (`cpm_boot_fdc1_rmd`,
         `cpm_boot_rpd1_rmd`, `cpm_pmd_fdc1`; tiskárna na X3 ve všech sestavách ECMONu a J. Bíby); knihovna jeho

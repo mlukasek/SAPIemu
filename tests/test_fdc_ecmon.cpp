@@ -10,6 +10,8 @@
 // The EC1045 system (machines/cpm_ec1045.sapi) with PC disks on FDC-1 in MFM: variant 1
 // 3.5" HD 1.44 MB, variant 2 5.25" HD 1.2 MB; SAVE to B: puts the directory entry on cylinder 1
 // head 0 sector 1 of the image (OFF 1, two sides).
+// DUP8 of J. Biba (physical copy through the BIOS, on the RAM disk of cpm_zrmd) copies B: to
+// C: on FDC-1 and MFC-1A sector by sector: the images are the same.
 #include "core/headless.h"
 #include "core/machine.h"
 #include "core/util.h"
@@ -78,6 +80,42 @@ static void controller(const char* file, const char* type, const char* variant, 
     for (size_t off = 2 * 26 * 128; off + 3 <= img.size() && !found; off += 128)
         if (img[off] == 3 && img[off + 1] == 10 && img[off + 2] == 17) found = true;
     CHECK(found);
+    printf("%s\n", screen_text(m).c_str());
+}
+
+static void dup8(const char* file, const char* type, const char* variant)
+{
+    printf("--- DUP8 %s\n", file);
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine(file, type, nullptr), err));
+    m.type_text(variant);
+    CHECK(run_until_text(m, "\nA>", 30.0));
+    m.run_seconds(0.3);
+    m.type_text("DUP8\r");
+    CHECK(run_until_text(m, "Kopie disku", 10.0));
+    m.type_text("2");
+    CHECK(run_until_text(m, "cilovy", 10.0) || run_until_text(m, "zdrojovy", 1.0));
+    m.type_text("B");
+    CHECK(run_until_text(m, "cilovy", 10.0));
+    m.type_text("C");
+    CHECK(run_until_text(m, "[A/N]", 10.0));
+    m.type_text("A");
+    CHECK(run_until_text(m, "<CR>", 10.0));
+    m.type_text("\r");
+    bool done = false;
+    for (int i = 0; i < 60 && !done; i++) {   // 77 tracks, read and written sector by sector
+        m.run_seconds(5.0);
+        std::string t = screen_text(m);
+        size_t at = t.rfind("<CR>");
+        done = at != std::string::npos && t.find("Exit", at) != std::string::npos;   // the menu again
+    }
+    CHECK(done);
+    m.flush();
+    std::vector<uint8_t> b, c;
+    CHECK(file_read_all(data_path("work/test/ecmon_b.img"), b));
+    CHECK(file_read_all(data_path("work/test/ecmon_c.img"), c));
+    CHECK(b.size() == 256256 && b == c);
     printf("%s\n", screen_text(m).c_str());
 }
 
@@ -191,6 +229,8 @@ int main(void)
             "B2711Z4  MAC");
     ec1045_hd("1", "media/fdc-1/prazdna_3.5HD_CPM.img", "B,C: FDC1; 3,5\" DS,HD", "ON B: 1412K");
     ec1045_hd("2", "media/fdc-1/prazdna_5.25HD_CPM.img", "B,C: FDC1; 5,25\" DS,HD", "ON B: 1174K");
+    dup8("machines/cpm_zrmd_fdc1.sapi", "FDC-1", "0");
+    dup8("machines/cpm_zrmd_mfc1a.sapi", "MFC-1A", "2");
     mfc_orig("tesla", "level", false);
     mfc_orig("ec1045", "level", false);
     mfc_orig("ec1045", "pulse", true);
