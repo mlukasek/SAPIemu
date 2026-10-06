@@ -44,7 +44,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
-  joysticku (joystick z šipek a mezerníku nebo gamepadu, myš).
+  joysticku (joystick z šipek a mezerníku nebo gamepadu, myš). Matice ANK-1 drží klávesu, dokud ji držíš na PC
+  (bez fronty a autorepeatu), a má režim pro hry (Ctrl+F7: klávesy podle polohy, Shift = SHIFT).
 - **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4 s RPD-1
   i FDC-1, originální CP/M Tesla IMA 48K a 64K pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM
   disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. MIKROBIOS
@@ -56,9 +57,10 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Konfigurátor sestavy:**
   - panely karet jako na skutečném stroji, LED podle emulace;
   - propojky, některé i za chodu;
+  - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
   - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
 - **Ladění:** debugger (registry, disassembler, paměť, breakpointy a watchpointy, I/O log), ukládání stavu (i
-  rychlé checkpointy), nahrávání programů (Intel HEX, binární soubory), nahrávání zvuku do WAV.
+  rychlé checkpointy), nahrávání programů (Intel HEX i `.txt`, binární soubory), nahrávání zvuku do WAV.
 - **Windows 11, sestaví se i na Linuxu** (ověřeno ve WSL, `docs/build.md`).
 - **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
