@@ -58,7 +58,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 
 - **Kód:** C++20 v jednoduchém stylu „C s třídami“. Přednost mají C hlavičky (`<stdint.h>`, `<stdio.h>`, `<string.h>`), struktury, prosté funkce a virtuální metody tam, kde dávají smysl. Minimum šablon, výjimek a složitých C++ konstrukcí. Musí to být efektivní.
 - **Jazyk:** identifikátory a komentáře v kódu **anglicky**, dokumentace **česky**, UI zatím **česky** (texty přes `tr()`, aby šly později přepínat).
-- **Git:** **lokální commity průběžně, push jen na výslovné vyžádání.**
+- **Git:** **lokální commity průběžně, push jen na výslovné vyžádání.** **Před každým pushem** projít všechny
+  commity od `origin/main` a zaktualizovat všechny dotčené `.md` (README, `docs/prvni-kroky.md`, `docs/SOUHRN.md`,
+  tento soubor, `docs/rozhodnuti.md`, `docs/desky/*`, `docs/software/*`, `docs/mcp.md`…), ať je GitHub aktuální.
 - **Zápis poznatků:** důležité věci zapisovat do `docs/`, na projektu se pracuje z více počítačů.
 - **Postup:** „dvakrát měř, jednou řež“. Na cokoli nejasného se zeptat a doporučení dávat jako první možnost.
 - **Reálný HW:** autor ho má, ale příprava chvíli trvá. Otázky k ověření na HW sbírat do „Nejasností“ a řešit dávkově.
