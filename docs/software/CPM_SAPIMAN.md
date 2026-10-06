@@ -233,6 +233,8 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
 - ~~Složka `…/PETR/2MB/`~~: je v kopii z FTP (`..\SAPI_DOKU_FTP`).
 - Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme.
 - Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení (D4/D5, polarita D6)?
+- Diskety TNS ze Slušovic v `DEX\SAPI_ZPS3` (04A, 04B, 05): odkud jsou a proč jsou u ZPS-3? Má někdo ROM zavaděče
+  TNS (ZAV) nebo popis řadiče KORD4? (`docs/software/TNS_Slusovice.md`, 2026-10-06, zatím neodesláno)
 - **Odesláno autorem 2026-10-06** (čeká se na odpověď): zdroják ECMON IDE-1; jestli ECBIM8 na skutečné MFC-1A
   fungoval (chybějící `RET`); podle čeho je překreslení MFC-1A (D4/D5, D6) a podle kterého zapojení se staví
   repliky; mechaniky a RDY u MFC-1A; kdo dělal testy `SAPI15\MFC_TEST_CPM` a s jakým `DRVON`; připojení mechanik

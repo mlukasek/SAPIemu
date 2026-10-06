@@ -101,15 +101,9 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
   `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3\01–03.8SD` (stejné jsou
   v `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\DEX\SAPI_ZPS3`). Volá F821, patří
   k `JPR1A_BOOT_64k`. V repu jako `media/rpd-1/CPM64K_IMA_01–03.img`, sestava `ZPS-3_CPM64K_IMA.sapi`.
-- **Diskety ze Slušovic** ve stejné složce `DEX\SAPI_ZPS3` (**plán, zatím nevyzkoušené**):
-  - `04A.8SD`, `04B.8SD`: „TNS CPM V 2.27-K JZD AK Slusovice 24.7.1986 FFM“ (CCP v systémových stopách),
-    na 04A TED, DES, TISK, DUP, DUPLIK, TURBO (Pascal), FORMAT, GENER, systémy `CPMKH.SYS` a `CPMWH.SYS`; na 04B
-    AUT, CBOOT, SYSTEM, RBASD, SIRKY;
-  - `05.8SD`: „CPM 2.30 Copyright (C) by MIC - Software Slusovice 1987“, zavaděč „OSBOOT-F V 1.06“, česká hlášení
-    („Nelze najít soubor“); soubory KONVERZE, DISKETY, SYSTEM, LP, DBASEOVR, FBOOT, PIP, WD, PW;
-  - k nim chybí boot EPROM, nevíme, pro jakou sestavu jsou (FBOOT a OSBOOT-F ukazují spíš na řadič FDC-1).
-    Postup: rozebrat zavaděč na stopě 0 (porty, adresa monitoru, video), podle toho zkusit některou z našich ROM,
-    případně se zeptat Petra Všijanského (EC1045).
+- **Diskety ze Slušovic** ve stejné složce `DEX\SAPI_ZPS3` (`04A`, `04B`: TNS CP/M V2.27-K 1986; `05`: MIC CP/M
+  2.30 1987, OSBOOT-F) **nejsou pro SAPI-1**, ale pro počítače TNS z JZD AK Slušovice (Z80 s IM 2, displej FC00,
+  klávesnice B8h, řadič disket na 60h–78h). Rozbor 2026-10-06: `docs/software/TNS_Slusovice.md`.
 - **48K zdrojové diskety** bez systémových stop: `...\IMAGE_8\ZDROJ_STARE\15_a/b_zps3_48k.8sd`.
 - `BKP\data\bios_lst.php` je BIOS MIKOS/D, ne CP/M ZPS-3. Zdroje CP/M BIOS: BIOS48C1.MAC, BIOS64C2.MAC,
   BIOS.MAC.

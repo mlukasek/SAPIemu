@@ -113,8 +113,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         (`docs/tiskarna.md`). Kanál 1 DPP-1 je v ECMONu `PUN:`, ne tiskárna.
   0c. **ZPS-3** (2026-10-06, `docs/software/CPM_ZPS-3.md`): ~~originální CP/M 64K Tesla IMA~~ hotové;
      ~~rekonstrukce IMA CP/M 48K~~ hotová (originální MOVCPM48 a SYSGEN, sestava `ZPS-3_CPM48K_IMA`);
-     **diskety ze Slušovic** (`DEX\SAPI_ZPS3\04A`, `04B`: TNS CP/M V2.27-K JZD AK Slušovice 1986; `05`:
-     CP/M 2.30 MIC-Software Slušovice 1987, OSBOOT-F) vyzkoušet, chybí k nim boot EPROM.
+     ~~diskety ze Slušovic~~ rozebrané 2026-10-06: **nejsou pro SAPI**, jsou pro počítače TNS JZD Slušovice
+     (Z80, IM 2, displej FC00, řadič KORD4 / FD17xx na 60h–78h), `docs/software/TNS_Slusovice.md`. Obecné programy
+     (Turbo Pascal, dBASE II, WordStar…) by šly přenést na disketu CP/M pro Z80 SAPI.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
