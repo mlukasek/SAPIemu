@@ -2,12 +2,13 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-05) a co dál
+## Kde jsme skončili (2026-10-06) a co dál
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 29 v debug (v release navíc pomalé ZEX). Vše prochází.
-  - Podklady mimo repo, které dnes vznikly: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`).
+  - Testy: 31 v debug (v release navíc pomalé ZEX). Vše prochází.
+  - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
+    příkaz v příkazové řádce a na „move anyway“ odpovídá N).
 - **Alfa 0.1.0-alpha:**
   - Zip `out/package/SAPIemu-0.1.0-alpha-win64.zip` (vzniká `python tools/package.py`, přibalí i autorův IDE
     disk) poslal autor soukromě Liborovi Lasotovi, Petrovi Všijanskému a Michalovi Medkovi.
@@ -37,12 +38,27 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy s bootem CP/M z 8" diskety (`cpm_boot_mfc1a/fdc1/rpd1.sapi`, Consul 259.11), formáty disket PC (MFM,
   HD/DD, dvě strany) pro FDC-1 a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), okno Média zakládá
   diskety v libovolném formátu.
-- **Možné další kroky (autor vybírá; doporučení 2026-10-05: nejdřív a), pak DPP-1):**
+- **Hotové 2026-10-06** (podrobnosti v `docs/rozhodnuti.md` a v uvedených souborech):
+  - **okno Média:** výběr formátu nové diskety jednou nad mechanikami, širší okno; snímky `--ui-media`,
+    `--ui-printer`;
+  - **originální programy J. Bíby** (formátování, číslování sektorů) na FDC-1 a MFC-1A: HD, DD, FM i 8" fungují.
+    Doraz hlavy je teď stopa 82, protože programy formátují stopy 0–80. Stopa za koncem obrazu `.img` zůstane
+    v paměti. Nová disketa `.imd` je předformátovaný ImageDisk (`docs/software/CPM_SAPIMAN.md`);
+  - **MFC-1A proti výpisům z reálných desek** (`SAPI15\MFC_TEST_CPM`, `docs/desky/MFC-1A.md`): s `rdy_ground`
+    se shoduje. Změna READY v 8272 nepřepíše čekající stav, `rdy_ground` nezávisí na D6. Sestavy SAPIMANa
+    (`cpm_boot_mfc1a*`) mají RDY trvale (rozhodnutí autora);
+  - **`cpmrun`:** stav konzole hlásí stdin, test `test_cpmrun`. „L80 nebere `/P:0`“ byl převod cest v Git Bash
+    a odpověď Y na „move anyway“ (`docs/build.md`);
+  - **motory mechanik** FDC-1 a MFC-1A (`motor_line`, `spinup_ms`), zapnuté v sestavách s mechanikami PC
+    (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
+  - **tiskárna Centronics** na X3 karet JPR a na DPP-1 (8255 mód 1), okno Tiskárna, MCP `printer_output`, test
+    `test_printer`, sestavy `cpm_zrmd` a `cpm_zrmd_dpp1` (`docs/tiskarna.md`). DPP-1 kanál 1 je v ECMONu `PUN:`.
+- **Možné další kroky (autor vybírá; doporučení 2026-10-06: c) sestavy a diskety SAPIMANa, pak DUP):**
   0. **Diskety a CP/M, dodělávky z 2026-10-05** (podrobně v `docs/software/CPM_SAPIMAN.md`, „Dodělávky“):
      a) ověřit FDC-1 a MFC-1A, i DD a formátování, originálními programy SAPIMANa (`CPM_PROGRAMY\CISLOVANI
         SEKTORU`, `FORMATOVANI`, `Format_FDC_8`) a `MFC1.ASM`; **většinou hotové 2026-10-05**: formátování FDC-1 HD
         a 8", MFC-1A DD, FM a 8", číslování sektorů (doraz hlavy 82, nová disketa jako `.imd`), `mfc1test` se shoduje s výpisy z reálných
-        MFC-1A (`docs/desky/MFC-1A.md`, otázka na výchozí `rdy_ground`), zbývá DUP;
+        MFC-1A (`docs/desky/MFC-1A.md`; sestavy SAPIMANa mají `rdy_ground = true`), zbývá DUP (fyzická kopie 8");
      b) ~~motory mechanik~~ hotové 2026-10-06 (`motor_line`, `spinup_ms`; sestavy s mechanikami PC);
      c) sestavy s RAM diskem RMD-1 z bootovacích disket SAPIMANa (`m1_281211_rmd`, `f1_rmd1m_*`, `r1_rmd1m_*`)
         a další jeho 8" diskety (překladače, texty, zdrojáky) jako datové;
@@ -444,6 +460,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Hlásí 8272 po resetu „ready changed“ pro všechny 4 jednotky (SENSE INTERRUPT STATUS po resetu)?
     - Kolik taktů CPU zabere přenos DMA (emulace 4) a doba RQM po bajtu povelu (emulace 12 µs).
     - Registr 0FH: vedly /M0–/M3 z X3 k mechanikám PC? Nuluje ho /RES? Rozběh mechanik (emulace 500 ms)?
+    - Kam až dojede hlava mechanik (8" Consul, 5,25" a 3,5" PC)? Emulace: stopa 82, programy SAPIMANa formátují 0–80.
 
 27. **MFC-1A** (`docs/desky/MFC-1A.md`):
     - Které zapojení registru 0FH mají vyrobené desky a podle kterého se staví replika? Originál Tesla: D4 reset,
@@ -453,6 +470,13 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       zdrojáku `..\SAPI-karty\ZRMD-1\SRC\ECBIM8C.MAC` a v obrazu `..._fixMFC.bin`. Sestava s ní běží s resetem
       podle schématu, původní obraz jen s odchylkou `pulse`.
     - RDYn (XP2-19) v příkladech připojení mechanik v návodu zapojený není. Jaké mechaniky se připojovaly?
+      Výpisy `SAPI15\MFC_TEST_CPM` (2010) ukazují stálé RDY a desku „Original MFC1A“, která zapínala mechaniky
+      s D6 = 1 (jako překreslení EC1045). Kdo testy dělal a s jakým `DRVON`?
+
+28. **Tiskárna** (`docs/tiskarna.md`):
+    - Co je v kabelu na kolíku 16 X3 (P2-IN7)? ECMON při 1 netiskne, emulace ho drží v 0.
+    - Bere tiskárna data při sestupné, nebo náběžné hraně /STROBE (emulace: náběžná)?
+    - DPP-1 kanál 1: děrovač, nebo tiskárna přes `UL1:`? Zapojení /OBF, /ACK, BUSY a přepínače S2–S4.
 
 ## Jak pokračovat
 
@@ -461,7 +485,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`). Na autorově hlavním PC je repo od
    2026-10-04 na lokálním `E:\SAPI_GIT\SAPIemu` (dřív `H:\SAPI-1\GIT\SAPIemu`), stačí preset `windows-debug`.
-   Po přesunu je sestavení čisté (dnes 26 testů v debug, 29 v release). Autor ověřil překlad debug i release
+   Po přesunu je sestavení čisté (2026-10-06: 31 testů v debug, v release navíc ZEX a 8080EXM). Autor ověřil překlad debug i release
    ve VS 2022.
 4. Pokračovat další fází z tabulky. **Hotovo (2026-10-04): F9 desky V včetně CGA-1V.** Původní poznámky k F9:
    Výsledek
