@@ -303,13 +303,18 @@ void Ank1::p0_out(uint8_t value)
 {
     beeper.set(bus, (value & 0x40) != 0);
     out = value;
+    lit |= value;
 }
 
+// The LEDs: lit at any time since the last look (a program toggling D5 with its sound,
+// Manic Miner, makes the LED glow; sampled once a frame it would flicker at random).
 std::string Ank1::status() const
 {
+    uint8_t v = out | lit;
+    lit = 0;
     std::string s;
-    if (out & 0x20) s += "SHIFT";
-    if (out & 0x80) s += s.empty() ? "ERR" : " ERR";
+    if (v & 0x20) s += "LED SHIFT";
+    if (v & 0x80) s += s.empty() ? "LED ERR" : " ERR";
     return s;
 }
 

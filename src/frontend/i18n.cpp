@@ -105,6 +105,10 @@ static const Translation k_table[] = {
       "ANK-1: písmena podle popisu, číslice podle polohy, Shift na PC = SHIFT, klávesy stisknuté naráz jsou "
       "stisknuté naráz. Symboly jako na ANK-1 (SHIFT + klávesa). Vypnuto: psaní podle znaků (čárka = SHIFT + N)." },
     { "game mode (Ctrl+F7)", "režim pro hry (Ctrl+F7)" },
+    { "LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program (P0-OUT D5, D7), not the "
+      "Shift key of the PC. Programs making sound on D5 (Manic Miner) light the LED SHIFT with it.",
+      "LED SHIFT, LED ERR: kontrolky na klávesnici SAPI (ANK-1), rozsvěcí je program (P0-OUT D5, D7). Nejde o klávesu "
+      "Shift na PC. Programy, které dělají zvuk přes D5 (Manic Miner), s ním rozsvěcí i LED SHIFT." },
     { "Load binary file into memory...", "Nahrát binární soubor do paměti…" },
     { "Load binary file into memory", "Nahrát binární soubor do paměti" },
     { "Size:", "Velikost:" },

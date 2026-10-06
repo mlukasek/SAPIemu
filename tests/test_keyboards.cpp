@@ -148,7 +148,7 @@ static void test_ank1(void)
     CHECK(k->host_key(HK_F6, 0));
     CHECK_EQ(k->p1_in(), 0x7F);
     k->p0_out(0xBF);
-    CHECK(k->status() == "SHIFT ERR");
+    CHECK(k->status() == "LED SHIFT ERR");
     k->p0_out(0x1F);
     CHECK(k->status().empty());
     CHECK(!k->host_key(HK_UP, 0));

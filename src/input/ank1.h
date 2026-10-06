@@ -102,6 +102,7 @@ private:
     std::deque<Press> queue;   // typed text waiting: a tap when no typed key is held
     uint64_t now = 0;
     uint8_t out = 0;           // P0-OUT latch
+    mutable uint8_t lit = 0;   // P0-OUT bits set since status() was read last (LEDs)
     bool int_key = false, t_key = false;
     uint64_t int_until = 0, t_until = 0;
     QuadMouse mouse;                   // ANK-1M2 with a mouse plugged in

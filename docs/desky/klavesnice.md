@@ -187,7 +187,9 @@ Zdroj: `sapi\ank-1.php`, příloha VII manuálu (`ank-1pri07.png`), tabulky MIKO
 - **Zapojení:** P0-OUT D4–D0 vybírají řádky (0 = aktivní, může jich být víc najednou), P0-IN čte 8 sloupců
   (stisknutá klávesa na aktivním řádku = 0).
 - **Další výstupy P0-OUT:** D7 LED ERR, D6 bzučák, D5 LED SHIFT (1 = svítí). Pozice jsou podle MIKOS V4.0,
-  viz Nejasnosti. Stav LED ukazuje stavový řádek GUI a MCP `machine_info` (`keyboard_status`).
+  viz Nejasnosti. Stav LED ukazuje stavový řádek GUI („LED SHIFT“, „LED ERR“, bublina vysvětlí) a MCP
+  `machine_info` (`keyboard_status`). LED svítí, když byla rozsvícená kdykoli od minulého pohledu: MIKROBIOS ji
+  nechává svítit trvale (MaskLED 20h), Manic Miner s ní přepíná zvuk (`XRI 60h`), na stroji by žhnula.
 - **P1-IN:** D7 = klávesa INT, D6 = klávesa T (0 = stisknuto), D5–D0 = 1. RES vede na reset.
 - **Matice** (sloupec = bit P0-IN):
 

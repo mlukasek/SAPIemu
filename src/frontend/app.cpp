@@ -714,12 +714,14 @@ void draw_menu(App& app)
     // status on the right side of the menu bar
     char st[200];
     st[0] = 0;
+    bool kb_leds = false;   // LEDs of the keyboard in it (a tooltip explains them)
     if (!m) snprintf(st, sizeof(st), "%s", tr("Switched off"));
     if (m) {
         const char* state = app.host.paused ? (app.host.status.empty() ? tr("Paused") : app.host.status.c_str())
                                             : (app.host.max_speed ? tr("Maximum") : "");
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
+        kb_leds = ks.find("LED") != std::string::npos;
         if (!app.ui.notice.empty() && !app.ui.notice_error && SDL_GetTicksNS() - app.ui.notice_ns < 3000000000ull) {
             std::string n = app.ui.notice;
             size_t slash = n.find_last_of("/\\");   // the file name is enough here
@@ -768,6 +770,10 @@ void draw_menu(App& app)
         ImGui::SameLine();
     }
     ImGui::TextUnformatted(st);
+    if (kb_leds && ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program "
+                                   "(P0-OUT D5, D7), not the Shift key of the PC. Programs making sound on D5 "
+                                   "(Manic Miner) light the LED SHIFT with it."));
     ImGui::EndMainMenuBar();
 }
 
