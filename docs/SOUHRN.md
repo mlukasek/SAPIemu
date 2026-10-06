@@ -61,8 +61,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         MFC-1A (`docs/desky/MFC-1A.md`; sestavy SAPIMANa mají `rdy_ground = true`), zbývá DUP (fyzická kopie 8");
      b) ~~motory mechanik~~ hotové 2026-10-06 (`motor_line`, `spinup_ms`; sestavy s mechanikami PC);
      c) ~~sestavy s RAM diskem RMD-1 a s PMD32-SD na FDC-1~~ hotové 2026-10-06 (`cpm_boot_fdc1_rmd`,
-        `cpm_boot_rpd1_rmd`, `cpm_pmd_fdc1`; tiskárna na X3 ve všech sestavách ECMONu a J. Bíby); zbývá knihovna
-        jeho datových 8" disket (překladače, texty, zdrojáky, asi 180 disket);
+        `cpm_boot_rpd1_rmd`, `cpm_pmd_fdc1`; tiskárna na X3 ve všech sestavách ECMONu a J. Bíby); knihovna jeho
+        disket hotová (soupis 180 disket a výběr 16 v `media/sapiman/knihovna/`,
+        `docs/software/SAPIMAN_diskety.md`); další bootovací diskety ze soupisu jsou v `CPM_SAPIMAN.md`;
      d) ~~`cpmrun`: test a L80 `/P:0`~~ hotové 2026-10-06 (`test_cpmrun`, `docs/build.md`);
      e) ~~vzhled okna Média s výběrem formátu~~ hotové 2026-10-05 (výběr jednou nad mechanikami, `--ui-media`);
      f) otázky na EC1045 (Petr Všijanský): složka `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A;

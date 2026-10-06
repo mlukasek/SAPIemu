@@ -54,6 +54,9 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 - **Média:** Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
+- **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,
+  FORTH, Pascal/MT+, C, dBase II, WordStar…). Okno Média, Vložit… do B: a pak např. `B:MBAS`. Soupis všech
+  disket je v `docs/software/SAPIMAN_diskety.md`.
 - **Tiskárna:** Zobrazení → Tiskárna ukáže vytištěný text. Bajty, jak přišly, jsou v `work/printer/*.prn`.
   Tiskárnu zapnete v konfigurátoru u procesorové karty (X3) nebo u DPP-1 (`docs/tiskarna.md`).
 - **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX) nebo binární soubor. V CP/M pak

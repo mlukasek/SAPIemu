@@ -64,7 +64,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
 - [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045
-  v [CPM_SAPIMAN.md](docs/software/CPM_SAPIMAN.md)).
+  v [CPM_SAPIMAN.md](docs/software/CPM_SAPIMAN.md), soupis a knihovna jeho disket
+  v [SAPIMAN_diskety.md](docs/software/SAPIMAN_diskety.md)).
 - [docs/tiskarna.md](docs/tiskarna.md): tiskárna Centronics (X3 procesorové karty, DPP-1).
 - [docs/stav.md](docs/stav.md): ukládání stavu. [docs/mcp.md](docs/mcp.md): MCP server.
   [docs/build.md](docs/build.md): sestavení a tipy pro vývoj.

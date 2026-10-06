@@ -93,8 +93,12 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    v sestavách s mechanikami PC (EC1045, dlouhé CP/M). `docs/desky/FDC-1.md`, `docs/desky/MFC-1A.md`.
 3. **Další sestavy a diskety SAPIMANa:** ~~bootovací diskety s RAM diskem RMD-1 a varianty s PMD32-SD~~ hotové
    2026-10-06 (`cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd`, `cpm_pmd_fdc1`; `r2_pmd*` už je `cpm_pmd_rpd1`).
-   Zbývá knihovna jeho datových 8" disket (`PREKLADACE`, `TEXTY`, `ZDROJ_NOVE`, `ZDROJ_STARE`, `SYSPROG` …,
-   asi 180 disket, 45 MB v `SAPIMAN\PMD32-SD_IMAGE8`).
+   ~~Knihovna datových disket~~ hotová 2026-10-06: soupis všech asi 180 disket a výběr 16 do
+   `media/sapiman/knihovna/` (`docs/software/SAPIMAN_diskety.md`; MBASIC i Turbo Pascal 3.00A pro AND-1Z běží).
+   **Další kandidáti ze soupisu** (nevyzkoušené): bootovací diskety RPD `r2_*`, `r3_*` (RPD-1 s FDC-1 nebo
+   MFC-1A, RMD-1, ZRMD-1 SS256), mezi nimi `r2_mfc256x14_261211` a `r3_mfc512x8_261211` (MFC-1A s 256 × 14 a
+   512 × 8, možná DD), `r_test2732_101211`, `FDC\f_term62k`, `f2_irmd1m`, `f2_rmd1m`, `f3_rmd1m`,
+   `f1_rmd1m_and1a_130711` (AND-1A).
 4. ~~**`cpmrun`:** malý test v ctestu, L80 a `/P:0` z příkazové řádky~~ hotové 2026-10-06: `test_cpmrun`;
    `/P:0` rozbíjel Git Bash (převod cest), L80 se pak zacyklil po odpovědi Y na „move anyway“ (správně N), stav
    konzole teď hlásí stdin (`docs/build.md`).
