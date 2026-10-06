@@ -406,11 +406,6 @@ bool editor_pending(UiState& ui)
     return false;
 }
 
-DisplayDevice* running_display(UiState& ui, const json& card, int slot)
-{
-    return dynamic_cast<DisplayDevice*>(running_card(ui, card, slot));
-}
-
 // Parameters that take effect while running (Machine::live_param: the ink colour, the
 // write mode of a RAM disk...): a change in the editor goes to the running machine at once.
 void sync_live_params(UiState& ui)
@@ -985,7 +980,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         float cx = slot_x(s) + PITCH * k * 0.5f;
         dl->AddRectFilled(ImVec2(cx - 3.5f * k, y0), ImVec2(cx + 3.5f * k, y0 + 30.0f * k), COL_GUIDE);
         dl->AddRectFilled(ImVec2(cx - 3.5f * k, y1 - 30.0f * k), ImVec2(cx + 3.5f * k, y1), COL_GUIDE);
-        char lab[8];
+        char lab[16];
         snprintf(lab, sizeof(lab), "X%d", s);
         float fs = 13.0f * k < 0.75f * u ? 0.75f * u : 13.0f * k;
         ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, lab);

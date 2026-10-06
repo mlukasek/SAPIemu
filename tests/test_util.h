@@ -28,7 +28,7 @@ static inline std::string real_tape_path(const char* file)
     return file_exists(p) ? p : std::string();
 }
 
-static int g_test_failures = 0;
+[[maybe_unused]] static int g_test_failures = 0;   // tests that only use the helpers do not count
 
 #define CHECK(cond) do { \
     if (!(cond)) { fprintf(stderr, "%s:%d: CHECK failed: %s\n", __FILE__, __LINE__, #cond); g_test_failures++; } \

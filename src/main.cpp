@@ -254,6 +254,7 @@ int main(int argc_ansi, char** argv_ansi)
     }
     return app_run(machine_file, mcp_enabled ? mcp_port : 0, snap.path.empty() ? nullptr : &snap, settings_file);
 #else
+    (void)mcp_enabled;   // GUI options are parsed (and ignored) by sapiemu-cli too
     return 0;
 #endif
 }

@@ -343,7 +343,7 @@ bool Pmd32Sd::op_step(void)
 // Resumable main loop. PT_WAIT returns from run() until the operation finishes.
 #define PT_BEGIN() switch (pt) { case 0:
 #define PT_END() } pt = 0;
-#define DO(kind, value, ms) do { start_op(kind, value, ms); pt = __LINE__; case __LINE__: if (!op_step()) return; } while (0)
+#define DO(kind, value, ms) do { start_op(kind, value, ms); pt = __LINE__; [[fallthrough]]; case __LINE__: if (!op_step()) return; } while (0)
 
 void Pmd32Sd::advance(uint64_t t, uint32_t hz)
 {
