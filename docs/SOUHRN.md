@@ -55,6 +55,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a odpověď Y na „move anyway“ (`docs/build.md`);
   - **motory mechanik** FDC-1 a MFC-1A (`motor_line`, `spinup_ms`), zapnuté v sestavách s mechanikami PC
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
+  - **všechny bootovací diskety J. Bíby** ze `SAPIMAN\PMD32-SD_IMAGE8` vyzkoušené; nová sestava jen
+    `cpm_boot_fdc1_irmd` (BIOS si RAM disk připraví sám), výsledky ostatních v `CPM_SAPIMAN.md`;
   - **RPD-1 s druhým řadičem** (diskety J. Bíby `r2_*`, `r3_*`): `cpm_boot_rpd1_mfc256`, `_mfc512` (MFC-1A s 8"
     FM 14 × 256 a 8 × 512, ne DD) a `cpm_boot_rpd1_fdc1_rmd`;
   - **ZPS-4 s FDC-1** (`machines/zps/ZPS-4_FDC-1.sapi`, ROM MOR62ZF, disketa CPM62ZF ze sapi.cz). Varianty 48Z

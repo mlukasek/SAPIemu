@@ -502,6 +502,8 @@ static const ParamOption k_fdc1_disks[] = {
       "Bootovací CP/M J. Bíba (MON 130711, C: ZRMD-1)" },
     { "\"media/sapiman/f1_rmd1m_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: RMD-1)",
       "Bootovací CP/M J. Bíba (MON 130711, C: RMD-1)" },
+    { "\"media/sapiman/f2_irmd1m_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: RMD-1 set up by the BIOS)",
+      "Bootovací CP/M J. Bíba (MON 130711, C: RMD-1 připraví BIOS)" },
     { "\"media/sapiman/f2_pmd2d2m_140212.img\"", "CP/M boot disk J. Biba 140212 (C:, D: PMD32-SD on DPP-1)",
       "Bootovací CP/M J. Bíba 140212 (C:, D: PMD32-SD na DPP-1)" },
     { "\"media/sapiman/f2_pmd1d2m_140212.img\"", "CP/M boot disk J. Biba 140212 (C: PMD32-SD on DPP-1)",

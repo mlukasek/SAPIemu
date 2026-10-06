@@ -4,7 +4,8 @@
 // Drive motors: the long CP/M turns the motors of its PC drives on (motor_line), the 8" system
 // on FDC-1 does not, so with motor_line its boot disk never turns. The boot disks with RMD-1
 // (C: initialised by B:IRMD40 from Z6) and FDC-1 with PMD32-SD on DPP-1. RPD-1 systems with a second
-// controller for D:, E:: MFC-1A with 8" FM disks of 14 x 256 and 8 x 512 B, FDC-1 with 8" SS SD.
+// controller for D:, E:: MFC-1A with 8" FM disks of 14 x 256 and 8 x 512 B, FDC-1 with 8" SS SD. The BIOS
+// BIRMD sets the random RMD-1 up by itself and finds its size (256 KB here).
 #include "core/devices.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -221,6 +222,22 @@ static void rpd_second(const char* file, const char* type, const char* banner)
     printf("%s\n", screen_text(m).c_str());
 }
 
+static void irmd(void)
+{
+    printf("--- machines/cpm_boot_fdc1_irmd.sapi\n");
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine("machines/cpm_boot_fdc1_irmd.sapi"), err));
+    CHECK(run_until_text(m, "RMD1/1MB/256KB", 10.0));
+    CHECK(run_until_text(m, "A>", 20.0));
+    m.run_seconds(0.3);
+    m.type_text("SAVE 2 C:X.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("B:STAT C:\r");
+    CHECK(run_until_text(m, "ON C: 253K", 15.0));   // 256 KB found, 2 KB used by X.COM, 1 KB by the directory
+    printf("%s\n", screen_text(m).c_str());
+}
+
 static void pmd_fdc1(void)
 {
     printf("--- machines/cpm_pmd_fdc1.sapi\n");
@@ -273,6 +290,7 @@ int main(void)
     rmd_boot("machines/cpm_boot_fdc1_rmd.sapi", "BIOS-1K V130711JB");
     rmd_boot("machines/cpm_boot_rpd1_rmd.sapi", "BIOS-1K V271111JB");
     pmd_fdc1();
+    irmd();
     rpd_second("machines/cpm_boot_rpd1_mfc256.sapi", "MFC-1A", "D,E: MFC1; 8\" 14x256");
     rpd_second("machines/cpm_boot_rpd1_mfc512.sapi", "MFC-1A", "D,E: MFC1; 8\" 8x512");
     rpd_second("machines/cpm_boot_rpd1_fdc1_rmd.sapi", "FDC-1", "D,E: FDC1; 8\" SS,SD");

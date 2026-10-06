@@ -96,9 +96,9 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    ~~Knihovna datových disket~~ hotová 2026-10-06: soupis všech asi 180 disket a výběr 16 do
    `media/sapiman/knihovna/` (`docs/software/SAPIMAN_diskety.md`; MBASIC i Turbo Pascal 3.00A pro AND-1Z běží).
    ~~Bootovací diskety RPD `r2_*`, `r3_*`~~ vyzkoušené 2026-10-06: všechny naběhnou s MON271111, sestavy
-   `cpm_boot_rpd1_mfc256`, `cpm_boot_rpd1_mfc512` a `cpm_boot_rpd1_fdc1_rmd` (níže). **Zbývají** (nevyzkoušené):
-   `r_test2732_101211` (s MON271111 nenaběhne, testovací systém pro EPROM 2732), `FDC\f_term62k`, `f2_irmd1m`,
-   `f2_rmd1m`, `f3_rmd1m`, `f1_rmd1m_and1a_130711` (AND-1A).
+   `cpm_boot_rpd1_mfc256`, `cpm_boot_rpd1_mfc512` a `cpm_boot_rpd1_fdc1_rmd` (níže). ~~Zbývající bootovací
+   diskety~~ vyzkoušené 2026-10-06, **všechny bootovací diskety ze `SAPIMAN\PMD32-SD_IMAGE8` jsou tím prošlé**
+   (výsledky v sekci „Zbylé bootovací diskety“ níže).
 4. ~~**`cpmrun`:** malý test v ctestu, L80 a `/P:0` z příkazové řádky~~ hotové 2026-10-06: `test_cpmrun`;
    `/P:0` rozbíjel Git Bash (převod cest), L80 se pak zacyklil po odpovědi Y na „move anyway“ (správně N), stav
    konzole teď hlásí stdin (`docs/build.md`).
@@ -191,6 +191,20 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
   - další varianty bootují také (`r2_rmd1m_mfc_261211`: MFC-1A 8" SS SD; `r2_rmd1_fdc_260811`,
     `r3_rmd1_fdc_260811`: FDC-1 8"; `r2_/r3_zrmd4mss_fdc_260811`: s ZRMD-1 SS256), sestavy z nich nejsou;
   - ve všech je v B: disketa Z6 kvůli `IRMD40` (C: je po zapnutí náhodná). Test `test_sapi_sys` (`rpd_second`).
+- **Zbylé bootovací diskety** (2026-10-06, sestava jen z té, která se liší něčím zajímavým):
+  - `FDC\f2_irmd1m_130711` („BIOS-2K V130711JB“, BIOS `BIRMD`): **RAM disk si připraví BIOS sám**. Při startu
+    hledá v první položce adresáře skrytou značku „RAMDISK.RMD“, když chybí, zjistí velikost RMD-1 (256 KB nebo
+    1 MB) a zapíše prázdný adresář. C: je pak hned použitelný bez IRMD40 (STAT: 253K, nebo 1018K). Sestava
+    `cpm_boot_fdc1_irmd.sapi` (RMD-1 256 KB, B: = Z9 se STAT), test `irmd` v `test_sapi_sys`;
+  - `FDC\f2_rmd1m_130711`, `f3_rmd1m_130711` (BIOS 2K a 3K, CCP D200h a CE00h): naběhnou s MON130711, jinak
+    jako `cpm_boot_fdc1_rmd`, sestavy ne;
+  - `FDC\f1_rmd1m_and1a_130711`: naběhne s AND-1Z jako `f1_rmd1m`, na disketě jsou jen zdrojáky monitoru
+    a BIOSu pro AND-1A (MOAND, BIAND), sestava ne;
+  - `FDC\f_term62k`: systémové stopy jsou totožné se Z8 (`cpm_term64k_fdc1`), naběhne se 64K ROM a je to stejný
+    systém. MON62 („62K MONTERM“) je na disketě jen jako zdroják, 62K systém nainstalovaný není;
+  - `RPD\r_test2732_101211`: zkušební systém se **4KB monitorem v EPROM 2732** („ROM 4KB JPR-1Z S AND-1Z
+    CESTINA 101211JB“, MO1012), monitor se kopíruje do RAM na E800h. Naběhne s ROM z MO1012.HEX na disketě
+    a dekodérem D3C `8k` (`DIR`, `SAVE` na RMD-1 fungují). Zkušební sestavení stejného CP/M, sestava ne.
 - `cpm_pmd_fdc1.sapi` (2026-10-06): FDC-1 s PMD32-SD přes DPP-1, bootovací disketa `FDC\f2_pmd2d2m_140212.8sd`
   (C:, D: = PMD32-SD, Turbo Pascal a WordStar); `f2_pmd1d2m_140212` má jen C:. Bez RAM disku.
 - **Tiskárna:** všechny sestavy s ECMONem a monitory J. Bíby (kromě `cpm_term64k_fdc1` bez klávesnice) mají od
