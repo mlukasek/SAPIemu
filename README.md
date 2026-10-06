@@ -42,9 +42,10 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11 a membránová ANK-1.
-- **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4, ELIS,
-  MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A),
-  z disket PC HD a z IDE disku.
+- **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4 s RPD-1
+  i FDC-1, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM disku ZRMD-1, z 8" diskety (RPD-1, FDC-1,
+  MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
+  Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky.
 - **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,
   L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
   ([docs/software/ECMON.md](docs/software/ECMON.md)).
