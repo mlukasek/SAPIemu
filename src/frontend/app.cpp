@@ -347,6 +347,18 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     int hk = keymap_host_key(ev.key);
     int mods = keymap_mods(ev.mod);
     int ctrl = keymap_ctrl_code(ev.key, ev.mod);
+    // serial terminal: the clipboard (Ctrl+C / Ctrl+V go to SAPI as control codes)
+    if (app.ui.terminal_focused) {
+        bool cs = (ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_SHIFT);
+        if ((cs && ev.key == SDLK_V) || ((ev.mod & SDL_KMOD_SHIFT) && ev.key == SDLK_INSERT)) {
+            terminal_paste(app.ui);
+            return;
+        }
+        if ((cs && ev.key == SDLK_C) || ((ev.mod & SDL_KMOD_CTRL) && ev.key == SDLK_INSERT)) {
+            terminal_copy(app.ui);
+            return;
+        }
+    }
     // serial terminal: the EKL-1 (WordStar) codes of the cursor keys
     int tcode = ctrl >= 0 ? ctrl : (hk != HK_NONE ? wordstar_code(hk, mods) : -1);
     if (tcode >= 0 && terminal_key(app.ui, tcode)) return;

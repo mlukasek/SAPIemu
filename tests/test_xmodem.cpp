@@ -1,8 +1,11 @@
 // Integration test: CP/M program DOPC10.COM sends a file with XMODEM (checksum)
 // over DMR-1 to the host. The console stays on the screen (DCD inactive) while
 // CTS is active - DOPC uses RTS/CTS handshake and waits for CTS.
+// The other way: the XMODEM sender of the emulator (core/xmodem, the "Send file XMODEM"
+// of the terminal window) sends a text file to DOCPM10.COM, TYPE shows it.
 #include <stdio.h>
 #include "core/headless.h"
+#include "core/xmodem.h"
 #include "core/machine.h"
 #include "core/util.h"
 #include "test_util.h"
@@ -19,7 +22,7 @@ int main(void)
     make_dirs(path_dir(img));
     remove(img.c_str());
     for (json& c : cfg["cards"]) {
-        if (c["type"] == "ZRMD-1") { c["mode"] = "readonly"; c["working_copy"] = false; }
+        if (c["type"] == "ZRMD-1") { c["mode"] = "nosave"; c["working_copy"] = false; }   // A: writable, not saved
         if (c["type"] == "DMR-1") { c["connected"] = false; c["cts"] = true; c.erase("serial"); }
         if (c["type"] == "IDE-1") {
             c["ide"]["image"] = img;
@@ -82,6 +85,34 @@ int main(void)
     // mean lost ACKs (the received character must have its line delay).
     CHECK(dups <= 1);
     CHECK(run_until_text(*m, "Soubor odeslan", 5.0));
+
+    // PC -> SAPI: 14 lines of text (about 900 B, 8 packets) to DOCPM10.COM
+    std::string file;
+    for (int i = 1; i <= 14; i++) {
+        char line[80];
+        snprintf(line, sizeof(line), "RADEK %02d: PRILIS ZLUTOUCKY KUN UPEL DABELSKE ODY 0123456789\r\n", i);
+        file += line;
+    }
+    m->run_seconds(1.0);
+    m->type_text("DOCPM10 X.TXT\r");
+    CHECK(run_until_text(*m, "PRIJEM SOUBORU", 10.0));
+    XmodemSender x;
+    x.start(std::vector<uint8_t>(file.begin(), file.end()));
+    uint64_t rpos = ch->host_end();
+    for (int i = 0; i < 6000 && x.active(); i++) {   // up to 60 s emulated
+        m->run_seconds(0.01);
+        std::string in;
+        ch->host_read(rpos, in, 4096);
+        std::string out = x.feed(in);
+        if (!out.empty()) ch->host_send((const uint8_t*)out.data(), out.size());
+    }
+    printf("XMODEM send: state %d, %zu packets, %s, retries %d %s\n", x.state, x.packets, x.crc ? "CRC" : "checksum",
+           x.retries, x.error.c_str());
+    CHECK_EQ(x.state, XmodemSender::DONE);
+    m->run_seconds(2.0);
+    m->type_text("TYPE X.TXT\r");
+    CHECK(run_until_text(*m, "RADEK 14: PRILIS", 10.0));
+    printf("%s\n", screen_text(*m).c_str());
 
     delete m;
     remove(img.c_str());

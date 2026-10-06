@@ -1005,3 +1005,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Sestavy** (autor: dvě, stávající beze změny): `machines/jpr1s_bgp1s.sapi` (MIKROBIOS 1.02, BGP-1S, ANK-1M2,
   redukce na TCP 2325) a `machines/zps/ZPS-1_JPR-1S_AND-1B.sapi` (ekvivalent ZPS-1: MIKROBASIC 2.4 v EEPROM JPR-1S,
   AND-1B, DSM-1). Binárky (BIOSy, font, hry) jsou v repu se souhlasem autora.
+
+## 2026-10-06 – Odesílání souborů a schránka v okně terminálu
+
+- **Proč:** BOOT MIKROBIOSu (JPR-1S) a programy CP/M (DOCPM) potřebovaly TeraTerm nebo PowerShell.
+- **Tři způsoby** (autor): soubor tak, jak je; textový soubor (UTF-8 → kódy SAPI, konce řádků → CR, stejně jako
+  psaní); XMODEM. XMODEM je v jádru (`core/xmodem`), ne v GUI, kvůli testu a případnému MCP. Časový limit
+  (10 s bez odpovědi = poslat znovu) počítá GUI v reálném čase.
+- **Schránka:** kopíruje se celý text terminálu (výběr myší zatím ne). Ctrl+C a Ctrl+V musí dál chodit do SAPI
+  jako řídicí znaky, proto zkratky Ctrl+Shift+C/V a Ctrl/Shift+Insert jako v terminálech na Linuxu.
+- **Řádek tlačítek se zalamuje**, když se do okna nevejde (výchozí šířka 700 bodů).

@@ -76,6 +76,24 @@ Postup pro přenos ze SAPI do PC s DOPC10.COM a TeraTermem:
 Ověřeno testem `test_xmodem`: DOPC10 přenese TD.MAC (40 paketů) bez chyb. První paket se na začátku může
 jednou opakovat, to XMODEM řeší sám.
 
+## Odesílání souborů a schránka v okně terminálu (2026-10-06)
+
+Okno Zobrazení → Sériový terminál umí poslat soubor do SAPI bez TeraTermu (pro vybraný kanál):
+
+| Tlačítko | Co pošle |
+|---|---|
+| **Poslat soubor…** | bajty souboru tak, jak jsou (např. Intel HEX pro `BOOT` MIKROBIOSu na JPR-1S, `docs/desky/JPR-1S.md`) |
+| **Poslat textový soubor…** | text UTF-8: česká písmena jako kódy SAPI (jako psaní z klávesnice), konce řádků CR LF / LF jako CR (Enter) |
+| **Poslat soubor XMODEM…** | XMODEM pro přijímací program v SAPI (např. `DOCPM10 SOUBOR.EXT` v CP/M): pakety po 128 B, součet nebo CRC-16 podle toho, čím přijímač začne (NAK / „C“), 10 opakování, bez odpovědi 10 s se paket pošle znovu, Zrušit pošle CAN CAN |
+
+- Pod tlačítky je průběh: kolik bajtů zbývá poslat (Zastavit zahodí zbytek), u XMODEM číslo paketu.
+- Bajty jdou rychlostí linky a s volbou „Bez přetečení“ jako psaní z terminálu; fronta pojme 1 MB.
+- **Kopírovat** vloží do schránky celý text terminálu, **Vložit** pošle schránku jako psaný text (konce řádků jako
+  CR). Zkratky v okně terminálu: Ctrl+Shift+C / Ctrl+Insert a Ctrl+Shift+V / Shift+Insert (Ctrl+C a Ctrl+V jdou
+  do SAPI jako řídicí kódy 03h a 16h), totéž v menu pod pravým tlačítkem.
+- Vysílač XMODEM je v jádru (`src/core/xmodem.*`), test `test_xmodem`: DOCPM10.COM přijme 14 řádků textu
+  (7 paketů, bez opakování), `TYPE` je vypíše.
+
 ## Poznámky k softwaru
 
 - **MikroMon bez `USYNC`** posílá znaky na UART bez čekání na volný vysílač, takže výstup je děravý.

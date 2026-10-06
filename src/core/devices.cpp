@@ -108,6 +108,12 @@ size_t SerialChannel::host_pending_rx() const
     return rx_q.size();
 }
 
+void SerialChannel::host_drop_pending()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    rx_q.clear();
+}
+
 void SerialChannel::state(StateIO& io)
 {
     bool dcd = connected, c = cts;

@@ -1,14 +1,18 @@
 // Serial terminal window: a character cell terminal showing what SAPI sends on a
-// serial channel; typed keys are sent to SAPI.
+// serial channel; typed keys are sent to SAPI. Files go to SAPI as they are, as text
+// (UTF-8 -> SAPI codes, line ends -> CR) or with XMODEM; the clipboard copies the
+// terminal text and pastes as typed text.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <SDL3/SDL.h>
 #include "imgui.h"
 #include "core/charset.h"
 #include "core/host.h"
+#include "core/util.h"
 
 // ---------------------------------------------------------------- window
 
@@ -46,6 +50,191 @@ bool terminal_text(UiState& ui, const char* utf8)
     if (!ui.terminal_focused) return false;
     send(ui, sapi_codes_from_utf8(utf8));
     return true;
+}
+
+// Text from the PC: line ends (CR LF, LF, CR) as CR = Enter, Czech letters as SAPI codes.
+static std::string text_codes(const std::string& utf8)
+{
+    std::string s;
+    s.reserve(utf8.size());
+    for (size_t i = 0; i < utf8.size(); i++) {
+        if (utf8[i] == '\r') {
+            s += '\r';
+            if (i + 1 < utf8.size() && utf8[i + 1] == '\n') i++;
+        } else if (utf8[i] == '\n') {
+            s += '\r';
+        } else {
+            s += utf8[i];
+        }
+    }
+    return sapi_codes_from_utf8(s);
+}
+
+static std::string line_utf8(const std::string& l);
+
+void terminal_copy(UiState& ui)
+{
+    if (ui.terminal_channel >= (int)ui.terms.size()) return;
+    const TerminalState& t = ui.terms[ui.terminal_channel];
+    std::string all;
+    size_t last = 0;   // without the empty lines at the end
+    for (size_t i = 0; i < t.lines.size(); i++) {
+        std::string l = line_utf8(t.lines[i]);
+        while (!l.empty() && l.back() == ' ') l.pop_back();
+        all += l;
+        all += '\n';
+        if (!l.empty()) last = all.size();
+    }
+    all.resize(last);
+    ImGui::SetClipboardText(all.c_str());
+    ui.term_status = tr("Copied to the clipboard.");
+}
+
+void terminal_paste(UiState& ui)
+{
+    const char* c = ImGui::GetClipboardText();
+    if (c && *c) send(ui, text_codes(c));
+}
+
+static void SDLCALL term_dialog_done(void* userdata, const char* const* files, int)
+{
+    TapeDialog* d = (TapeDialog*)userdata;
+    std::lock_guard<std::mutex> lk(d->mtx);
+    d->result = (files && files[0]) ? files[0] : "";
+    d->done = true;
+}
+
+static void term_dialog(UiState& ui, int kind)
+{
+    TapeDialog& d = ui.term_dlg;
+    {
+        std::lock_guard<std::mutex> lk(d.mtx);
+        if (d.kind) return;
+        d.kind = kind;
+        d.done = false;
+    }
+    std::string where = d.last_dir.empty() ? data_path("media") : d.last_dir;
+#ifdef _WIN32
+    for (char& c : where) if (c == '/') c = '\\';
+#endif
+    SDL_ShowOpenFileDialog(term_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
+}
+
+// The chosen file: queued for SAPI as it is or as text, or the XMODEM sender started.
+static void term_dialog_poll(UiState& ui, Machine* m)
+{
+    TapeDialog& d = ui.term_dlg;
+    int kind;
+    std::string path;
+    {
+        std::lock_guard<std::mutex> lk(d.mtx);
+        if (!d.kind || !d.done) return;
+        kind = d.kind;
+        path = d.result;
+        d.kind = 0;
+        d.done = false;
+    }
+    if (path.empty() || ui.terminal_channel >= (int)m->serials.size()) return;
+    d.last_dir = path_dir(path);
+    std::vector<uint8_t> data;
+    if (!file_read_all(path, data)) {
+        ui.term_status = tr("Cannot read the file.");
+        return;
+    }
+    SerialChannel* ch = m->serials[ui.terminal_channel];
+    char msg[512];
+    std::string name = path.substr(path.find_last_of("/\\") + 1);
+    if (kind == 3) {
+        ui.xmodem.start(data);
+        ui.xmodem_channel = ui.terminal_channel;
+        ui.xmodem_pos = ch->host_end();
+        ui.xmodem_last = ImGui::GetTime();
+        ui.term_status = name;
+        return;
+    }
+    std::string codes = kind == 2 ? text_codes(std::string(data.begin(), data.end()))
+                                  : std::string(data.begin(), data.end());
+    ch->host_send((const uint8_t*)codes.data(), codes.size());
+    snprintf(msg, sizeof(msg), tr("%s: %zu B to send"), name.c_str(), codes.size());
+    ui.term_status = msg;
+}
+
+// The XMODEM sender: what the receiver sent since the last frame, a timeout of 10 s.
+static void xmodem_pump(UiState& ui, Machine* m)
+{
+    if (!ui.xmodem.active()) return;
+    if (ui.xmodem_channel < 0 || ui.xmodem_channel >= (int)m->serials.size()) {
+        ui.xmodem.cancel();
+        return;
+    }
+    SerialChannel* ch = m->serials[ui.xmodem_channel];
+    std::string in, out;
+    ch->host_read(ui.xmodem_pos, in, 1 << 16);
+    double now = ImGui::GetTime();
+    if (!in.empty()) {
+        out = ui.xmodem.feed(in);
+        ui.xmodem_last = now;
+    } else if (ui.xmodem.state != XmodemSender::WAIT_START && now - ui.xmodem_last > 10.0) {
+        out = ui.xmodem.resend();
+        ui.xmodem_last = now;
+    }
+    if (!out.empty()) ch->host_send((const uint8_t*)out.data(), out.size());
+}
+
+// The next button on this line when it fits, else on the next one (narrow windows).
+static void same_line_if_fits(const char* next_label)
+{
+    const ImGuiStyle& st = ImGui::GetStyle();
+    float w = ImGui::CalcTextSize(next_label, nullptr, true).x + st.FramePadding.x * 2.0f;
+    float right = ImGui::GetItemRectMax().x + st.ItemSpacing.x + w;
+    if (right <= ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x) ImGui::SameLine();
+}
+
+// Buttons for files and the clipboard, the progress of a send.
+static void draw_send(UiState& ui, SerialChannel* ch)
+{
+    if (ImGui::Button(tr("Send file..."))) term_dialog(ui, 1);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The bytes of the file as they are (e.g. Intel HEX for BOOT of MIKROBIOS)."));
+    same_line_if_fits(tr("Send text file..."));
+    if (ImGui::Button(tr("Send text file..."))) term_dialog(ui, 2);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("UTF-8 text: Czech letters as SAPI codes, line ends as CR (Enter)."));
+    same_line_if_fits(tr("Send file XMODEM..."));
+    if (ImGui::Button(tr("Send file XMODEM...")) && !ui.xmodem.active()) term_dialog(ui, 3);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("XMODEM (checksum or CRC) to a receiving program in SAPI, e.g. DOCPM10.COM in CP/M."));
+    same_line_if_fits(tr("Copy"));
+    if (ImGui::Button(tr("Copy"))) terminal_copy(ui);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("All text of the terminal to the clipboard (Ctrl+Shift+C)."));
+    same_line_if_fits(tr("Paste"));
+    if (ImGui::Button(tr("Paste"))) terminal_paste(ui);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The clipboard as typed text (Ctrl+Shift+V, Shift+Insert)."));
+
+    char msg[256];
+    const XmodemSender& x = ui.xmodem;
+    size_t left = ch->host_pending_rx();
+    if (x.active()) {
+        if (x.state == XmodemSender::WAIT_START) snprintf(msg, sizeof(msg), "%s", tr("XMODEM: waiting for the receiver (NAK or C)..."));
+        else snprintf(msg, sizeof(msg), tr("XMODEM: packet %zu of %zu (%s)"), x.packet + 1 > x.packets ? x.packets : x.packet + 1,
+                      x.packets, x.crc ? "CRC" : "checksum");
+        ImGui::TextUnformatted(msg);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Cancel")) && ui.xmodem_channel >= 0) {
+            std::string out = ui.xmodem.cancel();
+            ch->host_send((const uint8_t*)out.data(), out.size());
+        }
+    } else if (left > 0 && x.state != XmodemSender::WAIT_EOT_ACK) {
+        snprintf(msg, sizeof(msg), tr("%zu B left to send"), left);
+        ImGui::TextUnformatted(msg);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Stop"))) ch->host_drop_pending();
+    } else if (x.state == XmodemSender::DONE) {
+        snprintf(msg, sizeof(msg), tr("XMODEM: done, %zu packets"), x.packets);
+        ImGui::TextDisabled("%s", msg);
+    } else if (x.state == XmodemSender::FAILED) {
+        snprintf(msg, sizeof(msg), tr("XMODEM failed: %s"), x.error.c_str());
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", msg);
+    } else if (!ui.term_status.empty()) {
+        ImGui::TextDisabled("%s", ui.term_status.c_str());
+    }
 }
 
 // Host connections of the channel: TCP server (TeraTerm, telnet) and host COM port.
@@ -128,6 +317,11 @@ void draw_terminal(UiState& ui)
     if (!ui.show_terminal) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(700, 460), ImGuiCond_FirstUseEver);
+    if (m) {
+        if (ui.machine_gen != ui.host->machine_generation() && ui.xmodem.active()) ui.xmodem.cancel();
+        xmodem_pump(ui, m);
+        term_dialog_poll(ui, m);
+    }
     if (!ImGui::Begin(tr_id("Serial terminal"), &ui.show_terminal) || !m) {
         ImGui::End();
         return;
@@ -162,7 +356,7 @@ void draw_terminal(UiState& ui)
     bool cts = ch->cts;
     if (ImGui::Checkbox(tr("Ready (CTS)"), &cts)) ch->cts = cts;
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("CTS/DSR: the terminal is ready to receive. Programs sending with RTS/CTS handshake (DOPC.COM, MikroMon USYNC) wait for it."));
-    ImGui::SameLine();
+    same_line_if_fits(tr("Clear"));
     if (ImGui::Button(tr("Clear"))) { t.lines.clear(); t.row = t.col = 0; }
     const char* emus[] = { tr("SAPI (ECMON/AND-1Z)"), "ANSI/VT100", tr("No emulation (^X)") };
     ImGui::SetNextItemWidth(180);
@@ -177,8 +371,14 @@ void draw_terminal(UiState& ui)
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Send the next character only after SAPI has read the previous one."));
     draw_bridges(ui, m, ch);
+    draw_send(ui, ch);
 
     ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
+    if (ImGui::BeginPopupContextWindow("termmenu")) {
+        if (ImGui::MenuItem(tr("Copy"), "Ctrl+Shift+C")) terminal_copy(ui);
+        if (ImGui::MenuItem(tr("Paste"), "Ctrl+Shift+V")) terminal_paste(ui);
+        ImGui::EndPopup();
+    }
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);
     float cw = ImGui::CalcTextSize("M").x;
     ImGuiListClipper clipper;

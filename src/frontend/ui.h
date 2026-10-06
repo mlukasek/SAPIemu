@@ -1,6 +1,7 @@
 #pragma once
 // Shared state of the frontend windows.
 #include <stdint.h>
+#include "core/xmodem.h"
 #include <mutex>
 #include <string>
 #include <vector>
@@ -125,7 +126,18 @@ struct UiState {
     // terminals, one per serial channel of the current machine
     uint64_t machine_gen = 0;
     std::vector<TerminalState> terms;
+    // terminal: sending a file (1 as it is, 2 text, 3 XMODEM), the clipboard
+    TapeDialog term_dlg;
+    XmodemSender xmodem;
+    int xmodem_channel = -1;
+    uint64_t xmodem_pos = 0;           // read position in the stream of the channel
+    double xmodem_last = 0;            // ImGui time of the last answer of the receiver
+    std::string term_status;           // result of the last send / copy
 };
+
+// Serial terminal window: the clipboard (Ctrl+Shift+C / V, Ctrl+Insert / Shift+Insert while focused)
+void terminal_copy(UiState& ui);
+void terminal_paste(UiState& ui);
 
 void draw_debugger(UiState& ui);
 void draw_memory(UiState& ui);

@@ -206,6 +206,7 @@ public:
     size_t host_receive(std::string& out, size_t max);
     uint64_t host_end(void) const;          // current end of the stream
     size_t host_pending_rx() const;         // bytes not yet taken by SAPI
+    void host_drop_pending();               // forget them (a file send stopped)
     void state(StateIO& io);                // DCD, CTS and the bytes not yet taken by SAPI
 
 private:
