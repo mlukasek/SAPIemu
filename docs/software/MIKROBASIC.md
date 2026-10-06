@@ -33,6 +33,8 @@ Na sapi.cz je ještě verze 2.4 pro RAM na JPR-1 a verze 3.1 pro klávesnice Con
 - **LOAD:** motor (`OUT 10h,38h`: relé + KAZ + čtení), čeká na ticho, vypíše `*`, hledá `'B'`, vypíše jméno, načte
   program a ověří součet (jinak ERROR).
 - **REWIND:** pustí motor a čeká na klávesu (převíjí se na magnetofonu).
+- Přesný formát (8,4 s tónu, součet bez `'B'`, data vždy od 40EFh) a kazeta z programu HEX/BIN (BASIC od 40EFh,
+  strojový kód od 4102h s přidaným řádkem `1 CALL`): `docs/software/kazeta.md`.
 - V emulátoru: okno Média → „Nová kazeta…“ (nebo vložit WAV/MP3), stisknout NAHRÁT a napsat SAVE. Pro čtení
   Převinout, PŘEHRÁT a napsat LOAD.
 

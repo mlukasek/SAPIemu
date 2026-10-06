@@ -1,6 +1,7 @@
 #include "chips/tape_deck.h"
 #include "core/log.h"
 #include "core/util.h"
+#include "core/wav.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -112,6 +113,7 @@ static bool ends_with(const std::string& s, const char* ext)
 
 bool TapeDeck::load(const std::string& p, std::string& err)
 {
+    if (tape_is_program(p)) return load_program(p, TapeProgram(), err);
     std::vector<uint8_t> d;
     std::string full = data_path(p);
     if (!file_read_all(full, d)) {
@@ -126,12 +128,53 @@ bool TapeDeck::load(const std::string& p, std::string& err)
     rate = r;
     path = full;
     is_mp3 = mp3;
+    generated = false;
+    program_info.clear();
     write_protect = true;
     modified = false;
     mode = STOP;
     pos = 0;
     line_dirty = true;
     LOGI("tape %s: %.1f s, %d Hz", full.c_str(), length_seconds(), rate);
+    return true;
+}
+
+bool TapeDeck::load_program(const std::string& p, const TapeProgram& prog, std::string& err)
+{
+    std::string full = data_path(p);
+    std::vector<int16_t> s;
+    int r = 0;
+    std::string info;
+    if (!tape_from_file(full, prog, s, r, info, err)) return false;
+    samples.swap(s);
+    rate = r;
+    path = full;
+    is_mp3 = false;
+    generated = true;
+    program = prog;
+    program_info = info;
+    write_protect = true;
+    modified = false;
+    mode = STOP;
+    pos = 0;
+    line_dirty = true;
+    LOGI("tape %s: %s, %.1f s", full.c_str(), info.c_str(), length_seconds());
+    return true;
+}
+
+bool TapeDeck::export_wav(const std::string& p, std::string& err)
+{
+    if (!loaded()) {
+        err = "no cassette in the recorder";
+        return false;
+    }
+    std::string full = data_path(p);
+    make_dirs(path_dir(full));
+    if (!wav_write_mono16(full, samples.data(), samples.size(), (uint32_t)rate)) {
+        err = "cannot write " + full;
+        return false;
+    }
+    LOGI("tape exported: %s (%.1f s)", full.c_str(), length_seconds());
     return true;
 }
 
@@ -146,6 +189,8 @@ bool TapeDeck::create(const std::string& p, std::string& err)
     rate = 44100;
     path = full;
     is_mp3 = false;
+    generated = false;
+    program_info.clear();
     write_protect = false;
     modified = true;   // an empty tape is written even when nothing was recorded
     mode = STOP;
@@ -156,7 +201,7 @@ bool TapeDeck::create(const std::string& p, std::string& err)
 
 bool TapeDeck::save(std::string& err)
 {
-    if (!loaded() || !modified || is_mp3) return true;
+    if (!loaded() || !modified || read_only()) return true;
     std::vector<uint8_t> f(44 + samples.size() * 2);
     auto w32 = [&](size_t o, uint32_t v) { f[o] = (uint8_t)v; f[o + 1] = (uint8_t)(v >> 8); f[o + 2] = (uint8_t)(v >> 16); f[o + 3] = (uint8_t)(v >> 24); };
     auto w16 = [&](size_t o, uint16_t v) { f[o] = (uint8_t)v; f[o + 1] = (uint8_t)(v >> 8); };
@@ -190,6 +235,8 @@ void TapeDeck::eject(void)
     path.clear();
     samples.clear();
     line.clear();
+    generated = false;
+    program_info.clear();
     mode = STOP;
     pos = 0;
 }

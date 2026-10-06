@@ -1019,3 +1019,23 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   TeraTerm). Výplň 1Ah na konci se ve výchozím stavu odřízne (text CP/M), zaškrtávátko pro binární soubory.
   Přijímač je v jádru (`XmodemReceiver`), test ho ověřuje proti DOPC10.COM.
 - **Řádek tlačítek se zalamuje**, když se do okna nevejde (výchozí šířka 700 bodů).
+
+## 2026-10-06 – Kazeta z programu (HEX, BIN → MIKOS, MIKROBASIC)
+
+- **Formát** podle zdrojáků ROM (MIKOS V4.0F, V5.0, MIKROBASIC 2.4, bajtově shodné s ROM v repu) a tří skutečných
+  nahrávek; generátor dává bajtově stejné bloky jako originální TOOL 80 (`docs/software/kazeta.md`).
+- **Vložení** (autor): program se vloží do magnetofonu jako kazeta a emulátor ji hned spočítá. Kazeta je jen pro
+  čtení a nikdy se nezapíše zpět (soubor je HEX). Kopii pro skutečné SAPI dá „Uložit jako WAV…“, cli
+  `--make-tape` bez spuštění stroje.
+- **Oba formáty** (autor): MIKOS i MIKROBASIC, volba v dialogu. Jméno na kazetě podle jména souboru, jde přepsat
+  (autor), nejvýš 11 znaků (pole jména v bloku MIKOS).
+- **Zvuk** 48 kHz (přesně 20 vzorků na bit), obdélník jako záznam emulované DSM-1, mezery jsou tón a ne ticho
+  (originální nahrávky jsou souvislý tón, chování skutečného dekodéru po tichu neznáme). Délky tónů jako na
+  originálech, ne minima, která stačí emulátoru: kazeta má projít i skutečným magnetofonem.
+- **Vstupní bod MIKOS:** `.J` skáče na nejnižší adresu, jiný start se řeší skokem `JMP start` těsně před programem
+  (ve V5 pak program spustí i `.L`). Pod 4400h nic (RAM MIKOSu, nahrání přes ni rozbije čtení).
+- **MIKROBASIC a strojový kód:** LOAD nahrává vždy od 40EFh. Kód od 4102h dostane řádek `1 CALL start` / `2 END`,
+  takže ho spustí RUN (ověřeno v emulátoru). Mezi 40F0h a 4101h nic (řádek se nevejde).
+- **Stav:** ukládá soubor, formát, jméno a adresy a kazetu vyrobí znovu. Při tom se opravila chyba, kdy se
+  kazeta po načtení stavu do nového stroje převinula na začátek (týkalo se i WAV). Verze formátu stavu se
+  nezvyšovala: starší stav se sestavou s DSM-1 se odmítne chybou bloku, ostatní jdou načíst dál.

@@ -21,7 +21,7 @@ struct TapeDialog {
     std::mutex mtx;
     int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory,
                              // 4 insert floppy, 5 new floppy, 6 binary file into memory,
-                             // 7 save state, 8 load state
+                             // 7 save state, 8 load state, 9 export tape as WAV
     bool done = false;
     std::string result;      // chosen file, empty = cancelled
     std::string card;        // DSM-1 / RPD-1 card name
@@ -97,6 +97,15 @@ struct UiState {
     std::string hex_error;         // the file cannot be read or is not valid Intel HEX
     int hex_bytes = 0;
     uint32_t hex_lo = 0, hex_hi = 0;
+    // Media -> Insert a program (HEX, BIN) into a recorder: the format of the tape first
+    std::string tprog_path;        // chosen file, empty = no question open
+    std::string tprog_card;        // DSM-1
+    bool tprog_ask = false;        // open the question in the next frame
+    int tprog_format = 0;          // TAPE_MIKOS (remembered while running)
+    char tprog_name[12] = "";
+    char tprog_addr[8] = "4400";   // load address of a binary file (hex)
+    char tprog_entry[8] = "";      // start address (hex), empty = the lowest address
+    std::string tprog_error;
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;

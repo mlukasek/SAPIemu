@@ -35,6 +35,7 @@ public:
     int decode_io(uint8_t port, const char** what) override;
 
     TapeDeck* tape(void) { return &deck; }
+    bool has_tape(void) const { return !no_tape; }
     uint8_t base_port(void) const { return base; }
     bool motor_on(void) const;
 

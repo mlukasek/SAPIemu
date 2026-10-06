@@ -1018,9 +1018,17 @@ json t_tape_insert(EmuHost& h, const json& a)
     std::string err;
     if (create) {
         if (!t->create(path, err)) return error_result(err);
+    } else if (tape_is_program(path)) {   // a program becomes a tape (read only)
+        TapeProgram p;
+        std::string f = arg_str(a, "format", "mikos");
+        if (!tape_format_parse(f, p.format)) throw ToolError{ "format must be mikos or mikrobasic" };
+        p.name = arg_str(a, "name", "");
+        p.address = arg_num(a, "address", -1);
+        p.entry = arg_num(a, "entry", -1);
+        if (!t->load_program(path, p, err)) return error_result(err);
     } else {
         if (!t->load(path, err)) return error_result(err);
-        if (a.contains("write_protect")) t->write_protect = arg_bool(a, "write_protect", true) || t->is_mp3;
+        if (a.contains("write_protect")) t->write_protect = arg_bool(a, "write_protect", true) || t->read_only();
     }
     return json_result(tape_json(d));
 }
@@ -1035,6 +1043,8 @@ json t_tape_control(EmuHost& h, const json& a)
         t->eject();
     } else if (act == "save") {
         if (!t->save(err)) return error_result(err);
+    } else if (act == "export") {
+        if (!t->export_wav(arg_str(a, "path", nullptr, true), err)) return error_result(err);
     } else {
         if (!t->loaded()) return error_result("no cassette in the recorder");
         if (act == "play") t->mode = TapeDeck::PLAY;
@@ -1044,10 +1054,11 @@ json t_tape_control(EmuHost& h, const json& a)
         } else if (act == "stop") t->mode = TapeDeck::STOP;
         else if (act == "rewind") { t->mode = TapeDeck::STOP; t->pos = 0; }
         else if (act == "unprotect") {
-            if (t->is_mp3) return error_result("an MP3 cassette cannot be recorded on");
+            if (t->read_only()) return error_result(t->is_mp3 ? "an MP3 cassette cannot be recorded on"
+                                                              : "a cassette made from a program cannot be recorded on");
             t->write_protect = false;
         } else if (act == "protect") t->write_protect = true;
-        else throw ToolError{ "action must be play, record, stop, rewind, eject, save, protect or unprotect" };
+        else throw ToolError{ "action must be play, record, stop, rewind, eject, save, export, protect or unprotect" };
     }
     return json_result(tape_json(d));
 }
@@ -1151,10 +1162,10 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"config":{"type":"object"},"save_as":{"type":"string"},"start":{"type":"boolean","default":true}},"required":["config"]})", t_set_machine_config },
     { "tape_status", "Cassette recorders of the DSM-1 cards: cassette file, position and length, PLAY/RECORD/STOP, motor (runs only when the program closes the relay), write protection, whether the DSM-1 is switched to the recorder.",
       R"({"type":"object","properties":{"card":{"type":"string","description":"DSM-1 port (10h) or card name; all when omitted"}}})", t_tape_status },
-    { "tape_insert", "Put a cassette into a DSM-1 recorder: an existing WAV or MP3 file from anywhere (write protected unless write_protect=false; MP3 always), or new=true for a new empty WAV tape that can be recorded on. Recorded tapes are saved on eject, power off and exit.",
-      R"({"type":"object","properties":{"path":{"type":"string"},"new":{"type":"boolean","default":false},"write_protect":{"type":"boolean"},"card":{"type":"string"}},"required":["path"]})", t_tape_insert },
-    { "tape_control", "Buttons of a DSM-1 recorder: play, record, stop, rewind (to the start), eject, save, protect / unprotect. The tape moves only while PLAY or RECORD is pressed and the program switches the motor relay on (MIKROBASIC LOAD / SAVE do that).",
-      R"({"type":"object","properties":{"action":{"type":"string","enum":["play","record","stop","rewind","eject","save","protect","unprotect"]},"card":{"type":"string"}},"required":["action"]})", t_tape_control },
+    { "tape_insert", "Put a cassette into a DSM-1 recorder: an existing WAV or MP3 file from anywhere (write protected unless write_protect=false; MP3 always), or new=true for a new empty WAV tape that can be recorded on, or a program (.hex/.ihx Intel HEX, .bin with address) that becomes a tape at once (read only): format mikos (MIKOS V4/V5: .K_L name, then .J; the program must start at 4400h or higher, .J starts it at its lowest address, entry adds a JMP before it) or mikrobasic (ZPS-1 LOAD: a BASIC program at 40EFh, or machine code at 4102h or higher with a line 1 CALL entry added, RUN starts it). name = name on the tape (default from the file name, 11 characters). Recorded tapes are saved on eject, power off and exit.",
+      R"({"type":"object","properties":{"path":{"type":"string"},"new":{"type":"boolean","default":false},"write_protect":{"type":"boolean"},"format":{"type":"string","enum":["mikos","mikrobasic"],"default":"mikos"},"name":{"type":"string"},"address":{"type":"string","description":"hex, load address of a .bin"},"entry":{"type":"string","description":"hex, start address, default the lowest address"},"card":{"type":"string"}},"required":["path"]})", t_tape_insert },
+    { "tape_control", "Buttons of a DSM-1 recorder: play, record, stop, rewind (to the start), eject, save, protect / unprotect, export (the tape into the WAV file path, e.g. to play it into a real SAPI). The tape moves only while PLAY or RECORD is pressed and the program switches the motor relay on (MIKROBASIC LOAD / SAVE do that).",
+      R"({"type":"object","properties":{"action":{"type":"string","enum":["play","record","stop","rewind","eject","save","export","protect","unprotect"]},"path":{"type":"string","description":"WAV file for export"},"card":{"type":"string"}},"required":["action"]})", t_tape_control },
     { "power", "Power switch of the machine: off (RAM lost, battery backed SRAM and RAM disks kept, host connections closed), on (with the last machine description), cycle = off and on. Reset (tool reset) keeps the RAM.",
       R"({"type":"object","properties":{"state":{"type":"string","enum":["on","off","cycle"]}},"required":["state"]})", t_power },
     { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.sapi.",

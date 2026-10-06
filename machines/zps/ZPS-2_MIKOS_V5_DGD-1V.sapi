@@ -49,7 +49,7 @@
             "base": "10h",                  // Jumpers 16-12..16-15: ports
             "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
             "int0": false,                  // UART interrupt on INT0
-            "tape": "",                     // Cassette in the recorder (WAV, MP3)
+            "tape": "",                     // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
             "tape_write_protect": true      // Cassette write protected
         },
         {

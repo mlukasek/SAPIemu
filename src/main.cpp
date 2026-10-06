@@ -66,7 +66,15 @@ static void print_help(void)
            "  --load-state FILE  load a state (builds the machine of the state)\n"
            "  --display CARD     --screenshot takes this display output (e.g. DGD-1)\n"
            "  --screenshot FILE  save the screen as PNG (2x)\n"
-           "  --audio-wav FILE   record the sound card from here on, saved as WAV at the end\n",
+           "  --audio-wav FILE   record the sound card from here on, saved as WAV at the end\n"
+           "  --tape FILE        cassette into the DSM-1 recorder and PLAY: WAV, MP3, or a program\n"
+           "                     (.hex, .bin with --tape-addr) made into a tape\n"
+           "  --tape-export FILE the tape in the recorder into a WAV file\n"
+           "  --make-tape IN OUT a program (.hex, .bin) into a tape WAV (to play into a real SAPI)\n"
+           "  --tape-format F    for --tape / --make-tape: mikos (default; .K_L, .J) or mikrobasic (LOAD)\n"
+           "  --tape-name NAME   name on the tape (default from the file name)\n"
+           "  --tape-addr ADDR   load address of a .bin (hex)\n"
+           "  --tape-entry ADDR  start address (hex, default the lowest address)\n",
            sapiemu_version(), DEFAULT_MACHINE, MCP_DEFAULT_PORT);
 }
 
@@ -74,12 +82,13 @@ static bool action_has_arg(const std::string& a)
 {
     return a == "--run-ms" || a == "--type" || a == "--keyboard" || a == "--wait-text" || a == "--timeout-ms" ||
            a == "--serial-send" || a == "--break" || a == "--screenshot" || a == "--display" || a == "--load-hex" ||
-           a == "--audio-wav" || a == "--save-state" || a == "--load-state";
+           a == "--audio-wav" || a == "--save-state" || a == "--load-state" || a == "--tape" || a == "--tape-export" ||
+           a == "--tape-format" || a == "--tape-name" || a == "--tape-addr" || a == "--tape-entry";
 }
 
 static int action_arg_count(const std::string& a)
 {
-    if (a == "--disasm" || a == "--load-bin") return 2;
+    if (a == "--disasm" || a == "--load-bin" || a == "--make-tape") return 2;
     return action_has_arg(a) ? 1 : 0;
 }
 

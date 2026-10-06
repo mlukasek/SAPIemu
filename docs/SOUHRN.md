@@ -6,8 +6,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 35 v debug, paralelně asi 25 s; release `full` 38 včetně ZEX a 8080EXM; Linux ve WSL 35. Vše prochází
-    (2026-10-06). Kdy které testy: `docs/build.md`.
+  - Testy: 36 v debug, paralelně asi 25 s; release `full` 39 včetně ZEX a 8080EXM; Linux ve WSL 35 (bez
+    `test_tapegen`, ten tam zatím neběžel). Vše prochází (2026-10-06). Kdy které testy: `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
 - **Alfa 0.1.0-alpha:**
@@ -121,7 +121,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
      podkladů, které autor má. ~~DPP-1~~ hotová 2026-10-05 (PMD32-SD, od 2026-10-06 i tiskárna).
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
-  4. Převod HEX na kazetu (WAV) pro DSM-1.
+  4. ~~Převod HEX na kazetu (WAV) pro DSM-1~~ hotový 2026-10-06: program HEX/BIN se při vložení do magnetofonu
+     převede na kazetu MIKOS (`.K_L`, `.J`) nebo MIKROBASIC (LOAD), „Uložit jako WAV…“, cli `--make-tape`
+     (`docs/software/kazeta.md`). Otázky na HW: přehrání WAV z PC do skutečné DSM-1, minimální mezery.
   5. ~~Linux build~~ ověřený ve WSL 2026-10-06 (`docs/build.md`, všech 33 testů a GUI přes WSLg); CI
      (GitHub Actions) zatím ne, nejdřív až s veřejným repem nebo jen s linuxovým během.
   6. ~~Přepínání jazyka UI~~ hotové 2026-10-06 (Zobrazení → Jazyk / Language, výchozí podle Windows, `--lang`,
@@ -371,8 +373,8 @@ Dřív hotové fáze:
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z, s FDC-1 MOR62ZF) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
-| F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka | ✅ hotovo |
-| F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; převod HEX → kazeta; CI (~~Linux~~ ve WSL hotovo) | |
+| F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka. Kazeta z programu (HEX/BIN → MIKOS, MIKROBASIC, WAV) | ✅ hotovo |
+| F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; ~~převod HEX → kazeta~~ (hotovo); CI (~~Linux~~ ve WSL hotovo) | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 

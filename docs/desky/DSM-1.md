@@ -29,6 +29,10 @@ Zdroje:
 - **Magnetofon** (okno Média, MCP `tape_status`, `tape_insert`, `tape_control`):
   - Kazeta je zvukový soubor WAV (PCM 8/16/24/32 bitů nebo float, libovolná frekvence, stereo se smíchá)
     nebo MP3 (knihovna minimp3). Otevře se odkudkoli.
+  - **Kazeta z programu:** Intel HEX nebo binární soubor se při vložení převede na zvuk kazety MIKOS nebo
+    MIKROBASIC (`src/core/tapegen.*`, formát a ovládání v `docs/software/kazeta.md`). Je jen pro čtení.
+  - „Uložit jako WAV…“ (MCP `tape_control` `export`, cli `--tape-export`) uloží kazetu jako WAV, např. pro
+    přehrání do skutečného SAPI.
   - Tlačítka PŘEHRÁT, NAHRÁT, STOP, Převinout, Vysunout, Nová kazeta, ochrana proti zápisu.
   - Motor se točí, jen když je stisknuté PŘEHRÁT nebo NAHRÁT a program sepne relé (bit 5).
   - Vložená kazeta je chráněná proti zápisu (MP3 vždy). Nahrávat jde na novou kazetu nebo po vypnutí ochrany.
@@ -59,3 +63,5 @@ Zdroje:
 - Stav po resetu: dokumentace uvádí „DR=1“, což je pravděpodobně chyba OCR.
 - Jak přesně skutečný obvod rozhoduje bity a jak se chová na začátku úseku (emulace: fázový dekodér, viz výše).
 - Co dělá výstup do magnetofonu, když je KAZ = 0 (emulace: klidový tón).
+- Kazeta z programu přehraná z PC do skutečné DSM-1: stačí obdélník z WAV, jaké jsou minimální mezery pro
+  skutečný magnetofon (`docs/software/kazeta.md`, kapitola 5)?

@@ -64,7 +64,7 @@ bool Dsm1::configure(const json& cfg, std::string& err)
     if (!cfg_bool(cfg, "tape_write_protect", wp, true, err)) return false;
     if (!tape.empty() && !probe) {
         std::string terr;
-        if (deck.load(tape, terr)) deck.write_protect = wp || deck.is_mp3;
+        if (deck.load(tape, terr)) deck.write_protect = wp || deck.read_only();
         else LOGW("%s: %s", name.c_str(), terr.c_str());   // an empty recorder, not a broken machine
     }
     return true;
@@ -294,6 +294,7 @@ void Dsm1::describe(json& out)
         t["position_s"] = deck.position_seconds();
         t["length_s"] = deck.length_seconds();
         t["write_protect"] = deck.write_protect;
+        if (deck.generated) t["program"] = deck.program_info;   // a tape made from a program file
     }
     out["tape"] = t;
 }
@@ -398,16 +399,31 @@ static void tape_state(StateIO& io, TapeDeck& t)
     std::string p = t.path;
     io.media("cassette", p);
     io.v(p);
+    // a tape made from a program is made again the same way
+    bool gen = t.generated;
+    TapeProgram prog = t.program;
+    io.v(gen);
+    io.v(prog.format);
+    io.v(prog.name);
+    io.v(prog.address);
+    io.v(prog.entry);
     int mode = t.mode;
     io.e(mode);
-    io.v(t.pos);
-    io.v(t.write_protect);
+    double pos = t.pos;
+    io.v(pos);
+    bool wp = t.write_protect;
+    io.v(wp);
     if (!io.loading || !io.ok()) return;
-    if (p != t.path) {
+    if (p != t.path || gen != t.generated || (gen && (prog.format != t.program.format || prog.name != t.program.name ||
+                                                      prog.address != t.program.address || prog.entry != t.program.entry))) {
         std::string err;
         t.eject();
-        if (!p.empty() && !t.load(p, err)) LOGW("state: cassette %s: %s", p.c_str(), err.c_str());
+        bool ok = p.empty() || (gen ? t.load_program(p, prog, err) : t.load(p, err));
+        if (!ok) LOGW("state: cassette %s: %s", p.c_str(), err.c_str());
     }
+    if (!t.loaded()) return;   // the file is gone: an empty recorder
+    t.pos = pos;               // (loading the file rewinds it)
+    t.write_protect = wp || t.read_only();
     t.mode = (TapeDeck::Mode)mode;
 }
 

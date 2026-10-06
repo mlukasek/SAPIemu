@@ -124,12 +124,22 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
 
 ## Formát pásky
 
-- Bloky: 3× 10h, typ, 255 bajtů dat, jméno 11 znaků, číslo bloku, číslo souboru (BCD), kontrolní součet
-  (součet 269 bajtů mod 256), 10h, 00h. Celkem 275 bajtů, UART 8 bitů, 2 stop bity, 2400 Bd.
-- Typy bloků: 01 hlavička, `:` svazek, `A` ASCII, `B` binární, 04 poslední.
-- Mezery mezi bloky 800 ms (dlouhá, magnetofon jde zastavit), 100 ms před binárními bloky.
-- Binární soubor: `'<' konec_lo konec_hi začátek_lo začátek_hi '>' KS1 data KS2 1Ah`.
-- TOOL 80 a BASIC EX zabírají 4400–5FFF (30 bloků, status `1E`), TOOL 48 má 58 bloků.
+Podrobně (ověřeno podle zdrojáků ROM a skutečných nahrávek, 2026-10-06): `docs/software/kazeta.md`.
+
+- Bloky: 3× 10h, typ, 255 bajtů dat, jméno 11 znaků (kódy AND-1), číslo bloku, číslo souboru (binárně, ne BCD),
+  kontrolní součet (součet 269 bajtů od typu po číslo souboru, mod 256), 10h, 00h. Celkem 275 bajtů, UART
+  8 bitů, 2 stop bity, 2400 Bd.
+- Typy bloků: 01 hlavička (data = jméno v ASCII), `:` svazek, `A` ASCII, `B` binární, 04 poslední (nese zbytek
+  dat). Hlavička je blok 1, data od 2.
+- ROM nastavuje mezery 800 ms a 100 ms před binárními bloky; na skutečných nahrávkách je mezi bloky `B` asi 210 ms
+  a před posledním blokem asi 1 s. Mezery jsou tón, ne ticho.
+- Binární soubor: `'<' konec_lo konec_hi začátek_lo začátek_hi '>' KS1 data KS2 1Ah`; KS1 = součet 4 bajtů adres
+  a 3Eh, KS2 = součet dat. `.J` znovu sečte paměť a skočí na začátek (nejnižší adresu).
+- `.K_L jméno` porovnává zadané jméno s ASCII jménem v hlavičce jen v délce zadaného jména (shoda začátku).
+- TOOL 80 zabírá 4400–5FF3, BASIC EX 4400–5FFF (oba 30 bloků, status `1E` = číslo posledního bloku), TOOL 48
+  má 58 bloků.
+- **Kazeta z programu:** okno Média → Vložit… → soubor `.hex` nebo `.bin` → formát MIKOS. Emulátor kazetu hned
+  vyrobí (`docs/software/kazeta.md`).
 
 ## Ověřeno v emulátoru
 

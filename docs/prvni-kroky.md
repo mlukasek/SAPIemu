@@ -59,7 +59,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV,
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows).
 - **Média:** mechaniky jsou očíslované podle řadiče (0–3) a za číslem je jejich písmeno v CP/M (ze sestavy,
-  nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
+  nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3, nebo program HEX/BIN, který se převede na kazetu MIKOS či MIKROBASIC; „Uložit jako WAV…“ pro skutečné SAPI) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
 - **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,

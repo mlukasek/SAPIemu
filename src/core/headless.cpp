@@ -1,6 +1,8 @@
 #include "core/headless.h"
+#include "cards/dsm1.h"
 #include "core/machine.h"
 #include "core/png.h"
+#include "core/tapegen.h"
 #include "core/util.h"
 #include "core/wav.h"
 
@@ -58,14 +60,66 @@ static bool write_wav(Machine& m, const std::string& path)
     return true;
 }
 
+static bool hex_arg(const std::string& v, long long& out)
+{
+    return parse_number(v + (v.find_first_of("hHxX$") == std::string::npos ? "h" : ""), out) && out >= 0 && out <= 0xFFFF;
+}
+
+static Dsm1* first_dsm1(Machine& m)
+{
+    for (auto& c : m.cards)
+        if (Dsm1* d = dynamic_cast<Dsm1*>(c.get()))
+            if (d->has_tape()) return d;
+    return nullptr;
+}
+
 static int run_actions(Machine& m, const std::vector<std::string>& actions, std::string& wav)
 {
     double timeout_s = 5.0;
     std::string shot_display;   // --display CARD: the output --screenshot takes
+    TapeProgram tape_prog;      // --tape-format, --tape-name, --tape-addr, --tape-entry
     for (size_t i = 0; i < actions.size(); i++) {
         const std::string& a = actions[i];
         bool has_arg = i + 1 < actions.size();
-        if (a == "--run-ms" && has_arg) {
+        if (a == "--tape-format" && has_arg) {
+            if (!tape_format_parse(actions[++i], tape_prog.format)) {
+                fprintf(stderr, "--tape-format: mikos or mikrobasic\n");
+                return 1;
+            }
+        } else if (a == "--tape-name" && has_arg) {
+            tape_prog.name = actions[++i];
+        } else if ((a == "--tape-addr" || a == "--tape-entry") && has_arg) {
+            long long v;
+            if (!hex_arg(actions[++i], v)) {
+                fprintf(stderr, "invalid address '%s'\n", actions[i].c_str());
+                return 1;
+            }
+            (a == "--tape-addr" ? tape_prog.address : tape_prog.entry) = v;
+        } else if (a == "--make-tape" && i + 2 < actions.size()) {   // program -> WAV, no recorder needed
+            std::string in = actions[++i], out = actions[++i], info, err;
+            std::vector<int16_t> s;
+            int rate;
+            if (!tape_from_file(data_path(in), tape_prog, s, rate, info, err) ||
+                !wav_write_mono16(out, s.data(), s.size(), (uint32_t)rate)) {
+                fprintf(stderr, "--make-tape %s: %s\n", in.c_str(), err.empty() ? "cannot write the WAV" : err.c_str());
+                return 1;
+            }
+            printf("%s: %s, %.1f s\n", out.c_str(), info.c_str(), (double)s.size() / rate);
+        } else if ((a == "--tape" || a == "--tape-export") && has_arg) {
+            Dsm1* d = first_dsm1(m);
+            if (!d) { fprintf(stderr, "no DSM-1 with a cassette recorder in the machine\n"); return 1; }
+            TapeDeck* t = d->tape();
+            std::string err, path = actions[++i];
+            if (a == "--tape-export") {
+                if (!t->export_wav(path, err)) { fprintf(stderr, "--tape-export: %s\n", err.c_str()); return 1; }
+                continue;
+            }
+            t->eject();
+            bool ok = tape_is_program(path) ? t->load_program(path, tape_prog, err) : t->load(path, err);
+            if (!ok) { fprintf(stderr, "--tape %s: %s\n", path.c_str(), err.c_str()); return 1; }
+            if (t->generated) printf("%s\n", t->program_info.c_str());
+            t->mode = TapeDeck::PLAY;   // PLAY pressed; the tape moves when the program starts the motor
+        } else if (a == "--run-ms" && has_arg) {
             m.run_seconds(atof(actions[++i].c_str()) / 1000.0);
             if (m.stopped_on_breakpoint()) printf("breakpoint hit\n");
         } else if (a == "--keyboard" && has_arg) {

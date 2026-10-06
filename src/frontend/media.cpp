@@ -17,7 +17,9 @@
 
 // ---------------------------------------------------------------- cassette recorder
 
-static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3)", "wav;mp3" } };
+static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3) nebo program (HEX, BIN)", "wav;mp3;hex;ihx;bin" },
+                                                      { "Kazeta (WAV, MP3)", "wav;mp3" },
+                                                      { "Program (Intel HEX, BIN)", "hex;ihx;bin" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
 static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD)", "img;8sd;imd" } };
@@ -52,13 +54,14 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
 #ifdef _WIN32
     for (char& c : where) if (c == '/') c = '\\';
 #endif
-    if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 1, where.c_str(), false);
+    if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 3, where.c_str(), false);
     else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 1, where.c_str(), false);
     else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
     else if (kind == 7) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str());
     else if (kind == 8) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str(), false);
     else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str(), false);
     else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
+    else if (kind == 9) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
@@ -164,6 +167,21 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     if (!dsm) return;
     std::string err;
     TapeDeck* t = dsm->tape();
+    if (kind == 9) {   // export: the tape stays in the recorder
+        size_t slash = path.find_last_of("/\\");
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".wav";
+        if (t->export_wav(path, err)) state_notice(ui, true, std::string(tr("Tape saved as WAV")) + ": " + path);
+        else state_notice(ui, false, err);
+        return;
+    }
+    if (kind == 1 && tape_is_program(path)) {   // a program: the format of the tape first
+        ui.tprog_path = path;
+        ui.tprog_card = card;
+        ui.tprog_ask = true;
+        ui.tprog_error.clear();
+        snprintf(ui.tprog_name, sizeof(ui.tprog_name), "%s", tape_default_name(path).c_str());
+        return;
+    }
     t->eject();
     if (kind == 1) {
         if (!t->load(path, err)) LOGE("%s", err.c_str());
@@ -189,6 +207,11 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     if (t->loaded()) {
         ImGui::TextUnformatted(t->path.c_str());
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t->path.c_str());
+        if (t->generated) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            ImGui::TextWrapped("%s", t->program_info.c_str());
+            ImGui::PopStyleColor();
+        }
     } else {
         ImGui::TextDisabled("%s", tr("(no cassette)"));
     }
@@ -198,6 +221,10 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     ImGui::SameLine();
     ImGui::BeginDisabled(!t->loaded());
     if (ImGui::Button(tr("Eject"))) t->eject();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Save as WAV..."))) tape_dialog(ui, 9, dsm->name);
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("A copy of the tape as a WAV file, e.g. to play it into a real SAPI."));
     ImGui::EndDisabled();
 
     ImGui::BeginDisabled(!t->loaded());
@@ -221,7 +248,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     }
     ImGui::SameLine();
     bool wp = t->write_protect;
-    ImGui::BeginDisabled(t->is_mp3);
+    ImGui::BeginDisabled(t->read_only());
     if (ImGui::Checkbox(tr("Write protect"), &wp)) {
         t->write_protect = wp;
         if (wp && t->mode == TapeDeck::RECORD) t->mode = TapeDeck::STOP;
@@ -439,6 +466,59 @@ static void bin_load_question(UiState& ui, Machine* m)
     ImGui::EndPopup();
 }
 
+// Media -> Insert a program into a recorder: the format, the name and the addresses of the tape.
+static void tape_program_question(UiState& ui, Machine* m)
+{
+    const char* title = tr_id("Program on a cassette");
+    if (ui.tprog_ask) {
+        ImGui::OpenPopup(title);
+        ui.tprog_ask = false;
+    }
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    ImGui::TextUnformatted(ui.tprog_path.c_str());
+    ImGui::RadioButton(tr("MIKOS (ZPS-2): .K_L name, then .J"), &ui.tprog_format, TAPE_MIKOS);
+    ImGui::RadioButton(tr("MIKROBASIC (ZPS-1): LOAD"), &ui.tprog_format, TAPE_MIKROBASIC);
+    ImGui::TextDisabled("%s", ui.tprog_format == TAPE_MIKOS
+                                  ? tr("From 4400h up; .J starts the program at its lowest address.")
+                                  : tr("A BASIC program at 40EFh, or machine code from 4102h up (RUN starts it)."));
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
+    ImGui::InputText(tr("Name on the tape"), ui.tprog_name, sizeof(ui.tprog_name), ImGuiInputTextFlags_CharsUppercase);
+    bool bin = !tape_is_hex(ui.tprog_path);
+    if (bin) {
+        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+        ImGui::InputText(tr("Address (hex)"), ui.tprog_addr, sizeof(ui.tprog_addr), ImGuiInputTextFlags_CharsHexadecimal);
+    }
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+    ImGui::InputText(tr("Start (hex, empty = lowest address)"), ui.tprog_entry, sizeof(ui.tprog_entry),
+                     ImGuiInputTextFlags_CharsHexadecimal);
+    if (!ui.tprog_error.empty()) ImGui::TextColored(k_load_error, "%s", ui.tprog_error.c_str());
+    Dsm1* dsm = m ? dynamic_cast<Dsm1*>(m->find_card(ui.tprog_card)) : nullptr;
+    ImGui::BeginDisabled(!dsm);
+    if (ImGui::Button(tr("Insert"))) {
+        TapeProgram p;
+        p.format = ui.tprog_format;
+        p.name = ui.tprog_name;
+        p.address = bin ? strtol(ui.tprog_addr, nullptr, 16) : -1;
+        p.entry = ui.tprog_entry[0] ? strtol(ui.tprog_entry, nullptr, 16) : -1;
+        std::string err;
+        TapeDeck* t = dsm->tape();
+        t->eject();
+        if (t->load_program(ui.tprog_path, p, err)) {
+            ui.tprog_path.clear();
+            ImGui::CloseCurrentPopup();
+        } else {
+            ui.tprog_error = err;
+        }
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) {
+        ui.tprog_path.clear();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+}
+
 // ---------------------------------------------------------------- floppy drives (RPD-1, FDC-1)
 
 static void draw_floppies(UiState& ui, Card* r)
@@ -488,6 +568,7 @@ void draw_media(UiState& ui)
     tape_dialog_result(ui, ui.host->machine());   // also the HEX and binary dialogs of the File menu
     bin_load_question(ui, ui.host->machine());
     hex_load_question(ui, ui.host->machine());
+    tape_program_question(ui, ui.host->machine());
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(760, 340), ImGuiCond_FirstUseEver);
