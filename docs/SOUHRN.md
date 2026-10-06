@@ -14,6 +14,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     disk) poslal autor soukromě Liborovi Lasotovi, Petrovi Všijanskému a Michalovi Medkovi.
   - Čeká se na jejich zpětnou vazbu a souhlas s obsahem.
   - Tag `v0.1.0-alpha` a veřejný release zatím **nejsou**. Úkoly před veřejným vydáním jsou v bloku níže.
+- **Alfa 0.2.0-alpha (připravená 2026-10-06):** `out/package/SAPIemu-0.2.0-alpha-win64.zip` (263 souborů, 21,7 MB,
+  s IDE diskem jako minule), poznámky `docs/release-notes/v0.2.0-alpha.md`. Release build prošel všemi 35 testy
+  (i ZEX a 8080EXM), ze zipu naběhne MikroMon, dlouhé CP/M, ZPS-4 s FDC-1 i tisk v `cpm_zrmd`. Je opět jen pro
+  kamarády (soukromě), tag a veřejný release zatím ne. Obsahuje knihovnu disket J. Bíby (komerční software).
 - **Hotové v této sérii (2026-10-04/05), podrobnosti v blocích níže a v `docs/rozhodnuti.md`:**
   - karty: MPH-1V (zvuk, 82C54, joystick, myš), ZRD-1V rev 2.1 (zámek zápisu, MAX187);
   - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
