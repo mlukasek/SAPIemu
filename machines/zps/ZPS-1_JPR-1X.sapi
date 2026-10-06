@@ -1,0 +1,46 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-1 s JPR-1X: MIKROBASIC 2.4 (JPR-1X 8085, REM-1, AND-1, DSM-1, BDK-1, ANK-1)",
+    "description": "Ekvivalent ZPS-1 s procesorovou deskou JPR-1X rev 1.0 (80C85, Libor Lasota 2025): MIKROBASIC 2.4 v horní bance ROM JPR-1X (propojka BIOS rozpojená), RAM 2 KB na REM-1 (4000-47FF, EPROM na REM-1 neosazené), porty JPR-1X 2400/2800/2C00, AND-1 3800-3FFF, DSM-1 s magnetofonem, ANK-1. docs/desky/JPR-1X.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1X",               // CPU card 8085, JPR-1 remake with 3214, two ROM banks, TURBO (Libor Lasota)
+            "rom": "roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin",  // ROM IC11 (27C256: two 8 KB banks at 4000h/6000h of the chip) - lower bank MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), upper bank MIKROBASIC 2.4
+            "bios": "open",                 // Jumper BIOS: ROM bank (read at RESET) - open: the upper bank
+            "turbo": false,                 // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
+            "keyboard": { "type": "ANK-1" }  // Keyboard (connector K2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "",                      // EPROMs (from socket 1) - empty sockets
+            "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
+            "ram_block": 2,                 // Jumper R: RAM block - 4000-5FFF
+            "ram_kb": 2                     // RAM fitted (KB, 2 per 4x 2114)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": true                    // Jumper 49-50: INT1 at the end of the frame
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600                     // Jumper: terminal baud rate - 600 Bd (factory)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "BDK-1"                 // Prototyping board (empty, no function)
+        }
+    ]
+}

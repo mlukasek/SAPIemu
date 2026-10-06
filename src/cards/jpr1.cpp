@@ -3,6 +3,7 @@
 #include "core/bus.h"
 #include "core/ihex.h"
 #include "core/log.h"
+#include "core/util.h"
 #include "input/keyboards.h"
 
 #include <string.h>
@@ -21,6 +22,7 @@ Jpr1::Jpr1(const char* type) : CpuCard(type)
 {
     model_a = strcmp(type, "JPR-1A") == 0;
     model_s = strcmp(type, "JPR-1S") == 0;
+    model_x = strcmp(type, "JPR-1X") == 0;
     memset(d2c_prom, 0xFF, sizeof(d2c_prom));
     memset(ram, 0, sizeof(ram));
     i8080_init(&cpu);
@@ -58,9 +60,93 @@ static bool configure_adapter(const json& cfg, std::unique_ptr<SerialChannel>& r
     return true;
 }
 
+bool Jpr1::live_param(const char* path) const
+{
+    return (model_x && (!strcmp(path, "turbo") || !strcmp(path, "bios"))) || CpuCard::live_param(path);
+}
+
+bool Jpr1::set_live_param(const char* path, const json& v, std::string& err)
+{
+    if (model_x && !strcmp(path, "turbo")) {   // the CPU clock follows the jumper at once
+        if (!v.is_boolean()) { err = "turbo must be true or false"; return false; }
+        turbo_on = v.get<bool>();
+        return true;
+    }
+    if (model_x && !strcmp(path, "bios")) {   // latched at the end of the next reset
+        std::string b = v.is_string() ? v.get<std::string>() : std::string();
+        if (b != "fitted" && b != "open") { err = "bios must be fitted (lower bank) or open (upper bank)"; return false; }
+        bios_fitted = b == "fitted";
+        return true;
+    }
+    return CpuCard::set_live_param(path, v, err);
+}
+
+// JPR-1X: the ROM IC11 (A13 = /BIOS, A14 = 1): a 27C256/28C256 image has the banks at 4000h and
+// 6000h, a 27C128 image at 0000h and 2000h, a 28C64 image one bank for both.
+static bool load_jpr1x_rom(const std::string& rom, std::vector<uint8_t>& banks, std::string& err)
+{
+    std::vector<uint8_t> img;
+    banks.assign(0x4000, 0xFF);
+    if (rom.empty()) return true;   // empty socket: the bus
+    if (!rom_load(rom, img, 0x8000, 0xFF, 0, err)) return false;
+    uint64_t size = 0;   // the chip by the size of the file (Intel HEX: by its highest byte)
+    std::string full = data_path(rom);
+    std::vector<uint8_t> raw;
+    if (file_read_all(full, raw) && !raw.empty() && raw[0] != ':') size = raw.size();
+    else
+        for (size_t i = img.size(); i > 0; i--)
+            if (img[i - 1] != 0xFF) { size = i; break; }
+    img.resize((size_t)size);
+    if (img.size() > 0x4000) {
+        img.resize(0x8000, 0xFF);
+        memcpy(banks.data(), &img[0x4000], 0x4000);
+    } else if (img.size() > 0x2000) {
+        img.resize(0x4000, 0xFF);
+        memcpy(banks.data(), img.data(), 0x4000);
+    } else {
+        img.resize(0x2000, 0xFF);
+        memcpy(banks.data(), img.data(), 0x2000);
+        memcpy(&banks[0x2000], img.data(), 0x2000);
+    }
+    return true;
+}
+
 bool Jpr1::configure(const json& cfg, std::string& err)
 {
     long long crystal;
+    if (model_x) {
+        long long osc;
+        if (!cfg_number(cfg, "osc_hz", osc, 16000000, err)) return false;
+        cpu_hz = (uint32_t)(osc / 4);   // the time base: the CPU at 4 MHz (TURBO); the bus 2 MHz
+        std::string rom, bios, vec, key;
+        if (!cfg_string(cfg, "rom", rom, "roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin", err)) return false;
+        if (!load_jpr1x_rom(rom, eprom, err)) return false;
+        x_rom_fitted = !rom.empty();
+        if (!cfg_string(cfg, "bios", bios, "fitted", err)) return false;
+        if (bios != "fitted" && bios != "open") { err = "bios must be fitted (lower bank) or open (upper bank)"; return false; }
+        bios_fitted = bios == "fitted";
+        bios_off = bios_fitted ? 0 : 0x2000;
+        if (!cfg_bool(cfg, "turbo", turbo_on, false, err)) return false;
+        if (!cfg_string(cfg, "int_vector", vec, "rst7", err)) return false;
+        if (vec != "rst7" && vec != "level") { err = "int_vector must be rst7 (RSTN/7 open) or level (RSTN/7 fitted)"; return false; }
+        rst7_jumper = vec == "rst7";
+        if (!cfg_string(cfg, "int_key", key, "none", err)) return false;
+        if (key != "none" && key != "r7" && key != "r6") { err = "int_key must be none, r7 (11-10) or r6 (10-R6)"; return false; }
+        int_key_r = key == "r7" ? 7 : key == "r6" ? 6 : -1;
+        if (!cfg_bool(cfg, "ram", ram_fitted, true, err)) return false;
+        uint32_t x = 0x13579BDFu;   // the 6116 holds noise after power on
+        for (uint8_t& b : ram) {
+            x ^= x << 13; x ^= x >> 17; x ^= x << 5;
+            b = (uint8_t)x;
+        }
+        if (!configure_adapter(cfg, rx, rx_baud, rx_stop, err)) return false;
+        if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
+            kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
+            if (!kbd) return false;
+            kbd->bus = bus;
+        }
+        return true;
+    }
     if (!cfg_number(cfg, "crystal_hz", crystal, 18000000, err)) return false;
     cpu_hz = (uint32_t)(crystal / 9);   // 8224
     std::string type, rom;
@@ -157,6 +243,11 @@ void Jpr1::reset()
     cpu.port_in = cb_in;
     cpu.port_out = cb_out;
     cpu.userdata = this;
+    cpu.i8085 = model_x;   // JPR-1X: RESET also masks RST 5.5-7.5, clears SOD (i8080_init)
+    if (model_x) {
+        bios_off = bios_fitted ? 0 : 0x2000;   // IC25B latches the BIOS jumper at the end of RESET
+        x_latched = false;
+    }
     p0_out = p1_out = p2_out = 0;
     boot = true;
     irq_enabled = false;
@@ -203,6 +294,18 @@ int Jpr1::local(uint16_t a) const
         }
         return bank_en[(a >> 14) - 1] ? L_BANK : L_NONE;
     }
+    if (model_x) {   // IC27 (A13-A15) and IC10 (A10-A12); 3000-FFFF reads from the bus
+        if (a < 0x2000) return x_rom_fitted ? L_EPROM : L_NONE;
+        if (a >= 0x4000) return L_NONE;
+        switch ((a >> 10) & 7) {
+        case 0: return ram_fitted ? L_RAM : L_NONE;
+        case 1: return L_P0;
+        case 2: return L_P1;
+        case 3: return L_P2;
+        case 4: return L_ECS;
+        default: return L_NONE;   // 3400-37FF unused, 3800-3FFF AND-1 on the bus
+        }
+    }
     if (model_a) {   // memory: only the EPROM while BOOT is set (OE1, OE2 active low)
         if (!boot) return L_NONE;
         uint8_t o = d2c((uint8_t)(a >> 8));
@@ -226,6 +329,13 @@ int Jpr1::local(uint16_t a) const
 uint8_t Jpr1::p2_in(void)
 {
     if (model_s) return 0xFF;   // K3 with pull-ups (the diagnostic board is not emulated)
+    if (model_x) {   // P2-IN0/1 = bus /INT0, /INT1; P2-IN7 = the INT key with 11-10; the rest K3 pull-ups
+        uint8_t v = 0xFF;
+        if (bus_irq & IRQ_INT0) v &= (uint8_t)~0x01;
+        if (bus_irq & IRQ_INT1) v &= (uint8_t)~0x02;
+        if (int_key_r == 7 && kbd && !(p1_in() & 0x80)) v &= (uint8_t)~0x80;
+        return v;
+    }
     // interrupt requests are active low: R0 = /INT0, R1 = /INT1, R7 = INT key
     uint8_t v = 0xFF;
     if (bus_irq & IRQ_INT0) v &= (uint8_t)~0x01;
@@ -275,13 +385,17 @@ uint8_t Jpr1::cpu_read(uint16_t a)
 {
     if (wait_jumper) extra++;
     switch (local(a)) {
-    case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
+    case L_EPROM:
+        if (model_x) return eprom[bios_off + a];
+        return a < eprom.size() ? eprom[a] : 0xFF;
     case L_RAM: return model_s ? sram[a] : ram[a & 0x3FF];
     case L_BANK: return sram[a];
     case L_P0: return kbd ? kbd->p0_in() : 0xFF;
     case L_P1: return p1_in();
     case L_P2: return p2_in();
-    case L_ECS: return 0xFF;   // 3214 is write only
+    case L_ECS:
+        if (model_x) break;   // JPR-1X: the 3214 is not read, the bus drives the data
+        return 0xFF;          // 3214 is write only
     default: break;
     }
     bus->wait = 0;
@@ -304,6 +418,28 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
         case L_P1: p1_out = v; break;
         case L_P2: p2_out = v; break;
         default: break;   // EPROM: /WE held high
+        }
+        bus->wait = 0;
+        bus->mem_write(a, v);
+        extra += bus->wait;
+        return;
+    }
+    if (model_x) {   // the card takes it and the bus gets it too (the 74LS245 drives K1 on writes)
+        switch (local(a)) {
+        case L_RAM: ram[a & 0x3FF] = v; break;
+        case L_P0:
+            p0_out = v;
+            if (kbd) kbd->p0_out(v);
+            break;
+        case L_P1: p1_out = v; break;
+        case L_P2: p2_out = v; break;
+        case L_ECS:
+            irq_status = v & 7;
+            irq_sgs = (v & 0x08) != 0;
+            irq_enabled = true;
+            update_interrupt();
+            break;
+        default: break;   // ROM: /WE held high
         }
         bus->wait = 0;
         bus->mem_write(a, v);
@@ -380,6 +516,25 @@ void Jpr1::update_interrupt(void)
         if (req) cpu.interrupt_vector = rst7_jumper ? 0xFF : bus->inta();
         return;
     }
+    if (model_x) {
+        // 3214 with INTE tied high: an enabled request goes into the 3212 IC7 at once (also under
+        // DI), the 3214 waits for the next status write; IC7 holds INTR until the INTA
+        if (!x_latched && irq_enabled) {
+            uint8_t req = (uint8_t)~p2_in();
+            if (int_key_r == 6 && kbd && !(p1_in() & 0x80)) req |= 0x40;   // jumpers 10-R6 and R6-10
+            int level = -1;
+            for (int i = 7; i >= 0; i--)
+                if (req & (1 << i)) { level = i; break; }
+            if (level >= 0 && (!irq_sgs || level > irq_status)) {
+                x_latched = true;
+                irq_enabled = false;
+                x_vector = rst7_jumper ? 0xFF : (uint8_t)(0xC7 | ((7 - level) << 3));
+            }
+        }
+        cpu.interrupt_pending = x_latched;
+        cpu.interrupt_vector = x_vector;
+        return;
+    }
     if (model_a) {   // INT0 or INT1, no priority logic
         cpu.interrupt_pending = bus_irq != 0;
         if (bus_irq) cpu.interrupt_vector = rst7_jumper ? 0xFF : bus->inta();
@@ -439,9 +594,14 @@ int Jpr1::run(int cycles)
         bool taking = cpu.interrupt_pending && cpu.iff && cpu.interrupt_delay == 0;
         unsigned long before = cpu.cyc;
         extra = 0;
+        if (model_x) cpu.sid = cpu.sod;   // SID wired to SOD
         i8080_step(&cpu);
-        if (taking) irq_enabled = false;   // the 3214 waits for the next status write
-        int n = (int)(cpu.cyc - before) + extra;
+        if (taking) {
+            irq_enabled = false;   // the 3214 waits for the next status write
+            x_latched = false;     // JPR-1X: INTA read the vector out of IC7
+        }
+        // JPR-1X: the time base is 4 MHz, without TURBO a CPU cycle takes two units
+        int n = (int)(cpu.cyc - before) * (model_x && !turbo_on ? 2 : 1) + extra;
         if (n <= 0) n = 4;   // HLT: the CPU idles, time goes on
         bus->now += (uint64_t)n;
         done += n;
@@ -457,7 +617,7 @@ int Jpr1::run(int cycles)
 void Jpr1::get_regs(CpuRegs& r)
 {
     memset(&r, 0, sizeof(r));
-    uint8_t f = (uint8_t)(((int)cpu.sf << 7) | ((int)cpu.zf << 6) | ((int)cpu.hf << 4) | ((int)cpu.pf << 2) | 0x02 | (int)cpu.cf);
+    uint8_t f = i8080_flags(&cpu);   // 8085: V in bit 1, K in bit 5
     r.af = (uint16_t)((cpu.a << 8) | f);
     r.bc = (uint16_t)((cpu.b << 8) | cpu.c);
     r.de = (uint16_t)((cpu.d << 8) | cpu.e);
@@ -477,6 +637,8 @@ void Jpr1::set_regs(const CpuRegs& r)
     cpu.hf = (f >> 4) & 1;
     cpu.pf = (f >> 2) & 1;
     cpu.cf = f & 1;
+    cpu.vf = (f >> 1) & 1;
+    cpu.kf = (f >> 5) & 1;
     cpu.b = (uint8_t)(r.bc >> 8); cpu.c = (uint8_t)r.bc;
     cpu.d = (uint8_t)(r.de >> 8); cpu.e = (uint8_t)r.de;
     cpu.h = (uint8_t)(r.hl >> 8); cpu.l = (uint8_t)r.hl;
@@ -492,13 +654,15 @@ void Jpr1::set_regs(const CpuRegs& r)
 uint8_t Jpr1::peek(uint16_t a)
 {
     switch (local(a)) {
-    case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
+    case L_EPROM:
+        if (model_x) return eprom[bios_off + a];
+        return a < eprom.size() ? eprom[a] : 0xFF;
     case L_RAM: return model_s ? sram[a] : ram[a & 0x3FF];
     case L_BANK: return sram[a];
     case L_P0:   // reading the keyboard has side effects (key taken / seen): not from the debugger
     case L_P1: return 0xFF;
     case L_P2: return p2_in();
-    case L_ECS: return 0xFF;
+    case L_ECS: return model_x ? bus->mem_peek(a) : 0xFF;
     default: return bus->mem_peek(a);
     }
 }
@@ -518,7 +682,9 @@ void Jpr1::poke_local(uint16_t a, uint8_t v)
 int Jpr1::decode_mem(uint16_t addr, int, const char** what)
 {
     switch (local(addr)) {
-    case L_EPROM: *what = model_s ? "EEPROM 28C64" : "EPROM"; return DEC_READ | DEC_ONCARD;
+    case L_EPROM:
+        *what = model_s ? "EEPROM 28C64" : model_x ? (bios_off ? "ROM (upper bank)" : "ROM (lower bank)") : "EPROM";
+        return DEC_READ | DEC_ONCARD;
     case L_RAM: *what = "RAM"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
     case L_BANK: *what = "RAM (bank)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
     case L_P0: *what = "P0 (keyboard)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
@@ -543,8 +709,13 @@ int Jpr1::decode_io(uint8_t port, const char** what)
 void Jpr1::describe(json& out)
 {
     if (model_a) out["boot"] = boot;
-    out["cpu"] = "8080";
-    out["cpu_hz"] = cpu_hz;
+    out["cpu"] = model_x ? "8085" : "8080";
+    out["cpu_hz"] = cpu_display_hz();
+    if (model_x) {
+        out["turbo"] = turbo_on;
+        out["rom_bank"] = bios_off ? "upper" : "lower";
+        out["sod"] = (bool)cpu.sod;
+    }
     out["eprom_bytes"] = eprom.size();
     out["ram"] = ram_fitted;
     if (model_s) out["ram_banks"] = { bank_en[0], bank_en[1], bank_en[2] };
@@ -597,6 +768,33 @@ void Jpr1::state(StateIO& io)
     io.v(at_boundary);
     io.v(instr_pc);
     if (model_s) io.arr(sram.data(), sram.size());   // the type and the adapter are in the description
+    if (model_x) {   // the 8085 part of the core, the jumpers that change while running, the 3214 latch
+        uint16_t g = (uint16_t)((int)cpu.vf | cpu.kf << 1 | cpu.sod << 2 | cpu.trap << 3 | cpu.rst75 << 4 |
+                                cpu.rst65 << 5 | cpu.rst55 << 6 | cpu.trap_ff << 7 | cpu.r75_ff << 8 |
+                                cpu.trap_rim << 9 | cpu.trap_ie << 10);
+        io.v(g);
+        io.v(cpu.masks);
+        if (io.loading) {
+            cpu.vf = g & 1;
+            cpu.kf = (g >> 1) & 1;
+            cpu.sod = (g >> 2) & 1;
+            cpu.trap = (g >> 3) & 1;
+            cpu.rst75 = (g >> 4) & 1;
+            cpu.rst65 = (g >> 5) & 1;
+            cpu.rst55 = (g >> 6) & 1;
+            cpu.trap_ff = (g >> 7) & 1;
+            cpu.r75_ff = (g >> 8) & 1;
+            cpu.trap_rim = (g >> 9) & 1;
+            cpu.trap_ie = (g >> 10) & 1;
+            cpu.i8085 = true;
+        }
+        io.v(turbo_on);
+        io.v(bios_fitted);
+        io.v(bios_off);
+        io.v(x_latched);
+        io.v(x_vector);
+        io.v(irq_sgs);
+    }
     if (rx) {
         io.v(rx_active);
         io.v(rx_byte);

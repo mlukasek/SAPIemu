@@ -1076,3 +1076,18 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Ověřeno:** `test_keyboards` (porty: pořadí SHIFT a klávesy, ťuk kratší než sken, režim pro hry; MIKROBASIC
   třikrát řádek s „,;?“ psaný překrývajícími se klávesami, klávesa držená 2 s = jeden znak; MIKROBIOS: obraz po
   psaní drženými klávesami je stejný jako po frontě, „D 4400,44;FF?“; dřív fronta psala „D 4400N,44B;FF2?“).
+
+## 2026-10-06 – JPR-1X a procesor 8085
+
+- **Procesor** (autor: plné jádro 8085): režim 8085 přímo v jádru 8080 (`third_party/i8080`, přepínač `i8085`), ne
+  samostatná kopie. Jádro 8080 tak zůstává jedno a jeho testy hlídají, že se režim 8080 nezměnil. Takty podle Intel
+  MCS-80/85 (shoda s MAME), dokumentované příznaky ověřené 8085EXM proti CRC skutečného D8085AH-1. V a K podle
+  analýzy křemíku (K. Shirriff), nejisté body rozhodnuté a zapsané v `docs/8085.md`.
+- **Deska** jako varianta třídy `Jpr1` (stejná mapa a porty jako JPR-1). Podle netlistu: všechny zápisy i na
+  sběrnici, čtení 3000–FFFF ze sběrnice, 3214 s INTE v 1 zachytí požadavek i pod DI.
+- **TURBO** jako u JPR-1V: časová základna 4 MHz, bez TURBO trvá takt CPU dvě jednotky; sběrnice 2 MHz.
+- **ROM** (autor: dump zatím není): výchozí obraz dolní banka MIKROBIOS 1.02, horní banka MIKROBASIC 2.4. Parametr
+  `rom` bere 8, 16 i 32 KB obraz podle čipu (28C64, 27C128, 27C256).
+- **Sestavy** (autor): ekvivalent ZPS-1 a JPR-1X s BGP-1S (MIKROBIOS, RAM-1 místo bank JPR-1S).
+- **Debugger:** u karet 8080/8085 se opkódy, které nejsou instrukcemi Z80, ukazují jako aliasy 8080 (`NOP*`,
+  `JP*`, `CALL*`, `RET*`) nebo jako instrukce 8085 (RIM, SIM, DSUB…). Dřív se ukazovaly jako instrukce Z80 (JR, EXX).

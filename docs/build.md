@@ -12,7 +12,7 @@
 tools\build.cmd debug test          # preset windows-debug, výstup v out\build\windows-debug
 tools\build.cmd debug test "zps3|rpd1"   # jen testy, jejichž jméno odpovídá
 tools\build.cmd release test        # release, bez pomalých testů procesoru
-tools\build.cmd release full        # release se všemi testy včetně ZEXDOC/ZEXALL/8080EXM
+tools\build.cmd release full        # release se všemi testy včetně ZEXDOC/ZEXALL/8080EXM/8085EXM
 tools\build.cmd local-debug test    # lokální preset (výstup mimo repo)
 ```
 

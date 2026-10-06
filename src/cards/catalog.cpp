@@ -452,6 +452,60 @@ static const CardParam k_jpr1s[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// JPR-1X (Libor Lasota, rev 1.0, 80C85)
+static const ParamOption k_jpr1x_roms[] = {
+    { "\"roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin\"",
+      "lower bank MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), upper bank MIKROBASIC 2.4",
+      "dolní banka MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), horní banka MIKROBASIC 2.4" },
+    { "\"\"", "none (ROM socket empty: the bus)", "žádná (patice ROM prázdná: sběrnice)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_jpr1x_bios[] = {
+    { "\"fitted\"", "fitted: the lower bank", "osazená: dolní banka" },
+    { "\"open\"", "open: the upper bank", "rozpojená: horní banka" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_jpr1x_vector[] = {
+    { "\"rst7\"", "RSTN/7 open: always RST 7", "RSTN/7 rozpojená: vždy RST 7" },
+    { "\"level\"", "RSTN/7 fitted: RST by the 3214 level", "RSTN/7 osazená: RST podle úrovně 3214" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_jpr1x_key[] = {
+    { "\"none\"", "factory: not connected (R6 = P2-IN6)", "z výroby: nezapojená (R6 = P2-IN6)" },
+    { "\"r7\"", "11-10: request R7 (as JPR-1 jumper 10-11)", "11-10: požadavek R7 (jako propojka 10-11 JPR-1)" },
+    { "\"r6\"", "10-R6 and R6-10: request R6 (recommended)", "10-R6 a R6-10: požadavek R6 (doporučeno)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_jpr1x[] = {
+    { "rom", PK_FILE, "ROM IC11 (27C256: two 8 KB banks at 4000h/6000h of the chip)",
+      "ROM IC11 (27C256: dvě banky po 8 KB na 4000h/6000h čipu)", "\"roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin\"",
+      k_jpr1x_roms, 0, 0 },
+    { "bios", PK_CHOICE, "Jumper BIOS: ROM bank (read at RESET)", "Propojka BIOS: banka ROM (čte se při RESETu)", "\"fitted\"",
+      k_jpr1x_bios, 0, 0 },
+    { "turbo", PK_BOOL, "TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz", "TURBO: CPU 4 MHz (jinak 2 MHz), sběrnice vždy 2 MHz",
+      "false", nullptr, 0, 0 },
+    { "ram", PK_BOOL, "RAM 6116 at 2000-23FF", "RAM 6116 na 2000-23FF", "true", nullptr, 0, 0 },
+    { "int_vector", PK_CHOICE, "Jumper RSTN/7: interrupt vector", "Propojka RSTN/7: vektor přerušení", "\"rst7\"",
+      k_jpr1x_vector, 0, 0 },
+    { "int_key", PK_CHOICE, "Jumpers 11-10-R6, P2IN6-R6-10: INT key", "Propojky 11-10-R6, P2IN6-R6-10: klávesa INT",
+      "\"none\"", k_jpr1x_key, 0, 0 },
+    { "osc_hz", PK_INT, "Oscillator (Hz, bus = /8, CPU = /4 or /8)", "Oscilátor (Hz, sběrnice = /8, CPU = /4 nebo /8)",
+      "16000000", nullptr, 1000000, 40000000 },
+    { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
+    { "k2_adapter", PK_CHOICE, "K2 adapter (cable of the keyboard)", "Redukce na K2 (kabel klávesnice)", "\"none\"",
+      k_k2_adapter, 0, 0 },
+    { "rx_baud", PK_INT, "Redukce34KB01: speed of the PC sending (Bd)", "Redukce34KB01: rychlost vysílání z PC (Bd)",
+      "19200", nullptr, 50, 115200 },
+    { "rx_stop_bits", PK_INT, "Redukce34KB01: stop bits", "Redukce34KB01: stop bity", "2", nullptr, 1, 2 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // JPR-1A (ZPS-3)
 static const ParamOption k_jpr1a_roms[] = {
     { "\"roms/jpr-1a/JPR-1A_MON_V1.0-C1.bin\"", "48K MON V1.0-C1 (Tesla IMA 1986, CP/M ZPS-3)",
@@ -1164,6 +1218,8 @@ CARD(c_jpr1, "JPR-1", "JPR", "CPU card 8080, memory mapped ports", "Procesorová
      CC_CPU, 1, true, k_jpr1)
 CARD(c_jpr1s, "JPR-1S", "JPR", "CPU card 8080, JPR-1 remake with RAM banks (Libor Lasota)",
      "Procesorová deska 8080, nová JPR-1 s bankami RAM (Libor Lasota)", CC_CPU, 1, true, k_jpr1s)
+CARD(c_jpr1x, "JPR-1X", "JPR", "CPU card 8085, JPR-1 remake with 3214, two ROM banks, TURBO (Libor Lasota)",
+     "Procesorová deska 8085, nová JPR-1 s 3214, dvěma bankami ROM a TURBO (Libor Lasota)", CC_CPU, 1, true, k_jpr1x)
 CARD(c_jpr1a, "JPR-1A", "JPR", "CPU card 8080 \"A\" (I/O ports, boot EPROM)", "Procesorová deska 8080 \"A\" (porty I/O, boot EPROM)",
      CC_CPU, 1, true, k_jpr1a)
 CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80 (ZPS-4)", "Procesorová deska Z80 (ZPS-4)", CC_CPU, 1, true, k_jpr1z)
@@ -1232,7 +1288,7 @@ CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldes
 const std::vector<const CardInfo*>& card_catalog(void)
 {
     static const std::vector<const CardInfo*> list = {
-        &c_jpr1zi, &c_jpr1, &c_jpr1s, &c_jpr1a, &c_jpr1z, &c_jpr1v,
+        &c_jpr1zi, &c_jpr1, &c_jpr1s, &c_jpr1x, &c_jpr1a, &c_jpr1z, &c_jpr1v,
         &c_dmr1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,

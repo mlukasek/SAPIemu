@@ -30,6 +30,18 @@
 //   wired OR), response INT_ADR RST 7 (8228) or the vector from the bus (/INTA).
 // - P2-IN on K3 with pull-ups (FFh with nothing connected), LED on P1-OUT7.
 //
+// JPR-1X rev 1.0 (Libor Lasota 2025, docs/desky/JPR-1X.md): a JPR-1 remake with an 80C85
+// (8085 mode of the 8080 core), the JPR-1 map with memory mapped ports and the 3214:
+// - 0000-1FFF one of two 8 KB banks of a 27C256 (A13 = /BIOS latched at reset: jumper BIOS
+//   fitted = the lower bank), 2000-23FF RAM 6116 (1 KB), 2400/2800/2C00 P0/P1/P2, 3000 3214.
+// - Every write goes to the bus too; reads from 3000-FFFF come from the bus.
+// - 3214 INTE tied high: a request is latched into the vector 3212 even under DI. The vector
+//   is RST 7 (RSTN/7 open) or RST (7 - level) (RSTN/7 fitted). INT key on R7 (jumper 11-10),
+//   R6 (10-R6) or nowhere (factory).
+// - Oscillator 16 MHz: the bus 2 MHz always, the CPU 2 MHz or 4 MHz by the TURBO jumper (live).
+//   The time base is 4 MHz; at 2 MHz a CPU cycle takes two units.
+// - TRAP, RST 5.5/6.5/7.5 grounded, SID connected to SOD.
+//
 // Redukce34KB01 (option for JPR-1 and JPR-1S, the cable adapter of the ANK-1M5/M2 keyboard on
 // K2): an optocoupler puts an RS-232 receive line on P1-IN7 (idle 1, start bit 0); K2 pins 7
 // and 9 of the keyboard (INT, T) are not connected. MIKROBIOS BOOT reads Intel HEX from it
@@ -65,6 +77,14 @@ public:
     KeyboardDevice* keyboard() override { return kbd.get(); }
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
+    int cpu_isa() const override { return model_x ? ISA_8085 : ISA_8080; }
+    // JPR-1X: TURBO (live) and BIOS (read at reset)
+    bool live_param(const char* path) const override;
+    bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
+    bool has_cpu_turbo() const override { return model_x; }
+    bool cpu_turbo() const override { return turbo_on; }
+    void set_cpu_turbo(bool on) override { turbo_on = on; }
+    uint32_t cpu_display_hz() const override { return model_x && !turbo_on ? cpu_hz / 2 : cpu_hz; }
     SerialChannel* serial_channel(int index) override { return index == 0 ? rx.get() : nullptr; }
 
     // CPU memory and port accesses (8080 core callbacks)
@@ -127,7 +147,17 @@ public:
     // JPR-1A: the BOOT LED V2; JPR-1: the LED on the card at P1-OUT D7 (1 = lit, assumed; JPR-1S: so)
     unsigned panel_leds() override { return (model_a ? boot : (p1_out & 0x80) != 0) ? 1u : 0u; }
 private:
-    bool rst7_jumper = true;             // JP1 1-2 (JPR-1S INT_ADR 2-3): RST 7, else the vector from the bus
+    bool rst7_jumper = true;             // JP1 1-2 (JPR-1S INT_ADR 2-3, JPR-1X RSTN/7 open): RST 7, else the
+                                         // vector from the bus (JPR-1X: RST 7 - level)
+    // JPR-1X
+    bool model_x = false;
+    bool turbo_on = false;               // TURBO fitted: CPU 4 MHz (else 2 MHz, two time units a cycle)
+    bool bios_fitted = true;             // jumper BIOS now
+    uint32_t bios_off = 0;               // the bank latched at reset (offset in eprom)
+    int int_key_r = -1;                  // INT key on request R7 (11-10), R6 (10-R6), -1 nowhere
+    bool x_rom_fitted = true;            // a ROM in IC11 (else its reads come from the bus)
+    bool x_latched = false;              // the 3212 IC7 holds a vector for INTR
+    uint8_t x_vector = 0xFF;
     uint8_t d2c_prom[512];
     std::string d2c_file;
 };

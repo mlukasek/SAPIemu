@@ -23,6 +23,28 @@ static const uint8_t OPCODES_CYCLES[256] = {
     5, 10, 10, 18, 11, 11, 7,  11, 5, 5,  10, 4,  11, 17, 7, 11, // E
     5, 10, 10, 4,  11, 11, 7,  11, 5, 5,  10, 4,  11, 17, 7, 11  // F
 };
+
+// SAPIemu: the 8085 (Intel MCS-80/85 User's Manual table 5-1, the undocumented instructions
+// after Dehnhardt & Sorensen 1979): the T-states when a condition is not met
+static const uint8_t OPCODES_CYCLES_8085[256] = {
+//  0  1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+    4, 10, 7,  6,  4,  4,  7,  4,  10, 10, 7,  6,  4,  4,  7,  4,  // 0
+    7, 10, 7,  6,  4,  4,  7,  4,  10, 10, 7,  6,  4,  4,  7,  4,  // 1
+    4, 10, 16, 6,  4,  4,  7,  4,  10, 10, 16, 6,  4,  4,  7,  4,  // 2
+    4, 10, 13, 6,  10, 10, 10, 4,  10, 10, 13, 6,  4,  4,  7,  4,  // 3
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // 4
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // 5
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // 6
+    7, 7,  7,  7,  7,  7,  5,  7,  4,  4,  4,  4,  4,  4,  7,  4,  // 7
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // 8
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // 9
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // A
+    4, 4,  4,  4,  4,  4,  7,  4,  4,  4,  4,  4,  4,  4,  7,  4,  // B
+    6, 10, 7,  10, 9,  12, 7,  12, 6,  10, 7,  6,  9,  18, 7,  12, // C
+    6, 10, 7,  10, 9,  12, 7,  12, 6,  10, 7,  10, 9,  7,  7,  12, // D
+    6, 10, 7,  16, 9,  12, 7,  12, 6,  6,  7,  4,  9,  10, 7,  12, // E
+    6, 10, 7,  4,  9,  12, 7,  12, 6,  6,  7,  4,  9,  7,  7,  12  // F
+};
 // clang-format on
 
 static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
@@ -65,6 +87,8 @@ static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
     c->sf = (val) >> 7; \
     c->pf = parity(val); \
   } while (0)
+
+uint8_t i8080_flags(const i8080* const c);
 
 // memory helpers (the only four to use `read_byte` and `write_byte` function
 // pointers)
@@ -173,6 +197,8 @@ static inline void i8080_add(
   c->cf = carry(8, *reg, val, cy);
   c->hf = carry(4, *reg, val, cy);
   SET_ZSP(c, result);
+  c->vf = carry(8, *reg, val, cy) ^ carry(7, *reg, val, cy); // 8085: signed overflow
+  c->kf = c->vf ^ (result >> 7);
   *reg = result;
 }
 
@@ -195,6 +221,8 @@ static inline uint8_t i8080_inr(i8080* const c, uint8_t val) {
   uint8_t result = val + 1;
   c->hf = (result & 0xF) == 0;
   SET_ZSP(c, result);
+  c->vf = val == 0x7F; // 8085
+  c->kf = c->vf ^ (result >> 7);
   return result;
 }
 
@@ -203,6 +231,8 @@ static inline uint8_t i8080_dcr(i8080* const c, uint8_t val) {
   uint8_t result = val - 1;
   c->hf = !((result & 0xF) == 0xF);
   SET_ZSP(c, result);
+  c->vf = val == 0x80; // 8085
+  c->kf = c->vf ^ (result >> 7);
   return result;
 }
 
@@ -211,8 +241,11 @@ static inline uint8_t i8080_dcr(i8080* const c, uint8_t val) {
 static inline void i8080_ana(i8080* const c, uint8_t val) {
   uint8_t result = c->a & val;
   c->cf = 0;
-  c->hf = ((c->a | val) & 0x08) != 0;
+  // the 8085 always sets AC (Intel 8080/8085 Assembly Language Programming Manual)
+  c->hf = c->i8085 ? 1 : ((c->a | val) & 0x08) != 0;
   SET_ZSP(c, result);
+  c->vf = 0;
+  c->kf = result >> 7;
   c->a = result;
 }
 
@@ -223,6 +256,8 @@ static inline void i8080_xra(i8080* const c, uint8_t val) {
   c->cf = 0;
   c->hf = 0;
   SET_ZSP(c, c->a);
+  c->vf = 0;
+  c->kf = c->a >> 7;
 }
 
 // executes a logic "or" between register A and a byte, then stores the
@@ -232,6 +267,8 @@ static inline void i8080_ora(i8080* const c, uint8_t val) {
   c->cf = 0;
   c->hf = 0;
   SET_ZSP(c, c->a);
+  c->vf = 0;
+  c->kf = c->a >> 7;
 }
 
 // compares the register A to another byte
@@ -240,6 +277,8 @@ static inline void i8080_cmp(i8080* const c, uint8_t val) {
   c->cf = result >> 8;
   c->hf = ~(c->a ^ result ^ val) & 0x10;
   SET_ZSP(c, result & 0xFF);
+  c->vf = (((c->a ^ val) & (c->a ^ result)) >> 7) & 1; // 8085
+  c->kf = c->vf ^ ((result >> 7) & 1);
 }
 
 // sets the program counter to a given address
@@ -253,6 +292,7 @@ static inline void i8080_cond_jmp(i8080* const c, bool condition) {
   uint16_t addr = i8080_next_word(c);
   if (condition) {
     c->pc = addr;
+    if (c->i8085) c->cyc += 3; // 7 / 10
   }
 }
 
@@ -267,7 +307,7 @@ static inline void i8080_cond_call(i8080* const c, bool condition) {
   uint16_t addr = i8080_next_word(c);
   if (condition) {
     i8080_call(c, addr);
-    c->cyc += 6;
+    c->cyc += c->i8085 ? 9 : 6; // 8085: 9 / 18
   }
 }
 
@@ -294,6 +334,7 @@ static inline void i8080_push_psw(i8080* const c) {
   psw |= c->pf << 2;
   psw |= 1 << 1; // bit 1 is always 1
   psw |= c->cf << 0;
+  if (c->i8085) psw = i8080_flags(c); // 8085: bit 1 = V, bit 5 = K
   i8080_push_stack(c, c->a << 8 | psw);
 }
 
@@ -308,25 +349,33 @@ static inline void i8080_pop_psw(i8080* const c) {
   c->hf = (psw >> 4) & 1;
   c->pf = (psw >> 2) & 1;
   c->cf = (psw >> 0) & 1;
+  c->vf = (psw >> 1) & 1;
+  c->kf = (psw >> 5) & 1;
 }
 
 // rotate register A left
 static inline void i8080_rlc(i8080* const c) {
   c->cf = c->a >> 7;
+  c->vf = ((c->a >> 7) ^ (c->a >> 6)) & 1;
   c->a = (c->a << 1) | c->cf;
+  c->kf = c->vf ^ (c->a >> 7);
 }
 
 // rotate register A right
 static inline void i8080_rrc(i8080* const c) {
   c->cf = c->a & 1;
   c->a = (c->a >> 1) | (c->cf << 7);
+  c->vf = 0;
+  c->kf = c->a >> 7;
 }
 
 // rotate register A left with the carry flag
 static inline void i8080_ral(i8080* const c) {
   bool cy = c->cf;
   c->cf = c->a >> 7;
+  c->vf = ((c->a >> 7) ^ (c->a >> 6)) & 1;
   c->a = (c->a << 1) | cy;
+  c->kf = c->vf ^ (c->a >> 7);
 }
 
 // rotate register A right with the carry flag
@@ -334,6 +383,8 @@ static inline void i8080_rar(i8080* const c) {
   bool cy = c->cf;
   c->cf = c->a & 1;
   c->a = (c->a >> 1) | (cy << 7);
+  c->vf = 0;
+  c->kf = c->a >> 7;
 }
 
 // Decimal Adjust Accumulator: the eight-bit number in register A is adjusted
@@ -373,14 +424,81 @@ static inline void i8080_xthl(i8080* const c) {
   i8080_set_hl(c, val);
 }
 
+// 8085: RIM, SIM and the undocumented instructions (the 8080 aliases of these opcodes are
+// in i8080_execute). Returns false for the other opcodes.
+static inline bool i8085_execute(i8080* const c, uint8_t opcode) {
+  switch (opcode) {
+  case 0x20: { // RIM
+    bool ie = c->iff;
+    if (c->trap_rim) { // the first RIM after a TRAP: IE before it
+      ie = c->trap_ie;
+      c->trap_rim = 0;
+    }
+    c->a = (uint8_t)(c->sid << 7 | c->r75_ff << 6 | c->rst65 << 5 | c->rst55 << 4 | ie << 3 | (c->masks & 7));
+    return true;
+  }
+  case 0x30: // SIM
+    if (c->a & 0x08) c->masks = c->a & 7; // MSE
+    if (c->a & 0x10) c->r75_ff = 0;       // R7.5
+    if (c->a & 0x40) c->sod = c->a >> 7;  // SDE
+    return true;
+  case 0x08: { // DSUB: HL -= BC (flags as SBB in the high byte, Z and V of the 16 bits)
+    uint16_t hl = i8080_get_hl(c), bc = i8080_get_bc(c);
+    uint16_t r = hl - bc;
+    bool borrow_lo = (hl & 0xFF) < (bc & 0xFF);
+    c->hf = carry(4, c->h, ~c->b, !borrow_lo);
+    c->cf = hl < bc;
+    c->vf = (((hl ^ bc) & (hl ^ r)) >> 15) & 1;
+    c->sf = r >> 15;
+    c->zf = r == 0;
+    c->pf = parity(r >> 8);
+    c->kf = c->vf ^ c->sf;
+    i8080_set_hl(c, r);
+    return true;
+  }
+  case 0x10: { // ARHL: arithmetic shift right of HL, CY = L0
+    uint16_t hl = i8080_get_hl(c);
+    c->cf = hl & 1;
+    c->vf = 0;
+    i8080_set_hl(c, (uint16_t)((hl >> 1) | (hl & 0x8000)));
+    return true;
+  }
+  case 0x18: { // RDEL: DE rotated left through CY
+    uint16_t de = i8080_get_de(c);
+    c->vf = ((de >> 15) ^ (de >> 14)) & 1;
+    bool cy = c->cf;
+    c->cf = de >> 15;
+    i8080_set_de(c, (uint16_t)(de << 1 | cy));
+    return true;
+  }
+  case 0x28: i8080_set_de(c, i8080_get_hl(c) + i8080_next_byte(c)); return true; // LDHI
+  case 0x38: i8080_set_de(c, c->sp + i8080_next_byte(c)); return true; // LDSI
+  case 0xCB: // RSTV
+    if (c->vf) {
+      i8080_call(c, 0x40);
+      c->cyc += 6;
+    }
+    return true;
+  case 0xD9: i8080_ww(c, i8080_get_de(c), i8080_get_hl(c)); return true; // SHLX
+  case 0xED: i8080_set_hl(c, i8080_rw(c, i8080_get_de(c))); return true; // LHLX
+  case 0xDD: i8080_cond_jmp(c, c->kf == 0); return true; // JNK
+  case 0xFD: i8080_cond_jmp(c, c->kf == 1); return true; // JK
+  default: return false;
+  }
+}
+
 // executes one opcode
 static inline void i8080_execute(i8080* const c, uint8_t opcode) {
-  c->cyc += OPCODES_CYCLES[opcode];
+  c->cyc += c->i8085 ? OPCODES_CYCLES_8085[opcode] : OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
   // until the end of next instruction:
   if (c->interrupt_delay > 0) {
     c->interrupt_delay -= 1;
+  }
+
+  if (c->i8085 && i8085_execute(c, opcode)) {
+    return;
   }
 
   switch (opcode) {
@@ -568,15 +686,15 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     i8080_wb(c, i8080_get_hl(c), i8080_dcr(c, i8080_rb(c, i8080_get_hl(c))));
     break; // DCR M
 
-  case 0x03: i8080_set_bc(c, i8080_get_bc(c) + 1); break; // INX B
-  case 0x13: i8080_set_de(c, i8080_get_de(c) + 1); break; // INX D
-  case 0x23: i8080_set_hl(c, i8080_get_hl(c) + 1); break; // INX H
-  case 0x33: c->sp += 1; break; // INX SP
+  case 0x03: c->kf = i8080_get_bc(c) == 0xFFFF; i8080_set_bc(c, i8080_get_bc(c) + 1); break; // INX B
+  case 0x13: c->kf = i8080_get_de(c) == 0xFFFF; i8080_set_de(c, i8080_get_de(c) + 1); break; // INX D
+  case 0x23: c->kf = i8080_get_hl(c) == 0xFFFF; i8080_set_hl(c, i8080_get_hl(c) + 1); break; // INX H
+  case 0x33: c->kf = c->sp == 0xFFFF; c->sp += 1; break; // INX SP
 
-  case 0x0B: i8080_set_bc(c, i8080_get_bc(c) - 1); break; // DCX B
-  case 0x1B: i8080_set_de(c, i8080_get_de(c) - 1); break; // DCX D
-  case 0x2B: i8080_set_hl(c, i8080_get_hl(c) - 1); break; // DCX H
-  case 0x3B: c->sp -= 1; break; // DCX SP
+  case 0x0B: c->kf = i8080_get_bc(c) == 0; i8080_set_bc(c, i8080_get_bc(c) - 1); break; // DCX B
+  case 0x1B: c->kf = i8080_get_de(c) == 0; i8080_set_de(c, i8080_get_de(c) - 1); break; // DCX D
+  case 0x2B: c->kf = i8080_get_hl(c) == 0; i8080_set_hl(c, i8080_get_hl(c) - 1); break; // DCX H
+  case 0x3B: c->kf = c->sp == 0; c->sp -= 1; break; // DCX SP
 
   case 0x27: i8080_daa(c); break; // DAA
   case 0x2F: c->a = ~c->a; break; // CMA
@@ -731,10 +849,72 @@ void i8080_init(i8080* const c) {
   c->interrupt_pending = 0;
   c->interrupt_vector = 0;
   c->interrupt_delay = 0;
+
+  c->i8085 = 0;
+  c->vf = 0;
+  c->kf = 0;
+  c->sod = 0;
+  c->sid = 0;
+  c->trap = c->rst75 = c->rst65 = c->rst55 = 0;
+  c->trap_ff = 0;
+  c->r75_ff = 0;
+  c->trap_rim = 0;
+  c->trap_ie = 0;
+  c->masks = 7; // RESET: all masked
+}
+
+// 8085: TRAP, RST 7.5, 6.5, 5.5 in this order of priority. Internally generated RST:
+// 12 T-states (Intel MCS-80/85 fig. 2-19). Returns true when one was taken.
+static bool i8085_interrupt(i8080* const c) {
+  uint16_t addr;
+  if (c->trap_ff && c->trap) { // not maskable
+    addr = 0x24;
+    c->trap_ff = 0;
+    c->trap_ie = c->iff;
+    c->trap_rim = 1;
+  } else if (!c->iff || c->interrupt_delay > 0) {
+    return false;
+  } else if (c->r75_ff && !(c->masks & 4)) {
+    addr = 0x3C;
+    c->r75_ff = 0;
+  } else if (c->rst65 && !(c->masks & 2)) {
+    addr = 0x34;
+  } else if (c->rst55 && !(c->masks & 1)) {
+    addr = 0x2C;
+  } else {
+    return false;
+  }
+  c->iff = 0;
+  c->halted = 0;
+  i8080_call(c, addr);
+  c->cyc += 12;
+  return true;
+}
+
+void i8085_lines(i8080* const c, bool trap, bool rst75, bool rst65, bool rst55) {
+  if (trap && !c->trap) c->trap_ff = 1;
+  if (rst75 && !c->rst75) c->r75_ff = 1;
+  c->trap = trap;
+  c->rst75 = rst75;
+  c->rst65 = rst65;
+  c->rst55 = rst55;
+}
+
+uint8_t i8080_flags(const i8080* const c) {
+  uint8_t f = c->sf << 7 | c->zf << 6 | c->hf << 4 | c->pf << 2 | c->cf;
+  if (c->i8085) {
+    f |= c->kf << 5 | c->vf << 1;
+  } else {
+    f |= 1 << 1; // bit 1 is always 1
+  }
+  return f;
 }
 
 // executes one instruction
 void i8080_step(i8080* const c) {
+  if (c->i8085 && i8085_interrupt(c)) {
+    return;
+  }
   // interrupt processing: if an interrupt is pending and IFF is set,
   // we execute the interrupt vector passed by the user.
   if (c->interrupt_pending && c->iff && c->interrupt_delay == 0) {
@@ -757,13 +937,7 @@ void i8080_interrupt(i8080* const c, uint8_t opcode) {
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
 void i8080_debug_output(i8080* const c, bool print_disassembly) {
-  uint8_t f = 0;
-  f |= c->sf << 7;
-  f |= c->zf << 6;
-  f |= c->hf << 4;
-  f |= c->pf << 2;
-  f |= 1 << 1; // bit 1 is always 1
-  f |= c->cf << 0;
+  uint8_t f = i8080_flags(c);
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
       c->pc, c->a << 8 | f, i8080_get_bc(c), i8080_get_de(c), i8080_get_hl(c),

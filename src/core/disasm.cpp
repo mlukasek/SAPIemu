@@ -263,3 +263,54 @@ DisasmResult z80_disasm(uint16_t addr, disasm_read_fn read, void* user)
     d.res.length = (int)(uint16_t)(d.pc - addr);
     return d.res;
 }
+
+DisasmResult i8080_disasm(uint16_t addr, disasm_read_fn read, void* user, bool i8085)
+{
+    uint8_t op = read(user, addr);
+    uint8_t lo = read(user, (uint16_t)(addr + 1)), hi = read(user, (uint16_t)(addr + 2));
+    uint16_t nn = (uint16_t)(lo | hi << 8);
+    DisasmResult r;
+    r.addr = addr;
+    r.length = 1;
+    r.call_like = false;
+    r.has_target = false;
+    r.target = 0;
+    auto jump = [&](const char* m, bool call) {
+        r.text = std::string(m) + hex16(nn);
+        r.length = 3;
+        r.has_target = true;
+        r.target = nn;
+        r.call_like = call;
+    };
+    switch (op) {
+    case 0x08: r.text = i8085 ? "DSUB" : "NOP*"; return r;
+    case 0x10: r.text = i8085 ? "ARHL" : "NOP*"; return r;
+    case 0x18: r.text = i8085 ? "RDEL" : "NOP*"; return r;
+    case 0x20: r.text = i8085 ? "RIM" : "NOP*"; return r;
+    case 0x30: r.text = i8085 ? "SIM" : "NOP*"; return r;
+    case 0x28:
+    case 0x38:
+        if (!i8085) { r.text = "NOP*"; return r; }
+        r.text = std::string(op == 0x28 ? "LDHI " : "LDSI ") + hex8(lo);
+        r.length = 2;
+        return r;
+    case 0xCB:
+        if (!i8085) { jump("JP* ", false); return r; }
+        r.text = "RSTV";   // RST 40h on overflow
+        r.has_target = true;
+        r.target = 0x40;
+        r.call_like = true;
+        return r;
+    case 0xD9: r.text = i8085 ? "SHLX" : "RET*"; return r;
+    case 0xED:
+        if (i8085) { r.text = "LHLX"; return r; }
+        jump("CALL* ", true);
+        return r;
+    case 0xDD:
+    case 0xFD:
+        if (i8085) jump(op == 0xDD ? "JNK " : "JK ", false);
+        else jump("CALL* ", true);
+        return r;
+    default: return z80_disasm(addr, read, user);
+    }
+}

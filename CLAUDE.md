@@ -35,7 +35,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     png, log, `xmodem` (vysílač a přijímač pro okno terminálu), `tapegen` (kazeta MIKOS a MIKROBASIC
     z programu, `docs/software/kazeta.md`), `state` (ukládání stavu, `docs/stav.md`:
     **každá karta musí mít `state()`**);
-  - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`);
+  - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`, upravené o režim 8085 pro JPR-1X,
+    `docs/8085.md`);
   - `chips/`: obvody (MHB1012…);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);

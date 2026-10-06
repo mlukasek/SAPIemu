@@ -184,7 +184,7 @@ bool Machine::load_json(const json& cfg, std::string& err)
     bus.cpu_hz = cpu->clock_hz();
     cpu->bp_exec = bp_exec;
 
-    LOGI("machine '%s' loaded: %d cards, CPU %.3f MHz", name.c_str(), (int)cards.size(), bus.cpu_hz / 1e6);
+    LOGI("machine '%s' loaded: %d cards, CPU %.3f MHz", name.c_str(), (int)cards.size(), cpu->cpu_display_hz() / 1e6);
     reset();
     return true;
 }
@@ -316,6 +316,8 @@ static uint8_t disasm_peek(void* user, uint16_t addr)
 
 DisasmResult Machine::disassemble(uint16_t addr)
 {
+    int isa = cpu ? cpu->cpu_isa() : CpuCard::ISA_Z80;
+    if (isa != CpuCard::ISA_Z80) return i8080_disasm(addr, disasm_peek, this, isa == CpuCard::ISA_8085);
     return z80_disasm(addr, disasm_peek, this);
 }
 

@@ -35,5 +35,6 @@ Druhý průzkum přečetl některé rozsahy z XLS jinak: RPD-1A 24–25, DPP-1/6
 | CP/M ZPS-3 s AND-1A | displej na E800h (48K), na F800h (62K, RAM 0000–F7FF) |
 | MIKOS | displej na 3800h. MAP odebere 0000–3FFF z RAM-1Z/DMR-1, aby tam mohla být ROM. Autoritativní mapu MIKOS zatím nemáme |
 | JPR-1ZI při BOOT=1 | EPROM přes 0000–07FF (nebo 0000–1FFF). Zápisy jdou do RAM pod ní |
+| JPR-1X (`jpr1x_bgp1s`, `zps/ZPS-1_JPR-1X`) | ROM 0000–1FFF (banka podle propojky BIOS), RAM 2000–23FF, porty P0/P1/P2 v paměti 2400/2800/2C00, 3214 na 3000 (jen zápis), čtení 3000–FFFF ze sběrnice, každý zápis i na sběrnici. Žádné porty I/O |
 | JPR-1S + BGP-1S (`jpr1s_bgp1s`) | EEPROM 0000–1FFF, RAM 2000–23FF, porty P0/P1/P2 v paměti 2400/2800/2C00, RAM 4000–FFFF (banky JPR-1S); BGP-1S na C000 jen pro zápis, čte se banka pod ní. Žádné porty I/O |
 | ZPS-1 s AND-1B | jako ZPS-1: AND-1B na 3800–3FFF (okno 2 KB, 1 KB RAM), bez portů I/O |

@@ -33,6 +33,7 @@ sapi_test(test_xmodem)
 sapi_test(test_keyboards)
 sapi_test(test_and1b)
 sapi_test(test_bgp1s)
+sapi_test(test_jpr1x)
 sapi_test(test_machine_cfg)
 sapi_test(test_mikrobasic)
 sapi_test(test_cassette)
@@ -59,6 +60,9 @@ add_test(NAME test_i8080 COMMAND test_i8080)
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_test(NAME test_8080exm COMMAND test_i8080 8080EXM.COM)
     set_tests_properties(test_8080exm PROPERTIES LABELS slow TIMEOUT 1800)
+    # the 8085 mode against the CRCs of a real Intel D8085AH-1
+    add_test(NAME test_8085exm COMMAND test_i8080 8085EXM.COM 8085)
+    set_tests_properties(test_8085exm PROPERTIES LABELS slow TIMEOUT 1800)
 endif()
 
 # Z80 instruction exerciser: takes minutes in a debug build, so it is registered

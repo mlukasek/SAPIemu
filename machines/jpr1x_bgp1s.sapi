@@ -1,0 +1,38 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "JPR-1X + BGP-1S + ANK-1M2 (Libor Lasota): MIKROBIOS 1.02, 8085, grafika PMD-85",
+    "description": "Sestava s procesorovou deskou JPR-1X rev 1.0 (80C85, Libor Lasota 2025): v ROM dolní banka (propojka BIOS osazená) MIKROBIOS 1.02 s Falcon Monitorem 6.1L, horní banka MIKROBASIC 2.4. RAM-1/48K na 4000-FFFF, grafická karta BGP-1S rev 4.2 na C000h (Colorace, videoram jen pro zápis, čte se RAM-1 pod ní), klávesnice ANK-1M2 s joystickem a redukce Redukce34KB01 pro příkaz BOOT (TCP 2325). TURBO (CPU 4 MHz) jde přepnout za chodu. Hry v media/jpr-1s: Soubor → Nahrát program (Intel HEX), např. manic_miner.hex, pak JUMP 4400. docs/desky/JPR-1X.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1X",               // CPU card 8085, JPR-1 remake with 3214, two ROM banks, TURBO (Libor Lasota)
+            "rom": "roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin",  // ROM IC11 (27C256: two 8 KB banks at 4000h/6000h of the chip) - lower bank MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), upper bank MIKROBASIC 2.4
+            "bios": "fitted",               // Jumper BIOS: ROM bank (read at RESET) - fitted: the lower bank
+            "turbo": false,                 // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
+            "keyboard": {                   // Keyboard (connector K2)
+                "type": "ANK-1M2",
+                "joyport": "joystick",      // Keyboard ANK-1M2: joystick connector (P1-IN D5-D0) - joystick (Atari)
+                "software": "mikos"
+            },
+            "k2_adapter": "redukce34kb01",  // K2 adapter (cable of the keyboard) - Redukce34KB01 rev 2.0: RS-232 RX on P1-IN7 (INT, T keys not connected)
+            "serial": {
+                "tcp": { "bind": "127.0.0.1", "dcd_follows": false, "port": 2325, "protocol": "raw" }
+            }
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "BGP-1S"                // Graphics 288x256 like PMD-85, TV (Libor Lasota)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RAM-1",                // Dynamic RAM up to 48 KB
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": true,                     // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": false                     // S2
+        }
+    ]
+}

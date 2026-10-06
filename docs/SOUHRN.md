@@ -6,8 +6,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 36 v debug, paralelně asi 25 s; release `full` 39 včetně ZEX a 8080EXM; Linux ve WSL 35 (bez
-    `test_tapegen`, ten tam zatím neběžel). Vše prochází (2026-10-06). Kdy které testy: `docs/build.md`.
+  - Testy: 37 v debug, paralelně asi 25 s; release `full` 41 včetně ZEX, 8080EXM a 8085EXM; Linux ve WSL 35
+    (bez `test_tapegen` a `test_jpr1x`, ty tam zatím neběžely). Vše prochází (2026-10-06). Kdy které testy:
+    `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
 - **Alfa 0.1.0-alpha:**
@@ -43,6 +44,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy s bootem CP/M z 8" diskety (`cpm_boot_mfc1a/fdc1/rpd1.sapi`, Consul 259.11), formáty disket PC (MFM,
   HD/DD, dvě strany) pro FDC-1 a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), okno Média zakládá
   diskety v libovolném formátu.
+- **Hotové 2026-10-06 v noci:** **JPR-1X** (Libor Lasota, 80C85): procesor 8085 jako režim jádra 8080
+  (`docs/8085.md`, 8085EXM s CRC skutečného čipu projde), deska jako varianta `Jpr1` (`docs/desky/JPR-1X.md`),
+  sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
 - **Hotové 2026-10-06 večer** (podrobnosti v `docs/rozhodnuti.md`):
   - **kazeta z programu** HEX/BIN (i `.txt`) pro MIKOS a MIKROBASIC, „Uložit jako WAV…“, `--make-tape`
     (`docs/software/kazeta.md`);
@@ -381,7 +385,7 @@ Dřív hotové fáze:
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z, s FDC-1 MOR62ZF) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
-| F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka. Kazeta z programu (HEX/BIN → MIKOS, MIKROBASIC, WAV) | ✅ hotovo |
+| F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), JPR-1X (8085, TURBO), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka. Kazeta z programu (HEX/BIN → MIKOS, MIKROBASIC, WAV) | ✅ hotovo |
 | F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; ~~převod HEX → kazeta~~ (hotovo); CI (~~Linux~~ ve WSL hotovo) | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -554,6 +558,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - AND-1B: je ve vyráběných deskách font `FontAND1B11`? Střída blikání 75 : 25, nerovnoměrný INT1 50 Hz; jsou
       v oběhu desky starší než rev 1.4 s jinými propojkami?
     - ANK-1M2: který program používá joyport (myš)? Má JPR-1 na P1-IN pull-upy?
+    - JPR-1X: obsah ROM (dump obou bank), stav propojek BIOS/TURBO/RSTN/7, rezistor na D3, příznaky V/K a nedok.
+      instrukce 8085 na skutečném čipu (`docs/desky/JPR-1X.md`, `docs/8085.md`).
 
 ## Jak pokračovat
 

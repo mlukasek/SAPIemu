@@ -132,6 +132,9 @@ public:
     virtual bool cpu_turbo() const { return false; }
     virtual void set_cpu_turbo(bool on) {}
     virtual uint32_t cpu_display_hz() const { return clock_hz(); }   // the actual CPU clock
+    // The instruction set (the debugger disassembles the 8080/8085 opcodes that differ from the Z80).
+    enum { ISA_Z80 = 0, ISA_8080, ISA_8085 };
+    virtual int cpu_isa() const { return ISA_Z80; }
 
     const uint8_t* bp_exec = nullptr;   // 64K map of execution breakpoints (owned by Machine)
     bool step_mode = false;             // stop at the next instruction boundary

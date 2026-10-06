@@ -25,8 +25,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 
 ## Co umí
 
-- **Procesorové karty:** JPR-1, JPR-1A a JPR-1S (8080), JPR-1Z, JPR-1ZI a JPR-1V (Z80), včetně BOOT logiky
-  a čekacích stavů.
+- **Procesorové karty:** JPR-1, JPR-1A a JPR-1S (8080), JPR-1X (8085: takty, RIM/SIM, nedokumentované instrukce,
+  ověřeno testem 8085EXM s CRC skutečného čipu), JPR-1Z, JPR-1ZI a JPR-1V (Z80), včetně BOOT logiky a čekacích stavů.
 - **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1. RAM disky RMD-1, ZRMD-1
   (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
@@ -96,7 +96,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   Zdroje jsou v [roms/README.md](roms/README.md) a [media/README.md](media/README.md).
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,
   ze kterých emulace vychází, a překreslená schémata desek.
-- **Libor Lasota:** desky V, desky k původním sestavám (JPR-1S, BGP-1S, AND-1B, ANK-1M2), MikroMon, MIKROBIOS
+- **Libor Lasota:** desky V, desky k původním sestavám (JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2), MikroMon, MIKROBIOS
   a programy pro CGA-1V, MPH-1V a BGP-1S, použité s jeho souhlasem.
 - **Jiří Bíba (SAPIMAN):** monitory a BIOSy CP/M pro SAPI-1 (RPD-1, FDC-1, MFC-1A, RAM disky, IDE) a sbírka disket
   a zdrojáků v SAPI_DOKU; **EC1045** je dál udržoval (ECMON, diskety PC, CD a MOUNT pro PMD32-SD).

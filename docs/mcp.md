@@ -70,7 +70,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `mouse` | Myš stroje (konektor MPH-1V nebo ANK-1M2 `mouse_atari` / `mouse_amiga`): `dx`, `dy` = pohyb v krocích (+x doprava, +y dolů, karta je posílá po 1000 za sekundu), `buttons` = držená tlačítka (`left`, `right`) |
 | `save_state`, `load_state` | Stav celého stroje (`docs/stav.md`): do paměti pod `name` (rychlé checkpointy, výchozí `default`) nebo do `file` (`.sapistate`). Načtení postaví sestavu stavu a zachová breakpointy, watchpointy a pauzu |
 | `audio_record` | Nahrávání zvuku zvukové karty (MPH-1V, mono 49716 Hz): `start=true` začne, volání bez `start` skončí a vrátí délku, RMS a špičku, s `file` uloží WAV |
-| `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V: CPU 2/4 MHz, sběrnice 2 MHz), zapíše se i do popisu sestavy |
+| `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V, JPR-1X: CPU 2/4 MHz, sběrnice 2 MHz), zapíše se i do popisu sestavy |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |
