@@ -62,7 +62,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `io_read`, `io_write` | IN a OUT na port (s vedlejšími efekty jako u CPU) |
 | `disassemble` | Disassembler Z80 |
 | `set_breakpoint`, `clear_breakpoint`, `list_breakpoints` | Druhy `exec`, `mem_read`, `mem_write`, `mem_rw`, `io_in`, `io_out`, `io_rw` |
-| `load_hex`, `load_binary` | Nahrání programu ze souboru nebo z inline Intel HEX |
+| `load_hex`, `load_binary` | Nahrání programu ze souboru nebo z inline Intel HEX (zapíše i RAM na procesorové kartě, např. banky JPR-1S) |
 | `type_text` | Psaní na připojenou klávesnici (`\r` = Enter; čeština jen u EKL-1 a Consul 259.11 KOI-8 cs), volitelně s během `run_ms` |
 | `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
 | `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1, ANK-1M2 |

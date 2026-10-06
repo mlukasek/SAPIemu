@@ -25,14 +25,19 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   + CP/M ZRMD-1** (ověřené proti originálům) jsou v `..\SAPI-karty\ZRMD-1\SRC\` (`build.py`, M80/L80 pod
   `cpmrun`, viz `docs/software/ECMON.md`). **Systémy CP/M J. Bíby (SAPIMAN) a EC1045**, obrazy disket, formáty a otázky na
   EC1045: `docs/software/CPM_SAPIMAN.md`, soupis jeho disket a knihovna v repu: `docs/software/SAPIMAN_diskety.md`.
+- **Desky Libora Lasoty** (`..\SAPI-karty\<deska>`) mají víc revizí: vycházet z poslední, schémata v obrázcích,
+  PDF a EAGLE se mohou lišit. Binární `.sch` převede offline na netlist `"C:\EAGLE 9.5.1\eaglecon.exe" -C "EXPORT
+  NETLIST n.txt; EXPORT PARTLIST p.txt; WRITE x.sch; QUIT;" kopie.sch` (na kopii, `eagle.exe` chce přihlášení).
+  Názvy: ANK-1M5 = ANK-1M2 (předchůdce), BGP-1 = BGP-1S.
 - **Původní zadání:** `zadani.md`.
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
-    png, log, `state` (ukládání stavu, `docs/stav.md`: **každá karta musí mít `state()`**);
+    png, log, `xmodem` (vysílač a přijímač pro okno terminálu), `state` (ukládání stavu, `docs/stav.md`:
+    **každá karta musí mít `state()`**);
   - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`);
   - `chips/`: obvody (MHB1012…);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
-  - `input/`: klávesnice;
+  - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);

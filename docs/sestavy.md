@@ -83,6 +83,9 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1 barvu nemají, ta je dána luminoforem monitoru: parametr `monitor`
     (white, green, amber), v konfigurátoru „Monitor: barva luminoforu (není na kartě)“;
   - CGA-1V je barevná a barvu nemá.
+  - AND-1B: propojky S1 (`color`) jako AND-1V, výchozí zelená (autorova deska);
+  - BGP-1S: barvy dávají atributy (Colorace / RGBM); v menu Barva se volí výstup K2: `rgb` (barevná TV, SCART) nebo
+    `mono` (černobílá TV, kompozit).
 - **Menu Zobrazení → Barva** mění tentýž parametr jako konfigurátor. Změna se projeví hned, bez vypnutí, a
   v konfigurátoru se objeví jako neuložená změna sestavy (Uložit). Totéž platí obráceně: barva změněná
   v konfigurátoru se na běžící sestavě ukáže hned.

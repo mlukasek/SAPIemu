@@ -45,8 +45,9 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
   joysticku (joystick z šipek a mezerníku nebo gamepadu, myš).
 - **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4 s RPD-1
-  i FDC-1, originální CP/M Tesla IMA 48K a 64K pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM disku ZRMD-1, z 8" diskety (RPD-1, FDC-1,
-  MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
+  i FDC-1, originální CP/M Tesla IMA 48K a 64K pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM
+  disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. MIKROBIOS
+  a Falcon Monitor pro JPR-1S s BGP-1S a hry z PMD-85 (Manic Miner), nahrávané i příkazem BOOT po sériové lince. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
   Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky.
 - **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,
   L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
@@ -92,7 +93,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   Zdroje jsou v [roms/README.md](roms/README.md) a [media/README.md](media/README.md).
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,
   ze kterých emulace vychází, a překreslená schémata desek.
-- **Libor Lasota:** desky V, MikroMon a programy pro CGA-1V a MPH-1V, použité s jeho souhlasem.
+- **Libor Lasota:** desky V, desky k původním sestavám (JPR-1S, BGP-1S, AND-1B, ANK-1M2), MikroMon, MIKROBIOS
+  a programy pro CGA-1V, MPH-1V a BGP-1S, použité s jeho souhlasem.
 - **Jiří Bíba (SAPIMAN):** monitory a BIOSy CP/M pro SAPI-1 (RPD-1, FDC-1, MFC-1A, RAM disky, IDE) a sbírka disket
   a zdrojáků v SAPI_DOKU; **EC1045** je dál udržoval (ECMON, diskety PC, CD a MOUNT pro PMD32-SD).
 - Software pro SAPI-1 od Tesla ELTOS / DIZ, CP/M 2.2/P od R. Peřiny a další programy, které se zachovaly.

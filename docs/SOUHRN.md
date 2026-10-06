@@ -6,7 +6,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 32 v debug (v release navíc pomalé ZEX a 8080EXM). Vše prochází.
+  - Testy: 35 v debug, paralelně asi 25 s; release `full` 38 včetně ZEX a 8080EXM; Linux ve WSL 35. Vše prochází
+    (2026-10-06). Kdy které testy: `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
 - **Alfa 0.1.0-alpha:**
@@ -126,11 +127,17 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      `docs/build.md`).
   7. PKT-1.
   8. Příprava veřejného vydání (níže).
+  9. Okno terminálu: kopírování jen výběru myší (teď celý text); diagnostická deska JPR1X na K3 JPR-1S (sedmisegmentovky).
+  10. Uklidit 4 varování GCC ze staršího kódu (`main.cpp` `mcp_enabled`, `rack.cpp` `running_display` a `snprintf`,
+     `test_util.h` `g_test_failures`).
 - **Pracovní pravidla, která se osvědčila:**
   - Skripty s `\n`, `\r` a `\b` psát nástrojem Write do souboru, ne přes heredoc v bashi. Shell zpětná lomítka
     rozbije a do souborů se pak dostanou řídicí znaky.
   - Po commitu obnovit CRLF smazáním a checkoutem commitnutých souborů, jen když commit prošel.
   - GUI ověřovat přes `--ui-snapshot`, stav emulace přes `sapiemu-cli`, ne snímky plochy.
+  - `sapiemu-cli` z Git Bash občas nevypíše nic: pustit z PowerShellu. PowerShell 5.1 v argumentech zahodí uvozovky
+    (`--type 'PRINT "X"'`), na text s uvozovkami použít Python.
+  - Sestavy ukládat zapisovačem konfigurátoru: `sapiemu-cli --mcp`, nástroj `set_machine_config` se `save_as`.
 
 ## Stav k 2026-10-04
 
@@ -363,6 +370,7 @@ Dřív hotové fáze:
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z, s FDC-1 MOR62ZF) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
+| F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka | ✅ hotovo |
 | F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; převod HEX → kazeta; CI (~~Linux~~ ve WSL hotovo) | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -487,8 +495,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - RAM-1V, patice C: je prázdná. Jaký Timekeeper se tam dává (M48T35/DS1644?) a emulovat jeho RTC?
     - DSM-1V: propojky na tvé desce (adresy A = 10h, B = 14h?, rychlosti obou kanálů).
     - DSM-1V b5 („START“): nemá funkci? Čte +3 FFh?
-    - DGD-1/BGP-1S „paralelně s RAM-1V“: obě karty odpovídají na stejné adresy. Emulátor to dnes hlásí jako
-      kolizi, bude potřeba výjimka.
+    - DGD-1/BGP-1S „paralelně s RAM-1V“: obě karty odpovídají na stejné adresy. BGP-1S se od 2026-10-06 hlásí jen
+      pro zápis (nečte), takže kolize není; DGD-1 to dál potřebuje.
 
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
     - `..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
@@ -526,6 +534,16 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Bere tiskárna data při sestupné, nebo náběžné hraně /STROBE (emulace: náběžná)?
     - DPP-1 kanál 1: děrovač, nebo tiskárna přes `UL1:`? Zapojení /OBF, /ACK, BUSY a přepínače S2–S4.
 
+29. **Desky Libora Lasoty k původním sestavám** (2026-10-06; podrobně v sekcích „Nejasnosti“ `docs/desky/JPR-1S.md`,
+    `BGP-1S.md`, `AND-1B.md`, `klavesnice.md`):
+    - JPR-1S: aktuální propojky a BIOS v PicoROM (emulace: všechny banky, INT1, RST7, BIOS 1.02)? Odkud přichází
+      /RTL (reset)? Převodník a program na straně PC pro BOOT?
+    - BGP-1S: stav klopného obvodu přerušení po zapnutí; čte Manic Miner zpět videoram? Je `.sch` v repu poslední
+      uložení (PNG a kusovník jsou novější)? Kdo napsal hru s autem?
+    - AND-1B: je ve vyráběných deskách font `FontAND1B11`? Střída blikání 75 : 25, nerovnoměrný INT1 50 Hz; jsou
+      v oběhu desky starší než rev 1.4 s jinými propojkami?
+    - ANK-1M2: který program používá joyport (myš)? Má JPR-1 na P1-IN pull-upy?
+
 ## Jak pokračovat
 
 1. `git pull`.
@@ -533,7 +551,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`). Na autorově hlavním PC je repo od
    2026-10-04 na lokálním `E:\SAPI_GIT\SAPIemu` (dřív `H:\SAPI-1\GIT\SAPIemu`), stačí preset `windows-debug`.
-   Po přesunu je sestavení čisté (2026-10-06: 31 testů v debug, v release navíc ZEX a 8080EXM). Autor ověřil překlad debug i release
+   Po přesunu je sestavení čisté (2026-10-06: 35 testů v debug, v release navíc ZEX a 8080EXM). Autor ověřil překlad debug i release
    ve VS 2022.
 4. Pokračovat další fází z tabulky. **Hotovo (2026-10-04): F9 desky V včetně CGA-1V.** Původní poznámky k F9:
    Výsledek
