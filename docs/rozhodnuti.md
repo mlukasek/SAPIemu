@@ -530,7 +530,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 ## 2026-10-04 – Konektory na panelech, DGD-1V
 
 - **Autor:** všechny JPR (i JPR-1V) mají K3 a K2 jako FRB. Původní displeje AND-1, AND-1A, AND-1Z, AND-1Z-89
-  a DGD-1 mají jeden FRB (na deskách dole, K2). VGA D-sub mají AND-1V, CGA-1V, BGP a DGD-1V. FRB se kreslí jako
+  a DGD-1 mají jeden FRB (na deskách dole, K2). VGA D-sub mají AND-1V, AND-1B, CGA-1V a DGD-1V (BGP-1S má FRB K2 pro
+  TV, opraveno 2026-10-06). FRB se kreslí jako
   zelený obdélník se zlatými piny (fotka konektoru od autora).
 - **DGD-1V (autor: stojí za to ji emulovat)** je varianta třídy DGD-1: stejná mapa videoram, VGA (body 2×2),
   S2 se stejnou logikou jako S1 CGA-1V, S1 barva jako AND-1V (sdílená funkce `vga_ink`). Výchozí C000h bez
@@ -989,3 +990,18 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **AND-1B** je samostatný typ karty (ne varianta AND-1): jiné časování (VGA), font z EPROM, atributy řízené obsahem
   fontu (banky, bit 7 = dvojitá šířka), jako v hardwaru. Výchozí propojky podle autorovy desky (fotky rev 1.4):
   3800h, INT1 vypnuto, zelená.
+- **BGP-1S** (název podle autora; schéma a BIOS říkají BGP-1, přijímá se jako alias): samostatný typ. Videoram jen pro
+  zápis, karta při čtení nedrží sběrnici a v mapě se hlásí jen pro zápis (čte se RAM pod ní). Přerušení ruší
+  čtení operačního kódu z okna (adresa = PC instrukce). Výstup TV (FRB K2), ne VGA. Výchozí podle fotky: C000h,
+  MAP1 ignorován, Colorace, /INT0.
+- **JPR-1S** je varianta třídy JPR-1 (stejné porty v paměti), zápisy na desce jdou i na sběrnici (8228 /BUSEN
+  na GND). SRAM má po zapnutí pseudonáhodný obsah jako RMD-1: MIKROBIOS by z nulové RAM vzal VideoBase 0000h.
+  Výchozí propojky podle fotky rev 2.2: všechny banky RAM, INT1, RST7. Výchozí BIOS 1.02 (pro BGP-1S a hry).
+- **Redukce34KB01** (sériová linka na P1-IN7, `k2_adapter`) patří k ANK-1M5 (= ANK-1M2) a karta ji umí i na JPR-1.
+  S ní nejdou klávesy INT a T (kolíky 7 a 9 nejsou zapojené), jako na skutečné redukci. Úroveň linky se počítá
+  z času sběrnice při čtení P1, takže BOOT v BIOSu čte bit po bitu jako na stroji.
+- **`CpuCard::poke_local()`:** nahrání programu (Soubor → Nahrát, `--load-hex`, MCP) dosud šlo jen přes sběrnici
+  a RAM na procesorové kartě (JPR-1 2000h, banky JPR-1S) nedostalo. Teď ji zapíše i procesorová karta.
+- **Sestavy** (autor: dvě, stávající beze změny): `machines/jpr1s_bgp1s.sapi` (MIKROBIOS 1.02, BGP-1S, ANK-1M2,
+  redukce na TCP 2325) a `machines/zps/ZPS-1_JPR-1S_AND-1B.sapi` (ekvivalent ZPS-1: MIKROBASIC 2.4 v EEPROM JPR-1S,
+  AND-1B, DSM-1). Binárky (BIOSy, font, hry) jsou v repu se souhlasem autora.

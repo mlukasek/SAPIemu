@@ -1,0 +1,27 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-1 s JPR-1S, AND-1B a ANK-1M2 (Libor Lasota): MIKROBASIC 2.4",
+    "description": "Ekvivalent ZPS-1 z desek Libora Lasoty, jak ho zkoušel s AND-1B: procesorová deska JPR-1S rev 2.2 s MIKROBASICem 2.4 v EEPROM 28C64 (0000-0FFF, místo EPROM na REM-1), RAM na JPR-1S (2000h, banky 4000-FFFF), displej AND-1B rev 1.4 (VGA, 40x24, 3800h, zelená), klávesnice ANK-1M2 (s tlačítky INT a T, joystick), DSM-1 na 10h pro kazety. JPR-1S nemá 3214: přerušení od klávesy INT (JPR-1 propojka 10-11) tu není. docs/desky/AND-1B.md, JPR-1S.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1S",               // CPU card 8080, JPR-1 remake with RAM banks (Libor Lasota)
+            "rom": "roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin",  // EEPROM 28C64 (0000-1FFF)
+            "keyboard": { "type": "ANK-1M2" }  // Keyboard (connector K2)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1B"                // VGA replacement of AND-1/AND-1A, 40x24 (Libor Lasota)
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600                     // Jumper: terminal baud rate - 600 Bd (factory)
+        }
+    ]
+}

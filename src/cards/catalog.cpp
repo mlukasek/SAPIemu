@@ -374,8 +374,8 @@ static const ParamOption k_eprom_type[] = {
 // Redukce34KB01 (Libor Lasota): the keyboard cable adapter with an RS-232 receive line on P1-IN7
 static const ParamOption k_k2_adapter[] = {
     { "\"none\"", "plain (FRB30 - IDC34)", "obyčejná (FRB30 - IDC34)" },
-    { "\"redukce34kb01\"", "Redukce34KB01: RS-232 RX on P1-IN7 (INT, T keys not connected)",
-      "Redukce34KB01: RS-232 RX na P1-IN7 (klávesy INT, T odpojené)" },
+    { "\"redukce34kb01\"", "Redukce34KB01 rev 2.0: RS-232 RX on P1-IN7 (INT, T keys not connected)",
+      "Redukce34KB01 rev 2.0: RS-232 RX na P1-IN7 (klávesy INT, T odpojené)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_jpr1_roms[] = {

@@ -121,6 +121,17 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 | `prazdna_5.25HD_CPM.img` | Prázdná disketa PC 5,25" HD 1,2 MB (80 × 2 × 15 × 512 B, E5h) pro BIOS `ECBIF5`. |
 | `prazdna_8SSSD.img` | Prázdná 8" SS SD (77 × 26 × 128 B, E5h). |
 
+## `jpr-1s/` – programy pro JPR-1S s BGP-1S (Intel HEX od 4400h)
+
+Zdroj: `..\SAPI-karty\JPR-1S\jpr1s_sw\` (doplnil autor 2026-10-06). Sestava `jpr1s_bgp1s`: Soubor → Nahrát
+program (Intel HEX), nebo BOOT po sériové lince (redukce Redukce34KB01), pak `JUMP 4400`.
+
+| Soubor | Obsah |
+|---|---|
+| `manic_miner.hex` | Manic Miner (Vít Libovický & Daniel Jenne, ViLiSoft & DaJeSoft 1985, port z PMD-85), 4400–989E. Potřebuje BGP-1S na C000h v režimu Colorace a RAM pod ní. Ovládání O, P, SHIFT (skok), M (melodie), CR (start). Snímek ze skutečného stroje `..\SAPI-karty\JPR-1S\jpr1s_sw\manic_main.jpg`. Původně `manic_sapi.txt`. |
+| `auto.hex` | Hra s autíčkem („HAVAROVAL SI … KRAT“), 4400–4BAB: joystick ANK-1M2 vlevo/vpravo (P1-IN D3/D2), čte videoram kvůli srážkám. Původně `auto.txt`. |
+| `martinuv_prvni_pokus.hex` | „MARTINUV PRVNI POKUS (06/06/2022)“ (autor emulátoru), volá tisk BIOSu 1.02 na 0BC4h, jen s ním. Původně `m.txt`. |
+
 ## `cga-1v/` – programy pro CGA-1V (Intel HEX, CP/M `.COM` od 0100h)
 
 Zdroj: `..\SAPI-karty\CGA-1V\sw\` (Libor Lasota). V CP/M sestavy V:

@@ -25,11 +25,12 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 
 ## Co umí
 
-- **Procesorové karty:** JPR-1 a JPR-1A (8080), JPR-1Z, JPR-1ZI a JPR-1V (Z80), včetně BOOT logiky a čekacích
-  stavů.
+- **Procesorové karty:** JPR-1, JPR-1A a JPR-1S (8080), JPR-1Z, JPR-1ZI a JPR-1V (Z80), včetně BOOT logiky
+  a čekacích stavů.
 - **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1. RAM disky RMD-1, ZRMD-1
   (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
-- **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V (Bt476).
+- **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
+  (Bt476) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner).
 - **Komunikace a disky:**
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3), DSM-1V;
   - řadiče disket RPD-1, FDC-1 a MFC-1A: 8" SS SD i diskety PC 3,5"/5,25" HD a DD (MFM, dvě strany), obrazy

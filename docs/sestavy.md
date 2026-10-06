@@ -24,7 +24,8 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
       dolní FRB na FDC-1A („K2 FDD“), dolní FRB na FDC-1B má vlastní signály SEL, HL a MOT;
     - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2). LED na
       skutečné desce není, emulátor ji přidává: svítí 50 ms po přístupu na disk nebo PMD32-SD;
-    - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, DGD-1V, BGP a CGA: K2 VGA uprostřed; MPH (K4 OVL, K3 ZVUK, K2 MYŠ);
+    - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, AND-1B, DGD-1V a CGA: K2 VGA uprostřed; BGP-1S: FRB K2 (TV);
+      MPH (K4 OVL, K3 ZVUK, K2 MYŠ);
       ZRD-1V (LED podle rev 2.1: ZAM červená = zámek zápisu nastavený programem, odemkne reset; DSK zelená svítí
       20 ms po přístupu na 60h–63h; rev 1.1 LED nemá);
     - bez konektoru (autor): ZRMD-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V, REM-1. Ostatní karty se projdou postupně.
@@ -150,6 +151,12 @@ J. Bíby mají tiskárnu na X3 (`docs/tiskarna.md`).
 `cpm_zrmd_dpp1.sapi` je `cpm_zrmd` s deskou DPP-1 a PMD32-SD (ECMON: D:, E:)
 („dlouhé“ CP/M s 3K BIOSem: RPD-1 8" a FDC-1 5,25" HD v jedné sestavě). `cpm_ec1045.sapi` je systém EC1045 s menu FDC8/FDC3/FDC5/HDD
 a disketami PC 3,5" a 5,25" HD na FDC-1 (volba 1 nebo 2).
+**Desky Libora Lasoty k původním sestavám** (2026-10-06): `machines/jpr1s_bgp1s.sapi` je JPR-1S s MIKROBIOSem 1.02,
+grafikou BGP-1S (PMD-85, Colorace) a klávesnicí ANK-1M2; hry z `media/jpr-1s` se nahrají přes Soubor → Nahrát
+program (Intel HEX) a spustí `JUMP 4400`, nebo příkazem BOOT po sériové lince redukce Redukce34KB01 (TCP 2325, raw,
+19200 Bd). `machines/zps/ZPS-1_JPR-1S_AND-1B.sapi` je ekvivalent ZPS-1: JPR-1S s MIKROBASICem 2.4 v EEPROM, AND-1B
+(VGA) a ANK-1M2. `docs/desky/JPR-1S.md`, `BGP-1S.md`, `AND-1B.md`.
+
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,
