@@ -30,9 +30,8 @@ tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se posled
 (`"language": "cs"` nebo `"en"`, jen když si ho uživatel zvolil v menu). Jiný soubor nastavení:
 `sapiemu --settings soubor.json`.
 
-**Jazyk GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, přepne se hned. Bez uložené volby podle Windows:
-čeština, když je česky nebo slovensky jazyk Windows **nebo** místní formáty (anglické Windows s českými formáty jsou
-běžné), jinak angličtina. `sapiemu --lang cs|en` vybere jazyk jen pro jedno spuštění (neukládá se, hodí se pro
+**Jazyk GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, přepne se hned. Bez uložené volby podle jazyka Windows
+(zobrazovací jazyk, ne místní formáty): čeština pro české nebo slovenské Windows, jinak angličtina. `sapiemu --lang cs|en` vybere jazyk jen pro jedno spuštění (neukládá se, hodí se pro
 `--ui-snapshot`). Texty GUI jsou v `src/frontend/i18n.cpp` (klíč = anglický text, `tr()`), popisy karet a jumperů
 v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazyku (`tr_id()`, „Média###Media“), aby si
 po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky

@@ -303,12 +303,9 @@ bool i18n_parse(const char* code, UiLanguage* out)
 UiLanguage i18n_system_language(void)
 {
 #ifdef _WIN32
-    // the display language or the regional format: English Windows with Czech formats is common here
-    for (LANGID id : { GetUserDefaultUILanguage(), GetUserDefaultLangID() }) {
-        int primary = PRIMARYLANGID(id);
-        if (primary == LANG_CZECH || primary == LANG_SLOVAK) return LANG_CS;
-    }
-    return LANG_EN;
+    // the display language of Windows only (not the regional format)
+    int primary = PRIMARYLANGID(GetUserDefaultUILanguage());
+    return primary == LANG_CZECH || primary == LANG_SLOVAK ? LANG_CS : LANG_EN;
 #else
     const char* v = getenv("LC_ALL");
     if (!v || !*v) v = getenv("LC_MESSAGES");

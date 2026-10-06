@@ -931,9 +931,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Menu:** Zobrazení → „Jazyk / Language“ (název v obou jazycích, aby se našel z kteréhokoli), položky „Čeština“
   a „English“. Přepne se hned, texty se překládají každý snímek. Volba se ukládá do `sapiemu-settings.json`
   (`"language"`), jen když ji uživatel změnil.
-- **Výchozí jazyk podle Windows** (rozhodnutí autora): čeština, když je česky nebo slovensky jazyk Windows nebo místní
-  formáty, jinak angličtina. Formáty proto, že autorův počítač má anglické Windows s českými formáty a čistě podle
-  jazyka Windows by dostal angličtinu.
+- **Výchozí jazyk podle jazyka Windows** (rozhodnutí autora): čeština pro české nebo slovenské Windows, jinak
+  angličtina. Jen zobrazovací jazyk, **ne místní formáty**: autor má anglické Windows s českými formáty a GUI chce
+  anglicky (krátce zkoušené „i podle formátů“ zamítl).
 - **`--lang cs|en`** jen pro jedno spuštění (snímky `--ui-snapshot`), neukládá se.
 - **Pevná ID oken** (`tr_id`: „Média###Media“): ImGui ukládá polohu okna podle jména, bez toho by po přepnutí okna
   skočila na výchozí místo. Stávající `imgui.ini` s českými jmény (`[Window][Média]`) se při startu převede na

@@ -8,7 +8,7 @@ void i18n_set_language(UiLanguage lang);
 UiLanguage i18n_language(void);
 const char* i18n_code(UiLanguage lang);                   // "cs", "en"
 bool i18n_parse(const char* code, UiLanguage* out);       // "cs" / "en" (case does not matter)
-UiLanguage i18n_system_language(void);                    // Czech for a Czech or Slovak UI or format, else English
+UiLanguage i18n_system_language(void);                    // Czech for a Czech or Slovak Windows display language, else English
 void i18n_set_override(UiLanguage lang);                  // --lang: wins over the settings, not saved
 bool i18n_override(UiLanguage* out);
 

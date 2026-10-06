@@ -57,8 +57,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
   - **všechny bootovací diskety J. Bíby** ze `SAPIMAN\PMD32-SD_IMAGE8` vyzkoušené; nová sestava jen
     `cpm_boot_fdc1_irmd` (BIOS si RAM disk připraví sám), výsledky ostatních v `CPM_SAPIMAN.md`;
-  - **přepínání jazyka GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, výchozí podle jazyka nebo
-    formátů Windows, `--lang cs|en`, pevná ID oken (rozložení zůstane), test `test_i18n`;
+  - **přepínání jazyka GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, výchozí podle jazyka Windows, `--lang cs|en`, pevná ID oken (rozložení zůstane), test `test_i18n`;
   - **ZPS-3 s originálním CP/M 2.2 64K od Tesly IMA** (`machines/zps/ZPS-3_CPM64K_IMA.sapi`, ROM MON64C3,
     diskety z archivu EC1045 `DEX\SAPI_ZPS3\01–03`; PROM D1A a D3A pro F000 jsou předpoklad), test `ima64k`;
   - **ZPS-3 s originálním CP/M IMA 48K (46K)** (`ZPS-3_CPM48K_IMA.sapi`, MON V1.0-C1): disketa se nedochovala,
