@@ -1091,3 +1091,14 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Sestavy** (autor): ekvivalent ZPS-1 a JPR-1X s BGP-1S (MIKROBIOS, RAM-1 místo bank JPR-1S).
 - **Debugger:** u karet 8080/8085 se opkódy, které nejsou instrukcemi Z80, ukazují jako aliasy 8080 (`NOP*`,
   `JP*`, `CALL*`, `RET*`) nebo jako instrukce 8085 (RIM, SIM, DSUB…). Dřív se ukazovaly jako instrukce Z80 (JR, EXX).
+
+## 2026-10-06 – Deska diagnostiky na K3 (JPR-1S, JPR-1X)
+
+- **Revize 2.0** podle autorovy fotky (dvě tlačítka + na P2.0 a − na P2.7). Schéma máme jen 1.00 s jedním
+  tlačítkem. Displeje jsou přímo na P2-OUT (vlevo) a P1-OUT (vpravo), segmenty a–g, dp = bity 0–7.
+- **Parametr `k3`** u JPR-1S a JPR-1X (`none` / `diag`), okno v GUI (tlačítka se drží myší) a MCP `diag_board`.
+  Stisk tlačítek je vstup z PC, do uloženého stavu se nepíše (jako joystick).
+- **Software** pro desku se v podkladech nenašel (autor tušil MikroMon nebo Falcon). Ukázka (autor): čítač 00–99
+  ve dvou verzích, s přerušením 3214 (JPR-1X) a čtením portu (JPR-1S i JPR-1X), vlastní assembler `tools/asm8080.py`.
+- **BGP-1S bez přerušení v `jpr1x_bgp1s`:** na JPR-1X je tlačítko + na stejném vodiči jako /INT0 a BGP-1S (S2 =
+  INT0) by ho držela stisknuté. Přerušení BGP-1S nikdo nepoužívá.

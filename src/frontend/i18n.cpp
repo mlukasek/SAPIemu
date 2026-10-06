@@ -105,6 +105,12 @@ static const Translation k_table[] = {
       "ANK-1: písmena podle popisu, číslice podle polohy, Shift na PC = SHIFT, klávesy stisknuté naráz jsou "
       "stisknuté naráz. Symboly jako na ANK-1 (SHIFT + klávesa). Vypnuto: psaní podle znaků (čárka = SHIFT + N)." },
     { "game mode (Ctrl+F7)", "režim pro hry (Ctrl+F7)" },
+    { "Diagnostic board (K3)", "Deska diagnostiky (K3)" },
+    { "No diagnostic board. Configurator: K3 of JPR-1S or JPR-1X = diagnostic board.",
+      "Bez desky diagnostiky. Konfigurátor: K3 u JPR-1S nebo JPR-1X = deska diagnostiky." },
+    { "S2 \"-\": P2-IN7 (JPR-1X: interrupt request R7)", "S2 „-“: P2-IN7 (JPR-1X: požadavek přerušení R7)" },
+    { "S1 \"+\": P2-IN0 (JPR-1X: interrupt request R0 = /INT0)",
+      "S1 „+“: P2-IN0 (JPR-1X: požadavek přerušení R0 = /INT0)" },
     { "LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program (P0-OUT D5, D7), not the "
       "Shift key of the PC. Programs making sound on D5 (Manic Miner) light the LED SHIFT with it.",
       "LED SHIFT, LED ERR: kontrolky na klávesnici SAPI (ANK-1), rozsvěcí je program (P0-OUT D5, D7). Nejde o klávesu "

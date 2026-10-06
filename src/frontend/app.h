@@ -15,6 +15,7 @@ struct UiSnapshot {
     bool map = false;        // show the port and memory map tab
     bool media = false;      // show the Media window
     bool printer = false;    // show the Printer window
+    bool diag = false;       // show the Diagnostic board window
     std::string state;       // a saved state loaded first (pictures for the documentation)
     std::vector<std::string> set;   // "SLOT:KEY=VALUE": a change in the configurator, not applied
                                     // (VALUE as JSON, else a string)

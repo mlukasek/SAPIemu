@@ -823,6 +823,49 @@ json t_joystick(EmuHost& h, const json& a)
     return text_result(json{ { "port", port }, { "pressed", st } }.dump());
 }
 
+// A seven segment pattern (a..g = bits 0..6) as the digit it shows, '?' otherwise.
+static std::string seg_digit(uint8_t v)
+{
+    static const uint8_t font[16] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
+                                      0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71 };
+    uint8_t s = v & 0x7F;
+    std::string r;
+    if (!s) r = " ";
+    else if (s == 0x40) r = "-";
+    else {
+        r = "?";
+        for (int i = 0; i < 16; i++)
+            if (font[i] == s || (i == 7 && s == 0x27) || (i == 9 && s == 0x67)) r = std::string(1, "0123456789AbCdEF"[i]);
+    }
+    if (v & 0x80) r += ".";
+    return r;
+}
+
+json t_diag_board(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    if (!m.cpu || !m.cpu->k3_diag()) return error_result("no diagnostic board on K3 (JPR-1S, JPR-1X parameter k3 = diag)");
+    if (a.contains("press")) {   // hold a button, let the program see it, release it
+        std::string p = arg_str(a, "press", nullptr, true);
+        int b = p == "+" ? 0 : p == "-" ? 1 : -1;
+        if (b < 0) throw ToolError{ "press must be \"+\" or \"-\"" };
+        long long hold = arg_num(a, "hold_ms", 150), after = arg_num(a, "after_ms", 200);
+        m.cpu->k3_button(b, true);
+        m.run_seconds((double)std::min<long long>(std::max<long long>(hold, 1), 10000) / 1000.0);
+        m.cpu->k3_button(b, false);
+        if (after > 0) m.run_seconds((double)std::min<long long>(after, 10000) / 1000.0);
+    }
+    uint8_t l = m.cpu->k3_display(0), r = m.cpu->k3_display(1);
+    char hx[8];
+    json j;
+    snprintf(hx, sizeof(hx), "%02Xh", l);
+    j["left_p2_out"] = hx;
+    snprintf(hx, sizeof(hx), "%02Xh", r);
+    j["right_p1_out"] = hx;
+    j["shows"] = seg_digit(l) + seg_digit(r);
+    return text_result(j.dump());
+}
+
 json t_mouse(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1212,6 +1255,8 @@ const Tool k_tools[] = {
     { "screen_text", "Visible text of the display card (AND-1Z: 64x20) as UTF-8.", S_NONE, t_screen_text },
     { "cpu_turbo", "TURBO switch of the CPU card (JPR-1V: CPU 2 or 4 MHz, bus 2 MHz) while running; without 'on' it only reports.",
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
+    { "diag_board", "Diagnostic board on K3 of JPR-1S / JPR-1X (parameter k3 = diag): two seven segment displays (left = P2-OUT, right = P1-OUT; segments a..g, dp = bits 0..7) and two buttons, \"+\" on P2-IN0 (JPR-1X: interrupt request R0) and \"-\" on P2-IN7 (R7). Without arguments it reports what the displays show; press = \"+\" or \"-\" holds the button for hold_ms (default 150) while the machine runs, then runs after_ms (default 200).",
+      R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
     { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 or the ANK-1M2 keyboard connector set to joystick; ANK-1M2 follows port 0): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
       R"({"type":"object","properties":{"port":{"type":"integer","default":0},"pressed":{"type":"array","items":{"type":"string","enum":["down","up","right","left","fire1","fire2"]}}}})", t_joystick },
     { "mouse", "Mouse of the machine (an MPH-1V connector or the ANK-1M2 keyboard connector set to mouse_atari / mouse_amiga): dx, dy = counts to move (+x right, +y down), sent as quadrature steps at 1000 per second and axis; 'buttons' sets what is held (left, right). Reports the counts still pending.",

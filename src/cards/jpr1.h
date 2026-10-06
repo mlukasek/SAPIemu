@@ -78,6 +78,11 @@ public:
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
     int cpu_isa() const override { return model_x ? ISA_8085 : ISA_8080; }
+    // the diagnostic board on K3 (JPR-1S, JPR-1X)
+    bool k3_diag() const override { return diag; }
+    uint8_t k3_display(int i) const override { return diag ? (i == 0 ? p2_out : p1_out) : 0; }
+    void k3_button(int b, bool down) override { if (diag && b >= 0 && b < 2) diag_btn[b] = down; }
+    bool k3_button_down(int b) const override { return diag && b >= 0 && b < 2 && diag_btn[b]; }
     // JPR-1X: TURBO (live) and BIOS (read at reset)
     bool live_param(const char* path) const override;
     bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
@@ -149,6 +154,9 @@ public:
 private:
     bool rst7_jumper = true;             // JP1 1-2 (JPR-1S INT_ADR 2-3, JPR-1X RSTN/7 open): RST 7, else the
                                          // vector from the bus (JPR-1X: RST 7 - level)
+    // the diagnostic board on K3
+    bool diag = false;
+    bool diag_btn[2] = { false, false };   // "+" (P2-IN0), "-" (P2-IN7)
     // JPR-1X
     bool model_x = false;
     bool turbo_on = false;               // TURBO fitted: CPU 4 MHz (else 2 MHz, two time units a cycle)

@@ -102,11 +102,58 @@ static void interrupt(void)
     CHECK(!r.iff1);
 }
 
+// The counter on the diagnostic board (K3): "+" and "-" step it, 99 + 1 = 00, 00 - 1 = 99;
+// diag_int.hex by the 3214 interrupts (RST 7 -> 2000h), diag_poll.hex by reading P2-IN.
+// ESC ends it (the displays go dark, the vector of MIKROBIOS is back).
+static void press(Machine& m, int b)
+{
+    m.cpu->k3_button(b, true);
+    m.run_seconds(0.1);
+    m.cpu->k3_button(b, false);
+    m.run_seconds(0.1);
+}
+
+static void counter(const char* hex)
+{
+    static const uint8_t font[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
+    Machine m;
+    std::string err, text;
+    CHECK(m.load_file("machines/jpr1x_bgp1s.sapi", err));
+    CHECK(m.cpu && m.cpu->k3_diag());
+    if (!m.cpu || !m.cpu->k3_diag()) return;
+    m.run_seconds(3.0);   // MIKROBIOS and Falcon
+    uint8_t vec[3] = { m.peek(0x2000), m.peek(0x2001), m.peek(0x2002) };
+    CHECK(file_read_text(data_path(hex), text));
+    CHECK(m.load_ihex_text(text, err));
+    m.type_text("JUMP 4400\r");
+    m.run_seconds(2.0);
+    auto shows = [&](int n) { return m.cpu->k3_display(0) == font[n / 10] && m.cpu->k3_display(1) == font[n % 10]; };
+    CHECK(shows(0));
+    press(m, 0);
+    press(m, 0);
+    press(m, 0);
+    CHECK(shows(3));
+    press(m, 1);
+    CHECK(shows(2));
+    for (int i = 0; i < 3; i++) press(m, 1);
+    CHECK(shows(99));   // 00 - 1
+    press(m, 0);
+    CHECK(shows(0));    // 99 + 1
+    printf("%s: %02X %02X\n", hex, m.cpu->k3_display(0), m.cpu->k3_display(1));
+    m.type_text("\x1b");   // ESC = the LF key (MIKOS layout)
+    m.run_seconds(1.0);
+    CHECK_EQ(m.cpu->k3_display(0), 0);
+    CHECK_EQ(m.cpu->k3_display(1), 0);
+    CHECK(m.peek(0x2000) == vec[0] && m.peek(0x2001) == vec[1] && m.peek(0x2002) == vec[2]);
+}
+
 int main(void)
 {
     test_init();
     mikrobasic();
     mikrobios();
     interrupt();
+    counter("media/jpr-1x/diag_int.hex");
+    counter("media/jpr-1x/diag_poll.hex");
     return TEST_RESULT();
 }

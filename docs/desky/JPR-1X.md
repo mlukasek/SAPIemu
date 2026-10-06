@@ -33,7 +33,11 @@ Nic neověřeno na HW.
   - Požadavky: R0 = /INT0, R1 = /INT1 (zároveň P2-IN0/1), klávesa INT na R7 (11-10), R6 (10-R6) nebo nikam
     (z výroby).
 - **Parametry:** `rom`, `bios`, `turbo`, `ram`, `int_vector`, `int_key`, `osc_hz` (16 MHz), `keyboard`,
-  `k2_adapter` (Redukce34KB01 jako u JPR-1S).
+  `k2_adapter` (Redukce34KB01 jako u JPR-1S), `k3` (`diag` = deska diagnostiky rev 2.0, popis v `JPR-1S.md`).
+- **Deska diagnostiky na K3:** tlačítko „+“ je P2-IN0, tedy týž vodič jako /INT0 sběrnice (R0), „−“ je P2-IN7 (R7).
+  Karta, která táhne /INT0 (BGP-1S se S2 = INT0), se s tlačítkem „+“ plete. V sestavě `jpr1x_bgp1s` je proto
+  přerušení BGP-1S vypnuté (nic ho nepoužívá). Ukázkový čítač `media/jpr-1x/diag_int.hex` obsluhuje tlačítka
+  přerušením (3214, RSTN/7 rozpojená = RST 7 → MIKROBIOS skočí na 2000h, kam si program dá svou obsluhu).
 - **DMA:** emulátor DMA řeší časem (`bus->hold`), na paměť desky DMA nevidí, což odpovídá odpojení desky při HLDA.
 - **Sestavy** (TURBO zapnuté jako na autorově desce, jde vypnout za chodu):
   - `machines/zps/ZPS-1_JPR-1X.sapi`: ekvivalent ZPS-1, MIKROBASIC 2.4 z horní banky, REM-1 jen s RAM, AND-1,

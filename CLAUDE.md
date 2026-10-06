@@ -40,7 +40,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `chips/`: obvody (MHB1012…);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);
-  - `frontend/`: GUI (app, debugger, terminal, i18n, keymap);
+  - `frontend/`: GUI (app, debugger, terminal, i18n, keymap, diag = okno desky diagnostiky na K3);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `main.cpp`.

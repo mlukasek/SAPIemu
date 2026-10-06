@@ -121,6 +121,15 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 | `prazdna_5.25HD_CPM.img` | Prázdná disketa PC 5,25" HD 1,2 MB (80 × 2 × 15 × 512 B, E5h) pro BIOS `ECBIF5`. |
 | `prazdna_8SSSD.img` | Prázdná 8" SS SD (77 × 26 × 128 B, E5h). |
 
+## `jpr-1x/` – ukázky pro desku diagnostiky na K3 (2026-10-06, Intel HEX od 4400h, zdroje `.asm`)
+
+| Soubor | Co dělá |
+|---|---|
+| `diag_int.asm` / `.hex` | čítač 00–99 na dvou sedmisegmentovkách, tlačítka + a − přes přerušení 3214 (JPR-1X, RSTN/7 rozpojená: RST 7 → 2000h) |
+| `diag_poll.asm` / `.hex` | totéž bez přerušení, čte P2-IN (JPR-1S i JPR-1X) |
+
+Spuštění z Falconu `JUMP 4400`, konec ESC (klávesa LF). Překlad `python tools/asm8080.py SOUBOR.asm SOUBOR.hex`.
+
 ## `jpr-1s/` – programy pro JPR-1S s BGP-1S (Intel HEX od 4400h)
 
 Zdroj: `..\SAPI-karty\JPR-1S\jpr1s_sw\` (doplnil autor 2026-10-06). Sestava `jpr1s_bgp1s`: Soubor → Nahrát

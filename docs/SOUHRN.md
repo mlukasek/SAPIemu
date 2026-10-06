@@ -47,6 +47,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **Hotové 2026-10-06 v noci:** **JPR-1X** (Libor Lasota, 80C85): procesor 8085 jako režim jádra 8080
   (`docs/8085.md`, 8085EXM s CRC skutečného čipu projde), deska jako varianta `Jpr1` (`docs/desky/JPR-1X.md`),
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
+  Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
+  `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
 - **Hotové 2026-10-06 večer** (podrobnosti v `docs/rozhodnuti.md`):
   - **kazeta z programu** HEX/BIN (i `.txt`) pro MIKOS a MIKROBASIC, „Uložit jako WAV…“, `--make-tape`
     (`docs/software/kazeta.md`);
@@ -142,7 +144,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      `docs/build.md`).
   7. PKT-1.
   8. Příprava veřejného vydání (níže).
-  9. Okno terminálu: kopírování jen výběru myší (teď celý text); diagnostická deska JPR1X na K3 JPR-1S (sedmisegmentovky).
+  9. Okno terminálu: kopírování jen výběru myší (teď celý text); ~~diagnostická deska na K3~~ hotová 2026-10-06
+     (rev 2.0, JPR-1S i JPR-1X, okno, MCP `diag_board`, čítače `media/jpr-1x`).
   10. Uklidit 4 varování GCC ze staršího kódu (`main.cpp` `mcp_enabled`, `rack.cpp` `running_display` a `snprintf`,
      `test_util.h` `g_test_failures`).
 - **Pracovní pravidla, která se osvědčila:**

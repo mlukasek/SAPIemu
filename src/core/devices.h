@@ -135,6 +135,13 @@ public:
     // The instruction set (the debugger disassembles the 8080/8085 opcodes that differ from the Z80).
     enum { ISA_Z80 = 0, ISA_8080, ISA_8085 };
     virtual int cpu_isa() const { return ISA_Z80; }
+    // The diagnostic board on K3 (Libor Lasota, rev 2.0; JPR-1S, JPR-1X): two seven segment displays
+    // on P2-OUT (left) and P1-OUT (right), segments a..g, dp = bits 0..7 (1 = lit), and two buttons:
+    // 0 = "+" on P2-IN0, 1 = "-" on P2-IN7 (pressed = 0).
+    virtual bool k3_diag() const { return false; }
+    virtual uint8_t k3_display(int i) const { return 0; }
+    virtual void k3_button(int b, bool down) {}
+    virtual bool k3_button_down(int b) const { return false; }
 
     const uint8_t* bp_exec = nullptr;   // 64K map of execution breakpoints (owned by Machine)
     bool step_mode = false;             // stop at the next instruction boundary

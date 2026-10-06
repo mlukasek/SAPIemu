@@ -73,6 +73,9 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 - **Sériový terminál:** Zobrazení → Sériový terminál. Poslat soubor (tak, jak je), textový soubor, soubor XMODEM
   (např. do `DOCPM10` v CP/M), přijmout soubor XMODEM (z `DOPC10`), Kopírovat (Alt+C) a Vložit (Alt+V).
   `docs/seriova-linka.md`.
+- **Deska diagnostiky:** u JPR-1S / JPR-1X s `k3` = `diag` (sestava `jpr1x_bgp1s`) Zobrazení → Deska
+  diagnostiky (K3): dvě sedmisegmentovky a tlačítka − a +. Ukázkový čítač: Soubor → Nahrát program
+  `media/jpr-1x/diag_int.hex`, ve Falconu `JUMP 4400`, ESC ho ukončí.
 - **Tiskárna:** Zobrazení → Tiskárna ukáže vytištěný text. Bajty, jak přišly, jsou v `work/printer/*.prn`.
   Tiskárnu zapnete v konfigurátoru u procesorové karty (X3) nebo u DPP-1 (`docs/tiskarna.md`).
 - **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX `.hex`, `.ihx` i `.txt`) nebo binární soubor. V CP/M pak

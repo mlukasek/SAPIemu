@@ -208,6 +208,17 @@ R1–R16, katody na GND (X1-21). Podle netlistu:
 - U obou tedy **segmenty a–g, dp = bity 0–7, 1 = svítí**. Desetinná tečka DIS4 = P1-OUT7 = zároveň LED D1.
 - **Tlačítko** S2 (B3F1000, jinak S1 Marquardt 6425) spíná X1-20 (**P2-IN0**) na GND: stisk = 0.
   Pozor: P2-IN0 je zároveň možný zdroj přerušení (INT_SRC 5-6).
+- **Revize 2.0** (fotka `..\SAPI-karty\JPR-1X\Diag\DiagDisplay-rev.-2.0-rotated-*.jpg`, 2022; schéma 2.0 v podkladech
+  není): **dvě tlačítka**, S1 „+“ s potiskem P2.0 (P2-IN0) a S2 „−“ s potiskem P2.7 (P2-IN7); displeje P2 vlevo,
+  P1 vpravo jako v 1.00. Na JPR-1X jsou P2-IN0 a P2-IN7 zároveň požadavky R0 (= /INT0 sběrnice, stejný vodič) a R7
+  řadiče 3214, tlačítka tedy vyvolávají přerušení.
+- **Software:** nic, co by desku používalo, se v podkladech nenašlo (MIKROBIOS 1.02 a 2.1 i Falcon výstupy P1/P2
+  nepoužívají, MikroMon také ne). Z Falconu jde ovládat ručně: `> 2C00 3F` (levý displej „0“), `> 2800 06`
+  (pravý „1“), `SCAN 2C00` (čtení tlačítek).
+- **Emulace (2026-10-06):** parametr karty JPR-1S / JPR-1X `k3` = `diag` (rev 2.0), okno Zobrazení → Deska
+  diagnostiky (K3) se dvěma displeji a tlačítky − a + (drží se myší), MCP `diag_board`. Ukázkové čítače 00–99
+  `media/jpr-1x/diag_int.hex` (JPR-1X, přerušení přes 3214 a RST 7 → 2000h) a `diag_poll.hex` (JPR-1S i JPR-1X,
+  čtení P2-IN), spuštění z Falconu `JUMP 4400`, konec ESC. Test `test_jpr1x`.
 
 ## 4. Sběrnice K1, takt, reset, čekání, přerušení
 

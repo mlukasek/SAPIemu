@@ -171,7 +171,8 @@ program (Intel HEX) a spustí `JUMP 4400`, nebo příkazem BOOT po sériové lin
 (VGA) a ANK-1M2. `docs/desky/JPR-1S.md`, `BGP-1S.md`, `AND-1B.md`.
 
 **JPR-1X** (2026-10-06, 80C85): `machines/jpr1x_bgp1s.sapi` je JPR-1X s MIKROBIOSem 1.02 z dolní banky ROM, RAM-1/48K,
-BGP-1S a ANK-1M2 s redukcí (hry jako u `jpr1s_bgp1s`). `machines/zps/ZPS-1_JPR-1X.sapi` je ekvivalent ZPS-1
+BGP-1S (přerušení vypnuté) a ANK-1M2 s redukcí (hry jako u `jpr1s_bgp1s`), na K3 deska diagnostiky (čítač
+`media/jpr-1x/diag_int.hex`). `machines/zps/ZPS-1_JPR-1X.sapi` je ekvivalent ZPS-1
 s MIKROBASICem 2.4 z horní banky (propojka BIOS rozpojená), REM-1 jen s RAM, AND-1, DSM-1 a ANK-1. TURBO (CPU 4 MHz)
 jde přepnout za chodu. `docs/desky/JPR-1X.md`, procesor `docs/8085.md`.
 

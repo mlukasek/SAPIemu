@@ -60,6 +60,16 @@ static bool configure_adapter(const json& cfg, std::unique_ptr<SerialChannel>& r
     return true;
 }
 
+// What is plugged into K3 (JPR-1S, JPR-1X): nothing or the diagnostic board.
+static bool configure_k3(const json& cfg, bool& diag, std::string& err)
+{
+    std::string k3;
+    if (!cfg_string(cfg, "k3", k3, "none", err)) return false;
+    if (k3 != "none" && k3 != "diag") { err = "k3 must be none or diag (the diagnostic board)"; return false; }
+    diag = k3 == "diag";
+    return true;
+}
+
 bool Jpr1::live_param(const char* path) const
 {
     return (model_x && (!strcmp(path, "turbo") || !strcmp(path, "bios"))) || CpuCard::live_param(path);
@@ -134,6 +144,7 @@ bool Jpr1::configure(const json& cfg, std::string& err)
         if (key != "none" && key != "r7" && key != "r6") { err = "int_key must be none, r7 (11-10) or r6 (10-R6)"; return false; }
         int_key_r = key == "r7" ? 7 : key == "r6" ? 6 : -1;
         if (!cfg_bool(cfg, "ram", ram_fitted, true, err)) return false;
+        if (!configure_k3(cfg, diag, err)) return false;
         uint32_t x = 0x13579BDFu;   // the 6116 holds noise after power on
         for (uint8_t& b : ram) {
             x ^= x << 13; x ^= x >> 17; x ^= x << 5;
@@ -196,6 +207,7 @@ bool Jpr1::configure(const json& cfg, std::string& err)
         if (!cfg_string(cfg, "int_ack", ack, "rst7", err)) return false;
         if (ack != "rst7" && ack != "bus") { err = "int_ack must be rst7 (INT_ADR 2-3) or bus (1-2)"; return false; }
         rst7_jumper = ack == "rst7";
+        if (!configure_k3(cfg, diag, err)) return false;
         ram_fitted = true;
         int_key_jumper = false;
         if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
@@ -328,9 +340,13 @@ int Jpr1::local(uint16_t a) const
 
 uint8_t Jpr1::p2_in(void)
 {
-    if (model_s) return 0xFF;   // K3 with pull-ups (the diagnostic board is not emulated)
-    if (model_x) {   // P2-IN0/1 = bus /INT0, /INT1; P2-IN7 = the INT key with 11-10; the rest K3 pull-ups
-        uint8_t v = 0xFF;
+    // the diagnostic board on K3: "+" pulls P2-IN0 down, "-" P2-IN7
+    uint8_t d = 0xFF;
+    if (diag && diag_btn[0]) d &= (uint8_t)~0x01;
+    if (diag && diag_btn[1]) d &= (uint8_t)~0x80;
+    if (model_s) return d;   // K3 with pull-ups
+    if (model_x) {   // P2-IN0/1 = bus /INT0, /INT1 (the same wires); P2-IN7 = the INT key with 11-10; the rest K3
+        uint8_t v = d;
         if (bus_irq & IRQ_INT0) v &= (uint8_t)~0x01;
         if (bus_irq & IRQ_INT1) v &= (uint8_t)~0x02;
         if (int_key_r == 7 && kbd && !(p1_in() & 0x80)) v &= (uint8_t)~0x80;
@@ -720,6 +736,13 @@ void Jpr1::describe(json& out)
     out["ram"] = ram_fitted;
     if (model_s) out["ram_banks"] = { bank_en[0], bank_en[1], bank_en[2] };
     if (rx) out["k2_adapter"] = "redukce34kb01";
+    if (diag) {
+        char b[8];
+        snprintf(b, sizeof(b), "%02Xh", p2_out);
+        out["k3_diag_left"] = b;
+        snprintf(b, sizeof(b), "%02Xh", p1_out);
+        out["k3_diag_right"] = b;
+    }
     out["keyboard"] = kbd ? kbd->type_name() : "none";
     if (kbd && kbd->joyport() >= 0) out["keyboard_joyport"] = joy_device_name(kbd->joyport());
 }

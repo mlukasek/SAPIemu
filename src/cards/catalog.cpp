@@ -410,6 +410,12 @@ static const CardParam k_jpr1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+static const ParamOption k_k3[] = {
+    { "\"none\"", "nothing (pull-ups)", "nic (pull-upy)" },
+    { "\"diag\"", "diagnostic board rev 2.0 (2x 7 segments, buttons + / -)",
+      "deska diagnostiky rev 2.0 (2x sedmisegmentovka, tlačítka + / -)" },
+    { nullptr, nullptr, nullptr },
+};
 // JPR-1S (Libor Lasota, rev 2.2)
 static const ParamOption k_jpr1s_roms[] = {
     { "\"roms/jpr-1s/MIKROBIOS_1.02.bin\"", "MIKROBIOS 1.02 + Falcon 6.1L (04/2022, display BGP-1S)",
@@ -444,6 +450,7 @@ static const CardParam k_jpr1s[] = {
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
       "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
+    { "k3", PK_CHOICE, "K3: what is plugged in", "K3: co je zasunuté", "\"none\"", k_k3, 0, 0 },
     { "k2_adapter", PK_CHOICE, "K2 adapter (cable of the keyboard)", "Redukce na K2 (kabel klávesnice)", "\"none\"",
       k_k2_adapter, 0, 0 },
     { "rx_baud", PK_INT, "Redukce34KB01: speed of the PC sending (Bd)", "Redukce34KB01: rychlost vysílání z PC (Bd)",
@@ -502,6 +509,7 @@ static const CardParam k_jpr1x[] = {
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
       "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
+    { "k3", PK_CHOICE, "K3: what is plugged in", "K3: co je zasunuté", "\"none\"", k_k3, 0, 0 },
     { "k2_adapter", PK_CHOICE, "K2 adapter (cable of the keyboard)", "Redukce na K2 (kabel klávesnice)", "\"none\"",
       k_k2_adapter, 0, 0 },
     { "rx_baud", PK_INT, "Redukce34KB01: speed of the PC sending (Bd)", "Redukce34KB01: rychlost vysílání z PC (Bd)",
