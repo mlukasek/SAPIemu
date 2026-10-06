@@ -85,6 +85,8 @@ z EPROM `roms/jpr-1zi/JPR-1ZI_MON*_JB_*.bin`, C: je RAM disk ZRMD-1 se souborov�
 | `m1_281211_zrmd.img` | CP/M pro MFC-1A, „BIOS-1K V281211JB“, A, B, D, E = MFC-1A. Zdrojáky BI2812*, MO2812, BO1307D6, CCPD6, BDOSDE. (`MFC\m1_281211_zrmd.8sd`) |
 | `f1_zrmd4_130711.img` | CP/M pro FDC-1, „BIOS-1K V130711JB“. (`FDC\f1_zrmd4_130711.8sd`) |
 | `r1_zrmd4m_271111.img` | CP/M pro RPD-1, „BIOS-1K V271111JB“. (`RPD\r1_zrmd4m_271111.8sd`) |
+| `m1_281211_rmd.img`, `f1_rmd1m_130711.img`, `r1_rmd1m_271111.img` | Totéž s RAM diskem RMD-1 1 MB na 40h jako C: (`MFC\`, `FDC\`, `RPD\` `*.8sd`). Sestavy `cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd` (RMD-1 inicializuje `B:IRMD40` z diskety Z6). |
+| `f2_pmd2d2m_140212.img`, `f2_pmd1d2m_140212.img` | CP/M pro FDC-1 s PMD32-SD přes DPP-1 (C:, D: nebo jen C:), bez RAM disku (`FDC\f2_pmd*.8sd`). Sestava `cpm_pmd_fdc1`. |
 
 Systémové diskety J. Bíby z `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\PETR\SAPI_SYS\` (Z1–Z10,
 soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):

@@ -61,8 +61,10 @@ Kanál nesmí být stejný jako kanál PMD32-SD.
 
 ## Sestavy
 
-- `cpm_zrmd.sapi`: tiskárna na X3 (`work/printer/tiskarna.prn`).
-- `cpm_zrmd_dpp1.sapi`: tiskárna na X3 a druhá na DPP-1 kanálu 1 (`work/printer/dpp1.prn`, `LST: = UL1:`).
+- Všechny sestavy `cpm_*` s ECMONem a monitory J. Bíby mají tiskárnu na X3 (`work/printer/tiskarna.prn`), kromě
+  `cpm_term64k_fdc1` (jen terminál). Monitory MON130711, 271111 a 281211 tisknou stejně jako ECMON (ověřeno
+  `^P` a `DIR`).
+- `cpm_zrmd_dpp1.sapi` má navíc druhou tiskárnu na DPP-1 kanálu 1 (`work/printer/dpp1.prn`, `LST: = UL1:`).
 
 ## Nejasnosti k ověření na HW
 

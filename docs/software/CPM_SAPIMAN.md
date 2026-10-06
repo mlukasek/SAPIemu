@@ -91,10 +91,10 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    `rdy_ground = true`.
 2. ~~**Motory mechanik**~~ hotové 2026-10-06: parametr `motor_line` a `spinup_ms` u FDC-1 a MFC-1A, zapnutý
    v sestavách s mechanikami PC (EC1045, dlouhé CP/M). `docs/desky/FDC-1.md`, `docs/desky/MFC-1A.md`.
-3. **Další sestavy a diskety SAPIMANa:** bootovací diskety s RAM diskem RMD-1 (`MFC\m1_281211_rmd.8sd`,
-   `FDC\f1_rmd1m_*.8sd`, `RPD\r1_rmd1m_271111.8sd`; RMD-1 je emulovaný), varianty s PMD32-SD (`f2_pmd*`,
-   `r2_pmd*`), a jeho datové 8" diskety (`PREKLADACE`, `TEXTY`, `ZDROJ_NOVE`, `ZDROJ_STARE`, `SYSPROG` …) do
-   `media/sapiman/` jako knihovna softwaru.
+3. **Další sestavy a diskety SAPIMANa:** ~~bootovací diskety s RAM diskem RMD-1 a varianty s PMD32-SD~~ hotové
+   2026-10-06 (`cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd`, `cpm_pmd_fdc1`; `r2_pmd*` už je `cpm_pmd_rpd1`).
+   Zbývá knihovna jeho datových 8" disket (`PREKLADACE`, `TEXTY`, `ZDROJ_NOVE`, `ZDROJ_STARE`, `SYSPROG` …,
+   asi 180 disket, 45 MB v `SAPIMAN\PMD32-SD_IMAGE8`).
 4. ~~**`cpmrun`:** malý test v ctestu, L80 a `/P:0` z příkazové řádky~~ hotové 2026-10-06: `test_cpmrun`;
    `/P:0` rozbíjel Git Bash (převod cest), L80 se pak zacyklil po odpovědi Y na „move anyway“ (správně N), stav
    konzole teď hlásí stdin (`docs/build.md`).
@@ -172,6 +172,15 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
   Výzva CCP je `U0A>` (číslo uživatele).
 - `cpm_boot_mfc1a_rmd.sapi`: MFC-1A s RAM diskem RMD-1 1 MB na 40h (náhodný obsah po zapnutí jako DRAM;
   `IRMD40` ho inicializuje, ptá se „Pokracovat? (A/N)“).
+- `cpm_boot_fdc1_rmd.sapi`, `cpm_boot_rpd1_rmd.sapi` (2026-10-06): bootovací diskety `FDC\f1_rmd1m_130711.8sd`
+  a `RPD\r1_rmd1m_271111.8sd` ze `SAPIMAN\PMD32-SD_IMAGE8` („C: RMD1/1MB BASE40H“). Inicializační program na nich
+  není, proto je v B: disketa Z6 a C: se připraví `B:IRMD40` (odpověď A). Bootovací disketa MFC
+  `m1_281211_rmd.8sd` je v `media/sapiman` jako volba (stejný systém jako Z6).
+- `cpm_pmd_fdc1.sapi` (2026-10-06): FDC-1 s PMD32-SD přes DPP-1, bootovací disketa `FDC\f2_pmd2d2m_140212.8sd`
+  (C:, D: = PMD32-SD, Turbo Pascal a WordStar); `f2_pmd1d2m_140212` má jen C:. Bez RAM disku.
+- **Tiskárna:** všechny sestavy s ECMONem a monitory J. Bíby (kromě `cpm_term64k_fdc1` bez klávesnice) mají od
+  2026-10-06 tiskárnu na X3 (`LST: CENTRONIX`, `docs/tiskarna.md`), ověřeno `^P` a `DIR` s MON130711, 271111,
+  281211 i ECMONem.
 - `cpm_term64k_fdc1.sapi`: **CP/M 64K** (CCP DE00, BDOS E600, BIOS F400) s EPROM „64K MONTERM CZ 151111JB“, která
   se po startu odpojí; DMR-1 s celými 64 KB, konzole jen přes DSM-1/1 (DMR-1 na 10h, DCD aktivní), bez klávesnice
   a AND-1Z. A: Z8 (zdroje, `MON64.MAC`), B: Z4 (programy). Hlásí „CON: TERMINAL PRES DSM1.1“.

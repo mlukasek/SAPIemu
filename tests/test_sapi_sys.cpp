@@ -2,7 +2,8 @@
 // RPD-1 and FDC-1 with the ZRMD-1 RAM disk in the ECMON layout (SS256): C: lists the files of the
 // RAM disk image; MFC-1A with RMD-1; the 64K CP/M with only a terminal on the serial line.
 // Drive motors: the long CP/M turns the motors of its PC drives on (motor_line), the 8" system
-// on FDC-1 does not, so with motor_line its boot disk never turns.
+// on FDC-1 does not, so with motor_line its boot disk never turns. The boot disks with RMD-1
+// (C: initialised by B:IRMD40 from Z6) and FDC-1 with PMD32-SD on DPP-1.
 #include "core/devices.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -158,6 +159,45 @@ static void pmd_systems(void)
     }
 }
 
+// RMD-1 after power on is random: IRMD40 from Z6 in B: initialises it, then C: takes a file
+static void rmd_boot(const char* file, const char* banner)
+{
+    printf("--- %s\n", file);
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine(file), err));
+    CHECK(run_until_text(m, banner, 10.0));
+    CHECK(run_until_text(m, "C: RMD1/1MB", 10.0));
+    CHECK(run_until_text(m, "A>", 20.0));
+    m.run_seconds(0.3);
+    m.type_text("B:IRMD40\r");
+    CHECK(run_until_text(m, "(A/N)", 15.0));
+    m.type_text("A");
+    m.run_seconds(15.0);
+    m.type_text("SAVE 2 C:X.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("DIR C:\r");
+    CHECK(run_until_text(m, "X        COM", 10.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
+static void pmd_fdc1(void)
+{
+    printf("--- machines/cpm_pmd_fdc1.sapi\n");
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine("machines/cpm_pmd_fdc1.sapi"), err));
+    CHECK(run_until_text(m, "PMD32-SD OK", 30.0));
+    CHECK(run_until_text(m, "A>", 10.0));
+    m.run_seconds(0.3);
+    m.type_text("DIR C:\r");
+    CHECK(run_until_text(m, "TURBO    COM", 20.0));
+    m.run_seconds(4.0);
+    m.type_text("DIR D:\r");
+    CHECK(run_until_text(m, "WSOVLY1  OVR", 20.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 // with motor_line the drives turn only when register 0FH switches their motors on
 static void motors(void)
 {
@@ -190,5 +230,8 @@ int main(void)
     long_cpm("machines/cpm_boot_dlouhe_rpd1_fdc1_35.sapi", "media/fdc-1/prazdna_3.5HD_CPM.img",
              "D,E:FDC1;3,5\"DS,HD512x36PC", "ON D: 1412K");
     motors();
+    rmd_boot("machines/cpm_boot_fdc1_rmd.sapi", "BIOS-1K V130711JB");
+    rmd_boot("machines/cpm_boot_rpd1_rmd.sapi", "BIOS-1K V271111JB");
+    pmd_fdc1();
     return TEST_RESULT();
 }

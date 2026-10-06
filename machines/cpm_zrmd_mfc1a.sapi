@@ -15,7 +15,12 @@
             "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
             "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
             "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
-            "keyboard": { "type": "EKL-1" }  // Keyboard (connector X2)
+            "keyboard": { "type": "EKL-1" },  // Keyboard (connector X2)
+            "printer": {                    // X3: printer (Centronics cable), LST: of the monitor
+                "output": "work/printer/tiskarna.prn",
+                "charset": "koi8cs",
+                "busy_us": 100
+            }
         },
         {
             "slot": 2,                      // position X2
