@@ -211,6 +211,11 @@ Překreslená schémata EC1045.01 (2010): `BKP\obrazky\ank-1_logika.png` a `ank-
 
 ## ANK-1M2 (Libor Lasota)
 
+**ANK-1M5 = ANK-1M2** (autor): ANK-1M5 (2021) je předchůdce ANK-1M2 (2024), proč má novější verze nižší číslo,
+ví jen Libor. Kde se v podkladech, sestavách nebo popisech objeví ANK-1M5 (např. BIOS JPR-1S v
+`..\SAPI-karty\JPR-1S\BIOS\bios_jpr1s.txt`: „JPR-1S, BGP-1, ANK-1M5“), bere se jako ANK-1M2. Emulátor přijme
+`"type": "ANK-1M5"` jako ANK-1M2, v nabídkách je jen „ANK-1M2“.
+
 Podklady: `..\SAPI-karty\ANK-1M2\` (schéma rev. 1.2 `ank1m2r12_sch.png`, 14. 10. 2024; rev. 1.0 v `ANK-1M2.pdf`;
 návod k sestavení, kusovník, 3D tisk krytu). Předchůdce **ANK-1M5** (2021) je popsaný na
 <https://www.pmd85.cz/?page_id=1527> (dokumentace `ank1m5.zip`). Liborův komentář tam z 9. 5. 2024 slibuje vrátit

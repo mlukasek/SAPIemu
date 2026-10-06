@@ -45,9 +45,10 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         k->hold_cycles = us_to_cycles(100000, cpu_hz);
         return k;
     }
-    if (type == "ANK-1" || type == "ANK-1M2") {
+    // ANK-1M5 (2021) is the predecessor of ANK-1M2 (2024): taken as ANK-1M2 (author)
+    if (type == "ANK-1" || type == "ANK-1M2" || type == "ANK-1M5") {
         Ank1* a = new Ank1();
-        a->m2 = type == "ANK-1M2";
+        a->m2 = type != "ANK-1";
         if (a->m2 && !joy_device_parse(cfg.value("joyport", json("joystick")), a->joy_dev, err, "joyport")) {
             delete a;
             return nullptr;

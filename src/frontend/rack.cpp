@@ -1227,6 +1227,7 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
                     own[o] = plain[o];
                     plain.erase(o);
                 }
+        if (plain.is_object() && plain.value("type", std::string()) == "ANK-1M5") plain["type"] = "ANK-1M2";
         int cur = -2;
         if (v.is_null()) cur = -1;
         for (size_t i = 0; i < kp.size(); i++)
@@ -1352,9 +1353,9 @@ void draw_slot_props(UiState& ui, int slot)
         if (!strcmp(p->path, "keyboard.strict") || !strcmp(p->path, "keyboard.joyport")) {
             const json* kb = cfg_find(*card, "keyboard");
             std::string kt = kb && kb->is_object() ? kb->value("type", std::string()) : std::string();
-            bool ank = kt == "ANK-1" || kt == "ANK-1M2";
-            if (p->path[9] == 's' && (kt.empty() || ank)) continue;   // strict: parallel keyboards only
-            if (p->path[9] == 'j' && kt != "ANK-1M2") continue;      // joyport: ANK-1M2 only
+            bool m2 = kt == "ANK-1M2" || kt == "ANK-1M5";   // ANK-1M5 = its predecessor, the same
+            if (p->path[9] == 's' && (kt.empty() || kt == "ANK-1" || m2)) continue;   // strict: parallel keyboards only
+            if (p->path[9] == 'j' && !m2) continue;                                   // joyport: ANK-1M2 only
         }
         bool nested = param_section(ci, p) != nullptr;
         if (nested) ImGui::Indent();

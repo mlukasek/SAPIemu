@@ -970,6 +970,8 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **ANK-1M2 = ANK-1 + konektor joysticku** podle schématu rev. 1.2: matice, LED, bzučák a INT/„T“ jsou zapojené
   stejně, proto stejný kód (`Ank1` s příznakem `m2`) a programy pro ANK-1 běží beze změny.
 - **Jedno jméno** „ANK-1M2“ v menu, konfigurátoru a MCP (autor), mapování pro MIKOS jen parametrem `software`.
+- **ANK-1M5 = ANK-1M2** (autor): ANK-1M5 je starší předchůdce, kde se v podkladech objeví, bere se jako ANK-1M2.
+  Typ `ANK-1M5` v sestavě je druhé jméno ANK-1M2 (bez vlastní položky v menu).
   Stávající sestavy se nemění (autor), ANK-1M2 se vybírá v Stroj → Klávesnice nebo v konfigurátoru.
 - **Joystick i myš** (autor): joyport má stejné pořadí bitů jako konektory MPH-1V, proto společný kód
   `input/joyport.*` (zařízení, kvadraturní myš). MPH-1V ho používá také, formát uloženého stavu se nezměnil.

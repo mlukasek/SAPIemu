@@ -207,6 +207,9 @@ static void test_ank1m2(void)
     m.bus.joystick[0] = JOY_UP;
     CHECK_EQ(m.keyboard()->p1_in(), 0xFF);
     m.bus.joystick[0] = 0;
+    // ANK-1M5 (the predecessor) is the same keyboard
+    std::unique_ptr<KeyboardDevice> m5(keyboard_from_config(nlohmann::json::parse(R"({"type":"ANK-1M5"})"), HZ, err));
+    CHECK(m5 && std::string(m5->type_name()) == "ANK-1M2" && m5->joyport() == JOY_DEV_JOYSTICK);
 }
 
 // MikroMon reads every parallel keyboard with the same handshake.
