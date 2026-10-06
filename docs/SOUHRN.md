@@ -74,7 +74,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         `docs/software/SAPIMAN_diskety.md`); další bootovací diskety ze soupisu jsou v `CPM_SAPIMAN.md`;
      d) ~~`cpmrun`: test a L80 `/P:0`~~ hotové 2026-10-06 (`test_cpmrun`, `docs/build.md`);
      e) ~~vzhled okna Média s výběrem formátu~~ hotové 2026-10-05 (výběr jednou nad mechanikami, `--ui-media`);
-     f) otázky na EC1045 (Petr Všijanský): složka `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A;
+     f) otázky na EC1045 (Petr Všijanský) **odeslané 2026-10-06**, čeká se na odpověď (seznam v
+        `docs/software/CPM_SAPIMAN.md`);
      g) případně opravit `RET` v ECBIM8 i v autorově pracovní kopii RAM disku (`work/zrmd-1`, jen se souhlasem).
   0b. **Z archivu EC1045 v `..\SAPI_DOKU_FTP`** (2026-10-05, `docs/software/CPM_SAPIMAN.md`):
      1) ~~obrazy ImageDisk (`.imd`) přímo v mechanikách~~ hotové 2026-10-05 (test `test_floppy_imd`; `JILEK\04`

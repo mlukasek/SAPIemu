@@ -208,6 +208,11 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
 - ~~Složka `…/PETR/2MB/`~~: je v kopii z FTP (`..\SAPI_DOKU_FTP`).
 - Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme.
 - Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení (D4/D5, polarita D6)?
+- **Odesláno autorem 2026-10-06** (čeká se na odpověď): zdroják ECMON IDE-1; jestli ECBIM8 na skutečné MFC-1A
+  fungoval (chybějící `RET`); podle čeho je překreslení MFC-1A (D4/D5, D6) a podle kterého zapojení se staví
+  repliky; mechaniky a RDY u MFC-1A; kdo dělal testy `SAPI15\MFC_TEST_CPM` a s jakým `DRVON`; připojení mechanik
+  PC HD k FDC-1 (SA2, /RDY, HD/DD) a motory /M0–/M3 z X3; přepínače S2–S4 a kabel PMD32-SD na DPP-1; kanál 1
+  DPP-1 (děrovač, nebo tisk přes `UL1:`); kolík 16 kabelu tiskárny na X3.
 
 ## Plán (schválený autorem 2026-10-05)
 
