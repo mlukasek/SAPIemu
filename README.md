@@ -1,12 +1,13 @@
 # SAPIemu
 
-**Emulátor počítače Tesla SAPI-1**: Z80 a 8080, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1 až
-ZPS-4 po nové desky „V“ Libora Lasoty. Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
+**Emulátor počítače Tesla SAPI-1**: Z80, 8080 a 8085, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1
+až ZPS-4 po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
 PROM dumpů). Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
 
-> *English: an emulator of the Czechoslovak Tesla SAPI-1 modular computer (Z80/8080, ARB-1 bus) for Windows.
+> *English: an emulator of the Czechoslovak Tesla SAPI-1 modular computer (Z80/8080/8085, ARB-1 bus) for Windows.
 > Cards are configured like the real boards (jumpers, address decoders from PROM dumps). Original ZPS-1 to ZPS-4
-> machines with MIKROBASIC, MIKOS and CP/M, the new "V" boards (VGA, colour graphics, YM3812 sound), save
+> machines with MIKROBASIC, MIKOS and CP/M, the new boards of Libor Lasota ("V" boards with VGA, colour graphics
+> and YM3812 sound, JPR-1S/JPR-1X, PMD-85 style graphics BGP-1S), cassette tapes made from programs, save
 > states, a debugger and a built-in MCP server. Alpha version, the documentation is in Czech.*
 
 ![Sestava V: CP/M na AND-1V a obrázek na barevné grafice CGA-1V](docs/img/sapi1v-cpm-cga.png)
@@ -76,7 +77,9 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
 - [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045
   v [CPM_SAPIMAN.md](docs/software/CPM_SAPIMAN.md), soupis a knihovna jeho disket
-  v [SAPIMAN_diskety.md](docs/software/SAPIMAN_diskety.md)).
+  v [SAPIMAN_diskety.md](docs/software/SAPIMAN_diskety.md), formát kazety MIKOS a MIKROBASIC a kazeta z programu
+  v [kazeta.md](docs/software/kazeta.md)).
+- [docs/8085.md](docs/8085.md): procesor 8085 (JPR-1X): takty, RIM/SIM, nedokumentované instrukce, příznaky.
 - [docs/tiskarna.md](docs/tiskarna.md): tiskárna Centronics (X3 procesorové karty, DPP-1).
 - [docs/stav.md](docs/stav.md): ukládání stavu. [docs/mcp.md](docs/mcp.md): MCP server.
   [docs/build.md](docs/build.md): sestavení a tipy pro vývoj.
