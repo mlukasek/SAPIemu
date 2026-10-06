@@ -58,6 +58,9 @@ i ve snapshotech 2012-05-23, 2012-09-03, 2019-01-04).
 3. Ovladačem RPD-1 (porty 20–25, 3C–3E) načte stopu 0, sektor 1 na 0080h a skočí tam. Boot sektor pak volá
    monitor+21h/24h.
 
+Originální CP/M IMA k němu je 46K („JPR-1A 46K CPM V2.2“, BIOS na B400 pod monitorem), sestava
+`ZPS-3_CPM48K_IMA.sapi` (`docs/software/CPM_ZPS-3.md`).
+
 ## Emulace
 
 - Typ `JPR-1A` je stejné 8080 jako JPR-1, liší se dekodérem a periferiemi karty.

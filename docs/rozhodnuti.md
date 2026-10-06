@@ -913,3 +913,15 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Sestava** `machines/zps/ZPS-3_CPM64K_IMA.sapi`: A: disketa 1 (systém), B: disketa 2 (MBASIC, COBOL).
   Test `ima64k` v `test_zps3`.
 - **Diskety ze Slušovic** (`04A`, `04B`, `05` ve stejné složce) jsou zapsané jako plán v `docs/software/CPM_ZPS-3.md`.
+
+## 2026-10-06 – ZPS-3: rekonstrukce diskety IMA CP/M 48K originálním MOVCPM48
+
+- **Proč takhle:** bootovatelná disketa IMA 48K se nedochovala, ale máme originální `MOVCPM48.COM` a `SYSGEN.COM`
+  od IMA a disketu „!CPMZPS3.004“ se všemi soubory. Místo překladu a ručního skládání stop je spustíme v emulátoru
+  (pod Peřinovým CP/M 48K) stejně, jako by to udělal uživatel na skutečném stroji: `MOVCPM48 46 *`, `SYSGEN` na B:.
+  Výsledek je ověřený proti zdrojům (BOOT0C1, BIOS48C1 přes M80/L80 v `cpmrun`) a proti nepřemístěnému `SYS48.BIN`.
+- **46K:** MOVCPM48 nepřijme víc než 46 (monitor MON V1.0-C1 je na B800), proto „JPR-1A 46K CPM V2.2“.
+- **Disketa v repu** `media/rpd-1/CPM48K_IMA_004.img`: soubory originální, systémové stopy vyrobené (v popisu
+  sestavy i v `media/README.md` je to uvedené). B: = disketa 003 (Pascal MT+). Sestava
+  `machines/zps/ZPS-3_CPM48K_IMA.sapi`, `ZPS-3.sapi` (podle manuálu) zůstává s Peřinovou disketou.
+- **Test** `ima48k` v `test_zps3` celý postup zopakuje a porovná systémové stopy.

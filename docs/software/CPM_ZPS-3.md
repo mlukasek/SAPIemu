@@ -1,6 +1,8 @@
 # CP/M a monitory pro ZPS-3 (JPR-1A + RPD-1 nebo FDC-1)
 
-**Stav (2026-10-06): běží i originální CP/M 2.2 64K od Tesly IMA** (sestava `ZPS-3_CPM64K_IMA.sapi`, níže).
+**Stav (2026-10-06): běží i originální CP/M 2.2 od Tesly IMA, 64K a 48K** (sestavy `ZPS-3_CPM64K_IMA.sapi`
+a `ZPS-3_CPM48K_IMA.sapi`, níže). Bootovatelná disketa 48K se nedochovala, její systémové stopy jsou vyrobené
+originálním `MOVCPM48` a `SYSGEN`.
 
 **Stav (2026-10-05): CP/M 2.2/P 48K a 62K běží s RPD-1 i s FDC-1.** Předkonfigurované sestavy podle podkladů
 autora (`..\SAPI-sestavy\ZPS-3\`: ROM `MOR*.hex`, diskety `CPM*.img`; 48/62 = paměť, F = řadič FDC-1):
@@ -11,6 +13,7 @@ autora (`..\SAPI-sestavy\ZPS-3\`: ROM `MOR*.hex`, diskety `CPM*.img`; 48/62 = pa
 | `ZPS-3_CPM62K.sapi` | MOR62A | `media/rpd-1/CPM22P_62A_Perina.img` | dvě RAM-1A 0000–F7FF, AND-1A F800 |
 | `ZPS-3_CPM48K_FDC-1.sapi` | MOR48AF | `media/fdc-1/CPM22P_48AF_Perina.img` | jako 48K, řadič FDC-1 |
 | `ZPS-3_CPM62K_FDC-1.sapi` | MOR62AF | `media/fdc-1/CPM22P_62AF_Perina.img` | jako 62K, řadič FDC-1 |
+| `ZPS-3_CPM48K_IMA.sapi` | MON V1.0-C1 (IMA) | `media/rpd-1/CPM48K_IMA_004.img`, B: `_003` | RAM-1A 0000–BFFF, AND-1A E800 |
 | `ZPS-3_CPM64K_IMA.sapi` | MON64C3 (IMA) | `media/rpd-1/CPM64K_IMA_01.img`, B: `_02` | dvě RAM-1A 0000–EFFF + F800–FFFF, AND-1A F000 |
 
 - MOR se po RESET zkopíruje z EPROM na B800 (48K) nebo F000 (62K) a zavede CP/M z mechaniky A.
@@ -36,6 +39,24 @@ autora (`..\SAPI-sestavy\ZPS-3\`: ROM `MOR*.hex`, diskety `CPM*.img`; 48/62 = pa
     `!!!!_TRIDENO_!!!!\CPM64K\CPM64K_001–004.8SD` mají stejné systémové stopy a jiné soubory (004 se zdrojáky
     MON64C3, BIOS64C2, BOOT0C2, BOOT1C2);
   - ověřeno: DIR, SAVE, ERA, STAT, MBASIC (31227 BYTES FREE), nový boot po RESETu (test `ima64k` v `test_zps3`).
+- **48K Tesla IMA, rekonstrukce** (2026-10-06): s ROM MON V1.0-C1 (monitor na B800) naběhne „JPR-1A 46K CPM
+  V2.2, BIOS V2.2-C1“ (CCP V2.2-A1 TESLA ELTOS IMA PARDUBICE 15/11/1984). Disketa `media/rpd-1/CPM48K_IMA_004.img`:
+  - **soubory jsou originální** (disketa „!CPMZPS3.004“ = `SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\
+    !!!!_TRIDENO_!!!!\ZPS3\083B.8SD`: MOVCPM48, SYSGEN, M80, F80, ED, ASM, PIP, STAT, zdroje MON48C1, BIOS48C1,
+    BOOT0C1, BOOT1C1), systémové stopy tam byly vyplněné 40h;
+  - **systémové stopy vyrobil originální `MOVCPM48 46 *` (V1.4-C1, TE-IMA 2/86) a `SYSGEN`** spuštěné v emulátoru
+    pod Peřinovým CP/M 48K s disketou v B:. MOVCPM48 bere 20 až 46, víc se pod monitor na B800 nevejde, 46K je
+    tedy jediná plná velikost „48K“ systému;
+  - **ověřeno proti zdrojům** (M80/L80 v `cpmrun`): BOOT0C1 se shoduje na bajt, kód BIOS48C1 také, liší se jen
+    oblast DS (v originále nuly) a číslice „46“, které doplní MOVCPM. Obraz je přesná relokace `SYS48.BIN`
+    (stopy 0–1 přeložené s bias 0, ve složce `083B`): všech 1145 rozdílů je +9Eh, kromě těch dvou číslic;
+  - **diskety `083ASYS`, `038BSYS` (i s `_`)** v téže složce mají v systémových stopách IMA CP/M, ale
+    nepřemístěný (bias 0, CCP na 0000, `JMP 1600h`), proto nenaběhnou. Je to pracovní výstup pro relokační
+    bitmapu MOVCPM (zdroje se překládají dvakrát, BOOT0C1 s bias 0 a BOOT1C1 s bias 100H). Verze bez `_` se od
+    `SYS48.BIN` liší jen číslicemi „48“ v hlášce BIOSu;
+  - B: `media/rpd-1/CPM48K_IMA_003.img` = `CPMZPS3_003.IMG` (Pascal MT+, bez systému, shodná s `083A.8SD`);
+  - test `ima48k` v `test_zps3`: boot, SAVE, ERA a znovu `MOVCPM48 46 *` + `SYSGEN` na B:, systémové stopy
+    vyjdou stejné jako na A:.
 
 **Stav (2026-10-03): ZPS-3 běží.** Sestava `machines/zps/ZPS-3.sapi`:
 - **MON V1.0-C1 zavede z diskety Peřinův CP/M 2.2/P** (`media/rpd-1/CPM22P_48A_Perina.img`): banner
@@ -95,5 +116,5 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
 
 ## Chybí
 
-- **Bootovatelná originální systémová disketa IMA 48K ZPS-3** k MON V1.0-C1. Zdroje máme, sestavenou disketu ne.
-  Rekonstrukce ze zdrojů (BIOS48C1, BOOT0C1, BOOT1C1, MOVCPM48 přes M80/L80 v `cpmrun`) je další krok.
+- **Bootovatelná originální systémová disketa IMA 48K ZPS-3** k MON V1.0-C1 se nedochovala. ~~Rekonstrukce~~
+  hotová 2026-10-06 (originální MOVCPM48 a SYSGEN, výše), originál by se hodil jen pro porovnání.

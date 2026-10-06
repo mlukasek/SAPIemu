@@ -59,6 +59,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     `cpm_boot_fdc1_irmd` (BIOS si RAM disk připraví sám), výsledky ostatních v `CPM_SAPIMAN.md`;
   - **ZPS-3 s originálním CP/M 2.2 64K od Tesly IMA** (`machines/zps/ZPS-3_CPM64K_IMA.sapi`, ROM MON64C3,
     diskety z archivu EC1045 `DEX\SAPI_ZPS3\01–03`; PROM D1A a D3A pro F000 jsou předpoklad), test `ima64k`;
+  - **ZPS-3 s originálním CP/M IMA 48K (46K)** (`ZPS-3_CPM48K_IMA.sapi`, MON V1.0-C1): disketa se nedochovala,
+    systémové stopy vyrobilo originální `MOVCPM48 46 *` a `SYSGEN` v emulátoru, ověřeno proti zdrojům BOOT0C1
+    a BIOS48C1; test `ima48k`;
   - **RPD-1 s druhým řadičem** (diskety J. Bíby `r2_*`, `r3_*`): `cpm_boot_rpd1_mfc256`, `_mfc512` (MFC-1A s 8"
     FM 14 × 256 a 8 × 512, ne DD) a `cpm_boot_rpd1_fdc1_rmd`;
   - **ZPS-4 s FDC-1** (`machines/zps/ZPS-4_FDC-1.sapi`, ROM MOR62ZF, disketa CPM62ZF ze sapi.cz). Varianty 48Z
@@ -95,7 +98,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         ECMON i J. Bíba) a na DPP-1 (mód 1, `LST: = UL1:`), okno Tiskárna, MCP `printer_output`
         (`docs/tiskarna.md`). Kanál 1 DPP-1 je v ECMONu `PUN:`, ne tiskárna.
   0c. **ZPS-3** (2026-10-06, `docs/software/CPM_ZPS-3.md`): ~~originální CP/M 64K Tesla IMA~~ hotové;
-     rekonstrukce **IMA CP/M 48K** ze zdrojů (BIOS48C1, BOOT0C1, BOOT1C1, MOVCPM48) rozpracovaná;
+     ~~rekonstrukce IMA CP/M 48K~~ hotová (originální MOVCPM48 a SYSGEN, sestava `ZPS-3_CPM48K_IMA`);
      **diskety ze Slušovic** (`DEX\SAPI_ZPS3\04A`, `04B`: TNS CP/M V2.27-K JZD AK Slušovice 1986; `05`:
      CP/M 2.30 MIC-Software Slušovice 1987, OSBOOT-F) vyzkoušet, chybí k nim boot EPROM.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
@@ -341,11 +344,11 @@ Dřív hotové fáze:
 | F4 | IDE-1 (8255, IDE `.img`) + PMD32-SD (protokol, `images.cfg`), ROM ECMON IDE, boot volbou 3 | ✅ hotovo |
 | F5 | Sériová linka přes TCP a COM; klávesnice Consul 262.3, Consul 259.11, ANK-1; konfigurátor sestav a mapa portů | ✅ hotovo |
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
-| F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. 62K a FDC-1 (2026-10-05), originální IMA 64K (2026-10-06). Zbývá originální IMA CP/M 48K (disketa) | ✅ základ hotový |
+| F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. 62K a FDC-1 (2026-10-05), originální IMA 64K a 48K (2026-10-06, 48K z MOVCPM48) | ✅ hotovo |
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z, s FDC-1 MOR62ZF) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
-| F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K; 62K a FDC-1 hotové 2026-10-05, IMA 64K 2026-10-06); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
+| F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
@@ -412,7 +415,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     Máš 8" mechaniku a disketu MIKOS/D?
 
 19. **ZPS-3:**
-    - Máš bootovatelnou originální systémovou disketu IMA CP/M 48K pro ZPS-3 (k MON V1.0-C1)?
+    - Máš bootovatelnou originální systémovou disketu IMA CP/M 48K pro ZPS-3 (k MON V1.0-C1)? Emulace má
+      rekonstrukci z originálního MOVCPM48 (46K), originál by sloužil jen k porovnání.
     - Ve které patici JPR-1A je boot EPROM (D3B nebo D4B)? Jaké propojky máš na JPR-1A, AND-1A a RAM-1A?
     - Jsou na AND-1A D3A vstupy A6/A7 (G/H) na +5 V?
     - Dumpy PROM D2C, D3A, D1A pro potvrzení přepsaných tabulek.
@@ -540,5 +544,4 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
        opravit ZRD-1V (pryč `map_jp2`);
      - sestava V s ECMON a CP/M ze ZRD-1V a IDE-1.
    - Zdroje MikroBIOSu jsou v `H:\SAPI-1\LiborLasota\JPR-1V\@orig\JPR-1V_monitor.zip` (do repa jen HEX/BIN). Otevřené otázky ke ZPS-3/4 jsou v bodech
-   19 a 20. Zbývá originální IMA CP/M 48K, k tomu chybí
-   disketa (bod 19); 62K a 64K jsou hotové. Podklady jsou v `docs/software/CPM_ZPS-3.md`.
+   19 a 20. Originální IMA CP/M 48K je rekonstruovaný (MOVCPM48), 62K a 64K jsou hotové. Podklady jsou v `docs/software/CPM_ZPS-3.md`.

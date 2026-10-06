@@ -70,6 +70,8 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 |---|---|
 | `CPM22P_48A_Perina.img` | CP/M 2.2/P 48K (R. Peřina 1988) pro ZPS-3 s AND-1A a RPD-1, bootovatelná. Zdroj sapi.cz `data2/cpm48a_img.rar` (`CPM48A.img`). Obsahuje BIOS.MAC, BOOT.MAC, MOR24.MAC, SYSGEN, CPM.DOC a další. |
 | `CPM22P_62A_Perina.img` | CP/M 2.2/P 62K (R. Peřina 1988) pro ZPS-3 s AND-1A na F800 a RPD-1, k ROM MOR62A. Zdroj autor (`..\SAPI-sestavy\ZPS-3\CPM62A.img`). |
+| `CPM48K_IMA_004.img` | CP/M 2.2 46K Tesla IMA pro ZPS-3 s ROM MON V1.0-C1 („JPR-1A 46K CPM V2.2“, BIOS V2.2-C1). Soubory originální (`!!!!_TRIDENO_!!!!\ZPS3\083B.8SD` v `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám`: MOVCPM48, SYSGEN, M80, F80, zdroje), **systémové stopy vyrobené** originálním `MOVCPM48 46 *` a `SYSGEN` (originál se nedochoval, `docs/software/CPM_ZPS-3.md`). Sestava `ZPS-3_CPM48K_IMA`. |
+| `CPM48K_IMA_003.img` | Disketa IMA ZPS-3 „!CPMZPS3.003“ (Pascal MT+), bez systému (stopy 40h). `CPMZPS3_003.IMG` z téže složky (= sapi.cz `cpmzps3_img.rar`). |
 | `CPM64K_IMA_01.img`, `_02`, `_03` | Originální CP/M 2.2 64K Tesla Eltos IMA Pardubice (CCP V2.2-A1, 15/11/1984) pro ZPS-3 s ROM MON64C3: 01 systém, ED, PIP, M80, F80, ASM; 02 STAT, FORMAT, MBASIC, COBOL; 03 Pascal MT+. Z `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\DEX\SAPI_ZPS3\01–03.8SD`. Sestava `ZPS-3_CPM64K_IMA`. |
 | `CPM22P_62Z_Perina.img` | CP/M 2.2/P 62K (R. Peřina 1988) pro ZPS-4 (JPR-1Z, AND-1Z, RPD-1, RAM disk RMD-1 jako E:). Zdroj sapi.cz `data2/cpm62z_img.rar`. |
 | `ELIS_61K.img` | ELIS 61k CP/M V2.2 (A, B: RPD-1, C: RMD-1, AND-1Z, Consul). Zdroj sapi.cz `data2/elis_img.rar` (= `MELSOFT\001.8SD` na SD kartě EC1045). ED, PIP, STAT, MBASIC, SYSGEN, INIRMD5 (JB 2011). |

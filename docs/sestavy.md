@@ -131,7 +131,8 @@ systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 `ZPS-3_CPM48K.sapi` a `ZPS-3_CPM62K.sapi` jsou ZPS-3 s Peřinovými monitory MOR48A a MOR62A a řadičem RPD-1,
 `ZPS-3_CPM48K_FDC-1.sapi` a `ZPS-3_CPM62K_FDC-1.sapi` totéž s řadičem FDC-1 (8272 + DMA, dva sloty,
 `docs/desky/FDC-1.md`). Sestavy 62K mají druhou RAM-1A na C000–F7FF a AND-1A na F800.
-`ZPS-3_CPM64K_IMA.sapi` je originální CP/M 64K od Tesly IMA (monitor MON64C3 v RAM na F800, druhá RAM-1A na
+`ZPS-3_CPM48K_IMA.sapi` je originální CP/M 46K od Tesly IMA s monitorem MON V1.0-C1 (systémové stopy vyrobené
+originálním MOVCPM48, disketa se nedochovala). `ZPS-3_CPM64K_IMA.sapi` je originální CP/M 64K od Tesly IMA (monitor MON64C3 v RAM na F800, druhá RAM-1A na
 C000–EFFF a F800–FFFF, AND-1A na F000; obě PROM jsou předpoklad).
 `cpm_zrmd_fdc1.sapi` a `cpm_zrmd_mfc1a.sapi` jsou `cpm_zrmd.sapi` s řadičem FDC-1 nebo MFC-1A (`docs/desky/MFC-1A.md`)
 a 8" mechanikami. Při prvním zapnutí zvolit 0 (FDC8) nebo 2 (MFC8), B: je disketa CP/M 2.2/P, C: druhá mechanika.
