@@ -25,10 +25,10 @@ public:
     bool set_ink(const std::string& value, std::string& err) override { return monitor.set(value, err); }
     std::vector<std::string> text_rows() override;
 
-    static const int COLS = 64;
-    static const int ROWS = 20;      // visible rows (vertical PROM DE6)
-    static const int CELL_W = 6;
-    static const int CELL_H = 12;
+    static constexpr int COLS = 64;
+    static constexpr int ROWS = 20;      // visible rows (vertical PROM DE6)
+    static constexpr int CELL_W = 6;
+    static constexpr int CELL_H = 12;
 
     uint8_t vram[2048];
 

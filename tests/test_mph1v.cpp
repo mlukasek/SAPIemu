@@ -309,7 +309,7 @@ static bool cpm_save_hex(Machine& m, const std::string& path, const char* name, 
     if (!file_read_text(path, text)) return false;
     CHECK(m.load_ihex_text(text, err));
     char cmd[64];
-    snprintf(cmd, sizeof(cmd), "SAVE %d %s", pages, name);
+    snprintf(cmd, sizeof(cmd), "SAVE %d %s\r", pages, name);
     m.type_text(cmd);
     m.run_seconds(1.0);
     CHECK(run_until_text(m, "\nA>", 10.0));
@@ -344,7 +344,7 @@ static void splay(void)
     CHECK(cpm_save_hex(m, data_path("media/mph-1v/splay.hex"), "SPLAY.COM", 4));
     CHECK(cpm_save_hex(m, tune, "BUBBLE.VGM", 17));
     m.bus.audio_cap = 49716 * 10;
-    m.type_text("SPLAY BUBBLE.VGM");
+    m.type_text("SPLAY BUBBLE.VGM\r");
     m.run_seconds(3.0);
     printf("%s\n", screen_text(m).c_str());
     double r = rms_of(m.bus.audio);

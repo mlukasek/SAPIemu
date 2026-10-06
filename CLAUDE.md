@@ -1,6 +1,6 @@
 # SAPIemu – kontext projektu
 
-Emulátor počítače **Tesla SAPI-1** (Z80/8080, modulární karty na sběrnici ARB-1) pro Windows 11, později i Linux.
+Emulátor počítače **Tesla SAPI-1** (Z80/8080, modulární karty na sběrnici ARB-1) pro Windows 11 (primární), sestaví se i na Linuxu (ověřeno ve WSL).
 Má vestavěný **MCP server** pro vývoj softwaru pro SAPI s Claude.
 
 Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **česky**.
@@ -83,7 +83,9 @@ Pasti ověřené 2026-10-05:
 - **Visual Studio 2022:** Open Folder, CMake presety `windows-debug` / `windows-release`.
 - **Příkazová řádka:** `tools\build.cmd debug test`. Skript sám najde VS přes vswhere (přednost má VS 2022) a spustí configure, build a ctest.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
-- **Linux (později):** `cmake --preset linux-debug && cmake --build --preset linux-debug`.
+- **Linux:** `cmake --preset linux-debug && cmake --build --preset linux-debug`, ověřeno ve WSL 2 (Ubuntu 24.04,
+  klon v `~/SAPIemu`, ne na `/mnt/e`; postup a pasti GCC v `docs/build.md`). Windows build má přednost, změny
+  pro Linux nesmí nic rozbít na Windows (po nich vždy `tools\build.cmd debug test` i `release test`).
 - **Umístění na autorově hlavním PC (od 2026-10-04):** repo je na lokálním disku v `E:\SAPI_GIT\SAPIemu`, podpůrné
   repozitáře desek v `E:\SAPI_GIT\SAPI-karty\<deska>` (od 2026-10-05, relativní odkazy `..\SAPI-karty\JPR-1V`). Archiv
   `H:\SAPI-1\` (záloha sapi.cz, `LiborLasota`, `_ROM`, nahrávky kazet…) zůstává na síťovém disku `H:`

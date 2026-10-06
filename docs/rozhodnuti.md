@@ -942,3 +942,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   FREKVENCE CPU, ZDROJ jsou na skutečném stroji česky), MCP a `sapiemu-cli`.
 - **Opravené překlady:** test `test_i18n` našel dvojí klíče. „(empty)“ měl „(prázdný)“ i „(prázdná)“ a platil jen
   druhý, takže prázdný slot v konfigurátoru byl „(prázdná)“. Slot má teď vlastní text v `rack.cpp`.
+
+## 2026-10-06 – Linux build ve WSL
+
+- **Proč WSL:** autor má jen WSL 2 (Ubuntu 24.04, WSLg), Linux ve VMware by šel jen pracně. WSL stačí na překlad,
+  testy, `sapiemu-cli` i GUI (WSLg). Nevyzkouší se fyzické COM porty a gamepad.
+- **Windows má přednost** (autor): opravy pro Linux se dělají ve Windows repu a commitují až po `build.cmd debug test`
+  i `release test`. Klon ve WSL (`~/SAPIemu`, lokální klon z `E:`) je jen na zkoušku, změny se do něj kopírují.
+- **Opravy:** `static constexpr` místo `static const` u konstant AND-1 a AND-1Z (GCC chtěl definici), `\r` místo
+  doslovného CR v `test_mph1v.cpp` (soubor se tím v Gitu normalizuje na LF). Jinak se kód přeložil beze změn.
+- **CI** zatím ne (soukromé repo, minuty), viz SOUHRN.

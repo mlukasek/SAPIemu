@@ -40,9 +40,9 @@ public:
     bool set_ink(const std::string& value, std::string& err) override { return monitor.set(value, err); }
     std::vector<std::string> text_rows() override;
 
-    static const int COLS = 40;
-    static const int CELL_W = 6;
-    static const int CELL_H = 10;
+    static constexpr int COLS = 40;
+    static constexpr int CELL_W = 6;
+    static constexpr int CELL_H = 10;
 
     uint8_t vram[1024];
 

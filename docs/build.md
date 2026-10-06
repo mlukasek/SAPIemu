@@ -37,6 +37,30 @@ v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazy
 po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky
 čelního panelu (potisk skutečného stroje), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
 
+## Linux (ověřeno ve WSL 2, 2026-10-06)
+
+Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (WSLg zobrazí i okno GUI a zvuk):
+
+1. Balíčky (jednou, vyžaduje `sudo`): `sudo apt install -y build-essential cmake ninja-build pkg-config
+   libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
+   libwayland-dev libdecor-0-dev libgl1-mesa-dev libegl1-mesa-dev libpulse-dev libasound2-dev libudev-dev
+   libdbus-1-dev`. SDL3 se stáhne přes FetchContent jako na Windows.
+2. **Repo na linuxovém disku**, ne na `/mnt/e` (tam je překlad ve WSL velmi pomalý): např.
+   `git clone /mnt/e/SAPI_GIT/SAPIemu ~/SAPIemu`. Podklady vedle repa jako u autora: `ln -s
+   /mnt/e/SAPI_GIT/SAPI-karty ~/SAPI-karty` (testy MPH-1V je hledají v `../SAPI-karty`).
+3. `cmake --preset linux-debug && cmake --build --preset linux-debug`, testy `ctest --preset linux-debug`
+   (postupně jako na Windows: s `-j` se testy se společnými sestavami a soubory ve `work/` navzájem ruší).
+4. GUI: `out/build/linux-debug/sapiemu` (ve WSL se okno ukáže na ploše Windows). Nastavení se ukládá vedle exe,
+   jinak do `~/.local/share/SAPIemu/SAPIemu`. COM port je na Linuxu zařízení (`/dev/ttyUSB0`), ve WSL fyzické porty
+   nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
+
+Výsledek 2026-10-06: všech 33 testů prošlo. Nahrávky kazet z `H:` (`test_cassette`, `test_mikos`) se na Linuxu
+přeskočí. Co GCC na rozdíl od MSVC nepromine (pro další vývoj):
+- statická konstanta třídy použitá odkazem (`std::min`, JSON) bez definice: psát `static constexpr int`, ne
+  `static const int` (linker hlásí `undefined reference to And1::COLS`);
+- doslovný znak CR uvnitř řetězce (`"…^M"` místo `"\r"`): GCC ho bere jako konec řádku. Git navíc takový soubor
+  považuje za binární a nenormalizuje mu konce řádků.
+
 ## Lokální preset (necommituje se)
 
 Když repo leží na síťovém disku, je rychlejší ukládat výstupy sestavení na lokální disk. Stačí v kořeni repa vytvořit
