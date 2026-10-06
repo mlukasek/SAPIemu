@@ -66,7 +66,8 @@ Totéž jde v okně terminálu tlačítkem **Otevřít COM port**.
 
 ## Přenos souborů XMODEM (DOPC / DOCPM)
 
-Postup pro přenos ze SAPI do PC s DOPC10.COM a TeraTermem:
+Postup pro přenos ze SAPI do PC s DOPC10.COM a TeraTermem (nebo bez něj tlačítkem „Přijmout soubor XMODEM…“
+v okně terminálu, kapitola níže):
 1. Konzole může zůstat na obrazovce (DCD neaktivní). **CTS musí být aktivní** („Připraven (CTS)“, výchozí stav).
 2. V CP/M spustit `DOPC10 SOUBOR.EXT`. Program vypíše „Soubor otevren“ a čeká na přijímač.
 3. V TeraTermu File → Transfer → XMODEM → Receive, protokol Checksum.
@@ -85,14 +86,18 @@ Okno Zobrazení → Sériový terminál umí poslat soubor do SAPI bez TeraTermu
 | **Poslat soubor…** | bajty souboru tak, jak jsou (např. Intel HEX pro `BOOT` MIKROBIOSu na JPR-1S, `docs/desky/JPR-1S.md`) |
 | **Poslat textový soubor…** | text UTF-8: česká písmena jako kódy SAPI (jako psaní z klávesnice), konce řádků CR LF / LF jako CR (Enter) |
 | **Poslat soubor XMODEM…** | XMODEM pro přijímací program v SAPI (např. `DOCPM10 SOUBOR.EXT` v CP/M): pakety po 128 B, součet nebo CRC-16 podle toho, čím přijímač začne (NAK / „C“), 10 opakování, bez odpovědi 10 s se paket pošle znovu, Zrušit pošle CAN CAN |
+| **Přijmout soubor XMODEM…** | soubor z vysílacího programu v SAPI (např. `DOPC10 SOUBOR.EXT`). XMODEM jméno nepřenáší, proto se nejdřív zvolí, kam soubor uložit (jako v TeraTermu). Přijímač pak posílá NAK (součet) každé 3 s, dokud vysílač nezačne; pakety po 128 B i 1 KB, opakovaný paket potvrdí a zahodí, špatný odmítne (NAK, 10×). Soubor se zapíše po EOT. Pakety se mezitím v terminálu nevypisují. |
 
 - Pod tlačítky je průběh: kolik bajtů zbývá poslat (Zastavit zahodí zbytek), u XMODEM číslo paketu.
 - Bajty jdou rychlostí linky a s volbou „Bez přetečení“ jako psaní z terminálu; fronta pojme 1 MB.
+- **Odříznout 1Ah na konci** (výchozí zapnuto): XMODEM doplní poslední paket znaky 1Ah, textový soubor CP/M jimi
+  končí. U binárních souborů, které 1Ah opravdu končí, vypnout (soubor pak má délku násobku 128 B jako v CP/M).
 - **Kopírovat** vloží do schránky celý text terminálu, **Vložit** pošle schránku jako psaný text (konce řádků jako
-  CR). Zkratky v okně terminálu: Ctrl+Shift+C / Ctrl+Insert a Ctrl+Shift+V / Shift+Insert (Ctrl+C a Ctrl+V jdou
-  do SAPI jako řídicí kódy 03h a 16h), totéž v menu pod pravým tlačítkem.
-- Vysílač XMODEM je v jádru (`src/core/xmodem.*`), test `test_xmodem`: DOCPM10.COM přijme 14 řádků textu
-  (7 paketů, bez opakování), `TYPE` je vypíše.
+  CR). Zkratky jako v TeraTermu: **Alt+C** a **Alt+V** (také Ctrl+Insert a Shift+Insert); Ctrl+C a Ctrl+V jdou do
+  SAPI jako řídicí kódy 03h a 16h, AltGr (Ctrl+Alt) píše znaky. Totéž je v menu pod pravým tlačítkem.
+- Vysílač i přijímač XMODEM jsou v jádru (`src/core/xmodem.*`), test `test_xmodem`: DOPC10.COM pošle TD.MAC
+  (40 paketů, 5025 B textu bez výplně), DOCPM10.COM přijme 14 řádků textu (7 paketů, bez opakování), `TYPE` je
+  vypíše.
 
 ## Poznámky k softwaru
 

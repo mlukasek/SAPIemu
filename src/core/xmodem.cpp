@@ -124,3 +124,100 @@ std::string XmodemSender::cancel(void)
     error = "cancelled";
     return was ? std::string("\x18\x18", 2) : std::string();
 }
+
+std::string XmodemReceiver::start(void)
+{
+    data.clear();
+    buf.clear();
+    packets = 0;
+    retries = 0;
+    bad = 0;
+    error.clear();
+    state = WAIT_FIRST;
+    return std::string(1, (char)NAK);
+}
+
+std::string XmodemReceiver::feed(const std::string& received)
+{
+    std::string out;
+    if (!active()) return out;
+    buf += received;
+    while (!buf.empty() && active()) {
+        uint8_t c = (uint8_t)buf[0];
+        if (c == EOT) {
+            buf.erase(0, 1);
+            out += (char)ACK;
+            state = DONE;
+            break;
+        }
+        if (c == CAN) {
+            if (buf.size() < 2) break;   // CAN CAN: wait for the second one
+            if ((uint8_t)buf[1] == CAN) {
+                state = FAILED;
+                error = "cancelled by the sender";
+                break;
+            }
+            buf.erase(0, 1);
+            continue;
+        }
+        if (c != SOH && c != 0x02) {   // noise between packets (text of the sender program)
+            buf.erase(0, 1);
+            continue;
+        }
+        size_t len = c == SOH ? 128 : 1024;
+        if (buf.size() < len + 4) break;   // the rest of the packet comes later
+        uint8_t seq = (uint8_t)buf[1], inv = (uint8_t)buf[2];
+        uint8_t sum = 0;
+        for (size_t i = 0; i < len; i++) sum = (uint8_t)(sum + (uint8_t)buf[3 + i]);
+        bool ok = (uint8_t)~seq == inv && sum == (uint8_t)buf[3 + len];
+        uint8_t expect = (uint8_t)(packets + 1);
+        if (ok && seq == expect) {
+            data.insert(data.end(), buf.begin() + 3, buf.begin() + 3 + (long)len);
+            packets++;
+            retries = 0;
+            state = RECEIVING;
+            out += (char)ACK;
+        } else if (ok && seq == (uint8_t)packets) {
+            out += (char)ACK;   // the previous one again (our ACK was lost): drop it
+        } else {
+            bad++;
+            if (++retries > MAX_RETRIES) {
+                state = FAILED;
+                error = "too many bad packets";
+                out += std::string("\x18\x18", 2);
+                break;
+            }
+            out += (char)NAK;
+        }
+        buf.erase(0, len + 4);
+    }
+    return out;
+}
+
+std::string XmodemReceiver::timeout(void)
+{
+    if (!active()) return std::string();
+    if (state == RECEIVING && ++retries > MAX_RETRIES) {
+        state = FAILED;
+        error = "the sender stopped";
+        return std::string("\x18\x18", 2);
+    }
+    buf.clear();   // a half packet will not be finished
+    return std::string(1, (char)NAK);
+}
+
+std::string XmodemReceiver::cancel(void)
+{
+    bool was = active();
+    state = FAILED;
+    error = "cancelled";
+    return was ? std::string("\x18\x18", 2) : std::string();
+}
+
+std::vector<uint8_t> XmodemReceiver::file(bool strip_sub) const
+{
+    std::vector<uint8_t> f = data;
+    if (strip_sub)
+        while (!f.empty() && f.back() == SUB) f.pop_back();
+    return f;
+}

@@ -1,5 +1,5 @@
 // Integration test: CP/M program DOPC10.COM sends a file with XMODEM (checksum)
-// over DMR-1 to the host. The console stays on the screen (DCD inactive) while
+// over DMR-1 to the XMODEM receiver of the emulator (core/xmodem). The console stays on the screen (DCD inactive) while
 // CTS is active - DOPC uses RTS/CTS handshake and waits for CTS.
 // The other way: the XMODEM sender of the emulator (core/xmodem, the "Send file XMODEM"
 // of the terminal window) sends a text file to DOCPM10.COM, TYPE shows it.
@@ -43,47 +43,28 @@ int main(void)
     m->type_text("DOPC10 TD.MAC\r");
     CHECK(run_until_text(*m, "Soubor otevren", 10.0));
 
-    // XMODEM receiver (checksum): NAK starts the transfer
+    // the XMODEM receiver of the emulator (core/xmodem, "Receive file XMODEM" of the terminal window)
     uint64_t pos = ch->host_end();
-    std::string buf;
-    const uint8_t nak = 0x15, ack = 0x06;
-    ch->host_send(&nak, 1);
-    int packets = 0, bad = 0, dups = 0;
-    bool eot = false;
-    for (int i = 0; i < 3000 && !eot; i++) {   // up to 30 s emulated
+    XmodemReceiver r;
+    std::string first = r.start();
+    ch->host_send((const uint8_t*)first.data(), first.size());
+    for (int i = 0; i < 3000 && r.active(); i++) {   // up to 30 s emulated
         m->run_seconds(0.01);
-        ch->host_read(pos, buf, 4096);
-        while (!buf.empty()) {
-            uint8_t first = (uint8_t)buf[0];
-            if (first == 0x04) { ch->host_send(&ack, 1); eot = true; buf.erase(0, 1); break; }
-            if (first != 0x01) { buf.erase(0, 1); continue; }   // noise before a packet
-            if (buf.size() < 132) break;
-            uint8_t sum = 0;
-            for (int k = 3; k < 131; k++) sum = (uint8_t)(sum + (uint8_t)buf[k]);
-            bool ok = sum == (uint8_t)buf[131] && (uint8_t)buf[1] == (uint8_t)~(uint8_t)buf[2];
-            uint8_t seq = (uint8_t)buf[1];
-            if (ok && seq == (uint8_t)(packets + 1)) packets++;
-            else if (ok && seq == (uint8_t)packets) {   // repeated packet: ACK and ignore (XMODEM)
-                dups++;
-                fprintf(stderr, "repeated packet %02X\n", seq);
-            }
-            else ok = false;
-            if (!ok) {
-                bad++;
-                fprintf(stderr, "bad packet: seq %02X/%02X sum %02X/%02X expected seq %02X\n", seq,
-                        (uint8_t)buf[2], sum, (uint8_t)buf[131], packets + 1);
-            }
-            ch->host_send(ok ? &ack : &nak, 1);
-            buf.erase(0, 132);
-        }
+        std::string in;
+        ch->host_read(pos, in, 4096);
+        std::string out = r.feed(in);
+        if (!out.empty()) ch->host_send((const uint8_t*)out.data(), out.size());
     }
-    printf("packets %d, bad %d, EOT %d\n", packets, bad, eot ? 1 : 0);
-    CHECK(eot);
-    CHECK(packets > 10);
-    CHECK_EQ(bad, 0);
-    // A repeated first packet is normal XMODEM start-up behaviour; later repeats would
-    // mean lost ACKs (the received character must have its line delay).
-    CHECK(dups <= 1);
+    std::vector<uint8_t> td = r.file(true);
+    size_t printable = 0;
+    for (uint8_t c : td) printable += (c >= 0x20 && c < 0x7F) || c == '\r' || c == '\n' || c == '\t';
+    printf("XMODEM receive: state %d, %zu packets, %d bad, %zu B (%zu printable) %s\n", r.state, r.packets, r.bad,
+           td.size(), printable, r.error.c_str());
+    CHECK_EQ(r.state, XmodemReceiver::DONE);
+    CHECK(r.packets > 10);
+    CHECK_EQ(r.bad, 0);
+    CHECK(!td.empty() && printable == td.size());   // TD.MAC is source text, the 1Ah padding cut off
+    CHECK(r.file(false).size() == r.packets * 128);
     CHECK(run_until_text(*m, "Soubor odeslan", 5.0));
 
     // PC -> SAPI: 14 lines of text (about 900 B, 8 packets) to DOCPM10.COM

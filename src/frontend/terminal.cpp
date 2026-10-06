@@ -113,12 +113,15 @@ static void term_dialog(UiState& ui, int kind)
         d.kind = kind;
         d.done = false;
     }
-    std::string where = d.last_dir.empty() ? data_path("media") : d.last_dir;
+    std::string where = d.last_dir.empty() ? data_path(kind == 4 ? "work" : "media") : d.last_dir;
 #ifdef _WIN32
     for (char& c : where) if (c == '/') c = '\\';
 #endif
-    SDL_ShowOpenFileDialog(term_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
+    if (kind == 4) SDL_ShowSaveFileDialog(term_dialog_done, &d, ui.window, nullptr, 0, where.c_str());
+    else SDL_ShowOpenFileDialog(term_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
 }
+
+static bool transfer_active(const UiState& ui) { return ui.xmodem.active() || ui.xmodem_rx.active(); }
 
 // The chosen file: queued for SAPI as it is or as text, or the XMODEM sender started.
 static void term_dialog_poll(UiState& ui, Machine* m)
@@ -136,6 +139,17 @@ static void term_dialog_poll(UiState& ui, Machine* m)
     }
     if (path.empty() || ui.terminal_channel >= (int)m->serials.size()) return;
     d.last_dir = path_dir(path);
+    SerialChannel* rch = m->serials[ui.terminal_channel];
+    if (kind == 4) {   // receive: the file is written when the transfer ends
+        ui.xmodem_rx_path = path;
+        ui.xmodem_rx_saved = false;
+        ui.xmodem_channel = ui.terminal_channel;
+        ui.xmodem_pos = rch->host_end();
+        ui.xmodem_last = ImGui::GetTime();
+        std::string nak = ui.xmodem_rx.start();
+        rch->host_send((const uint8_t*)nak.data(), nak.size());
+        return;
+    }
     std::vector<uint8_t> data;
     if (!file_read_all(path, data)) {
         ui.term_status = tr("Cannot read the file.");
@@ -159,9 +173,43 @@ static void term_dialog_poll(UiState& ui, Machine* m)
     ui.term_status = msg;
 }
 
+// The XMODEM receiver: packets since the last frame; NAK every 3 s until the sender starts, then
+// after 10 s without data; the file written at the end.
+static void xmodem_rx_pump(UiState& ui, Machine* m)
+{
+    XmodemReceiver& r = ui.xmodem_rx;
+    if (r.state == XmodemReceiver::DONE && !ui.xmodem_rx_saved) {
+        ui.xmodem_rx_saved = true;
+        std::vector<uint8_t> f = r.file(ui.term_strip_sub);
+        char msg[600];
+        if (file_write_all(ui.xmodem_rx_path, f.data(), f.size()))
+            snprintf(msg, sizeof(msg), tr("XMODEM: received %zu B into %s"), f.size(), ui.xmodem_rx_path.c_str());
+        else snprintf(msg, sizeof(msg), "%s", tr("Cannot write the file."));
+        ui.term_status = msg;
+    }
+    if (!r.active()) return;
+    if (ui.xmodem_channel < 0 || ui.xmodem_channel >= (int)m->serials.size()) {
+        r.cancel();
+        return;
+    }
+    SerialChannel* ch = m->serials[ui.xmodem_channel];
+    std::string in, out;
+    ch->host_read(ui.xmodem_pos, in, 1 << 16);
+    double now = ImGui::GetTime();
+    if (!in.empty()) {
+        out = r.feed(in);
+        ui.xmodem_last = now;
+    } else if (now - ui.xmodem_last > (r.state == XmodemReceiver::WAIT_FIRST ? 3.0 : 10.0)) {
+        out = r.timeout();
+        ui.xmodem_last = now;
+    }
+    if (!out.empty()) ch->host_send((const uint8_t*)out.data(), out.size());
+}
+
 // The XMODEM sender: what the receiver sent since the last frame, a timeout of 10 s.
 static void xmodem_pump(UiState& ui, Machine* m)
 {
+    xmodem_rx_pump(ui, m);
     if (!ui.xmodem.active()) return;
     if (ui.xmodem_channel < 0 || ui.xmodem_channel >= (int)m->serials.size()) {
         ui.xmodem.cancel();
@@ -199,19 +247,41 @@ static void draw_send(UiState& ui, SerialChannel* ch)
     if (ImGui::Button(tr("Send text file..."))) term_dialog(ui, 2);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("UTF-8 text: Czech letters as SAPI codes, line ends as CR (Enter)."));
     same_line_if_fits(tr("Send file XMODEM..."));
-    if (ImGui::Button(tr("Send file XMODEM...")) && !ui.xmodem.active()) term_dialog(ui, 3);
+    if (ImGui::Button(tr("Send file XMODEM...")) && !transfer_active(ui)) term_dialog(ui, 3);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("XMODEM (checksum or CRC) to a receiving program in SAPI, e.g. DOCPM10.COM in CP/M."));
+    same_line_if_fits(tr("Receive file XMODEM..."));
+    if (ImGui::Button(tr("Receive file XMODEM...")) && !transfer_active(ui)) term_dialog(ui, 4);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("XMODEM from a sending program in SAPI, e.g. DOPC10.COM in CP/M. XMODEM carries no name: choose the file first."));
+    same_line_if_fits(tr("Cut 1Ah off the end"));
+    ImGui::Checkbox(tr("Cut 1Ah off the end"), &ui.term_strip_sub);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("XMODEM pads the last packet with 1Ah (CP/M text ends with it). Off for binary files that end with 1Ah."));
     same_line_if_fits(tr("Copy"));
     if (ImGui::Button(tr("Copy"))) terminal_copy(ui);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("All text of the terminal to the clipboard (Ctrl+Shift+C)."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("All text of the terminal to the clipboard (Alt+C, Ctrl+Insert)."));
     same_line_if_fits(tr("Paste"));
     if (ImGui::Button(tr("Paste"))) terminal_paste(ui);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The clipboard as typed text (Ctrl+Shift+V, Shift+Insert)."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The clipboard as typed text (Alt+V, Shift+Insert)."));
 
     char msg[256];
     const XmodemSender& x = ui.xmodem;
+    const XmodemReceiver& r = ui.xmodem_rx;
     size_t left = ch->host_pending_rx();
-    if (x.active()) {
+    if (r.active()) {
+        if (r.state == XmodemReceiver::WAIT_FIRST) snprintf(msg, sizeof(msg), "%s", tr("XMODEM receive: waiting for the sender (NAK)..."));
+        else snprintf(msg, sizeof(msg), tr("XMODEM receive: packet %zu"), r.packets);
+        ImGui::TextUnformatted(msg);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Cancel"))) {
+            std::string out = ui.xmodem_rx.cancel();
+            ch->host_send((const uint8_t*)out.data(), out.size());
+        }
+    } else if (r.state == XmodemReceiver::FAILED && !x.active() && x.state != XmodemSender::FAILED &&
+               x.state != XmodemSender::DONE) {
+        snprintf(msg, sizeof(msg), tr("XMODEM failed: %s"), r.error.c_str());
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", msg);
+    } else if (x.active()) {
         if (x.state == XmodemSender::WAIT_START) snprintf(msg, sizeof(msg), "%s", tr("XMODEM: waiting for the receiver (NAK or C)..."));
         else snprintf(msg, sizeof(msg), tr("XMODEM: packet %zu of %zu (%s)"), x.packet + 1 > x.packets ? x.packets : x.packet + 1,
                       x.packets, x.crc ? "CRC" : "checksum");
@@ -318,7 +388,10 @@ void draw_terminal(UiState& ui)
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(700, 460), ImGuiCond_FirstUseEver);
     if (m) {
-        if (ui.machine_gen != ui.host->machine_generation() && ui.xmodem.active()) ui.xmodem.cancel();
+        if (ui.machine_gen != ui.host->machine_generation()) {
+            if (ui.xmodem.active()) ui.xmodem.cancel();
+            if (ui.xmodem_rx.active()) ui.xmodem_rx.cancel();
+        }
         xmodem_pump(ui, m);
         term_dialog_poll(ui, m);
     }
@@ -333,6 +406,10 @@ void draw_terminal(UiState& ui)
         return;
     }
     for (size_t i = 0; i < m->serials.size(); i++) {
+        if (ui.xmodem_rx.active() && (int)i == ui.xmodem_channel) {   // packets are not text
+            ui.terms[i].pos = m->serials[i]->host_end();
+            continue;
+        }
         std::string data;
         m->serials[i]->host_read(ui.terms[i].pos, data, 1 << 16);
         if (!data.empty()) terminal_feed(ui.terms[i], data);
@@ -375,8 +452,8 @@ void draw_terminal(UiState& ui)
 
     ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
     if (ImGui::BeginPopupContextWindow("termmenu")) {
-        if (ImGui::MenuItem(tr("Copy"), "Ctrl+Shift+C")) terminal_copy(ui);
-        if (ImGui::MenuItem(tr("Paste"), "Ctrl+Shift+V")) terminal_paste(ui);
+        if (ImGui::MenuItem(tr("Copy"), "Alt+C")) terminal_copy(ui);
+        if (ImGui::MenuItem(tr("Paste"), "Alt+V")) terminal_paste(ui);
         ImGui::EndPopup();
     }
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);

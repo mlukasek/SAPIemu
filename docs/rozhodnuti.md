@@ -1013,5 +1013,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   psaní); XMODEM. XMODEM je v jádru (`core/xmodem`), ne v GUI, kvůli testu a případnému MCP. Časový limit
   (10 s bez odpovědi = poslat znovu) počítá GUI v reálném čase.
 - **Schránka:** kopíruje se celý text terminálu (výběr myší zatím ne). Ctrl+C a Ctrl+V musí dál chodit do SAPI
-  jako řídicí znaky, proto zkratky Ctrl+Shift+C/V a Ctrl/Shift+Insert jako v terminálech na Linuxu.
+  jako řídicí znaky, proto zkratky **Alt+C / Alt+V jako v TeraTermu** (autor) a Ctrl/Shift+Insert; AltGr
+  (Ctrl+Alt) dál píše znaky.
+- **Příjem XMODEM** (autor): XMODEM nenese jméno souboru, proto se cíl zvolí dialogem „Uložit jako“ předem (jako
+  TeraTerm). Výplň 1Ah na konci se ve výchozím stavu odřízne (text CP/M), zaškrtávátko pro binární soubory.
+  Přijímač je v jádru (`XmodemReceiver`), test ho ověřuje proti DOPC10.COM.
 - **Řádek tlačítek se zalamuje**, když se do okna nevejde (výchozí šířka 700 bodů).

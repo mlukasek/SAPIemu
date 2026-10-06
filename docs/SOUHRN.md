@@ -57,8 +57,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
   - **všechny bootovací diskety J. Bíby** ze `SAPIMAN\PMD32-SD_IMAGE8` vyzkoušené; nová sestava jen
     `cpm_boot_fdc1_irmd` (BIOS si RAM disk připraví sám), výsledky ostatních v `CPM_SAPIMAN.md`;
-  - **okno terminálu:** Poslat soubor, Poslat textový soubor, Poslat soubor XMODEM (vysílač `core/xmodem`, test
-    s DOCPM10), Kopírovat a Vložit (Ctrl+Shift+C/V), `docs/seriova-linka.md`;
+  - **okno terminálu:** Poslat soubor, Poslat textový soubor, Poslat a Přijmout soubor XMODEM (`core/xmodem`,
+    testy s DOCPM10 a DOPC10), Kopírovat a Vložit (Alt+C, Alt+V jako TeraTerm), `docs/seriova-linka.md`;
   - **desky Libora Lasoty k původním sestavám** (z posledních revizí, fakta z netlistů EAGLE): **JPR-1S** rev 2.2
     (8080, banky RAM, MIKROBIOS 1.0/1.02/2.1), **BGP-1S** rev 4.2 (grafika PMD-85, Colorace, TV), **AND-1B** rev 1.4
     (VGA náhrada AND-1/AND-1A), redukce **Redukce34KB01** (sériová linka pro BOOT); sestavy `jpr1s_bgp1s` (Manic

@@ -347,15 +347,18 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     int hk = keymap_host_key(ev.key);
     int mods = keymap_mods(ev.mod);
     int ctrl = keymap_ctrl_code(ev.key, ev.mod);
-    // serial terminal: the clipboard (Ctrl+C / Ctrl+V go to SAPI as control codes)
+    // serial terminal: the clipboard as in TeraTerm (Alt+C, Alt+V; Ctrl+C / Ctrl+V go to SAPI as control
+    // codes; AltGr = Ctrl+Alt writes characters)
     if (app.ui.terminal_focused) {
-        bool cs = (ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_SHIFT);
-        if ((cs && ev.key == SDLK_V) || ((ev.mod & SDL_KMOD_SHIFT) && ev.key == SDLK_INSERT)) {
+        bool alt = (ev.mod & SDL_KMOD_ALT) && !(ev.mod & SDL_KMOD_CTRL);
+        if ((alt && ev.key == SDLK_V) || ((ev.mod & SDL_KMOD_SHIFT) && ev.key == SDLK_INSERT)) {
             terminal_paste(app.ui);
+            app.suppress_text = alt ? 'v' : 0;   // a text event of the key, if any, is not typed
             return;
         }
-        if ((cs && ev.key == SDLK_C) || ((ev.mod & SDL_KMOD_CTRL) && ev.key == SDLK_INSERT)) {
+        if ((alt && ev.key == SDLK_C) || ((ev.mod & SDL_KMOD_CTRL) && ev.key == SDLK_INSERT)) {
             terminal_copy(app.ui);
+            app.suppress_text = alt ? 'c' : 0;
             return;
         }
     }

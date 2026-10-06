@@ -30,4 +30,30 @@ private:
     std::vector<uint8_t> data;
 };
 
+// XMODEM receiver on the host side (a file from SAPI, e.g. DOPC10.COM): asks with NAK (8-bit
+// checksum) until the first packet comes, then ACK for a good packet (a repeated one is ACKed and
+// dropped), NAK for a bad one, ACK for EOT; 1 KB packets (STX) are taken too. XMODEM carries no
+// file name and pads the last packet with 1Ah (strip_sub() cuts them off, CP/M text ends with 1Ah).
+struct XmodemReceiver {
+    enum State { IDLE, WAIT_FIRST, RECEIVING, DONE, FAILED };
+    static const int MAX_RETRIES = 10;
+
+    std::string start(void);                          // returns the first NAK
+    std::string feed(const std::string& received);    // ACK / NAK to send
+    std::string timeout(void);                        // no data for a while: NAK again
+    std::string cancel(void);                         // CAN CAN, state FAILED
+    bool active(void) const { return state == WAIT_FIRST || state == RECEIVING; }
+    std::vector<uint8_t> file(bool strip_sub) const;
+
+    int state = IDLE;
+    size_t packets = 0;        // good packets received
+    int retries = 0;
+    int bad = 0;               // packets with an error (sent again by the sender)
+    std::string error;
+
+private:
+    std::vector<uint8_t> data;
+    std::string buf;           // bytes of a packet not complete yet
+};
+
 uint16_t xmodem_crc16(const uint8_t* p, size_t n);

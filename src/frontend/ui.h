@@ -126,16 +126,20 @@ struct UiState {
     // terminals, one per serial channel of the current machine
     uint64_t machine_gen = 0;
     std::vector<TerminalState> terms;
-    // terminal: sending a file (1 as it is, 2 text, 3 XMODEM), the clipboard
+    // terminal: sending a file (1 as it is, 2 text, 3 XMODEM), receiving one (4 XMODEM), the clipboard
     TapeDialog term_dlg;
     XmodemSender xmodem;
+    XmodemReceiver xmodem_rx;
+    std::string xmodem_rx_path;        // where the received file goes (chosen before)
+    bool xmodem_rx_saved = false;
+    bool term_strip_sub = true;        // cut the 1Ah padding off the end of a received file
     int xmodem_channel = -1;
     uint64_t xmodem_pos = 0;           // read position in the stream of the channel
     double xmodem_last = 0;            // ImGui time of the last answer of the receiver
     std::string term_status;           // result of the last send / copy
 };
 
-// Serial terminal window: the clipboard (Ctrl+Shift+C / V, Ctrl+Insert / Shift+Insert while focused)
+// Serial terminal window: the clipboard (Alt+C / Alt+V as in TeraTerm, Ctrl+Insert / Shift+Insert)
 void terminal_copy(UiState& ui);
 void terminal_paste(UiState& ui);
 
