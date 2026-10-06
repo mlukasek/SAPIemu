@@ -8,6 +8,12 @@ function(sapi_test name)
 endfunction()
 
 sapi_test(test_z80_smoke)
+
+# UI languages: the translation table of the frontend, no SDL needed
+add_executable(test_i18n test_i18n.cpp ../src/frontend/i18n.cpp test_util.h)
+target_link_libraries(test_i18n PRIVATE sapicore)
+add_test(NAME test_i18n COMMAND test_i18n)
+
 sapi_test(test_charset)
 sapi_test(test_decoders)
 sapi_test(test_uart)

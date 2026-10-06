@@ -925,3 +925,20 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   sestavy i v `media/README.md` je to uvedené). B: = disketa 003 (Pascal MT+). Sestava
   `machines/zps/ZPS-3_CPM48K_IMA.sapi`, `ZPS-3.sapi` (podle manuálu) zůstává s Peřinovou disketou.
 - **Test** `ima48k` v `test_zps3` celý postup zopakuje a porovná systémové stopy.
+
+## 2026-10-06 – Přepínání jazyka GUI
+
+- **Menu:** Zobrazení → „Jazyk / Language“ (název v obou jazycích, aby se našel z kteréhokoli), položky „Čeština“
+  a „English“. Přepne se hned, texty se překládají každý snímek. Volba se ukládá do `sapiemu-settings.json`
+  (`"language"`), jen když ji uživatel změnil.
+- **Výchozí jazyk podle Windows** (rozhodnutí autora): čeština, když je česky nebo slovensky jazyk Windows nebo místní
+  formáty, jinak angličtina. Formáty proto, že autorův počítač má anglické Windows s českými formáty a čistě podle
+  jazyka Windows by dostal angličtinu.
+- **`--lang cs|en`** jen pro jedno spuštění (snímky `--ui-snapshot`), neukládá se.
+- **Pevná ID oken** (`tr_id`: „Média###Media“): ImGui ukládá polohu okna podle jména, bez toho by po přepnutí okna
+  skočila na výchozí místo. Stávající `imgui.ini` s českými jmény (`[Window][Média]`) se při startu převede na
+  `[Window][Media]` (to ImGui ukládá u jmen s `###`), rozložení zůstane.
+- **Nepřekládá se:** sestavy (`.sapi`, data autora), výstup emulovaných programů, potisk čelního panelu (NAPÁJENÍ,
+  FREKVENCE CPU, ZDROJ jsou na skutečném stroji česky), MCP a `sapiemu-cli`.
+- **Opravené překlady:** test `test_i18n` našel dvojí klíče. „(empty)“ měl „(prázdný)“ i „(prázdná)“ a platil jen
+  druhý, takže prázdný slot v konfigurátoru byl „(prázdná)“. Slot má teď vlastní text v `rack.cpp`.

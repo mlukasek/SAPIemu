@@ -21,6 +21,7 @@
 #include "frontend/app.h"
 #ifdef SAPIEMU_GUI
 #include <SDL3/SDL_main.h>
+#include "frontend/i18n.h"
 #endif
 #ifdef _WIN32
 #include <windows.h>
@@ -40,6 +41,7 @@ static void print_help(void)
            "  --mcp-port N       MCP server port (default %d, 127.0.0.1 only)\n"
            "  --no-mcp           GUI: do not start the MCP server\n"
            "  --settings FILE    GUI: settings file instead of sapiemu-settings.json next to the exe\n"
+           "  --lang cs|en       GUI: language of the user interface for this run (not saved)\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer: those windows,\n"
@@ -192,6 +194,17 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-state" && i + 1 < argc) snap.state = argv[++i];
         else if (a == "--ui-size" && i + 1 < argc) sscanf(argv[++i].c_str(), "%dx%d", &snap.w, &snap.h);
         else if (a == "--settings" && i + 1 < argc) settings_file = argv[++i];
+        else if (a == "--lang" && i + 1 < argc) {
+            std::string code = argv[++i];
+#ifdef SAPIEMU_GUI
+            UiLanguage lang;
+            if (!i18n_parse(code.c_str(), &lang)) {
+                fprintf(stderr, "--lang: cs or en\n");
+                return 2;
+            }
+            i18n_set_override(lang);
+#endif
+        }
         else if (a == "--mcp") { mcp_serve = true; headless = true; }
         else {
             actions.push_back(a);

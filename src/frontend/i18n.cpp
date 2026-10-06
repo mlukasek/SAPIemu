@@ -1,8 +1,15 @@
 #include "frontend/i18n.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <unordered_map>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <strings.h>
+#define _stricmp strcasecmp
+#endif
 
 struct Translation {
     const char* key;   // English
@@ -139,7 +146,6 @@ static const Translation k_table[] = {
     { "The CPU card belongs to X1", "Procesorová karta patří do X1" },
     { "Does not fit into the frame", "Nevejde se do rámu" },
     { "The next slot is occupied", "Vedlejší slot je obsazený" },
-    { "(empty)", "(prázdný)" },
     { "not emulated yet", "zatím neemulované" },
     { "custom", "vlastní" },
     { "(none)", "(žádná)" },
@@ -206,7 +212,6 @@ static const Translation k_table[] = {
     { "Clear", "Vymazat" },
     { "Debug", "Ladění" },
     { "Debugger", "Debugger" },
-    { "Memory", "Paměť" },
     { "I/O log", "Log I/O" },
     { "Step", "Krok" },
     { "Step over", "Krok přes" },
@@ -280,16 +285,72 @@ static const Translation k_table[] = {
 };
 
 static UiLanguage g_lang = LANG_CS;
+static int g_override = -1;
 
 void i18n_set_language(UiLanguage lang) { g_lang = lang; }
 UiLanguage i18n_language(void) { return g_lang; }
 
-const char* tr(const char* key)
+const char* i18n_code(UiLanguage lang) { return lang == LANG_EN ? "en" : "cs"; }
+
+bool i18n_parse(const char* code, UiLanguage* out)
 {
-    if (g_lang == LANG_EN) return key;
+    if (!code) return false;
+    if (_stricmp(code, "cs") == 0) { *out = LANG_CS; return true; }
+    if (_stricmp(code, "en") == 0) { *out = LANG_EN; return true; }
+    return false;
+}
+
+UiLanguage i18n_system_language(void)
+{
+#ifdef _WIN32
+    // the display language or the regional format: English Windows with Czech formats is common here
+    for (LANGID id : { GetUserDefaultUILanguage(), GetUserDefaultLangID() }) {
+        int primary = PRIMARYLANGID(id);
+        if (primary == LANG_CZECH || primary == LANG_SLOVAK) return LANG_CS;
+    }
+    return LANG_EN;
+#else
+    const char* v = getenv("LC_ALL");
+    if (!v || !*v) v = getenv("LC_MESSAGES");
+    if (!v || !*v) v = getenv("LANG");
+    return v && (strncmp(v, "cs", 2) == 0 || strncmp(v, "sk", 2) == 0) ? LANG_CS : LANG_EN;
+#endif
+}
+
+void i18n_set_override(UiLanguage lang) { g_override = (int)lang; }
+
+bool i18n_override(UiLanguage* out)
+{
+    if (g_override < 0) return false;
+    *out = (UiLanguage)g_override;
+    return true;
+}
+
+const char* tr_lang(const char* key, UiLanguage lang)
+{
+    if (lang == LANG_EN) return key;
     static std::unordered_map<std::string, const char*> map;
     if (map.empty())
         for (const Translation& t : k_table) map[t.key] = t.cs;
     auto it = map.find(key);
     return it != map.end() ? it->second : key;
+}
+
+const char* tr(const char* key) { return tr_lang(key, g_lang); }
+
+const char* i18n_duplicate_key(void)
+{
+    std::unordered_map<std::string, int> seen;
+    for (const Translation& t : k_table)
+        if (seen[t.key]++) return t.key;
+    return nullptr;
+}
+
+const char* tr_id(const char* key)
+{
+    static std::unordered_map<std::string, std::string> cache[2];   // nodes: c_str() stays valid
+    std::unordered_map<std::string, std::string>& c = cache[g_lang == LANG_EN ? 1 : 0];
+    auto it = c.find(key);
+    if (it == c.end()) it = c.emplace(key, std::string(tr(key)) + "###" + key).first;
+    return it->second.c_str();
 }

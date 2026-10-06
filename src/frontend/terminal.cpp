@@ -128,7 +128,7 @@ void draw_terminal(UiState& ui)
     if (!ui.show_terminal) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(700, 460), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(tr("Serial terminal"), &ui.show_terminal) || !m) {
+    if (!ImGui::Begin(tr_id("Serial terminal"), &ui.show_terminal) || !m) {
         ImGui::End();
         return;
     }

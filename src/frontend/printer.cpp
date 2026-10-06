@@ -14,7 +14,7 @@ void draw_printer(UiState& ui)
     if (!ui.show_printer) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(720, 480), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(tr("Printer"), &ui.show_printer) || !m) {
+    if (!ImGui::Begin(tr_id("Printer"), &ui.show_printer) || !m) {
         ImGui::End();
         return;
     }

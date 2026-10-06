@@ -57,6 +57,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
   - **všechny bootovací diskety J. Bíby** ze `SAPIMAN\PMD32-SD_IMAGE8` vyzkoušené; nová sestava jen
     `cpm_boot_fdc1_irmd` (BIOS si RAM disk připraví sám), výsledky ostatních v `CPM_SAPIMAN.md`;
+  - **přepínání jazyka GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, výchozí podle jazyka nebo
+    formátů Windows, `--lang cs|en`, pevná ID oken (rozložení zůstane), test `test_i18n`;
   - **ZPS-3 s originálním CP/M 2.2 64K od Tesly IMA** (`machines/zps/ZPS-3_CPM64K_IMA.sapi`, ROM MON64C3,
     diskety z archivu EC1045 `DEX\SAPI_ZPS3\01–03`; PROM D1A a D3A pro F000 jsou předpoklad), test `ima64k`;
   - **ZPS-3 s originálním CP/M IMA 48K (46K)** (`ZPS-3_CPM48K_IMA.sapi`, MON V1.0-C1): disketa se nedochovala,
@@ -108,7 +110,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
   4. Převod HEX na kazetu (WAV) pro DSM-1.
   5. Linux build a CI (GitHub Actions).
-  6. Přepínání jazyka UI.
+  6. ~~Přepínání jazyka UI~~ hotové 2026-10-06 (Zobrazení → Jazyk / Language, výchozí podle Windows, `--lang`,
+     `docs/build.md`).
   7. PKT-1.
   8. Příprava veřejného vydání (níže).
 - **Pracovní pravidla, která se osvědčila:**
@@ -348,7 +351,7 @@ Dřív hotové fáze:
 | F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z, s FDC-1 MOR62ZF) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
-| F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
+| F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; převod HEX → kazeta; CI a Linux | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 

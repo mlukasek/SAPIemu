@@ -1094,7 +1094,7 @@ void card_menu_items(UiState& ui, int slot, bool combo)
     RackEditor& r = ui.rack;
     int idx = machine_cfg_card_at(r.cfg, slot);
     std::string cur = idx >= 0 ? r.cfg["cards"][(size_t)idx].value("type", std::string()) : std::string();
-    if (ImGui::Selectable(tr("(empty)"), cur.empty())) put_card(r, slot, nullptr);
+    if (ImGui::Selectable(loc("(empty)", "(prázdný)"), cur.empty())) put_card(r, slot, nullptr);   // a slot
     for (int pass = 0; pass < 2; pass++) {
         if (pass == 1) ImGui::SeparatorText(tr("not emulated yet"));
         for (const CardInfo* ci : card_catalog()) {
@@ -1311,7 +1311,7 @@ void draw_slot_props(UiState& ui, int slot)
     ImGui::SetNextItemWidth(30.0f * u);
     char preview[200];
     if (card) snprintf(preview, sizeof(preview), "%s  %s", card_display_name(*card).c_str(), ci ? loc(ci->en, ci->cs) : "");
-    else snprintf(preview, sizeof(preview), "%s", tr("(empty)"));
+    else snprintf(preview, sizeof(preview), "%s", loc("(empty)", "(prázdný)"));
     char lab[32];
     snprintf(lab, sizeof(lab), "X%d", slot);
     if (ImGui::BeginCombo(lab, preview, ImGuiComboFlags_HeightLarge)) {

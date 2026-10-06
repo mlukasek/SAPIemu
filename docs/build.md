@@ -26,8 +26,17 @@ Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % �
 
 Nastavení GUI se ukládá do `sapiemu-settings.json` a rozložení oken do `imgui.ini` ve složce s exe (přenosné). Když
 tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se poslední sestava (spustí se bez
-`--machine`), velikost a poloha okna, otevřená okna, zobrazení obrazovky, nastavení terminálu a rychlost. Jiný
-soubor nastavení: `sapiemu --settings soubor.json`.
+`--machine`), velikost a poloha okna, otevřená okna, zobrazení obrazovky, nastavení terminálu, rychlost a jazyk
+(`"language": "cs"` nebo `"en"`, jen když si ho uživatel zvolil v menu). Jiný soubor nastavení:
+`sapiemu --settings soubor.json`.
+
+**Jazyk GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, přepne se hned. Bez uložené volby podle Windows:
+čeština, když je česky nebo slovensky jazyk Windows **nebo** místní formáty (anglické Windows s českými formáty jsou
+běžné), jinak angličtina. `sapiemu --lang cs|en` vybere jazyk jen pro jedno spuštění (neukládá se, hodí se pro
+`--ui-snapshot`). Texty GUI jsou v `src/frontend/i18n.cpp` (klíč = anglický text, `tr()`), popisy karet a jumperů
+v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazyku (`tr_id()`, „Média###Media“), aby si
+po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky
+čelního panelu (potisk skutečného stroje), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
 
 ## Lokální preset (necommituje se)
 

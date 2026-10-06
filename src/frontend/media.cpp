@@ -353,7 +353,7 @@ const ImVec4 k_load_error(1.0f, 0.4f, 0.4f, 1.0f);
 // the pages for CP/M SAVE before anything is written (the same layout as for a binary file).
 static void hex_load_question(UiState& ui, Machine* m)
 {
-    const char* title = tr("Load program into memory (Intel HEX)");
+    const char* title = tr_id("Load program into memory (Intel HEX)");
     if (ui.hex_ask) {
         ImGui::OpenPopup(title);
         ui.hex_ask = false;
@@ -401,7 +401,7 @@ static long long file_size_of(const std::string& path)
 // The address for File -> Load binary file, with the size and the pages for CP/M SAVE.
 static void bin_load_question(UiState& ui, Machine* m)
 {
-    const char* title = tr("Load binary file into memory");
+    const char* title = tr_id("Load binary file into memory");
     if (ui.bin_ask) {
         ImGui::OpenPopup(title);
         ui.bin_ask = false;
@@ -491,7 +491,7 @@ void draw_media(UiState& ui)
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(760, 340), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(tr("Media"), &ui.show_media) || !m) {
+    if (!ImGui::Begin(tr_id("Media"), &ui.show_media) || !m) {
         ImGui::End();
         return;
     }

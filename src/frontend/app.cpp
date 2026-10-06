@@ -85,6 +85,7 @@ struct App {
     uint64_t settings_check_ns = 0;
     int win_x = 0, win_y = 0, win_w = 0, win_h = 0;   // restored (not maximized) window geometry
     bool win_pos_known = false;
+    std::string language;         // "cs" / "en" chosen in View -> Language, empty = by the system
 };
 
 // ---------------------------------------------------------------- settings
@@ -142,6 +143,7 @@ nlohmann::json settings_json(App& app)
     j["mouse"] = { { "sensitivity", app.mouse.sensitivity } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
+    if (!app.language.empty()) j["language"] = app.language;
     return j;
 }
 
@@ -208,22 +210,52 @@ void settings_apply(App& app, const nlohmann::json& j)
     const nlohmann::json& mo = j.value("mouse", nlohmann::json::object());
     get_opt(mo, "sensitivity", app.mouse.sensitivity);
     if (!(app.mouse.sensitivity >= 0.1f && app.mouse.sensitivity <= 8.0f)) app.mouse.sensitivity = 1.0f;
+    // UI language: --lang, else the saved choice, else the system language
+    get_opt(j, "language", app.language);
+    UiLanguage lang;
+    if (!app.language.empty() && !i18n_parse(app.language.c_str(), &lang)) app.language.clear();
+    if (!i18n_override(&lang) && !i18n_parse(app.language.c_str(), &lang)) lang = i18n_system_language();
+    i18n_set_language(lang);
 }
 
-// The console window was "Obrazovka" (or "Screen"); now it is named after the display
-// card with the fixed id "###screen". Keep its saved position and size.
-void ini_rename_screen(const std::string& path)
+// View -> Language: switches at once (the texts are translated every frame) and is saved.
+void set_ui_language(App& app, UiLanguage lang)
+{
+    i18n_set_language(lang);
+    app.language = i18n_code(lang);
+}
+
+// Replaces the section "[Window][old]" (a whole line) by "[Window][now]"; false when missing.
+static bool ini_rename(std::string& text, const std::string& old, const std::string& now)
+{
+    std::string sec = "[Window][" + old + "]";
+    size_t at = text.find(sec), end = at + sec.size();
+    if (at == std::string::npos || end >= text.size() || (text[end] != '\r' && text[end] != '\n')) return false;
+    text.replace(at, sec.size(), "[Window][" + now + "]");
+    return true;
+}
+
+// Windows got fixed ids so that their saved positions survive a change of the language: the
+// console window "Obrazovka" (or "Screen") is named after the display card with the id
+// "###screen", the tool windows are "<translated>###<English>". ImGui saves such a window under
+// the part after "###" ([Window][Media]). Keep the layout saved under the old Czech names.
+void ini_rename_windows(const std::string& path)
 {
     std::string text;
     if (path.empty() || !file_read_text(path, text)) return;
-    if (text.find("###screen]") != std::string::npos) return;
-    for (const char* old : { "[Window][Obrazovka]", "[Window][Screen]" }) {
-        size_t at = text.find(old), end = at + strlen(old);
-        if (at == std::string::npos || end >= text.size() || (text[end] != '\r' && text[end] != '\n')) continue;
-        text.replace(at, strlen(old), "[Window][Obrazovka###screen]");
-        file_write_all(path, text.data(), text.size());
-        return;
+    bool changed = false;
+    if (text.find("###screen]") == std::string::npos)
+        for (const char* old : { "Obrazovka", "Screen" })
+            if (ini_rename(text, old, "Obrazovka###screen")) {
+                changed = true;
+                break;
+            }
+    for (const char* key : { "Debugger", "Memory", "I/O log", "Media", "Printer", "Serial terminal", "Log" }) {
+        std::string cs = tr_lang(key, LANG_CS);
+        if (cs == key || text.find(std::string("[Window][") + key + "]") != std::string::npos) continue;
+        if (ini_rename(text, cs, key)) changed = true;
     }
+    if (changed) file_write_all(path, text.data(), text.size());
 }
 
 // The restored window must lie (at least partly) on a connected display.
@@ -549,6 +581,13 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
+        ImGui::Separator();
+        if (ImGui::BeginMenu("Jazyk / Language")) {   // in both languages: findable in either
+            UiLanguage cur = i18n_language();
+            if (ImGui::MenuItem("Čeština", nullptr, cur == LANG_CS)) set_ui_language(app, LANG_CS);
+            if (ImGui::MenuItem("English", nullptr, cur == LANG_EN)) set_ui_language(app, LANG_EN);
+            ImGui::EndMenu();
+        }
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
@@ -734,7 +773,7 @@ void draw_log(App& app)
 {
     if (!app.ui.show_log) return;
     ImGui::SetNextWindowSize(ImVec2(600, 250), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(tr("Log"), &app.ui.show_log)) {
+    if (ImGui::Begin(tr_id("Log"), &app.ui.show_log)) {
         std::vector<std::string> lines;
         log_recent(lines, 500);
         ImGui::BeginChild("loglines");
@@ -754,10 +793,10 @@ void draw_error(App& app)
         app.ui.notice.clear();
     }
     if (app.show_error) {
-        ImGui::OpenPopup(tr("Error"));
+        ImGui::OpenPopup(tr_id("Error"));
         app.show_error = false;
     }
-    if (ImGui::BeginPopupModal(tr("Error"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal(tr_id("Error"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(app.error_text.c_str());
         if (ImGui::Button(tr("Close"))) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
@@ -800,7 +839,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
-    ini_rename_screen(app.ini_path);
+    ini_rename_windows(app.ini_path);
     if (!app.settings_path.empty()) {
         std::string text;
         if (file_read_text(app.settings_path, text)) {

@@ -55,6 +55,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
 - **Ladění:** debugger (registry, disassembler, paměť, breakpointy a watchpointy, I/O log), ukládání stavu (i
   rychlé checkpointy), nahrávání programů (Intel HEX, binární soubory), nahrávání zvuku do WAV.
+- **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
   `--save-state` …).
 - **MCP server** (`http://127.0.0.1:8580/mcp`): Claude Code může emulátor ovládat, psát a ladit programy
