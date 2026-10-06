@@ -95,10 +95,10 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    2026-10-06 (`cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd`, `cpm_pmd_fdc1`; `r2_pmd*` už je `cpm_pmd_rpd1`).
    ~~Knihovna datových disket~~ hotová 2026-10-06: soupis všech asi 180 disket a výběr 16 do
    `media/sapiman/knihovna/` (`docs/software/SAPIMAN_diskety.md`; MBASIC i Turbo Pascal 3.00A pro AND-1Z běží).
-   **Další kandidáti ze soupisu** (nevyzkoušené): bootovací diskety RPD `r2_*`, `r3_*` (RPD-1 s FDC-1 nebo
-   MFC-1A, RMD-1, ZRMD-1 SS256), mezi nimi `r2_mfc256x14_261211` a `r3_mfc512x8_261211` (MFC-1A s 256 × 14 a
-   512 × 8, možná DD), `r_test2732_101211`, `FDC\f_term62k`, `f2_irmd1m`, `f2_rmd1m`, `f3_rmd1m`,
-   `f1_rmd1m_and1a_130711` (AND-1A).
+   ~~Bootovací diskety RPD `r2_*`, `r3_*`~~ vyzkoušené 2026-10-06: všechny naběhnou s MON271111, sestavy
+   `cpm_boot_rpd1_mfc256`, `cpm_boot_rpd1_mfc512` a `cpm_boot_rpd1_fdc1_rmd` (níže). **Zbývají** (nevyzkoušené):
+   `r_test2732_101211` (s MON271111 nenaběhne, testovací systém pro EPROM 2732), `FDC\f_term62k`, `f2_irmd1m`,
+   `f2_rmd1m`, `f3_rmd1m`, `f1_rmd1m_and1a_130711` (AND-1A).
 4. ~~**`cpmrun`:** malý test v ctestu, L80 a `/P:0` z příkazové řádky~~ hotové 2026-10-06: `test_cpmrun`;
    `/P:0` rozbíjel Git Bash (převod cest), L80 se pak zacyklil po odpovědi Y na „move anyway“ (správně N), stav
    konzole teď hlásí stdin (`docs/build.md`).
@@ -180,6 +180,17 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
   a `RPD\r1_rmd1m_271111.8sd` ze `SAPIMAN\PMD32-SD_IMAGE8` („C: RMD1/1MB BASE40H“). Inicializační program na nich
   není, proto je v B: disketa Z6 a C: se připraví `B:IRMD40` (odpověď A). Bootovací disketa MFC
   `m1_281211_rmd.8sd` je v `media/sapiman` jako volba (stejný systém jako Z6).
+- **Systémy RPD-1 s druhým řadičem** (2026-10-06, `RPD\r2_*`, `r3_*`, všechny bootují s EPROM MON271111, A:, B: =
+  RPD-1, C: = RAM disk, D:, E: = druhý řadič):
+  - `r2_mfc256x14_261211` („BIOS-2K V261211JB“, „D,E: MFC1; 8" 14x256“) a `r3_mfc512x8_261211` („BIOS-3K“,
+    „8" 8x512“): MFC-1A s 8" disketami **ve FM s většími sektory** (IBM 256 × 14 a 512 × 8 na stopu, ne DD;
+    MFC-1A je čte 250 kbit/s jako 8" SD). Sestavy `cpm_boot_rpd1_mfc256.sapi` a `cpm_boot_rpd1_mfc512.sapi`,
+    prázdné diskety `media/sapiman/prazdna_8_FM_14x256.imd` a `prazdna_8_FM_8x512.imd` (ImageDisk);
+  - `r2_rmd1m_fdc_261211` („BIOS-2K V260811JB“, D:, E: = FDC-1 8" SS SD; na disketě IRMD40, FORMFDC, M80, L80):
+    sestava `cpm_boot_rpd1_fdc1_rmd.sapi`, prázdná 8" `media/fdc-1/prazdna_8SSSD.img`;
+  - další varianty bootují také (`r2_rmd1m_mfc_261211`: MFC-1A 8" SS SD; `r2_rmd1_fdc_260811`,
+    `r3_rmd1_fdc_260811`: FDC-1 8"; `r2_/r3_zrmd4mss_fdc_260811`: s ZRMD-1 SS256), sestavy z nich nejsou;
+  - ve všech je v B: disketa Z6 kvůli `IRMD40` (C: je po zapnutí náhodná). Test `test_sapi_sys` (`rpd_second`).
 - `cpm_pmd_fdc1.sapi` (2026-10-06): FDC-1 s PMD32-SD přes DPP-1, bootovací disketa `FDC\f2_pmd2d2m_140212.8sd`
   (C:, D: = PMD32-SD, Turbo Pascal a WordStar); `f2_pmd1d2m_140212` má jen C:. Bez RAM disku.
 - **Tiskárna:** všechny sestavy s ECMONem a monitory J. Bíby (kromě `cpm_term64k_fdc1` bez klávesnice) mají od

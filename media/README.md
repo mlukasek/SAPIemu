@@ -87,6 +87,8 @@ z EPROM `roms/jpr-1zi/JPR-1ZI_MON*_JB_*.bin`, C: je RAM disk ZRMD-1 se souborov�
 | `r1_zrmd4m_271111.img` | CP/M pro RPD-1, „BIOS-1K V271111JB“. (`RPD\r1_zrmd4m_271111.8sd`) |
 | `m1_281211_rmd.img`, `f1_rmd1m_130711.img`, `r1_rmd1m_271111.img` | Totéž s RAM diskem RMD-1 1 MB na 40h jako C: (`MFC\`, `FDC\`, `RPD\` `*.8sd`). Sestavy `cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd` (RMD-1 inicializuje `B:IRMD40` z diskety Z6). |
 | `knihovna/*.img` | Výběr 16 datových disket J. Bíby (překladače, editory, služební programy, Kermit) ze `SAPIMAN\PMD32-SD_IMAGE8`, soupis a obsah v `docs/software/SAPIMAN_diskety.md`. |
+| `r2_mfc256x14_261211.img`, `r3_mfc512x8_261211.img`, `r2_rmd1m_fdc_261211.img` | CP/M J. Bíby bootované z RPD-1 s RMD-1 jako C: a druhým řadičem pro D:, E: (MFC-1A 8" FM 14 × 256 nebo 8 × 512, FDC-1 8"), `RPD\*.8sd`. Sestavy `cpm_boot_rpd1_mfc256`, `_mfc512`, `cpm_boot_rpd1_fdc1_rmd`. |
+| `prazdna_8_FM_14x256.imd`, `prazdna_8_FM_8x512.imd` | Prázdné 8" diskety FM 77 × 14 × 256 a 77 × 8 × 512 (ImageDisk, E5h) pro ty sestavy. |
 | `f2_pmd2d2m_140212.img`, `f2_pmd1d2m_140212.img` | CP/M pro FDC-1 s PMD32-SD přes DPP-1 (C:, D: nebo jen C:), bez RAM disku (`FDC\f2_pmd*.8sd`). Sestava `cpm_pmd_fdc1`. |
 
 Systémové diskety J. Bíby z `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\PETR\SAPI_SYS\` (Z1–Z10,
@@ -113,6 +115,7 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 | `CPM22P_62ZF_Perina.img` | CP/M 2.2/P 62K pro ZPS-4 s FDC-1 (AND-1Z), k ROM MOR62ZF; sapi.cz `data2/cpm62zf_img.rar` (`CPM62ZF.img`, od 62AF se liší 2 bajty). |
 | `prazdna_3.5HD_CPM.img` | Prázdná disketa PC 3,5" HD 1,44 MB (80 × 2 × 18 × 512 B, E5h) pro BIOS EC1045 `ECBIF3`. |
 | `prazdna_5.25HD_CPM.img` | Prázdná disketa PC 5,25" HD 1,2 MB (80 × 2 × 15 × 512 B, E5h) pro BIOS `ECBIF5`. |
+| `prazdna_8SSSD.img` | Prázdná 8" SS SD (77 × 26 × 128 B, E5h). |
 
 ## `cga-1v/` – programy pro CGA-1V (Intel HEX, CP/M `.COM` od 0100h)
 

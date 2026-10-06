@@ -27,6 +27,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `cpm_boot_mfc1a.sapi`, `cpm_boot_fdc1.sapi`, `cpm_boot_rpd1.sapi` | CP/M J. Bíby (2011) bootovaný z 8" diskety | naběhne CP/M, na A: jsou zdrojáky systému |
 | `cpm_boot_*_ss256.sapi`, `cpm_boot_mfc1a_rmd.sapi` | totéž ze systémových disket J. Bíby (A: programy, B: zdroje), C: ZRMD-1 nebo RMD-1 | naběhne CP/M (výzva `U0A>`) |
 | `cpm_boot_fdc1_rmd.sapi`, `cpm_boot_rpd1_rmd.sapi` | CP/M J. Bíby s RAM diskem RMD-1 (FDC-1, RPD-1) | `B:IRMD40`, odpověď `A`, pak C: |
+| `cpm_boot_rpd1_mfc256.sapi`, `_mfc512`, `cpm_boot_rpd1_fdc1_rmd.sapi` | CP/M J. Bíby z RPD-1 s RMD-1 a druhým řadičem pro D:, E: (MFC-1A s 8" FM 14 × 256 nebo 8 × 512, FDC-1 8") | `B:IRMD40`, `A`, pak `SAVE 2 D:X.COM`, `DIR D:` |
 | `cpm_pmd_fdc1.sapi` | CP/M J. Bíby: FDC-1 a PMD32-SD přes DPP-1 | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
 | `cpm_term64k_fdc1.sapi` | CP/M 64K bez obrazovky, jen terminál | Zobrazení → Terminál (nebo TeraTerm na 127.0.0.1:2323) |
 | `cpm_pmd_rpd1.sapi` | CP/M J. Bíby s PMD32-SD přes DPP-1 (C:, D: = 5,25" diskety J. Bíby na SD kartě) | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |

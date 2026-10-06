@@ -139,7 +139,9 @@ jako data (`docs/software/CPM_SAPIMAN.md`). Ze systémových disket J. Bíby (`S
 disk ZRMD-1 sestavy `cpm_zrmd`, stejné rozložení), `cpm_boot_mfc1a_rmd.sapi` (C: RMD-1, inicializace `IRMD40`) a
 `cpm_term64k_fdc1.sapi` (CP/M 64K jen s terminálem: okno Terminál nebo TCP 2323) `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35` pro 3,5") a `cpm_pmd_rpd1.sapi` (CP/M 170212 s PMD32-SD přes DPP-1).
 `cpm_boot_fdc1_rmd.sapi` a `cpm_boot_rpd1_rmd.sapi` jsou bootovací diskety J. Bíby s RAM diskem RMD-1 (inicializace
-`B:IRMD40` z diskety Z6), `cpm_pmd_fdc1.sapi` je FDC-1 s PMD32-SD přes DPP-1 (C:, D:). Sestavy s ECMONem a monitory
+`B:IRMD40` z diskety Z6), `cpm_pmd_fdc1.sapi` je FDC-1 s PMD32-SD přes DPP-1 (C:, D:). `cpm_boot_rpd1_mfc256.sapi`,
+`cpm_boot_rpd1_mfc512.sapi` a `cpm_boot_rpd1_fdc1_rmd.sapi` bootují z RPD-1 a mají druhý řadič pro D:, E: (MFC-1A
+s 8" disketami FM 14 × 256 nebo 8 × 512, FDC-1 8"). Sestavy s ECMONem a monitory
 J. Bíby mají tiskárnu na X3 (`docs/tiskarna.md`).
 `cpm_zrmd_dpp1.sapi` je `cpm_zrmd` s deskou DPP-1 a PMD32-SD (ECMON: D:, E:)
 („dlouhé“ CP/M s 3K BIOSem: RPD-1 8" a FDC-1 5,25" HD v jedné sestavě). `cpm_ec1045.sapi` je systém EC1045 s menu FDC8/FDC3/FDC5/HDD

@@ -1,0 +1,93 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "CP/M 2.2 z 8\" diskety: RPD-1 + FDC-1 8\", BIOS-2K V260811JB, RMD-1 (J. Bíba)",
+    "description": "CP/M J. Bíby (disketa RPD\\r2_rmd1m_fdc_261211.8sd ze SAPIMAN\\PMD32-SD_IMAGE8, na ní i IRMD40, FORMFDC, M80, L80): A:, B: = RPD-1 8\" SS SD, C: = RAM disk RMD-1 1 MB (IRMD40, odpověď A), D:, E: = FDC-1 8\" SS SD (prázdné diskety). EPROM MON 271111. docs/software/CPM_SAPIMAN.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1ZI",              // CPU card Z80 (new design)
+            "rom": "roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin",
+            "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
+            "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
+            "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
+            "keyboard": { "type": "Consul 259.11", "code": "koi8cs" },  // Keyboard (connector X2) - the monitor drives CONSUL 259.11 KOI8 CS2
+            "printer": {                    // X3: printer (Centronics cable), LST: of the monitor
+                "output": "work/printer/tiskarna.prn",
+                "charset": "koi8cs",
+                "busy_us": 100
+            }
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "DMR-1",                // 128 KB RAM and serial port
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "battery": false,               // JP7: battery backup of the SRAM
+            "uart_base": "10h",             // JP2: UART ports
+            "baud": 9600,                   // JP8: baud rate - 9600 Bd
+            "connected": false,             // Terminal connected at start (DCD)
+            "serial": {
+                "pacing": true,             // PC side: no overrun (pacing)
+                "tcp": {                    // PC side: TCP server
+                    "port": 2323,           // TCP port
+                    "bind": "127.0.0.1",    // Address (127.0.0.1 = this PC only)
+                    "protocol": "telnet",   // Protocol
+                    "dcd_follows": true     // DCD follows the client connection
+                }
+            }
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1Z-89",            // Alphanumeric display "Z" 1989
+            "map_enabled": false            // S1: MAP1 disconnects the card
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "RMD-1",                // RAM disk
+            "size_kb": 1024,                // Memory - 1 MB (32x 41256)
+            "power_on": "random"            // Content after power on - random (like the DRAM, initialise it)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "RPD-1",                // Floppy disk controller (boards A + B)
+            "drive_a": {
+                "cpm": "A",                 // CP/M letter (Media window)
+                "image": "media/sapiman/r2_rmd1m_fdc_261211.img",  // Boot disk (J. Biba)
+                "write_protect": false
+            },
+            "drive_b": {
+                "cpm": "B",                 // CP/M letter (Media window)
+                "image": "media/sapiman/Z6_MFC281211_RMD_programy.img",  // Z6: programs of J. Biba (IRMD40)
+                "write_protect": false
+            },
+            "working_copy": true,           // Work on copies in work/
+            "step_ms": 8,                   // Drive: step period - 8 ms (Consul 7213)
+            "settle_ms": 35                 // Drive: head load settle time (ms)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
+            "drive_a": {
+                "cpm": "D",                 // CP/M letter (Media window)
+                "image": "media/fdc-1/prazdna_8SSSD.img",
+                "write_protect": false
+            },
+            "drive_b": {
+                "cpm": "E",                 // CP/M letter (Media window)
+                "image": "media/fdc-1/prazdna_8SSSD.img",
+                "write_protect": false
+            },
+            "working_copy": true,           // Work on copies in work/
+            "decoder": "roms/fdc-1/FDC-1A_D5B_74S287.bin",  // PROM D5B (FDC-1A): port decoder - standard: 8257 04-0BH, 8272 0CH-0DH, FDC-1B 0EH-0FH
+            "rdy_ground": true,             // FDC-1A X3-20 /RDY grounded (as supplied, Consul 7113): all drives ready
+            "sa2_a": "8sd",                 // FDC-1B switches SA2 S1, S5: drive A - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_b": "8sd",                 // FDC-1B switches SA2 S2, S6: drive B - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_c": "8sd",                 // FDC-1B switches SA2 S3, S7: drive C - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+            "sa2_d": "8sd"                  // FDC-1B switches SA2 S4, S8: drive D - 8" SD (read by IN 0EH: D1 = 1, D0 = 0)
+        }
+    ]
+}

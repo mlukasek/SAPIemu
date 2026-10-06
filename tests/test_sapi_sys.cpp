@@ -3,7 +3,8 @@
 // RAM disk image; MFC-1A with RMD-1; the 64K CP/M with only a terminal on the serial line.
 // Drive motors: the long CP/M turns the motors of its PC drives on (motor_line), the 8" system
 // on FDC-1 does not, so with motor_line its boot disk never turns. The boot disks with RMD-1
-// (C: initialised by B:IRMD40 from Z6) and FDC-1 with PMD32-SD on DPP-1.
+// (C: initialised by B:IRMD40 from Z6) and FDC-1 with PMD32-SD on DPP-1. RPD-1 systems with a second
+// controller for D:, E:: MFC-1A with 8" FM disks of 14 x 256 and 8 x 512 B, FDC-1 with 8" SS SD.
 #include "core/devices.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -181,6 +182,45 @@ static void rmd_boot(const char* file, const char* banner)
     printf("%s\n", screen_text(m).c_str());
 }
 
+// boot from RPD-1, RMD-1 initialised as C:, a file saved to D: on the second controller (a copy of the
+// empty disk of the machine in work/test)
+static void rpd_second(const char* file, const char* type, const char* banner)
+{
+    printf("--- %s\n", file);
+    json cfg = machine(file);
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == type) {
+            std::string img = c["drive_a"]["image"].get<std::string>();
+            std::string ext = img.substr(img.find_last_of('.'));
+            std::vector<uint8_t> data;
+            CHECK(file_read_all(data_path(img), data));
+            std::string copy = std::string("work/test/rpd_second") + ext;
+            CHECK(file_write_all(data_path(copy), data.data(), data.size()));
+            c["drive_a"]["image"] = copy;
+            c["drive_a"]["write_protect"] = false;
+        }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    CHECK(run_until_text(m, banner, 10.0));
+    CHECK(run_until_text(m, "A>", 20.0));
+    m.run_seconds(0.3);
+    m.type_text("B:IRMD40\r");
+    CHECK(run_until_text(m, "(A/N)", 15.0));
+    m.type_text("A");
+    m.run_seconds(15.0);
+    m.type_text("SAVE 2 C:X.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("SAVE 4 D:Y.COM\r");
+    m.run_seconds(5.0);
+    m.type_text("DIR C:\r");
+    CHECK(run_until_text(m, "X        COM", 10.0));
+    m.run_seconds(1.0);
+    m.type_text("DIR D:\r");
+    CHECK(run_until_text(m, "Y        COM", 10.0));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 static void pmd_fdc1(void)
 {
     printf("--- machines/cpm_pmd_fdc1.sapi\n");
@@ -233,5 +273,8 @@ int main(void)
     rmd_boot("machines/cpm_boot_fdc1_rmd.sapi", "BIOS-1K V130711JB");
     rmd_boot("machines/cpm_boot_rpd1_rmd.sapi", "BIOS-1K V271111JB");
     pmd_fdc1();
+    rpd_second("machines/cpm_boot_rpd1_mfc256.sapi", "MFC-1A", "D,E: MFC1; 8\" 14x256");
+    rpd_second("machines/cpm_boot_rpd1_mfc512.sapi", "MFC-1A", "D,E: MFC1; 8\" 8x512");
+    rpd_second("machines/cpm_boot_rpd1_fdc1_rmd.sapi", "FDC-1", "D,E: FDC1; 8\" SS,SD");
     return TEST_RESULT();
 }

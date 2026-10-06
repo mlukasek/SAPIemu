@@ -453,6 +453,12 @@ static const ParamOption k_rpd1_disks[] = {
       "Bootovací CP/M J. Bíba (MON 271111, C: ZRMD-1)" },
     { "\"media/sapiman/r1_rmd1m_271111.img\"", "CP/M boot disk J. Biba (MON 271111, C: RMD-1)",
       "Bootovací CP/M J. Bíba (MON 271111, C: RMD-1)" },
+    { "\"media/sapiman/r2_mfc256x14_261211.img\"", "CP/M boot disk J. Biba 261211 (C: RMD-1, D:, E: MFC-1A 8\" FM 14 x 256)",
+      "Bootovací CP/M J. Bíba 261211 (C: RMD-1, D:, E: MFC-1A 8\" FM 14 × 256)" },
+    { "\"media/sapiman/r3_mfc512x8_261211.img\"", "CP/M boot disk J. Biba 261211 3K (C: RMD-1, D:, E: MFC-1A 8\" FM 8 x 512)",
+      "Bootovací CP/M J. Bíba 261211 3K (C: RMD-1, D:, E: MFC-1A 8\" FM 8 × 512)" },
+    { "\"media/sapiman/r2_rmd1m_fdc_261211.img\"", "CP/M boot disk J. Biba 260811 (C: RMD-1, D:, E: FDC-1 8\")",
+      "Bootovací CP/M J. Bíba 260811 (C: RMD-1, D:, E: FDC-1 8\")" },
     { "\"media/sapiman/Z1_RPD271111_programy.img\"", "J. Biba Z1: CP/M boot, programs (C: ZRMD-1 SS256)",
       "J. Bíba Z1: bootovací CP/M, programy (C: ZRMD-1 SS256)" },
     { "\"media/sapiman/Z2_RPD271111_zdroje.img\"", "J. Biba Z2: sources of the RPD-1 system",
@@ -510,6 +516,8 @@ static const ParamOption k_fdc1_disks[] = {
       "prázdná 3,5\" HD 1,44 MB (CP/M, BIOS ECBIF3)" },
     { "\"media/fdc-1/prazdna_5.25HD_CPM.img\"", "empty 5.25\" HD 1.2 MB (CP/M, BIOS ECBIF5)",
       "prázdná 5,25\" HD 1,2 MB (CP/M, BIOS ECBIF5)" },
+    { "\"media/fdc-1/prazdna_8SSSD.img\"", "empty 8\" SS SD (CP/M)",
+      "prázdná 8\" SS SD (CP/M)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_fdc1_dec[] = {
@@ -560,6 +568,10 @@ static const CardParam k_fdc1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 static const ParamOption k_mfc1a_disks[] = {
+    { "\"media/sapiman/prazdna_8_FM_14x256.imd\"", "empty 8\" FM 77 x 14 x 256 (ImageDisk, BIOS V261211JB)",
+      "prázdná 8\" FM 77 × 14 × 256 (ImageDisk, BIOS V261211JB)" },
+    { "\"media/sapiman/prazdna_8_FM_8x512.imd\"", "empty 8\" FM 77 x 8 x 512 (ImageDisk, BIOS-3K V261211JB)",
+      "prázdná 8\" FM 77 × 8 × 512 (ImageDisk, BIOS-3K V261211JB)" },
     { "\"media/rpd-1/CPM22P_48A_Perina.img\"", "CP/M 2.2/P 48K (Perina), as a data disk",
       "CP/M 2.2/P 48K (Peřina), jako datová disketa" },
     { "\"media/fdc-1/CPM22P_48AF_Perina.img\"", "CP/M 2.2/P 48K for FDC-1 (Perina), as a data disk",
