@@ -6,8 +6,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 37 v debug, paralelně asi 25 s; release `full` 41 včetně ZEX, 8080EXM a 8085EXM; Linux ve WSL 35
-    (bez `test_tapegen` a `test_jpr1x`, ty tam zatím neběžely). Vše prochází (2026-10-06). Kdy které testy:
+  - Testy: 37 v debug, paralelně asi 25 s; release `full` 41 včetně ZEX, 8080EXM a 8085EXM; Linux ve WSL všech 37
+    (GCC 13 bez varování ve vlastním kódu). Vše prochází (2026-10-06). Kdy které testy:
     `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
@@ -144,10 +144,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      `docs/build.md`).
   7. PKT-1.
   8. Příprava veřejného vydání (níže).
-  9. Okno terminálu: kopírování jen výběru myší (teď celý text); ~~diagnostická deska na K3~~ hotová 2026-10-06
+  9. ~~Okno terminálu: kopírování jen výběru myší~~ hotové 2026-10-06 (tažení, dvojklik slovo, trojklik řádek,
+     bez výběru celý text; `docs/seriova-linka.md`); ~~diagnostická deska na K3~~ hotová 2026-10-06
      (rev 2.0, JPR-1S i JPR-1X, okno, MCP `diag_board`, čítače `media/jpr-1x`).
-  10. Uklidit 4 varování GCC ze staršího kódu (`main.cpp` `mcp_enabled`, `rack.cpp` `running_display` a `snprintf`,
-     `test_util.h` `g_test_failures`).
+  10. ~~Uklidit varování GCC~~ hotové 2026-10-06 (čisté sestavení ve WSL bez varování ve vlastním kódu, všech 37
+     testů včetně `test_tapegen` a `test_jpr1x` prochází).
 - **Pracovní pravidla, která se osvědčila:**
   - Skripty s `\n`, `\r` a `\b` psát nástrojem Write do souboru, ne přes heredoc v bashi. Shell zpětná lomítka
     rozbije a do souborů se pak dostanou řídicí znaky.

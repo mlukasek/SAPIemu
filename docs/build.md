@@ -76,11 +76,15 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    jinak do `~/.local/share/SAPIemu/SAPIemu`. COM port je na Linuxu zařízení (`/dev/ttyUSB0`), ve WSL fyzické porty
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
-Výsledek 2026-10-06: všech 33 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX).
+Výsledek 2026-10-06: všech 37 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX),
+`test_tapegen` a `test_jpr1x`. Čisté sestavení (`cmake --build --preset linux-debug --clean-first`) je bez varování
+GCC ve vlastním kódu (varování v `third_party/` a `_deps/` se neřeší).
 Testy `test_cassette` a `test_mikos` je hledají v `../SAPI_DOKU`, pak ve starém archivu na `H:`, jinak tu část
 přeskočí. Co GCC na rozdíl od MSVC nepromine (pro další vývoj):
 - statická konstanta třídy použitá odkazem (`std::min`, JSON) bez definice: psát `static constexpr int`, ne
   `static const int` (linker hlásí `undefined reference to And1::COLS`);
+- záměrný průchod do dalšího `case` (makro protothreadu v `pmd32sd.cpp`) označit `[[fallthrough]]`, pomocné
+  proměnné testů `[[maybe_unused]]`;
 - doslovný znak CR uvnitř řetězce (`"…^M"` místo `"\r"`): GCC ho bere jako konec řádku. Git navíc takový soubor
   považuje za binární a nenormalizuje mu konce řádků.
 
