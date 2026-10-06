@@ -17,11 +17,11 @@
 
 // ---------------------------------------------------------------- cassette recorder
 
-static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3) nebo program (HEX, BIN)", "wav;mp3;hex;ihx;bin" },
+static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3) nebo program (HEX, TXT, BIN)", "wav;mp3;hex;ihx;txt;bin" },
                                                       { "Kazeta (WAV, MP3)", "wav;mp3" },
-                                                      { "Program (Intel HEX, BIN)", "hex;ihx;bin" } };
+                                                      { "Program (Intel HEX, TXT, BIN)", "hex;ihx;txt;bin" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
-static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX", "hex;ihx" } };
+static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX (HEX, IHX, TXT)", "hex;ihx;txt" }, { "*", "*" } };
 static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD)", "img;8sd;imd" } };
 static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
 
@@ -55,7 +55,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     for (char& c : where) if (c == '/') c = '\\';
 #endif
     if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 3, where.c_str(), false);
-    else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 1, where.c_str(), false);
+    else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 2, where.c_str(), false);
     else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
     else if (kind == 7) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str());
     else if (kind == 8) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str(), false);

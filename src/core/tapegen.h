@@ -18,7 +18,7 @@ struct TapeProgram {
 const char* tape_format_name(int format);              // "mikos", "mikrobasic"
 bool tape_format_parse(const std::string& s, int& format);
 
-// .hex, .ihx (Intel HEX) and .bin are programs; anything else is audio.
+// .hex, .ihx, .txt (Intel HEX) and .bin are programs; anything else is audio.
 bool tape_is_program(const std::string& path);
 bool tape_is_hex(const std::string& path);
 

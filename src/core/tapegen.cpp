@@ -78,7 +78,7 @@ static std::string ext_of(const std::string& path)
 bool tape_is_hex(const std::string& path)
 {
     std::string e = ext_of(path);
-    return e == "hex" || e == "ihx";
+    return e == "hex" || e == "ihx" || e == "txt";   // many HEX files of SAPI are .txt
 }
 
 bool tape_is_program(const std::string& path)

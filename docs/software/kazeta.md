@@ -270,7 +270,7 @@ Jen omezeně:
 
 ## 4. Kazeta z programu v emulátoru (`src/core/tapegen.*`)
 
-- **Vstup:** Intel HEX (`.hex`, `.ihx`, adresy ze záznamů) nebo binární soubor (`.bin`, adresa se zadá). Díry mezi
+- **Vstup:** Intel HEX (`.hex`, `.ihx`, `.txt`, adresy ze záznamů) nebo binární soubor (`.bin`, adresa se zadá). Díry mezi
   záznamy HEX se vyplní nulami (při nahrání se tedy přepíšou nulami).
 - **Zvuk:** 48 kHz, 20 vzorků na bit, obdélník ±12000 jako záznam z emulované DSM-1, mezery jsou tón, nikde ticho.
 - **MIKOS** (`.K_L jméno`, pak `.J`; V5 i `.L`):

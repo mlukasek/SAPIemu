@@ -73,7 +73,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   `docs/seriova-linka.md`.
 - **Tiskárna:** Zobrazení → Tiskárna ukáže vytištěný text. Bajty, jak přišly, jsou v `work/printer/*.prn`.
   Tiskárnu zapnete v konfigurátoru u procesorové karty (X3) nebo u DPP-1 (`docs/tiskarna.md`).
-- **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX) nebo binární soubor. V CP/M pak
+- **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX `.hex`, `.ihx` i `.txt`) nebo binární soubor. V CP/M pak
   `SAVE n JMENO.COM` (okno počet stránek napoví).
 - **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš. Zvuk hraje jen při rychlosti 100 %.
 - **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků.
