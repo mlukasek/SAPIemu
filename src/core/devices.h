@@ -110,6 +110,9 @@ public:
     virtual void set_regs(const CpuRegs& r) = 0;
     // Memory as seen by the CPU (including on-card ROM), without side effects.
     virtual uint8_t peek(uint16_t addr) = 0;
+    // Debugger / loader write into RAM on the CPU card itself (JPR-1, JPR-1S), which bus writes
+    // of other masters do not reach. Ports and ROM are left alone.
+    virtual void poke_local(uint16_t addr, uint8_t value) {}
     virtual KeyboardDevice* keyboard() { return nullptr; }
     // Replace the keyboard on the CPU card connector (takes ownership, nullptr = none).
     virtual void set_keyboard(KeyboardDevice* k) { delete k; }

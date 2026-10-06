@@ -214,6 +214,48 @@ static const CardParam k_and1b[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// BGP-1S (Libor Lasota): S3 window and MAP1, S1 colours, S2 interrupt
+static const ParamOption k_bgp1s_base[] = {
+    { "\"C000h\"", "C000h (AD15, AD14 fitted, like PMD-85)", "C000h (osazené AD15, AD14, jako PMD-85)" },
+    { "\"8000h\"", "8000h (AD15 fitted)", "8000h (osazená AD15)" },
+    { "\"4000h\"", "4000h (AD14 fitted)", "4000h (osazená AD14)" },
+    { "\"0000h\"", "0000h (none)", "0000h (žádná)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_bgp1s_map1[] = {
+    { "\"ignore\"", "IGNORE (MDIS fitted)", "IGNORE (osazená MDIS)" },
+    { "\"high\"", "HIGH: when MAP1 = H (none fitted)", "HIGH: při MAP1 = H (nic neosazeno)" },
+    { "\"low\"", "LOW: when MAP1 = L (MLEV fitted)", "LOW: při MAP1 = L (osazená MLEV)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_bgp1s_colors[] = {
+    { "\"ace\"", "ACE (Colorace, 7 colours of 6x2 cells)", "ACE (Colorace, 7 barev buněk 6x2)" },
+    { "\"rgbm\"", "RGBM (4 colours like PMD-85)", "RGBM (4 barvy jako PMD-85)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_bgp1s_int[] = {
+    { "\"int0\"", "/INT0", "/INT0" }, { "\"int1\"", "/INT1", "/INT1" },
+    { "\"none\"", "none (no jumper)", "žádné (bez propojky)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_bgp1s_output[] = {
+    { "\"rgb\"", "colour TV (RGB, SCART)", "barevná TV (RGB, SCART)" },
+    { "\"mono\"", "B/W TV (composite)", "černobílá TV (kompozit)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_bgp1s[] = {
+    { "base", PK_CHOICE, "S3 AD15, AD14: video RAM window (16 KB, write only)",
+      "S3 AD15, AD14: okno videoram (16 KB, jen zápis)", "\"C000h\"", k_bgp1s_base, 0, 0 },
+    { "map1", PK_CHOICE, "S3 MDIS, MLEV: MAP1 mode", "S3 MDIS, MLEV: režim MAP1", "\"ignore\"", k_bgp1s_map1, 0, 0 },
+    { "colors", PK_CHOICE, "S1: colours", "S1: barvy", "\"ace\"", k_bgp1s_colors, 0, 0 },
+    { "int", PK_CHOICE, "S2: interrupt at line 256 (cleared by a fetch from the window)",
+      "S2: přerušení na řádku 256 (nuluje ho fetch z okna)", "\"int0\"", k_bgp1s_int, 0, 0 },
+    { "output", PK_CHOICE, "K2: TV on", "K2: TV na výstupu", "\"rgb\"", k_bgp1s_output, 0, 0 },
+    { "wait_states", PK_BOOL, "Wait for the CPU slot when writing (RDY)", "Čekání na okno CPU při zápisu (RDY)",
+      "true", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // AND-1V (Libor Lasota)
 static const ParamOption k_and1v_map[] = {
     { "\"always\"", "MAP1OFF fitted: always", "MAP1OFF osazená: vždy" },
@@ -329,6 +371,13 @@ static const ParamOption k_eprom_type[] = {
     { "\"2716\"", "2716 (2 KB)", "2716 (2 KB)" },
     { nullptr, nullptr, nullptr },
 };
+// Redukce34KB01 (Libor Lasota): the keyboard cable adapter with an RS-232 receive line on P1-IN7
+static const ParamOption k_k2_adapter[] = {
+    { "\"none\"", "plain (FRB30 - IDC34)", "obyčejná (FRB30 - IDC34)" },
+    { "\"redukce34kb01\"", "Redukce34KB01: RS-232 RX on P1-IN7 (INT, T keys not connected)",
+      "Redukce34KB01: RS-232 RX na P1-IN7 (klávesy INT, T odpojené)" },
+    { nullptr, nullptr, nullptr },
+};
 static const ParamOption k_jpr1_roms[] = {
     { "\"\"", "none (ZPS-1: EPROMs on REM-1)", "žádné (ZPS-1: EPROM na REM-1)" },
     { "\"roms/mikrobasic/MIKROBASIC_AR1983_1k.bin\"", "MIKROBASIC AR/B 1983 (1 KB RAM on JPR-1)",
@@ -353,6 +402,53 @@ static const CardParam k_jpr1[] = {
       "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
     { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
       "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
+    { "k2_adapter", PK_CHOICE, "K2 adapter (cable of the keyboard)", "Redukce na K2 (kabel klávesnice)", "\"none\"",
+      k_k2_adapter, 0, 0 },
+    { "rx_baud", PK_INT, "Redukce34KB01: speed of the PC sending (Bd)", "Redukce34KB01: rychlost vysílání z PC (Bd)",
+      "19200", nullptr, 50, 115200 },
+    { "rx_stop_bits", PK_INT, "Redukce34KB01: stop bits", "Redukce34KB01: stop bity", "2", nullptr, 1, 2 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// JPR-1S (Libor Lasota, rev 2.2)
+static const ParamOption k_jpr1s_roms[] = {
+    { "\"roms/jpr-1s/MIKROBIOS_1.02.bin\"", "MIKROBIOS 1.02 + Falcon 6.1L (04/2022, display BGP-1S)",
+      "MIKROBIOS 1.02 + Falcon 6.1L (04/2022, displej BGP-1S)" },
+    { "\"roms/jpr-1s/MIKROBIOS_2.1.bin\"", "MikroBIOS 2.1 (11/2024, display AND-1V at 3800)",
+      "MikroBIOS 2.1 (11/2024, displej AND-1V na 3800)" },
+    { "\"roms/jpr-1s/MIKROBIOS_1.0.bin\"", "MIKROBIOS 1.0 (08/2021, display BGP-1S)", "MIKROBIOS 1.0 (08/2021, displej BGP-1S)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_jpr1s_ack[] = {
+    { "\"rst7\"", "2-3 RST7 (the 8228 inserts RST 7)", "2-3 RST7 (8228 vloží RST 7)" },
+    { "\"bus\"", "1-2 RSTx (/INTA on the bus, the vector from a card)", "1-2 RSTx (/INTA na sběrnici, vektor z karty)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_jpr1s[] = {
+    { "rom", PK_FILE, "EEPROM 28C64 (0000-1FFF)", "EEPROM 28C64 (0000-1FFF)", "\"roms/jpr-1s/MIKROBIOS_1.02.bin\"",
+      k_jpr1s_roms, 0, 0 },
+    { "ram_4000", PK_BOOL, "RAM_EN 1: RAM bank 4000-7FFF", "RAM_EN 1: banka RAM 4000-7FFF", "true", nullptr, 0, 0 },
+    { "ram_8000", PK_BOOL, "RAM_EN 2: RAM bank 8000-BFFF", "RAM_EN 2: banka RAM 8000-BFFF", "true", nullptr, 0, 0 },
+    { "ram_c000", PK_BOOL, "RAM_EN 3: RAM bank C000-FFFF", "RAM_EN 3: banka RAM C000-FFFF", "true", nullptr, 0, 0 },
+    { "int_int0", PK_BOOL, "INT_SRC 1-2: /INT0 of the bus", "INT_SRC 1-2: /INT0 ze sběrnice", "false", nullptr, 0, 0 },
+    { "int_int1", PK_BOOL, "INT_SRC 3-4: /INT1 of the bus", "INT_SRC 3-4: /INT1 ze sběrnice", "true", nullptr, 0, 0 },
+    { "int_p2in0", PK_BOOL, "INT_SRC 5-6: P2-IN0 (K3-20)", "INT_SRC 5-6: P2-IN0 (K3-20)", "false", nullptr, 0, 0 },
+    { "int_p2in1", PK_BOOL, "INT_SRC 7-8: P2-IN1 (K3-17)", "INT_SRC 7-8: P2-IN1 (K3-17)", "false", nullptr, 0, 0 },
+    { "int_ack", PK_CHOICE, "INT_ADR: interrupt response", "INT_ADR: odezva na přerušení", "\"rst7\"", k_jpr1s_ack, 0, 0 },
+    { "crystal_hz", PK_INT, "Crystal (Hz, CPU = crystal / 9)", "Krystal (Hz, CPU = krystal / 9)", "18000000", nullptr,
+      1000000, 40000000 },
+    { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (EKL-1, Consul: buzzer on X2 pin 14; ANK-1: P0-OUT D6)",
+      "Klávesnice: bzučák (EKL-1, Consul: bzučák na X2 pin 14; ANK-1: P0-OUT D6)", "true", nullptr, 0, 0 },
+    { "keyboard.joyport", PK_CHOICE, "Keyboard ANK-1M2: joystick connector (P1-IN D5-D0)",
+      "Klávesnice ANK-1M2: konektor joysticku (P1-IN D5-D0)", "\"joystick\"", k_joyport, 0, 0 },
+    { "k2_adapter", PK_CHOICE, "K2 adapter (cable of the keyboard)", "Redukce na K2 (kabel klávesnice)", "\"none\"",
+      k_k2_adapter, 0, 0 },
+    { "rx_baud", PK_INT, "Redukce34KB01: speed of the PC sending (Bd)", "Redukce34KB01: rychlost vysílání z PC (Bd)",
+      "19200", nullptr, 50, 115200 },
+    { "rx_stop_bits", PK_INT, "Redukce34KB01: stop bits", "Redukce34KB01: stop bity", "2", nullptr, 1, 2 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -1065,6 +1161,8 @@ static const CardParam k_ide1[] = {
 // CPU
 CARD(c_jpr1, "JPR-1", "JPR", "CPU card 8080, memory mapped ports", "Procesorová deska 8080, porty v paměti",
      CC_CPU, 1, true, k_jpr1)
+CARD(c_jpr1s, "JPR-1S", "JPR", "CPU card 8080, JPR-1 remake with RAM banks (Libor Lasota)",
+     "Procesorová deska 8080, nová JPR-1 s bankami RAM (Libor Lasota)", CC_CPU, 1, true, k_jpr1s)
 CARD(c_jpr1a, "JPR-1A", "JPR", "CPU card 8080 \"A\" (I/O ports, boot EPROM)", "Procesorová deska 8080 \"A\" (porty I/O, boot EPROM)",
      CC_CPU, 1, true, k_jpr1a)
 CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80 (ZPS-4)", "Procesorová deska Z80 (ZPS-4)", CC_CPU, 1, true, k_jpr1z)
@@ -1088,6 +1186,8 @@ CARD(c_zrmd1, "ZRMD-1", "ZRMD", "RAM disk 4 MB with RTC", "RAM disk 4 MB s RTC",
 CARD(c_zrd1v, "ZRD-1V", "ZRD", "RAM disk 4 MB (V)", "RAM disk 4 MB (V)", CC_DISK, 1, true, k_zrd1v)
 // display
 CARD(c_and1v, "AND-1V", "AND", "VGA display 64x20 (V)", "Displej VGA 64x20 (V)", CC_DISPLAY, 1, true, k_and1v)
+CARD(c_bgp1s, "BGP-1S", "BGP", "Graphics 288x256 like PMD-85, TV (Libor Lasota)",
+     "Grafika 288x256 jako PMD-85, TV (Libor Lasota)", CC_DISPLAY, 1, true, k_bgp1s)
 CARD(c_and1b, "AND-1B", "AND", "VGA replacement of AND-1/AND-1A, 40x24 (Libor Lasota)",
      "Náhrada AND-1/AND-1A s VGA, 40x24 (Libor Lasota)", CC_DISPLAY, 1, true, k_and1b)
 CARD(c_and1, "AND-1", "AND", "Alphanumeric display 40x24", "Alfanumerický displej 40x24", CC_DISPLAY, 1, true, k_and1)
@@ -1131,9 +1231,9 @@ CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldes
 const std::vector<const CardInfo*>& card_catalog(void)
 {
     static const std::vector<const CardInfo*> list = {
-        &c_jpr1zi, &c_jpr1, &c_jpr1a, &c_jpr1z, &c_jpr1v,
+        &c_jpr1zi, &c_jpr1, &c_jpr1s, &c_jpr1a, &c_jpr1z, &c_jpr1v,
         &c_dmr1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
-        &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
+        &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
         &c_mph1v, &c_dpp1, &c_rtc1, &c_bdk1,

@@ -3,6 +3,7 @@
 #include "cards/and1.h"
 #include "cards/and1v.h"
 #include "cards/and1b.h"
+#include "cards/bgp1s.h"
 #include "cards/cga1v.h"
 #include "cards/and1z.h"
 #include "cards/dgd1.h"
@@ -32,10 +33,12 @@ Card* card_create(const std::string& type)
     if (type == "DSM-1V") return new Dsm1v();
     if (type == "AND-1V") return new And1v();
     if (type == "AND-1B") return new And1b();
+    if (type == "BGP-1S" || type == "BGP-1") return new Bgp1s();   // BGP-1 in the schematic and the BIOS
     if (type == "RAM-1V") return new Ram1v();
     if (type == "RAM-1Z") return new Ram1z();
     if (type == "RMD-1") return new Rmd1();
     if (type == "JPR-1") return new Jpr1();
+    if (type == "JPR-1S") return new Jpr1("JPR-1S");
     if (type == "JPR-1A") return new Jpr1("JPR-1A");
     if (type == "REM-1") return new Rem1();
     if (type == "RAM-1" || type == "RAM-1A") return new Ram1(type.c_str());
@@ -65,5 +68,5 @@ Card* card_create(const std::string& type)
 
 std::vector<std::string> card_types(void)
 {
-    return { "JPR-1ZI", "JPR-1", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1", "JPR-1V", "DSM-1V", "AND-1V", "AND-1B", "RAM-1V", "CGA-1V", "DGD-1V", "MPH-1V", "FDC-1", "MFC-1A" };
+    return { "JPR-1ZI", "JPR-1", "JPR-1S", "DMR-1", "DSM-1", "REM-1", "RAM-1", "AND-1", "AND-1Z-89", "AND-1Z", "ZRMD-1", "ZRD-1V", "IDE-1", "BDK-1", "DGD-1", "RPD-1", "RAM-1A", "JPR-1A", "AND-1A", "JPR-1Z", "RAM-1Z", "RMD-1", "JPR-1V", "DSM-1V", "AND-1V", "AND-1B", "BGP-1S", "RAM-1V", "CGA-1V", "DGD-1V", "MPH-1V", "FDC-1", "MFC-1A" };
 }

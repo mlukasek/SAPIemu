@@ -303,6 +303,7 @@ void Machine::poke(uint16_t addr, uint8_t value)
     int saved_wait = bus.wait;
     bool saved_watch = bus.any_mem_watch;
     bus.any_mem_watch = false;   // debugger writes do not trigger watchpoints
+    if (cpu) cpu->poke_local(addr, value);
     bus.mem_write(addr, value);
     bus.any_mem_watch = saved_watch;
     bus.wait = saved_wait;

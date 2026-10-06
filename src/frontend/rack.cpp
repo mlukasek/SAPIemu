@@ -537,7 +537,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     if (!strcmp(p, "DSM")) return k_pl_dsm;
     if (!strcmp(ci->type, "AND-1V") || !strcmp(ci->type, "AND-1B") || !strcmp(ci->type, "DGD-1V") || !strcmp(p, "CGA"))
         return k_pl_vga;
-    if (!strcmp(p, "AND") || !strcmp(p, "DGD")) return k_pl_frb_k2;   // the original display cards
+    if (!strcmp(p, "AND") || !strcmp(p, "DGD") || !strcmp(p, "BGP")) return k_pl_frb_k2;   // FRB K2 (BGP-1S: TV)
     if (!strcmp(p, "MPH")) return k_pl_mph;
     if (!strcmp(ci->type, "ZRD-1V")) return k_pl_zrd;
     return nullptr;

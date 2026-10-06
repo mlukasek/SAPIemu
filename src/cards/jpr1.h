@@ -19,9 +19,26 @@
 //   is read at 0000-0FFF, writes go to the RAM below; any OUT 00h clears it.
 // - Ports P0-P2 are I/O ports 01-03 (keyboard on P0/P1 as on the JPR-1ZI).
 // - No 3214: INT0 or INT1 interrupt, jumper JP1 1-2 = RST 7, 1-3 = vector from the bus.
+//
+// JPR-1S rev 2.2 (Libor Lasota, docs/desky/JPR-1S.md): a JPR-1 remake, the same 8080 and
+// memory mapped ports, decoded by a 74ALS138 + 74ALS153 (no PROM):
+// - 0000-1FFF 28C64 (8 KB, never written), 2000-23FF RAM, 2400/2800/2C00 P0/P1/P2, 3000-3FFF
+//   the bus (no 3214), 4000/8000/C000 16 KB RAM banks, each by a jumper RAM_EN (one 628128).
+// - Every write to an address on the card goes to the bus too (8228 /BUSEN grounded): the
+//   write-only video RAM of BGP-1S at C000 is read back from bank 3.
+// - Interrupt: level request from the jumpers INT_SRC (bus /INT0, /INT1, P2-IN0, P2-IN1,
+//   wired OR), response INT_ADR RST 7 (8228) or the vector from the bus (/INTA).
+// - P2-IN on K3 with pull-ups (FFh with nothing connected), LED on P1-OUT7.
+//
+// Redukce34KB01 (option for JPR-1 and JPR-1S, the cable adapter of the ANK-1M5/M2 keyboard on
+// K2): an optocoupler puts an RS-232 receive line on P1-IN7 (idle 1, start bit 0); K2 pins 7
+// and 9 of the keyboard (INT, T) are not connected. MIKROBIOS BOOT reads Intel HEX from it
+// bit by bit (19200 Bd, 2 stop bits).
 #include <memory>
 #include <vector>
 #include "core/devices.h"
+
+class SerialChannel;
 
 extern "C" {
 #include "i8080.h"
@@ -44,9 +61,11 @@ public:
     void get_regs(CpuRegs& r) override;
     void set_regs(const CpuRegs& r) override;
     uint8_t peek(uint16_t addr) override;
+    void poke_local(uint16_t addr, uint8_t value) override;
     KeyboardDevice* keyboard() override { return kbd.get(); }
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
+    SerialChannel* serial_channel(int index) override { return index == 0 ? rx.get() : nullptr; }
 
     // CPU memory and port accesses (8080 core callbacks)
     uint8_t cpu_read(uint16_t addr);
@@ -55,9 +74,11 @@ public:
     void cpu_out(uint8_t port, uint8_t data);
 
 private:
-    enum Local { L_NONE = 0, L_EPROM, L_RAM, L_P0, L_P1, L_P2, L_ECS, L_UNUSED };
+    enum Local { L_NONE = 0, L_EPROM, L_RAM, L_P0, L_P1, L_P2, L_ECS, L_UNUSED, L_BANK };
     int local(uint16_t addr) const;      // on-card function at an address
-    uint8_t p2_in(void) const;           // interrupt requests and the rest of P2-IN
+    uint8_t p1_in(void);                 // keyboard, or the adapter on K2
+    uint8_t p2_in(void);                 // interrupt requests and the rest of P2-IN
+    bool rx_level(void);                 // the RS-232 line of the adapter now (1 = idle / stop)
     void update_interrupt(void);
     void sync(void);
 
@@ -83,15 +104,30 @@ private:
 
     std::unique_ptr<KeyboardDevice> kbd;
 
+    // JPR-1S
+    bool model_s = false;
+    std::vector<uint8_t> sram;           // 628128: 2000-23FF and the banks, indexed by the address
+    bool bank_en[3] = { true, true, true };   // RAM_EN: 4000, 8000, C000
+    bool int_src[4] = { false, true, false, false };   // INT_SRC: /INT0, /INT1, P2-IN0, P2-IN1
+
+    // Redukce34KB01 on K2: RS-232 receive line on P1-IN7
+    std::unique_ptr<SerialChannel> rx;
+    uint32_t rx_baud = 19200;
+    int rx_stop = 2;
+    bool rx_active = false;              // a character is on the line
+    uint8_t rx_byte = 0;
+    uint64_t rx_start = 0;               // bus time of its start bit
+    uint64_t rx_free = 0;                // the line is free (idle) from this time
+
     // JPR-1A
     uint8_t d2c(uint8_t a_hi) const;     // PROM outputs for A15-A8 in the current BOOT state
     bool model_a = false;
     bool boot = true;                    // BOOT flip-flop (LED V2)
 public:
-    // JPR-1A: the BOOT LED V2; JPR-1: the LED on the card at P1-OUT D7 (1 = lit, assumed)
+    // JPR-1A: the BOOT LED V2; JPR-1: the LED on the card at P1-OUT D7 (1 = lit, assumed; JPR-1S: so)
     unsigned panel_leds() override { return (model_a ? boot : (p1_out & 0x80) != 0) ? 1u : 0u; }
 private:
-    bool rst7_jumper = true;             // JP1 1-2: RST 7, else the vector from the bus
+    bool rst7_jumper = true;             // JP1 1-2 (JPR-1S INT_ADR 2-3): RST 7, else the vector from the bus
     uint8_t d2c_prom[512];
     std::string d2c_file;
 };

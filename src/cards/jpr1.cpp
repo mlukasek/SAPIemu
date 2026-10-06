@@ -20,6 +20,7 @@ static void cb_out(void* u, uint8_t p, uint8_t v) { ((Jpr1*)u)->cpu_out(p, v); }
 Jpr1::Jpr1(const char* type) : CpuCard(type)
 {
     model_a = strcmp(type, "JPR-1A") == 0;
+    model_s = strcmp(type, "JPR-1S") == 0;
     memset(d2c_prom, 0xFF, sizeof(d2c_prom));
     memset(ram, 0, sizeof(ram));
     i8080_init(&cpu);
@@ -31,6 +32,31 @@ Jpr1::Jpr1(const char* type) : CpuCard(type)
 }
 
 Jpr1::~Jpr1() {}
+
+// Redukce34KB01 on K2 (JPR-1, JPR-1S): an RS-232 receive line on P1-IN7.
+static bool configure_adapter(const json& cfg, std::unique_ptr<SerialChannel>& rx, uint32_t& baud, int& stop,
+                              std::string& err)
+{
+    std::string a;
+    if (!cfg_string(cfg, "k2_adapter", a, "none", err)) return false;
+    if (a != "none" && a != "redukce34kb01") { err = "k2_adapter must be none or redukce34kb01"; return false; }
+    rx.reset();
+    if (a == "none") return true;
+    long long v;
+    if (!cfg_number(cfg, "rx_baud", v, 19200, err)) return false;
+    if (v < 50 || v > 115200) { err = "rx_baud must be 50..115200"; return false; }
+    baud = (uint32_t)v;
+    if (!cfg_number(cfg, "rx_stop_bits", v, 2, err)) return false;
+    if (v != 1 && v != 2) { err = "rx_stop_bits must be 1 or 2"; return false; }
+    stop = (int)v;
+    rx.reset(new SerialChannel("K2 RS-232 (Redukce34KB01)"));
+    rx->baud = (int)baud;
+    if (cfg.contains("serial")) {
+        rx->bridge_cfg = cfg["serial"];
+        rx->pacing = cfg["serial"].value("pacing", true);
+    }
+    return true;
+}
 
 bool Jpr1::configure(const json& cfg, std::string& err)
 {
@@ -53,6 +79,39 @@ bool Jpr1::configure(const json& cfg, std::string& err)
         rst7_jumper = jp1 == "1-2";
         int_key_jumper = false;
         ram_fitted = false;
+        if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
+            kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
+            if (!kbd) return false;
+            kbd->bus = bus;
+        }
+        return true;
+    }
+    if (!configure_adapter(cfg, rx, rx_baud, rx_stop, err)) return false;
+    if (model_s) {
+        if (!cfg_string(cfg, "rom", rom, "roms/jpr-1s/MIKROBIOS_1.02.bin", err)) return false;
+        eprom.clear();
+        if (!rom.empty() && !rom_load(rom, eprom, 0x2000, 0xFF, 0, err)) return false;   // 28C64
+        eprom.resize(0x2000, 0xFF);
+        // the SRAM holds noise after power on (as RMD-1): MIKROBIOS keeps a VideoBase found in its
+        // RAM when the low 14 bits are zero, a zero RAM would make it 0000h
+        sram.resize(0x10000);
+        uint32_t x = 0x2468ACE1u;
+        for (uint8_t& b : sram) {
+            x ^= x << 13; x ^= x >> 17; x ^= x << 5;
+            b = (uint8_t)x;
+        }
+        static const char* const banks[3] = { "ram_4000", "ram_8000", "ram_c000" };
+        for (int i = 0; i < 3; i++)
+            if (!cfg_bool(cfg, banks[i], bank_en[i], true, err)) return false;
+        static const char* const srcs[4] = { "int_int0", "int_int1", "int_p2in0", "int_p2in1" };
+        for (int i = 0; i < 4; i++)
+            if (!cfg_bool(cfg, srcs[i], int_src[i], i == 1, err)) return false;
+        std::string ack;
+        if (!cfg_string(cfg, "int_ack", ack, "rst7", err)) return false;
+        if (ack != "rst7" && ack != "bus") { err = "int_ack must be rst7 (INT_ADR 2-3) or bus (1-2)"; return false; }
+        rst7_jumper = ack == "rst7";
+        ram_fitted = true;
+        int_key_jumper = false;
         if (cfg.contains("keyboard") && !cfg["keyboard"].is_null()) {
             kbd.reset(keyboard_from_config(cfg["keyboard"], cpu_hz, err));
             if (!kbd) return false;
@@ -131,6 +190,19 @@ uint8_t Jpr1::d2c(uint8_t hi) const
 
 int Jpr1::local(uint16_t a) const
 {
+    if (model_s) {   // 74ALS138 (2000-3FFF in 1 KB) and 74ALS153 (quadrants)
+        if (a < 0x2000) return L_EPROM;
+        if (a < 0x4000) {
+            switch ((a >> 10) & 7) {
+            case 0: return L_RAM;
+            case 1: return L_P0;
+            case 2: return L_P1;
+            case 3: return L_P2;
+            default: return L_NONE;   // 3000-3FFF: the bus (AND-1/AND-1B at 3800)
+            }
+        }
+        return bank_en[(a >> 14) - 1] ? L_BANK : L_NONE;
+    }
     if (model_a) {   // memory: only the EPROM while BOOT is set (OE1, OE2 active low)
         if (!boot) return L_NONE;
         uint8_t o = d2c((uint8_t)(a >> 8));
@@ -151,14 +223,52 @@ int Jpr1::local(uint16_t a) const
     }
 }
 
-uint8_t Jpr1::p2_in(void) const
+uint8_t Jpr1::p2_in(void)
 {
+    if (model_s) return 0xFF;   // K3 with pull-ups (the diagnostic board is not emulated)
     // interrupt requests are active low: R0 = /INT0, R1 = /INT1, R7 = INT key
     uint8_t v = 0xFF;
     if (bus_irq & IRQ_INT0) v &= (uint8_t)~0x01;
     if (bus_irq & IRQ_INT1) v &= (uint8_t)~0x02;
-    if (int_key_jumper && kbd && !(kbd->p1_in() & 0x80)) v &= (uint8_t)~0x80;
+    if (int_key_jumper && kbd && !(p1_in() & 0x80)) v &= (uint8_t)~0x80;
     return v;
+}
+
+uint8_t Jpr1::p1_in(void)
+{
+    uint8_t v = kbd ? kbd->p1_in() : 0xFF;
+    if (rx) {   // the adapter: K2-7 from the optocoupler, K2-9 (T key) not connected
+        v |= 0xC0;
+        if (!rx_level()) v &= 0x7F;
+    }
+    return v;
+}
+
+// The line sends the characters from the host one after another at rx_baud: start bit (0),
+// 8 data bits LSB first, rx_stop stop bits (1). A character waiting on the host side starts
+// as soon as the line is free; nothing waits for the program.
+bool Jpr1::rx_level(void)
+{
+    double bit = (double)cpu_hz / rx_baud;
+    uint64_t now = bus->now;
+    for (;;) {
+        if (rx_active) {
+            uint64_t end = rx_start + (uint64_t)(bit * (9 + rx_stop));
+            if (now < end) {
+                int i = (int)((double)(now - rx_start) / bit);
+                if (i == 0) return false;                       // start bit
+                if (i <= 8) return ((rx_byte >> (i - 1)) & 1) != 0;
+                return true;                                    // stop bits
+            }
+            rx_active = false;
+            rx_free = end;
+        }
+        uint8_t b;
+        if (!rx->from_host(b)) return true;   // idle
+        rx_active = true;
+        rx_byte = b;
+        rx_start = rx_free > now || now - rx_free < (uint64_t)bit ? rx_free : now;   // back to back, or now
+    }
 }
 
 uint8_t Jpr1::cpu_read(uint16_t a)
@@ -166,9 +276,10 @@ uint8_t Jpr1::cpu_read(uint16_t a)
     if (wait_jumper) extra++;
     switch (local(a)) {
     case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
-    case L_RAM: return ram[a & 0x3FF];
+    case L_RAM: return model_s ? sram[a] : ram[a & 0x3FF];
+    case L_BANK: return sram[a];
     case L_P0: return kbd ? kbd->p0_in() : 0xFF;
-    case L_P1: return kbd ? kbd->p1_in() : 0xFF;
+    case L_P1: return p1_in();
     case L_P2: return p2_in();
     case L_ECS: return 0xFF;   // 3214 is write only
     default: break;
@@ -182,6 +293,23 @@ uint8_t Jpr1::cpu_read(uint16_t a)
 void Jpr1::cpu_write(uint16_t a, uint8_t v)
 {
     if (wait_jumper) extra++;
+    if (model_s) {   // the card takes it and the bus gets it too
+        switch (local(a)) {
+        case L_RAM:
+        case L_BANK: sram[a] = v; break;
+        case L_P0:
+            p0_out = v;
+            if (kbd) kbd->p0_out(v);
+            break;
+        case L_P1: p1_out = v; break;
+        case L_P2: p2_out = v; break;
+        default: break;   // EPROM: /WE held high
+        }
+        bus->wait = 0;
+        bus->mem_write(a, v);
+        extra += bus->wait;
+        return;
+    }
     switch (model_a ? (int)L_NONE : local(a)) {   // JPR-1A: writes under the EPROM go to the RAM
     case L_EPROM: return;
     case L_RAM: ram[a & 0x3FF] = v; return;
@@ -244,6 +372,14 @@ void Jpr1::cpu_out(uint8_t port, uint8_t v)
 // 3212 then puts RST (7 - level) on the data bus.
 void Jpr1::update_interrupt(void)
 {
+    if (model_s) {   // INT_SRC wired OR, level; INT_ADR RST 7 or /INTA on the bus
+        uint8_t p2 = p2_in();
+        bool req = (int_src[0] && (bus_irq & IRQ_INT0)) || (int_src[1] && (bus_irq & IRQ_INT1)) ||
+                   (int_src[2] && !(p2 & 1)) || (int_src[3] && !(p2 & 2));
+        cpu.interrupt_pending = req;
+        if (req) cpu.interrupt_vector = rst7_jumper ? 0xFF : bus->inta();
+        return;
+    }
     if (model_a) {   // INT0 or INT1, no priority logic
         cpu.interrupt_pending = bus_irq != 0;
         if (bus_irq) cpu.interrupt_vector = rst7_jumper ? 0xFF : bus->inta();
@@ -357,7 +493,8 @@ uint8_t Jpr1::peek(uint16_t a)
 {
     switch (local(a)) {
     case L_EPROM: return a < eprom.size() ? eprom[a] : 0xFF;
-    case L_RAM: return ram[a & 0x3FF];
+    case L_RAM: return model_s ? sram[a] : ram[a & 0x3FF];
+    case L_BANK: return sram[a];
     case L_P0:   // reading the keyboard has side effects (key taken / seen): not from the debugger
     case L_P1: return 0xFF;
     case L_P2: return p2_in();
@@ -366,14 +503,27 @@ uint8_t Jpr1::peek(uint16_t a)
     }
 }
 
+void Jpr1::poke_local(uint16_t a, uint8_t v)
+{
+    switch (local(a)) {
+    case L_RAM:
+        if (model_s) sram[a] = v;
+        else ram[a & 0x3FF] = v;
+        break;
+    case L_BANK: sram[a] = v; break;
+    default: break;
+    }
+}
+
 int Jpr1::decode_mem(uint16_t addr, int, const char** what)
 {
     switch (local(addr)) {
-    case L_EPROM: *what = "EPROM"; return DEC_READ | DEC_ONCARD;
+    case L_EPROM: *what = model_s ? "EEPROM 28C64" : "EPROM"; return DEC_READ | DEC_ONCARD;
     case L_RAM: *what = "RAM"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
+    case L_BANK: *what = "RAM (bank)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
     case L_P0: *what = "P0 (keyboard)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
     case L_P1: *what = "P1 (keyboard)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
-    case L_P2: *what = "P2 (interrupts, printer)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
+    case L_P2: *what = model_s ? "P2 (K3)" : "P2 (interrupts, printer)"; return DEC_READ | DEC_WRITE | DEC_ONCARD;
     case L_ECS: *what = "3214 status"; return DEC_WRITE | DEC_ONCARD;
     default: return 0;
     }
@@ -397,6 +547,8 @@ void Jpr1::describe(json& out)
     out["cpu_hz"] = cpu_hz;
     out["eprom_bytes"] = eprom.size();
     out["ram"] = ram_fitted;
+    if (model_s) out["ram_banks"] = { bank_en[0], bank_en[1], bank_en[2] };
+    if (rx) out["k2_adapter"] = "redukce34kb01";
     out["keyboard"] = kbd ? kbd->type_name() : "none";
     if (kbd && kbd->joyport() >= 0) out["keyboard_joyport"] = joy_device_name(kbd->joyport());
 }
@@ -444,4 +596,12 @@ void Jpr1::state(StateIO& io)
     io.v(boot);
     io.v(at_boundary);
     io.v(instr_pc);
+    if (model_s) io.arr(sram.data(), sram.size());   // the type and the adapter are in the description
+    if (rx) {
+        io.v(rx_active);
+        io.v(rx_byte);
+        io.v(rx_start);
+        io.v(rx_free);
+        rx->state(io);
+    }
 }
