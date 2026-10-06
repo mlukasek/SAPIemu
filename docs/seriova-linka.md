@@ -83,7 +83,7 @@ Okno Zobrazení → Sériový terminál umí poslat soubor do SAPI bez TeraTermu
 
 | Tlačítko | Co pošle |
 |---|---|
-| **Poslat soubor…** | bajty souboru tak, jak jsou (např. Intel HEX pro `BOOT` MIKROBIOSu na JPR-1S, `docs/desky/JPR-1S.md`) |
+| **Poslat soubor…** | bajty souboru tak, jak jsou (např. Intel HEX pro `BOOT` MIKROBIOSu na JPR-1S nebo JPR-1X, `docs/desky/JPR-1S.md`) |
 | **Poslat textový soubor…** | text UTF-8: česká písmena jako kódy SAPI (jako psaní z klávesnice), konce řádků CR LF / LF jako CR (Enter) |
 | **Poslat soubor XMODEM…** | XMODEM pro přijímací program v SAPI (např. `DOCPM10 SOUBOR.EXT` v CP/M): pakety po 128 B, součet nebo CRC-16 podle toho, čím přijímač začne (NAK / „C“), 10 opakování, bez odpovědi 10 s se paket pošle znovu, Zrušit pošle CAN CAN |
 | **Přijmout soubor XMODEM…** | soubor z vysílacího programu v SAPI (např. `DOPC10 SOUBOR.EXT`). XMODEM jméno nepřenáší, proto se nejdřív zvolí, kam soubor uložit (jako v TeraTermu). Přijímač pak posílá NAK (součet) každé 3 s, dokud vysílač nezačne; pakety po 128 B i 1 KB, opakovaný paket potvrdí a zahodí, špatný odmítne (NAK, 10×). Soubor se zapíše po EOT. Pakety se mezitím v terminálu nevypisují. |

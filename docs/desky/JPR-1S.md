@@ -3,6 +3,9 @@
 **Stav (2026-10-06): emulovaná** (typ `JPR-1S`, třída `Jpr1`, soubory `src/cards/jpr1.*`, test `test_bgp1s`).
 Rozbor podkladů rev 2.2, nic neověřeno na HW. Podklady: `..\SAPI-karty\JPR-1S\`.
 
+Novější varianta s procesorem 80C85, 3214 a TURBO je **JPR-1X** (`JPR-1X.md`). Deska diagnostiky „JPR1X“ níže
+s ní nesouvisí, jde o zkratku pro „karty JPR-1x“.
+
 Grafická karta k ní se oficiálně jmenuje **BGP-1S** (`BGP-1S.md`). V BIOSu 1.0 a v textech se píše „BGP-1“, jde
 o tutéž kartu. Klávesnice ANK-1M5 v podkladech je ANK-1M2 (`klavesnice.md`), píše se tu „ANK-1M5 (= ANK-1M2)“.
 

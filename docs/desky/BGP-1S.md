@@ -4,7 +4,8 @@
 rev 4.2, nic neověřeno na HW. Podklady: `..\SAPI-karty\BGP-1S\`.
 
 Oficiální název karty je **BGP-1S**. V podkladech (schéma, BIOS) se objevuje i „BGP-1“, jde o tutéž kartu.
-Procesorová karta k ní je JPR-1S (`JPR-1S.md`).
+Procesorová karta k ní je JPR-1S (`JPR-1S.md`). Jde i s JPR-1X (8085, `JPR-1X.md`) a RAM-1 pod ní, sestava
+`machines/jpr1x_bgp1s.sapi`.
 
 ## Zdroje
 

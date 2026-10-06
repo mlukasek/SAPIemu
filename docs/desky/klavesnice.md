@@ -260,7 +260,7 @@ boční tlačítka pro MIKROBASIC, a ta ANK-1M2 má (INT a „T“).
 - **Test:** `test_keyboards` (`test_ank1m2`): MIKROBASIC na ZPS-1 s ANK-1M2, joystick, myš Atari ST, zapojení za chodu.
 - **Redukce Redukce34KB01** (`..\SAPI-karty\Redukce34`, rev 2.0, 2022, „Redukce kabelu klávesnice ANK-1M5“):
   FRB30 na kartě JPR ↔ IDC34 klávesnice, navíc vstup RS-232 přes optočlen 6N135 na K2-7 (P1-IN7); K2-1, 9, 10, 12
-  nezapojené, takže klávesy INT a T s ní nefungují. Pro BOOT MIKROBIOSu na JPR-1S, v emulátoru parametr karty CPU
+  nezapojené, takže klávesy INT a T s ní nefungují. Pro BOOT MIKROBIOSu na JPR-1S a JPR-1X, v emulátoru parametr karty CPU
   `k2_adapter` (`docs/desky/JPR-1S.md`). ANK-1M2 má podle návodu obyčejnou redukci (jen +5 V na kolíky 33/34).
 
 ### ANK-1 a programy
