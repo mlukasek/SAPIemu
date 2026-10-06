@@ -457,6 +457,10 @@ static const ParamOption k_jpr1x_roms[] = {
     { "\"roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin\"",
       "lower bank MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), upper bank MIKROBASIC 2.4",
       "dolní banka MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), horní banka MIKROBASIC 2.4" },
+    { "\"roms/jpr-1s/MIKROBIOS_1.02.bin\"", "MIKROBIOS 1.02 of the JPR-1S (8 KB: both banks)",
+      "MIKROBIOS 1.02 z JPR-1S (8 KB: obě banky)" },
+    { "\"roms/jpr-1s/MIKROBIOS_2.1.bin\"", "MikroBIOS 2.1 of the JPR-1S (8 KB, AND-1V at 3800)",
+      "MikroBIOS 2.1 z JPR-1S (8 KB, AND-1V na 3800)" },
     { "\"\"", "none (ROM socket empty: the bus)", "žádná (patice ROM prázdná: sběrnice)" },
     { nullptr, nullptr, nullptr },
 };

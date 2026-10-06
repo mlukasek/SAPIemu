@@ -24,7 +24,9 @@ Nic neověřeno na HW.
   - 27C128 (16 KB): banky na 0000h a 2000h;
   - 28C64 (8 KB): jedna banka pro obě polohy propojky.
   - Výchozí `roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin` (16 KB, autor): dolní banka MIKROBIOS 1.02 s Falcon
-    Monitorem 6.1L (`roms/jpr-1s`), horní banka MIKROBASIC 2.4 (`roms/mikrobasic`). Dump skutečné ROM zatím není.
+    Monitorem 6.1L (`roms/jpr-1s`), horní banka MIKROBASIC 2.4 (`roms/mikrobasic`).
+  - Autor zvláštní ROM pro JPR-1X nemá, používá tytéž BIOSy jako pro JPR-1S a banku volí propojkou BIOS podle
+    potřeby (2026-10-06). V nabídce jsou proto i obrazy MIKROBIOSů z `roms/jpr-1s` (8 KB = obě banky).
 - **Přerušení:** 3214 má INTE natvrdo v 1, takže povolený požadavek (zápisem stavu na 3000h) se hned zachytí do
   3212 IC7, i při DI. IC7 drží INTR až do INTA a 3214 čeká na další zápis stavu.
   - Vektor: RSTN/7 rozpojená = vždy RST 7, osazená = RST (7 − úroveň).
@@ -33,7 +35,7 @@ Nic neověřeno na HW.
 - **Parametry:** `rom`, `bios`, `turbo`, `ram`, `int_vector`, `int_key`, `osc_hz` (16 MHz), `keyboard`,
   `k2_adapter` (Redukce34KB01 jako u JPR-1S).
 - **DMA:** emulátor DMA řeší časem (`bus->hold`), na paměť desky DMA nevidí, což odpovídá odpojení desky při HLDA.
-- **Sestavy:**
+- **Sestavy** (TURBO zapnuté jako na autorově desce, jde vypnout za chodu):
   - `machines/zps/ZPS-1_JPR-1X.sapi`: ekvivalent ZPS-1, MIKROBASIC 2.4 z horní banky, REM-1 jen s RAM, AND-1,
     DSM-1, ANK-1;
   - `machines/jpr1x_bgp1s.sapi`: MIKROBIOS 1.02 z dolní banky, RAM-1/48K, BGP-1S, ANK-1M2 s redukcí. Manic Miner
@@ -369,9 +371,10 @@ BIOS: JPR-1V vede propojku na A11 přímo, JPR-1X ji zachytí při resetu (výsl
 
 ## Nejasnosti k ověření (HW / autor)
 
-1. Stav propojek BIOS, TURBO a RSTN/7 na autorově desce (fotka nejistá) a pájecích propojek 11-10-R6, P2IN6-R6-10.
-   Sestavy mají BIOS podle obsahu ROM, TURBO vypnuté, RSTN/7 rozpojenou, klávesu INT nezapojenou.
-2. Jaký obraz ROM má autor v IC11 (typ obvodu, obsah obou bank)? Výchozí obraz je MIKROBIOS 1.02 + MIKROBASIC 2.4.
+1. ~~Stav propojek~~ (autor 2026-10-06): TURBO zapnuté, BIOS podle potřeby. Zbývá RSTN/7 (dvoukolíková lišta
+   s potiskem „RST n/7“ na přední straně mezi IC7 3212 a IC8 3214, vpravo; na fotce nejspíš bez čepičky =
+   vždy RST 7) a pájecí propojky 11-10-R6, P2IN6-R6-10 na zadní straně (vypadají z výroby).
+2. ~~Obraz ROM~~ (autor): žádná zvláštní ROM, tytéž BIOSy jako pro JPR-1S.
 3. Rezistor na zadní straně: podle článku na 8bity.cz pull-up 4k7 na D3, protože některé Mitsubishi 8085 při čtení
    prázdné adresy vracely dříve zapsaná data (jiní výrobci spodní bajt adresy) a Monitor pak špatně zjišťoval
    paměť. Emulátor vrací z prázdné sběrnice FFh. Ověřit vývod a hodnotu.

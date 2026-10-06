@@ -12,7 +12,7 @@
             "type": "JPR-1X",               // CPU card 8085, JPR-1 remake with 3214, two ROM banks, TURBO (Libor Lasota)
             "rom": "roms/jpr-1x/JPR-1X_MIKROBIOS_MIKROBASIC.bin",  // ROM IC11 (27C256: two 8 KB banks at 4000h/6000h of the chip) - lower bank MIKROBIOS 1.02 + Falcon 6.1L (BGP-1S), upper bank MIKROBASIC 2.4
             "bios": "fitted",               // Jumper BIOS: ROM bank (read at RESET) - fitted: the lower bank
-            "turbo": false,                 // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
+            "turbo": true,                  // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
             "keyboard": {                   // Keyboard (connector K2)
                 "type": "ANK-1M2",
                 "joyport": "joystick",      // Keyboard ANK-1M2: joystick connector (P1-IN D5-D0) - joystick (Atari)
