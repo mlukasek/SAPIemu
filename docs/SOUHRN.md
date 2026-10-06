@@ -156,6 +156,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - `sapiemu-cli` z Git Bash občas nevypíše nic: pustit z PowerShellu. PowerShell 5.1 v argumentech zahodí uvozovky
     (`--type 'PRINT "X"'`), na text s uvozovkami použít Python.
   - Sestavy ukládat zapisovačem konfigurátoru: `sapiemu-cli --mcp`, nástroj `set_machine_config` se `save_as`.
+  - Výstup `sapiemu-cli` spolehlivě přesměrovat do souboru (`> soubor.txt 2>&1`) a ten přečíst.
+  - Snímky GUI se změnou v konfigurátoru: `--ui-set SLOT:KLÍČ=HODNOTA` / `SLOT:remove`; okna `--ui-media`,
+    `--ui-printer`, `--ui-diag`; stav se scénou `--ui-state` (stav připravit přes `sapiemu-cli --save-state`).
+  - Před každým pushem projít commity od `origin/main` a zaktualizovat všechny dotčené `.md` (CLAUDE.md, Git).
+  - Rozbor nových desek: netlist z EAGLE (`eaglecon`, CLAUDE.md), u procesorů zdroje s citacemi a testy proti CRC
+    skutečného čipu (`docs/8085.md`). Pracovní soubory rozborů jsou mimo git ve `work/` (`work/jpr1x`,
+    `work/i8085`, `work/tapefmt`).
 
 ## Stav k 2026-10-04
 
