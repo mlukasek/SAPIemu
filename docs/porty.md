@@ -6,11 +6,11 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 
 | Porty | Deska |
 |---|---|
-| 00–03 | JPR-1Z/ZI (00 = BOOT off, 01–03 = P0–P2) |
+| 00–03 | JPR-1Z/ZI (00 = BOOT off, 01–03 = P0–P2; P2 a P1-OUT1 = tiskárna na X3, `docs/tiskarna.md`) |
 | 04–0F | FDC-1 (8257 04–0B, 8272 0C–0D, FDC-1B 0E–0F; PROM D5B, `docs/desky/FDC-1.md`) nebo MFC-1A (8257 04, 05, 08, 8272 0C–0D, registr mechanik 0F; PROM DD9, `docs/desky/MFC-1A.md`) |
 | 10–13, 14–17, 18–1B, 1C–1F | DSM-1 / DMR-1, kanály #1–#4 |
 | 20–25 | RPD-1A (8253 20–23, data 24, řízení/stav 25; ověřeno z EBIOS) |
-| 00–3F | DPP-1: 8 portů na základu 00h, 08h … 38h podle přepínačů S1 (+0–3 kanál 1, +4–7 kanál 2; ECMON a CP/M J. Bíby 28–2Fh, PMD32-SD na 2C–2Fh; `docs/desky/DPP-1.md`) |
+| 00–3F | DPP-1: 8 portů na základu 00h, 08h … 38h podle přepínačů S1 (+0–3 kanál 1, +4–7 kanál 2; ECMON a CP/M J. Bíby 28–2Fh: 28–2Bh `PUN:` nebo tiskárna (mód 1), PMD32-SD na 2C–2Fh; `docs/desky/DPP-1.md`) |
 | 30–37 | DPP-1/7 |
 | 38–3B | BWP-1 |
 | 3C–3F | RPD-1B |
