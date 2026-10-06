@@ -148,7 +148,8 @@ a disketami PC 3,5" a 5,25" HD na FDC-1 (volba 1 nebo 2).
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,
 `docs/desky/MPH-1V.md`).
-**ZPS-4 běží** s CP/M 2.2/P od Peřiny (`ZPS-4.sapi`) i se systémem ELIS (`ZPS-4_ELIS.sapi`), včetně RAM disku RMD-1
+**ZPS-4 běží** s CP/M 2.2/P od Peřiny (`ZPS-4.sapi`, s řadičem FDC-1 `ZPS-4_FDC-1.sapi`) i se systémem ELIS
+(`ZPS-4_ELIS.sapi`), včetně RAM disku RMD-1
 (`docs/software/CPM_ZPS-4.md`).
 Navíc je tu `machines/zps/MIKROBASIC_AR1983.sapi`: nejmenší sestava z AR/B 1983 (JPR-1 s EPROM a 1 KB RAM,
 AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.

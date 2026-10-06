@@ -49,6 +49,7 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `ram-1/RAM-1_16K_D1A_74S287.bin` | RAM-1/16K PROM D1A | Druhá tabulka z `ram-1.php` (RAM-1/16K: C000–E7FF + F000–FFFF, C000–FFFF, C000–E7FF, 0000–BFFF). |
 | `ram-1a/RAM-1A_D1A_74S287.bin` | RAM-1A PROM D1A | Dekodér RAM-1A (ZPS-3: 0000–BFFF). Přepis z návodu (`ram-1a.php`), shodný se strojopisnou tabulkou `ram-1a_pri.png`. |
 | `jpr-1z/MOR62Z.bin` | JPR-1Z EPROM 2716 | CP/M 2.2/P 62K boot pro ZPS-4 (R. Peřina 1988, „SAPI-1 ZPS4-62K“), z sapi.cz `data/mor62z_hex.php`. |
+| `jpr-1z/MOR62ZF.bin` | JPR-1Z EPROM 2716 | Totéž pro řadič FDC-1 („SAPI-1 ZPS4-62K/FDC-1“, 1700 B), z sapi.cz `data/mor62zf_hex.php`. |
 | `jpr-1z/ELIS_V7.01.bin` | JPR-1Z EPROM 2716 | Monitor ELIS 62k MON-č R62Z v7.01 *JME/JPE (Z80, C259.11/C262.3 + K6313). Zdroj `H:\SAPI-1\Petr_repliky_k_vyrobe\JPR-1ZI\JPR-1Z_BIOS_ELIS.BIN`. |
 | `jpr-1z/ELIS_V3.00.bin` | JPR-1Z EPROM 2716 | Monitor ELIS V3.00 *JME (8080 kód, C262.3/CS + D100/P), z sapi.cz `data/elis_hex.php`. |
 | `jpr-1z/JPR-1Z_D14_74S287.bin` | JPR-1Z PROM D14 (= D3C ZI) | Dekodér paměti, dump `Petr_repliky_k_vyrobe\JPR-1ZI\JPR-1Z_PROM_D14.hex`. |

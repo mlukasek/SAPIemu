@@ -7,7 +7,13 @@
   R62Z v7.01“, 61k CP/M V2.2. DIR, PIP a RAM disk C: po INIRMD5 (volba 2) fungují.
 - **ELIS v3.00** systém zavede, ale s Consulem 262.3 bere každou klávesu dvakrát (STROBE jako pulz) nebo
   donekonečna (STROBE držený úpravou 7474). Jak klávesnici obsluhuje, zatím nevím. Výchozí je proto v7.01.
-- Test `tests/test_zps4.cpp`.
+- **`machines/zps/ZPS-4_FDC-1.sapi`** (2026-10-06): totéž s řadičem FDC-1 místo RPD-1 (ROM MOR62ZF „SAPI-1
+  ZPS4-62K/FDC-1“ ze sapi.cz `data/mor62zf_hex.php`, disketa `media/fdc-1/CPM22P_62ZF_Perina.img` z `data2/cpm62zf_img.rar`).
+  Naběhne `CPM V2.2 V/P1`, RTEST připraví E:, SAVE na E: funguje.
+- **Varianty Z podle CPM.DOC:** písmeno Z je displej AND-1Z (nebo terminál), A je AND-1A. MOR62Z běží na JPR-1A
+  i JPR-1Z, MOR48Z je pro JPR-1A (48 KB) s AND-1Z. **48Z a 48ZF** (`data/mor48z*_hex.php`, `data2/cpm48z*_img.rar`)
+  zůstávají jen v záloze sapi.cz, sestavy z nich autor zatím nechce (malá použitelnost, jen studijně; 2026-10-06).
+- Test `tests/test_zps4.cpp` (obě sestavy s Peřinovým CP/M i ELIS).
 
 Desky: `docs/desky/JPR-1Z.md`, `RAM-1Z.md`, `RMD-1.md`, `AND-1Z-89.md`.
 

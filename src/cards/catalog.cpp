@@ -84,6 +84,8 @@ static const CardParam k_jpr1zi[] = {
 // JPR-1Z (ZPS-4)
 static const ParamOption k_jpr1z_roms[] = {
     { "\"roms/jpr-1z/MOR62Z.bin\"", "MOR62Z: CP/M 2.2/P 62K (Perina 1988)", "MOR62Z: CP/M 2.2/P 62K (Peřina 1988)" },
+    { "\"roms/jpr-1z/MOR62ZF.bin\"", "MOR62ZF: CP/M 2.2/P 62K for FDC-1 (Perina 1988)",
+      "MOR62ZF: CP/M 2.2/P 62K pro FDC-1 (Peřina 1988)" },
     { "\"roms/jpr-1z/ELIS_V7.01.bin\"", "ELIS v7.01 (Z80, C259.11/C262.3)", "ELIS v7.01 (Z80, C259.11/C262.3)" },
     { "\"roms/jpr-1z/ELIS_V3.00.bin\"", "ELIS v3.00 (8080, C262.3)", "ELIS v3.00 (8080, C262.3)" },
     { nullptr, nullptr, nullptr },
@@ -488,6 +490,8 @@ static const ParamOption k_fdc1_disks[] = {
       "CP/M 2.2/P 48K pro FDC-1 (Peřina, AND-1A)" },
     { "\"media/fdc-1/CPM22P_62AF_Perina.img\"", "CP/M 2.2/P 62K for FDC-1 (Perina, AND-1A)",
       "CP/M 2.2/P 62K pro FDC-1 (Peřina, AND-1A)" },
+    { "\"media/fdc-1/CPM22P_62ZF_Perina.img\"", "CP/M 2.2/P 62K for FDC-1 (Perina, ZPS-4, AND-1Z)",
+      "CP/M 2.2/P 62K pro FDC-1 (Peřina, ZPS-4, AND-1Z)" },
     { "\"media/sapiman/f1_zrmd4_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: ZRMD-1)",
       "Bootovací CP/M J. Bíba (MON 130711, C: ZRMD-1)" },
     { "\"media/sapiman/f1_rmd1m_130711.img\"", "CP/M boot disk J. Biba (MON 130711, C: RMD-1)",

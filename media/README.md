@@ -110,6 +110,7 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 |---|---|
 | `CPM22P_48AF_Perina.img` | CP/M 2.2/P 48K (R. Peřina 1988) pro ZPS-3 s AND-1A a řadičem FDC-1, k ROM MOR48AF. Zdroj autor (`..\SAPI-sestavy\ZPS-3\CPM48AF.img`). Obsahuje FDC.DOC, FDC.INC, MOR24F.MAC, FORM6.COM (formátovač), MOR*F.HEX. |
 | `CPM22P_62AF_Perina.img` | Totéž pro 62K (AND-1A na F800), k ROM MOR62AF (`CPM62AF.img`). |
+| `CPM22P_62ZF_Perina.img` | CP/M 2.2/P 62K pro ZPS-4 s FDC-1 (AND-1Z), k ROM MOR62ZF; sapi.cz `data2/cpm62zf_img.rar` (`CPM62ZF.img`, od 62AF se liší 2 bajty). |
 | `prazdna_3.5HD_CPM.img` | Prázdná disketa PC 3,5" HD 1,44 MB (80 × 2 × 18 × 512 B, E5h) pro BIOS EC1045 `ECBIF3`. |
 | `prazdna_5.25HD_CPM.img` | Prázdná disketa PC 5,25" HD 1,2 MB (80 × 2 × 15 × 512 B, E5h) pro BIOS `ECBIF5`. |
 

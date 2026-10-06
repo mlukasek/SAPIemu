@@ -51,6 +51,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a odpověď Y na „move anyway“ (`docs/build.md`);
   - **motory mechanik** FDC-1 a MFC-1A (`motor_line`, `spinup_ms`), zapnuté v sestavách s mechanikami PC
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
+  - **ZPS-4 s FDC-1** (`machines/zps/ZPS-4_FDC-1.sapi`, ROM MOR62ZF, disketa CPM62ZF ze sapi.cz). Varianty 48Z
+    a 48ZF se nedělají (rozhodnutí autora, jen studijní význam), zůstávají v záloze sapi.cz;
   - **mechaniky v okně Média** jsou očíslované podle řadiče (0–3) s písmenem v CP/M ze sestavy nebo zjištěným za
     chodu (BIOS SELDSK + čtení sektoru), test `test_drive_letters`;
   - **tiskárna Centronics** na X3 karet JPR a na DPP-1 (8255 mód 1), okno Tiskárna, MCP `printer_output`, test
@@ -325,7 +327,7 @@ Dřív hotové fáze:
 | F5 | Sériová linka přes TCP a COM; klávesnice Consul 262.3, Consul 259.11, ANK-1; konfigurátor sestav a mapa portů | ✅ hotovo |
 | F6 | ZPS-1 (JPR-1 8080, REM-1, AND-1, MIKROBASIC), ZPS-2 (RAM-1, DSM-1 s kazetou, MIKOS V4 a V5, BASIC EX/EXP, DGD-1), RPD-1 + MIKOS/D | ✅ hotovo |
 | F7 | **ZPS-3:** JPR-1A, AND-1A, RAM-1A, CP/M 2.2/P z diskety přes RPD-1. Zbývá originální IMA CP/M 48K (disketa od autora), varianty 62K/64K | ✅ základ hotový |
-| F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
+| F8 | **ZPS-4:** JPR-1Z, RAM-1Z, AND-1Z, RMD-1, CP/M 2.2/P (MOR62Z, s FDC-1 MOR62ZF) a ELIS | ✅ hotovo (originál Tesla IMA chybí) |
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
 | F10+ | PKT-1; dokončení ZPS-3 (IMA CP/M 48K, 64K; 62K a FDC-1 hotové 2026-10-05); ~~ukládání stavu~~ (hotovo); přepínání jazyka UI; zvuk bzučáku; převod HEX → kazeta; CI a Linux | |

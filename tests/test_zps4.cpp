@@ -1,6 +1,6 @@
 // ZPS-4 (JPR-1Z, RAM-1Z, AND-1Z, DSM-1, RPD-1, RMD-1): Perina's CP/M 2.2/P
 // (MOR62Z) boots from the 8" disk, RTEST initialises the RAM disk E: and a
-// file saved there is listed; ELIS 61k CP/M boots with both ELIS ROMs and
+// file saved there is listed; the same with FDC-1 (MOR62ZF); ELIS 61k CP/M boots with both ELIS ROMs and
 // PIP copies a file to the RAM disk C:.
 #include <string.h>
 #include "core/headless.h"
@@ -21,7 +21,10 @@ static json machine_cfg(const char* file, const char* disk, const char* test_dis
     json cfg = json::parse(text, nullptr, false, true);
     for (json& c : cfg["cards"]) {
         std::string t = c.value("type", std::string());
-        if (t == "RPD-1") c["drive_a"] = { { "image", test_disk }, { "write_protect", false } };
+        if (t == "RPD-1" || t == "FDC-1") {
+            c["drive_a"] = { { "image", test_disk }, { "write_protect", false } };
+            c["working_copy"] = false;
+        }
         if (t == "JPR-1Z" && rom) c["rom"] = rom;
         if (t == "JPR-1Z") c["keyboard"] = { { "type", "Consul 262.3" }, { "latch_mod", latch_mod } };
         if (t == "RMD-1" && fill) c["power_on"] = fill;
@@ -29,13 +32,13 @@ static json machine_cfg(const char* file, const char* disk, const char* test_dis
     return cfg;
 }
 
-static void perina(void)
+static void perina(const char* file, const char* disk, const char* test_disk, const char* banner)
 {
+    printf("--- %s\n", file);
     Machine m;
     std::string err;
-    CHECK(m.load_json(machine_cfg("machines/zps/ZPS-4.sapi", "media/rpd-1/CPM22P_62Z_Perina.img",
-                                  "work/test/zps4_cpm62z.img", nullptr, nullptr), err));
-    CHECK(run_until_text(m, "SAPI-1 ZPS4-62K", 2.0));
+    CHECK(m.load_json(machine_cfg(file, disk, test_disk, nullptr, nullptr), err));
+    CHECK(run_until_text(m, banner, 2.0));
     CHECK(run_until_text(m, "CPM V2.2 V/P1", 5.0));
     CHECK(run_until_text(m, "\nA>", 2.0));
     m.run_seconds(0.3);
@@ -77,7 +80,10 @@ static void elis(const char* rom, const char* banner, bool latch_mod, bool use_k
 int main(void)
 {
     test_init();
-    perina();
+    perina("machines/zps/ZPS-4.sapi", "media/rpd-1/CPM22P_62Z_Perina.img", "work/test/zps4_cpm62z.img",
+           "SAPI-1 ZPS4-62K");
+    perina("machines/zps/ZPS-4_FDC-1.sapi", "media/fdc-1/CPM22P_62ZF_Perina.img", "work/test/zps4_cpm62zf.img",
+           "SAPI-1 ZPS4-62K/FDC-1");
     elis("roms/jpr-1z/ELIS_V7.01.bin", "ELIS 62k MON-", true, true);
     // v3.00 boots, but it reads every key twice (pulse strobe) or for ever (latched):
     // its keyboard interface is not understood yet (docs/software/CPM_ZPS-4.md)
