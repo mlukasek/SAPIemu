@@ -980,3 +980,12 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Konfigurátor:** volby s vlastním ovládáním (`strict`, `beeper`, `joyport`) nejsou součástí předvolby klávesnice,
   proto se ANK-1M2 s myší dál ukazuje jako „ANK-1M2“ a volby zůstanou při výměně klávesnice (`joyport` jen pro
   ANK-1M2). Dřív se vypnutý bzučák ukazoval jako „vlastní: …“.
+
+## 2026-10-06 – AND-1B, BGP-1S a JPR-1S (desky Libora Lasoty)
+
+- **Podklady z poslední revize** (autor: Libor dělá víc iterací, obrázky, PDF a EAGLE se mohou lišit): AND-1B rev 1.4,
+  BGP-1S rev 4.2, JPR-1S rev 2.2. Binární schémata EAGLE se dají offline převést na netlist přes `eaglecon.exe`
+  (na kopii), fakta jsou ověřená z netlistů.
+- **AND-1B** je samostatný typ karty (ne varianta AND-1): jiné časování (VGA), font z EPROM, atributy řízené obsahem
+  fontu (banky, bit 7 = dvojitá šířka), jako v hardwaru. Výchozí propojky podle autorovy desky (fotky rev 1.4):
+  3800h, INT1 vypnuto, zelená.

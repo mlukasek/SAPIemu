@@ -502,7 +502,7 @@ const PanelItem k_pl_mfc1a[] = {
     { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "FDD" },
     { PI_END, 0, 0, nullptr },
 };
-// VGA display cards: K2 = VGA in the middle (AND-1V, DGD-1V, BGP, CGA)
+// VGA display cards: K2 = VGA in the middle (AND-1V, AND-1B, DGD-1V, CGA)
 const PanelItem k_pl_vga[] = {
     { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
     { PI_END, 0, 0, nullptr },
@@ -535,7 +535,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     if (!strcmp(ci->type, "DSM-1")) return k_pl_dsm1;
     if (!strcmp(ci->type, "DMR-1")) return k_pl_dmr1;
     if (!strcmp(p, "DSM")) return k_pl_dsm;
-    if (!strcmp(ci->type, "AND-1V") || !strcmp(ci->type, "DGD-1V") || !strcmp(p, "BGP") || !strcmp(p, "CGA"))
+    if (!strcmp(ci->type, "AND-1V") || !strcmp(ci->type, "AND-1B") || !strcmp(ci->type, "DGD-1V") || !strcmp(p, "CGA"))
         return k_pl_vga;
     if (!strcmp(p, "AND") || !strcmp(p, "DGD")) return k_pl_frb_k2;   // the original display cards
     if (!strcmp(p, "MPH")) return k_pl_mph;

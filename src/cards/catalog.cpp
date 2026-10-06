@@ -184,6 +184,36 @@ static const CardParam k_dsm1v[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// AND-1B (Libor Lasota): S2 address and INT1, S1 colour like AND-1V
+static const ParamOption k_and1b_base[] = {
+    { "\"3800h\"", "3800h (7-8 fitted, AND-1, MIKROBASIC)", "3800h (osazená 7-8, AND-1, MIKROBASIC)" },
+    { "\"E800h\"", "E800h (5-6 fitted, AND-1A in ZPS-3)", "E800h (osazená 5-6, AND-1A v ZPS-3)" },
+    { "\"F800h\"", "F800h (both open)", "F800h (obě rozpojené)" },
+    { "\"2800h\"", "2800h (both fitted)", "2800h (obě osazené)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and1b_int1[] = {
+    { "\"off\"", "off (1-2 and 3-4 open)", "vypnuto (1-2 i 3-4 rozpojené)" },
+    { "\"50hz\"", "50 Hz (1-2 fitted, 5 pulses of 6 frames)", "50 Hz (osazená 1-2, 5 pulzů ze 6 snímků)" },
+    { "\"60hz\"", "60 Hz (3-4 fitted, every frame)", "60 Hz (osazená 3-4, každý snímek)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and1b_fonts[] = {
+    { "\"roms/and-1b/FontAND1B11.bin\"", "FontAND1B11 (Libor Lasota, MHB 2501 set)", "FontAND1B11 (Libor Lasota, sada MHB 2501)" },
+    { nullptr, nullptr, nullptr },
+};
+extern const ParamOption k_and1v_color[];
+static const CardParam k_and1b[] = {
+    { "base", PK_CHOICE, "S2 /A15:14, /A12: VRAM window (2 KB)", "S2 /A15:14, /A12: okno VRAM (2 KB)", "\"3800h\"",
+      k_and1b_base, 0, 0 },
+    { "int1", PK_CHOICE, "S2 50Hz / 60Hz: INT1 at the end of the picture (317 us)",
+      "S2 50Hz / 60Hz: INT1 na konci obrazu (317 us)", "\"off\"", k_and1b_int1, 0, 0 },
+    { "color", PK_CHOICE, "S1 /R GL GH /B: ink colour", "S1 /R GL GH /B: barva", "\"green\"", k_and1v_color, 0, 0 },
+    { "font", PK_FILE, "Character generator 27C256 (upper half)", "Generátor znaků 27C256 (horní polovina)",
+      "\"roms/and-1b/FontAND1B11.bin\"", k_and1b_fonts, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // AND-1V (Libor Lasota)
 static const ParamOption k_and1v_map[] = {
     { "\"always\"", "MAP1OFF fitted: always", "MAP1OFF osazená: vždy" },
@@ -192,7 +222,7 @@ static const ParamOption k_and1v_map[] = {
     { "\"never\"", "both fitted: disabled", "obě osazené: vypnuto" },
     { nullptr, nullptr, nullptr },
 };
-static const ParamOption k_and1v_color[] = {
+const ParamOption k_and1v_color[] = {
     { "\"white\"", "white (S1 all open)", "bílá (S1 vše rozpojené)" }, { "\"green\"", "green", "zelená" },
     { "\"amber\"", "amber", "jantarová" }, { "\"red\"", "red", "červená" }, { "\"blue\"", "blue", "modrá" },
     { "\"cyan\"", "cyan", "azurová" }, { "\"yellow\"", "yellow", "žlutá" }, { "\"magenta\"", "magenta", "purpurová" },
@@ -1058,6 +1088,8 @@ CARD(c_zrmd1, "ZRMD-1", "ZRMD", "RAM disk 4 MB with RTC", "RAM disk 4 MB s RTC",
 CARD(c_zrd1v, "ZRD-1V", "ZRD", "RAM disk 4 MB (V)", "RAM disk 4 MB (V)", CC_DISK, 1, true, k_zrd1v)
 // display
 CARD(c_and1v, "AND-1V", "AND", "VGA display 64x20 (V)", "Displej VGA 64x20 (V)", CC_DISPLAY, 1, true, k_and1v)
+CARD(c_and1b, "AND-1B", "AND", "VGA replacement of AND-1/AND-1A, 40x24 (Libor Lasota)",
+     "Náhrada AND-1/AND-1A s VGA, 40x24 (Libor Lasota)", CC_DISPLAY, 1, true, k_and1b)
 CARD(c_and1, "AND-1", "AND", "Alphanumeric display 40x24", "Alfanumerický displej 40x24", CC_DISPLAY, 1, true, k_and1)
 CARD(c_and1a, "AND-1A", "AND", "Alphanumeric display \"A\"", "Alfanumerický displej \"A\"", CC_DISPLAY, 1, true,
      k_and1a)
@@ -1101,7 +1133,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
     static const std::vector<const CardInfo*> list = {
         &c_jpr1zi, &c_jpr1, &c_jpr1a, &c_jpr1z, &c_jpr1v,
         &c_dmr1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
-        &c_and1z89, &c_and1z, &c_and1v, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
+        &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
         &c_mph1v, &c_dpp1, &c_rtc1, &c_bdk1,
