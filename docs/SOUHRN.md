@@ -43,6 +43,14 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy s bootem CP/M z 8" diskety (`cpm_boot_mfc1a/fdc1/rpd1.sapi`, Consul 259.11), formáty disket PC (MFM,
   HD/DD, dvě strany) pro FDC-1 a MFC-1A, sestava EC1045 (`cpm_ec1045.sapi`, 3,5"/5,25" HD), okno Média zakládá
   diskety v libovolném formátu.
+- **Hotové 2026-10-06 večer** (podrobnosti v `docs/rozhodnuti.md`):
+  - **kazeta z programu** HEX/BIN (i `.txt`) pro MIKOS a MIKROBASIC, „Uložit jako WAV…“, `--make-tape`
+    (`docs/software/kazeta.md`);
+  - **konfigurátor:** co běžící stroj ještě nemá, je oranžové (tlačítko „Restartovat s touto sestavou“, sloty,
+    parametry, stavový řádek), „Vrátit změny“ vrací i na běžící stroj, TURBO z MCP se už nevrací;
+  - **ANK-1 / ANK-1M2 z klávesnice PC:** držíš = drží (bez fronty a autorepeatu), SHIFT před klávesou (konec
+    „N,“ v MIKROBIOSu), režim pro hry Ctrl+F7 (Manic Miner), v liště „LED SHIFT“ (`docs/desky/klavesnice.md`);
+  - diskety ze Slušovic: TNS, ne SAPI (`docs/software/TNS_Slusovice.md`).
 - **Hotové 2026-10-06** (podrobnosti v `docs/rozhodnuti.md` a v uvedených souborech):
   - **okno Média:** výběr formátu nové diskety jednou nad mechanikami, širší okno; snímky `--ui-media`,
     `--ui-printer`;
