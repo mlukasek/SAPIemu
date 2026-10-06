@@ -177,6 +177,8 @@ void rack_start_machine(UiState& ui, const std::string& file);
 void rack_request_exit(UiState& ui);
 // POWER switch: off when the machine runs, else on with the configurator's description.
 void rack_power_switch(UiState& ui);
+// The configurator holds changes of the running machine it does not have yet (restart applies them).
+bool rack_pending(UiState& ui);
 // Ink colour of a monochrome display (card parameter: jumpers S1 of AND-1V, the monitor
 // phosphor of the others): shown at once on the running machine, the description in
 // the configurator follows (it is saved with the machine).

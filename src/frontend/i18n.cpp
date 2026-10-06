@@ -166,6 +166,19 @@ static const Translation k_table[] = {
     { "Save", "Uložit" },
     { "Save as...", "Uložit jako…" },
     { "Switch on with this configuration", "Zapnout s touto sestavou" },
+    { "Restart with this configuration", "Restartovat s touto sestavou" },
+    { "Switches the machine off and on with this configuration. The memory is lost as on the real machine.",
+      "Vypne a zapne stroj s touto sestavou. Obsah paměti se ztratí jako po vypnutí skutečného stroje." },
+    { "The running machine does not have these changes yet: they take effect after Restart with this configuration "
+      "(marked in orange).",
+      "Běžící stroj tyto změny ještě nemá: projeví se po „Restartovat s touto sestavou“ (označené oranžově)." },
+    { "Changed: takes effect after a restart", "Změněno: projeví se po restartu" },
+    { "The running machine has:", "Běžící stroj má:" },
+    { "Configuration changed: restart", "Sestava změněna: restartovat" },
+    { "The configurator holds changes the running machine does not have yet. Click: open the configurator "
+      "(Restart with this configuration applies them).",
+      "Konfigurátor má změny, které běžící stroj ještě nemá. Kliknutím se otevře konfigurátor (použije je tlačítko "
+      "„Restartovat s touto sestavou“)." },
     { "Revert", "Vrátit změny" },
     { "Changes reverted.", "Změny vráceny." },
     { "(not saved yet)", "(zatím neuloženo)" },

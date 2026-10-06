@@ -55,7 +55,9 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
 - **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů
-  a paměti. Kartu změníte kliknutím na slot. Některé propojky platí hned („platí hned“).
+  a paměti. Kartu změníte kliknutím na slot. Některé propojky platí hned („platí hned“), ostatní změny se
+  projeví až tlačítkem „Restartovat s touto sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo
+  nahoře v hlavním okně).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV,
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows).
 - **Média:** mechaniky jsou očíslované podle řadiče (0–3) a za číslem je jejich písmeno v CP/M (ze sestavy,

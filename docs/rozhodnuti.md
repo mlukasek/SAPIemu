@@ -1039,3 +1039,16 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Stav:** ukládá soubor, formát, jméno a adresy a kazetu vyrobí znovu. Při tom se opravila chyba, kdy se
   kazeta po načtení stavu do nového stroje převinula na začátek (týkalo se i WAV). Verze formátu stavu se
   nezvyšovala: starší stav se sestavou s DSM-1 se odmítne chybou bloku, ostatní jdou načíst dál.
+
+## 2026-10-06 – Konfigurátor ukazuje změny, které běžící stroj ještě nemá
+
+- **Proč** (autor): po změně karty nebo propojky nebylo vidět, že se nic nestalo a je potřeba stroj zapnout znovu
+  (třeba nová DSM-1 nebyla v okně Média).
+- **Kde** (autor, všechna tři místa): oranžové tlačítko a pruh v konfigurátoru, značky u slotu a parametru (bublina
+  s hodnotou běžícího stroje), stavový text v hlavním okně i se zavřeným konfigurátorem. Kliknutí na stavový text
+  jen otevře konfigurátor, restart nedělá (ztratila by se paměť bez varování).
+- **Tlačítko** za chodu „Restartovat s touto sestavou“ (autor), vypnuté „Zapnout s touto sestavou“.
+- **Porovnání** s popisem, se kterým stroj běží (`Machine::config`): bez názvu a popisu sestavy, karty po slotech
+  podle parametrů katalogu (hodnota zapsaná stejná jako výchozí není změna). Parametry „(platí hned)“ se posílají
+  stroji hned, značku nedostanou.
+- Ověřeno snímky (`--ui-set` pro snímek se změnou) a na všech 44 sestavách bez falešného označení po startu.

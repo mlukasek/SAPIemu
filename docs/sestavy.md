@@ -46,7 +46,8 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - NAPÁJENÍ je vypínač s aretací. Za chodu počítač vypne: obrazovka a LED zhasnou, RAM se ztratí. SRAM
     DMR-1 s baterií (JP7) a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se
     sestavou z konfigurátoru, včetně neuložených změn. Totéž je v menu Stroj → Vypnout/Zapnout a v MCP
-    (`power`). Tlačítko „Zapnout s touto sestavou“ dělá vypnutí a zapnutí jedním krokem;
+    (`power`). Tlačítko „Zapnout s touto sestavou“ (za chodu „Restartovat s touto sestavou“) dělá vypnutí
+    a zapnutí jedním krokem;
   - RESET funguje jako F12;
   - TURBO a BIOS patří kartě CPU jako na Liborově rámu: u JPR-1V TURBO přepíná CPU 2/4 MHz (svítí = 4 MHz) a BIOS
     propojku BIOS, tedy banku EEPROM (svítí = banka 1, čte se po RESETu). Ostatní karty CPU je nemají, tlačítka jsou
@@ -54,6 +55,11 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   - displej FREKVENCE CPU ukazuje efektivní takt CPU: takt karty × naměřená rychlost emulace (od 100 bez desetin).
 - **Změny se projeví až po vypnutí a zapnutí** (rozhodnutí autora). Obsah RAM se ztratí, RAM disky se před
   vypnutím uloží, pracovní kopie médií ve `work/` zůstávají.
+- **Co běžící stroj ještě nemá, je oranžové** (od 2026-10-06): tlačítko „Restartovat s touto sestavou“, pruh pod
+  ním, označení slotu (X5 s tečkou) a pole parametru s tečkou před názvem; bublina u parametru ukáže hodnotu
+  běžícího stroje. I se zavřeným konfigurátorem je vpravo nahoře „● Sestava změněna: restartovat“ (kliknutí
+  otevře konfigurátor). Porovnává se s popisem, se kterým stroj běží; název a popis sestavy ani hodnota
+  zapsaná stejná jako výchozí se nepočítají, parametry „(platí hned)“ se neoznačují.
 - **Výjimka: parametry označené „(platí hned)“** se u běžící sestavy použijí okamžitě, jako přepínač na skutečné
   desce: barva obrazu, režim zápisu RAM disku ZRMD-1/ZRD-1V (`mode`), přepínače S1–S4 ZRMD-1, TURBO a BIOS
   JPR-1V a věrný režim klávesnice („Klávesnice: věrně jako hardware“, `keyboard.strict`). Uložit je potřeba
@@ -211,6 +217,8 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 
 `sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
+`--ui-set SLOT:KLÍČ=HODNOTA` změní kartu v konfigurátoru bez restartu (třeba `--ui-set 5:baud=1200`, ukáže
+oranžové značení),
 `--lang en` (nebo `cs`) vybere jazyk. Rozložení oken uživatele
 (`imgui.ini`) se nemění. Se `--settings X.json` se ale rozložení ukládá do `X.json.imgui.ini` a při dalším snímku se
 použije, proto ho před snímkem smazat.

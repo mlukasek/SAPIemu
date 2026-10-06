@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 // Machine started when neither --machine nor the settings name one.
 #define DEFAULT_MACHINE_FILE "machines/mikromon.sapi"
@@ -15,6 +16,8 @@ struct UiSnapshot {
     bool media = false;      // show the Media window
     bool printer = false;    // show the Printer window
     std::string state;       // a saved state loaded first (pictures for the documentation)
+    std::vector<std::string> set;   // "SLOT:KEY=VALUE": a change in the configurator, not applied
+                                    // (VALUE as JSON, else a string)
     int w = 0, h = 0;        // window size in points (0 = the default)
 };
 

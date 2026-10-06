@@ -47,6 +47,9 @@ const ImU32 COL_TEXT_DIM = IM_COL32(64, 64, 64, 255);
 const ImU32 COL_SEL = IM_COL32(255, 196, 0, 255);
 const ImU32 COL_HOVER = IM_COL32(255, 255, 255, 170);
 const ImU32 COL_ERROR = IM_COL32(230, 50, 40, 255);
+const ImU32 COL_PENDING = IM_COL32(255, 128, 0, 255);   // differs from the running machine
+const ImVec4 COL_PENDING_TEXT(1.0f, 0.55f, 0.1f, 1.0f);
+const ImVec4 COL_PENDING_FRAME(0.45f, 0.24f, 0.04f, 1.0f);
 const ImU32 COL_LED_ON = IM_COL32(90, 240, 90, 255);
 const ImU32 COL_LED_OFF = IM_COL32(40, 70, 40, 255);
 const ImU32 COL_LED_RED_ON = IM_COL32(255, 52, 36, 255);
@@ -331,6 +334,76 @@ Card* running_card(UiState& ui, const json& card, int slot)
     for (auto& c : m->cards)
         if (c->slot == slot && c->type == type) return c.get();
     return nullptr;
+}
+
+// The description without what does not need a power cycle (name and description).
+static json cfg_hw(const json& cfg)
+{
+    json c = cfg;
+    if (c.is_object()) {
+        c.erase("name");
+        c.erase("description");
+    }
+    return c;
+}
+
+// The entry of a description for the card in `slot`, nullptr if none.
+static const json* cfg_card_in(const json& cfg, int slot)
+{
+    if (!cfg.contains("cards") || !cfg["cards"].is_array()) return nullptr;
+    for (const json& c : cfg["cards"])
+        if (card_first_slot(c) == slot) return &c;
+    return nullptr;
+}
+
+static const json* running_card_cfg(UiState& ui, int slot)
+{
+    Machine* m = ui.host->machine();
+    return m ? cfg_card_in(m->config, slot) : nullptr;
+}
+
+// The same card with the same settings: equal entries, or (the editor writes a value
+// even when it is the default) the same type and every parameter of the catalog equal.
+static bool card_cfg_same(const json* a, const json* b)
+{
+    if (!a || !b) return a == b;
+    if (*a == *b) return true;
+    std::string type = a->value("type", std::string());
+    const CardInfo* ci = card_info(type);
+    if (!ci || type != b->value("type", std::string())) return false;
+    for (const CardParam* p = ci->params; p && p->path; p++)
+        if (!cfg_values_equal(card_param_value(*a, p), card_param_value(*b, p))) return false;
+    return true;
+}
+
+// Slot `s` differs from the running machine (another card, other parameters, or empty now).
+static bool slot_pending(UiState& ui, const json& cfg, int s)
+{
+    if (!editor_on_running(ui)) return false;
+    const json* card = cfg_card_in(cfg, s);
+    int idx = machine_cfg_card_at(cfg, s);
+    if (!card && idx >= 0) return false;   // the second board of a card
+    return !card_cfg_same(card, running_card_cfg(ui, s));
+}
+
+// The editor holds changes of the running machine that the machine does not have yet
+// (they take effect when it is switched off and on with the description).
+bool editor_pending(UiState& ui)
+{
+    if (!editor_on_running(ui)) return false;
+    const json& e = ui.rack.cfg;
+    const json& run = ui.host->machine()->config;
+    json a = cfg_hw(e), b = cfg_hw(run);
+    a.erase("cards");
+    b.erase("cards");
+    if (a != b) return true;   // the bus, the keyboard...
+    for (const json* c : { &e, &run })   // every slot with a card in either description
+        if (c->contains("cards") && (*c)["cards"].is_array())
+            for (const json& card : (*c)["cards"]) {
+                int s = card_first_slot(card);
+                if (!card_cfg_same(cfg_card_in(e, s), cfg_card_in(run, s))) return true;
+            }
+    return false;
 }
 
 DisplayDevice* running_display(UiState& ui, const json& card, int slot)
@@ -900,7 +973,10 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         snprintf(lab, sizeof(lab), "X%d", s);
         float fs = 13.0f * k < 0.75f * u ? 0.75f * u : 13.0f * k;
         ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, lab);
-        dl->AddText(ImGui::GetFont(), fs, ImVec2(cx - ts.x * 0.5f, y1 + (label_band * k - ts.y) * 0.5f), COL_TEXT, lab);
+        ImVec2 tp(cx - ts.x * 0.5f, y1 + (label_band * k - ts.y) * 0.5f);
+        bool pend = slot_pending(ui, cfg, s);   // differs from the running machine: orange, with a dot
+        dl->AddText(ImGui::GetFont(), fs, tp, pend ? COL_PENDING : COL_TEXT, lab);
+        if (pend) dl->AddCircleFilled(ImVec2(tp.x - fs * 0.45f, tp.y + ts.y * 0.5f), fs * 0.28f, COL_PENDING);
     }
 
     // cards (a card of two boards gets two panels)
@@ -940,14 +1016,16 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ctx = first;
         if (ImGui::IsItemHovered()) {
             hovered = first;
+            std::string pend = slot_pending(ui, cfg, first) ? std::string("\n\xE2\x97\x8F ") + tr("Changed: takes effect after a restart") : "";
             if (idx >= 0) {
                 const json& c = cfg["cards"][(size_t)idx];
                 const CardInfo* ci = card_info(c.value("type", std::string()));
-                ImGui::SetTooltip("X%d: %s\n%s%s", first, card_display_name(c).c_str(),
+                ImGui::SetTooltip("X%d: %s\n%s%s%s", first, card_display_name(c).c_str(),
                                   ci ? loc(ci->en, ci->cs) : tr("unknown card"),
-                                  ci && !ci->emulated ? loc("\n(not emulated yet)", "\n(zatím neemulováno)") : "");
+                                  ci && !ci->emulated ? loc("\n(not emulated yet)", "\n(zatím neemulováno)") : "",
+                                  pend.c_str());
             } else {
-                ImGui::SetTooltip("X%d: %s", s, tr("empty slot"));
+                ImGui::SetTooltip("X%d: %s%s", s, tr("empty slot"), pend.c_str());
             }
         }
     }
@@ -1119,10 +1197,20 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     // a parameter the running card takes at once is marked
     Card* live = editor_on_running(ui) ? running_card(ui, card, card_first_slot(card)) : nullptr;
     std::string label_s = loc(p->en, p->cs);
-    if (live && ui.host->machine()->live_param(live, p->path)) label_s += tr(" (applies at once)");
-    const char* label = label_s.c_str();
+    bool at_once = live && ui.host->machine()->live_param(live, p->path);
+    if (at_once) label_s += tr(" (applies at once)");
     json v = card_param_value(card, p);
+    // a value that differs from the running card waits for the power cycle: marked, the
+    // running value in the tooltip (the widget keeps its ID while the mark comes and goes)
+    const json* run = editor_on_running(ui) && !at_once ? running_card_cfg(ui, card_first_slot(card)) : nullptr;
+    if (run && run->value("type", std::string()) != card.value("type", std::string())) run = nullptr;
+    json run_v = run ? card_param_value(*run, p) : json();
+    bool pend = run && p->kind != PK_SECTION && !cfg_values_equal(v, run_v);
+    if (pend) label_s = "\xE2\x97\x8F " + label_s;
+    std::string id_s = label_s + "###lbl";
+    const char* label = id_s.c_str();
     ImGui::PushID(p->path);
+    if (pend) ImGui::PushStyleColor(ImGuiCol_FrameBg, COL_PENDING_FRAME);   // the field, not the popup items
     ImGui::SetNextItemWidth(16.0f * u);
     switch (p->kind) {
     case PK_CHOICE: {
@@ -1212,7 +1300,7 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
                 start_dialog(ui, RackEditor::DLG_PARAM, s.empty() ? std::string() : s, p->kind == PK_DIR);
             }
             ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-            ImGui::TextUnformatted(label);
+            ImGui::TextUnformatted(label_s.c_str());
         }
         break;
     }
@@ -1249,6 +1337,12 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     }
     default:
         break;
+    }
+    if (pend) {
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("%s\n%s %s", tr("Changed: takes effect after a restart"), tr("The running machine has:"),
+                              run_v.is_null() ? tr("(none)") : scalar(run_v).c_str());
     }
     ImGui::PopID();
 }
@@ -1646,6 +1740,11 @@ void new_menu(UiState& ui)
 
 } // namespace
 
+bool rack_pending(UiState& ui)
+{
+    return editor_pending(ui);
+}
+
 void rack_power_switch(UiState& ui)
 {
     if (ui.host->powered()) {
@@ -1755,8 +1854,22 @@ void draw_rack(UiState& ui)
     const std::vector<CfgProblem>& problems = r.problems;
     bool runnable = true;
     for (const CfgProblem& p : problems) if (p.error) runnable = false;
+    // while a machine runs the button restarts it; changes waiting for that make it orange
+    bool running = ui.host->machine() != nullptr;
+    bool pending = rack_pending(ui);
     ImGui::BeginDisabled(!runnable);
-    if (ImGui::Button(tr("Switch on with this configuration"))) editor_apply(ui);
+    if (pending) {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(190, 95, 0, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(225, 120, 10, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(245, 140, 20, 255));
+    }
+    std::string apply_s = std::string(running ? tr("Restart with this configuration")
+                                              : tr("Switch on with this configuration")) + "###apply";
+    if (ImGui::Button(apply_s.c_str())) editor_apply(ui);
+    if (pending) ImGui::PopStyleColor(3);
+    if (running && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("Switches the machine off and on with this configuration. The memory is lost as on "
+                                   "the real machine."));
     ImGui::EndDisabled();
     ImGui::SameLine();
     ImGui::BeginDisabled(!dirty || r.saved.is_null());
@@ -1771,6 +1884,10 @@ void draw_rack(UiState& ui)
         ImGui::SameLine();
         ImGui::TextColored(r.message_error ? TXT_ERROR : TXT_OK, "%s", r.message.c_str());
     }
+    if (pending)
+        ImGui::TextColored(COL_PENDING_TEXT, "\xE2\x97\x8F %s", tr("The running machine does not have these changes yet: "
+                                                                    "they take effect after Restart with this configuration "
+                                                                    "(marked in orange)."));
 
     draw_frame(ui, problems);
 

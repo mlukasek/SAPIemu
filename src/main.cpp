@@ -45,7 +45,8 @@ static void print_help(void)
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer: those windows,\n"
-           "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size)\n"
+           "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
+           "                     --ui-set SLOT:KEY=VALUE: change a card in the configurator, not applied)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"
@@ -199,6 +200,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-open" && i + 1 < argc) snap.open = argv[++i];
         else if (a == "--ui-map") { snap.map = true; snap.rack = true; }
         else if (a == "--ui-media") snap.media = true;
+        else if (a == "--ui-set" && i + 1 < argc) snap.set.push_back(argv[++i]);
         else if (a == "--ui-printer") snap.printer = true;
         else if (a == "--ui-state" && i + 1 < argc) snap.state = argv[++i];
         else if (a == "--ui-size" && i + 1 < argc) sscanf(argv[++i].c_str(), "%dx%d", &snap.w, &snap.h);

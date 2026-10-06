@@ -659,7 +659,21 @@ void draw_menu(App& app)
                  tr("emulation"), speed);
     }
     float w = ImGui::CalcTextSize(st).x + ImGui::GetStyle().ItemSpacing.x * 2;
-    ImGui::SameLine(ImGui::GetWindowWidth() - w);
+    // changes in the configurator wait for a restart: visible with the configurator closed too
+    std::string pend;
+    if (rack_pending(app.ui)) pend = std::string("\xE2\x97\x8F ") + tr("Configuration changed: restart");
+    float pw = pend.empty() ? 0.0f : ImGui::CalcTextSize(pend.c_str()).x + ImGui::GetStyle().ItemSpacing.x * 2;
+    ImGui::SameLine(ImGui::GetWindowWidth() - w - pw);
+    if (!pend.empty()) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.55f, 0.1f, 1.0f));
+        ImVec2 sz = ImGui::CalcTextSize(pend.c_str());
+        if (ImGui::Selectable(pend.c_str(), false, ImGuiSelectableFlags_None, sz)) app.ui.show_rack = true;
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", tr("The configurator holds changes the running machine does not have yet. Click: open "
+                                       "the configurator (Restart with this configuration applies them)."));
+        ImGui::SameLine();
+    }
     ImGui::TextUnformatted(st);
     ImGui::EndMainMenuBar();
 }
@@ -1026,6 +1040,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (!snap->open.empty()) rack_open_in_editor(app.ui, snap->open);
             app.ui.rack.sel = snap->rack_slot;
             app.ui.rack.open_map_tab = snap->map;
+            for (const std::string& e : snap->set) {   // SLOT:KEY=VALUE into the card of the slot
+                size_t colon = e.find(':'), eq = e.find('=');
+                nlohmann::json& cards = app.ui.rack.cfg["cards"];
+                if (colon == std::string::npos || eq == std::string::npos || eq < colon || !cards.is_array()) continue;
+                int slot = atoi(e.c_str());
+                std::string key = e.substr(colon + 1, eq - colon - 1), val = e.substr(eq + 1);
+                nlohmann::json v = nlohmann::json::parse(val, nullptr, false);
+                if (v.is_discarded()) v = val;
+                for (nlohmann::json& c : cards)
+                    if (c.value("slot", 0) == slot) c[key] = v;
+            }
         }
         if (snap && snap_frames >= 12) {
             // window content as PNG (our own renderer, not the screen)
