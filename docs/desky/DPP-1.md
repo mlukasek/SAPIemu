@@ -2,7 +2,7 @@
 
 Stav: **emulovaná** (typ `DPP-1`, `src/cards/dpp1.*`), od 2026-10-05. Na kanál 2 (nebo 1) jde připojit emulátor disket
 PMD32-SD (`docs/desky/PMD32-SD.md`), jak ho používají ECMON a CP/M J. Bíby. Od 2026-10-06 jde na druhý kanál
-připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi`, `cpm_pmd_rpd1.sapi`, testy
+připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi`, `cpm_pmd_rpd1.sapi`, `cpm_pmd_fdc1.sapi`, testy
 `test_sapi_sys`, `test_printer`.
 
 ## Podklady

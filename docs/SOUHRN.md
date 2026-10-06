@@ -6,7 +6,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 31 v debug (v release navíc pomalé ZEX). Vše prochází.
+  - Testy: 32 v debug (v release navíc pomalé ZEX a 8080EXM). Vše prochází.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
 - **Alfa 0.1.0-alpha:**
@@ -103,7 +103,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 Michal Medek), repo zůstává neveřejné, dokud to neodsouhlasí. Pak:
 - vybrat a pečlivě připravit sestavy `.sapi` (názvy, popisy, které vůbec vydat);
 - připravit vydávací obsah disků (IDE, RAM disk) místo autorova pracovního `work/ide`;
-- rozhodnout o právech: hudba RAD/VGM na disku, programy třetích stran;
+- rozhodnout o právech: hudba RAD/VGM na disku, programy třetích stran (komerční software z 80. let na disketách
+  `media/sapiman/knihovna`, `media/pmd32sd`: Turbo Pascal, dBase II, WordStar…);
 - zvolit výchozí sestavu pro první spuštění;
 - veřejný zip pak případně `python tools\package.py --no-ide`.
 
@@ -338,6 +339,11 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
   spustit čekání). Visení RDY u DGD-1 během BOOT.
 - **ZPS-4 / ELIS v3.00:** obsluha klávesnice (dvojité nebo nekonečné opakování kláves).
 - **RMD-1:** časování (INIR, NOP po `OUT 43`).
+- **Písmena mechanik podle hlášky po startu** (nápad autora 2026-10-06, zatím odložený): monitory J. Bíby a ECMON
+  vypisují `A,B,D,E: FDC1…`, `B,C: MFC1`, `C:PMD32-SD/2M`. Emulátor by po resetu mohl číst obrazovku (u systémů
+  jen s terminálem i sériovou linku) a přidělit písmena jednotkám popořadě, jako třetí zdroj mezi sestavou a
+  odhadem ze SELDSK (zobrazit „podle hlášky“). Proti: jen jedna rodina systémů, pořadí u PMD32-SD je odvozené,
+  obrazovka může odrolovat. Sestavy už písmena mají a SELDSK je dodá při prvním čtení.
 - **CGA-1V:**
   - čekací stavy jsou přibližné (do konce okna CPU 318 ns);
   - prolínání snímků je náhrada za oko (REMBRAN2);

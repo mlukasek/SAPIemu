@@ -888,3 +888,15 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Test** `test_drive_letters`: ECMON (FDC-1, MFC-1A), monitory J. Bíby (RPD-1, FDC-1, MFC-1A), dlouhé CP/M,
   EC1045, PMD32-SD na DPP-1 a CP/M 2.2/P na ZPS-3 (8080).
 - **MCP:** popis karty má u mechanik `unit` (dřív `drive` s písmenem), `cpm` a `cpm_seen`.
+
+## 2026-10-06 – Sestavy a knihovna disket J. Bíby, DUP, tiskárna v sestavách
+
+- **Sestavy s RMD-1** (`cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd`): bootovací diskety nemají inicializační program,
+  RMD-1 je po zapnutí náhodná jako DRAM. Do B: proto disketa Z6 s `IRMD40`, nic se neobchází.
+- **`cpm_pmd_fdc1`** bez RAM disku, jak ho systém 140212 hlásí (A, B = FDC-1, C, D = PMD32-SD).
+- **Knihovna disket** (rozhodnutí autora): soupis všech asi 180 disket v `docs/software/SAPIMAN_diskety.md`
+  a jen výběr 16 v repu (`media/sapiman/knihovna`, 4 MB). Komerční software je otázka pro veřejné vydání.
+  Diskety mimo `media/` emulátor používá přímo (bez pracovní kopie), proto doporučení otevírat je s ochranou.
+- **Tiskárna na X3** ve všech sestavách s ECMONem a monitory J. Bíby (kromě `cpm_term64k_fdc1` bez klávesnice),
+  protože jejich `LST:` na ni tiskne (ověřeno).
+- **DUP-80** ověřený a test `dup8` s DUP8.COM z RAM disku `cpm_zrmd` (bez M80 v repu).

@@ -1,6 +1,8 @@
 # RMD-1 (RMD-1Z) – RAM disk
 
 Stav: **emulovaná** (`src/cards/rmd1.*`), ověřeno s Peřinovým CP/M (RTEST, disk E:) a s ELIS (INIRMD5, disk C:).
+Od 2026-10-05/06 i s CP/M J. Bíby jako C: (`cpm_boot_mfc1a_rmd`, `cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd`;
+inicializace `IRMD40`, test `test_sapi_sys`).
 RMD-1 a RMD-1Z se liší jen názvem.
 
 ## Podklady
