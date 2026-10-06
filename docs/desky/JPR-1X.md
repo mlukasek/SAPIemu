@@ -373,7 +373,8 @@ BIOS: JPR-1V vede propojku na A11 přímo, JPR-1X ji zachytí při resetu (výsl
 
 1. ~~Stav propojek~~ (autor 2026-10-06): TURBO zapnuté, BIOS podle potřeby, RSTN/7 (dvoukolíková lišta
    s potiskem „RST n/7“ na přední straně mezi IC7 3212 a IC8 3214, vpravo) rozpojená = vždy RST 7, jako
-   v sestavách. Zbývají pájecí propojky 11-10-R6, P2IN6-R6-10 na zadní straně (vypadají z výroby).
+   v sestavách. Pájecí propojky 11-10-R6, P2IN6-R6-10 na zadní straně z výroby (klávesa INT nikam, R6 =
+   P2-IN6), jako v sestavách (`int_key` = `none`).
 2. ~~Obraz ROM~~ (autor): žádná zvláštní ROM, tytéž BIOSy jako pro JPR-1S.
 3. Rezistor na zadní straně: podle článku na 8bity.cz pull-up 4k7 na D3, protože některé Mitsubishi 8085 při čtení
    prázdné adresy vracely dříve zapsaná data (jiní výrobci spodní bajt adresy) a Monitor pak špatně zjišťoval
