@@ -32,6 +32,9 @@ Stav: **emulovaná** (typ `AND-1A` třídy AND-1 v `src/cards/and1.*`), ověřen
     nejspíš chyba překreslení.
 - **Domácí varianta 3800/F800** (FFh → F800) pro CP/M 62K:
   `D11\..\SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\FDC\FDC_AND1A130711_RMD\dekoder AND1ACPM.txt`.
+- **Varianta 3800/F000** (EFh → F000) pro CP/M 64K Tesla IMA (`videom equ 0F000h` v MON64C3):
+  `roms/and-1a/AND-1A_D3A_CPM64K_74S287.bin`. **Předpoklad** (standardní obsah s posunutou položkou), originál
+  nemáme.
 
 ## Emulace
 
@@ -48,4 +51,5 @@ Stav: **emulovaná** (typ `AND-1A` třídy AND-1 v `src/cards/and1.*`), ověřen
 - Video RAM 1 KB, nebo 2 KB? Návod píše 2 KB, rozpiska má 2× 2114 (1 KB) a parametry 1 KB. Co se čte
   z E800–EFFF mimo viditelné buňky?
 - PROM D3A pro F000, kterou potřebuje monitor IMA 64K (`videom equ 0F000h` v MON64C3), a pro F800 (CP/M 62K).
+  Emulace má pro obě předpoklad (`AND-1A_D3A_CPM64K_74S287.bin`, `…_CPM62K_…`).
 - „EB00H–EFFFH“ v návodu DGD-1 je nejspíš chyba OCR místo E800H.

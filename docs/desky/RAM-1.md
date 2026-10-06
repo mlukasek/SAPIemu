@@ -29,6 +29,9 @@ RAM-1A se liší jen obsahem PROM D1A.
 - **PROM D1A jako soubor** (`prom`): `roms/ram-1/RAM-1_D1A_74S287.bin` (výchozí, z návodu RAM-1),
   `RAM-1_16K_D1A_74S287.bin` (druhá tabulka z návodu, RAM-1/16K: C000–E7FF + F000–FFFF, C000–FFFF…),
   `roms/ram-1a/RAM-1A_D1A_74S287.bin` (výchozí pro typ RAM-1A). Tabulky jsou přepsané z návodů, ne dumpy.
+  Pro druhou RAM-1A v ZPS-3 s CP/M 62K a 64K jsou upravené varianty (**předpoklad**, S1 S2 = 10):
+  `RAM-1A_D1A_62K_74S287.bin` (C000–F7FF) a `RAM-1A_D1A_64K_74S287.bin` (C000–EFFF + F800–FFFF, díra F000–F7FF
+  pro AND-1A).
   Obsah RAM-1 se shoduje s tím, co emulace dřív generovala z tab. 1.
 - Vstupy A10–A15, S1, S2 (sepnutá = 0), výstupy D0 SEL, D1 CA0 (řada 1), D3 CA1 (řada 2), D2 CA2 (řada 3).
   Adresa v řadě = A13–A0.

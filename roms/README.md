@@ -42,6 +42,9 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `mfc-1a/MFC-1A_DD9_74S287.bin` | MFC-1A PROM DD9 (74S287) | Dekodér portů MFC-1A: 04H, 05H, 08H 8257, 0CH–0DH 8272, 0FH registr mechanik. **Dump** `..\SAPI-karty\MFC-1A\doc\ADRESOVY_DEKODER.BIN`. |
 | `mfc-1a/MFC-1A_DD25_74S287_PLL.bin` | MFC-1A PROM DD25 (74S287) | Číslicový fázový závěs datového separátoru, **dump** `EPROM_FAZOVY_ZAVES.BIN`. Emulace ho nepoužívá. |
 | `and-1a/AND-1A_D3A_CPM62K_74S287.bin` | AND-1A PROM D3A | Domácí varianta pro CP/M 62K: F800 (S1 sepnutá 3800). Podle tabulky `SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\FDC\FDC_AND1A130711_RMD\dekoder AND1ACPM.txt`. |
+| `jpr-1a/MON64C3.bin` | JPR-1A EPROM 0000–07FF | „JPR-1A 64K V C3“, boot originálního CP/M 64K Tesla IMA z RPD-1. Zkopíruje se na F800 a vypne EPROM, video F000. Z `..\SAPI_DOKU\SAPI_EPROM\BOOT_pro_CPM\JPR1A_BOOT_64k.BIN` (= `JPR1A_BOOT_64k_C3.BIN` na FTP), zdroj `MON64C3.MAC`. |
+| `and-1a/AND-1A_D3A_CPM64K_74S287.bin` | AND-1A PROM D3A | Varianta pro CP/M 64K: F000 (položka EFh místo DFh), S1 sepnutá 3800. **Předpoklad**. |
+| `ram-1a/RAM-1A_D1A_64K_74S287.bin` | RAM-1A PROM D1A | Standardní D1A, jen S1 S2 = 10 dává C000–EFFF a F800–FFFF (položky BCh, BDh = F0h, díra F000–F7FF pro AND-1A). Druhá RAM-1A pro CP/M 64K. **Předpoklad**. |
 | `ram-1a/RAM-1A_D1A_62K_74S287.bin` | RAM-1A PROM D1A | Standardní D1A, jen S1 S2 = 10 dává C000–F7FF místo C000–FFFF (druhá RAM-1A pro CP/M 62K). **Předpoklad**, ne doložená PROM. |
 | `jpr-1a/JPR-1A_D2C_74S571.bin` | JPR-1A PROM D2C (74S571, 512 × 4) | Dekodér EPROM a portů. **Přepis tabulky** z návodu (sapi.cz `jpr-1a.php`), ne dump. |
 | `and-1a/AND-1A_D3A_74S287.bin` | AND-1A PROM D3A (74S287) | Dekodér video RAM (E800, s S1 3800). Přepis z návodu (`and-1a.php`). D3C AND-1A je shodná s `and-1/AND-1_D3C_74188.bin`. |

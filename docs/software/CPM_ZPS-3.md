@@ -1,5 +1,7 @@
 # CP/M a monitory pro ZPS-3 (JPR-1A + RPD-1 nebo FDC-1)
 
+**Stav (2026-10-06): běží i originální CP/M 2.2 64K od Tesly IMA** (sestava `ZPS-3_CPM64K_IMA.sapi`, níže).
+
 **Stav (2026-10-05): CP/M 2.2/P 48K a 62K běží s RPD-1 i s FDC-1.** Předkonfigurované sestavy podle podkladů
 autora (`..\SAPI-sestavy\ZPS-3\`: ROM `MOR*.hex`, diskety `CPM*.img`; 48/62 = paměť, F = řadič FDC-1):
 
@@ -9,6 +11,7 @@ autora (`..\SAPI-sestavy\ZPS-3\`: ROM `MOR*.hex`, diskety `CPM*.img`; 48/62 = pa
 | `ZPS-3_CPM62K.sapi` | MOR62A | `media/rpd-1/CPM22P_62A_Perina.img` | dvě RAM-1A 0000–F7FF, AND-1A F800 |
 | `ZPS-3_CPM48K_FDC-1.sapi` | MOR48AF | `media/fdc-1/CPM22P_48AF_Perina.img` | jako 48K, řadič FDC-1 |
 | `ZPS-3_CPM62K_FDC-1.sapi` | MOR62AF | `media/fdc-1/CPM22P_62AF_Perina.img` | jako 62K, řadič FDC-1 |
+| `ZPS-3_CPM64K_IMA.sapi` | MON64C3 (IMA) | `media/rpd-1/CPM64K_IMA_01.img`, B: `_02` | dvě RAM-1A 0000–EFFF + F800–FFFF, AND-1A F000 |
 
 - MOR se po RESET zkopíruje z EPROM na B800 (48K) nebo F000 (62K) a zavede CP/M z mechaniky A.
 - `CPM48A.img` od autora je shodný s dřívějším `CPM22P_48A_Perina.img`.
@@ -20,6 +23,19 @@ autora (`..\SAPI-sestavy\ZPS-3\`: ROM `MOR*.hex`, diskety `CPM*.img`; 48/62 = pa
   je `FDC.DOC`, `MOR24F.MAC` (zdroj MORxxF) a formátovač `FORM6.COM` (ověřeno: formátuje 8" SS SD na B:).
 - Test `tests/test_zps3.cpp` projde všechny čtyři sestavy: boot, DIR, SAVE (data na disketě), ERA a nový boot
   po RESETu.
+- **64K Tesla IMA** (2026-10-06): EPROM „JPR-1A 64K V C3“ (`roms/jpr-1a/MON64C3.bin` =
+  `SAPI_DOKU\SAPI_EPROM\BOOT_pro_CPM\JPR1A_BOOT_64k.BIN`, zdroj `MON64C3.MAC`) se po RESET zkopíruje do RAM
+  na F800 a `OUT 00` vypne EPROM. Pak zavede „JPR-1A 60K CPM V2.2, BIOS V2.2-C2“ (CCP V2.2-A1 TESLA ELTOS IMA
+  PARDUBICE 15/11/1984). Video je na F000 (`videom equ 0F000h`), RAM tedy 0000–EFFF a F800–FFFF:
+  - druhá RAM-1A (16K, S1 S2 = 10) s PROM D1A `RAM-1A_D1A_64K_74S287.bin`: C000–EFFF a F800–FFFF;
+  - AND-1A s PROM D3A `AND-1A_D3A_CPM64K_74S287.bin`: položka EFh → F000 místo DFh → E800 (S1 sepnutá dál 3800);
+  - **obě PROM jsou předpoklad** odvozený od standardních, originální 64K sestavu ani její PROM nemáme;
+  - diskety `media/rpd-1/CPM64K_IMA_01–03.img` = `SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\DEX\
+    SAPI_ZPS3\01–03.8SD`: 1 systém, ED, PIP, M80, L80, F80, ASM, SYSGEN, MOVCPM60; 2 STAT, FORMAT, MBASIC
+    V5.21-A1, BASCOM, COBOL; 3 Pascal MT+. Soubory mají atribut R/O, na 1 zbývá 5K, na 2 2K. Kopie
+    `!!!!_TRIDENO_!!!!\CPM64K\CPM64K_001–004.8SD` mají stejné systémové stopy a jiné soubory (004 se zdrojáky
+    MON64C3, BIOS64C2, BOOT0C2, BOOT1C2);
+  - ověřeno: DIR, SAVE, ERA, STAT, MBASIC (31227 BYTES FREE), nový boot po RESETu (test `ima64k` v `test_zps3`).
 
 **Stav (2026-10-03): ZPS-3 běží.** Sestava `machines/zps/ZPS-3.sapi`:
 - **MON V1.0-C1 zavede z diskety Peřinův CP/M 2.2/P** (`media/rpd-1/CPM22P_48A_Perina.img`): banner
@@ -61,8 +77,18 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
   Soubory čtvrté diskety jsou v `cpmzps3_soubory.rar` (BIOS48C1.MAC, BOOT0C1/1C1.MAC, MON48C1.MAC,
   MOVCPM48.COM).
 - **Originální Tesla IMA CP/M 64K, bootovatelný** („CCP V2.2-A1 TESLA ELTOS IMA PARDUBICE 15/11/1984“):
-  `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3\01–03.8SD`. Volá F821, patří
-  k `JPR1A_BOOT_64k`.
+  `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3\01–03.8SD` (stejné jsou
+  v `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\DEX\SAPI_ZPS3`). Volá F821, patří
+  k `JPR1A_BOOT_64k`. V repu jako `media/rpd-1/CPM64K_IMA_01–03.img`, sestava `ZPS-3_CPM64K_IMA.sapi`.
+- **Diskety ze Slušovic** ve stejné složce `DEX\SAPI_ZPS3` (**plán, zatím nevyzkoušené**):
+  - `04A.8SD`, `04B.8SD`: „TNS CPM V 2.27-K JZD AK Slusovice 24.7.1986 FFM“ (CCP v systémových stopách),
+    na 04A TED, DES, TISK, DUP, DUPLIK, TURBO (Pascal), FORMAT, GENER, systémy `CPMKH.SYS` a `CPMWH.SYS`; na 04B
+    AUT, CBOOT, SYSTEM, RBASD, SIRKY;
+  - `05.8SD`: „CPM 2.30 Copyright (C) by MIC - Software Slusovice 1987“, zavaděč „OSBOOT-F V 1.06“, česká hlášení
+    („Nelze najít soubor“); soubory KONVERZE, DISKETY, SYSTEM, LP, DBASEOVR, FBOOT, PIP, WD, PW;
+  - k nim chybí boot EPROM, nevíme, pro jakou sestavu jsou (FBOOT a OSBOOT-F ukazují spíš na řadič FDC-1).
+    Postup: rozebrat zavaděč na stopě 0 (porty, adresa monitoru, video), podle toho zkusit některou z našich ROM,
+    případně se zeptat Petra Všijanského (EC1045).
 - **48K zdrojové diskety** bez systémových stop: `...\IMAGE_8\ZDROJ_STARE\15_a/b_zps3_48k.8sd`.
 - `BKP\data\bios_lst.php` je BIOS MIKOS/D, ne CP/M ZPS-3. Zdroje CP/M BIOS: BIOS48C1.MAC, BIOS64C2.MAC,
   BIOS.MAC.
@@ -70,3 +96,4 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
 ## Chybí
 
 - **Bootovatelná originální systémová disketa IMA 48K ZPS-3** k MON V1.0-C1. Zdroje máme, sestavenou disketu ne.
+  Rekonstrukce ze zdrojů (BIOS48C1, BOOT0C1, BOOT1C1, MOVCPM48 přes M80/L80 v `cpmrun`) je další krok.

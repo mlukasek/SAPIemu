@@ -43,7 +43,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11 a membránová ANK-1.
 - **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4 s RPD-1
-  i FDC-1, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM disku ZRMD-1, z 8" diskety (RPD-1, FDC-1,
+  i FDC-1, originální CP/M 64K Tesla IMA pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM disku ZRMD-1, z 8" diskety (RPD-1, FDC-1,
   MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
   Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky.
 - **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,

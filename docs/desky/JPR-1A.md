@@ -47,7 +47,7 @@ i ve snapshotech 2012-05-23, 2012-09-03, 2019-01-04).
 | ROM | Soubor | Zdroj |
 |---|---|---|
 | JPR-1A 48K MON V1.0-C1 (Tesla Eltos IMA 2/86), standard ZPS-3 | `D11\SAPI_EPROM\BOOT_pro_CPM\B_V10_JPR-1A_RPD-1_ZPS-3.BIN` (2 KB, stejné jako `Foto\Jiri_Slansky\SW\JPR-1A 48K MON V1.0-C1\` a `D11\SW_SAPI_Petr\EMIL\JPR1A_MON1(a).bin`) | `MON48C1.MAC` v `BKP\data2\cpmzps3_soubory.rar` |
-| JPR-1a 64K V c3 | `JPR1A_BOOT_64k.BIN` | `MON64C3.MAC` |
+| JPR-1a 64K V c3 (Tesla IMA, CP/M 64K), v repu `roms/jpr-1a/MON64C3.bin`, sestava `ZPS-3_CPM64K_IMA.sapi`. Zkopíruje se na F800 a vypne EPROM, video F000 | `SAPI_DOKU\SAPI_EPROM\BOOT_pro_CPM\JPR1A_BOOT_64k.BIN` (= `JPR1A_BOOT_64k_C3.BIN`) | `MON64C3.MAC` (`SAPI_DOKU_FTP\...\!!!!_TRIDENO_!!!!\CPM64K\CPM64K_004`) |
 | VUT Brno 64K MON V1.0-X2 | `M1_0_CPM.BIN` | |
 | LIAZ V1.3 | `Foto\...\JPR-1A_LIAZ_1-3.BIN` | |
 | Peřina CP/M 2.2/P MOR48A, MOR62A, MOR48Z, MOR62Z (+F pro FDC-1) | `BKP\data\mor*_hex.php`, `rpd_soubory\MOR*.HEX` | `MOR24.MAC`, `MOR24F.MAC` |

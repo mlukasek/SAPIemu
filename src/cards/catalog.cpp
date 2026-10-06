@@ -322,6 +322,8 @@ static const ParamOption k_jpr1a_roms[] = {
       "MOR48AF: CP/M 2.2/P 48K, FDC-1 (Peřina 1988)" },
     { "\"roms/jpr-1a/MOR62AF.bin\"", "MOR62AF: CP/M 2.2/P 62K, FDC-1 (Perina 1988)",
       "MOR62AF: CP/M 2.2/P 62K, FDC-1 (Peřina 1988)" },
+    { "\"roms/jpr-1a/MON64C3.bin\"", "64K MON V1.0-C3 (Tesla IMA, CP/M ZPS-3 64K)",
+      "64K MON V1.0-C3 (Tesla IMA, CP/M ZPS-3 64K)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_jpr1a_jp1[] = {
@@ -392,6 +394,8 @@ static const ParamOption k_ram1_proms[] = {
     { "\"roms/ram-1/RAM-1_16K_D1A_74S287.bin\"", "RAM-1/16K (C000)", "RAM-1/16K (C000)" },
     { "\"roms/ram-1a/RAM-1A_D1A_62K_74S287.bin\"", "RAM-1A for CP/M 62K: S1 S2 10 = C000-F7FF (assumed)",
       "RAM-1A pro CP/M 62K: S1 S2 10 = C000-F7FF (předpoklad)" },
+    { "\"roms/ram-1a/RAM-1A_D1A_64K_74S287.bin\"", "RAM-1A for CP/M 64K: S1 S2 10 = C000-EFFF + F800-FFFF (assumed)",
+      "RAM-1A pro CP/M 64K: S1 S2 10 = C000-EFFF + F800-FFFF (předpoklad)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_ram1[] = {
@@ -449,6 +453,12 @@ static const ParamOption k_rpd1_disks[] = {
     { "\"media/rpd-1/MIKOS_D_V5.0_system.img\"", "MIKOS/D V5.0 system disk", "Systémová disketa MIKOS/D V5.0" },
     { "\"media/rpd-1/CPM22P_48A_Perina.img\"", "CP/M 2.2/P 48K (Perina, AND-1A)", "CP/M 2.2/P 48K (Peřina, AND-1A)" },
     { "\"media/rpd-1/CPM22P_62A_Perina.img\"", "CP/M 2.2/P 62K (Perina, AND-1A)", "CP/M 2.2/P 62K (Peřina, AND-1A)" },
+    { "\"media/rpd-1/CPM64K_IMA_01.img\"", "CP/M 2.2 64K Tesla IMA, disk 1 (system, ED, PIP, M80, F80, ASM)",
+      "CP/M 2.2 64K Tesla IMA, disketa 1 (systém, ED, PIP, M80, F80, ASM)" },
+    { "\"media/rpd-1/CPM64K_IMA_02.img\"", "CP/M 2.2 64K Tesla IMA, disk 2 (STAT, FORMAT, MBASIC, COBOL)",
+      "CP/M 2.2 64K Tesla IMA, disketa 2 (STAT, FORMAT, MBASIC, COBOL)" },
+    { "\"media/rpd-1/CPM64K_IMA_03.img\"", "CP/M 2.2 64K Tesla IMA, disk 3 (Pascal MT+)",
+      "CP/M 2.2 64K Tesla IMA, disketa 3 (Pascal MT+)" },
     { "\"media/sapiman/r1_zrmd4m_271111.img\"", "CP/M boot disk J. Biba (MON 271111, C: ZRMD-1)",
       "Bootovací CP/M J. Bíba (MON 271111, C: ZRMD-1)" },
     { "\"media/sapiman/r1_rmd1m_271111.img\"", "CP/M boot disk J. Biba (MON 271111, C: RMD-1)",
@@ -660,6 +670,8 @@ static const ParamOption k_and1a_dec[] = {
     { "\"roms/and-1a/AND-1A_D3A_74S287.bin\"", "standard: E800, S1 closed 3800", "standardní: E800, S1 sepnutá 3800" },
     { "\"roms/and-1a/AND-1A_D3A_CPM62K_74S287.bin\"", "CP/M 62K (home made): F800, S1 closed 3800",
       "CP/M 62K (domácí): F800, S1 sepnutá 3800" },
+    { "\"roms/and-1a/AND-1A_D3A_CPM64K_74S287.bin\"", "CP/M 64K (assumed): F000, S1 closed 3800",
+      "CP/M 64K (předpoklad): F000, S1 sepnutá 3800" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_and1a[] = {

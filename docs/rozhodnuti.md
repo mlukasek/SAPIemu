@@ -900,3 +900,16 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Tiskárna na X3** ve všech sestavách s ECMONem a monitory J. Bíby (kromě `cpm_term64k_fdc1` bez klávesnice),
   protože jejich `LST:` na ni tiskne (ověřeno).
 - **DUP-80** ověřený a test `dup8` s DUP8.COM z RAM disku `cpm_zrmd` (bez M80 v repu).
+
+## 2026-10-06 – ZPS-3 s originálním CP/M 64K od Tesly IMA
+
+- **ROM a diskety:** EPROM `JPR1A_BOOT_64k.BIN` (SAPI_DOKU) jako `roms/jpr-1a/MON64C3.bin`, diskety 01–03 z archivu
+  EC1045 (`DEX\SAPI_ZPS3`) jako `media/rpd-1/CPM64K_IMA_01–03.img`. Kopie z `!!!!_TRIDENO_!!!!\CPM64K` mají
+  stejné systémové stopy, liší se jen soubory, do repa nejdou.
+- **Paměť:** monitor se zkopíruje na F800 a video je na F000, RAM tedy musí být 0000–EFFF a F800–FFFF. Jako u 62K
+  druhá RAM-1A (16K, S1 S2 = 10) s upravenou PROM D1A (`RAM-1A_D1A_64K_74S287.bin`) a AND-1A s upravenou D3A
+  (`AND-1A_D3A_CPM64K_74S287.bin`, F000). **Obě PROM jsou předpoklad**, každá jako samostatný soubor (jiná
+  adresace = jiný soubor), originální sestavu nemáme. Otázka zůstává v „Nejasnostech“ (bod 19).
+- **Sestava** `machines/zps/ZPS-3_CPM64K_IMA.sapi`: A: disketa 1 (systém), B: disketa 2 (MBASIC, COBOL).
+  Test `ima64k` v `test_zps3`.
+- **Diskety ze Slušovic** (`04A`, `04B`, `05` ve stejné složce) jsou zapsané jako plán v `docs/software/CPM_ZPS-3.md`.

@@ -3,7 +3,8 @@
 // DIR, SAVE and ERA work; with a terminal on DSM-1 the console goes there.
 // The machines of machines/zps/ZPS-3_CPM*.sapi: CP/M 48K and 62K with RPD-1 and with
 // FDC-1 (8272 + DMA 8257); a RESET with the head on track 0 boots again (the 8272
-// reports "ready changed" for all drives after its reset).
+// reports "ready changed" for all drives after its reset). The original CP/M 64K of Tesla IMA:
+// MON V1.0-C3 copies itself to the RAM at F800 and switches the EPROM off, the video at F000.
 #include <string.h>
 #include "core/headless.h"
 #include "core/machine.h"
@@ -121,6 +122,51 @@ static void cpm_machine(const char* file, const char* banner, const char* disk, 
     printf("%s\n", screen_text(m).c_str());
 }
 
+// ZPS-3_CPM64K_IMA.sapi: boot, the monitor in the RAM, DIR, SAVE, ERA, RESET
+static void ima64k(void)
+{
+    printf("--- machines/zps/ZPS-3_CPM64K_IMA.sapi\n");
+    const char* test_disk = "work/test/zps3_ima64.img";
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path("media/rpd-1/CPM64K_IMA_01.img"), img));
+    CHECK(file_write_all(data_path(test_disk), img.data(), img.size()));
+    std::string text;
+    CHECK(file_read_text(data_path("machines/zps/ZPS-3_CPM64K_IMA.sapi"), text));
+    json cfg = json::parse(text, nullptr, false, true);
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "RPD-1") {
+            c["drive_a"] = { { "image", test_disk }, { "write_protect", false } };
+            c.erase("drive_b");
+        }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    CHECK(run_until_text(m, "JPR-1A 64K V C3", 2.0));
+    CHECK(run_until_text(m, "JPR-1A 60K CPM V2.2", 8.0));
+    CHECK(run_until_text(m, "\nA>", 2.0));
+    CHECK_EQ(m.bus.mem_peek(0x0000), 0xC3);   // BOOT off: page zero in RAM
+    CHECK_EQ(m.bus.mem_peek(0xF800), 0xC3);   // the monitor copied to the RAM (JMP COLD)
+    m.run_seconds(0.3);
+    m.type_text("DIR SYSGEN.COM\r");
+    CHECK(run_until_text(m, "A: SYSGEN   COM", 5.0));
+    m.run_seconds(0.3);
+    m.type_text("SAVE 4 TEST.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("DIR TEST.COM\r");
+    CHECK(run_until_text(m, "A: TEST     COM", 5.0));
+    m.run_seconds(0.3);
+    m.type_text("ERA TEST.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("DIR TEST.COM\r");
+    CHECK(run_until_text(m, "NO FILE", 5.0));
+    m.reset();
+    m.run_seconds(5.0);   // the old text stays in the video RAM until the monitor clears it
+    CHECK(!screen_contains(m, "NO FILE"));
+    CHECK(screen_contains(m, "JPR-1A 60K CPM V2.2"));
+    CHECK(screen_contains(m, "\nA>"));
+    printf("%s\n", screen_text(m).c_str());
+}
+
 // DCD on DSM-1 (terminal connected): MON V1.0-C1 uses the serial console
 static void terminal(void)
 {
@@ -151,5 +197,6 @@ int main(void)
                 "work/test/zps3_m48af.img");
     cpm_machine("machines/zps/ZPS-3_CPM62K_FDC-1.sapi", "SAPI-1 ZPS3-62K/FDC-1", "media/fdc-1/CPM22P_62AF_Perina.img",
                 "work/test/zps3_m62af.img");
+    ima64k();
     return TEST_RESULT();
 }

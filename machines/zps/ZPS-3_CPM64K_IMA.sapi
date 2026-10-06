@@ -1,0 +1,70 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-3 CP/M 64K (Tesla IMA, MON V1.0-C3, RPD-1)",
+    "description": "ZPS-3 s originálním systémem CP/M 2.2 64K od Tesly ELTOS IMA Pardubice (CCP V2.2-A1, 15/11/1984): monitor JPR-1A 64K MON V1.0-C3 se zkopíruje z EPROM do RAM na F800 a EPROM vypne, CP/M z diskety řadiče RPD-1. Paměť 0000-EFFF a F800-FFFF ze dvou RAM-1A (48K 0000-BFFF a 16K s upravenou PROM D1A), AND-1A na F000 s upravenou PROM D3A (obě PROM jsou předpoklad, originální nemáme). A: disketa 1 (systém), B: disketa 2 (STAT, FORMAT, MBASIC, COBOL), disketa 3 (Pascal MT+) je v media/rpd-1. Diskety DEX\\SAPI_ZPS3 z archivu EC1045 (SAPI_DOKU_FTP). docs/software/CPM_ZPS-3.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1A",               // CPU card 8080 "A" (I/O ports, boot EPROM)
+            "rom": "roms/jpr-1a/MON64C3.bin",  // EPROM D3B + D4B (2x 2716, 0000-0FFF after RESET) - 64K MON V1.0-C3 (Tesla IMA, CP/M ZPS-3 64K)
+            "decoder": "roms/jpr-1a/JPR-1A_D2C_74S571.bin",  // PROM D2C: decoder (EPROM, ports 00-03) - standard (manual)
+            "jp1": "1-2",                   // Jumper JP1: interrupt vector - 1-2: interrupt = RST 7
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "Consul 259.11", "code": "koi7" }  // Keyboard (connector X2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RAM-1A",               // Dynamic RAM up to 48 KB "A"
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": false,                    // S1 (S1 S2: 01 = 0000-BFFF, 11 = 4000-FFFF, 10 = C000-FFFF, 00 = C000-E7FF)
+            "s2": true,                     // S2
+            "prom": "roms/ram-1a/RAM-1A_D1A_74S287.bin"  // PROM D1A: address decoder - RAM-1A (ZPS-3: 0000-BFFF)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1A",               // Alphanumeric display "A"
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false,                  // Jumper 49-50: INT1 at the end of the frame
+            "s1": false,                    // Jumper 44-45 (S1): VRAM at 3800 instead of E800
+            "decoder": "roms/and-1a/AND-1A_D3A_CPM64K_74S287.bin"  // PROM D3A: address decoder - CP/M 64K (assumed): F000, S1 closed 3800
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "connected": false              // Terminal connected at start (DCD)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "RPD-1",                // Floppy disk controller (boards A + B)
+            "drive_a": {                    // Drive A (8" SS SD)
+                "cpm": "A",                 // CP/M letter (Media window)
+                "image": "media/rpd-1/CPM64K_IMA_01.img",  // Disk image (.img, 77 x 26 x 128 B) - CP/M 2.2 64K Tesla IMA, disk 1 (system, ED, PIP, M80, F80, ASM)
+                "write_protect": false      // Write protected
+            },
+            "drive_b": {                    // Drive B (8" SS SD)
+                "cpm": "B",                 // CP/M letter (Media window)
+                "image": "media/rpd-1/CPM64K_IMA_02.img",  // Disk image (.img, 77 x 26 x 128 B) - CP/M 2.2 64K Tesla IMA, disk 2 (STAT, FORMAT, MBASIC, COBOL)
+                "write_protect": false      // Write protected
+            },
+            "working_copy": true,           // Work on copies in work/
+            "step_ms": 8,                   // Drive: step period - 8 ms (Consul 7213)
+            "settle_ms": 35                 // Drive: head load settle time (ms)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "RAM-1A",               // Dynamic RAM up to 48 KB "A"
+            "fitted_kb": 16,                // Fitted memory - RAM-1/16K (one row of 4116)
+            "s1": true,                     // S1 (S1 S2: 01 = 0000-BFFF, 11 = 4000-FFFF, 10 = C000-FFFF, 00 = C000-E7FF)
+            "s2": false,                    // S2
+            "prom": "roms/ram-1a/RAM-1A_D1A_64K_74S287.bin"  // PROM D1A: address decoder - RAM-1A for CP/M 64K: S1 S2 10 = C000-EFFF + F800-FFFF (assumed)
+        }
+    ]
+}
