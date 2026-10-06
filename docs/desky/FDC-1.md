@@ -146,7 +146,8 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   Nevyřízený DRQ (kanál vypnutý) je přetečení (OR).
 - **Parametry:** `drive_a`–`drive_d` (obraz, ochrana), `working_copy`, `decoder` (PROM D5B), `rdy_ground`,
   `sa2_a`–`sa2_d` (přepínače SA2: 8sd, 8dd, 5sd, 5dd).
-- Okno Média ukazuje mechaniky A–D (vložit, nová, vysunout, ochrana), stejně jako u RPD-1.
+- Okno Média ukazuje mechaniky 0–3 (vložit, nová, vysunout, ochrana), stejně jako u RPD-1, s písmenem v CP/M
+  (parametr `cpm` u mechaniky, jinak zjištěné za chodu; `docs/rozhodnuti.md` 2026-10-06).
 - **Motory** (parametr `motor_line`, výchozí ne): s ním se disketa točí, jen když má mechanika zapnutý motor
   bitem M3–M0 registru 0FH, a čte se až `spinup_ms` (výchozí 500 ms) po zapnutí. Bez otáčení nejsou indexové
   pulzy ani značky a 8272 čeká, dokud motor nenaběhne. Bez parametru se disketa točí stále (8" Consul se

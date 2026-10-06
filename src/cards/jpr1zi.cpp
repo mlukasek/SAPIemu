@@ -220,6 +220,10 @@ void Jpr1zi::sync(void)
     if (irq & IRQ_INT0) pins |= Z80_INT; else pins &= ~Z80_INT;
     if (irq & IRQ_INT1) pins |= Z80_NMI; else pins &= ~Z80_NMI;
     next_sync = bus->now + SYNC_CYCLES;
+    if (++cpm_ticks >= 1024) {   // about every 30 ms: where is the BIOS of CP/M
+        cpm_ticks = 0;
+        bus->cpm_poll();
+    }
 }
 
 int Jpr1zi::run(int cycles)
@@ -256,6 +260,7 @@ int Jpr1zi::run(int cycles)
                     // opcode fetch of a new instruction
                     instr_pc = addr;
                     bus->pc = addr;
+                    if (addr == bus->cpm_seldsk && addr && z80.c < 16) bus->cpm_drive = z80.c;
                     bool step_stop = false;
                     if (step_mode) {
                         if (step_skip > 0) step_skip--;

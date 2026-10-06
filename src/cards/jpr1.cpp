@@ -264,6 +264,10 @@ void Jpr1::sync(void)
     bus_irq = bus->irq_lines();
     update_interrupt();
     next_sync = bus->now + SYNC_CYCLES;
+    if (++cpm_ticks >= 1024) {   // about every 30 ms: where is the BIOS of CP/M
+        cpm_ticks = 0;
+        bus->cpm_poll();
+    }
 }
 
 int Jpr1::run(int cycles)
@@ -283,6 +287,7 @@ int Jpr1::run(int cycles)
             // instruction boundary (where the Z80 card stops after the opcode fetch)
             instr_pc = cpu.pc;
             bus->pc = cpu.pc;
+            if (cpu.pc == bus->cpm_seldsk && cpu.pc && cpu.c < 16) bus->cpm_drive = cpu.c;
             bool step_stop = false;
             if (step_mode) {
                 if (step_skip > 0) step_skip--;

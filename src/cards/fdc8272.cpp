@@ -48,6 +48,7 @@ bool Fdc8272Card::configure_common(const json& cfg, const char* default_decoder,
             const json& d = cfg[keys[i]];
             if (!cfg_string(d, "image", image, "", err)) return false;
             if (!cfg_bool(d, "write_protect", wp, false, err)) return false;
+            if (!cfg_letter(d, drives[i].cpm_cfg, err)) return false;
         }
         drives[i].image = image;
         drives[i].write_protect = wp;
@@ -85,8 +86,14 @@ void Fdc8272Card::flush()
     }
 }
 
+void Fdc8272Card::fdc_reading(int unit)
+{
+    if (FloppyDrive* d = fdc_drive(unit)) d->seen_as(bus->cpm_drive);
+}
+
 void Fdc8272Card::reset_chips(void)
 {
+    for (FloppyDrive& d : drives) d.cpm_seen = 0;   // another system may come
     fdc.hz = bus->cpu_hz;
     fdc.reset(bus->now);
     dma.reset();
@@ -140,10 +147,12 @@ void Fdc8272Card::describe(json& out)
     json drv = json::array();
     for (int i = 0; i < DRIVES; i++) {
         const FloppyDrive& d = drives[i];
-        drv.push_back({ { "drive", std::string(1, (char)('A' + i)) }, { "image", d.image }, { "path", d.path },
+        drv.push_back({ { "unit", i }, { "image", d.image }, { "path", d.path },
                         { "inserted", d.present() }, { "write_protect", d.write_protect },
                         { "modified", d.dirty }, { "track", d.track },
-                        { "turning", !motor_line || (turning_from[i] != UINT64_MAX && bus->now >= turning_from[i]) } });
+                        { "turning", !motor_line || (turning_from[i] != UINT64_MAX && bus->now >= turning_from[i]) },
+                        { "cpm", d.cpm_cfg ? std::string(1, d.cpm_cfg) : d.cpm_seen ? std::string(1, d.cpm_seen) : std::string() },
+                        { "cpm_seen", d.cpm_seen ? std::string(1, d.cpm_seen) : std::string() } });
     }
     out["motor_line"] = motor_line;
     out["motors"] = motor_mask;

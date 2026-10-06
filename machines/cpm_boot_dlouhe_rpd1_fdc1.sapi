@@ -64,10 +64,12 @@
             "slot": 5,                      // position X5
             "type": "RPD-1",                // Floppy disk controller (boards A + B)
             "drive_a": {
+                "cpm": "A",                 // CP/M letter (Media window)
                 "image": "media/sapiman/Z9_RPD050412_dlouhe_CPM_boot.img",  // Boot disk (J. Biba)
                 "write_protect": false
             },
             "drive_b": {
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/sapiman/Z3_RPD050412_dlouhe_CPM_zdroje.img",  // the other system disk
                 "write_protect": false
             },
@@ -79,6 +81,7 @@
             "slot": 7,                      // position X7
             "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
             "drive_a": {                    // D: 5.25" DS HD
+                "cpm": "D",                 // CP/M letter (Media window)
                 "image": "media/fdc-1/prazdna_5.25HD_CPM.img",  // empty 5.25" HD 1.2 MB
                 "write_protect": false
             },

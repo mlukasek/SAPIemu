@@ -64,10 +64,12 @@
             "slot": 5,                      // position X5
             "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
             "drive_a": {
+                "cpm": "A",                 // CP/M letter (Media window)
                 "image": "media/sapiman/Z4_FDC130711_programy.img",  // Boot disk (J. Biba)
                 "write_protect": false
             },
             "drive_b": {
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/sapiman/Z10_FDC130711_zdroje.img",  // the other system disk
                 "write_protect": false
             },

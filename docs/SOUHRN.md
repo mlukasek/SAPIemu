@@ -51,6 +51,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a odpověď Y na „move anyway“ (`docs/build.md`);
   - **motory mechanik** FDC-1 a MFC-1A (`motor_line`, `spinup_ms`), zapnuté v sestavách s mechanikami PC
     (`cpm_ec1045`, dlouhé CP/M); 8" Consul se točí stále;
+  - **mechaniky v okně Média** jsou očíslované podle řadiče (0–3) s písmenem v CP/M ze sestavy nebo zjištěným za
+    chodu (BIOS SELDSK + čtení sektoru), test `test_drive_letters`;
   - **tiskárna Centronics** na X3 karet JPR a na DPP-1 (8255 mód 1), okno Tiskárna, MCP `printer_output`, test
     `test_printer`, sestavy `cpm_zrmd` a `cpm_zrmd_dpp1` (`docs/tiskarna.md`). DPP-1 kanál 1 je v ECMONu `PUN:`.
 - **Možné další kroky (autor vybírá; doporučení 2026-10-06: c) sestavy a diskety SAPIMANa, pak DUP):**

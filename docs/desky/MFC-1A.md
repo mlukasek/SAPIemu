@@ -161,7 +161,7 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
   (MO0n–MO3n přes DD18, povolené jako výběr mechaniky bitem D6), rozběh `spinup_ms`. Výchozí je bez něj
   (8" Consul se točí stále), sestavy SAPIMANa ho nemají: BIOS 281211 pro 8" mechaniky nechává D3 D2 = 0 a
   s `motor_line` by nepřečetl B:. `mfc1test` (SAPI15) motor vybrané mechaniky zapíná.
-- Okno Média ukazuje mechaniky A–D.
+- Okno Média ukazuje mechaniky 0–3 s písmenem v CP/M (parametr `cpm`, jinak zjištěné za chodu).
 
 ## Testy z reálného HW: `SAPI15\MFC_TEST_CPM` (2010)
 

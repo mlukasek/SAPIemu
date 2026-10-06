@@ -64,6 +64,7 @@
             "slot": 5,                      // position X5
             "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
             "drive_a": {                    // Drive A (8" SS SD)
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/fdc-1/prazdna_3.5HD_CPM.img",  // Disk image - empty 3.5" HD 1.44 MB (CP/M, BIOS ECBIF3)
                 "write_protect": false      // Write protected
             },

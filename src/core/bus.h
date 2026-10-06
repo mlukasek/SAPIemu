@@ -43,6 +43,13 @@ struct Bus {
     uint64_t conflicts = 0;
     uint16_t pc = 0;            // address of the current instruction (set by the CPU card)
 
+    // CP/M drive letters of the drives (Media window): the CPU card notes the BIOS SELDSK calls
+    // (cpm_seldsk = the jump table entry, found from the JP at 0000h by cpm_poll), the disk
+    // controllers give the drive of the last SELDSK to the unit of their next sector read.
+    uint16_t cpm_seldsk = 0;    // 0 = no CP/M jump table seen
+    int cpm_drive = -1;         // logical drive of the last SELDSK (0 = A:), -1 = none
+    void cpm_poll(void);        // called by the CPU card now and then
+
     // sound: the sources (MPH-1V, the keyboard beeper) add into the samples by their index
     // (audio_index of the bus time, 14.31818 MHz / 288 = 49716 per second); after each run
     // audio_collect() mixes them into `audio` (mono) for the frontend or the CLI. With

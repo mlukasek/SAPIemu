@@ -872,3 +872,19 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Testy** do souborů tiskárny nepíšou (stejný přepínač jako soubory baterií), `test_printer` si ho zapne pro
   soubory v `work/test/`.
 - **Sestavy:** `cpm_zrmd` (X3), `cpm_zrmd_dpp1` (X3 a DPP-1 kanál 1).
+
+## 2026-10-06 – Mechaniky v okně Média: číslo jednotky a písmeno v CP/M
+
+- **Proč:** písmena A:–D: v okně Média neodpovídala CP/M (ECMON má B: a C: na jednotkách 0 a 1, dlouhé CP/M D: na
+  FDC-1 jednotce 0…). Mechaniky jsou teď označené číslem jednotky řadiče (0–3), PMD32-SD si nechává svá A–D.
+- **Písmeno ze sestavy:** `"cpm": "B"` v `drive_a`–`drive_d` (RPD-1, FDC-1, MFC-1A), u PMD32-SD `"cpm": ["D", "E"]`.
+  Vyplněné ve všech sestavách CP/M, kde je známé z hlášek BIOSů. Klíče `drive_a`… zůstávají (kompatibilita),
+  v konfigurátoru jsou to Mechanika 0–3.
+- **Odhad za chodu** (když písmeno v sestavě chybí, ukáže se „asi B:“): karta CPU zachytí volání BIOS SELDSK
+  (adresa z `JP WBOOT` na 0000h, přepočítá se při zápisu do 0000–0002h a jednou za asi 30 ms) a zapamatuje si
+  registr C. Řadič přiřadí toto písmeno jednotce při nejbližším **čtení** sektoru (8272 READ DATA, RPD-1 čtení
+  dat, PMD32-SD příkazy Q a R). Zápisy se nepočítají, protože BIOS s odloženým zápisem (deblocking) zapisuje
+  předchozí disk až po výběru dalšího. Reset odhady smaže (může naběhnout jiný systém). Do stavu se neukládá.
+- **Test** `test_drive_letters`: ECMON (FDC-1, MFC-1A), monitory J. Bíby (RPD-1, FDC-1, MFC-1A), dlouhé CP/M,
+  EC1045, PMD32-SD na DPP-1 a CP/M 2.2/P na ZPS-3 (8080).
+- **MCP:** popis karty má u mechanik `unit` (dřív `drive` s písmenem), `cpm` a `cpm_seen`.

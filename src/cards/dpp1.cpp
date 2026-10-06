@@ -44,6 +44,7 @@ bool Dpp1::configure(const json& cfg, std::string& err)
     if (prn_enabled && !prn.configure(cfg["printer"], err)) return false;
     if (pmd_enabled) {
         pmd.attach(&ppi[pmd_channel]);
+        pmd.cpm_drive = &bus->cpm_drive;
         if (!pmd32_configure(pmd, cfg["pmd32sd"], probe, bus->now, name, err)) return false;
     }
     return true;
@@ -53,6 +54,7 @@ void Dpp1::reset()
 {
     ppi[0].reset();
     ppi[1].reset();
+    for (char& c : pmd.cpm_seen) c = 0;   // another system may come
     prn_wait_ack = false;   // /OBF is high after the reset; a byte being printed is acknowledged to nobody
     // /RES does not reach the PMD32-SD: it keeps running
 }

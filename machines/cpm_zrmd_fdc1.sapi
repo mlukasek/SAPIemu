@@ -64,6 +64,7 @@
             "slot": 5,                      // position X5
             "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
             "drive_a": {                    // Drive A (8" SS SD)
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/rpd-1/CPM22P_48A_Perina.img",  // Disk image (.img, 77 x 26 x 128 B)
                 "write_protect": false      // Write protected
             },

@@ -45,6 +45,7 @@
             "slot": 5,                      // position X5
             "type": "RPD-1",                // Floppy disk controller (boards A + B)
             "drive_a": {                    // Drive A (8" SS SD)
+                "cpm": "A",                 // CP/M letter (Media window)
                 "image": "media/rpd-1/CPM22P_62A_Perina.img",  // Disk image (.img, 77 x 26 x 128 B) - CP/M 2.2/P 62K (Perina, AND-1A)
                 "write_protect": false      // Write protected
             },

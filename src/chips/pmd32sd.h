@@ -42,6 +42,10 @@ public:
     static bool safe_path(const std::string& rel, bool allow_dirs);
 
     bool card_locked = false;      // SD card write lock switch
+    // CP/M letters of drives A-D: from the machine description, and seen at a sector read
+    // (the drive of the last BIOS SELDSK, *cpm_drive = Bus::cpm_drive)
+    char cpm_cfg[DRIVES] = {}, cpm_seen[DRIVES] = {};
+    const int* cpm_drive = nullptr;
     uint32_t startup_ms = 0;       // the real firmware shows its banner for 3 s after power on
     const std::string& root(void) const { return sd_root; }
 

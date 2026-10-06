@@ -47,6 +47,7 @@ bool ide_create_image(const std::string& path, int mb, std::string& err)
 bool Ide1::configure(const json& cfg, std::string& err)
 {
     long long v;
+    pmd.cpm_drive = &bus->cpm_drive;
     if (!cfg_number(cfg, "ide_base", v, 0x58, err)) return false;
     base_ide = (uint8_t)(v & 0xFC);
     if (!cfg_number(cfg, "pmd_base", v, 0x5C, err)) return false;
@@ -88,6 +89,7 @@ void Ide1::reset()
     ppi_pmd.reset();
     last_pc = 0;
     data_lo = data_hi = 0xFF;
+    for (char& c : pmd.cpm_seen) c = 0;   // another system may come
     // /RES does not reach the PMD32-SD: it keeps running (power on in configure())
 }
 

@@ -360,6 +360,7 @@ void I8272::start_exec(uint64_t now)
         gpl = cmd[7];
         dtl = cmd[8];
     }
+    if (op == OP_READ && host) host->fdc_reading(unit);
     st1 = st2 = 0;
     tc = overrun = false;
     saw_id = false;

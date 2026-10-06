@@ -464,14 +464,18 @@ static const ParamOption k_rpd1_disks[] = {
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_rpd1[] = {
-    { "drive_a", PK_SECTION, "Drive A (8\" SS SD)", "Mechanika A (8\" SS SD)", "true", nullptr, 0, 0 },
+    { "drive_a", PK_SECTION, "Drive 0 (8\" SS SD)", "Mechanika 0 (8\" SS SD)", "true", nullptr, 0, 0 },
     { "drive_a.image", PK_FILE, "Disk image (.img 77 x 26 x 128 B, or ImageDisk .imd of such a disk)", "Obraz diskety (.img 77 x 26 x 128 B, nebo ImageDisk .imd takové diskety)", "\"\"",
       k_rpd1_disks, 0, 0 },
     { "drive_a.write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
-    { "drive_b", PK_SECTION, "Drive B (8\" SS SD)", "Mechanika B (8\" SS SD)", "false", nullptr, 0, 0 },
+    { "drive_a.cpm", PK_TEXT, "CP/M letter of the drive (Media window; empty = seen while running)",
+      "Písmeno mechaniky v CP/M (okno Média; prázdné = zjistí se za chodu)", "\"\"", nullptr, 0, 0 },
+    { "drive_b", PK_SECTION, "Drive 1 (8\" SS SD)", "Mechanika 1 (8\" SS SD)", "false", nullptr, 0, 0 },
     { "drive_b.image", PK_FILE, "Disk image (.img 77 x 26 x 128 B, or ImageDisk .imd of such a disk)", "Obraz diskety (.img 77 x 26 x 128 B, nebo ImageDisk .imd takové diskety)", "\"\"",
       k_rpd1_disks, 0, 0 },
     { "drive_b.write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+    { "drive_b.cpm", PK_TEXT, "CP/M letter of the drive (Media window; empty = seen while running)",
+      "Písmeno mechaniky v CP/M (okno Média; prázdné = zjistí se za chodu)", "\"\"", nullptr, 0, 0 },
     { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
     { "step_ms", PK_CHOICE, "Drive: step period", "Mechanika: perioda kroku", "8", k_rpd1_step, 0, 0 },
     { "settle_ms", PK_INT, "Drive: head load settle time (ms)", "Mechanika: ustálení přiklopené hlavy (ms)", "35",
@@ -524,12 +528,14 @@ static const ParamOption k_fdc1_sw[] = {
     { k ".image", PK_FILE, "Disk image (.img by its size: 8\" SS SD, PC 3.5\"/5.25\" HD/DD; or ImageDisk .imd)",                \
       "Obraz diskety (.img podle velikosti: 8\" SS SD, PC 3,5\"/5,25\" HD/DD; nebo ImageDisk .imd)", "\"\"",         \
       k_fdc1_disks, 0, 0 },                                                                                              \
-    { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+    { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },                    \
+    { k ".cpm", PK_TEXT, "CP/M letter of the drive (Media window; empty = seen while running)",              \
+      "Písmeno mechaniky v CP/M (okno Média; prázdné = zjistí se za chodu)", "\"\"", nullptr, 0, 0 },
 static const CardParam k_fdc1[] = {
-    FDC1_DRIVE("drive_a", "A", "true")
-    FDC1_DRIVE("drive_b", "B", "false")
-    FDC1_DRIVE("drive_c", "C", "false")
-    FDC1_DRIVE("drive_d", "D", "false")
+    FDC1_DRIVE("drive_a", "0", "true")
+    FDC1_DRIVE("drive_b", "1", "false")
+    FDC1_DRIVE("drive_c", "2", "false")
+    FDC1_DRIVE("drive_d", "3", "false")
     { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
     { "decoder", PK_FILE, "PROM D5B (FDC-1A): port decoder", "PROM D5B (FDC-1A): dekodér portů",
       "\"roms/fdc-1/FDC-1A_D5B_74S287.bin\"", k_fdc1_dec, 0, 0 },
@@ -588,12 +594,14 @@ static const ParamOption k_mfc1a_wiring[] = {
     { k ".image", PK_FILE, "Disk image (.img by its size: 8\" SS SD, PC 3.5\"/5.25\" HD/DD; or ImageDisk .imd)",                \
       "Obraz diskety (.img podle velikosti: 8\" SS SD, PC 3,5\"/5,25\" HD/DD; nebo ImageDisk .imd)", "\"\"",         \
       k_mfc1a_disks, 0, 0 },                                                                                             \
-    { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },
+    { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },                    \
+    { k ".cpm", PK_TEXT, "CP/M letter of the drive (Media window; empty = seen while running)",              \
+      "Písmeno mechaniky v CP/M (okno Média; prázdné = zjistí se za chodu)", "\"\"", nullptr, 0, 0 },
 static const CardParam k_mfc1a[] = {
-    MFC1A_DRIVE("drive_a", "A", "true")
-    MFC1A_DRIVE("drive_b", "B", "false")
-    MFC1A_DRIVE("drive_c", "C", "false")
-    MFC1A_DRIVE("drive_d", "D", "false")
+    MFC1A_DRIVE("drive_a", "0", "true")
+    MFC1A_DRIVE("drive_b", "1", "false")
+    MFC1A_DRIVE("drive_c", "2", "false")
+    MFC1A_DRIVE("drive_d", "3", "false")
     { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
     { "decoder", PK_FILE, "PROM DD9: port decoder", "PROM DD9: dekodér portů", "\"roms/mfc-1a/MFC-1A_DD9_74S287.bin\"",
       k_mfc1a_dec, 0, 0 },
@@ -925,10 +933,14 @@ static const CardParam k_dpp1[] = {
     { "pmd32sd.sd_card", PK_DIR, "SD card (directory)", "SD karta (složka)", "\"media/pmd32sd\"", k_none, 0, 0 },
     { "pmd32sd.working_copy", PK_BOOL, "Work on a copy in work/", "Pracovat s kopií ve work/", "true",
       nullptr, 0, 0 },
-    { "pmd32sd.drives.0", PK_TEXT, "Drive A (CP/M D:)", "Mechanika A (CP/M D:)", "null", nullptr, 0, 0 },
-    { "pmd32sd.drives.1", PK_TEXT, "Drive B (CP/M E:)", "Mechanika B (CP/M E:)", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.0", PK_TEXT, "Drive A", "Mechanika A", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.1", PK_TEXT, "Drive B", "Mechanika B", "null", nullptr, 0, 0 },
     { "pmd32sd.drives.2", PK_TEXT, "Drive C", "Mechanika C", "null", nullptr, 0, 0 },
     { "pmd32sd.drives.3", PK_TEXT, "Drive D", "Mechanika D", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.0", PK_TEXT, "Drive A: CP/M letter (empty = seen while running)", "Mechanika A: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.1", PK_TEXT, "Drive B: CP/M letter (empty = seen while running)", "Mechanika B: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.2", PK_TEXT, "Drive C: CP/M letter (empty = seen while running)", "Mechanika C: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.3", PK_TEXT, "Drive D: CP/M letter (empty = seen while running)", "Mechanika D: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
     { "pmd32sd.card_locked", PK_BOOL, "SD card write protected", "SD karta chráněná proti zápisu", "false",
       nullptr, 0, 0 },
     { "pmd32sd.startup_ms", PK_INT, "Start-up delay (ms, real 3000)", "Prodleva po zapnutí (ms, skutečně 3000)",
@@ -955,10 +967,14 @@ static const CardParam k_ide1[] = {
     { "pmd32sd.sd_card", PK_DIR, "SD card (directory)", "SD karta (složka)", "\"media/pmd32sd\"", k_none, 0, 0 },
     { "pmd32sd.working_copy", PK_BOOL, "Work on a copy in work/", "Pracovat s kopií ve work/", "true",
       nullptr, 0, 0 },
-    { "pmd32sd.drives.0", PK_TEXT, "Drive A (CP/M D:)", "Mechanika A (CP/M D:)", "null", nullptr, 0, 0 },
-    { "pmd32sd.drives.1", PK_TEXT, "Drive B (CP/M E:)", "Mechanika B (CP/M E:)", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.0", PK_TEXT, "Drive A", "Mechanika A", "null", nullptr, 0, 0 },
+    { "pmd32sd.drives.1", PK_TEXT, "Drive B", "Mechanika B", "null", nullptr, 0, 0 },
     { "pmd32sd.drives.2", PK_TEXT, "Drive C", "Mechanika C", "null", nullptr, 0, 0 },
     { "pmd32sd.drives.3", PK_TEXT, "Drive D", "Mechanika D", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.0", PK_TEXT, "Drive A: CP/M letter (empty = seen while running)", "Mechanika A: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.1", PK_TEXT, "Drive B: CP/M letter (empty = seen while running)", "Mechanika B: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.2", PK_TEXT, "Drive C: CP/M letter (empty = seen while running)", "Mechanika C: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
+    { "pmd32sd.cpm.3", PK_TEXT, "Drive D: CP/M letter (empty = seen while running)", "Mechanika D: písmeno v CP/M (prázdné = zjistí se za chodu)", "null", nullptr, 0, 0 },
     { "pmd32sd.card_locked", PK_BOOL, "SD card write protected", "SD karta chráněná proti zápisu", "false",
       nullptr, 0, 0 },
     { "pmd32sd.startup_ms", PK_INT, "Start-up delay (ms, real 3000)", "Prodleva po zapnutí (ms, skutečně 3000)",

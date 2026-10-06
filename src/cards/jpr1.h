@@ -64,6 +64,7 @@ private:
     i8080 cpu;
     uint32_t cpu_hz = 2000000;
     uint64_t next_sync = 0;
+    unsigned cpm_ticks = 0;
     int extra = 0;                       // wait states of the current instruction
     bool wait_jumper = false;            // 12-14: one wait state per memory access
 

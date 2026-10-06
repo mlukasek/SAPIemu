@@ -62,6 +62,7 @@ private:
     uint64_t pins = 0;
     int stall = 0;                // remaining wait-state cycles
     uint64_t next_sync = 0;
+    unsigned cpm_ticks = 0;
     uint32_t cpu_hz = 2000000;
     uint32_t bus_hz = 2000000;
 

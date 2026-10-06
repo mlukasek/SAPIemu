@@ -64,6 +64,7 @@
             "slot": 5,                      // position X5
             "type": "MFC-1A",               // Mini floppy controller 8272 + DMA
             "drive_a": {                    // Drive A (8" SS SD)
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/rpd-1/CPM22P_48A_Perina.img",  // Disk image (.img, 77 x 26 x 128 B) - CP/M 2.2/P 48K (Perina), as a data disk
                 "write_protect": false      // Write protected
             },

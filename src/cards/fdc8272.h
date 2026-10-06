@@ -26,6 +26,7 @@ public:
     // I8272Host: DMA channel 2 of the 8257
     bool fdc_dma(bool to_memory, uint8_t& byte, bool& tc) override;
     uint64_t fdc_turning_from(int unit) override { return turning_from[unit & 3]; }
+    void fdc_reading(int unit) override;
 
     static const int DRIVES = 4;
     FloppyDrive drives[DRIVES];

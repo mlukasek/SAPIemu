@@ -395,6 +395,9 @@ void Pmd32Sd::run(void)
                 DO(OP_READ_EX, 0, WAIT_BYTE_TIMEOUT);
                 if (!op_ok) { op = FW_ERROR; goto after_parse; }
                 track = op_byte;
+                if ((command == 'Q' || command == 'R') && drvnum < DRIVES && cpm_drive && *cpm_drive >= 0 &&
+                    *cpm_drive < 16)
+                    cpm_seen[drvnum] = (char)('A' + *cpm_drive);
                 if (command == 'Q' || command == 'R' || command == 'F') {
                     DO(OP_CRC_CHECK, 0, WAIT_BYTE_TIMEOUT);
                     if (!op_ok) { op = FW_ERROR; goto after_parse; }

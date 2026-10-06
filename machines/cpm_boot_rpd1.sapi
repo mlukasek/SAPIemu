@@ -64,10 +64,12 @@
             "slot": 5,                      // position X5
             "type": "RPD-1",                // Floppy disk controller (boards A + B)
             "drive_a": {
+                "cpm": "A",                 // CP/M letter (Media window)
                 "image": "media/sapiman/r1_zrmd4m_271111.img",  // Boot disk (J. Biba)
                 "write_protect": false
             },
             "drive_b": {
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/rpd-1/CPM22P_48A_Perina.img",  // CP/M 2.2/P 48K (Perina), as a data disk
                 "write_protect": false
             },

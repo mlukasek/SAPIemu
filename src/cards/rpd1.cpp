@@ -48,6 +48,7 @@ bool Rpd1::configure(const json& cfg, std::string& err)
             const json& d = cfg[keys[i]];
             if (!cfg_string(d, "image", image, "", err)) return false;
             if (!cfg_bool(d, "write_protect", wp, false, err)) return false;
+            if (!cfg_letter(d, drives[i].cpm_cfg, err)) return false;
         }
         drives[i].image = image;
         drives[i].write_protect = wp;
@@ -90,6 +91,7 @@ void Rpd1::flush()
 
 void Rpd1::reset()
 {
+    for (Drive& d : drives) d.cpm_seen = 0;   // another system may come
     ctrl = 0;
     drive_ctrl = 0;
     sel = 0;
@@ -186,6 +188,7 @@ void Rpd1::control(uint8_t v)
         stream_b = byte_now() + 1;
         consumed_b = stream_b - 1;
     }
+    if ((v & C_RE) && (v & C_RDM)) cur().seen_as(bus->cpm_drive);   // a sector read: its CP/M drive
     if ((v & C_RE) && (v & (C_RAM | C_RDM))) {
         build_track();
         uint64_t b0 = byte_now() + 1;
@@ -459,9 +462,11 @@ void Rpd1::describe(json& out)
     json drv = json::array();
     for (int i = 0; i < DRIVES; i++) {
         const Drive& d = drives[i];
-        drv.push_back({ { "drive", std::string(1, (char)('A' + i)) }, { "image", d.image }, { "path", d.path },
+        drv.push_back({ { "unit", i }, { "image", d.image }, { "path", d.path },
                         { "inserted", !d.data.empty() }, { "write_protect", d.write_protect },
-                        { "modified", d.dirty }, { "track", d.track } });
+                        { "modified", d.dirty }, { "track", d.track },
+                        { "cpm", d.cpm_cfg ? std::string(1, d.cpm_cfg) : d.cpm_seen ? std::string(1, d.cpm_seen) : std::string() },
+                        { "cpm_seen", d.cpm_seen ? std::string(1, d.cpm_seen) : std::string() } });
     }
     out["drives"] = drv;
     out["selected"] = sel;

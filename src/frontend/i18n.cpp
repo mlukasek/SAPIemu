@@ -223,6 +223,11 @@ static const Translation k_table[] = {
     { "CR = new line", "CR = nový řádek" },
     { "Media", "Média" },
     { "Printer", "Tiskárna" },
+    { "probably", "asi" },
+    { "Unit of the controller. The CP/M letter is from the machine description, \"probably\" "
+      "= seen while running (the drive of the last BIOS SELDSK at a sector read).",
+      "Jednotka řadiče. Písmeno v CP/M je ze sestavy, „asi“ = zjištěné za chodu (disk posledního volání BIOS SELDSK "
+      "při čtení sektoru)." },
     { "printer", "tiskárna" },
     { "New sheet", "Nový papír" },
     { "Copy text", "Kopírovat text" },

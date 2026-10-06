@@ -58,6 +58,7 @@
                     null,                   // Drive C
                     null                    // Drive D
                 ],
+                "cpm": ["C", "D", null, null], // CP/M letters of drives A-D (Media window)
                 "card_locked": false,       // SD card write protected
                 "startup_ms": 0             // Start-up delay (ms, real 3000)
             }
@@ -66,10 +67,12 @@
             "slot": 5,                      // position X5
             "type": "FDC-1",                // Floppy disk controller 8272 + DMA (boards A + B)
             "drive_a": {
+                "cpm": "A",                 // CP/M letter (Media window)
                 "image": "media/sapiman/f2_pmd2d2m_140212.img",  // Boot disk (J. Biba), C:, D: = PMD32-SD
                 "write_protect": false
             },
             "drive_b": {
+                "cpm": "B",                 // CP/M letter (Media window)
                 "image": "media/rpd-1/CPM22P_48A_Perina.img",  // CP/M 2.2/P 48K (Perina), as a data disk
                 "write_protect": false
             },

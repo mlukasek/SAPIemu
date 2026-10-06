@@ -94,6 +94,9 @@ struct FloppyDrive {
     bool write_protect = false;
     bool dirty = false;
     int track = 0;                // head position
+    char cpm_cfg = 0;             // CP/M letter of the drive from the machine description (0 = not given)
+    char cpm_seen = 0;            // CP/M letter seen while running (Bus::cpm_drive at a sector read)
+    void seen_as(int cpm_drive) { if (cpm_drive >= 0 && cpm_drive < 16) cpm_seen = (char)('A' + cpm_drive); }
 
     // Mechanical stop of the head: an 80-track drive reaches a few tracks more (an assumption, the
     // same for all drives). Tracks formatted beyond a plain image stay in memory until the disk is

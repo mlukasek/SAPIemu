@@ -123,4 +123,6 @@ public:
 // Helpers for reading configuration values.
 bool cfg_number(const nlohmann::json& cfg, const char* key, long long& out, long long def, std::string& err);
 bool cfg_bool(const nlohmann::json& cfg, const char* key, bool& out, bool def, std::string& err);
+// "cpm": the CP/M letter of a drive ("C" or "C:"), out = 0 when not given
+bool cfg_letter(const nlohmann::json& cfg, char& out, std::string& err);
 bool cfg_string(const nlohmann::json& cfg, const char* key, std::string& out, const char* def, std::string& err);

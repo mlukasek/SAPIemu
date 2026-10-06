@@ -239,6 +239,21 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     ImGui::PopID();
 }
 
+// " (C:)" from the machine description, " (probably C:)" seen while running, else nothing
+static std::string cpm_suffix(char cfg, char seen)
+{
+    if (cfg) return std::string(" (") + cfg + ":)";
+    if (seen) return std::string(" (") + tr("probably") + " " + seen + ":)";
+    return std::string();
+}
+
+static void cpm_tooltip(void)
+{
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Unit of the controller. The CP/M letter is from the machine description, \"probably\" "
+                                   "= seen while running (the drive of the last BIOS SELDSK at a sector read)."));
+}
+
 static void draw_pmd32(Pmd32Sd* p)
 {
     std::vector<std::string> images = p->list_images();
@@ -248,11 +263,8 @@ static void draw_pmd32(Pmd32Sd* p)
         ImGui::PushID(d);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("%c:", 'A' + d);
-        if (d < 2) {
-            ImGui::SameLine();
-            ImGui::TextDisabled("(CP/M %c:)", 'D' + d);
-        }
+        ImGui::Text("%c%s", 'A' + d, cpm_suffix(p->cpm_cfg[d], p->cpm_seen[d]).c_str());
+        cpm_tooltip();
         ImGui::TableNextColumn();
         std::string cur = p->drive_present(d) ? p->drive_path(d) : std::string(tr("(empty)"));
         ImGui::SetNextItemWidth(260);
@@ -445,7 +457,8 @@ static void draw_floppies(UiState& ui, Card* r)
     for (int i = 0; r->floppy_drive(i); i++) {
         FloppyDrive& d = *r->floppy_drive(i);
         ImGui::PushID(i);
-        ImGui::Text("%s %c:", tr("Drive"), 'A' + i);
+        ImGui::Text("%s %d%s:", tr("Drive"), i, cpm_suffix(d.cpm_cfg, d.cpm_seen).c_str());
+        cpm_tooltip();
         ImGui::SameLine();
         if (!d.present()) ImGui::TextDisabled("%s", tr("(no disk)"));
         else {

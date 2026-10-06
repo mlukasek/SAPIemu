@@ -43,6 +43,8 @@ public:
     // Time (bus cycles) from which the disk of the unit turns at full speed: 0 = always (a drive
     // without motor control), UINT64_MAX = stopped (motor off). Before it no index, no marks.
     virtual uint64_t fdc_turning_from(int unit) { return 0; }
+    // READ DATA of the unit started (the CP/M letter of the drive is learnt from it).
+    virtual void fdc_reading(int unit) {}
 };
 
 struct I8272 {

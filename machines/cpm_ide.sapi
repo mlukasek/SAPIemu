@@ -67,6 +67,7 @@
                     null,                   // Drive C
                     null                    // Drive D
                 ],
+                "cpm": ["D", "E", null, null], // CP/M letters of drives A-D (Media window)
                 "card_locked": false,       // SD card write protected
                 "startup_ms": 0             // Start-up delay (ms, real 3000)
             }

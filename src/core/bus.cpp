@@ -77,6 +77,7 @@ void Bus::mem_write(uint16_t addr, uint8_t data)
     for (Card* c : cards)
         c->mem_write(addr, data);
     if (any_mem_watch && (mem_watch[addr] & WATCH_WRITE)) watch_hit("write", addr, data);
+    if (addr <= 2) cpm_poll();   // JP WBOOT written: the BIOS jump table is known before the first SELDSK
 }
 
 uint8_t Bus::io_read(uint8_t port)
@@ -125,9 +126,21 @@ uint8_t Bus::mem_peek(uint16_t addr)
     return OPEN_BUS;
 }
 
+void Bus::cpm_poll(void)
+{
+    // CP/M page zero: JP WBOOT (BIOS base + 3); SELDSK is entry 9 of the BIOS jump table
+    cpm_seldsk = 0;
+    if (mem_peek(0x0000) != 0xC3) return;
+    uint16_t wboot = (uint16_t)(mem_peek(0x0001) | (mem_peek(0x0002) << 8));
+    uint16_t seldsk = (uint16_t)(wboot - 3 + 27);
+    if (wboot >= 0x0103 && mem_peek(seldsk) == 0xC3 && mem_peek(wboot) == 0xC3) cpm_seldsk = seldsk;
+}
+
 void Bus::reset(void)
 {
     map = 0;
+    cpm_seldsk = 0;
+    cpm_drive = -1;
     for (Card* c : cards) c->reset();
     update_map();
 }

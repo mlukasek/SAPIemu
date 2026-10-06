@@ -51,7 +51,8 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 - **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů
   a paměti. Kartu změníte kliknutím na slot. Některé propojky platí hned („platí hned“).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV.
-- **Média:** Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
+- **Média:** mechaniky jsou očíslované podle řadiče (0–3) a za číslem je jejich písmeno v CP/M (ze sestavy,
+  nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
 - **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,
