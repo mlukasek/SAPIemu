@@ -409,6 +409,15 @@ Všechny jsou v Intel HEX (24 B na záznam, CR LF, závěr `:00000001FF` bez sta
   - v emulátoru je to sériový kanál „K2 RS-232 (Redukce34KB01)“. Znaky z PC se vysílají za sebou rychlostí `rx_baud`
     (výchozí 19200) s `rx_stop_bits` stop bity (výchozí 2): start bit, 8 bitů od LSB, stop bity. Úroveň se počítá
     z času sběrnice při každém čtení P1;
+  - **BOOT z PC** (sestava `jpr1s_bgp1s`, TCP 2325, protokol raw): v monitoru `BOOT` (vypíše „FORMAT: INTELHEX,
+    PARAM: 19200BD,START+8DATA+2STOP, INPUT: MSB AT PORT1 (2800H)“), pak poslat soubor HEX na 127.0.0.1:2325,
+    např. Tera Term (TCP/IP, služba Other, Soubor → Poslat soubor, binárně) nebo v PowerShellu:
+    `$c = New-Object Net.Sockets.TcpClient('127.0.0.1', 2325); $b = [IO.File]::ReadAllBytes('media\jpr-1s\auto.hex');
+    $c.GetStream().Write($b, 0, $b.Length); Start-Sleep 5; $c.Close()`. Linka běží rychlostí 19200 Bd jako
+    skutečná (Manic Miner asi 32 s při rychlosti emulace 100 %), BIOS pak vypíše „DONE“; spustit `JUMP 4400`.
+    Okno sériového terminálu v GUI soubory posílat neumí;
+  - ověřeno 2026-10-06 naživo (emulátor v reálném čase, MCP, TCP): `manic_miner.hex` (55 078 znaků) přenesen,
+    21 663 bajtů v paměti 4400–989E bez chyby, hra po `JUMP 4400` běží;
   - test: BOOT načte `auto.hex` po lince bez chyby (1964 bajtů).
 - Sestavy:
   - `machines/jpr1s_bgp1s.sapi`: MIKROBIOS 1.02, BGP-1S, ANK-1M2, redukce, TCP 2325 raw;

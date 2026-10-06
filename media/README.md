@@ -124,7 +124,8 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 ## `jpr-1s/` – programy pro JPR-1S s BGP-1S (Intel HEX od 4400h)
 
 Zdroj: `..\SAPI-karty\JPR-1S\jpr1s_sw\` (doplnil autor 2026-10-06). Sestava `jpr1s_bgp1s`: Soubor → Nahrát
-program (Intel HEX), nebo BOOT po sériové lince (redukce Redukce34KB01), pak `JUMP 4400`.
+program (Intel HEX), nebo jako na stroji `BOOT` a soubor poslat po sériové lince redukce Redukce34KB01 na TCP
+127.0.0.1:2325 (raw, např. Tera Term → Poslat soubor; postup v `docs/desky/JPR-1S.md`), pak `JUMP 4400`.
 
 | Soubor | Obsah |
 |---|---|
