@@ -1055,6 +1055,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_diag = snap->diag;
+        app.ui.show_terminal = snap->terminal;
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;
     }
@@ -1165,6 +1166,24 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 if (v.is_discarded()) v = val;
                 for (nlohmann::json& c : cards)
                     if (c.value("slot", 0) == slot) c[key] = v;
+            }
+        }
+        if (snap && snap->terminal && snap_frames == 9 && !app.ui.terms.empty()) {
+            // late, so that what the machine sends at start does not push the text away
+            TerminalState& t = app.ui.terms[0];
+            std::string text = snap->term_text;
+            for (size_t p; (p = text.find("\\n")) != std::string::npos;) text.replace(p, 2, "\r\n");
+            if (!text.empty()) {   // only this text: line indexes of the selection from 0
+                terminal_clear(t);
+                terminal_feed(t, text);
+            }
+            unsigned l0, c0, l1, c1;
+            if (sscanf(snap->term_sel.c_str(), "%u,%u-%u,%u", &l0, &c0, &l1, &c1) == 4) {
+                t.sel = true;
+                t.sel_line0 = t.dropped + l0;
+                t.sel_col0 = (int)c0;
+                t.sel_line1 = t.dropped + l1;
+                t.sel_col1 = (int)c1;
             }
         }
         if (snap && snap_frames >= 12) {

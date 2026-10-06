@@ -70,5 +70,51 @@ int main(void)
         CHECK(t.lines[0] == "abcd");
         CHECK(t.lines[1] == "ef");
     }
+    // copy: everything without trailing spaces and empty lines, or the selection
+    {
+        TerminalState t;
+        t.cr_newline = true;
+        terminal_feed(t, "first line  \rsecond\r\rthird word\r\r");
+        CHECK(!terminal_has_selection(t));
+        CHECK(terminal_copy_text(t) == "first line\nsecond\n\nthird word");
+        // from column 6 of line 0 to column 3 of line 3, dragged backwards
+        t.sel = true;
+        t.sel_line0 = 3; t.sel_col0 = 3;
+        t.sel_line1 = 0; t.sel_col1 = 6;
+        CHECK(terminal_has_selection(t));
+        CHECK(terminal_copy_text(t) == "line\nsecond\n\nthi");
+        int c0 = -1, c1 = -1;
+        CHECK(terminal_sel_span(t, 0, &c0, &c1) && c0 == 6 && c1 == t.cols);
+        CHECK(terminal_sel_span(t, 1, &c0, &c1) && c0 == 0 && c1 == t.cols);
+        CHECK(terminal_sel_span(t, 3, &c0, &c1) && c0 == 0 && c1 == 3);
+        CHECK(!terminal_sel_span(t, 4, &c0, &c1));
+        t.sel_line1 = 3; t.sel_col1 = 3;   // a click without dragging selects nothing
+        CHECK(!terminal_has_selection(t));
+        CHECK(terminal_copy_text(t) == "first line\nsecond\n\nthird word");
+        terminal_select_word(t, 3, 8);
+        CHECK(terminal_copy_text(t) == "word");
+        terminal_select_word(t, 3, 5);     // a space: nothing
+        CHECK(!terminal_has_selection(t));
+        terminal_select_line(t, 1);
+        CHECK(terminal_copy_text(t) == "second");
+        terminal_clear(t);
+        CHECK(!terminal_has_selection(t) && terminal_copy_text(t).empty());
+    }
+    // the selection stays on its text when the scrollback drops lines from the top
+    {
+        TerminalState t;
+        t.cr_newline = true;
+        for (int i = 0; i < 3000; i++) terminal_feed(t, i == 2999 ? "keep me\r" : "x\r");
+        int i = (int)t.lines.size() - 2;
+        CHECK(t.lines[i] == "keep me");
+        terminal_select_word(t, i, 0);
+        terminal_feed(t, "more\rand more\r");
+        CHECK(t.dropped > 0);
+        CHECK(terminal_copy_text(t) == "keep");
+    }
+    // control codes copy as spaces
+    {
+        CHECK(terminal_line_utf8("A\x01") == "A ");
+    }
     return TEST_RESULT();
 }

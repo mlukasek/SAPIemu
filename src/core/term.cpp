@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "core/charset.h"
 
 static const size_t MAX_LINES = 3000;
 
@@ -24,6 +25,7 @@ static void trim_scrollback(TerminalState& t)
     if (t.lines.size() <= MAX_LINES) return;
     size_t drop = t.lines.size() - MAX_LINES;
     t.lines.erase(t.lines.begin(), t.lines.begin() + drop);
+    t.dropped += drop;
     t.row -= (int)drop;
     if (t.row < 0) t.row = 0;
 }
@@ -219,5 +221,113 @@ void terminal_feed(TerminalState& t, const std::string& data)
     }
     ensure_row(t);
     t.scroll_to_bottom = true;
+}
+
+void terminal_clear(TerminalState& t)
+{
+    t.dropped += t.lines.size();
+    t.lines.clear();
+    t.row = t.col = 0;
+    t.sel = false;
+}
+
+// ---------------------------------------------------------------- selection
+
+std::string terminal_line_utf8(const std::string& codes)
+{
+    std::string s;
+    for (char c : codes) {
+        uint8_t b = (uint8_t)c;
+        s += (b >= 0x20) ? sapi_code_to_utf8(b) : " ";
+    }
+    return s;
+}
+
+// The selection ordered: from (*l0, *c0) to (*l1, *c1); false when there is none or it is empty.
+static bool sel_range(const TerminalState& t, uint64_t* l0, int* c0, uint64_t* l1, int* c1)
+{
+    if (!t.sel) return false;
+    bool swap = t.sel_line1 < t.sel_line0 || (t.sel_line1 == t.sel_line0 && t.sel_col1 < t.sel_col0);
+    *l0 = swap ? t.sel_line1 : t.sel_line0;
+    *c0 = swap ? t.sel_col1 : t.sel_col0;
+    *l1 = swap ? t.sel_line0 : t.sel_line1;
+    *c1 = swap ? t.sel_col0 : t.sel_col1;
+    return *l0 != *l1 || *c0 != *c1;
+}
+
+bool terminal_has_selection(const TerminalState& t)
+{
+    uint64_t l0, l1;
+    int c0, c1;
+    return sel_range(t, &l0, &c0, &l1, &c1);
+}
+
+bool terminal_sel_span(const TerminalState& t, int i, int* c0, int* c1)
+{
+    uint64_t l0, l1;
+    int a, b;
+    if (i < 0 || !sel_range(t, &l0, &a, &l1, &b)) return false;
+    uint64_t l = t.dropped + (uint64_t)i;
+    if (l < l0 || l > l1) return false;
+    *c0 = l == l0 ? a : 0;
+    *c1 = l == l1 ? b : t.cols;
+    return *c0 < *c1;
+}
+
+std::string terminal_copy_text(const TerminalState& t)
+{
+    uint64_t l0, l1;
+    int c0, c1;
+    if (!sel_range(t, &l0, &c0, &l1, &c1)) {   // everything
+        l0 = t.dropped;
+        c0 = 0;
+        l1 = t.dropped + t.lines.size();
+        c1 = 0;
+    }
+    std::string all;
+    size_t last = 0;   // without the empty lines at the end
+    for (uint64_t l = l0; l <= l1; l++) {
+        if (l > l0) all += '\n';
+        if (l < t.dropped || l - t.dropped >= t.lines.size()) continue;
+        const std::string& line = t.lines[(size_t)(l - t.dropped)];
+        size_t a = l == l0 ? (size_t)c0 : 0;
+        size_t b = l == l1 ? (size_t)c1 : line.size();
+        if (b > line.size()) b = line.size();
+        std::string s = a < b ? terminal_line_utf8(line.substr(a, b - a)) : std::string();
+        while (!s.empty() && s.back() == ' ') s.pop_back();
+        all += s;
+        if (!s.empty()) last = all.size();
+    }
+    all.resize(last);
+    return all;
+}
+
+static bool is_word(const std::string& l, int c)
+{
+    return c >= 0 && c < (int)l.size() && (uint8_t)l[c] > 0x20;
+}
+
+void terminal_select_word(TerminalState& t, int i, int c)
+{
+    t.sel = false;
+    if (i < 0 || i >= (int)t.lines.size() || !is_word(t.lines[i], c)) return;
+    const std::string& l = t.lines[i];
+    int a = c, b = c;
+    while (is_word(l, a - 1)) a--;
+    while (is_word(l, b)) b++;
+    t.sel = true;
+    t.sel_line0 = t.sel_line1 = t.dropped + (uint64_t)i;
+    t.sel_col0 = a;
+    t.sel_col1 = b;
+}
+
+void terminal_select_line(TerminalState& t, int i)
+{
+    t.sel = false;
+    if (i < 0 || i >= (int)t.lines.size()) return;
+    t.sel = true;
+    t.sel_line0 = t.sel_line1 = t.dropped + (uint64_t)i;
+    t.sel_col0 = 0;
+    t.sel_col1 = t.cols;
 }
 

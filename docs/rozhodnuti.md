@@ -1012,7 +1012,7 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Tři způsoby** (autor): soubor tak, jak je; textový soubor (UTF-8 → kódy SAPI, konce řádků → CR, stejně jako
   psaní); XMODEM. XMODEM je v jádru (`core/xmodem`), ne v GUI, kvůli testu a případnému MCP. Časový limit
   (10 s bez odpovědi = poslat znovu) počítá GUI v reálném čase.
-- **Schránka:** kopíruje se celý text terminálu (výběr myší zatím ne). Ctrl+C a Ctrl+V musí dál chodit do SAPI
+- **Schránka:** kopíruje se výběr myší, bez výběru celý text terminálu (výběr doplněn 2026-10-06, viz níže). Ctrl+C a Ctrl+V musí dál chodit do SAPI
   jako řídicí znaky, proto zkratky **Alt+C / Alt+V jako v TeraTermu** (autor) a Ctrl/Shift+Insert; AltGr
   (Ctrl+Alt) dál píše znaky.
 - **Příjem XMODEM** (autor): XMODEM nenese jméno souboru, proto se cíl zvolí dialogem „Uložit jako“ předem (jako
@@ -1102,3 +1102,14 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   ve dvou verzích, s přerušením 3214 (JPR-1X) a čtením portu (JPR-1S i JPR-1X), vlastní assembler `tools/asm8080.py`.
 - **BGP-1S bez přerušení v `jpr1x_bgp1s`:** na JPR-1X je tlačítko + na stejném vodiči jako /INT0 a BGP-1S (S2 =
   INT0) by ho držela stisknuté. Přerušení BGP-1S nikdo nepoužívá.
+
+## 2026-10-06 – Výběr myší v okně terminálu
+
+- **Jako v běžném terminálu:** výběr jde po proudu textu (od místa stisku po místo puštění, přes řádky), ne obdélník.
+  Hranice jsou mezi znaky (nejbližší hranice buňky), dvojklik = slovo (znaky bez mezer), trojklik = řádek.
+- **Kopírovat** (tlačítko, Alt+C, Ctrl+Insert, menu) bere výběr, bez výběru celý text jako dřív. Prostý klik výběr
+  zruší, takže se „celý text“ dá dostat vždy.
+- **Výběr drží svůj text** i když historie (3000 řádků) odroluje: řádky se počítají absolutně (`dropped` + index).
+  Logika je v jádru (`core/term`), test `test_term`; GUI jen převádí myš na buňky a kreslí podklad.
+- **Okno se tažením v textu nehýbe** (`NoMove` u textové části), jinak by ImGui tažením posouval celé okno.
+- Snímek pro ověření: `--ui-terminal`, `--ui-term-text TEXT` a `--ui-term-sel L0,C0-L1,C1`.

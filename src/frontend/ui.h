@@ -151,6 +151,7 @@ struct UiState {
     uint64_t xmodem_pos = 0;           // read position in the stream of the channel
     double xmodem_last = 0;            // ImGui time of the last answer of the receiver
     std::string term_status;           // result of the last send / copy
+    bool term_selecting = false;       // the mouse is selecting text in the terminal
 };
 
 // Serial terminal window: the clipboard (Alt+C / Alt+V as in TeraTerm, Ctrl+Insert / Shift+Insert)

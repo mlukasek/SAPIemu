@@ -1,13 +1,14 @@
 // Serial terminal window: a character cell terminal showing what SAPI sends on a
 // serial channel; typed keys are sent to SAPI. Files go to SAPI as they are, as text
 // (UTF-8 -> SAPI codes, line ends -> CR) or with XMODEM; the clipboard copies the
-// terminal text and pastes as typed text.
+// mouse selection (or the whole terminal text) and pastes as typed text.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <SDL3/SDL.h>
 #include "imgui.h"
 #include "core/charset.h"
@@ -70,24 +71,12 @@ static std::string text_codes(const std::string& utf8)
     return sapi_codes_from_utf8(s);
 }
 
-static std::string line_utf8(const std::string& l);
-
 void terminal_copy(UiState& ui)
 {
     if (ui.terminal_channel >= (int)ui.terms.size()) return;
     const TerminalState& t = ui.terms[ui.terminal_channel];
-    std::string all;
-    size_t last = 0;   // without the empty lines at the end
-    for (size_t i = 0; i < t.lines.size(); i++) {
-        std::string l = line_utf8(t.lines[i]);
-        while (!l.empty() && l.back() == ' ') l.pop_back();
-        all += l;
-        all += '\n';
-        if (!l.empty()) last = all.size();
-    }
-    all.resize(last);
-    ImGui::SetClipboardText(all.c_str());
-    ui.term_status = tr("Copied to the clipboard.");
+    ImGui::SetClipboardText(terminal_copy_text(t).c_str());
+    ui.term_status = terminal_has_selection(t) ?tr("Selection copied to the clipboard.") : tr("Copied to the clipboard.");
 }
 
 void terminal_paste(UiState& ui)
@@ -259,7 +248,7 @@ static void draw_send(UiState& ui, SerialChannel* ch)
         ImGui::SetTooltip("%s", tr("XMODEM pads the last packet with 1Ah (CP/M text ends with it). Off for binary files that end with 1Ah."));
     same_line_if_fits(tr("Copy"));
     if (ImGui::Button(tr("Copy"))) terminal_copy(ui);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("All text of the terminal to the clipboard (Alt+C, Ctrl+Insert)."));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The selection (drag with the mouse, double click = word) or all text to the clipboard (Alt+C, Ctrl+Insert)."));
     same_line_if_fits(tr("Paste"));
     if (ImGui::Button(tr("Paste"))) terminal_paste(ui);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The clipboard as typed text (Alt+V, Shift+Insert)."));
@@ -371,14 +360,51 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
     ImGui::PopID();
 }
 
-static std::string line_utf8(const std::string& l)
+// Mouse selection: dragging selects between cell boundaries, a double click a word, a triple click
+// a line. org = top left of line 0, cw x lh = one cell.
+static void term_mouse(UiState& ui, TerminalState& t, ImVec2 org, float cw, float lh)
 {
-    std::string s;
-    for (char c : l) {
-        uint8_t b = (uint8_t)c;
-        s += (b >= 0x20) ? sapi_code_to_utf8(b) : " ";
+    ImVec2 mp = ImGui::GetMousePos();
+    float fx = (mp.x - org.x) / cw;
+    int i = (int)floorf((mp.y - org.y) / lh);
+    int col = (int)floorf(fx + 0.5f);   // the nearest cell boundary
+    if (col < 0) col = 0;
+    if (col > t.cols) col = t.cols;
+    int n = (int)t.lines.size();
+    // a click into the text (a click on the scrollbar makes it active first)
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemActive()) {
+        int clicks = ImGui::GetMouseClickedCount(ImGuiMouseButton_Left);
+        ui.term_selecting = false;
+        if (clicks == 2) {
+            terminal_select_word(t, i, (int)floorf(fx));
+            return;
+        }
+        if (clicks >= 3) {
+            terminal_select_line(t, i);
+            return;
+        }
+        if (n == 0) return;
+        if (i < 0) { i = 0; col = 0; }
+        if (i >= n) { i = n - 1; col = t.cols; }
+        t.sel = true;
+        t.sel_line0 = t.sel_line1 = t.dropped + (uint64_t)i;
+        t.sel_col0 = t.sel_col1 = col;
+        ui.term_selecting = true;
+        return;
     }
-    return s;
+    if (!ui.term_selecting) return;
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) || n == 0) {
+        ui.term_selecting = false;
+        return;
+    }
+    // above or below the window: scroll a line per frame
+    float top = ImGui::GetWindowPos().y, bottom = top + ImGui::GetWindowHeight();
+    if (mp.y < top) ImGui::SetScrollY(ImGui::GetScrollY() - lh);
+    else if (mp.y > bottom) ImGui::SetScrollY(ImGui::GetScrollY() + lh);
+    if (i < 0) { i = 0; col = 0; }
+    if (i >= n) { i = n - 1; col = t.cols; }
+    t.sel_line1 = t.dropped + (uint64_t)i;
+    t.sel_col1 = col;
 }
 
 void draw_terminal(UiState& ui)
@@ -434,7 +460,7 @@ void draw_terminal(UiState& ui)
     if (ImGui::Checkbox(tr("Ready (CTS)"), &cts)) ch->cts = cts;
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("CTS/DSR: the terminal is ready to receive. Programs sending with RTS/CTS handshake (DOPC.COM, MikroMon USYNC) wait for it."));
     same_line_if_fits(tr("Clear"));
-    if (ImGui::Button(tr("Clear"))) { t.lines.clear(); t.row = t.col = 0; }
+    if (ImGui::Button(tr("Clear"))) terminal_clear(t);
     const char* emus[] = { tr("SAPI (ECMON/AND-1Z)"), "ANSI/VT100", tr("No emulation (^X)") };
     ImGui::SetNextItemWidth(180);
     ImGui::Combo("##emu", &t.emulation, emus, 3);
@@ -450,7 +476,9 @@ void draw_terminal(UiState& ui)
     draw_bridges(ui, m, ch);
     draw_send(ui, ch);
 
-    ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
+    // NoMove: dragging in the text selects instead of moving the window
+    ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders,
+                      ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoMove);
     if (ImGui::BeginPopupContextWindow("termmenu")) {
         if (ImGui::MenuItem(tr("Copy"), "Alt+C")) terminal_copy(ui);
         if (ImGui::MenuItem(tr("Paste"), "Alt+V")) terminal_paste(ui);
@@ -458,12 +486,18 @@ void draw_terminal(UiState& ui)
     }
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);
     float cw = ImGui::CalcTextSize("M").x;
+    float lh = ImGui::GetTextLineHeightWithSpacing();
+    term_mouse(ui, t, ImGui::GetCursorScreenPos(), cw, lh);
+    ImU32 sel_col = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
     ImGuiListClipper clipper;
     clipper.Begin((int)t.lines.size());
     while (clipper.Step()) {
         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
             ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::TextUnformatted(t.lines[i].empty() ? " " : line_utf8(t.lines[i]).c_str());
+            int c0, c1;
+            if (terminal_sel_span(t, i, &c0, &c1))
+                ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x + cw * c0, p.y), ImVec2(p.x + cw * c1, p.y + lh), sel_col);
+            ImGui::TextUnformatted(t.lines[i].empty() ? " " : terminal_line_utf8(t.lines[i]).c_str());
             if (i == t.row) {
                 // cursor: underline block at the cursor column
                 float h = ImGui::GetTextLineHeight();

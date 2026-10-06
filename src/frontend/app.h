@@ -16,6 +16,9 @@ struct UiSnapshot {
     bool media = false;      // show the Media window
     bool printer = false;    // show the Printer window
     bool diag = false;       // show the Diagnostic board window
+    bool terminal = false;   // show the Serial terminal window
+    std::string term_text;   // text received on the first channel ("\n" written as two characters = a new line)
+    std::string term_sel;    // "L0,C0-L1,C1": a selection in it (line indexes, cell boundaries)
     std::string state;       // a saved state loaded first (pictures for the documentation)
     std::vector<std::string> set;   // "SLOT:KEY=VALUE": a change in the configurator, not applied
                                     // (VALUE as JSON, else a string)

@@ -343,7 +343,8 @@ static const Translation k_table[] = {
       "Text UTF-8: česká písmena jako kódy SAPI, konce řádků jako CR (Enter)." },
     { "XMODEM (checksum or CRC) to a receiving program in SAPI, e.g. DOCPM10.COM in CP/M.",
       "XMODEM (součet nebo CRC) pro přijímací program v SAPI, např. DOCPM10.COM v CP/M." },
-    { "All text of the terminal to the clipboard (Alt+C, Ctrl+Insert).", "Celý text terminálu do schránky (Alt+C, Ctrl+Insert)." },
+    { "The selection (drag with the mouse, double click = word) or all text to the clipboard (Alt+C, Ctrl+Insert).",
+      "Výběr (tažením myší, dvojklik = slovo) nebo celý text do schránky (Alt+C, Ctrl+Insert)." },
     { "The clipboard as typed text (Alt+V, Shift+Insert).", "Schránka jako psaný text (Alt+V, Shift+Insert)." },
     { "Receive file XMODEM...", "Přijmout soubor XMODEM…" },
     { "XMODEM from a sending program in SAPI, e.g. DOPC10.COM in CP/M. XMODEM carries no name: choose the file first.",
@@ -361,6 +362,7 @@ static const Translation k_table[] = {
     { "XMODEM: done, %zu packets", "XMODEM: hotovo, %zu paketů" },
     { "XMODEM failed: %s", "XMODEM selhal: %s" },
     { "Copied to the clipboard.", "Zkopírováno do schránky." },
+    { "Selection copied to the clipboard.", "Výběr zkopírován do schránky." },
     { "%s: %zu B to send", "%s: %zu B k odeslání" },
 };
 
