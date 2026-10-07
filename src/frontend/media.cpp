@@ -22,7 +22,8 @@ static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3) nebo 
                                                       { "Program (Intel HEX, TXT, BIN)", "hex;ihx;txt;bin" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX (HEX, IHX, TXT)", "hex;ihx;txt" }, { "*", "*" } };
-static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD)", "img;8sd;imd" } };
+static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD, 8SD, SP2, SP1)", "img;8sd;imd;sp2;sp1" },
+                                                     { "*", "*" } };
 static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
 
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
@@ -59,7 +60,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
     else if (kind == 7) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str());
     else if (kind == 8) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str(), false);
-    else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str(), false);
+    else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 2, where.c_str(), false);
     else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
     else if (kind == 9) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
@@ -153,7 +154,10 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         std::string err;
         if (kind == 5) {   // a new disk, formatted: every byte E5h (empty CP/M directory)
             size_t slash = path.find_last_of("/\\");
-            if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".img";
+            if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) {
+                int size = floppy_geoms()[s_new_disk_fmt]->size;   // SAPI-1.5 formats keep their own suffix
+                path += size == 327680 ? ".sp2" : size == 163840 ? ".sp1" : ".img";
+            }
             if (!FloppyDrive::create(path, floppy_geoms()[s_new_disk_fmt], err)) {
                 LOGE("%s", err.c_str());
                 return;

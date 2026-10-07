@@ -50,7 +50,12 @@ RSW-1, SBK-1, ZDR-1A, ZPS-8 a systémovým parametrům: `..\SAPI_DOKU\SAPI-1.5_d
 - **Diskety** `media/sapi15/SAPI15_{1,2,3,4,7,8}.sp2` (jen v kopii `..\SAPI_DOKU_FTP\SAPI15\MELSOFT_DISKETY`,
   v SAPI_DOKU z Dropboxu jsou jen rozbalené soubory `DISKn`). Formát **.sp2** = prostý výpis C/H/R:
   **40 stop × 2 strany × 16 sektorů × 256 B** (327 680 B), MFM 250 kbit/s, ID sektorů R = 1–16 na obou stranách bez
-  prokládání. Emulátor ho pozná podle velikosti (geometrie „5.25" DS DD SAPI-1.5 (16x256)“, i pro novou disketu).
+  prokládání, bez hlavičky (sektory za sebou: válec, strana, sektor). Přípona pochází z programu CpmImgMngr
+  (`..\SAPI_DOKU\SAPI15\MELSOFT_DISKETY\CpmImgMngr.ini`, správce obrazů disket CP/M), kde sekce `[SP2]` popisuje
+  právě tento formát (DPB a prokládání mechanik A:, B: z CBIOS) a `[SP1]` jednostrannou variantu pro mechaniku C:
+  (40 × 1 × 16 × 256 = 163 840 B, CP/M stopa = strana, OFF 3). Význam zkratky nikde zapsaný není, nejspíš „SAPI,
+  2 strany“. Emulátor oba formáty pozná podle velikosti (geometrie „5.25" DS DD SAPI-1.5 (16x256)“ a „SS DD“,
+  i pro novou disketu; okno Média je nabízí v dialogu a nová disketa bez přípony dostane `.sp2` nebo `.sp1`).
 
 | Disketa | Obsah |
 |---|---|

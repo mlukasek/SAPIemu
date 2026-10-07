@@ -5,7 +5,9 @@
 // - SAVE writes the disk (CBIOS deblocking of 256 B sectors, the directory on cylinder 1);
 // - PKT-1 port 0Eh: MAP2 switches RSW-1 off at B000-BFFF and the DBS-1A video RAM on (write only);
 // - RSW-1 8251 at 9600 Bd (8253 counter 0 = 8) sends and receives through the host channel;
-// - the watchdog (counters 1 and 2) resets the system through /RTL when XT2 is fitted.
+// - the watchdog (counters 1 and 2) resets the system through /RTL when XT2 is fitted;
+// - the image formats .sp2 (40 x 2 x 16 x 256 B) and .sp1 (one side) are known by their size.
+#include "chips/floppy.h"
 #include "core/headless.h"
 #include "core/machine.h"
 #include "core/util.h"
@@ -125,6 +127,14 @@ static void test_map_and_serial(void)
     CHECK((m.bus.io_read(0x19) & 0x02) == 0);
 }
 
+static void test_formats(void)
+{
+    const FloppyGeom* g2 = floppy_geom_for_size(327680);
+    const FloppyGeom* g1 = floppy_geom_for_size(163840);
+    CHECK(g2 && g2->tracks == 40 && g2->heads == 2 && g2->sectors == 16 && g2->sector_size() == 256 && g2->mfm);
+    CHECK(g1 && g1->tracks == 40 && g1->heads == 1 && g1->sectors == 16 && g1->sector_size() == 256 && g1->mfm);
+}
+
 static void watchdog(bool fitted)
 {
     Machine m;
@@ -180,6 +190,7 @@ int main(int argc, char** argv)
         }
         return 0;
     }
+    test_formats();
     test_boot_dir_save();
     test_rombios_melsoft();
     test_map_and_serial();
