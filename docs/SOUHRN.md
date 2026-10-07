@@ -2,12 +2,12 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-06) a co dál
+## Kde jsme skončili (2026-10-07) a co dál
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
   - Testy: 37 v debug, paralelně asi 25 s; release `full` 41 včetně ZEX, 8080EXM a 8085EXM; Linux ve WSL všech 37
-    (GCC 13 bez varování ve vlastním kódu). Vše prochází (2026-10-06). Kdy které testy:
+    (GCC 13 bez varování ve vlastním kódu). Vše prochází (2026-10-07). Kdy které testy:
     `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
@@ -49,6 +49,18 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Hotové 2026-10-07** (podrobnosti v `docs/rozhodnuti.md`):
+  - **konfigurátor:** karty jde myší přetáhnout do jiného slotu (přesun, prohození se stejně širokou kartou).
+    Sloty sběrnice jsou rovnocenné, takže se přesun provede rovnou i v běžícím stroji a sestava je jen neuložená
+    („Vrátit změny“ vrátí karty i v běžícím stroji). Snímek `--ui-drag Z:DO[:drop]`;
+  - **terminál:** výběr myší (tažení, dvojklik slovo, trojklik řádek), po puštění tlačítka rovnou do schránky
+    (volba, výchozí zapnuto), Kopírovat bez výběru bere celý text. Snímek `--ui-terminal`, `--ui-term-text`,
+    `--ui-term-sel`;
+  - **odpověď EC1045** zapracovaná (`docs/software/CPM_SAPIMAN.md`), odpověď Petrovi s popisem chyby `RET`
+    v ECBIM8 odeslaná; **FDC-1 `motor_hl`**: MOTOR ON mechanik z /HL 8272 jako u EC1045 (sestava `cpm_ec1045`);
+  - **úklid:** varování GCC pryč, `test_tapegen` a `test_jpr1x` prošly i ve WSL; release buildy bez záchranné cesty
+    ke zdrojákům (`SAPIEMU_SOURCE_FALLBACK`, `docs/build.md`), `package.py` to hlídá;
+  - `jpr1s_bgp1s` má na K3 desku diagnostiky (autor).
 - **Hotové 2026-10-06 večer** (podrobnosti v `docs/rozhodnuti.md`):
   - **kazeta z programu** HEX/BIN (i `.txt`) pro MIKOS a MIKROBASIC, „Uložit jako WAV…“, `--make-tape`
     (`docs/software/kazeta.md`);
@@ -160,8 +172,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`--type 'PRINT "X"'`), na text s uvozovkami použít Python.
   - Sestavy ukládat zapisovačem konfigurátoru: `sapiemu-cli --mcp`, nástroj `set_machine_config` se `save_as`.
   - Výstup `sapiemu-cli` spolehlivě přesměrovat do souboru (`> soubor.txt 2>&1`) a ten přečíst.
-  - Snímky GUI se změnou v konfigurátoru: `--ui-set SLOT:KLÍČ=HODNOTA` / `SLOT:remove`; okna `--ui-media`,
-    `--ui-printer`, `--ui-diag`; stav se scénou `--ui-state` (stav připravit přes `sapiemu-cli --save-state`).
+  - Snímky GUI se změnou v konfigurátoru: `--ui-set SLOT:KLÍČ=HODNOTA` / `SLOT:remove`, tažení karty
+    `--ui-drag Z:DO[:drop]` (simulované události myši ImGui); okna `--ui-media`, `--ui-printer`, `--ui-diag`,
+    `--ui-terminal` (s `--ui-term-text`, `--ui-term-sel`); stav se scénou `--ui-state` (stav připravit přes
+    `sapiemu-cli --save-state`).
+  - Jiná sezení Claude (např. SAPI-Flappy) pouštějí `sapiemu-cli` z tohoto repa přes MCP, jejich uložené sestavy
+    pak končí v `machines/`. Necommitnuté změny, které jsem nedělal, ukázat autorovi a nepřidávat.
   - Před každým pushem projít commity od `origin/main` a zaktualizovat všechny dotčené `.md` (CLAUDE.md, Git).
   - Rozbor nových desek: netlist z EAGLE (`eaglecon`, CLAUDE.md), u procesorů zdroje s citacemi a testy proti CRC
     skutečného čipu (`docs/8085.md`). Pracovní soubory rozborů jsou mimo git ve `work/` (`work/jpr1x`,

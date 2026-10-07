@@ -71,7 +71,8 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   FORTH, Pascal/MT+, C, dBase II, WordStar…). Okno Média, Vložit… do B: a pak např. `B:MBAS`. Soupis všech
   disket je v `docs/software/SAPIMAN_diskety.md`.
 - **Sériový terminál:** Zobrazení → Sériový terminál. Poslat soubor (tak, jak je), textový soubor, soubor XMODEM
-  (např. do `DOCPM10` v CP/M), přijmout soubor XMODEM (z `DOPC10`), Kopírovat (Alt+C, výběr myší nebo celý text) a Vložit (Alt+V).
+  (např. do `DOCPM10` v CP/M), přijmout soubor XMODEM (z `DOPC10`), Kopírovat (Alt+C, výběr myší nebo celý text; výběr jde do schránky
+  i sám po puštění tlačítka myši) a Vložit (Alt+V).
   `docs/seriova-linka.md`.
 - **Deska diagnostiky:** u JPR-1S / JPR-1X s `k3` = `diag` (sestava `jpr1x_bgp1s`) Zobrazení → Deska
   diagnostiky (K3): dvě sedmisegmentovky a tlačítka − a +. Ukázkový čítač: Soubor → Nahrát program

@@ -51,7 +51,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`.
   Projektový `.mcp.json` ho nabídne Claude Code. Při ladění softwaru pro SAPI ho používat.
 - **Ověřování:** stav emulace si Claude ověřuje přes `sapiemu-cli` (`--print-screen`, `--screenshot`), ne snímky
-  plochy uživatele. Vzhled GUI ověřuje přes `sapiemu --ui-snapshot soubor.png` (skryté okno, viz `docs/sestavy.md`).
+  plochy uživatele. Vzhled GUI ověřuje přes `sapiemu --ui-snapshot soubor.png` (skryté okno, viz `docs/sestavy.md`;
+  interakce myší simuluje např. `--ui-drag Z:DO:drop`).
 - **Sestavy a katalog karet:** `docs/sestavy.md`. Každá karta má v `src/cards/catalog.cpp` popis parametrů
   (jumpery), ze kterého vychází konfigurátor, komentáře v uložených sestavách i MCP.
 
@@ -96,6 +97,8 @@ Pasti ověřené 2026-10-05:
   i `release test`, `release full` (ZEX, asi 3 min) jen po změně jader CPU nebo před vydáním, Linux ve WSL po změně
   kódu závislého na platformě nebo před vydáním.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
+- **Data hledá exe** od své složky nahoru, pak od aktuální. Záchranná cesta ke zdrojákům (`SAPIEMU_SOURCE_FALLBACK`)
+  je jen v debug a lokálních buildech mimo repo, release presety ji vypínají a `package.py` to hlídá.
 - **Linux:** `cmake --preset linux-debug && cmake --build --preset linux-debug`, ověřeno ve WSL 2 (Ubuntu 24.04,
   klon v `~/SAPIemu`, ne na `/mnt/e`; postup a pasti GCC v `docs/build.md`). Windows build má přednost, změny
   pro Linux nesmí nic rozbít na Windows (po nich vždy `tools\build.cmd debug test` i `release test`).
