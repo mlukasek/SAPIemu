@@ -1718,10 +1718,15 @@ static const BusInfo b_arb1b = { "ARB-1B", "ARB-1B (extended, 14 positions)", "A
 static const BusInfo b_arb1c = { "ARB-1C", "ARB-1C (extended, 8282 drivers, 14 positions)",
                                  "ARB-1C (prodloužená, budiče 8282, 14 pozic)", 14, true };
 static const BusInfo b_arb1c8 = { "ARB-1C-8", "ARB-1C 8 positions (ZPC)", "ARB-1C 8 pozic (ZPC)", 8, true };
+// Libor Lasota, 19" rack: X1 for the CPU card, its A0-A15 through 4 x MH3216 (off by /AEN) to the others
+static const BusInfo b_imbus9 = { "ImBUS9", "ImBUS9 (L. Lasota, 1 CPU + 8 positions)", "ImBUS9 (L. Lasota, 1 CPU + 8 pozic)",
+                                  9, false };
+static const BusInfo b_imbus12 = { "ImBUS12", "ImBUS12 (L. Lasota, 1 CPU + 11 positions)",
+                                   "ImBUS12 (L. Lasota, 1 CPU + 11 pozic)", 12, false };
 
 const std::vector<const BusInfo*>& bus_catalog(void)
 {
-    static const std::vector<const BusInfo*> list = { &b_arb1, &b_arb1a, &b_arb1au, &b_arb1b, &b_arb1c, &b_arb1c8 };
+    static const std::vector<const BusInfo*> list = { &b_arb1, &b_arb1a, &b_arb1au, &b_arb1b, &b_arb1c, &b_arb1c8, &b_imbus9, &b_imbus12 };
     return list;
 }
 

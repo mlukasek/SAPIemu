@@ -1268,3 +1268,11 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Teď:** zvětšení vždy sudé, 4× (2× u VGA, nejvýš 1440 řádků), šířka podle poměru stran zaokrouhlená na sudé číslo,
   `-crf 14`. ZPS-6 tedy 2048 × 960, BGP-1S 1152 × 1024, VGA 1280 × 960.
 - Rozmazání může přidat i přehrávač, když video zvětšuje nebo zmenšuje do okna (bilineárně). To emulátor neovlivní.
+
+## 2026-10-08 – Sběrnice ImBUS9 a ImBUS12
+
+- **Přání autora:** sběrnice Libora Lasoty ImBUS9 (rev. 1.1, `H:\SAPI-1\LiborLasota\ImBUS9 rev. 1.1\`) a stejná
+  na 12 karet jako typy `ImBUS9` a `ImBUS12`.
+- **Ze schématu:** X1 (K1) je pro procesorovou kartu, její A0–A15 jdou přes 4 × MH3216 (vypíná je /AEN) do ostatních
+  pozic, data a řídicí signály vedou přímo. Propojka jako JP3 u ARB-1C tu není, proto `has_jp3 = false` a X1 jen
+  pro CPU (stejné pravidlo jako ostatní sběrnice). Napájení z ATX, LED a JP1/JP2 (S4, /RTL) emulace nepotřebuje.

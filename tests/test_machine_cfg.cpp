@@ -36,6 +36,8 @@ static void test_catalog(void)
     }
     CHECK(bus_info("ARB-1C")->slots == 14);
     CHECK(bus_info("ARB-1")->slots == 8);
+    CHECK(bus_info("ImBUS9")->slots == 9 && !bus_info("ImBUS9")->has_jp3);
+    CHECK(bus_info("ImBUS12")->slots == 12);
 }
 
 static void test_defaults_load(void)

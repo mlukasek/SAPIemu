@@ -55,6 +55,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Sběrnice ImBUS9 a ImBUS12** (2026-10-08, Libor Lasota, `docs/desky/ImBUS.md`): typy sběrnice s 9 a 12 pozicemi,
+  X1 jen pro CPU (adresy přes MH3216 z K1), bez JP3.
 - **Sestava `cpm_zrmd_rtc_dsp`** (2026-10-07 v noci): `cpm_zrmd_dpp1` + RTC-1 (A0h) + DSP-1 (48h, TCP 2324), E: =
   disketa s `RTCZ.COM`; ověřené z cli (`RTCZ`, ESC, `DOPCP`). Jméno podle autora: se ZRMD funguje skoro všechno.
 - **Hotové 2026-10-07 večer: DSP-1** (`docs/desky/DSP-1.md`, test `test_dsp1`): dva kanály 8251, porty podle SA1/SA2

@@ -228,6 +228,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   | `ARB-1B` | 14 | ne |
   | `ARB-1C` | 14 | ano |
   | `ARB-1C-8` (8slotová deska ZPC) | 8 | ano |
+  | `ImBUS9`, `ImBUS12` (Libor Lasota, `docs/desky/ImBUS.md`) | 9, 12 | ne |
 
   Klíč `slots` počet pozic přepíše.
 - **Cesty** (ROM, obrazy) jsou relativně k datové složce emulátoru.
