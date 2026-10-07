@@ -154,6 +154,11 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   střídavým motorem). Zapnuté v sestavách s mechanikami PC (`cpm_ec1045`, `cpm_boot_dlouhe_rpd1_fdc1*`):
   jejich BIOS motor zapne při výběru mechaniky a monitor ho po nečinnosti vypne (časovače `TIM_Mx` v CONST).
   Monitor MON130711 pro 8" motory nezapíná, s `motor_line` by nenabootoval (test `test_sapi_sys`).
+- **Motor z /HL** (parametr `motor_hl`, od 2026-10-07): zapojení EC1045 pro mechaniky 5,25" HD, přímý kabel jako
+  pro 8" a MOTOR ON mechanik z /HL (přiklopení hlavy 8272). Všechny mechaniky na kabelu se roztočí, když 8272
+  přiklopí hlavu (povely čtení, zápisu, formátování), a disk je čitelný po `spinup_ms`. Po uplynutí HUT ze SPECIFY
+  hlava odklopí a motor stojí. Registr 0FH pak nic nedělá. S `motor_line` se vylučuje. Má ho sestava
+  `cpm_ec1045`, test `test_fdc_ecmon` (zápis na disketu a stojící mechanika po odklopení hlavy).
 - **Doraz hlavy** je stopa 82 (`FloppyDrive::LAST_TRACK`, předpoklad). Stopa naformátovaná za koncem obyčejného
   obrazu zůstane jen v paměti, ImageDisk ji uloží.
 - **Ověřeno formátovacím programem SAPIMANa** `fd5p_512_30` (5,25" HD PC, MFM 2 × 15 × 512, stopy 0–80, kontrola
@@ -176,7 +181,7 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
   **EC1045 (2026-10-06):** mechaniky 5,25" HD připojoval přímým kabelem k FDC-1A jako 8": MOTOR ON mechaniky
   z /HL (přiklopení hlavy 8272), READY mechaniky nezapojený (/RDY uzemněný), /M0–/M3 nepoužité. Motor se u něj
   tedy točí, jen když 8272 přiklopí hlavu. Emulace (`motor_line`) zapíná motory registrem 0FH, jak to dělají
-  BIOSy J. Bíby a EC1045; varianta „motor z /HL“ zatím není.
+  BIOSy J. Bíby a EC1045; jeho zapojení je od 2026-10-07 volba `motor_hl` (sestava `cpm_ec1045`).
 - Doba RQM po bajtu povelu (emulace 12 µs).
 - Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? **EC1045
   (2026-10-06):** pro mechaniky HD má SA2 stejně jako pro 8", `11000011` (krajní dva na obou stranách sepnuté),

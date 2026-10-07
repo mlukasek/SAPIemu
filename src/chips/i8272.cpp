@@ -384,6 +384,7 @@ void I8272::start_exec(uint64_t now)
     ex = X_LOAD;
     if (!hd_loaded) {
         hd_loaded = true;
+        load_t = now;
         ev_t = now + us(2000u * (uint32_t)(hlt ? hlt : 128));   // HLT x 2 ms
     }
 }
@@ -692,6 +693,7 @@ void I8272::state(StateIO& io)
     io.v(hlt);
     io.v(nd);
     io.v(hd_loaded);
+    io.v(load_t);
     io.v(unload_at);
     io.arr(pcn, sizeof(pcn));
     io.arr(seek_hd, sizeof(seek_hd));

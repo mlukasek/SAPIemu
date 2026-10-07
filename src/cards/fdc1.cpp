@@ -23,7 +23,19 @@ bool Fdc1::configure(const json& cfg, std::string& err)
             return false;
         }
     }
+    if (!cfg_bool(cfg, "motor_hl", motor_hl, false, err)) return false;
+    if (motor_hl && motor_line) {
+        err = "motor_hl and motor_line exclude each other (MOTOR ON from /HL or from 0FH)";
+        return false;
+    }
     return true;
+}
+
+uint64_t Fdc1::fdc_turning_from(int unit)
+{
+    if (!motor_hl) return Fdc8272Card::fdc_turning_from(unit);
+    if (!fdc.head_loaded()) return UINT64_MAX;
+    return fdc.head_load_time() + (uint64_t)bus->cpu_hz * spinup_ms / 1000;
 }
 
 void Fdc1::reset()

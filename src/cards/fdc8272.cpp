@@ -150,7 +150,7 @@ void Fdc8272Card::describe(json& out)
         drv.push_back({ { "unit", i }, { "image", d.image }, { "path", d.path },
                         { "inserted", d.present() }, { "write_protect", d.write_protect },
                         { "modified", d.dirty }, { "track", d.track },
-                        { "turning", !motor_line || (turning_from[i] != UINT64_MAX && bus->now >= turning_from[i]) },
+                        { "turning", fdc_turning_from(i) != UINT64_MAX && bus->now >= fdc_turning_from(i) },
                         { "cpm", d.cpm_cfg ? std::string(1, d.cpm_cfg) : d.cpm_seen ? std::string(1, d.cpm_seen) : std::string() },
                         { "cpm_seen", d.cpm_seen ? std::string(1, d.cpm_seen) : std::string() } });
     }

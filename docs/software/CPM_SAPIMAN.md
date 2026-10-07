@@ -254,7 +254,8 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
     první mechanika má výběr nastavený na „0“ (v PC je na „1“). Přepínače SA2 stejně jako pro 8" (`11000011`,
     krajní dva na obou stranách sepnuté). Nezapojené vodiče 2, 4, 6 a 34 (u mechaniky PC: výběr hustoty, nic, DS3,
     READY / DISK CHANGE), /RDY FDC-1 tedy zůstal uzemněný. S FDC-1 to chodí, s RPD-1 ne (příčinu nezkoumal),
-    MFC-1A nezkoušel. /M0–/M3 z FDC-1B tedy nepoužíval (`docs/desky/FDC-1.md`).
+    MFC-1A nezkoušel. /M0–/M3 z FDC-1B tedy nepoužíval (`docs/desky/FDC-1.md`). Emulace: volba FDC-1
+    `motor_hl` (od 2026-10-07 v sestavě `cpm_ec1045`).
   - **DPP-1 a PMD-32SD:** PMD-32SD je na horním konektoru (podle ECMONu kanál 2, X3), zapojení podle dokumentace
     PMD-32SD, signál DIR není potřeba. Nastavení přepínačů je na fotce, na spolehlivé přečtení nestačí rozlišení
     (`docs/desky/DPP-1.md`).

@@ -201,6 +201,17 @@ static void ec1045_hd(const char* variant, const char* blank, const char* banner
     m.run_seconds(4.0);
     m.type_text("STAT B:*.*\r");
     CHECK(run_until_text(m, free_text, 10.0));
+    // MOTOR ON from /HL (motor_hl): the disk was read and written, and once the 8272 has unloaded
+    // the head (HUT) the drives stand still
+    Card* fdc = m.find_card("FDC-1");
+    CHECK(fdc != nullptr);
+    if (fdc) {
+        m.run_seconds(1.5);
+        json d;
+        fdc->describe(d);
+        CHECK(!d["head_loaded"].get<bool>());
+        CHECK(!d["drives"][0]["turning"].get<bool>());
+    }
     m.flush();
     CHECK(file_read_all(data_path("work/test/ec_b.img"), img));
     const FloppyGeom* g = floppy_geom_for_size(img.size());

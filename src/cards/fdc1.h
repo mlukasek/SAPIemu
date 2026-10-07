@@ -14,6 +14,8 @@
 // The drives get /SEL0-3 from the 8272 (DS1 DS0 through a 74145), the head /SS1 from its HD.
 // READY: on the boards as supplied /RDY (X3-20) is grounded for Consul 7113 drives, so all four
 // units are ready. Disks: 8" SS SD and PC formats (chips/floppy.h), MFM HD with SA2 = 8".
+// Motors of PC drives: from /M0-/M3 (register 0FH, motor_line) or, as EC1045 wired his 5.25" HD
+// drives with a straight cable as for 8", MOTOR ON from /HL of the 8272 (motor_hl).
 #include "cards/fdc8272.h"
 
 class Fdc1 : public Fdc8272Card {
@@ -31,6 +33,9 @@ public:
     // I8272Host: the 8272 selects the drive itself (DS1 DS0)
     FloppyDrive* fdc_drive(int unit) override { return &drives[unit & 3]; }
     bool fdc_ready(int unit) override { return rdy_ground || drives[unit & 3].present(); }
+    // MOTOR ON from /HL (motor_hl): all drives on the straight cable turn spinup_ms after the 8272
+    // loaded the head, until it unloads it; else from the register 0FH (motor_line) or always
+    uint64_t fdc_turning_from(int unit) override;
     // Clock of the 8272 by the switch SA2 S1-S4 of the drive (an assumption): 8" = 8 MHz (FM 250,
     // MFM 500 kbit/s: 8" disks and PC HD drives), 5.25" = 4 MHz (FM 125, MFM 250: DD drives).
     int fdc_kbps(int unit, bool mfm) override
@@ -43,4 +48,5 @@ private:
     uint8_t ctrl = 0;      // 0EH
     uint8_t motors = 0;    // 0FH
     uint8_t sa2[4] = {};   // switches SA2 per drive: D1 = 8", D0 = DD (read at 0EH)
+    bool motor_hl = false; // MOTOR ON of the drives from /HL (FDC-1A X3-2), not from 0FH (EC1045)
 };

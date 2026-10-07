@@ -59,6 +59,7 @@ struct I8272 {
     bool interrupt(void) const { return int_result || int_byte || pend[0] || pend[1] || pend[2] || pend[3]; }
     uint8_t msr(uint64_t now) const;
     bool head_loaded(void) const { return hd_loaded; }
+    uint64_t head_load_time(void) const { return load_t; }   // HDL active since (valid while loaded)
     bool busy(void) const { return phase != PH_CMD; }
     int current_unit(void) const { return unit; }
     void state(StateIO& io);
@@ -107,6 +108,7 @@ private:
 
     // head load (HDL is common to all drives)
     bool hd_loaded = false;
+    uint64_t load_t = 0;                // when the head was loaded (HDL went active)
     uint64_t unload_at = 0;
 
     // seeks, per unit; PCN is the controller's idea of the track, the drive has its own

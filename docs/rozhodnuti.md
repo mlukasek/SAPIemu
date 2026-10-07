@@ -1116,3 +1116,12 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Výběr rovnou do schránky** (autor, 2026-10-07): po puštění tlačítka myši (a hned po dvojkliku či trojkliku)
   se výběr zkopíruje, jako v PuTTY a TeraTermu. Volba „Výběr rovnou do schránky“ je ve výchozím stavu zapnutá
   a ukládá se do nastavení (`terminal.copy_on_select`). Prostý klik bez tažení schránku nemění.
+
+## 2026-10-07 – FDC-1: MOTOR ON z /HL (zapojení EC1045)
+
+- **Proč:** EC1045 připojoval mechaniky 5,25" HD přímým kabelem jako 8" a MOTOR ON vedl z /HL (přiklopení
+  hlavy 8272), /M0–/M3 z FDC-1B nepoužíval (odpověď 2026-10-06). Autor chtěl tohle zapojení v emulaci.
+- **Jak:** parametr FDC-1 `motor_hl`. Disk se točí od přiklopení hlavy + `spinup_ms`, dokud ji 8272 neodklopí
+  (HUT po posledním povelu). 8272 si pamatuje čas přiklopení (`head_load_time`, ukládá se do stavu). Registr 0FH
+  v tom režimu nic neřídí. Vylučuje se s `motor_line` (motory z 0FH, BIOSy J. Bíby a mechaniky s /M0–/M3).
+- **Sestava `cpm_ec1045`** má `motor_hl` a SA2 mechanik A, B jako pro 8" (`8sd`, Petrovo `11000011`).
