@@ -1131,9 +1131,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Přání autora** („kosmetická frajeřinka“). Na volný slot se karta přesune, na slot, kde začíná stejně široká
   karta, se obě prohodí. Jiné případy (CPU mimo X1, přesah rámu, různá šířka, zčásti obsazený cíl) nejdou,
   cíl je červený s důvodem. Pravidla jsou stejná jako u výběru karty ze seznamu (`card_allowed`).
-- Mění se jen `slot` v popisu sestavy, nic jiného na slotu nezávisí. Projeví se po restartu jako jiné změny
-  (oranžové sloty). Při prohození dvou karet stejného typu se jejich parametry „platí hned“ pošlou běžícím kartám
-  na nových pozicích (vazba je přes slot), to je přijatelné.
+- Mění se jen `slot` v popisu sestavy, nic jiného na slotu nezávisí. **Sloty sběrnice jsou rovnocenné** (autor:
+  pořadí je estetická záležitost; v emulaci se souběh na sběrnici skládá jako wired AND v libovolném pořadí),
+  proto se přesun provede rovnou i v běžícím stroji (`Machine::move_card`, `set_card_slots`: čísla slotů karet
+  a jejich záznamy v `config`). Sestava je pak jen neuložená, ne oranžová. Když běžící stroj v dotčených slotech
+  nemá totéž co editor (čekající změna), přesun zůstane jen v editoru a oranžový. „Vrátit změny“ na uložený
+  soubor vrátí karty na původní místa i v běžícím stroji, pokud se obě sestavy liší jen pozicemi karet.
+  Test `test_state`: stroj s přesunutými kartami běží stejně jako bez přesunu a jeho stav jde načíst.
 - **Vzhled:** zdroj ztmavne, karta (u RPD-1 a FDC-1 obě desky s kabelem) jede za myší poloprůhledná a zvednutá,
   cíl je zelený nebo červený, kurzor ruka.
 - **Ověření:** snímek `--ui-drag Z:DO[:drop]` simuluje tažení událostmi myši ImGui (poloha slotů z posledního

@@ -101,6 +101,12 @@ public:
     bool live_param(Card* c, const char* path);
     bool set_live_param(Card* c, const char* path, const nlohmann::json& v, std::string& err);
     nlohmann::json* card_config(Card* c);   // the entry of the card in `config`, nullptr if none
+    // The card whose first slot is `from` goes to `to` while running, a card starting at `to` to
+    // `from` (a swap). The slots of the bus are equal (conflicts are wired AND in any order),
+    // so only the slot numbers change, here and in `config`. The caller checks the layout.
+    bool move_card(int from, int to);
+    // New slots for some cards at once (a permutation, e.g. back to the saved description).
+    void set_card_slots(const std::vector<std::pair<Card*, int>>& to);
 
     Bus bus;
     std::vector<std::unique_ptr<Card>> cards;

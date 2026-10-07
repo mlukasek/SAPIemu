@@ -44,8 +44,11 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   mimo karty ukáže název a popis sestavy a nastavení sběrnice.
 - **Přetažení karty myší** na jiný slot (od 2026-10-07): karta se zvedne a jede za myší. Zelený cíl = přesun na
   volné místo nebo prohození se stejně širokou kartou, která tam začíná; červený = nejde (procesorová karta
-  patří do X1, nevejde se do rámu, jiná šířka), důvod je v bublině. Esc tažení zruší. Jako ostatní změny se
-  projeví po „Restartovat s touto sestavou“. Snímek: `--ui-drag Z:DO` (karta ještě v ruce), `--ui-drag Z:DO:drop`.
+  patří do X1, nevejde se do rámu, jiná šířka), důvod je v bublině. Esc tažení zruší. Sloty sběrnice jsou
+  rovnocenné, proto se přesun provede rovnou i v běžícím stroji: sestava je jen neuložená, restart netřeba.
+  Oranžový (až po restartu) je přesun jen tam, kde běžící stroj v dotčených slotech ještě nemá to, co editor.
+  „Vrátit změny“ vrátí karty na uložená místa i v běžícím stroji. Snímek: `--ui-drag Z:DO` (karta ještě
+  v ruce), `--ui-drag Z:DO:drop`.
 - **Panel ZDR:**
   - NAPÁJENÍ je vypínač s aretací. Za chodu počítač vypne: obrazovka a LED zhasnou, RAM se ztratí. SRAM
     DMR-1 s baterií (JP7) a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se

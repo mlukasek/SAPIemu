@@ -387,6 +387,38 @@ static bool slot_pending(UiState& ui, const json& cfg, int s)
     return !card_cfg_same(card, running_card_cfg(ui, s));
 }
 
+// The running machine takes the slots of the editor when both hold the same cards, only in
+// other slots (the slots of the bus are equal): Revert after a drag moves them back too.
+static void running_follow_slots(UiState& ui)
+{
+    if (!editor_on_running(ui) || !ui.rack.cfg.contains("cards") || !ui.rack.cfg["cards"].is_array()) return;
+    Machine* m = ui.host->machine();
+    const json& ec = ui.rack.cfg["cards"];
+    std::vector<bool> used(ec.size(), false);
+    std::vector<std::pair<Card*, int>> to;
+    for (auto& c : m->cards) {
+        json* rc = m->card_config(c.get());
+        if (!rc) return;
+        json rs = *rc;
+        rs.erase("slot");
+        int found = -1;
+        for (size_t i = 0; i < ec.size(); i++) {
+            if (used[i]) continue;
+            json es = ec[i];
+            es.erase("slot");
+            if (!card_cfg_same(&es, &rs)) continue;
+            if (found < 0 || card_first_slot(ec[i]) == c->slot) found = (int)i;   // the same slot first
+        }
+        if (found < 0) return;   // another card: that needs a restart
+        used[(size_t)found] = true;
+        int s = card_first_slot(ec[(size_t)found]);
+        if (s != c->slot) to.push_back({ c.get(), s });
+    }
+    for (bool u : used)
+        if (!u) return;          // one more card in the editor
+    if (!to.empty()) m->set_card_slots(to);
+}
+
 // The editor holds changes of the running machine that the machine does not have yet
 // (they take effect when it is switched off and on with the description).
 bool editor_pending(UiState& ui)
@@ -1113,7 +1145,15 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         else ImGui::SetTooltip("%s: %s", name.c_str(), why.c_str());
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) r.drag_from = 0;   // cancelled
         else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-            if (ok && move_card(r.cfg, r.drag_from, to, true, &swap, why)) r.sel = to;
+            // the slots are equal: when the running machine has the same cards there, they move
+            // in it at once (no restart, the description is only unsaved)
+            bool live = ok && editor_on_running(ui);
+            for (int s = 0; live && s < wd; s++)
+                live = !slot_pending(ui, cfg, r.drag_from + s) && !slot_pending(ui, cfg, to + s);
+            if (ok && move_card(r.cfg, r.drag_from, to, true, &swap, why)) {
+                if (live) m->move_card(r.drag_from, to);
+                r.sel = to;
+            }
             r.drag_from = 0;
         }
     }
@@ -2004,6 +2044,7 @@ void draw_rack(UiState& ui)
             set_message(r, tr("Changes reverted to the running machine."), false);
         } else {
             r.cfg = r.saved;
+            running_follow_slots(ui);   // cards dragged in the running machine go back as well
             set_message(r, tr("Changes reverted."), false);
         }
     }

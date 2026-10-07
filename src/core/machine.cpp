@@ -431,6 +431,42 @@ nlohmann::json* Machine::card_config(Card* c)
     return c ? ::card_config(config, c) : nullptr;
 }
 
+bool Machine::move_card(int from, int to)
+{
+    Card* a = nullptr;
+    Card* b = nullptr;
+    for (auto& c : cards) {
+        if (c->slot == from) a = c.get();
+        if (c->slot == to) b = c.get();
+    }
+    if (!a || from == to) return false;
+    std::vector<std::pair<Card*, int>> v = { { a, to } };
+    if (b) v.push_back({ b, from });
+    set_card_slots(v);
+    return true;
+}
+
+void Machine::set_card_slots(const std::vector<std::pair<Card*, int>>& to)
+{
+    std::vector<nlohmann::json*> entries;   // found by the old slots before any changes
+    for (const auto& p : to) entries.push_back(card_config(p.first));
+    for (size_t i = 0; i < to.size(); i++) {
+        if (entries[i]) (*entries[i])["slot"] = to[i].second;
+        to[i].first->slot = to[i].second;
+    }
+    std::stable_sort(bus.cards.begin(), bus.cards.end(), [](Card* x, Card* y) { return x->slot < y->slot; });
+    if (config.contains("cards") && config["cards"].is_array()) {   // the description in slot order
+        std::vector<nlohmann::json> v(config["cards"].begin(), config["cards"].end());
+        auto slot_of = [](const nlohmann::json& c) {
+            return c.is_object() && c.contains("slot") && c["slot"].is_number_integer() ? c["slot"].get<int>() : 0;
+        };
+        std::stable_sort(v.begin(), v.end(), [&](const nlohmann::json& x, const nlohmann::json& y) {
+            return slot_of(x) < slot_of(y);
+        });
+        config["cards"] = v;
+    }
+}
+
 bool Machine::live_param(Card* c, const char* path)
 {
     DisplayDevice* d = dynamic_cast<DisplayDevice*>(c);

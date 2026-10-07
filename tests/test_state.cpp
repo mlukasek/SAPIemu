@@ -190,6 +190,53 @@ static void host_file(void)
     file_remove(path);
 }
 
+// Cards moved while running (the configurator drags them): the slots of the bus are equal, so the
+// machine runs on exactly as one without the move, and its state loads into the moved description.
+static void moved_cards(void)
+{
+    const char* file = "machines/cpm_zrmd_fdc1.sapi";
+    json cfg = machine_cfg(file);
+    Machine m0, m1;
+    std::string err;
+    CHECK(m0.load_json(cfg, err) && m1.load_json(cfg, err));
+    m0.run_seconds(1.0);
+    m1.run_seconds(1.0);
+    CHECK(m1.move_card(3, 7));    // AND-1Z-89 to an empty slot
+    CHECK(m1.move_card(2, 4));    // DMR-1 and ZRMD-1 swap
+    CHECK(!m1.move_card(8, 6));   // nothing in X8
+    int and_slot = 0, dmr_slot = 0, zrmd_slot = 0;
+    for (auto& c : m1.cards) {
+        if (c->type == "AND-1Z-89") and_slot = c->slot;
+        if (c->type == "DMR-1") dmr_slot = c->slot;
+        if (c->type == "ZRMD-1") zrmd_slot = c->slot;
+    }
+    CHECK_EQ(and_slot, 7);
+    CHECK_EQ(dmr_slot, 4);
+    CHECK_EQ(zrmd_slot, 2);
+    int last = 0;   // the description follows, in slot order
+    for (const json& c : m1.config["cards"]) {
+        int s = c.value("slot", 0);
+        CHECK(s >= last);
+        last = s;
+        if (c.value("type", std::string()) == "AND-1Z-89") CHECK_EQ(s, 7);
+    }
+    for (Machine* m : { &m0, &m1 }) {
+        m->type_text("1\r");
+        m->run_seconds(3.0);
+    }
+    CHECK(screen_text(m0) == screen_text(m1));
+    std::vector<uint8_t> st;
+    CHECK(m1.save_state(st, file, err));
+    Machine m2;
+    CHECK(m2.load_json(m1.config, err));
+    if (!m2.load_state(st, err)) {
+        fprintf(stderr, "moved cards: load_state: %s\n", err.c_str());
+        CHECK(false);
+    }
+    CHECK(screen_text(m2) == screen_text(m1));
+    printf("moved cards: %s\n", screen_text(m1) == screen_text(m0) ? "runs as before" : "DIFFERENT");
+}
+
 int main(int argc, char** argv)
 {
     test_init();
@@ -200,6 +247,7 @@ int main(int argc, char** argv)
     }
     for (const std::string& f : list_machine_files()) roundtrip(f);
     roundtrip_mph();
+    moved_cards();
     host_file();
     return TEST_RESULT();
 }
