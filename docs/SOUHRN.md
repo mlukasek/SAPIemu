@@ -25,8 +25,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   41 testy (ZEX, 8080EXM, 8085EXM), Linux ve WSL 37. Z rozbaleného zipu naběhne MikroMon, `jpr1x_bgp1s`
   (MIKROBIOS 1.02 + Falcon), `jpr1s_bgp1s`, obě ZPS-1 s JPR-1X a JPR-1S (MIKROBASIC), sestava V (menu ECMONu),
   `cpm_ec1045` a `ZPS-3_CPM64K_IMA` (`A>`). Zase jen pro kamarády (soukromě), tag a veřejný release ne.
-  **Zip je z dopoledne 7. 10., bez SAPI-1.5 (ZPS-6).** Poznámky k vydání už ZPS-6 uvádějí, před odesláním proto
-  zip přebalit (`tools\build.cmd release full`, `python tools\package.py`).
+  **Zip je z dopoledne 7. 10., bez SAPI-1.5 (ZPS-6), snímků, videa a CRM-1.** Poznámky k vydání už to vše
+  uvádějí, před odesláním proto zip přebalit (`tools\build.cmd release full`, `python tools\package.py`).
 - **Hotové v této sérii (2026-10-04/05), podrobnosti v blocích níže a v `docs/rozhodnuti.md`:**
   - karty: MPH-1V (zvuk, 82C54, joystick, myš), ZRD-1V rev 2.1 (zámek zápisu, MAX187);
   - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
@@ -56,6 +56,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Hotové 2026-10-07 večer: CRM-1** (zálohovaná CMOS RAM 4 KB, `docs/desky/CRM-1.md`, test `test_crm1`) podle
+  návodu Tesla; autor desku nemá, software pro ni neznáme. ZPS-7 až ZPS-9 jako samostatné sestavy nebudou (od ZPS-6
+  se v emulaci neliší), poznámka v `docs/software/SAPI-1.5.md`.
 - **Hotové 2026-10-07 večer: snímky obrazovek** (`src/frontend/shot.cpp`): Ctrl+F5 (jako DOSBox; F12 je reset),
   pravé tlačítko na obraz (uložit, uložit jako, do schránky PNG + BMP, volba zvětšený 3× s poměrem TV), Zobrazení →
   Snímek obrazovky. Výchozí jsou přesné body emulace (autor). **Video se zvukem** (`src/frontend/video.cpp`):
