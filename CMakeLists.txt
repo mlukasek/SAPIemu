@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(SAPIemu VERSION 0.2.0 LANGUAGES C CXX)
+project(SAPIemu VERSION 0.3.0 LANGUAGES C CXX)
 set(SAPIEMU_VERSION_SUFFIX "-alpha")   # release stage, shown with the version
 
 # MSVC: the C runtime linked in (no Visual C++ redistributable needed on other PCs);
