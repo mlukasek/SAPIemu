@@ -568,6 +568,10 @@ void Jpr1::update_interrupt(void)
 void Jpr1::sync(void)
 {
     bus->advance_all();
+    if (bus->rtl()) {   // /RTL (pin 1, a watchdog): RESIN of the 8224, /RES of the whole system
+        bus->reset();
+        return;
+    }
     bus_irq = bus->irq_lines();
     update_interrupt();
     next_sync = bus->now + SYNC_CYCLES;

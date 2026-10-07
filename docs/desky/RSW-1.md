@@ -41,7 +41,8 @@ Stav: **emulovaná** (typ `RSW-1`, `src/cards/rsw1.*`, USART `src/chips/i8251.*`
   13-14** na /INT0 (otevřený kolektor, bez vektoru).
 - **Watchdog:** 1Fh D0 = 1 otevře GATE1/GATE2 čítačů 1 a 2 (režim 2, čítač 2 taktovaný OUT1, nejvýš asi
   58 minut). Obnovení zápisem 0 a 1. Doběhnutí nastaví klopný obvod, který přes **XT2 11-12** stáhne /RTL:
-  PKT-1 resetuje celou sestavu, /RES obvod nuluje. XT2 v dodávce ZPS-8 osazená není (watchdog je vypnutý).
+  PKT-1 resetuje celou sestavu, /RES obvod nuluje. (Od 2026-10-07 odpovídají na /RTL i procesorové karty SAPI-1,
+  /RTL drží také watchdog RTC-1.) XT2 v dodávce ZPS-8 osazená není (watchdog je vypnutý).
 - **XP2** (číslování DB-25 V.24): 2 TD, 3 RD (i 15), 4 RTS, 5 CTS, 6 DSR, 7 SG, 20 DTR, 9/10 SYNDET, 16 pomocný
   výstup, 19/21 a 23/24 proudová smyčka DPK-1.
 

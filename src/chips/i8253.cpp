@@ -17,8 +17,13 @@ void I8253::reset(void)
 
 uint32_t I8253::initial(const Counter& k) const
 {
+    if (k.bcd) {   // the count is written as four BCD digits (0000 = 10000)
+        uint32_t r = k.reload;
+        uint32_t d = ((r >> 12) & 15) * 1000 + ((r >> 8) & 15) * 100 + ((r >> 4) & 15) * 10 + (r & 15);
+        return d ? d : 10000u;
+    }
     if (k.reload) return k.reload;
-    return k.bcd ? 10000u : 65536u;
+    return 65536u;
 }
 
 uint16_t I8253::value(const Counter& k) const
@@ -226,6 +231,30 @@ void I8253::tick(int n)
         }
         break;
     }
+}
+
+uint32_t I8253::ticks(int n, uint64_t clocks)
+{
+    Counter& k = c[n];
+    uint32_t falls = 0;
+    while (clocks) {
+        bool fast = k.running && k.gate && !k.load && !k.strobe && (k.mode == 2 || k.mode == 3) && k.count >= 2;
+        if (fast) {
+            // clocks until the next OUT change: mode 3 counts by two to 0, mode 2 goes low at 1
+            uint64_t e = k.mode == 3 ? k.count / 2 : k.count - 1;
+            if (clocks < e) {
+                k.count -= (uint32_t)(k.mode == 3 ? 2 * clocks : clocks);
+                return falls;
+            }
+            k.count -= (uint32_t)(k.mode == 3 ? 2 * (e - 1) : e - 1);
+            clocks -= e - 1;
+        }
+        bool o = k.out;
+        tick(n);
+        if (o && !k.out) falls++;
+        clocks--;
+    }
+    return falls;
 }
 
 void I8253::state(StateIO& io)

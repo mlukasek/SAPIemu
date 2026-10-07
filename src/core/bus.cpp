@@ -219,6 +219,13 @@ void Bus::advance_all(void)
     for (Card* c : cards) c->advance(now);
 }
 
+bool Bus::rtl(void)
+{
+    for (Card* c : cards)
+        if (c->rtl_line()) return true;
+    return false;
+}
+
 int Bus::irq_lines(void)
 {
     int irq = 0;

@@ -36,6 +36,7 @@ public:
     KeyboardDevice* keyboard() override { return kbd.get(); }
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
+    uint32_t phi2_hz() const override { return bus_hz; }
     bool has_cpu_turbo() const override { return turbo_switch; }
     bool cpu_turbo() const override { return turbo_on; }
     void set_cpu_turbo(bool on) override { turbo_on = on; }

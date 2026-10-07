@@ -132,6 +132,7 @@ public:
     virtual bool cpu_turbo() const { return false; }
     virtual void set_cpu_turbo(bool on) {}
     virtual uint32_t cpu_display_hz() const { return clock_hz(); }   // the actual CPU clock
+    virtual uint32_t phi2_hz() const { return clock_hz(); }   // Φ2 TTL on the bus (pin 60), e.g. for RTC-1
     // The instruction set (the debugger disassembles the 8080/8085 opcodes that differ from the Z80).
     enum { ISA_Z80 = 0, ISA_8080, ISA_8085 };
     virtual int cpu_isa() const { return ISA_Z80; }

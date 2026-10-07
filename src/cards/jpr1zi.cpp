@@ -216,6 +216,10 @@ bool Jpr1zi::io_write(uint8_t port, uint8_t data)
 void Jpr1zi::sync(void)
 {
     bus->advance_all();
+    if (bus->rtl()) {   // /RTL (X1 pin 1, a watchdog): through the monostable to /RES of the whole system
+        bus->reset();
+        return;
+    }
     int irq = bus->irq_lines();
     if (irq & IRQ_INT0) pins |= Z80_INT; else pins &= ~Z80_INT;
     if (irq & IRQ_INT1) pins |= Z80_NMI; else pins &= ~Z80_NMI;

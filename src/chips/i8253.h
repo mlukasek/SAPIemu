@@ -13,6 +13,9 @@ public:
     uint8_t read(int counter);              // A1A0 = 0..2
     void write(int reg, uint8_t value);     // 0..2 count, 3 = control word
     void tick(int counter);                 // one CLK falling edge
+    // `clocks` CLK falling edges at once; returns how many times OUT fell (to clock a cascaded
+    // counter). Modes 2 and 3 with the gate high jump from one OUT change to the next.
+    uint32_t ticks(int counter, uint64_t clocks);
     void set_gate(int counter, bool level);
     bool out(int counter) const { return c[counter].out; }
     // The count written to a counter as a divisor (0 = 65536 / 10000): for a card that derives a

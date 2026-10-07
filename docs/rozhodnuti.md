@@ -1224,3 +1224,22 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   sestavy v repu už `ec1045` měly.
 - **DPP-1:** přepínače z fotky EC1045 potvrzují předpoklad emulace (28h, kanál 2 na X3 obousměrný). Emulace
   přepínače S2–S4 dál nemodeluje, jen jsou rozepsané v `docs/desky/DPP-1.md` i s chybou tabulek 7 a 9 návodu.
+
+## 2026-10-07 – RTC-1
+
+- **Podklady:** návod Tesla (OCR), originální schéma (sken J. Bíby `TMP86/87.tif`) a replika EC1045; netlist repliky
+  se s originálem shoduje. Programy J. Bíby (`RTCZ.COM`) slouží jako test.
+- **Čas čítače** výchozí podle hodin PC, stejně jako RTC 72421 na ZRMD-1. Čítač počítá dvousekundy od libovolného
+  začátku, který si určí program. Po prvním zapnutí (bez souboru baterie) proto ukazuje čas od pondělní půlnoci:
+  týdenní hodiny J. Bíby pak hned ukážou den a čas PC. Volba `emulated` běží podle času emulace (deterministicky).
+  Hodnota a čas PC se při vypnutí ukládají do souboru baterie, v režimu PC čítač „běží dál“.
+- **Přerušení** jde na desce jen na XC2/14, proto parametr „kabel“ s výchozím `none`.
+- **8255 v módu 1 bez /STB A** (propojky z výroby): čtení PA dává aktuální hodnotu (předpoklad podle funkčního
+  programu J. Bíby), v Nejasnostech.
+- **/RTL pro všechny procesorové karty:** `Bus::rtl()` zkouší JPR-1, JPR-1Z/ZI/V/S/X i PKT-1 při synchronizaci
+  a resetují celou sestavu (na deskách /RTL vede na reset přes 8224, monostabil nebo MAX707).
+- **Φ2 sběrnice** (`Bus::phi2_hz`, `phi2_hz()` procesorové karty): u JPR-1ZI, JPR-1V a JPR-1X takt sběrnice, jinak takt
+  CPU. Na něm běží systémový 8253 RTC-1.
+- **8253:** zapsaný počet v režimu BCD se nepřeváděl z BCD (BCD 2000 se počítal jako 8192), opraveno. Nová metoda
+  `ticks()` přeskakuje mezi změnami OUT v módech 2 a 3, aby 8253 na 2 MHz nezdržoval emulaci; test ji porovnává
+  s jednotlivými takty.

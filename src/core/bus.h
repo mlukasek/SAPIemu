@@ -37,6 +37,7 @@ struct Bus {
     std::vector<Card*> cards;   // in slot order (not owned)
     uint64_t now = 0;           // CPU clock cycles since power-on
     uint32_t cpu_hz = 2000000;  // CPU clock, used by cards to convert time
+    uint32_t phi2_hz = 2000000; // Φ2 TTL on the bus (pin 60), from the CPU card
     int wait = 0;               // wait states requested during the current access (RDY low)
     uint32_t hold = 0;          // cycles a DMA controller held the bus (/HOLD); the CPU card adds
                                 // them to the time before its next instruction
@@ -100,6 +101,7 @@ struct Bus {
     void reset(void);
     void advance_all(void);
     int irq_lines(void);        // OR of all cards' interrupt requests
+    bool rtl(void);             // a card pulls /RTL (pin 1, reset request: watchdog of RSW-1, RTC-1)
     void update_map(void);
 
     void set_mem_watch(uint16_t addr, int flags);

@@ -24,6 +24,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 5C–5F | IDE-1, PMD32-SD 8255 (Martinovo nastavení) |
 | 60–63 | ZRMD-1 / ZRD-1V (63h = mapovací registr) |
 | 70–7F | ZRMD-1 RTC |
+| 00–FF po 16 | RTC-1: 8255 +0–3 (čítač reálného času), 8253 DD5 +4–7, DD6 +8–11, zápis času +12–15; základ SA1–SA8 a propojka A7, programy J. Bíby A0–AFh (`docs/desky/RTC-1.md`) |
 | F0–F7 | ZDP-1 |
 | F8–F9 | DSP-1/MS80 |
 

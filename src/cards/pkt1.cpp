@@ -219,9 +219,7 @@ void Pkt1::sync(void)
 {
     bus->advance_all();
     // /RTL (reset button, the RSW-1 watchdog): a reset of the whole system at the end of an M1
-    bool rtl = false;
-    for (Card* c : bus->cards) rtl |= c->rtl_line();
-    if (rtl) {
+    if (bus->rtl()) {
         bus->reset();   // resets this card too: the Z80 starts again
         return;
     }

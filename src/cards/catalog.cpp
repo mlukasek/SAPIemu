@@ -1460,6 +1460,51 @@ static const CardParam k_crm1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+static const ParamOption k_rtc1_base[] = {
+    { "\"00h\"", "00-0Fh (SA1, jumper 2-3)", "00-0Fh (SA1, propojka 2-3)" },
+    { "\"10h\"", "10-1Fh (SA2, jumper 2-3)", "10-1Fh (SA2, propojka 2-3)" },
+    { "\"20h\"", "20-2Fh (SA3, jumper 2-3)", "20-2Fh (SA3, propojka 2-3)" },
+    { "\"30h\"", "30-3Fh (SA4, jumper 2-3)", "30-3Fh (SA4, propojka 2-3)" },
+    { "\"40h\"", "40-4Fh (SA5, jumper 2-3)", "40-4Fh (SA5, propojka 2-3)" },
+    { "\"50h\"", "50-5Fh (SA6, jumper 2-3)", "50-5Fh (SA6, propojka 2-3)" },
+    { "\"60h\"", "60-6Fh (SA7, jumper 2-3)", "60-6Fh (SA7, propojka 2-3)" },
+    { "\"70h\"", "70-7Fh (SA8, jumper 2-3)", "70-7Fh (SA8, propojka 2-3)" },
+    { "\"80h\"", "80-8Fh (SA1, jumper 1-2 + 3-4)", "80-8Fh (SA1, propojka 1-2 + 3-4)" },
+    { "\"90h\"", "90-9Fh (SA2, jumper 1-2 + 3-4)", "90-9Fh (SA2, propojka 1-2 + 3-4)" },
+    { "\"A0h\"", "A0-AFh (SA3, jumper 1-2 + 3-4)", "A0-AFh (SA3, propojka 1-2 + 3-4)" },
+    { "\"B0h\"", "B0-BFh (SA4, jumper 1-2 + 3-4)", "B0-BFh (SA4, propojka 1-2 + 3-4)" },
+    { "\"C0h\"", "C0-CFh (SA5, jumper 1-2 + 3-4)", "C0-CFh (SA5, propojka 1-2 + 3-4)" },
+    { "\"D0h\"", "D0-DFh (SA6, jumper 1-2 + 3-4)", "D0-DFh (SA6, propojka 1-2 + 3-4)" },
+    { "\"E0h\"", "E0-EFh (SA7, jumper 1-2 + 3-4)", "E0-EFh (SA7, propojka 1-2 + 3-4)" },
+    { "\"F0h\"", "F0-FFh (SA8, jumper 1-2 + 3-4)", "F0-FFh (SA8, propojka 1-2 + 3-4)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_rtc1_mode[] = {
+    { "\"async\"", "5-6, 9-11: interrupt while OUT1 of DD6 is high, PC3 = bit 19 (factory)",
+      "5-6, 9-11: přerušení, dokud je OUT1 DD6 v H, PC3 = bit 19 (z výroby)" },
+    { "\"realtime\"", "5-7, 6-8, 10-11: OUT1 = /STB A of the 8255 (mode 1), interrupt = INTR A, 19 bits",
+      "5-7, 6-8, 10-11: OUT1 = /STB A 8255 (mód 1), přerušení = INTR A, 19 bitů" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_rtc1_time[] = {
+    { "\"pc\"", "the PC clock (first power on: the time since Monday 0:00)",
+      "hodiny PC (po prvním zapnutí čas od pondělní půlnoci)" },
+    { "\"emulated\"", "the emulated time (the same in every run)", "čas emulace (v každém běhu stejný)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_rtc1[] = {
+    { "base", PK_CHOICE, "SA1-SA8 and the A7 jumper: the 16 ports", "SA1-SA8 a propojka A7: 16 portů", "\"A0h\"",
+      k_rtc1_base, 0, 0 },
+    { "mode", PK_CHOICE, "Jumpers 5-11: interrupt mode", "Propojky 5-11: režim přerušení", "\"async\"", k_rtc1_mode, 0, 0 },
+    { "int", PK_CHOICE, "Cable from XC2/14 (/INT) to the computer", "Kabel z XC2/14 (/INT) do počítače", "\"none\"",
+      k_rtc_int, 0, 0 },
+    { "time", PK_CHOICE, "The real time counter follows", "Čítač reálného času běží podle", "\"pc\"", k_rtc1_time, 0, 0 },
+    { "battery", PK_BOOL, "Backup cells (the counter survives power off)", "Záložní články (čítač přežije vypnutí)", "true",
+      nullptr, 0, 0 },
+    { "file", PK_FILE, "Counter kept by the cells", "Čítač držený články", "\"work/rtc-1/rtc.bin\"", k_none, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // ---------------------------------------------------------------- cards
 
 #define CARD(var, type, panel, en, cs, cls, width, emulated, params) \
@@ -1539,7 +1584,8 @@ CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports (2x 8255), PMD32-SD", "Paralelní p
      true, k_dpp1)
 CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 82C54, joystick (V)", "Zvuk YM3812, časovač 82C54, joystick (V)",
      CC_IO, 1, true, k_mph1v)
-CARD(c_rtc1, "RTC-1", "RTC", "Real time clock and timer", "Reálný čas a čítač", CC_IO, 1, false, nullptr)
+CARD(c_rtc1, "RTC-1", "RTC", "Real time clock, timers and watchdog", "Reálný čas, čítače a watchdog", CC_IO, 1, true,
+     k_rtc1)
 CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldeska (prázdná, bez funkce)", CC_OTHER, 1,
      true, nullptr)
 

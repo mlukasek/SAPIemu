@@ -182,6 +182,7 @@ bool Machine::load_json(const json& cfg, std::string& err)
     std::stable_sort(sorted.begin(), sorted.end(), [](Card* a, Card* b) { return a->slot < b->slot; });
     bus.cards = sorted;
     bus.cpu_hz = cpu->clock_hz();
+    bus.phi2_hz = cpu->phi2_hz();
     cpu->bp_exec = bp_exec;
 
     LOGI("machine '%s' loaded: %d cards, CPU %.3f MHz", name.c_str(), (int)cards.size(), cpu->cpu_display_hz() / 1e6);
