@@ -1187,6 +1187,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 t.sel_col1 = (int)c1;
             }
         }
+        if (snap && snap->drag_from > 0 && app.ui.rack.geo_n > 0 && snap_frames >= 4 && snap_frames <= 11) {
+            // a card dragged by simulated mouse events: down on its slot, five frames to the target,
+            // released before the picture with :drop
+            const RackEditor& r = app.ui.rack;
+            auto cx = [&](int s) { return r.geo_x0 + ((float)(r.geo_n - s) + 0.5f) * r.geo_pitch; };
+            float t = snap_frames <= 5 ? 0.0f : (snap_frames >= 10 ? 1.0f : (float)(snap_frames - 5) / 5.0f);
+            io.AddMousePosEvent(cx(snap->drag_from) + (cx(snap->drag_to) - cx(snap->drag_from)) * t,
+                                (r.geo_y0 + r.geo_y1) * 0.5f);
+            if (snap_frames == 5) io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+            if (snap_frames == 10 && snap->drag_drop) io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+        }
         if (snap && snap_frames >= 12) {
             // window content as PNG (our own renderer, not the screen)
             SDL_Surface* s = SDL_RenderReadPixels(app.renderer, nullptr);

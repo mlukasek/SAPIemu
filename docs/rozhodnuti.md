@@ -1125,3 +1125,16 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   (HUT po posledním povelu). 8272 si pamatuje čas přiklopení (`head_load_time`, ukládá se do stavu). Registr 0FH
   v tom režimu nic neřídí. Vylučuje se s `motor_line` (motory z 0FH, BIOSy J. Bíby a mechaniky s /M0–/M3).
 - **Sestava `cpm_ec1045`** má `motor_hl` a SA2 mechanik A, B jako pro 8" (`8sd`, Petrovo `11000011`).
+
+## 2026-10-07 – Přetahování karet v konfigurátoru
+
+- **Přání autora** („kosmetická frajeřinka“). Na volný slot se karta přesune, na slot, kde začíná stejně široká
+  karta, se obě prohodí. Jiné případy (CPU mimo X1, přesah rámu, různá šířka, zčásti obsazený cíl) nejdou,
+  cíl je červený s důvodem. Pravidla jsou stejná jako u výběru karty ze seznamu (`card_allowed`).
+- Mění se jen `slot` v popisu sestavy, nic jiného na slotu nezávisí. Projeví se po restartu jako jiné změny
+  (oranžové sloty). Při prohození dvou karet stejného typu se jejich parametry „platí hned“ pošlou běžícím kartám
+  na nových pozicích (vazba je přes slot), to je přijatelné.
+- **Vzhled:** zdroj ztmavne, karta (u RPD-1 a FDC-1 obě desky s kabelem) jede za myší poloprůhledná a zvednutá,
+  cíl je zelený nebo červený, kurzor ruka.
+- **Ověření:** snímek `--ui-drag Z:DO[:drop]` simuluje tažení událostmi myši ImGui (poloha slotů z posledního
+  snímku v `RackEditor::geo_*`).

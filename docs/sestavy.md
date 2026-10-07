@@ -42,6 +42,10 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
 - **Klik na slot** vybere kartu a pod rámem se ukáže její nastavení: výběr karty, jumpery a soubory ROM nebo
   obrazů s nabídkou známých souborů a tlačítkem `…`. Pravé tlačítko otevře rovnou seznam karet. Klik na rám
   mimo karty ukáže název a popis sestavy a nastavení sběrnice.
+- **Přetažení karty myší** na jiný slot (od 2026-10-07): karta se zvedne a jede za myší. Zelený cíl = přesun na
+  volné místo nebo prohození se stejně širokou kartou, která tam začíná; červený = nejde (procesorová karta
+  patří do X1, nevejde se do rámu, jiná šířka), důvod je v bublině. Esc tažení zruší. Jako ostatní změny se
+  projeví po „Restartovat s touto sestavou“. Snímek: `--ui-drag Z:DO` (karta ještě v ruce), `--ui-drag Z:DO:drop`.
 - **Panel ZDR:**
   - NAPÁJENÍ je vypínač s aretací. Za chodu počítač vypne: obrazovka a LED zhasnou, RAM se ztratí. SRAM
     DMR-1 s baterií (JP7) a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se
@@ -228,7 +232,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 
 `sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
-`--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
+`--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
 v něm vybere od řádku 0, hranice 7 po řádek 4, hranici 12),
 `--ui-set SLOT:KLÍČ=HODNOTA` změní kartu v konfigurátoru bez restartu (třeba `--ui-set 5:baud=1200`, ukáže
 oranžové značení), `--ui-set SLOT:remove` kartu vyjme,

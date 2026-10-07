@@ -58,7 +58,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   ([docs/software/ECMON.md](docs/software/ECMON.md)).
 - **Konfigurátor sestavy:**
   - panely karet jako na skutečném stroji, LED podle emulace;
-  - propojky, některé i za chodu;
+  - propojky, některé i za chodu; karty jde myší přetáhnout do jiného slotu;
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
   - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
 - **Ladění:** debugger (registry, disassembler, paměť, breakpointy a watchpointy, I/O log), ukládání stavu (i

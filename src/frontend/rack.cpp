@@ -5,6 +5,7 @@
 #include "frontend/i18n.h"
 #include "frontend/ui.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
@@ -941,6 +942,7 @@ bool panel_button(const char* id, ImVec2 a, ImVec2 b)
 }
 
 void card_menu_items(UiState& ui, int slot, bool combo);
+bool move_card(json& cfg, int from, int to, bool apply, bool* swap, std::string& why);
 
 void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
 {
@@ -974,6 +976,11 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     dl->AddRectFilled(ImVec2(sx0, y0), ImVec2(sx0 + n * PITCH * k, y1), COL_INSIDE);
 
     auto slot_x = [&](int s) { return sx0 + (float)(n - s) * PITCH * k; };   // left edge of slot s
+    r.geo_x0 = sx0;
+    r.geo_pitch = PITCH * k;
+    r.geo_y0 = y0;
+    r.geo_y1 = y1;
+    r.geo_n = n;
 
     // empty slots: card guides at the top and the bottom; slot names below
     for (int s = 1; s <= n; s++) {
@@ -1025,7 +1032,12 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         snprintf(id, sizeof(id), "slot%d", s);
         if (panel_button(id, ImVec2(slot_x(s), y0), ImVec2(slot_x(s) + PITCH * k, y1))) clicked = first;
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ctx = first;
-        if (ImGui::IsItemHovered()) {
+        if (idx >= 0 && r.drag_from == 0 && ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+            r.drag_from = first;   // the card is dragged by its board in slot s
+            r.drag_grab = s - first;
+            r.drag_dx = ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left].x - slot_x(first);
+        }
+        if (ImGui::IsItemHovered() && r.drag_from == 0) {
             hovered = first;
             std::string pend = slot_pending(ui, cfg, first) ? std::string("\n\xE2\x97\x8F ") + tr("Changed: takes effect after a restart") : "";
             if (idx >= 0) {
@@ -1046,8 +1058,65 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         if (s < 1 || s + wd - 1 > n) return;
         dl->AddRect(ImVec2(slot_x(s + wd - 1) - 1, y0 - 3), ImVec2(slot_x(s) + PITCH * k + 1, y1 + 3), col, 3.0f, 0, th);
     };
-    if (hovered > 0 && hovered != r.sel) outline(hovered, COL_HOVER, 1.5f);
+    if (hovered > 0 && hovered != r.sel && r.drag_from == 0) outline(hovered, COL_HOVER, 1.5f);
     if (r.sel > 0) outline(r.sel, COL_SEL, 2.5f);
+
+    // a card dragged to another slot: green = it moves there (or swaps with the card there),
+    // red = it cannot go there; dropped = the description changes (a restart applies it)
+    if (r.drag_from > 0) {
+        int ia = machine_cfg_card_at(cfg, r.drag_from);
+        int wd = ia >= 0 ? card_cfg_width(cfg["cards"][(size_t)ia]) : 1;
+        ImVec2 mp = ImGui::GetMousePos();
+        int under = n - (int)floorf((mp.x - sx0) / (PITCH * k));
+        bool inside = under >= 1 && under <= n && mp.y >= y0 - margin * k && mp.y <= y1 + label_band * k;
+        int to = under - r.drag_grab;
+        bool swap = false, ok = false;
+        std::string why;
+        if (inside && to >= 1 && to != r.drag_from) ok = move_card(r.cfg, r.drag_from, to, false, &swap, why);
+        else if (inside && to < 1) why = tr("Does not fit into the frame");
+        dl->AddRectFilled(ImVec2(slot_x(r.drag_from + wd - 1), y0), ImVec2(slot_x(r.drag_from) + PITCH * k, y1),
+                          IM_COL32(0, 0, 0, 120));   // the card leaves its place
+        if (inside && to != r.drag_from) {
+            int a = to < 1 ? 1 : to, b = to + wd - 1 > n ? n : to + wd - 1;
+            ImU32 col = ok ? IM_COL32(70, 220, 100, 255) : IM_COL32(235, 70, 60, 255);
+            ImVec2 p0(slot_x(b) - 1, y0 - 3), p1(slot_x(a) + PITCH * k + 1, y1 + 3);
+            dl->AddRectFilled(p0, p1, (col & 0x00FFFFFF) | 0x50000000, 3.0f);
+            dl->AddRect(p0, p1, col, 3.0f, 0, 3.0f);
+        }
+        if (ia >= 0) {   // the card itself, lifted and see-through, follows the mouse
+            const json& c = cfg["cards"][(size_t)ia];
+            std::string type = c.value("type", std::string("?"));
+            const CardInfo* ci = card_info(type);
+            std::vector<std::string> ports = card_connector_ports(c);
+            float gx = mp.x - r.drag_dx, lift = 8.0f * k, inset = (PITCH - PANEL_W) * 0.5f * k;
+            int v0 = dl->VtxBuffer.Size;
+            dl->AddRectFilled(ImVec2(gx - (float)(wd - 1) * PITCH * k + inset + 6.0f * k, y0 - lift + 8.0f * k),
+                              ImVec2(gx + inset + PANEL_W * k + 6.0f * k, y1 - lift + 8.0f * k),
+                              IM_COL32(0, 0, 0, 110), 3.0f * k);   // shadow
+            Panel G[2];
+            for (int b = 0; b < wd && b < 2; b++) {
+                G[b] = { dl, ImVec2(gx - (float)b * PITCH * k + inset, y0 - lift), k };
+                draw_card_panel(G[b], ci, wd > 1 ? type + (char)('A' + b) : type, ports, false, r.show_types, b, 0,
+                                nullptr);
+            }
+            if (wd == 2 && (type == "RPD-1" || type == "FDC-1")) draw_rpd_cable(G[0], G[1]);
+            for (int v = v0; v < dl->VtxBuffer.Size; v++) {   // 75 % opaque
+                ImU32& col = dl->VtxBuffer[v].col;
+                col = (col & ~IM_COL32_A_MASK) | ((((col >> IM_COL32_A_SHIFT) & 0xFF) * 3 / 4) << IM_COL32_A_SHIFT);
+            }
+        }
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        std::string name =ia >= 0 ? card_display_name(cfg["cards"][(size_t)ia]) : std::string();
+        if (!inside || to == r.drag_from) ImGui::SetTooltip("%s: %s", name.c_str(), tr("drop it on another slot"));
+        else if (ok && swap) ImGui::SetTooltip(tr("%s: swap X%d and X%d"), name.c_str(), r.drag_from, to);
+        else if (ok) ImGui::SetTooltip(tr("%s: move to X%d"), name.c_str(), to);
+        else ImGui::SetTooltip("%s: %s", name.c_str(), why.c_str());
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) r.drag_from = 0;   // cancelled
+        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+            if (ok && move_card(r.cfg, r.drag_from, to, true, &swap, why)) r.sel = to;
+            r.drag_from = 0;
+        }
+    }
     if (clicked > 0) r.sel = clicked;
     if (ctx > 0) {
         r.sel = ctx;
@@ -1175,6 +1244,49 @@ void put_card(RackEditor& r, int slot, const CardInfo* ci)
     if (idx >= 0) r.cfg["cards"].erase((size_t)idx);
     if (ci) r.cfg["cards"].push_back(card_new_config(ci, slot));
     sort_cards(r.cfg);
+}
+
+// Moves the card whose first slot is `from` to first slot `to` (dragged with the mouse). A card
+// of the same width that starts at `to` goes to `from` (the two swap). With apply the
+// description changes, else it only says whether the move is possible; *swap = a swap.
+bool move_card(json& cfg, int from, int to, bool apply, bool* swap, std::string& why)
+{
+    *swap = false;
+    int ia = machine_cfg_card_at(cfg, from);
+    if (ia < 0 || card_first_slot(cfg["cards"][(size_t)ia]) != from) { why = tr("empty slot"); return false; }
+    json a = cfg["cards"][(size_t)ia];
+    const CardInfo* ca = card_info(a.value("type", std::string()));
+    if (!ca) { why = tr("unknown card"); return false; }
+    if (to == from) return false;
+    json c = cfg;
+    json b;
+    const CardInfo* cb = nullptr;
+    int ib = machine_cfg_card_at(c, to);
+    if (ib >= 0 && ib != ia) {   // a card at the target: swap, if it is as wide and starts there
+        b = c["cards"][(size_t)ib];
+        cb = card_info(b.value("type", std::string()));
+        if (!cb || card_first_slot(b) != to || cb->width != ca->width) {
+            why = tr("Only a card of the same width can be swapped");
+            return false;
+        }
+    }
+    // both out, then each into its new place
+    if (cb) c["cards"].erase((size_t)(ib > ia ? ib : ia));
+    c["cards"].erase((size_t)(cb && ib < ia ? ib : ia));
+    if (!card_allowed(c, ca, to, -1, why)) return false;
+    a["slot"] = to;
+    c["cards"].push_back(a);
+    if (cb) {
+        if (!card_allowed(c, cb, from, -1, why)) return false;
+        b["slot"] = from;
+        c["cards"].push_back(b);
+        *swap = true;
+    }
+    if (apply) {
+        sort_cards(c);
+        cfg = c;
+    }
+    return true;
 }
 
 // Card list for a slot: emulated cards first.

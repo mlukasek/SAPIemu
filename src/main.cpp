@@ -47,6 +47,7 @@ static void print_help(void)
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag: those windows,\n"
            "                     --ui-terminal: the serial terminal, --ui-term-text TEXT: text in it (\\n = new line),\n"
            "                     --ui-term-sel L0,C0-L1,C1: a selection in it (line indexes, cell boundaries),\n"
+           "                     --ui-drag FROM:TO[:drop]: drag a card in the configurator (and drop it),\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
            "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
@@ -205,6 +206,15 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-set" && i + 1 < argc) snap.set.push_back(argv[++i]);
         else if (a == "--ui-printer") snap.printer = true;
         else if (a == "--ui-diag") snap.diag = true;
+        else if (a == "--ui-drag" && i + 1 < argc) {
+            char drop[8] = "";
+            if (sscanf(argv[++i].c_str(), "%d:%d:%7s", &snap.drag_from, &snap.drag_to, drop) < 2) {
+                fprintf(stderr, "--ui-drag FROM:TO[:drop]\n");
+                return 2;
+            }
+            snap.drag_drop = strcmp(drop, "drop") == 0;
+            snap.rack = true;
+        }
         else if (a == "--ui-terminal") snap.terminal = true;
         else if (a == "--ui-term-text" && i + 1 < argc) { snap.terminal = true; snap.term_text = argv[++i]; }
         else if (a == "--ui-term-sel" && i + 1 < argc) { snap.terminal = true; snap.term_sel = argv[++i]; }

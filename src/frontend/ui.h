@@ -40,6 +40,13 @@ struct RackEditor {
     nlohmann::json live_seen;
     uint64_t live_gen = ~0ull;
     int sel = 0;                   // selected slot, 0 = the bus
+    int drag_from = 0;             // first slot of the card dragged with the mouse, 0 = none
+    int drag_grab = 0;             // its board under the mouse (0 = first, 1 = second of RPD-1, FDC-1)
+    float drag_dx = 0;             // mouse x from the left edge of its first board when picked up
+    // where the slots were drawn last frame (screen): left edge of the last slot, slot pitch,
+    // top and bottom, number of slots; the UI snapshot drags cards by them
+    float geo_x0 = 0, geo_pitch = 0, geo_y0 = 0, geo_y1 = 0;
+    int geo_n = 0;
     bool show_types = true;        // exact card type across the panels
     // port and memory map of `cfg`, rebuilt when it changes
     nlohmann::json map_cfg;
