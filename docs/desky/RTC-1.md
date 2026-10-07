@@ -63,6 +63,8 @@ Stav: **emulovaná** (typ `RTC-1`, `src/cards/rtc1.*`) od 2026-10-07, test `test
     půlnoci** (ve dvousekundách), takže týdenní hodiny `RTCZ` hned ukážou správný den a čas. Zápis programu
     čítač přestaví a dál běží od nové hodnoty;
   - `emulated`: čítač běží podle času emulace, od nuly (v každém běhu stejně, pro testy).
+  Při běhu rychleji než skutečný čas (turbo, `sapiemu-cli`) jdou hodiny PC pomaleji než emulace: program, který čeká
+  na změnu sekund (`RTCZ` testuje klávesnici až po ní), pak reaguje pomalu. Pro zkoušky v cli je lepší `emulated`.
 - **Baterie** (`battery`, soubor `work/rtc-1/rtc.bin`): při vypnutí emulátoru se uloží hodnota čítače a čas PC.
   Po zapnutí v režimu `pc` čítač mezitím „běžel dál“ (jako na článcích), v režimu `emulated` pokračuje od uložené
   hodnoty.
@@ -73,6 +75,7 @@ Stav: **emulovaná** (typ `RTC-1`, `src/cards/rtc1.*`) od 2026-10-07, test `test
   registr jako průchozí (čtení PA dává aktuální čítač), protože tak s RTC-1 počítá `RTCZ` J. Bíby (inicializace 0B3h).
   Je to předpoklad, viz Nejasnosti.
 - Ověřeno: `RTCZ.COM` pod CP/M ze ZRMD-1 (ECMON, volba 1) s RTC-1 na A0h vypíše den v týdnu a čas PC.
+- **Sestava** `machines/cpm_zrmd_rtc_dsp.sapi` (RTC-1 na A0h, DSP-1, `RTCZ` na E:).
 
 ## Nejasnosti k ověření na HW
 

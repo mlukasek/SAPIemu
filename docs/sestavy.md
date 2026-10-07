@@ -168,7 +168,10 @@ disk ZRMD-1 sestavy `cpm_zrmd`, stejné rozložení), `cpm_boot_mfc1a_rmd.sapi` 
 s 8" disketami FM 14 × 256 nebo 8 × 512, FDC-1 8"). V `cpm_boot_fdc1_irmd.sapi` si RAM disk RMD-1 připraví
 BIOS sám (zjistí i velikost 256 KB / 1 MB). Sestavy s ECMONem a monitory
 J. Bíby mají tiskárnu na X3 (`docs/tiskarna.md`).
-`cpm_zrmd_dpp1.sapi` je `cpm_zrmd` s deskou DPP-1 a PMD32-SD (ECMON: D:, E:)
+`cpm_zrmd_dpp1.sapi` je `cpm_zrmd` s deskou DPP-1 a PMD32-SD (ECMON: D:, E:).
+`cpm_zrmd_rtc_dsp.sapi` k ní přidává RTC-1 (A0h) a DSP-1 (48h, 4Ah, 4Ch, kanál X2 i na TCP 2324) na adresách
+z programů J. Bíby; E: je disketa `b_rtc_zdp_zrmd.8sd` s `RTCZ.COM`, na RAM disku A: jsou `RTC421`, `DOPCP`
+a `DOCPMP` (`docs/desky/RTC-1.md`, `DSP-1.md`)
 („dlouhé“ CP/M s 3K BIOSem: RPD-1 8" a FDC-1 5,25" HD v jedné sestavě). `cpm_ec1045.sapi` je systém EC1045 s menu FDC8/FDC3/FDC5/HDD
 a disketami PC 3,5" a 5,25" HD na FDC-1 (volba 1 nebo 2), mechaniky zapojené jako u EC1045 (MOTOR ON z /HL,
 `motor_hl`).

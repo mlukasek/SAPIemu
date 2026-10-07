@@ -51,6 +51,8 @@ Tesla Elstroj / Liberec / Eltos-DIZ, 3WN 120 05, deska 3WK 055 05. Ověřeno pro
   zapnou) 2324 a 2325.
 - **RTS se k PC nepřenáší:** J. Bíba jím řídí příjem (RTS jen při čekání na znak). Emulace místo toho nepošle další
   znak, dokud SAPI předchozí nepřečte (`pacing`).
+- **Sestava** `machines/cpm_zrmd_rtc_dsp.sapi`: DSP-1 jako u J. Bíby, kanál X2 i na TCP 127.0.0.1:2324 (raw, třeba
+  TeraTerm s XMODEM), `DOPCP` a `DOCPMP` na RAM disku A:.
 - **Test** `test_dsp1`: porty, 9600 i 4800 Bd, maska a INT0, /RES; CP/M ze ZRMD-1 s DSP-1, `DOPCP` pošle soubor
   na stranu PC (přijímač XMODEM emulátoru), `DOCPMP` přijme text a `DOPCP` ho vrátí beze změny.
 

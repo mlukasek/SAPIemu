@@ -55,6 +55,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Sestava `cpm_zrmd_rtc_dsp`** (2026-10-07 v noci): `cpm_zrmd_dpp1` + RTC-1 (A0h) + DSP-1 (48h, TCP 2324), E: =
+  disketa s `RTCZ.COM`; ověřené z cli (`RTCZ`, ESC, `DOPCP`). Jméno podle autora: se ZRMD funguje skoro všechno.
 - **Hotové 2026-10-07 večer: DSP-1** (`docs/desky/DSP-1.md`, test `test_dsp1`): dva kanály 8251, porty podle SA1/SA2
   (výchozí jako J. Bíba 48h, 4Ah, 4Ch), rychlost SA3/SA4 z 12,288 MHz, maska přerušení na INT0. Programy XMODEM
   J. Bíby (`media/dsp-1`) pod CP/M přenesou soubor do PC i zpět (test proti XMODEMu emulátoru).

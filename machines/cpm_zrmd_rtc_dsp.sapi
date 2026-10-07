@@ -1,0 +1,111 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "CP/M 2.2 s RTC-1 a DSP-1 (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, DPP-1, RTC-1, DSP-1)",
+    "description": "Sestava cpm_zrmd_dpp1 s deskou reálného času RTC-1 a sériovou deskou DSP-1 na adresách z programů J. Bíby. Při prvním zapnutí zvolit 1 (A: ZRMD-1, B,C: RPD8). RTC-1 na A0h: E:RTCZ zobrazí a nastaví den v týdnu a čas (čítač běží podle PC, po prvním zapnutí od pondělní půlnoci), ESC konec, BS nastavení. Hodiny ZRMD-1 (72421 na 70h): RTC421. DSP-1: kanál 2 na konektoru X2 (48h), kanál 1 na X3 (4Ah), maska přerušení 4Ch, 9600 Bd. DOPCP SOUBOR pošle soubor do PC a DOCPMP SOUBOR ho přijme, obojí XMODEM přes X2: okno Sériový terminál (DSP-1 X2 #48, XMODEM) nebo TeraTerm na TCP 127.0.0.1:2324. E: = PMD32-SD obraz b_rtc_zdp_zrmd.8sd (RTCZ, RTC421 a zdrojáky), D: = 1614.2MB. docs/desky/RTC-1.md, DSP-1.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1ZI",              // CPU card Z80 (new design)
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin",  // EPROM 2764 - ECMON 2k
+            "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
+            "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
+            "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
+            "keyboard": { "type": "EKL-1" },  // Keyboard (connector X2)
+            "printer": {                    // X3: printer (Centronics cable: data P2-OUT, /STROBE P1-OUT1, BUSY P2-IN6)
+                "output": "work/printer/tiskarna.prn",  // Printer: output file (the bytes as received, ESC/P kept)
+                "charset": "koi8cs",        // Printer: character set of the text view (80h-FFh) - KOI-8 cs2 (as SAPI)
+                "busy_us": 100              // Printer: BUSY after each byte (us; 0 = at once, a deviation)
+            }
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "DMR-1",                // 128 KB RAM and serial port
+            "battery": false,               // JP7: battery backup of the SRAM
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
+            "uart_base": "10h",             // JP2: UART ports
+            "baud": 9600,                   // JP8: baud rate - 9600 Bd
+            "connected": false,             // Terminal connected at start (DCD)
+            "serial": {
+                "pacing": true,             // PC side: no overrun (pacing)
+                "tcp": {                    // PC side: TCP server
+                    "port": 2323,           // TCP port
+                    "bind": "127.0.0.1",    // Address (127.0.0.1 = this PC only)
+                    "protocol": "telnet",   // Protocol
+                    "dcd_follows": true     // DCD follows the client connection
+                }
+            }
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1Z-89",            // Alphanumeric display "Z" 1989
+            "map_enabled": false            // S1: MAP1 disconnects the card
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "ZRMD-1",               // RAM disk 4 MB with RTC
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
+            "mode": "rw",                   // Mode - read/write, saved
+            "write_enable": [
+                true,                       // S1: write enable, 1st MB
+                true,                       // S2: write enable, 2nd MB
+                true,                       // S3: write enable, 3rd MB
+                true                        // S4: write enable, 4th MB
+            ],
+            "rtc": true,                    // RTC 72421
+            "rtc_int": "none",              // JP3: RTC interrupt
+            "map_jp2": false                // JP2: port 63h b6/b7 drive MAP1/MAP2
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DPP-1",                // Parallel ports (2x 8255), PMD32-SD
+            "base": "28h",                  // S1: ports - 28h-2Fh (1S1, 2S1 closed)
+            "pmd_channel": 2,               // PMD32-SD on - channel 2 (base+4..7, X3), as ECMON and J. Biba
+            "pmd32sd": {                    // PMD32-SD floppy emulator
+                "sd_card": "media/pmd32sd",  // SD card (directory)
+                "drives": [
+                    "1614.2MB",             // Drive A
+                    "b_rtc_zdp_zrmd.8sd",   // Drive B
+                    null,                   // Drive C
+                    null                    // Drive D
+                ],
+                "cpm": [
+                    "D",                    // Drive A: CP/M letter (empty = seen while running)
+                    "E",                    // Drive B: CP/M letter (empty = seen while running)
+                    null,                   // Drive C: CP/M letter (empty = seen while running)
+                    null                    // Drive D: CP/M letter (empty = seen while running)
+                ],
+                "card_locked": false,       // SD card write protected
+                "startup_ms": 0             // Start-up delay (ms, real 3000)
+            },
+            "printer_channel": 1,           // Printer on (8255 mode 1: /OBF = /STROBE, /ACK) - channel 1 (base+0..3, X2), as ECMON and J. Biba
+            "printer": {                    // Printer (Centronics), ECMON and J. Biba: PUN:, LST: = UL1:
+                "output": "work/printer/dpp1.prn",  // Printer: output file (the bytes as received, ESC/P kept)
+                "charset": "koi8cs",        // Printer: character set of the text view (80h-FFh) - KOI-8 cs2 (as SAPI)
+                "busy_us": 100              // Printer: BUSY after each byte (us; 0 = at once, a deviation)
+            }
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "RTC-1"                 // Real time clock, timers and watchdog
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "DSP-1",                // Two serial ports (8251), RS-232 and current loop
+            "x2": {                         // Connector X2: channel 2 (8251)
+                "serial": {
+                    "tcp": {                // PC side: TCP server
+                        "port": 2324,       // TCP port
+                        "bind": "127.0.0.1",  // Address (127.0.0.1 = this PC only)
+                        "protocol": "raw",  // Protocol
+                        "dcd_follows": true  // DCD follows the client connection
+                    }
+                }
+            }
+        }
+    ]
+}
