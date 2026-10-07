@@ -28,7 +28,7 @@
       "name": "windows-release",
       "displayName": "Windows x64 Release",
       "inherits": "windows-base",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo", "SAPIEMU_SOURCE_FALLBACK": "OFF" }
     },
     {
       "name": "linux-debug",
@@ -41,7 +41,7 @@
       "name": "linux-release",
       "displayName": "Linux Release",
       "inherits": "base",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo", "SAPIEMU_SOURCE_FALLBACK": "OFF" },
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
     }
   ],

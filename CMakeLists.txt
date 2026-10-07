@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(SAPIEMU_BUILD_GUI   "Build the SDL3/ImGui frontend" ON)
 option(SAPIEMU_BUILD_TESTS "Build unit and integration tests" ON)
+option(SAPIEMU_SOURCE_FALLBACK "Look for the data in the source tree as the last resort (not for packages)" ON)
 
 set(TP ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
@@ -65,8 +66,13 @@ if(NOT WIN32)
     target_link_libraries(sapicore PUBLIC Threads::Threads)
 endif()
 target_compile_definitions(sapicore PUBLIC
-    SAPIEMU_VERSION="${PROJECT_VERSION}${SAPIEMU_VERSION_SUFFIX}"
-    SAPIEMU_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+    SAPIEMU_VERSION="${PROJECT_VERSION}${SAPIEMU_VERSION_SUFFIX}")
+# The source tree as the last place to look for the data (roms/, machines/): for builds outside
+# the tree (a local preset on C:). Off in the release presets: a packaged exe must never fall back
+# to the author's working copy (tools/package.py checks it).
+if(SAPIEMU_SOURCE_FALLBACK)
+    target_compile_definitions(sapicore PUBLIC SAPIEMU_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
 
 # --- frontend -------------------------------------------------------------------
 

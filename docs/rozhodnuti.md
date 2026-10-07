@@ -1142,3 +1142,14 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   cíl je zelený nebo červený, kurzor ruka.
 - **Ověření:** snímek `--ui-drag Z:DO[:drop]` simuluje tažení událostmi myši ImGui (poloha slotů z posledního
   snímku v `RackEditor::geo_*`).
+
+## 2026-10-07 – Release bez záchranné cesty ke zdrojákům
+
+- **Proč:** autor má vedle repa rozbalenou alfu 0.2.0 (`..\SAPIemu-release`) a v repu se objevila přepsaná sestava.
+  Alfa za to nemohla (data hledá od složky s exe, má vlastní `roms/` a `machines/`). Každý build ale měl
+  zakompilovanou cestu ke zdrojákům jako poslední záchranu, takže zabalené exe spuštěné ze složky bez dat by na
+  autorově PC sáhlo do repa.
+- **Jak:** volba CMake `SAPIEMU_SOURCE_FALLBACK` (výchozí zapnutá pro debug a lokální build mimo repo), presety
+  `windows-release` a `linux-release` ji vypínají, `tools/package.py` build se zapnutou volbou odmítne.
+- Přepsanou sestavu `sapi1v.sapi` (jen komentáře zapisovače) nejspíš uložilo jiné sezení přes MCP `set_machine_config`
+  se `save_as` nad cli z repa. Vráceno.

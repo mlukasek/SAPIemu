@@ -38,6 +38,12 @@ def main():
         if not os.path.exists(exe):
             print("missing " + exe + " (tools\\build.cmd release test first)")
             return 1
+    # a packaged exe must not fall back to the data of this working copy (CMake SAPIEMU_SOURCE_FALLBACK)
+    cache = os.path.join(BUILD, "CMakeCache.txt")
+    with open(cache, encoding="utf-8", errors="replace") as f:
+        if "SAPIEMU_SOURCE_FALLBACK:BOOL=OFF" not in f.read():
+            print("the release build has SAPIEMU_SOURCE_FALLBACK on: reconfigure it with the windows-release preset")
+            return 1
     version = subprocess.run([cli, "--version"], capture_output=True, text=True).stdout.split()[-1]
     name = "SAPIemu-%s-win64" % version
     out_dir = os.path.join(ROOT, "out", "package")

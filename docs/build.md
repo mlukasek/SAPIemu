@@ -100,7 +100,7 @@ Když repo leží na síťovém disku, je rychlejší ukládat výstupy sestaven
     { "name": "local-debug", "displayName": "Local x64 Debug (build on C:)", "inherits": "windows-debug",
       "binaryDir": "C:/SAPIemu-build/${presetName}" },
     { "name": "local-release", "displayName": "Local x64 Release (build on C:)", "inherits": "windows-release",
-      "binaryDir": "C:/SAPIemu-build/${presetName}" }
+      "binaryDir": "C:/SAPIemu-build/${presetName}", "cacheVariables": { "SAPIEMU_SOURCE_FALLBACK": "ON" } }
   ],
   "buildPresets": [
     { "name": "local-debug", "configurePreset": "local-debug" },
@@ -112,6 +112,12 @@ Když repo leží na síťovém disku, je rychlejší ukládat výstupy sestaven
   ]
 }
 ```
+
+**Kde emulátor hledá data** (`roms/`, `machines/`, `media/`): od složky s exe nahoru, pak od aktuální složky
+nahoru. Build mimo repo (lokální preset na C:) by je nenašel, proto má CMake volbu `SAPIEMU_SOURCE_FALLBACK`:
+zapnutá zakompiluje cestu ke zdrojákům jako poslední možnost. Debug ji má zapnutou, presety release vypnutou
+(exe v `out\build` data najde i bez ní). Zabalené exe se tak nikdy nevrátí k datům autorovy pracovní kopie
+(2026-10-07; ověřeno kopií release a debug cli mimo repo). `local-release` výše ji proto zapíná.
 
 ## Přesun repa do jiné složky
 
@@ -161,6 +167,7 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
    - exe, `roms\`, `media\`, `machines\`, `docs\`, fonty, licence knihoven a `PRVNI-KROKY.md`;
    - jen soubory, které zná git, takže nové soubory nejdřív `git add`;
    - skript zip rozbalí do čisté složky a ověří, že z ní naběhne MikroMon;
+   - odmítne build se zapnutým `SAPIEMU_SOURCE_FALLBACK` (balík nesmí sahat do repa);
    - přidá i IDE disk tohoto PC (`work\ide\*.img`) jako `work\ide\`. Sestava V a
      `cpm_ide.sapi` pak mají na C: připravené programy. Na disku je i hudba: pro veřejný release
      `--no-ide`.
