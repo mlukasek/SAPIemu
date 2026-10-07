@@ -105,6 +105,7 @@ struct UiState {
     // screenshots (frontend/shot.cpp): enlarged 3x with the TV aspect instead of the exact dots
     // (remembered in the settings); "Save screenshot as" keeps the picture until the file is chosen
     bool shot_enlarged = false;
+    std::string ffmpeg_path;       // video: ffmpeg from the settings ("video": {"ffmpeg"}), empty = from PATH
     struct ShotDialog {
         std::mutex mtx;
         bool active = false, done = false;
@@ -180,6 +181,16 @@ void shot_save(UiState& ui, DisplayDevice* d, const char* name, float px_aspect)
 void shot_save_as(UiState& ui, DisplayDevice* d, const char* name, float px_aspect);
 void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect);
 void shot_poll(UiState& ui);   // the file of "Save screenshot as", once chosen
+// Video of a display output with the sound (frontend/video.cpp): MP4 through ffmpeg into work/videa,
+// the frames at 50 per second of emulated time, enlarged like a screenshot "as shown".
+std::string video_ffmpeg(UiState& ui);   // the ffmpeg to use, empty if none
+bool video_recording(UiState& ui);
+double video_seconds(UiState& ui);       // length recorded so far
+void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspect);
+void video_stop(UiState& ui);
+void video_poll(UiState& ui);            // every frame: a failure, a changed machine, the end of the mux
+void video_shutdown(UiState& ui);        // at exit
+bool video_busy(UiState& ui);            // recording, or the last video still being finished
 void terminal_copy(UiState& ui);
 void terminal_paste(UiState& ui);
 

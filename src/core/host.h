@@ -37,6 +37,11 @@ public:
 
     // Advance emulation by `elapsed_ns` of wall clock time (real time or turbo).
     void frame(uint64_t elapsed_ns);
+    // Video recording: tick_hook(now) every tick_period cycles of emulated time (from tick_next on);
+    // the emulation then runs in pieces that end on these boundaries, so the frames of a video are
+    // taken at their exact emulated time whatever the speed.
+    std::function<void(uint64_t)> tick_hook;
+    uint64_t tick_period = 0, tick_next = 0;
     // Execute commands posted by other threads. Call from the emulation thread.
     void poll(void);
     // Post a command and wait for its result (from any thread except the emulation thread).
@@ -76,6 +81,7 @@ private:
         std::promise<nlohmann::json> result;
     };
     void handle_stop(void);
+    void run_ticked(uint64_t cycles);
     void update_speed(void);
 
     std::unique_ptr<Machine> m;

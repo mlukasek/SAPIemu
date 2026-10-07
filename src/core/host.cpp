@@ -116,6 +116,29 @@ void EmuHost::update_speed(void)
     speed_c0 = m->bus.now;
 }
 
+// run_cycles in pieces that end on the ticks of tick_hook
+void EmuHost::run_ticked(uint64_t cycles)
+{
+    if (!tick_hook || !tick_period) {
+        m->run_cycles(cycles);
+        return;
+    }
+    uint64_t end = m->bus.now + cycles;
+    while (m && m->bus.now < end) {
+        uint64_t stop = tick_next < end ? tick_next : end;
+        if (stop > m->bus.now) m->run_cycles(stop - m->bus.now);
+        if (m->stopped_on_breakpoint()) break;
+        while (tick_hook && tick_period && m->bus.now >= tick_next) {
+            tick_hook(m->bus.now);
+            tick_next += tick_period;
+        }
+        if (!tick_hook) {   // stopped inside the hook
+            if (m->bus.now < end) m->run_cycles(end - m->bus.now);
+            break;
+        }
+    }
+}
+
 void EmuHost::frame(uint64_t elapsed_ns)
 {
     if (!m) return;
@@ -124,12 +147,12 @@ void EmuHost::frame(uint64_t elapsed_ns)
         if (max_speed) {
             uint64_t start = host_time_ns();
             while (host_time_ns() - start < 14000000ull) {
-                m->run_cycles(m->bus.cpu_hz / 200);
+                run_ticked(m->bus.cpu_hz / 200);
                 if (m->stopped_on_breakpoint()) break;
             }
         } else {
             if (elapsed_ns > 100000000ull) elapsed_ns = 100000000ull;   // don't catch up after stalls
-            m->run_cycles((uint64_t)((double)elapsed_ns * target_hz() / 1e9));
+            run_ticked((uint64_t)((double)elapsed_ns * target_hz() / 1e9));
         }
         handle_stop();
     }

@@ -1187,7 +1187,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   (jak je vidět)“: každý bod 3 řádky a šířka podle poměru stran TV (DBS-1A 1024 × 720). Automatický název
   `work/snimky/<karta>_<datum-čas>.png`, nebo dialog. Schránka dostane PNG i BMP (DIB ve Windows bere každý program).
   Kodér PNG zůstává bez komprese (malé obrázky, žádná knihovna navíc).
-- **Video (další krok, autor schválil pořadí):** MP4 (H.264 + AAC) přes **ffmpeg**, který je potřeba mít; přehraje se
-  všude a je malé. DOSBox má AVI s vlastním kodekem ZMBV, MAME nekomprimované AVI. Snímky podle času emulace (50 za
-  sekundu), zvuk z výstupu sběrnice: obraz a zvuk drží synchron i při turbu nebo zpomalení. Bez ffmpeg se nahrávání
-  nespustí a GUI řekne proč.
+- **Video (hotové týž den):** MP4 (H.264 + AAC) přes **ffmpeg**, který je potřeba mít (PATH, nebo `"video":
+  {"ffmpeg"}` v nastavení); přehraje se všude a je malé. DOSBox má AVI s vlastním kodekem ZMBV, MAME nekomprimované
+  AVI. Jak to funguje:
+  - `EmuHost::tick_hook` dělí běh emulace na úseky po 1/50 s emulovaného času a na každé hranici se vykreslí snímek
+    (přesné body karty, BGRA rourou do ffmpeg, bez okna konzole přes CreateProcess). Zvětšení jako u snímku „jak je
+    vidět“, nejvýš 1080 řádků (VGA 2×, ostatní 3×), libx264 `-crf 18`;
+  - zvuk zapisuje `Bus::audio_record` od stejného okamžiku; na konci se zkrátí na délku obrazu a druhý běh ffmpeg
+    spojí obě stopy (`-c:v copy`, AAC) ve vlákně, GUI mezitím běží dál;
+  - obraz a zvuk drží synchron při každé rychlosti emulace, pauza video pozastaví; výměna sestavy nahrávání ukončí;
+  - log ffmpeg je `work/videa/ffmpeg.log`.

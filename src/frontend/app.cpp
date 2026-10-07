@@ -148,6 +148,7 @@ nlohmann::json settings_json(App& app)
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
     j["screenshot"] = { { "enlarged", ui.shot_enlarged } };
+    if (!ui.ffmpeg_path.empty()) j["video"] = { { "ffmpeg", ui.ffmpeg_path } };
     // the joystick from the keyboard and the PC mouse are off at every start (author): not saved
     j["mouse"] = { { "sensitivity", app.mouse.sensitivity } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
@@ -215,6 +216,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(t, "com_port", com);
     if (!com.empty()) snprintf(ui.com_port, sizeof(ui.com_port), "%s", com.c_str());
     get_opt(j.value("screenshot", nlohmann::json::object()), "enlarged", ui.shot_enlarged);
+    get_opt(j.value("video", nlohmann::json::object()), "ffmpeg", ui.ffmpeg_path);
     const nlohmann::json& snd = j.value("sound", nlohmann::json::object());
     get_opt(snd, "enabled", app.audio.enabled);
     get_opt(snd, "volume", app.audio.volume);
@@ -379,13 +381,15 @@ void handle_key_up(App& app, const SDL_KeyboardEvent& ev)
 }
 
 void shot_now(App& app);
+void video_toggle(App& app);
 
 void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
     switch (ev.key) {
     case SDLK_F5:   // Ctrl+F5: a screenshot of the focused output (as in DOSBox); F5 run/pause
-        if (ev.mod & SDL_KMOD_CTRL) shot_now(app);
+        if ((ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_ALT)) video_toggle(app);   // Ctrl+Alt+F5: video
+        else if (ev.mod & SDL_KMOD_CTRL) shot_now(app);
         else app.host.paused = !app.host.paused;
         return;
     case SDLK_F7:   // Ctrl+F7: the game mode of the ANK-1 keyboard on/off
@@ -523,6 +527,23 @@ void zoom_items(ZoomState& zs)
     }
 }
 
+// Record video / stop it (with the length so far)
+void video_item(App& app, DisplayDevice* d, const char* name)
+{
+    if (video_recording(app.ui)) {
+        char label[64];
+        int s = (int)video_seconds(app.ui);
+        snprintf(label, sizeof(label), "%s (%d:%02d)", tr("Stop the video"), s / 60, s % 60);
+        if (ImGui::MenuItem(label, "Ctrl+Alt+F5")) video_stop(app.ui);
+        return;
+    }
+    if (ImGui::MenuItem(tr("Record video with sound"), "Ctrl+Alt+F5", false, d != nullptr))
+        video_start(app.ui, d, name, display_px_aspect(app, d));
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("MP4 (H.264 + AAC) into work/videa through ffmpeg: 50 frames per second of emulated time, "
+                                   "enlarged 3x as shown, the sound of the machine."));
+}
+
 void shot_items(App& app, DisplayDevice* d, const char* name)
 {
     float a = display_px_aspect(app, d);
@@ -530,6 +551,8 @@ void shot_items(App& app, DisplayDevice* d, const char* name)
     if (ImGui::MenuItem(tr("Save screenshot as..."), nullptr, false, d != nullptr)) shot_save_as(app.ui, d, name, a);
     if (ImGui::MenuItem(tr("Copy screenshot"), nullptr, false, d != nullptr)) shot_copy(app.ui, d, a);
     ImGui::MenuItem(tr("Screenshot enlarged 3x (as shown)"), nullptr, &app.ui.shot_enlarged);
+    ImGui::Separator();
+    video_item(app, d, name);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the screen (TV aspect)."));
 }
@@ -568,6 +591,18 @@ void shot_now(App& app)
     std::string name;
     DisplayDevice* d = shot_display(app, name);
     if (d) shot_save(app.ui, d, name.c_str(), display_px_aspect(app, d));
+}
+
+// Ctrl+Alt+F5: start or stop the video of the focused output
+void video_toggle(App& app)
+{
+    if (video_recording(app.ui)) {
+        video_stop(app.ui);
+        return;
+    }
+    std::string name;
+    DisplayDevice* d = shot_display(app, name);
+    if (d) video_start(app.ui, d, name.c_str(), display_px_aspect(app, d));
 }
 
 // View -> Colour: the ink of the monochrome displays. It is a card parameter (jumpers
@@ -731,6 +766,9 @@ void draw_menu(App& app)
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem(tr("Screenshot"), "Ctrl+F5", false, m && m->display)) shot_now(app);
+        if (ImGui::MenuItem(video_recording(app.ui) ? tr("Stop the video") : tr("Record video with sound"), "Ctrl+Alt+F5",
+                            false, m && m->display))
+            video_toggle(app);
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
@@ -748,6 +786,7 @@ void draw_menu(App& app)
         ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
         ImGui::TextUnformatted(tr("Ctrl+F7 game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)"));
         ImGui::TextUnformatted(tr("Ctrl+F2 quick save of the state, Ctrl+F3 quick load"));
+        ImGui::TextUnformatted(tr("Ctrl+Alt+F5 video with sound (MP4 through ffmpeg) on/off"));
         ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
         ImGui::Separator();
         if (app.mcp && app.mcp->running()) {
@@ -778,6 +817,12 @@ void draw_menu(App& app)
             size_t colon = n.find(": ");
             if (slash != std::string::npos && colon != std::string::npos) n = n.substr(0, colon + 2) + n.substr(slash + 1);
             ks += "  " + n;
+        }
+        if (video_recording(app.ui)) {
+            int s = (int)video_seconds(app.ui);
+            char rec[48];
+            snprintf(rec, sizeof(rec), "  \xE2\x97\x8F REC %d:%02d", s / 60, s % 60);
+            ks += rec;
         }
         if (app.game_keys && kb && kb->held_keys()) {
             ks += "  ";
@@ -1184,6 +1229,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_screen(app);
         draw_graphic_screens(app);
         shot_poll(app.ui);
+        video_poll(app.ui);
         draw_debugger(app.ui);
         draw_memory(app.ui);
         draw_iolog(app.ui);
@@ -1228,7 +1274,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (snap && snap_frames == 9) {
             if (snap->screen_menu) app.open_screen_menu = true;
             if (snap->shot) shot_now(app);
+            if (snap->video > 0) video_toggle(app);
         }
+        if (snap && snap->video > 0 && video_recording(app.ui) && video_seconds(app.ui) >= snap->video)
+            video_toggle(app);   // stop: the picture is taken once the video is saved
         if (snap && snap->terminal && snap_frames == 9 && !app.ui.terms.empty()) {
             // late, so that what the machine sends at start does not push the text away
             TerminalState& t = app.ui.terms[0];
@@ -1258,7 +1307,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (snap_frames == 5) io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
             if (snap_frames == 10 && snap->drag_drop) io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
         }
-        if (snap && snap_frames >= 12) {
+        if (snap && snap_frames >= 12 && !(snap->video > 0 && video_busy(app.ui))) {
             // window content as PNG (our own renderer, not the screen)
             SDL_Surface* s = SDL_RenderReadPixels(app.renderer, nullptr);
             SDL_Surface* c = s ? SDL_ConvertSurface(s, SDL_PIXELFORMAT_ARGB8888) : nullptr;
@@ -1279,6 +1328,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     audio_close(app.audio);
     joystick_close(app.joy);
     mouse_capture(app.mouse, app.window, false);
+    video_shutdown(app.ui);
     app.host.shutdown();
     if (app.mcp) { app.mcp->stop(); delete app.mcp; }
     ImGui_ImplSDLRenderer3_Shutdown();

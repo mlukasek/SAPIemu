@@ -49,6 +49,7 @@ static void print_help(void)
            "                     --ui-term-sel L0,C0-L1,C1: a selection in it (line indexes, cell boundaries),\n"
            "                     --ui-drag FROM:TO[:drop]: drag a card in the configurator (and drop it),\n"
            "                     --ui-screen-menu: the right click menu of the screen, --ui-shot: a screenshot (Ctrl+F5),\n"
+           "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
            "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
@@ -219,6 +220,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-terminal") snap.terminal = true;
         else if (a == "--ui-screen-menu") snap.screen_menu = true;
         else if (a == "--ui-shot") snap.shot = true;
+        else if (a == "--ui-video" && i + 1 < argc) snap.video = atof(argv[++i].c_str());
         else if (a == "--ui-term-text" && i + 1 < argc) { snap.terminal = true; snap.term_text = argv[++i]; }
         else if (a == "--ui-term-sel" && i + 1 < argc) { snap.terminal = true; snap.term_sel = argv[++i]; }
         else if (a == "--ui-state" && i + 1 < argc) snap.state = argv[++i];

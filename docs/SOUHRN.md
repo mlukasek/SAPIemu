@@ -58,8 +58,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
 - **Hotové 2026-10-07 večer: snímky obrazovek** (`src/frontend/shot.cpp`): Ctrl+F5 (jako DOSBox; F12 je reset),
   pravé tlačítko na obraz (uložit, uložit jako, do schránky PNG + BMP, volba zvětšený 3× s poměrem TV), Zobrazení →
-  Snímek obrazovky. Výchozí jsou přesné body emulace (autor). Další krok: **video se zvukem** (MP4 přes ffmpeg,
-  snímky podle času emulace, zvuk ze sběrnice), rozhodnutí v `docs/rozhodnuti.md`.
+  Snímek obrazovky. Výchozí jsou přesné body emulace (autor). **Video se zvukem** (`src/frontend/video.cpp`):
+  Ctrl+Alt+F5, MP4 (H.264 + AAC) přes ffmpeg do `work/videa`, 50 snímků za sekundu emulovaného času
+  (`EmuHost::tick_hook` dělí běh na snímky), zvuk ze sběrnice (`Bus::audio_record`), na konci spojení obou stop.
+  Ověřeno `--ui-video`: ZPS-6 1536 × 720, sestava V se SPLAY 1280 × 960 s hudbou, obě stopy stejně dlouhé.
 - **Hotové 2026-10-07 odpoledne: SAPI-1.5, sestava ZPS-6** (`machines/zps/ZPS-6.sapi`, test `test_sapi15`,
   `docs/software/SAPI-1.5.md`): karty **PKT-1**, **RSW-1**, **DBS-1A** (`docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`)
   podle dumpů PROM ze sapi.cz, schémat a návodů Tesla. ROM MON-V100690 (dump EPROM, i opravená verze Melsoft)
