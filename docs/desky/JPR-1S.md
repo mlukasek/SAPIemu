@@ -218,7 +218,8 @@ R1–R16, katody na GND (X1-21). Podle netlistu:
 - **Emulace (2026-10-06):** parametr karty JPR-1S / JPR-1X `k3` = `diag` (rev 2.0), okno Zobrazení → Deska
   diagnostiky (K3) se dvěma displeji a tlačítky − a + (drží se myší), MCP `diag_board`. Ukázkové čítače 00–99
   `media/jpr-1x/diag_int.hex` (JPR-1X, přerušení přes 3214 a RST 7 → 2000h) a `diag_poll.hex` (JPR-1S i JPR-1X,
-  čtení P2-IN), spuštění z Falconu `JUMP 4400`, konec ESC. Test `test_jpr1x`.
+  čtení P2-IN), spuštění z Falconu `JUMP 4400`, konec ESC. Test `test_jpr1x`. Desku mají sestavy `jpr1x_bgp1s`
+  a od 2026-10-07 i `jpr1s_bgp1s` (autor).
 
 ## 4. Sběrnice K1, takt, reset, čekání, přerušení
 

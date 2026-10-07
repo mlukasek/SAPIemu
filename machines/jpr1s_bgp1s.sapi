@@ -16,7 +16,8 @@
                 "joyport": "joystick",      // Keyboard ANK-1M2: joystick connector (P1-IN D5-D0) - joystick (Atari)
                 "software": "mikos"
             },
-            "k2_adapter": "redukce34kb01",  // K2 adapter (cable of the keyboard) - Redukce34KB01: RS-232 RX on P1-IN7 (INT, T keys not connected)
+            "k3": "diag",                   // K3: what is plugged in - diagnostic board rev 2.0 (2x 7 segments, buttons + / -)
+            "k2_adapter": "redukce34kb01",  // K2 adapter (cable of the keyboard) - Redukce34KB01 rev 2.0: RS-232 RX on P1-IN7 (INT, T keys not connected)
             "serial": {
                 "tcp": { "bind": "127.0.0.1", "dcd_follows": false, "port": 2325, "protocol": "raw" }
             }

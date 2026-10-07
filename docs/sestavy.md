@@ -167,7 +167,8 @@ a disketami PC 3,5" a 5,25" HD na FDC-1 (volba 1 nebo 2).
 **Desky Libora Lasoty k původním sestavám** (2026-10-06): `machines/jpr1s_bgp1s.sapi` je JPR-1S s MIKROBIOSem 1.02,
 grafikou BGP-1S (PMD-85, Colorace) a klávesnicí ANK-1M2; hry z `media/jpr-1s` se nahrají přes Soubor → Nahrát
 program (Intel HEX) a spustí `JUMP 4400`, nebo příkazem BOOT po sériové lince redukce Redukce34KB01 (TCP 2325, raw,
-19200 Bd). `machines/zps/ZPS-1_JPR-1S_AND-1B.sapi` je ekvivalent ZPS-1: JPR-1S s MIKROBASICem 2.4 v EEPROM, AND-1B
+19200 Bd). Na K3 má desku diagnostiky (od 2026-10-07, čítač `media/jpr-1x/diag_poll.hex`).
+`machines/zps/ZPS-1_JPR-1S_AND-1B.sapi` je ekvivalent ZPS-1: JPR-1S s MIKROBASICem 2.4 v EEPROM, AND-1B
 (VGA) a ANK-1M2. `docs/desky/JPR-1S.md`, `BGP-1S.md`, `AND-1B.md`.
 
 **JPR-1X** (2026-10-06, 80C85): `machines/jpr1x_bgp1s.sapi` je JPR-1X s MIKROBIOSem 1.02 z dolní banky ROM, RAM-1/48K,

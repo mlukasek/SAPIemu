@@ -376,7 +376,8 @@ COLOR n (1–7), JUMP adr, BOOT (Intel HEX 19200 Bd, 8N2, na 2800h bit 7 přes r
   - `manic_miner.hex` (Vít Libovický & Daniel Jenne, ViLiSoft & DaJeSoft 1985, port z PMD-85);
   - `auto.hex`;
   - `martinuv_prvni_pokus.hex` (jen s BIOSem 1.02).
-- Sestava: `machines/jpr1s_bgp1s.sapi` (JPR-1S, MIKROBIOS 1.02, BGP-1S, ANK-1M2, redukce na K2).
+- Sestava: `machines/jpr1s_bgp1s.sapi` (JPR-1S, MIKROBIOS 1.02, BGP-1S, ANK-1M2, redukce na K2, deska diagnostiky
+  na K3).
 
 ## 9. Nejasnosti
 
