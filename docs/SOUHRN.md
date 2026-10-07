@@ -20,13 +20,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   s IDE diskem jako minule), poznámky `docs/release-notes/v0.2.0-alpha.md`. Release build prošel všemi 35 testy
   (i ZEX a 8080EXM), ze zipu naběhne MikroMon, dlouhé CP/M, ZPS-4 s FDC-1 i tisk v `cpm_zrmd`. Je opět jen pro
   kamarády (soukromě), tag a veřejný release zatím ne. Obsahuje knihovnu disket J. Bíby (komerční software).
-- **Alfa 0.3.0-alpha (připravená 2026-10-07):** `out/package/SAPIemu-0.3.0-alpha-win64.zip` (307 souborů, 23,1 MB,
-  s IDE diskem `work/ide` jako minule), poznámky `docs/release-notes/v0.3.0-alpha.md`. Release `full` prošel všemi
-  41 testy (ZEX, 8080EXM, 8085EXM), Linux ve WSL 37. Z rozbaleného zipu naběhne MikroMon, `jpr1x_bgp1s`
-  (MIKROBIOS 1.02 + Falcon), `jpr1s_bgp1s`, obě ZPS-1 s JPR-1X a JPR-1S (MIKROBASIC), sestava V (menu ECMONu),
-  `cpm_ec1045` a `ZPS-3_CPM64K_IMA` (`A>`). Zase jen pro kamarády (soukromě), tag a veřejný release ne.
-  **Zip je z dopoledne 7. 10., bez SAPI-1.5 (ZPS-6), snímků, videa a CRM-1.** Poznámky k vydání už to vše
-  uvádějí, před odesláním proto zip přebalit (`tools\build.cmd release full`, `python tools\package.py`).
+- **Alfa 0.3.0-alpha (přebalená 2026-10-07 večer, odeslaná kamarádům):** `out/package/SAPIemu-0.3.0-alpha-win64.zip`
+  (342 souborů, 24,0 MB, s IDE diskem `work/ide` jako minule), poznámky `docs/release-notes/v0.3.0-alpha.md`. Obsahuje
+  i SAPI-1.5 (ZPS-6 s fontem EPROM „59“), snímky a video, CRM-1, RTC-1, DSP-1. Release `full` prošel všemi 45 testy
+  (ZEX, 8080EXM, 8085EXM), Linux ve WSL 41. Z rozbaleného zipu naběhne MikroMon, `jpr1x_bgp1s`, `jpr1s_bgp1s`, obě
+  ZPS-1 s JPR-1X a JPR-1S (MIKROBASIC), sestava V (menu ECMONu), `cpm_ec1045`, `ZPS-3_CPM64K_IMA` a `zps/ZPS-6`
+  (`A>`). Zase jen pro kamarády (soukromě), tag a veřejný release ne. (SOUHRN v zipu je o jeden commit starší.)
 - **Hotové v této sérii (2026-10-04/05), podrobnosti v blocích níže a v `docs/rozhodnuti.md`:**
   - karty: MPH-1V (zvuk, 82C54, joystick, myš), ZRD-1V rev 2.1 (zámek zápisu, MAX187);
   - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
