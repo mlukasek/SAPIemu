@@ -210,6 +210,16 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      (rev 2.0, JPR-1S i JPR-1X, okno, MCP `diag_board`, čítače `media/jpr-1x`).
   10. ~~Uklidit varování GCC~~ hotové 2026-10-06 (čisté sestavení ve WSL bez varování ve vlastním kódu, všech 37
      testů včetně `test_tapegen` a `test_jpr1x` prochází).
+  11. **Navržené další kroky (2026-10-08):**
+     a) souhrnný seznam otázek k ověření na HW podle desek, které autor má (teď rozházené po „Nejasnostech“
+        `docs/desky/*` a v bodech 1–32 níže), jako podklad na společnou akci;
+     b) další várka otázek pro EC1045: software nebo ROM k sestavě **SAPI-IPS** (JPR-1Z, AND-30C, RAM-64, RFD-Z),
+        software k RPD-1Z, pořadí A5/A6 na SA2 u DSP-1, kam vedl kabel /INT z XC2/14 u RTC-1;
+     c) **SAPI-IPS** na sapi.cz (`..\SAPI.CZ\sapi\and-30c.php`, `ram-64.php`, `rfd-z.php`): schémata ze zpětného
+        inženýrství a dumpy PROM dekodérů jsou. AND-30C: 6845, 80 × 21, font jako AND-1Z (2716/2732), dekodér PROM
+        po 2 KB. RAM-64: 8 × 6264 se zálohou, PROM 74188 (stránkování). RFD-Z: WD2797 bez DMA, konektory pro 8"
+        i 5,25"/3,5", adresace v portech i v paměti. Bez softwaru (ROM, systém) zatím není na čem emulaci ověřit;
+     d) RPD-1Z (8271 + 8257, AR B 6/1985, replika EC1045): podle EC1045 pod CP/M náhodně chybuje, software chybí.
 - **Pracovní pravidla, která se osvědčila:**
   - Skripty s `\n`, `\r` a `\b` psát nástrojem Write do souboru, ne přes heredoc v bashi. Shell zpětná lomítka
     rozbije a do souborů se pak dostanou řídicí znaky.
