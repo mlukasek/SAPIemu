@@ -85,7 +85,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   Snímek obrazovky. Výchozí jsou přesné body emulace (autor). **Video se zvukem** (`src/frontend/video.cpp`):
   Ctrl+Alt+F5, MP4 (H.264 + AAC) přes ffmpeg do `work/videa`, 50 snímků za sekundu emulovaného času
   (`EmuHost::tick_hook` dělí běh na snímky), zvuk ze sběrnice (`Bus::audio_record`), na konci spojení obou stop.
-  Ověřeno `--ui-video`: ZPS-6 1536 × 720, sestava V se SPLAY 1280 × 960 s hudbou, obě stopy stejně dlouhé.
+  Ověřeno `--ui-video`: ZPS-6 1536 × 720, sestava V se SPLAY 1280 × 960 s hudbou, obě stopy stejně dlouhé. Autor
+  vyzkoušel, funguje. Večer zvětšení změněné na sudé (4×, VGA 2×, crf 14), protože 3× s barvou po blocích 2 × 2
+  rozmazávalo barevné hrany (`docs/rozhodnuti.md`).
 - **Hotové 2026-10-07 odpoledne: SAPI-1.5, sestava ZPS-6** (`machines/zps/ZPS-6.sapi`, test `test_sapi15`,
   `docs/software/SAPI-1.5.md`): karty **PKT-1**, **RSW-1**, **DBS-1A** (`docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`)
   podle dumpů PROM ze sapi.cz, schémat a návodů Tesla. ROM MON-V100690 (dump EPROM, i opravená verze Melsoft)

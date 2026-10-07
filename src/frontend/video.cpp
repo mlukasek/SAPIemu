@@ -1,7 +1,8 @@
 // Video of a display output with the sound (right click on a picture, View, Ctrl+Alt+F5): MP4 (H.264 +
 // AAC) made by ffmpeg. The frames are taken at 50 per second of EMULATED time (EmuHost::tick_hook) and
-// piped to ffmpeg as raw BGRA at the exact dots of the card, enlarged there like a screenshot "as
-// shown" (3 lines per dot, 2 for VGA cards; the width by the TV aspect). The sound of the bus is recorded meanwhile
+// piped to ffmpeg as raw BGRA at the exact dots of the card, enlarged there by EVEN factors (4 lines per
+// dot, 2 for VGA cards; the width by the TV aspect): H.264 in yuv420p keeps one colour per 2 x 2 block,
+// with an odd factor the colour edges between dots get smeared. The sound of the bus is recorded meanwhile
 // (Bus::audio_record); at the end a second ffmpeg run puts the two together. Picture and sound keep
 // in step at any emulation speed; a pause pauses the video.
 #include "frontend/ui.h"
@@ -313,8 +314,10 @@ void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspec
     r.w = d->screen_width();
     r.h = d->screen_height();
     r.frame.assign((size_t)r.w * r.h, 0xFF000000u);
-    // enlarged like a screenshot "as shown", at most 1080 lines: 3 lines per dot, 2 for VGA cards (480 lines)
-    int sy = r.h * 3 <= 1080 ? 3 : r.h * 2 <= 1080 ? 2 : 1, sx = (int)lroundf((float)sy * px_aspect);
+    // even factors (each dot fills whole 2 x 2 colour blocks of yuv420p), at most 1440 lines: 4 lines per
+    // dot, 2 for VGA cards (480 lines); the width by the aspect rounded to an even factor
+    int sy = r.h * 4 <= 1440 ? 4 : r.h * 2 <= 1440 ? 2 : 1;
+    int sx = sy >= 2 ? 2 * (int)lroundf((float)sy * px_aspect / 2.0f) : (int)lroundf((float)sy * px_aspect);
     if (sx < 1) sx = 1;
     // work/videa/<card>_<YYYYMMDD-HHMMSS>.mp4
     std::string n;
@@ -339,7 +342,7 @@ void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspec
     char vf[160];
     snprintf(vf, sizeof(vf), "scale=iw*%d:ih*%d:flags=neighbor,pad=ceil(iw/2)*2:ceil(ih/2)*2,setsar=1,format=yuv420p", sx, sy);
     std::string cmd = dq(ffmpeg) + " -hide_banner -loglevel error -y -f rawvideo -pix_fmt bgra " + geo +
-                      " -i - -vf " + vf + " -c:v libx264 -preset veryfast -crf 18 " + dq(native(r.tmp_video));
+                      " -i - -vf " + vf + " -c:v libx264 -preset veryfast -crf 14 " + dq(native(r.tmp_video));
     std::string err;
     if (!proc_start(r.ff, cmd, true, r.log, err)) {
         notice(ui, false, std::string(tr("Cannot start ffmpeg")) + ": " + ffmpeg);

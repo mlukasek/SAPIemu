@@ -1193,7 +1193,7 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   AVI. Jak to funguje:
   - `EmuHost::tick_hook` dělí běh emulace na úseky po 1/50 s emulovaného času a na každé hranici se vykreslí snímek
     (přesné body karty, BGRA rourou do ffmpeg, bez okna konzole přes CreateProcess). Zvětšení jako u snímku „jak je
-    vidět“, nejvýš 1080 řádků (VGA 2×, ostatní 3×), libx264 `-crf 18`;
+    vidět“, nejvýš 1080 řádků (VGA 2×, ostatní 3×), libx264 `-crf 18`; **změněno týž den večer** (níže);
   - zvuk zapisuje `Bus::audio_record` od stejného okamžiku; na konci se zkrátí na délku obrazu a druhý běh ffmpeg
     spojí obě stopy (`-c:v copy`, AAC) ve vlákně, GUI mezitím běží dál;
   - obraz a zvuk drží synchron při každé rychlosti emulace, pauza video pozastaví; výměna sestavy nahrávání ukončí;
@@ -1258,3 +1258,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   SA2 je v konfigurátoru jako horní číslice, ne po spínačích, protože pořadí A5/A6 na přepínači se mezi návodem
   a replikou liší.
 - **RTS do PC se nemodeluje**, místo řízení toku slouží `pacing` (SAPI dostane další znak, až přečte předchozí).
+
+## 2026-10-07 – Video: sudé zvětšení
+
+- **Autor:** video funguje, ale body nejsou úplně ostré. Příčina: H.264 v `yuv420p` (jiný formát mnoho přehrávačů
+  neumí) má jednu barvu na blok 2 × 2. Při zvětšení 3× bod nesedí na bloky a barevné hrany se rozmažou.
+- **Změřeno** (obraz BGP-1S s barevným šumem v pozadí, podíl bodů s chybou > 24): ×3 crf 18 0,20 %, ×3 crf 12 0,03 %,
+  ×3 4:4:4 0,09 %, **×4 crf 18 0,01 %** a soubor je navíc 2,5× menší.
+- **Teď:** zvětšení vždy sudé, 4× (2× u VGA, nejvýš 1440 řádků), šířka podle poměru stran zaokrouhlená na sudé číslo,
+  `-crf 14`. ZPS-6 tedy 2048 × 960, BGP-1S 1152 × 1024, VGA 1280 × 960.
+- Rozmazání může přidat i přehrávač, když video zvětšuje nebo zmenšuje do okna (bilineárně). To emulátor neovlivní.
