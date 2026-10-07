@@ -264,6 +264,10 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
     v sérii (např. KY130/80). Přepínače pro druhý konektor „bez záruky“, platí pro obě desky.
   - **Tiskárna:** na X3 měl jen plotter MINIGRAF přes rozhraní z AR (Mikroelektronika 1988) s přepínači polarity
     STB a ACK. Kolík 16 neví (musel by kabel propískat).
+- **Odpověď Petrovi (návrh 2026-10-07,** `..\Dotazy\EC1045_2026-10-06\Odpoved_Petrovi_2026-10-07.txt`, posílá
+  autor): popis chyby `RET` v ECBIM8 s opravou (bajty na 583Dh a 3B832h obrazu RAM disku), zapojení MFC-1A podle
+  jeho překreslení bráno jako fakt (prosba o kontrolu originální desky: D4/D5 z DD11, Q nebo /Q z DD23A), dál
+  chybí: zdroják ECMON IDE-1, ostřejší fotka přepínačů DPP-1, číslování SA2 a kolík /HL, kolík 16 kabelu tiskárny.
 
 ## Plán (schválený autorem 2026-10-05)
 
