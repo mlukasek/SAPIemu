@@ -69,7 +69,11 @@ Kanál nesmí být stejný jako kanál PMD32-SD.
 ## Nejasnosti k ověření na HW
 
 - Co je v kabelu k tiskárně na kolíku 16 X3 (P2-IN7)? ECMON při 1 netiskne, emulace ho drží v 0. (EC1045 neví,
-  na X3 měl jen plotter MINIGRAF přes rozhraní z AR 1988 s přepínači polarity STB a ACK.)
+  na X3 měl jen plotter MINIGRAF přes rozhraní z AR 1988 s přepínači polarity STB a ACK.) **EC1045 (2026-10-07):**
+  v jeho rozhraní pro plotter vede X3/16 na kolík 11 konektoru DSUB25, tedy **BUSY**. Konektor odpovídá LPT
+  z PC. Ovladač `lst1` ECMONu by při BUSY na P2-IN7 znaky zahazoval (bit 7 = 1 → `RC`), plotter tedy měl buď vlastní
+  ovladač, nebo BUSY s opačnou polaritou. Pro tiskárnu s ECMONem zůstává kolík 16 nejasný.
 - Bere tiskárna (LQ-1070, K6313) data při sestupné, nebo náběžné hraně /STROBE? Emulace je bere při náběžné.
 - Tiskárna na DPP-1: jak byl zapojený kabel (/OBF → /STROBE, /ACK → PC6, BUSY?) a přepínače S2–S4? Tiskl
-  někdo přes `UL1:`, nebo tam byl jen děrovač?
+  někdo přes `UL1:`, nebo tam byl jen děrovač? (Přepínače desky EC1045 s PMD32-SD a programátorem PROM jsou
+  rozepsané v `docs/desky/DPP-1.md`, tiskárnu na DPP-1 neměl.)

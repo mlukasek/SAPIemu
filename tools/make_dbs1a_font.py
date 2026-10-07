@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Generate a SUBSTITUTE character generator image for the DBS-1A colour display board.
 
-THIS IS NOT A DUMP. The real character generator of the SAPI-1.5 DBS-1A board
-(Tesla M2732A EPROM labelled "59", 4 KB) has not been preserved. This script
-builds a clearly marked replacement so the board can be emulated:
+THIS IS NOT A DUMP. It was made while the real character generator of the
+SAPI-1.5 DBS-1A board (Tesla M2732A EPROM labelled "59", 4 KB) was missing.
+Since 2026-10-07 the dump (from EC1045) is roms/dbs-1a/DBS-1A_CharGen_59.bin and
+the default; this replacement stays as an option. The script builds:
 
     roms/dbs-1a/DBS-1A_CharGen_nahrada.bin   (exactly 4096 bytes)
 

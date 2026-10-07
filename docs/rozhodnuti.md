@@ -1209,3 +1209,17 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   je odchylka pro pohodlí.
 - **ZPS-7 až ZPS-9** jako samostatné sestavy neděláme: od ZPS-6 se liší jen rámem, sběrnicí SBK a počtem mechanik,
   což emulace nerozlišuje. Stačí poznámka v `docs/software/SAPI-1.5.md`.
+
+## 2026-10-07 – Odpovědi EC1045: font DBS-1, zapojení MFC-1A, přepínače DPP-1
+
+- **Znakový generátor DBS-1:** EC1045 poslal dump EPROM „59“ (Intel HEX). Je výchozím fontem
+  (`roms/dbs-1a/DBS-1A_CharGen_59.bin`), náhrada z AND-1Z zůstává jako volba (kdo si ji zvolil, ať o ni nepřijde).
+  Znak 98h je v EPROM kopií 86h; emulujeme EPROM, jak je (věrnost HW), a ptáme se v Nejasnostech.
+- **Textový výstup DBS-1A** (MCP, `--print-screen`) má vlastní převod kódů, kde se EPROM liší od AND-1Z (rámečky,
+  řecká písmena, symboly). Kód 00h zůstává mezerou, ačkoli EPROM tam má roh rámečku: prázdná video RAM by jinak
+  byla text plný rohů. Obraz je přesně podle EPROM.
+- **MFC-1A:** originál v. č. 0124 odpovídá překreslení EC1045. Výchozí `wiring` je proto `ec1045` (dřív `tesla`),
+  volba `tesla` zůstává pro naskenované schéma. Hodnoty se nepřejmenovaly, uložené sestavy platí dál; všechny
+  sestavy v repu už `ec1045` měly.
+- **DPP-1:** přepínače z fotky EC1045 potvrzují předpoklad emulace (28h, kanál 2 na X3 obousměrný). Emulace
+  přepínače S2–S4 dál nemodeluje, jen jsou rozepsané v `docs/desky/DPP-1.md` i s chybou tabulek 7 a 9 návodu.

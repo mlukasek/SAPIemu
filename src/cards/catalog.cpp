@@ -839,10 +839,10 @@ static const ParamOption k_mfc1a_res[] = {
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_mfc1a_wiring[] = {
-    { "\"tesla\"", "original Tesla schematic: D4 reset, D5 INT, D6 = 1 drives off",
-      "originální schéma Tesla: D4 reset, D5 INT, D6 = 1 mechaniky vypnuté" },
-    { "\"ec1045\"", "redraw EC1045 (replica): D5 reset, D4 INT, D6 = 1 drives on (BIOS ECBIM8)",
-      "překreslení EC1045 (replika): D5 reset, D4 INT, D6 = 1 mechaniky zapnuté (BIOS ECBIM8)" },
+    { "\"ec1045\"", "Tesla board as made (No. 0124) = redraw EC1045: D5 reset, D4 INT, D6 = 1 drives on",
+      "deska Tesla, jak se vyráběla (v. č. 0124) = překreslení EC1045: D5 reset, D4 INT, D6 = 1 mechaniky zapnuté" },
+    { "\"tesla\"", "Tesla schematic and manual (differ from the board): D4 reset, D5 INT, D6 = 1 drives off",
+      "schéma a návod Tesla (liší se od desky): D4 reset, D5 INT, D6 = 1 mechaniky vypnuté" },
     { nullptr, nullptr, nullptr },
 };
 #define MFC1A_DRIVE(k, l, def)                                                                                           \
@@ -868,7 +868,7 @@ static const CardParam k_mfc1a[] = {
       "Mechaniky se točí jen s MOTOR ON (MO0n–MO3n, registr 0FH D3 D2: mechaniky 5,25\"); jinak stále (8\" se střídavým motorem)",
       "false", nullptr, 0, 0 },
     { "spinup_ms", PK_INT, "Drive: spin-up after MOTOR ON (ms)", "Mechanika: rozběh po MOTOR ON (ms)", "500", nullptr, 0, 5000 },
-    { "wiring", PK_CHOICE, "Wiring of the drive register 0FH", "Zapojení registru mechanik 0FH", "\"tesla\"",
+    { "wiring", PK_CHOICE, "Wiring of the drive register 0FH", "Zapojení registru mechanik 0FH", "\"ec1045\"",
       k_mfc1a_wiring, 0, 0 },
     { "reset_mode", PK_CHOICE, "Register 0FH: the reset bit of the 8272", "Registr 0FH: bit resetu 8272", "\"level\"",
       k_mfc1a_res, 0, 0 },
@@ -1344,8 +1344,9 @@ static const CardParam k_rsw1[] = {
 };
 
 static const ParamOption k_dbs1a_fonts[] = {
-    { "\"roms/dbs-1a/DBS-1A_CharGen_nahrada.bin\"", "SUBSTITUTE from the AND-1Z font (the Tesla EPROM is not preserved)",
-      "NÁHRADA z fontu AND-1Z (EPROM Tesla se nedochovala)" },
+    { "\"roms/dbs-1a/DBS-1A_CharGen_59.bin\"", "Tesla EPROM \"59\" (dump EC1045, 2026)", "EPROM Tesla „59“ (dump EC1045, 2026)" },
+    { "\"roms/dbs-1a/DBS-1A_CharGen_nahrada.bin\"", "substitute from the AND-1Z font (made before the dump was found)",
+      "náhrada z fontu AND-1Z (z doby před nalezením dumpu)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_dbs1a_xt5[] = {
@@ -1404,7 +1405,7 @@ static const ParamOption k_dbs1a_out[] = {
 };
 static const CardParam k_dbs1a[] = {
     { "font", PK_FILE, "Character generator EPROM (DD15)", "EPROM znakového generátoru (DD15)",
-      "\"roms/dbs-1a/DBS-1A_CharGen_nahrada.bin\"", k_dbs1a_fonts, 0, 0 },
+      "\"roms/dbs-1a/DBS-1A_CharGen_59.bin\"", k_dbs1a_fonts, 0, 0 },
     { "xt5", PK_CHOICE, "XT5: character generator", "XT5: znakový generátor", "\"2732\"", k_dbs1a_xt5, 0, 0 },
     { "port", PK_CHOICE, "XT2/XT3: 6845 ports", "XT2/XT3: porty 6845", "\"E0h\"", k_dbs1a_port, 0xE0, 0xEE },
     { "window", PK_CHOICE, "XT1/XT4: video RAM window (write only)", "XT1/XT4: okno video RAM (jen zápis)", "\"B000h\"",
@@ -1516,8 +1517,8 @@ CARD(c_dgd1v, "DGD-1V", "DGD", "Graphic display 320x240, VGA (V)", "Grafický di
      true, k_dgd1v)
 CARD(c_cga1v, "CGA-1V", "CGA", "Colour graphics 320x200, VGA (V)", "Barevná grafika 320x200, VGA (V)", CC_DISPLAY, 1, true,
      k_cga1v)
-CARD(c_dbs1a, "DBS-1A", "DBS", "SAPI-1.5 colour semigraphics, 6845, 64x20 (substitute font)",
-     "Barevná semigrafika SAPI-1.5, 6845, 64x20 (náhradní font)", CC_DISPLAY, 1, true, k_dbs1a)
+CARD(c_dbs1a, "DBS-1A", "DBS", "SAPI-1.5 colour semigraphics, 6845, 64x20",
+     "Barevná semigrafika SAPI-1.5, 6845, 64x20", CC_DISPLAY, 1, true, k_dbs1a)
 // serial
 CARD(c_dsm1v, "DSM-1V", "DSM", "Two serial channels (V)", "Dva sériové kanály (V)", CC_SERIAL, 1, true, k_dsm1v)
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,

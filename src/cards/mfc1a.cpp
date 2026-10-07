@@ -11,7 +11,7 @@ bool Mfc1a::configure(const json& cfg, std::string& err)
 {
     if (!configure_common(cfg, "roms/mfc-1a/MFC-1A_DD9_74S287.bin", "DD9", err)) return false;
     std::string w, r;
-    if (!cfg_string(cfg, "wiring", w, "tesla", err)) return false;
+    if (!cfg_string(cfg, "wiring", w, "ec1045", err)) return false;   // the boards as made (EC1045 2026-10-07)
     if (w != "tesla" && w != "ec1045") {
         err = "wiring must be tesla or ec1045";
         return false;

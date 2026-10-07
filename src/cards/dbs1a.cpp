@@ -33,7 +33,7 @@ bool Dbs1a::configure(const json& cfg, std::string& err)
         if (x5 == k_xt5[i]) xt5 = i;
     if (xt5 < 0) { err = "xt5 must be 2716, 2732, 2732_attr, 2732_ma12, 2764_attr, 2764_ma12 or 2764_ma12_attr"; return false; }
     size_t size = xt5 == XT5_2716 ? 2048 : xt5 <= XT5_2732_MA12 ? 4096 : 8192;
-    if (!cfg_string(cfg, "font", f, "roms/dbs-1a/DBS-1A_CharGen_nahrada.bin", err)) return false;
+    if (!cfg_string(cfg, "font", f, "roms/dbs-1a/DBS-1A_CharGen_59.bin", err)) return false;
     if (!rom_load(f, font, size, 0x00, 0, err)) return false;
     font.resize(size, 0x00);
     if (!cfg_number(cfg, "port", port, 0xE0, err)) return false;
@@ -213,6 +213,36 @@ void Dbs1a::render(uint32_t* argb, uint32_t bg)
     (void)bg;
 }
 
+// Text of the codes where the EPROM "59" differs from the AND-1Z set of sapi_code_to_utf8():
+// line drawing 01-0E (00, the empty video RAM, stays a space), solid 0F-1F, Greek letters and
+// symbols in the gaps of KOI-8 cs2.
+static const char* dbs_text(uint8_t c)
+{
+    static const char* const low[16] = { " ", "╭", "╮", "╯", "└", "┌", "┐", "┘", "┴", "├", "┬", "┤", "│", "─", "┼", "█" };
+    if (c < 0x10) return low[c];
+    if (c < 0x20) return "█";
+    switch (c) {
+    case 0x7F: return "▒";
+    case 0xC0: return "α";
+    case 0xC2: return "β";
+    case 0xC7: return "ρ";
+    case 0xD6: return "µ";
+    case 0xDB: return "π";
+    case 0xDD: return "φ";
+    case 0xDE: return "τ";
+    case 0xDF: return "ω";
+    case 0xE2: return "Δ";
+    case 0xE7: return "Σ";
+    case 0xF6: return "Ω";
+    case 0xFB: return "÷";
+    case 0xFC: return "±";
+    case 0xFD: return "ø";
+    case 0xFE: return "°";
+    case 0xFF: return "§";
+    }
+    return nullptr;
+}
+
 std::vector<std::string> Dbs1a::text_rows()
 {
     std::vector<std::string> out;
@@ -222,7 +252,8 @@ std::vector<std::string> Dbs1a::text_rows()
         std::string s;
         for (int col = 0; col < nc; col++) {
             uint8_t c = chr[(start + (unsigned)(row * nc + col)) & 0x7FF];
-            s += c < 0x20 ? std::string(" ") : std::string(sapi_code_to_utf8(c));
+            const char* t = dbs_text(c);
+            s += t ? t : sapi_code_to_utf8(c);
         }
         out.push_back(s);
     }

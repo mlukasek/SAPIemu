@@ -36,6 +36,33 @@ připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi
 
   (X = sepnutý; 1S1 sepnutý = A5 = 1, 2S1 sepnutý = A4 = 0, 3S1 sepnutý = A3 = 0.)
 - /RES (invertovaný) nuluje obě 8255 (mód 0, vše vstupy). INT0 ze sběrnice je vyvedený na kolíky 18 konektorů X2 a X3.
+- **Směr portů (S2):** vstup DIEN obvodu 3216 každého portu dává hradlo 7408 (D4C) se dvěma vstupy s pull-upy.
+  1S2 / 4S2 jeden vstup uzemní (port je výstup), 2S2 / 3S2 druhý připojí na /ACK_A (port budí konektor jen při
+  /ACK = 0, tedy obousměrná sběrnice módu 2). Obě rozepnuté = vstup. **Tabulky 7 a 9 návodu (str. 11 a 19)** mají
+  pro obousměrný port sepnuté oba přepínače, podle schématu i repliky by tím byl port trvale výstup. Správně je
+  sepnutý jen 2S2 (kanál 1) nebo 3S2 (kanál 2). Řádky „výstup“ a „vstup“ tabulek se schématem souhlasí.
+- **Polarita (S3 kanál 1, S4 kanál 2):** sepnutý přepínač signál na konektoru invertuje proti 8255 (tab. 6, str. 10).
+  Tabulka konektoru X3 (příloha III, str. 30) platí pro rozepnuté 2S4–7S4. 1S3 / 1S4 = směr portu B (sepnutý
+  výstup), 8S3 / 8S4 nevyužité.
+
+### Nastavení desky EC1045 (PMD32-SD na X3, programátor PROM na X2)
+
+Fotka `..\Dotazy\EC1045_2026-10-07\DPP-1_pro_PMD-32SD_2.jpg` (2026-10-07). Číslování podle výkresu osazení (str. 32),
+na fotce otočeného o 90° (X1 vpravo, **X3 vlevo nahoře**, X2 vlevo dole). Sepnuto = strana „I“.
+
+| Přepínač | Sepnuté | Význam |
+|---|---|---|
+| S1 | 1, 2 (3, 4 rozepnuté) | **28h–2Fh** |
+| S2 | 1, 3 (2, 4 rozepnuté) | kanál 1: 1PA trvale výstup; kanál 2: **2PA obousměrný řízený /ACK (PC6)** |
+| S4 (kanál 2, X3) | žádný | 2PB vstup, PC bez inverze (nativní polarita 8255) |
+| S3 (kanál 1, X2) | všechny kromě 7 | 1PB výstup, 1PC1, 1PC5 a vstupy 1PC2, 1PC4, 1PC6 invertované, 1PC7 ne |
+
+- Kanál 2 tedy odpovídá módu 2 na portu A, jak ho používá PMD32-SD (řídicí slovo C4h na 2Fh): /OBF_A = 2PC7
+  (X3/9), IBF_A = 2PC5 (X3/10), /STB_A = 2PC4 (X3/15), /ACK_A = 2PC6 (X3/14). Emulace to předpokládá, změna
+  není potřeba.
+- Drobnost: C4h dává portu B mód 1 výstup, ale 1S4 je rozepnutý, takže 3216 portu 2PB budí proti 8255. PMD32-SD
+  port B nepoužívá.
+- U S3 je jistá jen poloha rozepnutého přepínače (7S3, při opačném čtení 2S3); oba krajní jsou sepnuté.
 
 ## Emulace
 
@@ -55,11 +82,10 @@ připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi
 
 ## Nejasnosti k ověření na HW
 
-- Přepínače S2–S4 (směr 3216, polarita PC) při připojení PMD32-SD a tiskárny: jaké nastavení a jaký kabel se
-  používaly? Zapojení konektoru PMD32-SD na X3? **EC1045 (2026-10-06):** PMD-32SD na horním konektoru (podle
-  ECMONu kanál 2 = X3), kabel podle dokumentace PMD-32SD, DIR se nezapojuje. Přepínače jsou na jeho fotce
-  `..\Dotazy\EC1045_2026-10-06\DPP-1_pro_PMD-32SD.jpg`, rozlišení na spolehlivé přečtení nestačí (případně
-  požádat o ostřejší). Na dolním konektoru měl **programátor PROM** (`PROM_prog.jpg`, návod
+- ~~Přepínače S2–S4 při připojení PMD32-SD~~ **vyřešeno 2026-10-07** z ostřejší fotky EC1045 (tabulka výše).
+  **EC1045 (2026-10-06):** PMD-32SD na horním konektoru (X3, kanál 2, potvrzeno i výkresem osazení), kabel podle
+  dokumentace PMD-32SD, DIR se nezapojuje. Na dolním konektoru (X2) měl **programátor PROM** (`PROM_prog.jpg`, návod
   `SAPIMAN\Scany dokumentací\DPP1- PROGRPROM.pdf`, úpravy +5 V a +12 V přes dvě diody).
+- Přepínače S2–S4 při připojení tiskárny: jaké nastavení a jaký kabel se používaly?
 - Kanál 1: děrovač (`PUN:`), nebo tiskárna přes `UL1:`? Zapojení signálů (STROBE, BUSY, ACK) na 1PA/1PC
   (emulace: /OBF → /STROBE, /ACK → PC6, BUSY nezapojený).

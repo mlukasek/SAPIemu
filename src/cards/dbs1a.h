@@ -9,8 +9,8 @@
 //   PROM DD2 maps it into a 4 KB window: B000-BFFF when MAP1 = L and MAP2 = H (standard, XT1
 //   1-2, 3-4, 6-7, XT4 19-20); PKT-1 sets MAP2 by OUT 0Eh,03h around each screen write.
 // - Character generator EPROM (2716/2732/2764, XT5): A0-A2 = RA0-RA2, A3 = code bit 7, A4-A10 =
-//   code bits 0-6, A11/A12 by XT5 (RA3, attribute bit 3, MA12). Bit 7 = leftmost dot. The real
-//   EPROM ("59") is not preserved: a substitute from the AND-1Z font is the default.
+//   code bits 0-6, A11/A12 by XT5 (RA3, attribute bit 3, MA12). Bit 7 = leftmost dot. The Tesla
+//   EPROM "59" (dump EC1045 2026) confirms this layout: 8 x 12 cell, rows 8-11 in the upper 2 KB.
 // - 12 MHz dot clock, 8 dots per character (64 columns) or 6 (80 columns, XT7).
 // - Attribute: bits 2-0 foreground, 6-4 background, 3 intensity (Y), 7 = 1 blink (the cell shows
 //   the background for 16 of 32 frames). R/G order: the manual and the CP/M text say bit 2 = R,

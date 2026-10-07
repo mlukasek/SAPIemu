@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "CP/M 2.2 z RAM disku + MFC-1A (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, MFC-1A)",
-    "description": "Sestava cpm_zrmd s řadičem MFC-1A (8272 + DMA 8257, Tesla Liberec 1989) a 8\" mechanikami. Při prvním zapnutí zvolit 2 = A: ZRMD-1, B,C: MFC8 (BIOS ECBIM8). Volba zůstane v RAM, další reset ji použije znovu. B: = mechanika A s disketou CP/M 2.2/P (data), C: = mechanika B. RAM disk má opravený BIOS ECBIM8 (doplněný RET v INIT_MFC, zdroják ..\\SAPI-karty\\ZRMD-1\\SRC), reset 8272 je podle schématu. Registr 0FH je zapojený podle překreslení EC1045 (D6 = 1 mechaniky zapnuté, jak čeká BIOS ECBIM8; originál Tesla je opačně, docs/desky/MFC-1A.md).",
+    "description": "Sestava cpm_zrmd s řadičem MFC-1A (8272 + DMA 8257, Tesla Liberec 1989) a 8\" mechanikami. Při prvním zapnutí zvolit 2 = A: ZRMD-1, B,C: MFC8 (BIOS ECBIM8). Volba zůstane v RAM, další reset ji použije znovu. B: = mechanika A s disketou CP/M 2.2/P (data), C: = mechanika B. RAM disk má opravený BIOS ECBIM8 (doplněný RET v INIT_MFC, zdroják ..\\SAPI-karty\\ZRMD-1\\SRC), reset 8272 je podle schématu. Registr 0FH je zapojený jako skutečná deska Tesla (v. č. 0124) a překreslení EC1045: D6 = 1 mechaniky zapnuté, jak čeká BIOS ECBIM8 (naskenované schéma Tesla je opačně, docs/desky/MFC-1A.md).",
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
@@ -71,7 +71,7 @@
             "working_copy": true,           // Work on copies in work/
             "decoder": "roms/mfc-1a/MFC-1A_DD9_74S287.bin",  // PROM DD9: port decoder - standard: 8257 04H, 05H, 08H, 8272 0CH-0DH, drive register 0FH
             "rdy_ground": false,            // X2-19 RDY grounded (8" Consul 7113 have no READY); else READY from the drive (disk in)
-            "wiring": "ec1045",             // Wiring of the drive register 0FH - redraw EC1045 (replica): D5 reset, D4 INT, D6 = 1 drives on (BIOS ECBIM8)
+            "wiring": "ec1045",             // Wiring of the drive register 0FH - Tesla board as made (No. 0124) = redraw EC1045: D5 reset, D4 INT, D6 = 1 drives on
             "reset_mode": "level"           // Register 0FH: the reset bit of the 8272 - 1 holds the reset (schematic; the unfixed ECBIM8 hangs at its initialization)
         }
     ]

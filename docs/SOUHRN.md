@@ -56,6 +56,17 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Odpovědi EC1045 2026-10-07** (`..\Dotazy\EC1045_2026-10-07\`), zapracované téhož dne:
+  - **dump EPROM „59“ znakového generátoru DBS-1:** je teď výchozím fontem DBS-1A (`roms/dbs-1a/DBS-1A_CharGen_59.bin`),
+    potvrdil adresování i semigrafiku 2 × 3, navíc má rámečky a řecká písmena (`docs/desky/DBS-1A.md`);
+  - **originální MFC-1A (v. č. 0124) odpovídá jeho překreslení** (DD11, D4/D5): výchozí `wiring` je od teď `ec1045`,
+    schéma Tesla je chybné (`docs/desky/MFC-1A.md`);
+  - **DPP-1:** ostřejší fotka, přepínače rozepsané v `docs/desky/DPP-1.md` (28h, X3 = kanál 2 obousměrný pro
+    PMD32-SD, emulace sedí); tabulky 7 a 9 návodu mají chybu u obousměrného portu;
+  - **FDC-1:** SA2 `11000011` je souměrné, SA1 na FDC-1B nahrazený propojkou; **tiskárna:** v jeho kabelu plotteru
+    vede X3/16 na BUSY (DSUB25/11, zapojení jako LPT PC); **ZPS-5:** dvojitá vana, dlouhá sběrnice, bez MFC-1A;
+  - pro Petra je připravená oprava BIOSu MFC8 (`..\Dotazy\EC1045_2026-10-07\pro_Petra\`: opravené ECBIM8.MAC
+    a ECBIM8_cd.MAC a obraz RAM disku s přepsanými dvěma bajty, v emulátoru ověřený); poslat ji musí autor.
 - **Hotové 2026-10-07 večer: CRM-1** (zálohovaná CMOS RAM 4 KB, `docs/desky/CRM-1.md`, test `test_crm1`) podle
   návodu Tesla; autor desku nemá, software pro ni neznáme. ZPS-7 až ZPS-9 jako samostatné sestavy nebudou (od ZPS-6
   se v emulaci neliší), poznámka v `docs/software/SAPI-1.5.md`.
@@ -68,8 +79,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **Hotové 2026-10-07 odpoledne: SAPI-1.5, sestava ZPS-6** (`machines/zps/ZPS-6.sapi`, test `test_sapi15`,
   `docs/software/SAPI-1.5.md`): karty **PKT-1**, **RSW-1**, **DBS-1A** (`docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`)
   podle dumpů PROM ze sapi.cz, schémat a návodů Tesla. ROM MON-V100690 (dump EPROM, i opravená verze Melsoft)
-  nabootuje CP/M 2.2 62K z disket Melsoft `.sp2` (`media/sapi15`). Znakový generátor DBS-1 se nedochoval: náhrada
-  z fontu AND-1Z. ZPS-5 čeká na firmware. Rozbory ve `work/sapi15/report_*.md` (mimo git).
+  nabootuje CP/M 2.2 62K z disket Melsoft `.sp2` (`media/sapi15`). Znakový generátor DBS-1 nejdřív jako náhrada
+  z fontu AND-1Z, večer dump EPROM „59“ od EC1045. ZPS-5 čeká na firmware. Rozbory ve `work/sapi15/report_*.md` (mimo git).
 - **Hotové 2026-10-07** (podrobnosti v `docs/rozhodnuti.md`):
   - **konfigurátor:** karty jde myší přetáhnout do jiného slotu (přesun, prohození se stejně širokou kartou).
     Sloty sběrnice jsou rovnocenné, takže se přesun provede rovnou i v běžícím stroji a sestava je jen neuložená
@@ -177,8 +188,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      (GitHub Actions) zatím ne, nejdřív až s veřejným repem nebo jen s linuxovým během.
   6. ~~Přepínání jazyka UI~~ hotové 2026-10-06 (Zobrazení → Jazyk / Language, výchozí podle Windows, `--lang`,
      `docs/build.md`).
-  7. ~~PKT-1~~ hotová 2026-10-07 se sestavou ZPS-6 (a RSW-1, DBS-1A). Zbývá ZPS-5 (firmware se nenašel), sehnat
-     dump znakového generátoru DBS-1 (M2732A „59“), případně ZPS-7/8 (dvě mechaniky, SBK-1).
+  7. ~~PKT-1~~ hotová 2026-10-07 se sestavou ZPS-6 (a RSW-1, DBS-1A). Zbývá ZPS-5 (firmware se nenašel). ~~Dump
+     znakového generátoru DBS-1~~ od EC1045 2026-10-07. ZPS-7 až ZPS-9 jen poznámkou (`docs/software/SAPI-1.5.md`).
   8. Příprava veřejného vydání (níže).
   9. ~~Okno terminálu: kopírování jen výběru myší~~ hotové 2026-10-06 (tažení, dvojklik slovo, trojklik řádek,
      bez výběru celý text; `docs/seriova-linka.md`); ~~diagnostická deska na K3~~ hotová 2026-10-06
@@ -437,7 +448,7 @@ Dřív hotové fáze:
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
 | F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), JPR-1X (8085, TURBO), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka. Kazeta z programu (HEX/BIN → MIKOS, MIKROBASIC, WAV) | ✅ hotovo |
-| F12 ✅ | **SAPI-1.5** (2026-10-07): PKT-1, RSW-1 (8251, watchdog), DBS-1A (6845, náhradní font), sestava ZPS-6 s CP/M 2.2 62K z disket Melsoft (`.sp2`) | ✅ hotovo (bez ZPS-5) |
+| F12 ✅ | **SAPI-1.5** (2026-10-07): PKT-1, RSW-1 (8251, watchdog), DBS-1A (6845, font z dumpu EPROM „59“), sestava ZPS-6 s CP/M 2.2 62K z disket Melsoft (`.sp2`) | ✅ hotovo (bez ZPS-5) |
 | F10+ | ~~PKT-1~~ (hotovo); ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; ~~převod HEX → kazeta~~ (hotovo); CI (~~Linux~~ ve WSL hotovo) | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
@@ -579,7 +590,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       monitoru).
 
 26. **FDC-1** (`docs/desky/FDC-1.md`):
-    - Polarita D0 (DD/SD) přepínačů SA2 při čtení 0EH a k čemu je dvoupólový přepínač SA1.
+    - Polarita D0 (DD/SD) přepínačů SA2 při čtení 0EH a k čemu je dvoupólový přepínač SA1 (u EC1045 nahrazený
+      propojkou; SA2 má `11000011`, souměrně).
     - Hlásí 8272 po resetu „ready changed“ pro všechny 4 jednotky (SENSE INTERRUPT STATUS po resetu)?
     - Kolik taktů CPU zabere přenos DMA (emulace 4) a doba RQM po bajtu povelu (emulace 12 µs).
     - Registr 0FH: vedly /M0–/M3 z X3 k mechanikám PC? Nuluje ho /RES? Rozběh mechanik (emulace 500 ms)?
@@ -587,8 +599,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Kam až dojede hlava mechanik (8" Consul, 5,25" a 3,5" PC)? Emulace: stopa 82, programy SAPIMANa formátují 0–80.
 
 27. **MFC-1A** (`docs/desky/MFC-1A.md`):
-    - Které zapojení registru 0FH mají vyrobené desky a podle kterého se staví replika? Originál Tesla: D4 reset,
-      D5 INT, D6 = 1 mechaniky vypnuté; překreslení EC1045: D4/D5 prohozené, D6 = 1 zapnuté.
+    - ~~Které zapojení registru 0FH mají vyrobené desky?~~ **Vyřešeno 2026-10-07:** originál v. č. 0124 odpovídá
+      překreslení EC1045 (D5 reset, D4 INT, D6 = 1 zapnuté), schéma Tesla je chybné. Výchozí `wiring = ec1045`.
     - Bit resetu podle schématu drží 8272 v resetu. Fungoval BIOS ECBIM8 (ECMON varianta 2) s MFC-1A? Autor neví,
       desku zatím nemá, plánuje repliku. Oprava BIOSu: `RET` za SPECIFY v `INIT_MFC` (`0E 00` → `C9 00`), je ve
       zdrojáku `..\SAPI-karty\ZRMD-1\SRC\ECBIM8C.MAC` a v obrazu `..._fixMFC.bin`. Sestava s ní běží s resetem
@@ -598,9 +610,11 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       s D6 = 1 (jako překreslení EC1045). Kdo testy dělal a s jakým `DRVON`?
 
 28. **Tiskárna** (`docs/tiskarna.md`):
-    - Co je v kabelu na kolíku 16 X3 (P2-IN7)? ECMON při 1 netiskne, emulace ho drží v 0.
+    - Co je v kabelu na kolíku 16 X3 (P2-IN7)? ECMON při 1 netiskne, emulace ho drží v 0. U plotteru EC1045
+      vede na BUSY (DSUB25/11); s ovladačem ECMONu by to zahazovalo znaky, pro tiskárnu dál nejasné.
     - Bere tiskárna data při sestupné, nebo náběžné hraně /STROBE (emulace: náběžná)?
-    - DPP-1 kanál 1: děrovač, nebo tiskárna přes `UL1:`? Zapojení /OBF, /ACK, BUSY a přepínače S2–S4.
+    - DPP-1 kanál 1: děrovač, nebo tiskárna přes `UL1:`? Zapojení /OBF, /ACK, BUSY a přepínače S2–S4 pro tiskárnu
+      (pro PMD32-SD vyřešeno 2026-10-07, `docs/desky/DPP-1.md`).
 
 29. **Desky Libora Lasoty k původním sestavám** (2026-10-06; podrobně v sekcích „Nejasnosti“ `docs/desky/JPR-1S.md`,
     `BGP-1S.md`, `AND-1B.md`, `klavesnice.md`):
@@ -618,10 +632,11 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - PKT-1: polarita MAP1/MAP2/BOOT na sběrnici, /MR při čtení vnitřní EPROM, hodnota sběrnice v okně EPROM a při INTA,
       propojky XT4/XT5 na ZPS-5/6/7, BUSY tiskárny na PC3 nebo PC6, EKL-1 s /KACK = IBF.
     - RSW-1: skutečné propojky XT1 (emulace A6 = L, A7 = H, A8 = MAP2) a polarita MAP, obnovení watchdogu.
-    - DBS-1A: pořadí R a G v atributu, blikání, horní poloviny PROM DD2/DD27, XT5/XT7, **dump znakového generátoru**,
-      časování ROM BIOSu (15,0 kHz / 46,3 Hz).
-    - MFC-1A: software SAPI-1.5 zapíná mechaniky D6 = 1 (jako překreslení EC1045): byly tak zapojené i desky Tesla?
-    - ZPS-5: jaký firmware a konzolu měla (terminál na RSW-1?).
+    - DBS-1A: pořadí R a G v atributu, blikání, horní poloviny PROM DD2/DD27, XT5/XT7, ~~dump znakového
+      generátoru~~ (EC1045 2026-10-07; znak 98h je v něm kopií 86h), časování ROM BIOSu (15,0 kHz / 46,3 Hz).
+    - ~~MFC-1A: byly desky Tesla zapojené jako překreslení EC1045?~~ Ano (v. č. 0124, EC1045 2026-10-07).
+    - ZPS-5: jaký firmware měla? Podle EC1045 dvojitá vana, dlouhá sběrnice, bez MFC-1A, terminál nebo
+      zobrazovadlo na míru.
 
 ## Jak pokračovat
 

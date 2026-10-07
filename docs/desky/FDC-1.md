@@ -171,7 +171,8 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 ## Nejasnosti k ověření na HW
 
 - Polarita D0 přepínačů SA2 (DD/SD) při čtení 0EH a k čemu je dvoupólový přepínač SA1 na FDC-1B (návod mluví
-  o jednom „DIL přepínači“ čteném na D0 a D1).
+  o jednom „DIL přepínači“ čteném na D0 a D1). **EC1045 (2026-10-07):** na FDC-1A/B je jediný osmipólový DIP, SA2
+  na FDC-1B. SA1 (DIP2) je na jeho FDC-1B nahrazený propojkou.
 - Hlásí 8272 na FDC-1 po resetu „ready changed“ pro všechny 4 jednotky? (MOR to snese, bylo by dobré to ověřit
   sekvencí SENSE INTERRUPT STATUS po resetu.)
 - Kolik taktů CPU zabere jeden přenos DMA (emulace 4).
@@ -185,7 +186,8 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Doba RQM po bajtu povelu (emulace 12 µs).
 - Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? **EC1045
   (2026-10-06):** pro mechaniky HD má SA2 stejně jako pro 8", `11000011` (krajní dva na obou stranách sepnuté),
-  signál hustoty (kolík 2 mechaniky) nezapojený. S naším přiřazením (S1–S4 = 8" pro A–D, S5–S8 = DD) to je A, B
+  signál hustoty (kolík 2 mechaniky) nezapojený. **Upřesnění 2026-10-07:** sepnuté jsou dva krajní spínače
+  na každé straně, zbytek rozepnutý. Nastavení je souměrné, na směru počítání tedy nezáleží. S naším přiřazením (S1–S4 = 8" pro A–D, S5–S8 = DD) to je A, B
   = 8" SD, proto má `cpm_ec1045` od 2026-10-07 `sa2_a`/`sa2_b` = `8sd`. Jeho BIOS port 0EH nečte. Které číslo
   přepínače patří které mechanice, je dál odhad.
 - Kam až dojede hlava použitých mechanik (8" Consul, 5,25" a 3,5" PC)? Emulace má doraz na stopě 82. Programy

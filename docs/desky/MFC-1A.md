@@ -5,13 +5,15 @@ Stav: **emulovaná** (typ `MFC-1A`, `src/cards/mfc1a.*`, společná část s FDC
 sestava `machines/cpm_zrmd_mfc1a.sapi`, test `test_fdc_ecmon`.
 
 > **POZOR – důležité pro stavbu repliky:**
-> 1. **Překreslené schéma EC1045 (`MFC-1A_MP.pdf`, 2010) se v registru 0FH liší od originálního schématu
->    Tesla** ve dvou místech: bity D4 a D5 jsou na vstupech DD11 prohozené (reset 8272 / povolení přerušení) a
->    do dekodérů DD18, DD19 vede /Q místo Q obvodu DD23A (D6 = 1 mechaniky zapne místo vypne). Originál Tesla
->    souhlasí s návodem i s programem `MFC1.ASM`, BIOS ECBIM8 počítá s polaritou D6 podle překreslení.
+> 1. **Překreslené schéma EC1045 (`MFC-1A_MP.pdf`, 2010) se v registru 0FH liší od naskenovaného schématu
+>    a návodu Tesla** ve dvou místech: bity D4 a D5 jsou na vstupech DD11 prohozené (reset 8272 / povolení
+>    přerušení) a do dekodérů DD18, DD19 vede /Q místo Q obvodu DD23A (D6 = 1 mechaniky zapne místo vypne).
+>    **Skutečná deska Tesla odpovídá překreslení:** EC1045 2026-10-07 ověřil na originální MFC-1A (v. č. 0124)
+>    DD11 a bity D4, D5. S D6 = 1 počítá i veškerý software SAPI-1.5 a BIOS ECBIM8. Chybné je tedy schéma Tesla
+>    (a `MFC1.ASM`, který podle něj vznikl).
 > 2. **BIOS ECBIM8 má chybu:** v `INIT_MFC` chybí `RET`, takže při inicializaci zapíše do 0FH hodnotu FFh. Podle
 >    obou schémat tím drží 8272 v resetu a čeká navěky.
-> 3. Emulace umí obě zapojení (`wiring = tesla / ec1045`) a reset přesně podle schématu (`reset_mode = level`,
+> 3. Emulace umí obě zapojení (`wiring = ec1045`, výchozí od 2026-10-07, / `tesla`) a reset přesně podle schématu (`reset_mode = level`,
 >    výchozí). Sestava `cpm_zrmd_mfc1a.sapi` má `ec1045`, reset podle schématu a **RAM disk s opraveným BIOSem**
 >    (`media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin`, zdroják `..\SAPI-karty\ZRMD-1\SRC`). Pro původní
 >    obraz zůstává odchylka `reset_mode = pulse` (reset jen jako pulz), se kterou neopravený BIOS nabootuje.
@@ -142,7 +144,8 @@ PROM DD25 (fázový závěs, `MFC-1A_DD25_74S287_PLL.bin`) emulace nepotřebuje,
 - Stejný 8272 a 8257 jako u FDC-1 (`docs/desky/FDC-1.md`: povely, časování, přerušení, DMA a HOLD).
 - 8272 vidí mechaniku vybranou registrem 0FH (D1 D0, zapnutou podle D6 a zapojení), bez ohledu na US v povelu.
 - **Parametry:**
-  - `wiring`: `tesla` (výchozí, originální schéma a návod) / `ec1045` (překreslení, replika; BIOS ECBIM8);
+  - `wiring`: `ec1045` (výchozí od 2026-10-07: deska Tesla, jak se vyráběla, = překreslení EC1045) / `tesla`
+    (naskenované schéma a návod, od desky se liší);
   - `reset_mode`: `level` (výchozí, schéma: bit resetu drží 8272 v resetu a DD23B vynuluje DD23A) / `pulse`
     (**odchylka**: náběžná hrana bitu jen resetuje 8272 a D6 zůstane, jak byl zapsán);
   - `rdy_ground`: výchozí ne = READY dává mechanika, když je v ní disketa (jako 5,25" mechaniky); ano = RDY
@@ -191,12 +194,13 @@ Veškerý software SAPI-1.5 z roku 1990 (ROM BIOS PKT-1 MON-V100690, FORMAT.COM,
 `40h | mechanika<<2 | mechanika` a po nečinnosti 00h, bity D4 a D5 nikdy. Počítá tedy s **D6 = 1 = mechaniky
 zapnuté**, tedy se zapojením podle překreslení EC1045. Sestava `machines/zps/ZPS-6.sapi` má `wiring = ec1045`,
 `rdy_ground`, `motor_line` a 5,25" DS DD disketu `.sp2` (40 × 2 × 16 × 256 B, `docs/software/SAPI-1.5.md`).
-Naznačuje to, že i desky Tesla z doby SAPI-1.5 byly zapojené jako replika, ne podle naskenovaného schématu.
+EC1045 to 2026-10-07 potvrdil na originální desce MFC-1A (v. č. 0124): zapojení odpovídá jeho překreslení.
 
 ## Nejasnosti k ověření na HW
 
-- **Které zapojení mají vyrobené desky Tesla a podle kterého je postavená replika** (D4/D5, Q nebo /Q z DD23A)?
-  Sken originálu a návod se s překreslením EC1045 neshodují. Při stavbě repliky doporučeno originál.
+- ~~Které zapojení mají vyrobené desky Tesla~~ **Vyřešeno 2026-10-07:** originální MFC-1A (v. č. 0124) odpovídá
+  překreslení EC1045 (DD11, bity D4 a D5; D6 = 1 zapnuté podle veškerého softwaru). Sken schématu a návod se
+  s deskou neshodují. Replika podle překreslení je správně.
   **EC1045 (2026-10-06):** J. Bíba rozchodil diskety na Petrově replice (měl ji zapůjčenou), systémy JB s D6 = 1
   tedy sedí na repliku. Petr sám mechaniky na MFC-1A nerozchodil (kabel pro RPD-1). Možná má i originální MFC-1A
   (sestava SAPI-1.5 8"), na které by šlo zapojení 0FH ověřit.

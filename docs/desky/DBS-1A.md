@@ -1,7 +1,7 @@
 # DBS-1A – deska barevné semigrafiky SAPI-1.5
 
-Stav: **emulovaná** (typ `DBS-1A`, také `DBS-1`; `src/cards/dbs1a.*`) od 2026-10-07, **s náhradním znakovým
-generátorem**. Sestava `machines/zps/ZPS-6.sapi`, test `test_sapi15`. Tesla Liberec 1990, deska 6XB 007 83,
+Stav: **emulovaná** (typ `DBS-1A`, také `DBS-1`; `src/cards/dbs1a.*`) od 2026-10-07, se **znakovým generátorem
+z dumpu EPROM „59“** (EC1045, téhož dne). Sestava `machines/zps/ZPS-6.sapi`, test `test_sapi15`. Tesla Liberec 1990, deska 6XB 007 83,
 schéma 6XK 199 246/Z, návod 6XV 123 45.
 
 ## Podklady
@@ -25,7 +25,7 @@ schéma 6XK 199 246/Z, návod 6XV 123 45.
   PKT-1 nastavuje MAP2 portem 0Eh (03h kolem zápisu do obrazovky, pak 01h). Horní skupina C000–FFFF MAP nedekóduje.
 - **Znakový generátor** DD15 (2716/2732/2764): A0–A2 = RA0–RA2, **A3 = bit 7 kódu**, A4–A10 = bity 0–6, A11/A12
   podle XT5 (RA3, bit 3 atributu, MA12). Standard 2732 se 256 znaky 8 × 12 (XT5 27-28), KOI-8 čs2 se semigrafikou.
-  Bit 7 = levý bod. **Dump EPROM (M2732A „59“) se nedochoval.**
+  Bit 7 = levý bod. **Dump EPROM „59“** poslal EC1045 2026-10-07 a adresování potvrdil (níže).
 - **Takt bodů 12 MHz**, 8 bodů na znak = 64 sloupců (XT7 38-39), 6 bodů = 80 sloupců (37-38; tabulka návodu
   str. 20 je obráceně).
 - **Atribut:** bity 2–0 popředí, 6–4 pozadí, 3 = jas Y (nebo výběr sady podle XT5), 7 = **1 bliká** (buňka ukáže
@@ -36,14 +36,24 @@ schéma 6XK 199 246/Z, návod 6XV 123 45.
 - Registry ROM BIOSu PKT-1: R0–R15 = 62 40 4D(opravená verze 4A) 14 1A 00 14 17 00 0B 60 0B 00 00 00 00, tedy 64 × 20,
   řádek znaku 12 bodů, řádkový kmitočet 15,0 kHz a snímkový 46,3 Hz (sady z návodu dávají 15,625 kHz / 50 Hz).
 
-## Náhradní znakový generátor
+## Znakový generátor (EPROM „59“)
 
-- `roms/dbs-1a/DBS-1A_CharGen_nahrada.bin` (4 KB, adresování 2732 výše) vyrábí `python tools/make_dbs1a_font.py`
-  (`--show KÓD` ukáže znak) z fontu **AND-1Z** (`roms/and-1z-89/AND-1Z_CharGen.bin`). AND-1Z (Tesla 1989) má stejné
-  rozložení kódů, jaké popisuje ROM BIOS DBS-1: 20–7Fh ASCII, 80–BFh semigrafika 2 × 3, C0–FFh česká písmena
-  KOI-8 čs2, a `CPM62-5.TXT` uvádí, že DBS-1 je s AND-1Z kompatibilní na úrovni BIOSu.
-- 00–1Fh jsou prázdné, 7Fh šachovnice, semigrafika jsou bloky 4 × 4 body (bit 0 vlevo nahoře až bit 5 vpravo
-  dole; předpoklad). V konfigurátoru je font označený jako NÁHRADA.
+- `roms/dbs-1a/DBS-1A_CharGen_59.bin` (4 KB, MD5 `ab4caccaaa204d3f467f02ddeecc36f6`): dump EPROM M2732A „59“
+  z desky EC1045 (e-mail 2026-10-07, `..\Dotazy\EC1045_2026-10-07\eprom59.HEX`). Výchozí font emulace.
+- **Potvrzuje adresování** 2732 se standardní XT5 27-28: A3 = bit 7 kódu, řádky 0–7 v dolních a 8–11 v horních
+  2 KB, buňka 8 × 12 (řádky 12–15 prázdné). Písmena jsou široká 7 bodů (bity 7–1).
+- **Obsah:**
+  - 00–0Eh rámečky (oblé rohy 00–03h, rohy, odbočky, čáry, kříž), 0F–1Fh plný blok;
+  - 20–7Eh ASCII, 7Fh šachovnice;
+  - 80–BFh semigrafika 2 × 3 (bloky 4 × 4 body, bit 0 vlevo nahoře, bit 1 vpravo nahoře … bit 5 vpravo dole);
+  - C0–FFh česká písmena KOI-8 čs2 jako AND-1Z a v jeho mezerách řecká písmena a symboly
+    (α β ρ µ π φ τ ω Δ Σ Ω ÷ ± ø ° §).
+- **Znak 98h** je v EPROM stejný jako 86h (pravý horní a levý prostřední čtvereček) místo levého dolního
+  a pravého prostředního. Ostatních 63 kombinací semigrafiky sedí. Emulace kreslí EPROM tak, jak je.
+- Textový výstup obrazovky (MCP, `--print-screen`) převádí rámečky, řecká písmena a symboly na Unicode, kód 00h
+  (prázdná video RAM) zůstává mezerou.
+- **Náhrada** z doby před dumpem (`roms/dbs-1a/DBS-1A_CharGen_nahrada.bin`, `python tools/make_dbs1a_font.py`
+  z fontu AND-1Z) zůstává jako volba v konfigurátoru. Její předpoklad rozložení semigrafiky dump potvrdil.
 
 ## Emulace
 
@@ -59,7 +69,7 @@ schéma 6XK 199 246/Z, návod 6XV 123 45.
 3. Horní poloviny PROM DD2 a DD27 (C000–F000, E8–EF): tabulky propojek a výpisy PROM v návodu se liší; ideálně
    vyčíst DD2 („53“) a DD27 („61“).
 4. XT7 38-39 = 8 bodů? XT5 29-32 (JP32 je VCC)? Je Y vždy bit 3 atributu?
-5. **Dump znakového generátoru** (M2732A „59“, 6XN 902 059?) a ověření adresování (A3 = bit 7, řádky 8–15
-   v horních 2 KB).
+5. ~~Dump znakového generátoru~~ hotový 2026-10-07 (EC1045), adresování potvrzené. Je znak 98h (kopie 86h) stejný
+   i v jiných kusech EPROM „59“, nebo jde o vadu tohoto kusu nebo dumpu?
 6. Časování ROM BIOSu (15,0 kHz / 46,3 Hz): existovala DBS-1 s jiným krystalem, nebo to monitor snesl?
 7. Kterou propojku XT5 předpokládá CP/M Melsoft (bit 3 atributu jako výběr sady potřebuje XT5 28-29 nebo 2764)?

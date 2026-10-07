@@ -83,9 +83,12 @@ Diskety 5 a 6 se nedochovaly. Všechny soubory mají atribut R/O.
 
 ## Co chybí
 
-- **ZPS-5:** žádný firmware se nenašel. ZPS-5 (PKT-1 + RSW-1 bez displeje a disket) byla zřejmě řídicí sestava
-  s EPROM od zákazníka. Známý ROM BIOS bez MFC-1A a DBS-1 nenaběhne. Sestava ZPS-5 počká na nalezený software.
-- **Znakový generátor DBS-1** (`docs/desky/DBS-1A.md`), Melsoft diskety 5 a 6, úplný návod k CP/M SAPI-1.5
+- **ZPS-5:** žádný firmware se nenašel. Podle EC1045 (2026-10-07) je ZPS-5 z toho, co se dochovalo, dvojitá vana
+  s dlouhou sběrnicí bez MFC-1A, nejspíš pro průmyslové použití s obsluhou přes terminál nebo zobrazovadlo na míru.
+  Byla to tedy řídicí sestava s EPROM od zákazníka. Známý ROM BIOS bez MFC-1A a DBS-1 nenaběhne. Sestava ZPS-5
+  počká na nalezený software.
+- ~~Znakový generátor DBS-1~~ (dump EPROM „59“ od EC1045 2026-10-07, `docs/desky/DBS-1A.md`), Melsoft diskety 5
+  a 6, úplný návod k CP/M SAPI-1.5
   (zachoval se jen `CPM62-5.TXT`).
 - Další zdroje: `CPM\BIOS\BIOS_ZPS7\BIOS7.asm` (2010–13, rozhraní ROM BIOSu pro SAPI-1 s konzolí na sériové lince
   DSM-1), ovladač DBS-1A J. Bíby z roku 2012 na H: (`H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\
