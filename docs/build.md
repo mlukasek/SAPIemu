@@ -6,6 +6,9 @@
 2. Vybrat preset (`Windows x64 Debug`, případně lokální `Local x64 Debug`).
 3. Jako Startup Item zvolit `sapiemu.exe` (GUI), nebo `sapiemu-cli.exe` (bez okna).
 
+Jde to i přes klasické řešení `.sln`: `cmake -G "Visual Studio 17 2022" -A x64 -S . -B out\sln` a otevřít
+`out\sln\SAPIemu.sln`. Výchozí Startup Project je `sapiemu` (CMake `VS_STARTUP_PROJECT`), ne `ALL_BUILD`.
+
 ## Příkazová řádka
 
 ```
