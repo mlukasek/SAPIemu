@@ -1420,6 +1420,45 @@ static const CardParam k_dbs1a[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+static const ParamOption k_crm1_base[] = {
+    { "\"0000h\"", "0000-1FFF (jumper 1-2)", "0000-1FFF (propojka 1-2)" },
+    { "\"2000h\"", "2000-3FFF (jumper 1-3)", "2000-3FFF (propojka 1-3)" },
+    { "\"4000h\"", "4000-5FFF (jumper 1-4)", "4000-5FFF (propojka 1-4)" },
+    { "\"6000h\"", "6000-7FFF (jumper 1-5)", "6000-7FFF (propojka 1-5)" },
+    { "\"8000h\"", "8000-9FFF (jumper 1-6)", "8000-9FFF (propojka 1-6)" },
+    { "\"A000h\"", "A000-BFFF (jumper 1-7)", "A000-BFFF (propojka 1-7)" },
+    { "\"C000h\"", "C000-DFFF (jumper 1-8)", "C000-DFFF (propojka 1-8)" },
+    { "\"E000h\"", "E000-FFFF (jumper 1-9), standard", "E000-FFFF (propojka 1-9), standard" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_crm1_kb[] = {
+    { "\"0000h\"", "+0000h (jumper 14+0)", "+0000h (propojka 14+0)" },
+    { "\"0400h\"", "+0400h (jumper 14+1)", "+0400h (propojka 14+1)" },
+    { "\"0800h\"", "+0800h (jumper 14+2)", "+0800h (propojka 14+2)" },
+    { "\"0C00h\"", "+0C00h (jumper 14+3)", "+0C00h (propojka 14+3)" },
+    { "\"1000h\"", "+1000h (jumper 14+4)", "+1000h (propojka 14+4)" },
+    { "\"1400h\"", "+1400h (jumper 14+5)", "+1400h (propojka 14+5)" },
+    { "\"1800h\"", "+1800h (jumper 14+6)", "+1800h (propojka 14+6)" },
+    { "\"1C00h\"", "+1C00h (jumper 14+7)", "+1C00h (propojka 14+7)" },
+    { "\"none\"", "not fitted (no MHB 1902 chips)", "neosazeno (bez obvodů MHB 1902)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_crm1[] = {
+    { "base", PK_CHOICE, "Jumpers 1-2..1-9: the 8 KB block", "Propojky 1-2..1-9: blok 8 KB", "\"E000h\"", k_crm1_base, 0, 0 },
+    { "kb1", PK_CHOICE, "1st kilobyte (CS1): offset in the block", "1. kilobajt (CS1): posun v bloku", "\"0000h\"", k_crm1_kb, 0, 0 },
+    { "kb2", PK_CHOICE, "2nd kilobyte (CS2): offset in the block", "2. kilobajt (CS2): posun v bloku", "\"0400h\"", k_crm1_kb, 0, 0 },
+    { "kb3", PK_CHOICE, "3rd kilobyte (CS3): offset in the block", "3. kilobajt (CS3): posun v bloku", "\"0800h\"", k_crm1_kb, 0, 0 },
+    { "kb4", PK_CHOICE, "4th kilobyte (CS4): offset in the block", "4. kilobajt (CS4): posun v bloku", "\"0C00h\"", k_crm1_kb, 0, 0 },
+    { "write_protect", PK_BOOL, "SA1: no writes into the 1st kilobyte (does not work on the boards as made)",
+      "SA1: zákaz zápisu do 1. kilobajtu (na deskách z výroby nefunguje)", "false", nullptr, 0, 0 },
+    { "battery", PK_BOOL, "Backup batteries (the content survives power off)", "Záložní baterie (obsah přežije vypnutí)", "true",
+      nullptr, 0, 0 },
+    { "file", PK_FILE, "Content kept by the batteries", "Obsah držený bateriemi", "\"work/crm-1/crm.bin\"", k_none, 0, 0 },
+    { "rdy_ns", PK_INT, "DD6: RDY low after each access (ns; 0 = no wait states, a deviation)",
+      "DD6: RDY v L po každém přístupu (ns; 0 = bez čekání, odchylka)", "590", nullptr, 0, 10000 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // ---------------------------------------------------------------- cards
 
 #define CARD(var, type, panel, en, cs, cls, width, emulated, params) \
@@ -1453,7 +1492,7 @@ CARD(c_rsw1, "RSW-1", "RSW", "SAPI-1.5: 64 KB RAM, serial port 8251, watchdog",
      "SAPI-1.5: RAM 64 KB, sériový port 8251, watchdog", CC_MEMORY, 1, true, k_rsw1)
 CARD(c_ram64, "RAM-64", "RAM", "Battery backed RAM up to 64 KB", "Zálohovaná RAM až 64 KB", CC_MEMORY, 1, false,
      nullptr)
-CARD(c_crm1, "CRM-1", "CRM", "Battery backed memory", "Deska zálohovaných pamětí", CC_MEMORY, 1, false, nullptr)
+CARD(c_crm1, "CRM-1", "CRM", "Battery backed CMOS RAM 4 KB", "Zálohovaná paměť CMOS 4 KB", CC_MEMORY, 1, true, k_crm1)
 CARD(c_dmr1, "DMR-1", "DMR", "128 KB RAM and serial port", "RAM 128 KB a sériový port", CC_MEMORY, 1, true, k_dmr1)
 CARD(c_rmd1, "RMD-1", "RMD", "RAM disk", "RAM disk", CC_DISK, 1, true, k_rmd1)
 CARD(c_zrmd1, "ZRMD-1", "ZRMD", "RAM disk 4 MB with RTC", "RAM disk 4 MB s RTC", CC_DISK, 1, true, k_zrmd1)

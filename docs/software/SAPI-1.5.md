@@ -15,6 +15,10 @@ Software pro sestavy SAPI-1.5 (ZPS-5 až ZPS-10, Tesla Liberec 1990). Emulované
 | ZPS-9 | jednoduchý, SBK-1/5 | jako ZPS-6 | 2 × 5,25" | na poptávku |
 | ZPS-10 | jednoduchý, SBI-1/10 | PKT-1, RSW-1, RTI-1 | – | 1991 |
 
+**ZPS-7 až ZPS-9 nemají vlastní sestavy:** v emulaci se od ZPS-6 neliší (rám a typ sběrnice SBI/SBK emulátor
+nerozlišuje). ZPS-7 a ZPS-9 = ZPS-6 s druhou mechanikou (`drive_b` na MFC-1A), ZPS-8 = ZPS-6. Zvláštní software pro
+ně nemáme (rozhodnuto s autorem 2026-10-07).
+
 Mechaniky 5,25" DS/DD, CP/M 2.2 na 5,25" disketě s možností práce s 8" disketou. Dokumentace Tesla k PKT-1,
 RSW-1, SBK-1, ZDR-1A, ZPS-8 a systémovým parametrům: `..\SAPI_DOKU\SAPI-1.5_dokumentace\`.
 

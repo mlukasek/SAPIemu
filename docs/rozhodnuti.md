@@ -1197,3 +1197,15 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
     spojí obě stopy (`-c:v copy`, AAC) ve vlákně, GUI mezitím běží dál;
   - obraz a zvuk drží synchron při každé rychlosti emulace, pauza video pozastaví; výměna sestavy nahrávání ukončí;
   - log ffmpeg je `work/videa/ffmpeg.log`.
+
+## 2026-10-07 – CRM-1 (zálohovaná CMOS RAM) a ZPS-7 až ZPS-9
+
+- **CRM-1** podle návodu Tesla 6XV 122 83 (OCR na sapi.cz), autor desku nemá a software pro ni neznáme. Propojky
+  (blok 8 KB, posun každého kilobajtu CS1–CS4 nebo neosazeno) a SA1 jsou v konfigurátoru, obsah drží soubor jako SRAM
+  DMR-1 (`work/crm-1/crm.bin`, jen s bateriemi).
+- **SA1** emulujeme jako opravenou desku (zápis do CS1 zablokuje). Na deskách z výroby podle EC1045 nefunguje,
+  chování neopravené desky neznáme.
+- **RDY:** impulz DD6 asi 590 ns (`rdy_ns`, výpočet z R10 a C1), z toho 1 WAIT při 2 MHz a 2 při 4 MHz. `rdy_ns = 0`
+  je odchylka pro pohodlí.
+- **ZPS-7 až ZPS-9** jako samostatné sestavy neděláme: od ZPS-6 se liší jen rámem, sběrnicí SBK a počtem mechanik,
+  což emulace nerozlišuje. Stačí poznámka v `docs/software/SAPI-1.5.md`.

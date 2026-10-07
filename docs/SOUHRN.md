@@ -164,7 +164,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      (Turbo Pascal, dBASE II, WordStar…) by šly přenést na disketu CP/M pro Z80 SAPI.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
-  2. Neemulované karty: DPP-1, RTC-1, DSP-1, ~~DBS-1A~~ (2026-10-07), AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
+  2. Neemulované karty: DPP-1, RTC-1, DSP-1, ~~DBS-1A~~ (2026-10-07), AND-30C, ~~CRM-1~~ (2026-10-07), RAM-64, RPD-1Z. Podle
      podkladů, které autor má. ~~DPP-1~~ hotová 2026-10-05 (PMD32-SD, od 2026-10-06 i tiskárna).
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
   4. ~~Převod HEX na kazetu (WAV) pro DSM-1~~ hotový 2026-10-06: program HEX/BIN se při vložení do magnetofonu

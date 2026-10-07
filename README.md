@@ -30,7 +30,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   ověřeno testem 8085EXM s CRC skutečného čipu), JPR-1Z, JPR-1ZI a JPR-1V (Z80) a PKT-1 ze SAPI-1.5 (Z80, klávesnice
   a tiskárna na 8255), včetně BOOT logiky a čekacích stavů.
   Na K3 JPR-1S / JPR-1X deska diagnostiky (dvě sedmisegmentovky, tlačítka) s ukázkovým čítačem.
-- **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1, RSW-1 (SAPI-1.5: RAM, 8251, watchdog). RAM disky RMD-1, ZRMD-1
+- **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1, RSW-1 (SAPI-1.5: RAM, 8251, watchdog), CRM-1 (4 KB CMOS zálohovaná bateriemi). RAM disky RMD-1, ZRMD-1
   (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
   (Bt476) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845; znakový
