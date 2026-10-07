@@ -57,7 +57,8 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   - **Ctrl+Alt+F5 video se zvukem** (zapnout / vypnout, také pravé tlačítko na obraz a Zobrazení): MP4 do
     `work/videa/<karta>_<datum-čas>.mp4`, potřebuje **ffmpeg** (`winget install ffmpeg`, nebo cesta v nastavení
     `"video": { "ffmpeg": "…" }`). Snímky se berou podle času emulace, takže video odpovídá skutečné rychlosti
-    SAPI i při turbu; pauza video pozastaví. Ve stavovém řádku běží „● REC m:ss“;
+    SAPI i při turbu; pauza video pozastaví. Body jsou zvětšené 4× (u VGA 2×), nejostřejší je přehrání v nativní
+    velikosti. Ve stavovém řádku běží „● REC m:ss“;
   - F8 rychlost (100 / 200 / 400 % / maximum);
   - F9 nebo F12 reset;
   - F10 / F11 krok v debuggeru;

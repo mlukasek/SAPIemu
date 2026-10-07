@@ -51,7 +51,7 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   v ruce), `--ui-drag Z:DO:drop`.
 - **Panel ZDR:**
   - NAPÁJENÍ je vypínač s aretací. Za chodu počítač vypne: obrazovka a LED zhasnou, RAM se ztratí. SRAM
-    DMR-1 s baterií (JP7), CRM-1 s bateriemi a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se
+    DMR-1 s baterií (JP7), CRM-1 a RTC-1 s bateriemi a RAM disky se uloží, spojení TCP a COM se zavřou. Další stisk počítač zapne se
     sestavou z konfigurátoru, včetně neuložených změn. Totéž je v menu Stroj → Vypnout/Zapnout a v MCP
     (`power`). Tlačítko „Zapnout s touto sestavou“ (za chodu „Restartovat s touto sestavou“) dělá vypnutí
     a zapnutí jedním krokem;
