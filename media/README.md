@@ -121,6 +121,21 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 | `prazdna_5.25HD_CPM.img` | Prázdná disketa PC 5,25" HD 1,2 MB (80 × 2 × 15 × 512 B, E5h) pro BIOS `ECBIF5`. |
 | `prazdna_8SSSD.img` | Prázdná 8" SS SD (77 × 26 × 128 B, E5h). |
 
+## `sapi15/` – diskety CP/M 2.2 62K pro SAPI-1.5 (Melsoft, 1990)
+
+Z `..\SAPI_DOKU_FTP\SAPI15\MELSOFT_DISKETY\SAPI15_*.sp2` (jen kopie z FTP, 2026-10-07). Formát `.sp2`: 40 stop × 2 strany
+× 16 sektorů × 256 B (327 680 B, C/H/R). Sestava `machines/zps/ZPS-6.sapi`, popis `docs/software/SAPI-1.5.md`.
+
+| Soubor | Obsah |
+|---|---|
+| `SAPI15_1.sp2` | systém (boot, CCP, BDOS, CBIOS V050690), CPM62-5.TXT, FORMAT, PIP, SDT40, SETDBS1, STAT, SYSGEN |
+| `SAPI15_2.sp2` | ASM, ED, M80, L80, LIB, CREF80, F80, WM, SORT, DDUMP, SUBMIT, XSUB |
+| `SAPI15_3.sp2` | MBASIC, BASCOM, COBOL; originál s poškozeným sektorem BDOS (C0 H0 R14) |
+| `SAPI15_3_opr.sp2` | totéž se systémovou stopou z diskety 1 (bootuje) |
+| `SAPI15_4.sp2` | Pascal MT+, DIS8080 |
+| `SAPI15_7.sp2` | zdrojáky ROMBIOS.MAC, SYSTEM.MAC, programy pro RSW-1 (CONNECT, INTER, SAPI), SIMPROG, TAPEREC, DOCTOR |
+| `SAPI15_8.sp2` | ROMBIOS.MAC/PRN/REL, TAPEREC, ASM, LOAD, DUMP, FORMAT |
+
 ## `jpr-1x/` – ukázky pro desku diagnostiky na K3 (2026-10-06, Intel HEX od 4400h, zdroje `.asm`)
 
 | Soubor | Co dělá |

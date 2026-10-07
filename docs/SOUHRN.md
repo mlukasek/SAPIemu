@@ -54,6 +54,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Hotové 2026-10-07 odpoledne: SAPI-1.5, sestava ZPS-6** (`machines/zps/ZPS-6.sapi`, test `test_sapi15`,
+  `docs/software/SAPI-1.5.md`): karty **PKT-1**, **RSW-1**, **DBS-1A** (`docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`)
+  podle dumpů PROM ze sapi.cz, schémat a návodů Tesla. ROM MON-V100690 (dump EPROM, i opravená verze Melsoft)
+  nabootuje CP/M 2.2 62K z disket Melsoft `.sp2` (`media/sapi15`). Znakový generátor DBS-1 se nedochoval: náhrada
+  z fontu AND-1Z. ZPS-5 čeká na firmware. Rozbory ve `work/sapi15/report_*.md` (mimo git).
 - **Hotové 2026-10-07** (podrobnosti v `docs/rozhodnuti.md`):
   - **konfigurátor:** karty jde myší přetáhnout do jiného slotu (přesun, prohození se stejně širokou kartou).
     Sloty sběrnice jsou rovnocenné, takže se přesun provede rovnou i v běžícím stroji a sestava je jen neuložená
@@ -151,7 +156,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      (Turbo Pascal, dBASE II, WordStar…) by šly přenést na disketu CP/M pro Z80 SAPI.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
-  2. Neemulované karty: DPP-1, RTC-1, DSP-1, DBS-1A, AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
+  2. Neemulované karty: DPP-1, RTC-1, DSP-1, ~~DBS-1A~~ (2026-10-07), AND-30C, CRM-1, RAM-64, RPD-1Z. Podle
      podkladů, které autor má. ~~DPP-1~~ hotová 2026-10-05 (PMD32-SD, od 2026-10-06 i tiskárna).
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
   4. ~~Převod HEX na kazetu (WAV) pro DSM-1~~ hotový 2026-10-06: program HEX/BIN se při vložení do magnetofonu
@@ -161,7 +166,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      (GitHub Actions) zatím ne, nejdřív až s veřejným repem nebo jen s linuxovým během.
   6. ~~Přepínání jazyka UI~~ hotové 2026-10-06 (Zobrazení → Jazyk / Language, výchozí podle Windows, `--lang`,
      `docs/build.md`).
-  7. PKT-1.
+  7. ~~PKT-1~~ hotová 2026-10-07 se sestavou ZPS-6 (a RSW-1, DBS-1A). Zbývá ZPS-5 (firmware se nenašel), sehnat
+     dump znakového generátoru DBS-1 (M2732A „59“), případně ZPS-7/8 (dvě mechaniky, SBK-1).
   8. Příprava veřejného vydání (níže).
   9. ~~Okno terminálu: kopírování jen výběru myší~~ hotové 2026-10-06 (tažení, dvojklik slovo, trojklik řádek,
      bez výběru celý text; `docs/seriova-linka.md`); ~~diagnostická deska na K3~~ hotová 2026-10-06
@@ -420,7 +426,8 @@ Dřív hotové fáze:
 | F9 ✅ | **Liborovy desky V (hotovo):** JPR-1V (Z80, rychlejší, až 4 MHz), RAM-1V (silně konfigurovatelná, mapování MAP), AND-1V (VGA), DSM-1V (dva sériové kanály, bez kazety), ZRD-1V (zálohování tužkovými AAA, bez RTC a bez mapování). Podklady v `..\SAPI-karty\JPR-1V` atd. (PDF schémata) a na https://www.pmd85.cz/?page_id=292 | ✅ hotovo |
 | F10 ✅ | **Diskové řadiče a systémy J. Bíby a EC1045** (2026-10-05/06): FDC-1 (8272 + DMA 8257), MFC-1A (zapojení Tesla i EC1045), diskety PC HD/DD a ImageDisk, motory mechanik; zdrojáky ECMON + CP/M (`cpmrun`); sestavy z disket SAPIMANa (8", dlouhé CP/M, EC1045), DPP-1 s PMD32-SD a tiskárnou, tiskárna na X3. Ověřeno originálními programy a výpisy z reálných MFC-1A (`docs/software/CPM_SAPIMAN.md`) | ✅ hotovo |
 | F11 ✅ | **Desky Libora Lasoty k původním sestavám** (2026-10-06): klávesnice ANK-1M2 (joystick, myš), AND-1B (VGA), BGP-1S (grafika PMD-85, Colorace), JPR-1S (banky RAM, MIKROBIOS), JPR-1X (8085, TURBO), redukce Redukce34KB01 (BOOT po sériové lince); sestavy `jpr1s_bgp1s` (Manic Miner) a `zps/ZPS-1_JPR-1S_AND-1B`. Okno terminálu: posílání souborů, XMODEM tam i zpět, schránka. Kazeta z programu (HEX/BIN → MIKOS, MIKROBASIC, WAV) | ✅ hotovo |
-| F10+ | PKT-1; ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; ~~převod HEX → kazeta~~ (hotovo); CI (~~Linux~~ ve WSL hotovo) | |
+| F12 ✅ | **SAPI-1.5** (2026-10-07): PKT-1, RSW-1 (8251, watchdog), DBS-1A (6845, náhradní font), sestava ZPS-6 s CP/M 2.2 62K z disket Melsoft (`.sp2`) | ✅ hotovo (bez ZPS-5) |
+| F10+ | ~~PKT-1~~ (hotovo); ~~dokončení ZPS-3~~ (62K a FDC-1 hotové 2026-10-05, IMA 64K a 48K 2026-10-06); ~~ukládání stavu~~ (hotovo); ~~přepínání jazyka UI~~ (hotovo); zvuk bzučáku; ~~převod HEX → kazeta~~ (hotovo); CI (~~Linux~~ ve WSL hotovo) | |
 
 Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zastavení, aby autor mohl výsledek ověřit.
 
@@ -595,6 +602,15 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - ANK-1M2: který program používá joyport (myš)? Má JPR-1 na P1-IN pull-upy?
     - JPR-1X: obsah ROM (dump obou bank), stav propojek BIOS/TURBO/RSTN/7, rezistor na D3, příznaky V/K a nedok.
       instrukce 8085 na skutečném čipu (`docs/desky/JPR-1X.md`, `docs/8085.md`).
+
+30. **SAPI-1.5** (2026-10-07; podrobně v Nejasnostech `docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`):
+    - PKT-1: polarita MAP1/MAP2/BOOT na sběrnici, /MR při čtení vnitřní EPROM, hodnota sběrnice v okně EPROM a při INTA,
+      propojky XT4/XT5 na ZPS-5/6/7, BUSY tiskárny na PC3 nebo PC6, EKL-1 s /KACK = IBF.
+    - RSW-1: skutečné propojky XT1 (emulace A6 = L, A7 = H, A8 = MAP2) a polarita MAP, obnovení watchdogu.
+    - DBS-1A: pořadí R a G v atributu, blikání, horní poloviny PROM DD2/DD27, XT5/XT7, **dump znakového generátoru**,
+      časování ROM BIOSu (15,0 kHz / 46,3 Hz).
+    - MFC-1A: software SAPI-1.5 zapíná mechaniky D6 = 1 (jako překreslení EC1045): byly tak zapojené i desky Tesla?
+    - ZPS-5: jaký firmware a konzolu měla (terminál na RSW-1?).
 
 ## Jak pokračovat
 

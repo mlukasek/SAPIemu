@@ -56,6 +56,8 @@ Varianta desky ZPC (Martin), 8 slotů.
 - **JP3** volí chování těchto bufferů:
   - 2-3: /OE bufferů je /AEN. Při DMA se adresy ze slotu 1 odpojí a sběrnici budí DMA master.
   - 1-2: buffery jsou trvale vypnuté. Používá se pro PKT-1 a SAPI-1.5, kdy CPU karta sedí mezi ostatními.
+    Sestava `machines/zps/ZPS-6.sapi` (2026-10-07) tak nahrazuje sběrnici SBI-1 SAPI-1.5: X1 je volný, PKT-1 v X2
+    si /AEN budí sama.
 - Data a řídicí signály buffery nemají.
 - **X1 nemá vývody S1–S6**, takže CPU slot nevidí MAP1 a MAP2.
 - Na Φ2, /INTA, /INT0 a /INT1 jsou pull-upy 10k (R1–R4).

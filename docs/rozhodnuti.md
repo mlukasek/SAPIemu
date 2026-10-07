@@ -1153,3 +1153,27 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   `windows-release` a `linux-release` ji vypínají, `tools/package.py` build se zapnutou volbou odmítne.
 - Přepsanou sestavu `sapi1v.sapi` (jen komentáře zapisovače) nejspíš uložilo jiné sezení přes MCP `set_machine_config`
   se `save_as` nad cli z repa. Vráceno.
+
+## 2026-10-07 – SAPI-1.5: ZPS-6 (PKT-1, RSW-1, DBS-1A)
+
+- **Sestavy** (autor): nejdřív jen ZPS-6. ZPS-5 (PKT-1 + RSW-1, bez displeje a disket) nemá dochovaný firmware,
+  přijde na řadu, až se najde. Software ani monitor se nevymýšlí.
+- **Sběrnice** (autor): ARB-1C s JP3 = 1-2 (AEN vypnutý) a volným X1 místo SBI-1/SBK-1; rozdíly sběrnic (kolík 7 /REF,
+  47 BOOT, 21/22 MAP) emulace nepotřebuje.
+- **ROM** (autor): výchozí dump EPROM MON-V100690, opravená verze Melsoft jako volba. **Takt 2 MHz** (XT5 jako
+  v dodávce ZPS-8, smyčky ROM jsou na 2 MHz).
+- **Znakový generátor DBS-1** (autor: náhrada s označením): originál se nedochoval. Náhrada z fontu AND-1Z, který
+  má stejné rozložení kódů (ASCII, semigrafika 2 × 3, KOI-8 čs2), v konfigurátoru i dokumentaci označená NÁHRADA.
+  Dump skutečné EPROM se bude shánět.
+- **Dekodéry** podle dumpů PROM ze sapi.cz (PKT-1 DD8, DD12; RSW-1 DD1, DD2). Tabulky v návodech Tesla jim místy
+  odporují (port 0Eh PKT-1, pořadí portů RSW-1, propojky XT1 RSW-1); platí dump a schéma.
+- **RSW-1 XT1** výchozí A6 = L, A7 = H, A8 = MAP2: jediné nastavení, při kterém dump DD1 dává mapu ZPS-8 (díra
+  B000–BFFF pro video RAM při MAP2 = 1). Předpoklad, v Nejasnostech.
+- **MFC-1A v ZPS-6** se zapojením EC1045: ROM BIOS i FORMAT a SYSGEN SAPI-1.5 zapínají mechaniky D6 = 1.
+- **Disketa `.sp2`** (MELSOFT, 40 × 2 × 16 × 256 B) jako další formát podle velikosti (327 680 B se s ničím nekryje);
+  disketa 3 má poškozený sektor BDOS, vedle originálu je `SAPI15_3_opr.sp2` se systémovou stopou z diskety 1.
+- **Nové části emulátoru:** 8251 (asynchronně, znaky se správným časováním, rychlost z děliče čítače 0 8253),
+  port B 8255 v režimu 1 jako vstup, /RTL (`Card::rtl_line`, watchdog RSW-1 resetuje sestavu přes PKT-1), 6845
+  v DBS-1A (velikost obrazu z registrů, blikání atributu a kurzoru podle času sběrnice).
+- **Klávesnice na PKT-1:** Consul 262.3 bez úpravy 7474 (8255 strobe zachytí). Dokud program kód nepřečte (IBF),
+  další klávesa nejde (pohodlí, `keyboard.strict` věrně).

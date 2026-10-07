@@ -1,7 +1,7 @@
 # SAPIemu
 
 **Emulátor počítače Tesla SAPI-1**: Z80, 8080 a 8085, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1
-až ZPS-4 po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
+až ZPS-4 a SAPI-1.5 (ZPS-6) po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
 PROM dumpů). Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
 
 > *English: an emulator of the Czechoslovak Tesla SAPI-1 modular computer (Z80/8080/8085, ARB-1 bus) for Windows.
@@ -27,12 +27,14 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 ## Co umí
 
 - **Procesorové karty:** JPR-1, JPR-1A a JPR-1S (8080), JPR-1X (8085: takty, RIM/SIM, nedokumentované instrukce,
-  ověřeno testem 8085EXM s CRC skutečného čipu), JPR-1Z, JPR-1ZI a JPR-1V (Z80), včetně BOOT logiky a čekacích stavů.
+  ověřeno testem 8085EXM s CRC skutečného čipu), JPR-1Z, JPR-1ZI a JPR-1V (Z80) a PKT-1 ze SAPI-1.5 (Z80, klávesnice
+  a tiskárna na 8255), včetně BOOT logiky a čekacích stavů.
   Na K3 JPR-1S / JPR-1X deska diagnostiky (dvě sedmisegmentovky, tlačítka) s ukázkovým čítačem.
-- **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1. RAM disky RMD-1, ZRMD-1
+- **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1, RSW-1 (SAPI-1.5: RAM, 8251, watchdog). RAM disky RMD-1, ZRMD-1
   (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
-  (Bt476) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner).
+  (Bt476) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845; znakový
+  generátor se nedochoval, je to náhrada z fontu AND-1Z).
 - **Komunikace a disky:**
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3, program HEX/BIN se převede na kazetu MIKOS nebo
     MIKROBASIC a jde uložit jako WAV pro skutečné SAPI), DSM-1V;
@@ -52,7 +54,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   i FDC-1, originální CP/M Tesla IMA 48K a 64K pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM
   disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. MIKROBIOS
   a Falcon Monitor pro JPR-1S s BGP-1S a hry z PMD-85 (Manic Miner), nahrávané i příkazem BOOT po sériové lince. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
-  Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky.
+  Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky. CP/M 2.2 62K pro SAPI-1.5 (ZPS-6, ROM PKT-1
+  MON-V100690, diskety Melsoft 5,25" s M80, MBASIC, COBOL, Pascal MT+; [docs/software/SAPI-1.5.md](docs/software/SAPI-1.5.md)).
 - **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,
   L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
   ([docs/software/ECMON.md](docs/software/ECMON.md)).

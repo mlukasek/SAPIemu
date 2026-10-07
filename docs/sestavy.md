@@ -185,6 +185,13 @@ BGP-1S (přerušení vypnuté) a ANK-1M2 s redukcí (hry jako u `jpr1s_bgp1s`), 
 s MIKROBASICem 2.4 z horní banky (propojka BIOS rozpojená), REM-1 jen s RAM, AND-1, DSM-1 a ANK-1. TURBO (CPU 4 MHz)
 jde přepnout za chodu. `docs/desky/JPR-1X.md`, procesor `docs/8085.md`.
 
+**SAPI-1.5, ZPS-6** (2026-10-07): `machines/zps/ZPS-6.sapi` je procesorová deska PKT-1 (Z80, klávesnice Consul 262.3
+na 8255, tiskárna), RSW-1 (64 KB RAM, 8251, watchdog), řadič MFC-1A s jednou mechanikou 5,25" DS DD a barevná
+semigrafika DBS-1A (64x20, náhradní znakový generátor z fontu AND-1Z). Místo sběrnice SBI-1 je ARB-1C s JP3 = 1-2
+(AEN vypnutý, X1 volný). ROM MON-V100690 nabootuje CP/M 2.2 62K z diskety Melsoft (`media/sapi15/*.sp2`).
+`docs/software/SAPI-1.5.md`, `docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`. ZPS-5 (bez displeje a disket) nemá
+dochovaný firmware.
+
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,

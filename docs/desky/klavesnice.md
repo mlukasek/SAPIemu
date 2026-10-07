@@ -34,7 +34,8 @@ Paralelní klávesnice (všechny kromě ANK-1) mají společný základ `paralle
 - `strict`: věrně jako hardware, bez pomoci pro text z PC (nečekat na ACK=0, neopakovat přehlédnutý pulz),
   znaky se mohou ztratit. V konfigurátoru „Klávesnice: věrně jako hardware“ u karty CPU, platí hned (i za chodu).
   ANK-1 tuto volbu nemá (drží klávesu, dokud ji program nepřečte);
-- Consul 262.3: `latch_mod` (úprava 7474, výchozí `true`);
+- Consul 262.3: `latch_mod` (úprava 7474, výchozí `true`). Na PKT-1 (SAPI-1.5) se dává bez úpravy: strobe zachytí
+  port B 8255 v režimu 1, kód se čte invertovaný jako na X2 JPR-1Z (`docs/desky/PKT-1.md`);
 - Consul 259.11: `code` (`koi7` nebo `koi8cs`);
 - ANK-1: `press_ms` (nejkratší doba stisku i uvolnění, výchozí 40 ms), `software` (`mikrobasic`, výchozí, nebo
   `mikos`: jinak se mapují klávesy PC na klávesy matice). Preset „ANK-1“ je pro MIKROBASIC, „ANK-1 (MIKOS)“ pro

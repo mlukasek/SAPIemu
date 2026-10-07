@@ -185,6 +185,14 @@ RECALIBRATE. Mechaniky zapíná `DRVON EQU 40H` (D6 = 1), vypíná `DRVOF EQU 00
     Pozor: zdroják je o 6 dní mladší než výpisy, `DRVON` mohl být při testu jiný.
   - Stav dokončeného SEEKu přežije READ a vyzvedne ho až SENSE (emulace stejně).
 
+## SAPI-1.5 (ZPS-6)
+
+Veškerý software SAPI-1.5 z roku 1990 (ROM BIOS PKT-1 MON-V100690, FORMAT.COM, SYSGEN) zapisuje do 0FH při práci
+`40h | mechanika<<2 | mechanika` a po nečinnosti 00h, bity D4 a D5 nikdy. Počítá tedy s **D6 = 1 = mechaniky
+zapnuté**, tedy se zapojením podle překreslení EC1045. Sestava `machines/zps/ZPS-6.sapi` má `wiring = ec1045`,
+`rdy_ground`, `motor_line` a 5,25" DS DD disketu `.sp2` (40 × 2 × 16 × 256 B, `docs/software/SAPI-1.5.md`).
+Naznačuje to, že i desky Tesla z doby SAPI-1.5 byly zapojené jako replika, ne podle naskenovaného schématu.
+
 ## Nejasnosti k ověření na HW
 
 - **Které zapojení mají vyrobené desky Tesla a podle kterého je postavená replika** (D4/D5, Q nebo /Q z DD23A)?

@@ -10,6 +10,9 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 04–0F | FDC-1 (8257 04–0B, 8272 0C–0D, FDC-1B 0E–0F: 0E výběr/SA2, 0F motory M3–M0 a hlavy; PROM D5B, `docs/desky/FDC-1.md`) nebo MFC-1A (8257 04, 05, 08, 8272 0C–0D, registr mechanik 0F: mechanika, motor D3 D2, reset, INT, D6; PROM DD9, `docs/desky/MFC-1A.md`) |
 | 10–13, 14–17, 18–1B, 1C–1F | DSM-1 / DMR-1, kanály #1–#4 |
 | 20–25 | RPD-1A (8253 20–23, data 24, řízení/stav 25; ověřeno z EBIOS) |
+| 00–03, 0E | PKT-1 (SAPI-1.5): 8255 00–03 (tiskárna, klávesnice), 0E = BOOT, MAP2, MAP1 (`docs/desky/PKT-1.md`) |
+| 18–1F | RSW-1 (SAPI-1.5): 8251 18–19, 8253 1A–1D, maska přerušení 1E, watchdog 1F (`docs/desky/RSW-1.md`) |
+| E0–E1 | DBS-1A (SAPI-1.5): 6845 adresa a data (`docs/desky/DBS-1A.md`) |
 | 00–3F | DPP-1: 8 portů na základu 00h, 08h … 38h podle přepínačů S1 (+0–3 kanál 1, +4–7 kanál 2; ECMON a CP/M J. Bíby 28–2Fh: 28–2Bh `PUN:` nebo tiskárna (mód 1), PMD32-SD na 2C–2Fh; `docs/desky/DPP-1.md`) |
 | 30–37 | DPP-1/7 |
 | 38–3B | BWP-1 |
@@ -35,6 +38,7 @@ Druhý průzkum přečetl některé rozsahy z XLS jinak: RPD-1A 24–25, DPP-1/6
 | CP/M ZPS-3 s AND-1A | displej na E800h (48K), na F800h (62K, RAM 0000–F7FF) |
 | MIKOS | displej na 3800h. MAP odebere 0000–3FFF z RAM-1Z/DMR-1, aby tam mohla být ROM. Autoritativní mapu MIKOS zatím nemáme |
 | JPR-1ZI při BOOT=1 | EPROM přes 0000–07FF (nebo 0000–1FFF). Zápisy jdou do RAM pod ní |
+| ZPS-6 (`zps/ZPS-6`, SAPI-1.5) | EPROM PKT-1 0000–07FF jen po resetu (BOOT, čtení), RSW-1 RAM 0000–FFFF; při MAP2 = 1 díra B000–BFFF, kam se jen zapisuje video RAM DBS-1A. ROM BIOS běží z kopie na F000h, CP/M 62K (CCP D400h) |
 | JPR-1X (`jpr1x_bgp1s`, `zps/ZPS-1_JPR-1X`) | ROM 0000–1FFF (banka podle propojky BIOS), RAM 2000–23FF, porty P0/P1/P2 v paměti 2400/2800/2C00, 3214 na 3000 (jen zápis), čtení 3000–FFFF ze sběrnice, každý zápis i na sběrnici. Žádné porty I/O |
 | JPR-1S + BGP-1S (`jpr1s_bgp1s`) | EEPROM 0000–1FFF, RAM 2000–23FF, porty P0/P1/P2 v paměti 2400/2800/2C00, RAM 4000–FFFF (banky JPR-1S); BGP-1S na C000 jen pro zápis, čte se banka pod ní. Žádné porty I/O |
 | ZPS-1 s AND-1B | jako ZPS-1: AND-1B na 3800–3FFF (okno 2 KB, 1 KB RAM), bez portů I/O |
