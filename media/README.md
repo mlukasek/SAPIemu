@@ -124,7 +124,8 @@ soupis `Zaloha_sys_disket_sapi.txt`; disky 1–10 jsou totožné):
 ## `sapi15/` – diskety CP/M 2.2 62K pro SAPI-1.5 (Melsoft, 1990)
 
 Z `..\SAPI_DOKU_FTP\SAPI15\MELSOFT_DISKETY\SAPI15_*.sp2` (jen kopie z FTP, 2026-10-07). Formát `.sp2`: 40 stop × 2 strany
-× 16 sektorů × 256 B (327 680 B, C/H/R). Sestava `machines/zps/ZPS-6.sapi`, popis `docs/software/SAPI-1.5.md`.
+× 16 sektorů × 256 B (327 680 B, C/H/R, sekce `[SP2]` programu CpmImgMngr); jednostranná varianta `.sp1` má 163 840 B.
+Sestava `machines/zps/ZPS-6.sapi`, popis `docs/software/SAPI-1.5.md`.
 
 | Soubor | Obsah |
 |---|---|

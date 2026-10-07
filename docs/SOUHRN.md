@@ -25,6 +25,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   41 testy (ZEX, 8080EXM, 8085EXM), Linux ve WSL 37. Z rozbaleného zipu naběhne MikroMon, `jpr1x_bgp1s`
   (MIKROBIOS 1.02 + Falcon), `jpr1s_bgp1s`, obě ZPS-1 s JPR-1X a JPR-1S (MIKROBASIC), sestava V (menu ECMONu),
   `cpm_ec1045` a `ZPS-3_CPM64K_IMA` (`A>`). Zase jen pro kamarády (soukromě), tag a veřejný release ne.
+  **Zip je z dopoledne 7. 10., bez SAPI-1.5 (ZPS-6).** Poznámky k vydání už ZPS-6 uvádějí, před odesláním proto
+  zip přebalit (`tools\build.cmd release full`, `python tools\package.py`).
 - **Hotové v této sérii (2026-10-04/05), podrobnosti v blocích níže a v `docs/rozhodnuti.md`:**
   - karty: MPH-1V (zvuk, 82C54, joystick, myš), ZRD-1V rev 2.1 (zámek zápisu, MAX187);
   - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
