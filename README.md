@@ -63,6 +63,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   ([docs/software/ECMON.md](docs/software/ECMON.md)).
 - **Konfigurátor sestavy:**
   - panely karet jako na skutečném stroji, LED podle emulace;
+  - sběrnice ARB-1, ARB-1A/Au, ARB-1B, ARB-1C (14 i 8 pozic) a ImBUS9/ImBUS12 Libora Lasoty;
   - propojky, některé i za chodu; karty jde myší přetáhnout do jiného slotu;
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
   - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
