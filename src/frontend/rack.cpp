@@ -619,6 +619,11 @@ const PanelItem k_pl_mfc1a[] = {
     { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "FDD" },
     { PI_END, 0, 0, nullptr },
 };
+// RSW-1: the V.24 connector XP2 (DB-25 numbering)
+const PanelItem k_pl_rsw1[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "V.24" },
+    { PI_END, 0, 0, nullptr },
+};
 // VGA display cards: K2 = VGA in the middle (AND-1V, AND-1B, DGD-1V, CGA)
 const PanelItem k_pl_vga[] = {
     { PI_TEXT, 28.5f, 187.7f, "K2" }, { PI_DSUB, 29.0f, 246.0f, nullptr }, { PI_TEXT, 28.5f, 306.4f, "VGA" },
@@ -647,6 +652,9 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     if (!strcmp(ci->type, "FDC-1")) return board ? k_pl_fdc1b : k_pl_fdc1a;
     if (!strcmp(ci->type, "MFC-1A")) return k_pl_mfc1a;
     if (!strcmp(ci->type, "IDE-1")) return k_pl_ide1;
+    if (!strcmp(ci->type, "PKT-1")) return k_pl_jpr_frb;   // XP3 printer, the BOOT LED, XP2 keyboard
+    if (!strcmp(ci->type, "RSW-1")) return k_pl_rsw1;
+    if (!strcmp(ci->type, "DBS-1A")) return k_pl_frb_k2;   // the video output X2
     if (!strcmp(p, "JPR")) return k_pl_jpr_frb;   // all of them, JPR-1V too
     if (!strcmp(p, "FDC")) return k_pl_fdc;
     if (!strcmp(ci->type, "DSM-1")) return k_pl_dsm1;

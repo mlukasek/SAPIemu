@@ -13,7 +13,9 @@ static const FloppyGeom k_35hd = { "3.5\" DS HD", 1474560, 80, 2, 18, 2, true, 5
 static const FloppyGeom k_525hd = { "5.25\" DS HD", 1228800, 80, 2, 15, 2, true, 500, 360 };
 static const FloppyGeom k_dd80 = { "3.5\"/5.25\" DS DD 80 tr.", 737280, 80, 2, 9, 2, true, 250, 300 };
 static const FloppyGeom k_dd40 = { "5.25\" DS DD 40 tr.", 368640, 40, 2, 9, 2, true, 250, 300 };
-static const FloppyGeom* const k_geoms[] = { &k_8sssd, &k_35hd, &k_525hd, &k_dd80, &k_dd40, nullptr };
+// SAPI-1.5 (MFC-1A, CBIOS V050690): 5.25" DS DD, 16 sectors of 256 B, R = 1..16 on both sides
+static const FloppyGeom k_sp2 = { "5.25\" DS DD SAPI-1.5 (16x256)", 327680, 40, 2, 16, 1, true, 250, 300 };
+static const FloppyGeom* const k_geoms[] = { &k_8sssd, &k_35hd, &k_525hd, &k_dd80, &k_dd40, &k_sp2, nullptr };
 
 const FloppyGeom* const* floppy_geoms(void)
 {
@@ -133,7 +135,7 @@ bool FloppyDrive::load_plain(std::vector<uint8_t>& d, std::string& err)
     if (!g) {
         char b[256];
         snprintf(b, sizeof(b), "%u bytes; a disk image is ImageDisk (.imd) or has 256256 (8\" SS SD), 1474560 "
-                 "(3.5\" HD), 1228800 (5.25\" HD), 737280 or 368640 (DD)", (unsigned)d.size());
+                 "(3.5\" HD), 1228800 (5.25\" HD), 737280 or 368640 (DD), 327680 (SAPI-1.5 DD)", (unsigned)d.size());
         err = b;
         return false;
     }

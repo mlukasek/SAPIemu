@@ -47,7 +47,12 @@ uint8_t I8255::pc_value(void)
         v |= (ctrl & 0x08) ? (pins & 0xF0) : (out_c & 0xF0);
         v |= (ctrl & 0x01) ? (pins & 0x08) : (out_c & 0x08);
     }
-    if (ctrl & 0x04) {
+    if (strobed_in_b()) {
+        // group B mode 1, port B input: PC2 INTE_B (the /STB pin), PC1 IBF_B, PC0 INTR_B
+        v |= inte_b ? 0x04 : 0;
+        v |= ibf_b ? 0x02 : 0;
+        v |= intr_b() ? 0x01 : 0;
+    } else if (ctrl & 0x04) {
         // group B mode 1, port B output: PC2 INTE_B, PC1 /OBF_B, PC0 INTR_B
         v |= inte_b ? 0x04 : 0;
         v |= obf_b ? 0 : 0x02;
@@ -70,6 +75,10 @@ uint8_t I8255::read(int reg)
         if (ctrl & 0x10) return dev ? dev->pins_a() : 0xFF;
         return out_a;
     case 1:
+        if (strobed_in_b()) {
+            ibf_b = false;   // RD clears IBF
+            return in_b;
+        }
         if (ctrl & 0x02) return dev ? dev->pins_b() : 0xFF;
         return out_b;
     case 2:
@@ -110,7 +119,7 @@ void I8255::write(int reg, uint8_t value)
         break;
     case 1:
         out_b = value;
-        if (ctrl & 0x04) obf_b = true;
+        if ((ctrl & 0x06) == 0x04) obf_b = true;   // mode 1 output
         else if (dev && !(ctrl & 0x02)) dev->outputs_changed(1, out_b);
         break;
     case 2: {
@@ -128,6 +137,7 @@ void I8255::write(int reg, uint8_t value)
             obf_a = ibf_a = false;
             inte1 = inte2 = false;
             obf_b = inte_b = false;
+            ibf_b = false;
             if (dev) dev->outputs_changed(2, out_c);
         } else {
             set_pc_bit((value >> 1) & 7, (value & 1) != 0);
@@ -148,6 +158,12 @@ void I8255::strobe_a(uint8_t data)
     ibf_a = true;
 }
 
+void I8255::strobe_b(uint8_t data)
+{
+    in_b = data;
+    ibf_b = true;
+}
+
 void I8255::state(StateIO& io)
 {
     io.v(out_a);
@@ -161,4 +177,6 @@ void I8255::state(StateIO& io)
     io.v(inte2);
     io.v(obf_b);
     io.v(inte_b);
+    io.v(in_b);
+    io.v(ibf_b);
 }

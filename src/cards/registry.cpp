@@ -23,6 +23,9 @@
 #include "cards/rpd1.h"
 #include "cards/fdc1.h"
 #include "cards/mfc1a.h"
+#include "cards/dbs1a.h"
+#include "cards/pkt1.h"
+#include "cards/rsw1.h"
 #include "cards/zrmd1.h"
 
 Card* card_create(const std::string& type)
@@ -58,6 +61,9 @@ Card* card_create(const std::string& type)
     if (type == "RPD-1") return new Rpd1();
     if (type == "FDC-1") return new Fdc1();
     if (type == "MFC-1A") return new Mfc1a();
+    if (type == "PKT-1") return new Pkt1();
+    if (type == "RSW-1") return new Rsw1();
+    if (type == "DBS-1A" || type == "DBS-1") return new Dbs1a();
     if (type == "MPH-1V") return new Mph1v();
     if (type == "AND-1Z-89" || type == "AND-1Z") {
         And1z* c = new And1z();

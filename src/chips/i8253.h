@@ -15,6 +15,9 @@ public:
     void tick(int counter);                 // one CLK falling edge
     void set_gate(int counter, bool level);
     bool out(int counter) const { return c[counter].out; }
+    // The count written to a counter as a divisor (0 = 65536 / 10000): for a card that derives a
+    // rate from it without clocking the counter at its input frequency (RSW-1 baud rate).
+    uint32_t divisor(int counter) const { return initial(c[counter]); }
     bool is_8254 = false;
     void state(class StateIO& io);
 

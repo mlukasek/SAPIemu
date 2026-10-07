@@ -1,0 +1,38 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-6 (SAPI-1.5): PKT-1, RSW-1, MFC-1A, DBS-1A, CP/M 2.2 62K",
+    "description": "Sestava SAPI-1.5 z roku 1990: procesorová deska PKT-1 (Z80, klávesnice Consul 262.3, tiskárna), RSW-1 (64 KB RAM, sériový port 8251, watchdog), řadič MFC-1A s jednou mechanikou 5,25\" DS DD a barevná semigrafika DBS-1A (64x20). Sběrnice ARB-1C s JP3 = 1-2 (AEN vypnutý, X1 volný) místo SBI-1. ROM MON-V100690 (dump EPROM) nabootuje CP/M 2.2 62K z diskety Melsoft CPM62-5 (media/sapi15). Znakový generátor DBS-1A se nedochoval: je to náhrada z fontu AND-1Z. Zapojení registru 0FH MFC-1A podle EC1045 (D6 = 1 mechaniky zapnuté), jak ho čeká veškerý software SAPI-1.5. docs/desky/PKT-1.md, RSW-1.md, DBS-1A.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "1-2"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 2,                      // position X2
+            "type": "PKT-1",                // SAPI-1.5 CPU card Z80: keyboard, printer, BOOT, MAP (any slot: ARB-1C JP3 = 1-2)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": false }  // Keyboard (connector XP2, 8255 port B)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RSW-1"                 // SAPI-1.5: 64 KB RAM, serial port 8251, watchdog
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "MFC-1A",               // Mini floppy controller 8272 + DMA
+            "drive_a": {                    // Drive 0
+                "image": "media/sapi15/SAPI15_1.sp2",  // Disk image (.img by its size: 8" SS SD, PC 3.5"/5.25" HD/DD, SAPI-1.5 .sp2; or ImageDisk .imd) - SAPI-1.5 CP/M 62K Melsoft disk 1: system, PIP, STAT, SYSGEN, FORMAT, SETDBS1
+                "write_protect": false,     // Write protected
+                "cpm": "A"                  // CP/M letter of the drive (Media window; empty = seen while running)
+            },
+            "rdy_ground": true,             // X2-19 RDY grounded (8" Consul 7113 have no READY); else READY from the drive (disk in)
+            "motor_line": true,             // Drives turn only with MOTOR ON (MO0n-MO3n, register 0FH D3 D2: 5.25" drives); else always (8" AC motors)
+            "wiring": "ec1045",             // Wiring of the drive register 0FH - redraw EC1045 (replica): D5 reset, D4 INT, D6 = 1 drives on (BIOS ECBIM8)
+            "reset_mode": "level"           // Register 0FH: the reset bit of the 8272 - 1 holds the reset (schematic; the unfixed ECBIM8 hangs at its initialization)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DBS-1A"                // SAPI-1.5 colour semigraphics, 6845, 64x20 (substitute font)
+        }
+    ]
+}

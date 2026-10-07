@@ -1,6 +1,6 @@
 #pragma once
-// Intel 8255 PPI (MHB8255A). Modes 0, 1 (port A in or out, port B output) and 2
-// (port A) as used on IDE-1 and DPP-1. The attached peripheral supplies input pin levels and is told
+// Intel 8255 PPI (MHB8255A). Modes 0, 1 (port A in or out, port B in or out) and 2
+// (port A) as used on IDE-1, DPP-1 and PKT-1 (keyboard on port B in mode 1). The attached peripheral supplies input pin levels and is told
 // about output changes; strobed modes are driven through strobe_a()/ack_a().
 #include <stdint.h>
 
@@ -28,6 +28,11 @@ struct I8255 {
     uint8_t ack_a(void);              // /ACK pulse: take the CPU byte, /OBF goes high
     void strobe_a(uint8_t data);      // /STB pulse: latch data for the CPU, IBF high
     bool intr_a(void) const;          // INTRA (PC3)
+    // Mode 1, port B input (keyboard of PKT-1): /STB B latches the data, IBF B until the CPU reads
+    void strobe_b(uint8_t data);
+    bool b_input_full(void) const { return ibf_b; }
+    bool intr_b(void) const { return strobed_in_b() && ibf_b && inte_b; }   // INTR B (PC0)
+    bool strobed_in_b(void) const { return (ctrl & 0x06) == 0x06; }
 
     uint8_t control(void) const { return ctrl; }
     bool mode2_a(void) const { return (ctrl & 0x40) != 0; }
@@ -45,5 +50,7 @@ private:
     uint8_t in_a = 0xFF;              // strobed input latch (modes 1, 2)
     bool obf_a = false, ibf_a = false;
     bool inte1 = false, inte2 = false;    // modes 1, 2: output (PC6) / input (PC4) interrupt enable
-    bool obf_b = false, inte_b = false;   // mode 1 port B output
+    bool obf_b = false, inte_b = false;   // mode 1 port B: output buffer full / interrupt enable
+    uint8_t in_b = 0xFF;                  // mode 1 port B input: the strobed latch
+    bool ibf_b = false;
 };

@@ -58,6 +58,9 @@ public:
     virtual int irq_lines() { return 0; }
     // MAP lines driven by this card (MapLine mask).
     virtual int map_lines() { return 0; }
+    // The card pulls the bus /RTL low (the reset button line; RSW-1 watchdog): a CPU card that
+    // watches it (PKT-1) resets the whole system.
+    virtual bool rtl_line() { return false; }
 
     // Serial channels provided by the card (index 0..n-1), nullptr past the end.
     virtual SerialChannel* serial_channel(int index) { return nullptr; }

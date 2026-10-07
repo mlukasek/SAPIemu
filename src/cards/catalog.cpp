@@ -797,6 +797,17 @@ static const CardParam k_fdc1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 static const ParamOption k_mfc1a_disks[] = {
+    { "\"media/sapi15/SAPI15_1.sp2\"", "SAPI-1.5 CP/M 62K Melsoft disk 1: system, PIP, STAT, SYSGEN, FORMAT, SETDBS1",
+      "SAPI-1.5 CP/M 62K Melsoft disketa 1: systém, PIP, STAT, SYSGEN, FORMAT, SETDBS1" },
+    { "\"media/sapi15/SAPI15_2.sp2\"", "SAPI-1.5 disk 2: ASM, ED, M80, L80, F80, WM, SORT",
+      "SAPI-1.5 disketa 2: ASM, ED, M80, L80, F80, WM, SORT" },
+    { "\"media/sapi15/SAPI15_3_opr.sp2\"", "SAPI-1.5 disk 3: MBASIC, BASCOM, COBOL (system track from disk 1)",
+      "SAPI-1.5 disketa 3: MBASIC, BASCOM, COBOL (systémová stopa z diskety 1)" },
+    { "\"media/sapi15/SAPI15_4.sp2\"", "SAPI-1.5 disk 4: Pascal MT+", "SAPI-1.5 disketa 4: Pascal MT+" },
+    { "\"media/sapi15/SAPI15_7.sp2\"", "SAPI-1.5 disk 7: sources (ROMBIOS.MAC), CONNECT, SIMPROG, TAPEREC",
+      "SAPI-1.5 disketa 7: zdrojáky (ROMBIOS.MAC), CONNECT, SIMPROG, TAPEREC" },
+    { "\"media/sapi15/SAPI15_8.sp2\"", "SAPI-1.5 disk 8: ROMBIOS.MAC/PRN/REL, TAPEREC",
+      "SAPI-1.5 disketa 8: ROMBIOS.MAC/PRN/REL, TAPEREC" },
     { "\"media/sapiman/prazdna_8_FM_14x256.imd\"", "empty 8\" FM 77 x 14 x 256 (ImageDisk, BIOS V261211JB)",
       "prázdná 8\" FM 77 × 14 × 256 (ImageDisk, BIOS V261211JB)" },
     { "\"media/sapiman/prazdna_8_FM_8x512.imd\"", "empty 8\" FM 77 x 8 x 512 (ImageDisk, BIOS-3K V261211JB)",
@@ -836,8 +847,8 @@ static const ParamOption k_mfc1a_wiring[] = {
 };
 #define MFC1A_DRIVE(k, l, def)                                                                                           \
     { k, PK_SECTION, "Drive " l, "Mechanika " l, def, nullptr, 0, 0 },                    \
-    { k ".image", PK_FILE, "Disk image (.img by its size: 8\" SS SD, PC 3.5\"/5.25\" HD/DD; or ImageDisk .imd)",                \
-      "Obraz diskety (.img podle velikosti: 8\" SS SD, PC 3,5\"/5,25\" HD/DD; nebo ImageDisk .imd)", "\"\"",         \
+    { k ".image", PK_FILE, "Disk image (.img by its size: 8\" SS SD, PC 3.5\"/5.25\" HD/DD, SAPI-1.5 .sp2; or ImageDisk .imd)",  \
+      "Obraz diskety (.img podle velikosti: 8\" SS SD, PC 3,5\"/5,25\" HD/DD, SAPI-1.5 .sp2; nebo ImageDisk .imd)", "\"\"", \
       k_mfc1a_disks, 0, 0 },                                                                                             \
     { k ".write_protect", PK_BOOL, "Write protected", "Chráněná proti zápisu", "false", nullptr, 0, 0 },                    \
     { k ".cpm", PK_TEXT, "CP/M letter of the drive (Media window; empty = seen while running)",              \
@@ -1223,6 +1234,192 @@ static const CardParam k_ide1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// ---------------------------------------------------------------- SAPI-1.5 (PKT-1, RSW-1, DBS-1A)
+
+static const ParamOption k_pkt1_roms[] = {
+    { "\"roms/pkt-1/PKT-1_MON-V100690_EPROM.bin\"", "MON-V100690 (EPROM dump, ZPS-6/7: DBS-1, MFC-1A, Consul 262.3)",
+      "MON-V100690 (dump EPROM, ZPS-6/7: DBS-1, MFC-1A, Consul 262.3)" },
+    { "\"roms/pkt-1/PKT-1_ROMBIOS_MELSOFT.bin\"", "MON-V100690 revised (Melsoft ROMBIOS.MAC: printer status, timeout)",
+      "MON-V100690 opravený (Melsoft ROMBIOS.MAC: stav tiskárny, časový limit)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_pkt1_eprom[] = {
+    { "\"2716\"", "2716 (2 KB, standard)", "2716 (2 KB, standard)" },
+    { "\"2732\"", "2732 (4 KB)", "2732 (4 KB)" },
+    { "\"2764\"", "2764 (8 KB)", "2764 (8 KB)" },
+    { "\"27128\"", "27128 (16 KB)", "27128 (16 KB)" },
+    { "\"27256\"", "27256 (32 KB)", "27256 (32 KB)" },
+    { "\"27512\"", "27512 (64 KB)", "27512 (64 KB)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_pkt1_dd8[] = {
+    { "\"roms/pkt-1/PKT-1_DD8_74S287.bin\"", "Tesla 6XN 902 54: EPROM 0000-07FF while BOOT",
+      "Tesla 6XN 902 54: EPROM 0000-07FF při BOOT" },
+    { "\"roms/pkt-1/PKT-1_DD8_8k_replika.bin\"", "replica: EPROM 0000-1FFF while BOOT (8 KB)",
+      "replika: EPROM 0000-1FFF při BOOT (8 KB)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_pkt1_mhz[] = {
+    { "2", "2 MHz (XT5 24-25, standard)", "2 MHz (XT5 24-25, standard)" },
+    { "4", "4 MHz (XT5 23-24)", "4 MHz (XT5 23-24)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_pkt1_wait[] = {
+    { "\"rdy\"", "only from RDY (XT4 20-21)", "jen z RDY (XT4 20-21)" },
+    { "\"always\"", "one in every machine cycle (XT4 21-22)", "jeden v každém strojovém cyklu (XT4 21-22)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_pkt1_boot[] = {
+    { "\"register\"", "BOOT from the register 0Eh (XT3 6-7)", "BOOT z registru 0Eh (XT3 6-7)" },
+    { "\"off\"", "EPROM always off (XT3 5-6)", "EPROM trvale vypnutá (XT3 5-6)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_pkt1_busy[] = {
+    { "\"pc3\"", "PC3 (fixed board, the ROM BIOS expects it)", "PC3 (opravená deska, čeká to ROM BIOS)" },
+    { "\"pc6\"", "PC6 /ACK (original Tesla wiring: the printer does not work)",
+      "PC6 /ACK (původní zapojení Tesla: tiskárna nefunguje)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_pkt1[] = {
+    { "rom", PK_FILE, "EPROM (DD9)", "EPROM (DD9)", "\"roms/pkt-1/PKT-1_MON-V100690_EPROM.bin\"", k_pkt1_roms, 0, 0 },
+    { "eprom", PK_CHOICE, "XT2: EPROM type", "XT2: typ EPROM", "\"2716\"", k_pkt1_eprom, 0, 0 },
+    { "decoder", PK_FILE, "PROM DD8: memory decoder", "PROM DD8: dekodér paměti", "\"roms/pkt-1/PKT-1_DD8_74S287.bin\"",
+      k_pkt1_dd8, 0, 0 },
+    { "io_decoder", PK_FILE, "PROM DD12: I/O decoder", "PROM DD12: dekodér I/O", "\"roms/pkt-1/PKT-1_DD12_74S287.bin\"",
+      k_none, 0, 0 },
+    { "cpu_mhz", PK_CHOICE, "XT5: CPU clock (the bus F2 is 2 MHz)", "XT5: takt CPU (sběrnice F2 je 2 MHz)", "2", k_pkt1_mhz,
+      0, 0 },
+    { "wait", PK_CHOICE, "XT4: wait states", "XT4: čekací stavy", "\"rdy\"", k_pkt1_wait, 0, 0 },
+    { "boot", PK_CHOICE, "XT3: EPROM at reset", "XT3: EPROM po resetu", "\"register\"", k_pkt1_boot, 0, 0 },
+    { "map1", PK_BOOL, "XT1 3-4: MAP1 to the bus", "XT1 3-4: MAP1 na sběrnici", "true", nullptr, 0, 0 },
+    { "map2", PK_BOOL, "XT1 1-2: MAP2 to the bus", "XT1 1-2: MAP2 na sběrnici", "true", nullptr, 0, 0 },
+    { "keyboard", PK_KEYBOARD, "Keyboard (connector XP2, 8255 port B)", "Klávesnice (konektor XP2, 8255 port B)", "null",
+      nullptr, 0, 0 },
+    { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
+      "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
+    { "keyboard.beeper", PK_BOOL, "Keyboard: beeper (/ZVUK = 8255 PC5)", "Klávesnice: bzučák (/ZVUK = 8255 PC5)", "true",
+      nullptr, 0, 0 },
+    { "printer", PK_SECTION, "XP3: printer (Centronics: data 8255 PA, /STROBE PC7)",
+      "XP3: tiskárna (Centronics: data 8255 PA, /STROBE PC7)", "false", nullptr, 0, 0 },
+    PRINTER_PARAMS
+    { "printer.busy", PK_CHOICE, "Printer: BUSY wired to", "Tiskárna: BUSY zapojený na", "\"pc3\"", k_pkt1_busy, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+static const ParamOption k_rsw1_src[] = {
+    { "\"L\"", "L", "L" },
+    { "\"H\"", "H", "H" },
+    { "\"MAP1\"", "MAP1", "MAP1" },
+    { "\"MAP2\"", "MAP2", "MAP2" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_rsw1[] = {
+    { "decoder", PK_FILE, "PROM DD1: RAM decoder", "PROM DD1: dekodér RAM", "\"roms/rsw-1/RSW-1_DD1_74S571.bin\"", k_none,
+      0, 0 },
+    { "xt1_a6", PK_CHOICE, "XT1: DD1 input A6", "XT1: vstup DD1 A6", "\"L\"", k_rsw1_src, 0, 0 },
+    { "xt1_a7", PK_CHOICE, "XT1: DD1 input A7", "XT1: vstup DD1 A7", "\"H\"", k_rsw1_src, 0, 0 },
+    { "xt1_a8", PK_CHOICE, "XT1: DD1 input A8 (MAP2: B000-BFFF free for DBS-1 while MAP2 = 1)",
+      "XT1: vstup DD1 A8 (MAP2: B000-BFFF volné pro DBS-1 při MAP2 = 1)", "\"MAP2\"", k_rsw1_src, 0, 0 },
+    { "io_decoder", PK_FILE, "PROM DD2: I/O decoder (18h-1Fh)", "PROM DD2: dekodér I/O (18h-1Fh)",
+      "\"roms/rsw-1/RSW-1_DD2_74S287.bin\"", k_none, 0, 0 },
+    { "int0", PK_BOOL, "XT3 13-14: interrupt on INT0", "XT3 13-14: přerušení na INT0", "true", nullptr, 0, 0 },
+    { "watchdog_reset", PK_BOOL, "XT2 11-12: watchdog resets the system (/RTL)", "XT2 11-12: watchdog resetuje systém (/RTL)",
+      "false", nullptr, 0, 0 },
+    { "connected", PK_BOOL, "Terminal connected at start (DCD)", "Terminál připojen při startu (DCD)", "true", nullptr,
+      0, 0 },
+    { "cts", PK_BOOL, "Terminal ready at start (CTS/DSR)", "Terminál připraven při startu (CTS/DSR)", "true", nullptr,
+      0, 0 },
+    { "serial.pacing", PK_BOOL, "PC side: no overrun (pacing)", "Strana PC: bez přetečení", "true", nullptr, 0, 0 },
+    { "serial.tcp", PK_SECTION, "PC side: TCP server", "Strana PC: TCP server", "false", nullptr, 0, 0 },
+    { "serial.tcp.port", PK_INT, "TCP port", "TCP port", "2323", nullptr, 1, 65535 },
+    { "serial.tcp.bind", PK_TEXT, "Address (127.0.0.1 = this PC only)", "Adresa (127.0.0.1 = jen tento PC)",
+      "\"127.0.0.1\"", nullptr, 0, 0 },
+    { "serial.tcp.protocol", PK_CHOICE, "Protocol", "Protokol", "\"telnet\"", k_tcp_proto, 0, 0 },
+    { "serial.tcp.dcd_follows", PK_BOOL, "DCD follows the client connection", "DCD podle připojení klienta", "true",
+      nullptr, 0, 0 },
+    { "serial.com", PK_SECTION, "PC side: COM port", "Strana PC: COM port", "false", nullptr, 0, 0 },
+    { "serial.com.port", PK_TEXT, "Port (COM5, /dev/ttyUSB0)", "Port (COM5, /dev/ttyUSB0)", "\"COM1\"", nullptr, 0, 0 },
+    { "serial.com.baud", PK_INT, "Baud rate", "Rychlost", "9600", nullptr, 50, 921600 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+static const ParamOption k_dbs1a_fonts[] = {
+    { "\"roms/dbs-1a/DBS-1A_CharGen_nahrada.bin\"", "SUBSTITUTE from the AND-1Z font (the Tesla EPROM is not preserved)",
+      "NÁHRADA z fontu AND-1Z (EPROM Tesla se nedochovala)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dbs1a_xt5[] = {
+    { "\"2732\"", "2732, A11 = RA3: 256 characters up to 16 lines (27-28, standard)",
+      "2732, A11 = RA3: 256 znaků až 16 řádků (27-28, standard)" },
+    { "\"2716\"", "2716: 256 characters, 8 lines (28-33)", "2716: 256 znaků, 8 řádků (28-33)" },
+    { "\"2732_attr\"", "2732, A11 = attribute bit 3: 512 characters, 8 lines (28-29)",
+      "2732, A11 = bit 3 atributu: 512 znaků, 8 řádků (28-29)" },
+    { "\"2732_ma12\"", "2732, A11 = MA12: two sets by R12 bit 4, 8 lines (28-31)",
+      "2732, A11 = MA12: dvě sady podle R12 bit 4, 8 řádků (28-31)" },
+    { "\"2764_attr\"", "2764, A11 = RA3, A12 = attribute bit 3 (27-28, 29-30)",
+      "2764, A11 = RA3, A12 = bit 3 atributu (27-28, 29-30)" },
+    { "\"2764_ma12\"", "2764, A11 = RA3, A12 = MA12 (27-28, 30-31)", "2764, A11 = RA3, A12 = MA12 (27-28, 30-31)" },
+    { "\"2764_ma12_attr\"", "2764, A11 = MA12, A12 = attribute bit 3 (28-31, 29-30)",
+      "2764, A11 = MA12, A12 = bit 3 atributu (28-31, 29-30)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dbs1a_port[] = {
+    { "\"E0h\"", "E0h/E1h (XT2 10-42, XT3 12-17, standard)", "E0h/E1h (XT2 10-42, XT3 12-17, standard)" },
+    { "\"E2h\"", "E2h/E3h (XT2 10-42, XT3 12-15)", "E2h/E3h (XT2 10-42, XT3 12-15)" },
+    { "\"E4h\"", "E4h/E5h (XT2 10-42, XT3 12-13)", "E4h/E5h (XT2 10-42, XT3 12-13)" },
+    { "\"E6h\"", "E6h/E7h (XT2 10-42, XT3 11-12)", "E6h/E7h (XT2 10-42, XT3 11-12)" },
+    { "\"E8h\"", "E8h/E9h (XT2 8-10, XT3 12-17 by the PROM table)", "E8h/E9h (XT2 8-10, XT3 12-17 podle tabulky PROM)" },
+    { "\"EAh\"", "EAh/EBh (XT2 8-10, XT3 12-15)", "EAh/EBh (XT2 8-10, XT3 12-15)" },
+    { "\"ECh\"", "ECh/EDh (XT2 8-10, XT3 12-13)", "ECh/EDh (XT2 8-10, XT3 12-13)" },
+    { "\"EEh\"", "EEh/EFh (XT2 8-10, XT3 11-12)", "EEh/EFh (XT2 8-10, XT3 11-12)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dbs1a_window[] = {
+    { "\"B000h\"", "B000-BFFF with MAP1 = L, MAP2 = H (XT1 6-7, XT4 19-20, standard)",
+      "B000-BFFF při MAP1 = L, MAP2 = H (XT1 6-7, XT4 19-20, standard)" },
+    { "\"A000h\"", "A000-AFFF (XT1 6-7, XT4 20-21)", "A000-AFFF (XT1 6-7, XT4 20-21)" },
+    { "\"9000h\"", "9000-9FFF (XT1 6-7, XT4 20-22)", "9000-9FFF (XT1 6-7, XT4 20-22)" },
+    { "\"8000h\"", "8000-8FFF (XT1 6-7, XT4 20-23)", "8000-8FFF (XT1 6-7, XT4 20-23)" },
+    { "\"F000h\"", "F000-FFFF, MAP ignored (XT1 5-6, XT4 19-20 by the PROM table)",
+      "F000-FFFF, MAP nerozhoduje (XT1 5-6, XT4 19-20 podle tabulky PROM)" },
+    { "\"E000h\"", "E000-EFFF, MAP ignored (XT1 5-6, XT4 20-21)", "E000-EFFF, MAP nerozhoduje (XT1 5-6, XT4 20-21)" },
+    { "\"D000h\"", "D000-DFFF, MAP ignored (XT1 5-6, XT4 20-22)", "D000-DFFF, MAP nerozhoduje (XT1 5-6, XT4 20-22)" },
+    { "\"C000h\"", "C000-CFFF, MAP ignored (XT1 5-6, XT4 20-23)", "C000-CFFF, MAP nerozhoduje (XT1 5-6, XT4 20-23)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dbs1a_dots[] = {
+    { "8", "8 dots: 64 columns (XT7 38-39)", "8 bodů: 64 sloupců (XT7 38-39)" },
+    { "6", "6 dots: 80 columns (XT7 37-38)", "6 bodů: 80 sloupců (XT7 37-38)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dbs1a_rg[] = {
+    { "\"manual\"", "manual: bit 2 = R, bit 1 = G", "návod: bit 2 = R, bit 1 = G" },
+    { "\"schematic\"", "schematic: bit 1 = R, bit 2 = G", "schéma: bit 1 = R, bit 2 = G" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dbs1a_out[] = {
+    { "\"rgb\"", "RGB + intensity (monitor GRM 4423)", "RGB + jas (monitor GRM 4423)" },
+    { "\"composite\"", "composite, grey from RGB (XT6 35-36)", "kompozitní, šedá z RGB (XT6 35-36)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dbs1a[] = {
+    { "font", PK_FILE, "Character generator EPROM (DD15)", "EPROM znakového generátoru (DD15)",
+      "\"roms/dbs-1a/DBS-1A_CharGen_nahrada.bin\"", k_dbs1a_fonts, 0, 0 },
+    { "xt5", PK_CHOICE, "XT5: character generator", "XT5: znakový generátor", "\"2732\"", k_dbs1a_xt5, 0, 0 },
+    { "port", PK_CHOICE, "XT2/XT3: 6845 ports", "XT2/XT3: porty 6845", "\"E0h\"", k_dbs1a_port, 0xE0, 0xEE },
+    { "window", PK_CHOICE, "XT1/XT4: video RAM window (write only)", "XT1/XT4: okno video RAM (jen zápis)", "\"B000h\"",
+      k_dbs1a_window, 0x8000, 0xF000 },
+    { "map1", PK_BOOL, "XT1 1-2: MAP1 decoded (else ignored)", "XT1 1-2: MAP1 se dekóduje (jinak nerozhoduje)", "true",
+      nullptr, 0, 0 },
+    { "map2", PK_BOOL, "XT1 3-4: MAP2 decoded (else ignored)", "XT1 3-4: MAP2 se dekóduje (jinak nerozhoduje)", "true",
+      nullptr, 0, 0 },
+    { "dots", PK_CHOICE, "XT7: dots per character", "XT7: bodů na znak", "8", k_dbs1a_dots, 0, 0 },
+    { "rgb_order", PK_CHOICE, "Attribute: order of R and G (manual / schematic differ)",
+      "Atribut: pořadí R a G (návod a schéma se liší)", "\"manual\"", k_dbs1a_rg, 0, 0 },
+    { "output", PK_CHOICE, "Output (monitor)", "Výstup (monitor)", "\"rgb\"", k_dbs1a_out, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // ---------------------------------------------------------------- cards
 
 #define CARD(var, type, panel, en, cs, cls, width, emulated, params) \
@@ -1241,6 +1438,9 @@ CARD(c_jpr1z, "JPR-1Z", "JPR", "CPU card Z80 (ZPS-4)", "Procesorová deska Z80 (
 CARD(c_jpr1zi, "JPR-1ZI", "JPR", "CPU card Z80 (new design)", "Procesorová deska Z80 (nová konstrukce)",
      CC_CPU, 1, true, k_jpr1zi)
 CARD(c_jpr1v, "JPR-1V", "JPR", "CPU card Z80 (V)", "Procesorová deska Z80 (V)", CC_CPU, 1, true, k_jpr1v)
+CARD(c_pkt1, "PKT-1", "PKT", "SAPI-1.5 CPU card Z80: keyboard, printer, BOOT, MAP (any slot: ARB-1C JP3 = 1-2)",
+     "Procesorová deska SAPI-1.5 Z80: klávesnice, tiskárna, BOOT, MAP (libovolný slot: ARB-1C JP3 = 1-2)", CC_CPU, 1,
+     true, k_pkt1)
 // memory
 CARD(c_rem1, "REM-1", "REM", "RAM and EPROM card", "Deska pamětí RAM a EPROM", CC_MEMORY, 1, true, k_rem1)
 CARD(c_ram1v, "RAM-1V", "RAM", "Configurable SRAM 64 KB with MAP (V)", "Konfigurovatelná SRAM 64 KB s MAP (V)", CC_MEMORY, 1,
@@ -1249,6 +1449,8 @@ CARD(c_ram1, "RAM-1", "RAM", "Dynamic RAM up to 48 KB", "Dynamická RAM až 48 K
 CARD(c_ram1a, "RAM-1A", "RAM", "Dynamic RAM up to 48 KB \"A\"", "Dynamická RAM až 48 KB \"A\"", CC_MEMORY, 1, true,
      k_ram1a)
 CARD(c_ram1z, "RAM-1Z", "RAM", "Dynamic RAM up to 64 KB", "Dynamická RAM až 64 KB", CC_MEMORY, 1, true, k_ram1z)
+CARD(c_rsw1, "RSW-1", "RSW", "SAPI-1.5: 64 KB RAM, serial port 8251, watchdog",
+     "SAPI-1.5: RAM 64 KB, sériový port 8251, watchdog", CC_MEMORY, 1, true, k_rsw1)
 CARD(c_ram64, "RAM-64", "RAM", "Battery backed RAM up to 64 KB", "Zálohovaná RAM až 64 KB", CC_MEMORY, 1, false,
      nullptr)
 CARD(c_crm1, "CRM-1", "CRM", "Battery backed memory", "Deska zálohovaných pamětí", CC_MEMORY, 1, false, nullptr)
@@ -1275,7 +1477,8 @@ CARD(c_dgd1v, "DGD-1V", "DGD", "Graphic display 320x240, VGA (V)", "Grafický di
      true, k_dgd1v)
 CARD(c_cga1v, "CGA-1V", "CGA", "Colour graphics 320x200, VGA (V)", "Barevná grafika 320x200, VGA (V)", CC_DISPLAY, 1, true,
      k_cga1v)
-CARD(c_dbs1a, "DBS-1A", "DBS", "Colour semigraphics", "Barevná semigrafika", CC_DISPLAY, 1, false, nullptr)
+CARD(c_dbs1a, "DBS-1A", "DBS", "SAPI-1.5 colour semigraphics, 6845, 64x20 (substitute font)",
+     "Barevná semigrafika SAPI-1.5, 6845, 64x20 (náhradní font)", CC_DISPLAY, 1, true, k_dbs1a)
 // serial
 CARD(c_dsm1v, "DSM-1V", "DSM", "Two serial channels (V)", "Dva sériové kanály (V)", CC_SERIAL, 1, true, k_dsm1v)
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,
@@ -1303,8 +1506,8 @@ CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldes
 const std::vector<const CardInfo*>& card_catalog(void)
 {
     static const std::vector<const CardInfo*> list = {
-        &c_jpr1zi, &c_jpr1, &c_jpr1s, &c_jpr1x, &c_jpr1a, &c_jpr1z, &c_jpr1v,
-        &c_dmr1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
+        &c_jpr1zi, &c_jpr1, &c_jpr1s, &c_jpr1x, &c_jpr1a, &c_jpr1z, &c_jpr1v, &c_pkt1,
+        &c_dmr1, &c_rsw1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
