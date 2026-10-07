@@ -141,7 +141,7 @@ nlohmann::json settings_json(App& app)
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
     j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
                       { "cr_newline", ui.term_cr_newline }, { "local_echo", ui.term_local_echo },
-                      { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
+                      { "copy_on_select", ui.term_copy_on_select }, { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
@@ -204,6 +204,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(t, "emulation", ui.term_emulation);
     get_opt(t, "cr_newline", ui.term_cr_newline);
     get_opt(t, "local_echo", ui.term_local_echo);
+    get_opt(t, "copy_on_select", ui.term_copy_on_select);
     get_opt(t, "tcp_port", ui.tcp_port);
     get_opt(t, "tcp_protocol", ui.tcp_protocol);
     get_opt(t, "tcp_dcd_follows", ui.tcp_dcd_follows);

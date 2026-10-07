@@ -1113,3 +1113,6 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   Logika je v jádru (`core/term`), test `test_term`; GUI jen převádí myš na buňky a kreslí podklad.
 - **Okno se tažením v textu nehýbe** (`NoMove` u textové části), jinak by ImGui tažením posouval celé okno.
 - Snímek pro ověření: `--ui-terminal`, `--ui-term-text TEXT` a `--ui-term-sel L0,C0-L1,C1`.
+- **Výběr rovnou do schránky** (autor, 2026-10-07): po puštění tlačítka myši (a hned po dvojkliku či trojkliku)
+  se výběr zkopíruje, jako v PuTTY a TeraTermu. Volba „Výběr rovnou do schránky“ je ve výchozím stavu zapnutá
+  a ukládá se do nastavení (`terminal.copy_on_select`). Prostý klik bez tažení schránku nemění.

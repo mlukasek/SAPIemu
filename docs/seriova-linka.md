@@ -93,7 +93,9 @@ Okno Zobrazení → Sériový terminál umí poslat soubor do SAPI bez TeraTermu
 - **Odříznout 1Ah na konci** (výchozí zapnuto): XMODEM doplní poslední paket znaky 1Ah, textový soubor CP/M jimi
   končí. U binárních souborů, které 1Ah opravdu končí, vypnout (soubor pak má délku násobku 128 B jako v CP/M).
 - **Výběr myší:** tažením se vybere text (i přes více řádků, u okraje okno odroluje), dvojklik vybere slovo,
-  trojklik řádek, klik výběr zruší. **Kopírovat** vloží do schránky výběr, a když žádný není, celý text terminálu.
+  trojklik řádek, klik výběr zruší. S volbou **Výběr rovnou do schránky** (výchozí zapnuto, ukládá se do nastavení)
+  jde výběr do schránky hned po puštění tlačítka myši, jako v PuTTY nebo TeraTermu.
+  **Kopírovat** vloží do schránky výběr, a když žádný není, celý text terminálu.
   Mezery na koncích řádků se vynechají. **Vložit** pošle schránku jako psaný text (konce řádků jako CR). Zkratky jako v TeraTermu: **Alt+C** a **Alt+V** (také Ctrl+Insert a Shift+Insert); Ctrl+C a Ctrl+V jdou do
   SAPI jako řídicí kódy 03h a 16h, AltGr (Ctrl+Alt) píše znaky. Totéž je v menu pod pravým tlačítkem.
 - Vysílač i přijímač XMODEM jsou v jádru (`src/core/xmodem.*`), test `test_xmodem`: DOPC10.COM pošle TD.MAC

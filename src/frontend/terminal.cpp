@@ -252,6 +252,10 @@ static void draw_send(UiState& ui, SerialChannel* ch)
     same_line_if_fits(tr("Paste"));
     if (ImGui::Button(tr("Paste"))) terminal_paste(ui);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The clipboard as typed text (Alt+V, Shift+Insert)."));
+    same_line_if_fits(tr("Selection to the clipboard"));
+    ImGui::Checkbox(tr("Selection to the clipboard"), &ui.term_copy_on_select);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("A selection goes to the clipboard when the mouse button is released (as in PuTTY or TeraTerm)."));
 
     char msg[256];
     const XmodemSender& x = ui.xmodem;
@@ -375,12 +379,10 @@ static void term_mouse(UiState& ui, TerminalState& t, ImVec2 org, float cw, floa
     if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemActive()) {
         int clicks = ImGui::GetMouseClickedCount(ImGuiMouseButton_Left);
         ui.term_selecting = false;
-        if (clicks == 2) {
-            terminal_select_word(t, i, (int)floorf(fx));
-            return;
-        }
-        if (clicks >= 3) {
-            terminal_select_line(t, i);
+        if (clicks >= 2) {
+            if (clicks == 2) terminal_select_word(t, i, (int)floorf(fx));
+            else terminal_select_line(t, i);
+            if (ui.term_copy_on_select && terminal_has_selection(t)) terminal_copy(ui);
             return;
         }
         if (n == 0) return;
@@ -393,18 +395,23 @@ static void term_mouse(UiState& ui, TerminalState& t, ImVec2 org, float cw, floa
         return;
     }
     if (!ui.term_selecting) return;
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) || n == 0) {
+    if (n == 0) {
         ui.term_selecting = false;
+        return;
+    }
+    if (i < 0) { i = 0; col = 0; }
+    if (i >= n) { i = n - 1; col = t.cols; }
+    t.sel_line1 = t.dropped + (uint64_t)i;
+    t.sel_col1 = col;
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {   // released: the selection is finished
+        ui.term_selecting = false;
+        if (ui.term_copy_on_select && terminal_has_selection(t)) terminal_copy(ui);
         return;
     }
     // above or below the window: scroll a line per frame
     float top = ImGui::GetWindowPos().y, bottom = top + ImGui::GetWindowHeight();
     if (mp.y < top) ImGui::SetScrollY(ImGui::GetScrollY() - lh);
     else if (mp.y > bottom) ImGui::SetScrollY(ImGui::GetScrollY() + lh);
-    if (i < 0) { i = 0; col = 0; }
-    if (i >= n) { i = n - 1; col = t.cols; }
-    t.sel_line1 = t.dropped + (uint64_t)i;
-    t.sel_col1 = col;
 }
 
 void draw_terminal(UiState& ui)

@@ -363,6 +363,9 @@ static const Translation k_table[] = {
     { "XMODEM failed: %s", "XMODEM selhal: %s" },
     { "Copied to the clipboard.", "Zkopírováno do schránky." },
     { "Selection copied to the clipboard.", "Výběr zkopírován do schránky." },
+    { "Selection to the clipboard", "Výběr rovnou do schránky" },
+    { "A selection goes to the clipboard when the mouse button is released (as in PuTTY or TeraTerm).",
+      "Výběr se zkopíruje do schránky hned po puštění tlačítka myši (jako v PuTTY nebo TeraTermu)." },
     { "%s: %zu B to send", "%s: %zu B k odeslání" },
 };
 

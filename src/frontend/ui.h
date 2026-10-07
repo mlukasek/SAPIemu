@@ -152,6 +152,7 @@ struct UiState {
     double xmodem_last = 0;            // ImGui time of the last answer of the receiver
     std::string term_status;           // result of the last send / copy
     bool term_selecting = false;       // the mouse is selecting text in the terminal
+    bool term_copy_on_select = true;   // a finished selection goes to the clipboard at once (PuTTY, TeraTerm)
 };
 
 // Serial terminal window: the clipboard (Alt+C / Alt+V as in TeraTerm, Ctrl+Insert / Shift+Insert)
