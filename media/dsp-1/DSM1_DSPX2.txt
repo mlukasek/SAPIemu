@@ -1,0 +1,304 @@
+
+;	DSP1/X2 - UP2: + UR2:
+;	DSM1/2  - UP1: + UR1:
+;	DSM1/1  - TERMINAL MISTO KLAV A AND-1Z
+
+;-------------------------------
+CNT_X2	EQU	49H		;PORTY DSP 1/X2 + X3
+DAT_X2	EQU	48H
+CNT_X3	EQU	4BH
+DAT_X3	EQU	4AH
+P_INT	EQU	4CH
+;-------------------------------
+MCR	EQU	10H		;PORTY DSM 1/1 - TERMINAL + MGF
+MSR	EQU	MCR
+UCR	EQU	11H
+USR	EQU	UCR
+UDATA	EQU	12H
+URESET	EQU	13H
+EVEN	EQU	0
+BITS8	EQU	0CH
+SBS2	EQU	1
+PIO	EQU	0
+TRBE	EQU	40H
+;--------------------------------
+				;DSM 1/2 MA ADRESACI DSM 1/1 + 4
+				;PRO UC1 A UR1 
+;--------------------------------
+;1/2 DPP-1/X2
+DPP1_1	EQU	28H		;ADRESY + CW DPP1/1, base
+PA1	EQU	DPP1_1
+PB1	EQU	DPP1_1+1
+PC1	EQU	DPP1_1+2		
+PCW1	EQU	DPP1_1+3
+CW1	EQU	0AEH		;PORT A = M1, OUT, C4-7 IN
+				;PORT B = M1, IN, C0-3 OUT
+;-------------------------------
+;2/2 DPP-1/X3
+DPP1_2	EQU	DPP1_1+4	;ADRESY + CW DPP1/1, base
+PA2	EQU	DPP1_2
+PB2	EQU	DPP1_2+1
+PC2	EQU	DPP1_2+2
+PCW2	EQU	DPP1_2+3
+CW2	EQU	0BBH		;PORT A = M1, IN, C4-7 IN
+				;PORT B = MO, IN, C0-3 IN
+;*******************************
+;
+;OVLADAC DISPLEJE SM7202
+;
+;-------------------------------
+DSMOUT:				;VYSTUP ZNAKU NA TERMINAL
+	lda	iobyte
+	ani	comsk		;00000001B
+	jnz	dsmout1		;SKOK POKUD NENI CRT:
+	push	b
+	call	.lstout		;PRI TTY: POSLI I NA LST:
+	pop	b
+dsmout1:
+	MOV	A,C
+	CPI	'L'-'@'
+	JZ	COFF
+	CPI	LF
+	JNZ	COCHR
+	MVI	A,CR
+	CALL	COCHR
+	MVI	A,LF
+COCHR:	PUSH	PSW
+COC05:	IN	USR
+	ANI	TRBE
+	JZ	COC05
+	POP	PSW
+	OUT	UDATA
+	RET
+;
+COFF:	PUSH	B
+	MVI	C,4
+LFLOOP:	MVI	A,LF
+	CALL	COCHR
+	DCR	C
+	JNZ	LFLOOP
+	POP	B
+	RET
+;********************************
+DSMIN:	IN	USR		;INPUT ZNAKU Z TERMINALU
+	RAL
+	JNC	DSMIN
+	IN	UDATA
+	ANI	7FH
+	CPI	FFEED
+	RNZ
+	mov	c,a
+	CALL	.LSTOUT
+	JMP	DSMIN
+;*******************************
+DSMST:	IN	USR		;STATUS Z TERMINALU
+	RAL
+	MVI	A,0
+	SBB	A
+	RET
+;********************************
+;
+;OVLADAC SNIMACE
+;
+;--------------------------------
+.READER:
+	LDA	IOBYTE
+	ANI	RMSK		;00001100B
+	JZ	.CONIN		;RDR=0-tak klavesnice
+	CPI	UR1		;0000 10 00B
+	JZ	DSM2IN		;RDR=2-tak DSM-1/2
+	CPI	UR2		;0000 11 00B
+	JZ	DSP2IN		;RDR=3-tak DSP-1/X2
+
+;RDR=1-VSTUP Z DPP-1/X3 (MOD 0) 
+	MVI	A,09H		;set PC4
+	OUT	PCW2
+	LXI	B,0FFFFH	;timeout
+TEST3:	DCX	B
+	MOV	A,B
+	ORA	A
+	JZ	RESRDR		;konec timeout?
+	IN	PC2		;cti status
+	ANI	08H		;test PC3
+	JZ	TEST3		;dokud neni PC3
+	IN	PA2		;port A ma data, nacti
+	RET
+RESRDR:	MVI	A,0BBH		;skoncilo s chybou
+	OUT	PCW2		;znovu nastav 8255
+	XRA	A
+	RET
+;--------------------------------
+
+DSM2IN:	MVI	A,01H		;VSTUP PRES DSM-1/2
+	OUT	MCR+4		;RTS
+
+DS2IN:	IN	USR+4
+	RAL			;JE DR?
+	JNC	DS2IN
+	IN	UDATA+4		;DATA Z UART
+	PUSH	PSW
+	MVI	A,0		;RTS NON
+	OUT	MCR+4
+	POP	PSW
+	RET
+
+;--------------------------------
+DSP2IN:				;VSTUP PRES DSP-1/X2
+	MVI	A,00110101B	;RTS=1,ER,RXE,DTR=0
+	OUT	CNT_X2
+RX2_X:
+	IN	CNT_X2
+	ANI	2
+	JZ	RX2_X		;cekej na RxRDT
+	IN	DAT_X2	
+	PUSH	PSW
+	MVI	A,00010101B	;RTS=0,ER,RXE,DTR=0
+	OUT	CNT_X2
+	POP	PSW
+	RET
+
+;*******************************
+;
+;OVLADAC DEROVACE
+;
+;--------------------------------
+DTR	EQU	02h
+DSR	EQU	40H
+;
+.PUNCH:
+	LDA	IOBYTE
+	ANI	PMSK		;00 11 0000B
+	JZ	.CONOUT		;PUN=0-displej
+	CPI	UP1		;00100000B
+	JZ	DSM2OU		;PUN=2-DSM1/2
+	CPI	UP2		;00110000B
+	JZ	DSP2OU		;PUN=3-DSP1/X2
+
+;PUN=1-VYSTUP NA DPP-1/X2 (MOD 1)	
+	MVI	A,0DH		;set PC6 ACKA
+	OUT	PCW1
+	MOV	A,C		
+	OUT	PA1		;data na PA
+TEST1:
+	IN	PC1
+	ANI	80H		;test PC7 OBFA
+	JZ	TEST1		;dokud neni PC7
+TEST2:
+	IN	PC1
+	ANI	08H		;test PC3
+	JZ	TEST2		;dokud neni PC3
+	RET
+;------------------------------
+				;VYSTUP PRES DSM-1/2
+DSM2OU:
+	IN	MSR+4		
+	ANI	1000000B	;test CTS
+	JNZ	DSM2OU		;cekej na CTS nebo timeout
+	IN	USR+4
+	ANI	TRBE		;40h
+	JZ	DSM2OU		;cekej na moznost vyslat znak
+	MOV	A,C
+	OUT	UDATA+4		;vlastni vyslani znaku
+	RET
+;------------------------------
+DSP2OU:				;VYSTUP PRES DSP-1/X2
+TX2_1::
+	IN	CNT_X2
+	RRC
+	JNC	TX2_1		;muze USART prijmout z CPU?
+	MOV	A,C
+	OUT	DAT_X2
+	RET
+
+;*******************************
+
+;*******************************
+;	STUDENY START SYSTEMU
+;
+COLD:
+
+	OUT	URESET+4	;NASTAVENI DSM1/2
+	XRA	A
+	OUT	MCR+4
+	MVI	A,EVEN+BITS8+SBS2+PIO
+	OUT	UCR+4
+;-------------------------------
+;INIT DSP-1
+;nastaveni blokovani preruseni, formovani,
+;vnitrni reset, druh provozu, 1.comand 
+I_DSP2::	
+	XRA	A
+	OUT	P_INT
+	OUT	CNT_X2
+	OUT	CNT_X3
+	OUT	CNT_X2
+	OUT	CNT_X3
+	OUT	CNT_X2
+	OUT	CNT_X3
+	MVI	A,40H		;reset UART
+	OUT	CNT_X2
+	OUT	CNT_X3
+	MVI	A,01001110B	;SB1,P0,B8,x16
+	OUT	CNT_X2
+	OUT	CNT_X3
+	MVI	A,00010101B	;RTS=0,ER=1,DTR=0,RXE,TXEN=1
+	OUT	CNT_X2		;signaly na konektoru!!!
+	OUT	CNT_X3
+;-------------------------------
+
+	OUT	URESET
+	MVI	A,1		;TEST TERMINALU
+	OUT	MCR
+	MVI	A,EVEN+BITS8+SBS2+PIO
+	OUT	UCR
+	IN	MSR
+	ANI	20H
+	JZ	TTY		;PRIPOJEN TERMINAL
+;********************************
+KL_IN:
+	IN	P0
+	RRC
+	MVI	A,0FFH
+	ACI	0
+	JC	KL_IN		;DOKUD NEPRIJDE ZNAK
+	IN	P1		;NACTI KLAVESU
+	CMA			;INVERZE
+	PUSH	PSW
+	MVI	A,NOAC
+	OUT	P0
+KL_IN1:
+	IN	P0
+	RRC
+	JNC	KL_IN1
+	MVI	A,AC
+	OUT	P0
+	POP	PSW
+	RET
+;--------------------------------
+	DB	0
+
+;********************************
+;	PROMENNE
+;********************************
+PMD_DMA_ADR:	DS	2
+PMD_DISK:	DS	1
+PMD_SECTOR:	DS	1
+PMD_TRACK:	DS	1
+
+LEAD:		DS	1
+IGN.CTRL:	DS	1
+CUR.ADR:	DS	2
+CHR.SAVE:	DS	1
+XADR:		DS	1
+CUR.LINE:	DS	1
+C.ENBL:		DS	1
+BLINK1:		DS	1
+BLINK:		DS	1
+
+CHECK		EQU	$+2	
+;--------------------------------
+	.DEPHASE
+MONIT$SIZE	EQU	$-PATRN
+;
+;********************************
+	END	ENTRY

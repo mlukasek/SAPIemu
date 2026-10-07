@@ -1,6 +1,6 @@
 # Sériová linka (DMR-1) a připojení terminálu
 
-Každý sériový kanál (zatím DMR-1, později DSM-1) lze na straně PC připojit několika způsoby. Všechny mohou
+Každý sériový kanál (DMR-1, DSM-1, DSM-1V, RSW-1, oba kanály DSP-1) lze na straně PC připojit několika způsoby. Všechny mohou
 fungovat najednou:
 
 1. **Okno Sériový terminál** v emulátoru (Zobrazení → Sériový terminál).

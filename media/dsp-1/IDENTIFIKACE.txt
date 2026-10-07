@@ -1,0 +1,25 @@
+Programy pro sériový pøenos libovolných dat (ASCII,BIN)
+pomocí protokolu XMODEM mezi PC a SAPI s CP/M 2.2
+
+Na stranì PC HYPERTERMINAL èi podobný.
+
+Libovolný COM1. Nastavit stejnou pøenosovou rychlost jako na SAPI (odzkoušeno 9600Bd), 8 bite
+bez parity, 2 stop bity, povolit HW øízení a použít úplný propojovací kabel
+
+
+Na stranì SAPI:
+DOPCP xxxxxxxx.xxx = pøenos souboru do PC 
+DOCPMP xxxxxxxx.xxx = pøenos souboru do SAPI
+
+DSP-1, konektor X2. Nastavit stejnou pøenosovou rychlost (odzkoušeno 9600Bd), 8 bite, bez parity
+2 stop bity, použít úplný propojovací kabel
+
+DOPCPX3, DOCPMPX3 vše stejné ale pro konektor X3
+
+Base adresa DSP-1/X2 = 48H,  DSP-1/X3 = 4AH
+
+Napsáno v 8080.
+
+Nezáleží na poøadí spuštení na PC a SAPI. K synchronizaci dojde bìhem nìkolika pokusù o spojení.
+Pokusù je ze strany SAPI 10. Pøenos nejde pøerušit ale pokud se neuskuteèní správnì, staèí vyèkat
+na uplynutí Timeout.

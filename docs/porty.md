@@ -18,7 +18,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 38–3B | BWP-1 |
 | 3C–3F | RPD-1B |
 | 40–44 | RMD-1/1 |
-| 45–4A | DSP-1 |
+| 48–4D | DSP-1 (programy J. Bíby): kanál 2 / X2 48–49h, kanál 1 / X3 4A–4Bh, maska přerušení 4C–4Dh; horní číslice SA2, skupiny X0/X8 přepínačem SA1 (`docs/desky/DSP-1.md`) |
 | 50–57 | MPH-1V (82C54, STATUS/IEN/IACK, joystick, YM3812), báze S1 |
 | 58–5B | IDE-1, IDE 8255 (Martinovo nastavení) |
 | 5C–5F | IDE-1, PMD32-SD 8255 (Martinovo nastavení) |

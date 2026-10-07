@@ -56,6 +56,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Hotové 2026-10-07 večer: DSP-1** (`docs/desky/DSP-1.md`, test `test_dsp1`): dva kanály 8251, porty podle SA1/SA2
+  (výchozí jako J. Bíba 48h, 4Ah, 4Ch), rychlost SA3/SA4 z 12,288 MHz, maska přerušení na INT0. Programy XMODEM
+  J. Bíby (`media/dsp-1`) pod CP/M přenesou soubor do PC i zpět (test proti XMODEMu emulátoru).
 - **Hotové 2026-10-07 večer: RTC-1** (`docs/desky/RTC-1.md`, test `test_rtc1`) podle návodu, originálního schématu
   (sken J. Bíby) a repliky EC1045: čítač reálného času (výchozí podle hodin PC, po prvním zapnutí čas od pondělní
   půlnoci), dva 8253, přerušení kabelem z XC2/14, watchdog na /RTL. /RTL teď berou i procesorové karty SAPI-1
@@ -185,7 +188,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      (Turbo Pascal, dBASE II, WordStar…) by šly přenést na disketu CP/M pro Z80 SAPI.
   1. Otázky k ověření na HW: **jen průběžně sbírat** do „Nejasností“. Autor je bude testovat mnohem později,
      možná na společné akci (2026-10-05). ZRD-1V se ZRDTEST.
-  2. Neemulované karty: DPP-1, RTC-1, DSP-1, ~~DBS-1A~~ (2026-10-07), AND-30C, ~~CRM-1~~ (2026-10-07), RAM-64, RPD-1Z, ~~RTC-1~~
+  2. Neemulované karty: DPP-1, ~~DSP-1~~ (2026-10-07), ~~DBS-1A~~ (2026-10-07), AND-30C, ~~CRM-1~~ (2026-10-07), RAM-64, RPD-1Z, ~~RTC-1~~
      (2026-10-07). Podle
      podkladů, které autor má. ~~DPP-1~~ hotová 2026-10-05 (PMD32-SD, od 2026-10-06 i tiskárna).
   3. „Na promyšlení“ níže: čekací stavy AND-1V, STSTB JPR-1V, klávesnice ELIS v3, časování RMD-1.
@@ -645,6 +648,9 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - ~~MFC-1A: byly desky Tesla zapojené jako překreslení EC1045?~~ Ano (v. č. 0124, EC1045 2026-10-07).
     - ZPS-5: jaký firmware měla? Podle EC1045 dvojitá vana, dlouhá sběrnice, bez MFC-1A, terminál nebo
       zobrazovadlo na míru.
+
+32. **DSP-1** (2026-10-07, `docs/desky/DSP-1.md`): pořadí bitů A5/A6 na SA2, výstup 75154 bez kabelu (/CTS),
+    nastavení desky v. č. 44127 z fotky.
 
 31. **RTC-1** (2026-10-07, `docs/desky/RTC-1.md`): čtení PA v módu 1 s propojkami z výroby (/STB A nezapojený),
     kabel /INT z XC2/14 do počítače, sepnuté SA na skutečných deskách, XC2/29 (OUT2) jako vstup podle návodu.

@@ -1249,3 +1249,12 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - `RTC421.COM` J. Bíby čte čas postupem z datasheetu (HOLD = 1, kontrola BUSY, čtení, HOLD = 0) a nic nevypsal:
   emulace registry v HOLD neobnovovala. Náběh HOLD teď zachytí čas toho okamžiku (čip během HOLD jen nepřičítá).
 - Den v týdnu zůstává 0 = neděle (zvyklost Epsonu, tak ho emulace plní z času PC). Bíbův program ukazuje W + 1.
+
+## 2026-10-07 – DSP-1
+
+- **Podklady:** návod Tesla (OCR a sken), replika EC1045 (originální schéma Tesla se nenašlo), programy XMODEM
+  J. Bíby. Programy jsou zkopírované do `media/dsp-1` (autor souhlasil), aby je mohl používat test.
+- **Výchozí nastavení jako J. Bíba** (48h, 4Ah, 4Ch, 9600 Bd, úplný kabel), protože jediný známý software ho čeká.
+  SA2 je v konfigurátoru jako horní číslice, ne po spínačích, protože pořadí A5/A6 na přepínači se mezi návodem
+  a replikou liší.
+- **RTS do PC se nemodeluje**, místo řízení toku slouží `pacing` (SAPI dostane další znak, až přečte předchozí).

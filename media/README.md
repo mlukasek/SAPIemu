@@ -193,6 +193,19 @@ Skladby pro SPLAY (`..\SAPI-karty\MPH-1V\SPLAY\*.hex`, také od 0100h): `SAVE 17
 zaokrouhleno nahoru (`smjoop.rad` 38, `Void - Terrania.rad` 40, `Void - Raster.rad` 72). Okno pro nahrání
 binárního souboru n ukáže.
 
+## `dsp-1/` – přenos souborů XMODEM přes DSP-1 (J. Bíba, 2013)
+
+Kopie z `..\SAPI_DOKU\SAPIMAN\CPM_PROGRAMY\XMODEM\DSP-1\` (CP/M `.COM` od 0100h a zdrojáky `.MAC`), test `test_dsp1`.
+
+| Soubor | Obsah |
+|---|---|
+| `dopcp.com`, `DOPCP.MAC` | `DOPCP SOUBOR` pošle soubor do PC (XMODEM, součet), DSP-1 konektor X2, porty 48h/49h |
+| `docpmp.com`, `DOCPMP.MAC` | `DOCPMP SOUBOR` přijme soubor z PC (starý smaže), X2 |
+| `dopcpx3.com`, `docpmpx3.com`, `…X3.MAC` | totéž pro konektor X3 (4Ah/4Bh) |
+| `IDENTIFIKACE.txt`, `DSM1_DSPX2.txt` | popis (9600 Bd, úplný kabel s řízením) a výpis s porty DSM-1, DSP-1, DPP-1 |
+
+Na RAM disku `SAPI_CPM_Martin_2019-10-07.bin` jsou `DOPCP.COM` a `DOCPMP.COM` také, test je ale ukládá z této složky.
+
 ## `zrd-1v/` – test karty RAM disku ZRD-1V
 
 Vlastní program projektu (zdroj `ZRDTEST.ASM`, překlad `python tools/asm8080.py ZRDTEST.ASM zrdtest.hex`).

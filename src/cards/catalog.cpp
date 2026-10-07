@@ -1505,6 +1505,102 @@ static const CardParam k_rtc1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+static const ParamOption k_dsp1_high[] = {
+    { "0", "0xh (SA2 closed A7, A6, A5, A4)", "0xh (SA2 sepnuté A7, A6, A5, A4)" },
+    { "1", "1xh (SA2 closed A7, A6, A5)", "1xh (SA2 sepnuté A7, A6, A5)" },
+    { "2", "2xh (SA2 closed A7, A6, A4)", "2xh (SA2 sepnuté A7, A6, A4)" },
+    { "3", "3xh (SA2 closed A7, A6)", "3xh (SA2 sepnuté A7, A6)" },
+    { "4", "4xh (SA2 closed A7, A5, A4)", "4xh (SA2 sepnuté A7, A5, A4)" },
+    { "5", "5xh (SA2 closed A7, A5)", "5xh (SA2 sepnuté A7, A5)" },
+    { "6", "6xh (SA2 closed A7, A4)", "6xh (SA2 sepnuté A7, A4)" },
+    { "7", "7xh (SA2 closed A7)", "7xh (SA2 sepnuté A7)" },
+    { "8", "8xh (SA2 closed A6, A5, A4)", "8xh (SA2 sepnuté A6, A5, A4)" },
+    { "9", "9xh (SA2 closed A6, A5)", "9xh (SA2 sepnuté A6, A5)" },
+    { "10", "Axh (SA2 closed A6, A4)", "Axh (SA2 sepnuté A6, A4)" },
+    { "11", "Bxh (SA2 closed A6)", "Bxh (SA2 sepnuté A6)" },
+    { "12", "Cxh (SA2 closed A5, A4)", "Cxh (SA2 sepnuté A5, A4)" },
+    { "13", "Dxh (SA2 closed A5)", "Dxh (SA2 sepnuté A5)" },
+    { "14", "Exh (SA2 closed A4)", "Exh (SA2 sepnuté A4)" },
+    { "15", "Fxh (SA2 all open)", "Fxh (SA2 vše rozepnuto)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dsp1_ch2[] = {
+    { "\"X0\"", "X0, X1 (SA1 2)", "X0, X1 (SA1 2)" },
+    { "\"X8\"", "X8, X9 (SA1 6)", "X8, X9 (SA1 6)" },
+    { "\"none\"", "off", "vypnuto" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dsp1_ch1[] = {
+    { "\"X2\"", "X2, X3 (SA1 3)", "X2, X3 (SA1 3)" },
+    { "\"XA\"", "XA, XB (SA1 7)", "XA, XB (SA1 7)" },
+    { "\"none\"", "off", "vypnuto" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dsp1_int[] = {
+    { "\"X4\"", "X4, X5 (SA1 4)", "X4, X5 (SA1 4)" },
+    { "\"XC\"", "XC, XD (SA1 8)", "XC, XD (SA1 8)" },
+    { "\"none\"", "off", "vypnuto" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dsp1_rate[] = {
+    { "0", "N = 0, 153.6 kHz: 9600 Bd (x16), 2400 Bd (x64)", "N = 0, 153,6 kHz: 9600 Bd (x16), 2400 Bd (x64)" },
+    { "1", "N = 1, 76.8 kHz: 4800 / 1200 Bd", "N = 1, 76,8 kHz: 4800 / 1200 Bd" },
+    { "2", "N = 2, 38.4 kHz: 2400 / 600 Bd", "N = 2, 38,4 kHz: 2400 / 600 Bd" },
+    { "3", "N = 3, 19.2 kHz: 1200 / 300 Bd", "N = 3, 19,2 kHz: 1200 / 300 Bd" },
+    { "4", "N = 4, 9.6 kHz: 600 / 150 Bd", "N = 4, 9,6 kHz: 600 / 150 Bd" },
+    { "5", "N = 5, 4.8 kHz: 300 / 75 Bd", "N = 5, 4,8 kHz: 300 / 75 Bd" },
+    { "6", "N = 6, 3.2 kHz: 200 / 50 Bd", "N = 6, 3,2 kHz: 200 / 50 Bd" },
+    { "7", "N = 7, external clock (pin 15)", "N = 7, vnější hodiny (kolík 15)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dsp1[] = {
+    { "high", PK_CHOICE, "SA2: upper hex digit of the ports (closed = 0)", "SA2: horní číslice portů (sepnuto = 0)", "4",
+      k_dsp1_high, 0, 0 },
+    { "ch2", PK_CHOICE, "SA1: channel 2 (connector X2)", "SA1: kanál 2 (konektor X2)", "\"X8\"", k_dsp1_ch2, 0, 0 },
+    { "ch1", PK_CHOICE, "SA1: channel 1 (connector X3)", "SA1: kanál 1 (konektor X3)", "\"XA\"", k_dsp1_ch1, 0, 0 },
+    { "int", PK_CHOICE, "SA1: interrupt mask register (INT0)", "SA1: registr povolení přerušení (INT0)", "\"XC\"",
+      k_dsp1_int, 0, 0 },
+    { "x2", PK_SECTION, "Connector X2: channel 2 (8251)", "Konektor X2: kanál 2 (8251)", "true", nullptr, 0, 0 },
+    { "x2.rate", PK_CHOICE, "SA3: TxC = RxC", "SA3: TxC = RxC", "0", k_dsp1_rate, 0, 0 },
+    { "x2.ext_hz", PK_INT, "External clock on pin 15 (Hz, rate 7)", "Vnější hodiny na kolíku 15 (Hz, N = 7)", "0", nullptr, 0,
+      2000000 },
+    { "x2.connected", PK_BOOL, "Terminal connected at start (DCD)", "Terminál připojen při startu (DCD)", "true", nullptr,
+      0, 0 },
+    { "x2.cts", PK_BOOL, "Full cable, terminal ready (CTS/DSR)", "Úplný kabel, terminál připraven (CTS/DSR)", "true",
+      nullptr, 0, 0 },
+    { "x2.serial.pacing", PK_BOOL, "PC side: no overrun (pacing)", "Strana PC: bez přetečení", "true", nullptr, 0, 0 },
+    { "x2.serial.tcp", PK_SECTION, "PC side: TCP server", "Strana PC: TCP server", "false", nullptr, 0, 0 },
+    { "x2.serial.tcp.port", PK_INT, "TCP port", "TCP port", "2324", nullptr, 1, 65535 },
+    { "x2.serial.tcp.bind", PK_TEXT, "Address (127.0.0.1 = this PC only)", "Adresa (127.0.0.1 = jen tento PC)",
+      "\"127.0.0.1\"", nullptr, 0, 0 },
+    { "x2.serial.tcp.protocol", PK_CHOICE, "Protocol", "Protokol", "\"telnet\"", k_tcp_proto, 0, 0 },
+    { "x2.serial.tcp.dcd_follows", PK_BOOL, "DCD follows the client connection", "DCD podle připojení klienta", "true",
+      nullptr, 0, 0 },
+    { "x2.serial.com", PK_SECTION, "PC side: COM port", "Strana PC: COM port", "false", nullptr, 0, 0 },
+    { "x2.serial.com.port", PK_TEXT, "Port (COM5, /dev/ttyUSB0)", "Port (COM5, /dev/ttyUSB0)", "\"COM1\"", nullptr, 0, 0 },
+    { "x2.serial.com.baud", PK_INT, "Baud rate", "Rychlost", "9600", nullptr, 50, 921600 },
+    { "x3", PK_SECTION, "Connector X3: channel 1 (8251)", "Konektor X3: kanál 1 (8251)", "true", nullptr, 0, 0 },
+    { "x3.rate", PK_CHOICE, "SA4: TxC = RxC", "SA4: TxC = RxC", "0", k_dsp1_rate, 0, 0 },
+    { "x3.ext_hz", PK_INT, "External clock on pin 15 (Hz, rate 7)", "Vnější hodiny na kolíku 15 (Hz, N = 7)", "0", nullptr, 0,
+      2000000 },
+    { "x3.connected", PK_BOOL, "Terminal connected at start (DCD)", "Terminál připojen při startu (DCD)", "true", nullptr,
+      0, 0 },
+    { "x3.cts", PK_BOOL, "Full cable, terminal ready (CTS/DSR)", "Úplný kabel, terminál připraven (CTS/DSR)", "true",
+      nullptr, 0, 0 },
+    { "x3.serial.pacing", PK_BOOL, "PC side: no overrun (pacing)", "Strana PC: bez přetečení", "true", nullptr, 0, 0 },
+    { "x3.serial.tcp", PK_SECTION, "PC side: TCP server", "Strana PC: TCP server", "false", nullptr, 0, 0 },
+    { "x3.serial.tcp.port", PK_INT, "TCP port", "TCP port", "2325", nullptr, 1, 65535 },
+    { "x3.serial.tcp.bind", PK_TEXT, "Address (127.0.0.1 = this PC only)", "Adresa (127.0.0.1 = jen tento PC)",
+      "\"127.0.0.1\"", nullptr, 0, 0 },
+    { "x3.serial.tcp.protocol", PK_CHOICE, "Protocol", "Protokol", "\"telnet\"", k_tcp_proto, 0, 0 },
+    { "x3.serial.tcp.dcd_follows", PK_BOOL, "DCD follows the client connection", "DCD podle připojení klienta", "true",
+      nullptr, 0, 0 },
+    { "x3.serial.com", PK_SECTION, "PC side: COM port", "Strana PC: COM port", "false", nullptr, 0, 0 },
+    { "x3.serial.com.port", PK_TEXT, "Port (COM5, /dev/ttyUSB0)", "Port (COM5, /dev/ttyUSB0)", "\"COM1\"", nullptr, 0, 0 },
+    { "x3.serial.com.baud", PK_INT, "Baud rate", "Rychlost", "9600", nullptr, 50, 921600 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // ---------------------------------------------------------------- cards
 
 #define CARD(var, type, panel, en, cs, cls, width, emulated, params) \
@@ -1568,7 +1664,8 @@ CARD(c_dbs1a, "DBS-1A", "DBS", "SAPI-1.5 colour semigraphics, 6845, 64x20",
 CARD(c_dsm1v, "DSM-1V", "DSM", "Two serial channels (V)", "Dva sériové kanály (V)", CC_SERIAL, 1, true, k_dsm1v)
 CARD(c_dsm1, "DSM-1", "DSM", "Serial modem (cassette, terminal)", "Sériový modem (kazeta, terminál)", CC_SERIAL, 1,
      true, k_dsm1)
-CARD(c_dsp1, "DSP-1", "DSP", "Serial ports", "Sériové porty", CC_SERIAL, 1, false, nullptr)
+CARD(c_dsp1, "DSP-1", "DSP", "Two serial ports (8251), RS-232 and current loop",
+     "Dva sériové porty (8251), RS-232 a proudová smyčka", CC_SERIAL, 1, true, k_dsp1)
 // disks
 CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič pružných disků (desky A + B)", CC_DISK,
      2, true, k_rpd1)
