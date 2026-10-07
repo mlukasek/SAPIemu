@@ -7,3 +7,5 @@
 // Encode an ARGB8888 image into PNG bytes. `scale` repeats pixels (1..8).
 std::vector<uint8_t> png_encode_argb(const uint32_t* argb, int w, int h, int scale_x, int scale_y);
 bool png_write_argb(const std::string& path, const uint32_t* argb, int w, int h, int scale_x, int scale_y);
+// The same as a BMP file (24 bits, bottom-up): the clipboard of Windows takes it as a DIB.
+std::vector<uint8_t> bmp_encode_argb(const uint32_t* argb, int w, int h, int scale_x, int scale_y);

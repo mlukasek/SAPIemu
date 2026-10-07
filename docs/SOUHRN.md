@@ -56,6 +56,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Hotové 2026-10-07 večer: snímky obrazovek** (`src/frontend/shot.cpp`): Ctrl+F5 (jako DOSBox; F12 je reset),
+  pravé tlačítko na obraz (uložit, uložit jako, do schránky PNG + BMP, volba zvětšený 3× s poměrem TV), Zobrazení →
+  Snímek obrazovky. Výchozí jsou přesné body emulace (autor). Další krok: **video se zvukem** (MP4 přes ffmpeg,
+  snímky podle času emulace, zvuk ze sběrnice), rozhodnutí v `docs/rozhodnuti.md`.
 - **Hotové 2026-10-07 odpoledne: SAPI-1.5, sestava ZPS-6** (`machines/zps/ZPS-6.sapi`, test `test_sapi15`,
   `docs/software/SAPI-1.5.md`): karty **PKT-1**, **RSW-1**, **DBS-1A** (`docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`)
   podle dumpů PROM ze sapi.cz, schémat a návodů Tesla. ROM MON-V100690 (dump EPROM, i opravená verze Melsoft)

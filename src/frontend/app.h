@@ -19,6 +19,8 @@ struct UiSnapshot {
     int drag_from = 0, drag_to = 0;   // drag the card in slot drag_from to drag_to in the configurator
     bool drag_drop = false;           // and drop it (else the picture shows it still dragged)
     bool terminal = false;   // show the Serial terminal window
+    bool screen_menu = false;   // the right click menu of the console screen open
+    bool shot = false;          // take a screenshot (Ctrl+F5) before the picture
     std::string term_text;   // text received on the first channel ("\n" written as two characters = a new line)
     std::string term_sel;    // "L0,C0-L1,C1": a selection in it (line indexes, cell boundaries)
     std::string state;       // a saved state loaded first (pictures for the documentation)

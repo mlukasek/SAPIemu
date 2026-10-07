@@ -65,7 +65,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
   - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
 - **Ladění:** debugger (registry, disassembler, paměť, breakpointy a watchpointy, I/O log), ukládání stavu (i
-  rychlé checkpointy), nahrávání programů (Intel HEX i `.txt`, binární soubory), nahrávání zvuku do WAV.
+  rychlé checkpointy), nahrávání programů (Intel HEX i `.txt`, binární soubory), nahrávání zvuku do WAV,
+  snímky obrazovek do PNG nebo schránky (Ctrl+F5, pravé tlačítko na obraz).
 - **Windows 11, sestaví se i na Linuxu** (ověřeno ve WSL, `docs/build.md`).
 - **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,

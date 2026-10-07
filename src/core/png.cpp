@@ -126,3 +126,47 @@ bool png_write_argb(const std::string& path, const uint32_t* argb, int w, int h,
     std::vector<uint8_t> png = png_encode_argb(argb, w, h, sx, sy);
     return file_write_all(path, png.data(), png.size());
 }
+
+static void put32le(std::vector<uint8_t>& v, uint32_t x)
+{
+    v.push_back((uint8_t)x); v.push_back((uint8_t)(x >> 8));
+    v.push_back((uint8_t)(x >> 16)); v.push_back((uint8_t)(x >> 24));
+}
+
+std::vector<uint8_t> bmp_encode_argb(const uint32_t* argb, int w, int h, int sx, int sy)
+{
+    if (sx < 1) sx = 1;
+    if (sy < 1) sy = 1;
+    int ow = w * sx, oh = h * sy;
+    uint32_t row = (uint32_t)((ow * 3 + 3) & ~3);   // 24 bits, rows padded to 4 bytes
+    uint32_t size = 54 + row * (uint32_t)oh;
+    std::vector<uint8_t> out;
+    out.reserve(size);
+    out.push_back('B'); out.push_back('M');
+    put32le(out, size);
+    put32le(out, 0);
+    put32le(out, 54);
+    put32le(out, 40);                  // BITMAPINFOHEADER
+    put32le(out, (uint32_t)ow);
+    put32le(out, (uint32_t)oh);        // positive: bottom-up
+    out.push_back(1); out.push_back(0);    // planes
+    out.push_back(24); out.push_back(0);   // bits per pixel
+    put32le(out, 0);                   // BI_RGB
+    put32le(out, row * (uint32_t)oh);
+    put32le(out, 2835);                // 72 dpi
+    put32le(out, 2835);
+    put32le(out, 0);
+    put32le(out, 0);
+    for (int y = oh - 1; y >= 0; y--) {
+        const uint32_t* src = argb + (size_t)(y / sy) * w;
+        size_t start = out.size();
+        for (int x = 0; x < ow; x++) {
+            uint32_t p = src[x / sx];
+            out.push_back((uint8_t)p);
+            out.push_back((uint8_t)(p >> 8));
+            out.push_back((uint8_t)(p >> 16));
+        }
+        while (out.size() - start < row) out.push_back(0);
+    }
+    return out;
+}

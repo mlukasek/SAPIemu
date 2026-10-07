@@ -61,6 +61,8 @@ struct App {
     int tex_w = 0, tex_h = 0;
     std::vector<uint32_t> pixels;
     ZoomState screen_zs;          // of the console screen
+    int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
+    bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
     EmuHost host;
@@ -145,6 +147,7 @@ nlohmann::json settings_json(App& app)
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
+    j["screenshot"] = { { "enlarged", ui.shot_enlarged } };
     // the joystick from the keyboard and the PC mouse are off at every start (author): not saved
     j["mouse"] = { { "sensitivity", app.mouse.sensitivity } };
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
@@ -211,6 +214,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     std::string com;
     get_opt(t, "com_port", com);
     if (!com.empty()) snprintf(ui.com_port, sizeof(ui.com_port), "%s", com.c_str());
+    get_opt(j.value("screenshot", nlohmann::json::object()), "enlarged", ui.shot_enlarged);
     const nlohmann::json& snd = j.value("sound", nlohmann::json::object());
     get_opt(snd, "enabled", app.audio.enabled);
     get_opt(snd, "volume", app.audio.volume);
@@ -374,11 +378,16 @@ void handle_key_up(App& app, const SDL_KeyboardEvent& ev)
     if (KeyboardDevice* k = held_keyboard(app)) k->release_key((int)ev.scancode);
 }
 
+void shot_now(App& app);
+
 void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
     switch (ev.key) {
-    case SDLK_F5: app.host.paused = !app.host.paused; return;
+    case SDLK_F5:   // Ctrl+F5: a screenshot of the focused output (as in DOSBox); F5 run/pause
+        if (ev.mod & SDL_KMOD_CTRL) shot_now(app);
+        else app.host.paused = !app.host.paused;
+        return;
     case SDLK_F7:   // Ctrl+F7: the game mode of the ANK-1 keyboard on/off
         if (ev.mod & SDL_KMOD_CTRL) {
             app.game_keys = !app.game_keys;
@@ -514,14 +523,51 @@ void zoom_items(ZoomState& zs)
     }
 }
 
-// Right click on the picture: the zoom of this window.
-void zoom_context_menu(ZoomState& zs)
+void shot_items(App& app, DisplayDevice* d, const char* name)
+{
+    float a = display_px_aspect(app, d);
+    if (ImGui::MenuItem(tr("Save screenshot"), "Ctrl+F5", false, d != nullptr)) shot_save(app.ui, d, name, a);
+    if (ImGui::MenuItem(tr("Save screenshot as..."), nullptr, false, d != nullptr)) shot_save_as(app.ui, d, name, a);
+    if (ImGui::MenuItem(tr("Copy screenshot"), nullptr, false, d != nullptr)) shot_copy(app.ui, d, a);
+    ImGui::MenuItem(tr("Screenshot enlarged 3x (as shown)"), nullptr, &app.ui.shot_enlarged);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the screen (TV aspect)."));
+}
+
+// Right click on the picture: the zoom of this window and its screenshot.
+void display_context_menu(App& app, DisplayDevice* d, const char* name, ZoomState& zs)
 {
     if (ImGui::BeginPopupContextWindow("zoommenu")) {
         ImGui::TextDisabled("%s", tr("Zoom"));
         zoom_items(zs);
+        ImGui::Separator();
+        shot_items(app, d, name);
         ImGui::EndPopup();
     }
+}
+
+// The output of the window focused last (the console screen if there is no such window): Ctrl+F5,
+// View -> Screenshot.
+DisplayDevice* shot_display(App& app, std::string& name)
+{
+    Machine* m = app.host.machine();
+    if (!m) return nullptr;
+    DisplayDevice* found = m->display;
+    int n = 0;
+    for (DisplayDevice* d : m->displays) {
+        if (d == m->display || n >= MAX_GFX_VIEWS) continue;
+        if (n++ == app.shot_target) found = d;
+    }
+    Card* c = dynamic_cast<Card*>(found);
+    name = c ? c->name : std::string("screen");
+    return found;
+}
+
+void shot_now(App& app)
+{
+    std::string name;
+    DisplayDevice* d = shot_display(app, name);
+    if (d) shot_save(app.ui, d, name.c_str(), display_px_aspect(app, d));
 }
 
 // View -> Colour: the ink of the monochrome displays. It is a card parameter (jumpers
@@ -684,6 +730,7 @@ void draw_menu(App& app)
             ImGui::TextDisabled("%s", tr("Right click on a picture: the zoom of its window."));
             ImGui::EndMenu();
         }
+        if (ImGui::MenuItem(tr("Screenshot"), "Ctrl+F5", false, m && m->display)) shot_now(app);
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
@@ -697,7 +744,7 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
-        ImGui::TextUnformatted(tr("Keys: F5 run/pause, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
+        ImGui::TextUnformatted(tr("Keys: F5 run/pause, Ctrl+F5 screenshot, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
         ImGui::TextUnformatted(tr("Ctrl+F7 game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)"));
         ImGui::TextUnformatted(tr("Ctrl+F2 quick save of the state, Ctrl+F3 quick load"));
@@ -848,6 +895,7 @@ void draw_screen(App& app)
     ImGui::PopStyleVar();
     zoom_track(app.screen_zs);
     app.ui.screen_focused = ImGui::IsWindowFocused();
+    if (app.ui.screen_focused) app.shot_target = -1;
 
     if (!m) {   // switched off: a dark screen
         ImVec2 a = ImGui::GetCursorScreenPos(), av = ImGui::GetContentRegionAvail();
@@ -862,7 +910,11 @@ void draw_screen(App& app)
         return;
     }
     app.screen_zs.zoom = draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels, app.screen_zs);
-    zoom_context_menu(app.screen_zs);
+    if (app.open_screen_menu) {
+        ImGui::OpenPopup("zoommenu");
+        app.open_screen_menu = false;
+    }
+    display_context_menu(app, d, c ? c->name.c_str() : "screen", app.screen_zs);
     ImGui::End();
 }
 
@@ -892,9 +944,12 @@ void draw_graphic_screens(App& app)
         ImGui::PopStyleVar();
         if (open) {
             zoom_track(v.zs);
-            if (ImGui::IsWindowFocused()) app.ui.screen_focused = true;   // typing goes to the machine too
+            if (ImGui::IsWindowFocused()) {
+                app.ui.screen_focused = true;   // typing goes to the machine too
+                app.shot_target = k;
+            }
             v.zs.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels, v.zs);
-            zoom_context_menu(v.zs);
+            display_context_menu(app, d, c ? c->name.c_str() : "graphics", v.zs);
         }
         ImGui::End();
     }
@@ -1128,6 +1183,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_menu(app);
         draw_screen(app);
         draw_graphic_screens(app);
+        shot_poll(app.ui);
         draw_debugger(app.ui);
         draw_memory(app.ui);
         draw_iolog(app.ui);
@@ -1168,6 +1224,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 for (nlohmann::json& c : cards)
                     if (c.value("slot", 0) == slot) c[key] = v;
             }
+        }
+        if (snap && snap_frames == 9) {
+            if (snap->screen_menu) app.open_screen_menu = true;
+            if (snap->shot) shot_now(app);
         }
         if (snap && snap->terminal && snap_frames == 9 && !app.ui.terms.empty()) {
             // late, so that what the machine sends at start does not push the text away

@@ -1177,3 +1177,17 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   v DBS-1A (velikost obrazu z registrů, blikání atributu a kurzoru podle času sběrnice).
 - **Klávesnice na PKT-1:** Consul 262.3 bez úpravy 7474 (8255 strobe zachytí). Dokud program kód nepřečte (IBF),
   další klávesa nejde (pohodlí, `keyboard.strict` věrně).
+
+## 2026-10-07 – Snímky obrazovek (a plán videa)
+
+- **Přání autora:** uložit obrázek z obrazovek (CGA-1V, DBS-1, AND-1…), později video se zvukem, na pravém tlačítku.
+- **Zvyklosti:** MAME F12 (u nás reset), DOSBox Ctrl+F5 snímek a Ctrl+Alt+F5 video, PrtScn ve Windows 11 otevírá
+  Výstřižky. Proto **Ctrl+F5** (snímek okna s fokusem) a pro video bude Ctrl+Alt+F5.
+- **Formát:** PNG s přesnými body emulovaného obrazu (bezeztrátově, jako cli `--screenshot`), volba „zvětšený 3×
+  (jak je vidět)“: každý bod 3 řádky a šířka podle poměru stran TV (DBS-1A 1024 × 720). Automatický název
+  `work/snimky/<karta>_<datum-čas>.png`, nebo dialog. Schránka dostane PNG i BMP (DIB ve Windows bere každý program).
+  Kodér PNG zůstává bez komprese (malé obrázky, žádná knihovna navíc).
+- **Video (další krok, autor schválil pořadí):** MP4 (H.264 + AAC) přes **ffmpeg**, který je potřeba mít; přehraje se
+  všude a je malé. DOSBox má AVI s vlastním kodekem ZMBV, MAME nekomprimované AVI. Snímky podle času emulace (50 za
+  sekundu), zvuk z výstupu sběrnice: obraz a zvuk drží synchron i při turbu nebo zpomalení. Bez ffmpeg se nahrávání
+  nespustí a GUI řekne proč.

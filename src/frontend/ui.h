@@ -102,6 +102,16 @@ struct UiState {
     std::string notice;
     bool notice_error = false;
     uint64_t notice_ns = 0;
+    // screenshots (frontend/shot.cpp): enlarged 3x with the TV aspect instead of the exact dots
+    // (remembered in the settings); "Save screenshot as" keeps the picture until the file is chosen
+    bool shot_enlarged = false;
+    struct ShotDialog {
+        std::mutex mtx;
+        bool active = false, done = false;
+        std::string result;
+        std::vector<uint32_t> px;
+        int w = 0, h = 0, sx = 1, sy = 1;
+    } shot_dlg;
     // File -> Load program (Intel HEX): the chosen file waits for a confirmation, with the
     // addresses of its records (read without loading)
     std::string hex_path;          // chosen file, empty = no question open
@@ -163,6 +173,13 @@ struct UiState {
 };
 
 // Serial terminal window: the clipboard (Alt+C / Alt+V as in TeraTerm, Ctrl+Insert / Shift+Insert)
+// Screenshots of a display output (frontend/shot.cpp): PNG of the exact emulated dots (or enlarged 3x with
+// px_aspect = the width of a dot on a TV), named by the card and the time in work/snimky, into a chosen
+// file, or to the clipboard (PNG and BMP). The result shows in the status bar.
+void shot_save(UiState& ui, DisplayDevice* d, const char* name, float px_aspect);
+void shot_save_as(UiState& ui, DisplayDevice* d, const char* name, float px_aspect);
+void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect);
+void shot_poll(UiState& ui);   // the file of "Save screenshot as", once chosen
 void terminal_copy(UiState& ui);
 void terminal_paste(UiState& ui);
 
