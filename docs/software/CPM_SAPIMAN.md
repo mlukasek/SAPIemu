@@ -59,7 +59,8 @@ AND-1Z-89, ZRMD-1 (C:), řadič s bootovací disketou v A: a datovou disketou CP
   od roku 2015 má OFF 128 (prvních 32 KB systém). Proto mají vlastní prázdný obraz `ZRMD-1_prazdny_OFF0.bin`.
   S obrazem pro ECMON by `DIR C:` vypsal nesmysly.
 - **MFC-1A** v sestavě: `wiring = ec1045`, `reset_mode = level`. Systém zapíná mechaniky D6 = 1; se zapojením
-  podle originálu Tesla se boot zastaví (ověřeno).
+  podle naskenovaného schématu Tesla (`wiring = tesla`) se boot zastaví (ověřeno). Skutečné desky Tesla jsou
+  zapojené jako `ec1045` (EC1045 2026-10-07, v. č. 0124).
 - Klávesnice Consul 259.11 v kódu KOI-8 cs: monitory mají „OVLADAC KLAVESNICE CONSUL 259.11 KOI8 CS2“ a hlásí
   „CON: AND1Z + C259.11“.
 
@@ -233,7 +234,8 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
 - ~~Složka `…/PETR/2MB/`~~: je v kopii z FTP (`..\SAPI_DOKU_FTP`).
 - Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme, EC1045 ho také nemá
   (HDD nikdy připojený neměl, odpověď 2026-10-06).
-- Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení (D4/D5, polarita D6)?
+- ~~Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení?~~ Originální deska
+  (v. č. 0124) odpovídá překreslení (EC1045 2026-10-07).
 - Diskety TNS ze Slušovic v `DEX\SAPI_ZPS3` (04A, 04B, 05): odkud jsou a proč jsou u ZPS-3? Má někdo ROM zavaděče
   TNS (ZAV) nebo popis řadiče KORD4? (`docs/software/TNS_Slusovice.md`, 2026-10-06, zatím neodesláno)
 - **Odesláno autorem 2026-10-06** (odpověď níže): zdroják ECMON IDE-1; jestli ECBIM8 na skutečné MFC-1A

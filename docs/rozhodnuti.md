@@ -763,6 +763,7 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   tím změnil (karta je z téhož dne, starší stavy s ní nejsou).
 - **MFC-1A:** porty podle dumpu PROM DD9, mechaniku vybírá registr 0FH (DS0/DS1 z 8272 nejsou zapojené).
 - **Registr 0FH podle originálu Tesla, překreslení EC1045 jako volba** (parametr `wiring`, výchozí `tesla`).
+  **Změněno 2026-10-07:** originální deska odpovídá překreslení, výchozí je `ec1045` (níže).
   Původní verze (commit 48910b8) se řídila překreslením EC1045 (`MFC-1A_MP.pdf`). Sken originálního schématu
   Tesla a celý návod (`..\SAPI_DOKU\MFC-1A\`) ale ukázaly, že překreslení se liší ve dvou místech:
   - originál: D4 = reset 8272, D5 = povolení přerušení, DD23A Q do vstupu C dekodérů DD18 a DD19 (D6 = 1
@@ -1164,7 +1165,7 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   v dodávce ZPS-8, smyčky ROM jsou na 2 MHz).
 - **Znakový generátor DBS-1** (autor: náhrada s označením): originál se nedochoval. Náhrada z fontu AND-1Z, který
   má stejné rozložení kódů (ASCII, semigrafika 2 × 3, KOI-8 čs2), v konfigurátoru i dokumentaci označená NÁHRADA.
-  Dump skutečné EPROM se bude shánět.
+  Dump skutečné EPROM se bude shánět. **Večer téhož dne** ho poslal EC1045 a je výchozí (níže).
 - **Dekodéry** podle dumpů PROM ze sapi.cz (PKT-1 DD8, DD12; RSW-1 DD1, DD2). Tabulky v návodech Tesla jim místy
   odporují (port 0Eh PKT-1, pořadí portů RSW-1, propojky XT1 RSW-1); platí dump a schéma.
 - **RSW-1 XT1** výchozí A6 = L, A7 = H, A8 = MAP2: jediné nastavení, při kterém dump DD1 dává mapu ZPS-8 (díra
