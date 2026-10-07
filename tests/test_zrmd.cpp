@@ -139,6 +139,17 @@ static void test_rtc_map(void)
     yy = (b.io_read(0x7B) & 0x0F) * 10 + (b.io_read(0x7A) & 0x0F);
     CHECK_EQ(yy, 99);
 
+    // reading under HOLD (RTC421 of J. Biba): HOLD = 1 takes the time of that moment
+    time_t t0 = 1790000000;   // ... :20 s
+    for (int i = 0; i < 2; i++) {
+        host_time_fix(t0 + i * 5);
+        b.io_write(0x7D, 0x01);
+        int ss = (b.io_read(0x71) & 0x0F) * 10 + (b.io_read(0x70) & 0x0F);
+        b.io_write(0x7D, 0x00);
+        CHECK_EQ(ss, (int)((t0 + i * 5) % 60));
+    }
+    host_time_fix(0);
+
     b.io_write(0x63, 0x40);
     CHECK(b.map & MAP_1);
     b.io_write(0x63, 0x80);

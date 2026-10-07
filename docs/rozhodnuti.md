@@ -1243,3 +1243,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **8253:** zapsaný počet v režimu BCD se nepřeváděl z BCD (BCD 2000 se počítal jako 8192), opraveno. Nová metoda
   `ticks()` přeskakuje mezi změnami OUT v módech 2 a 3, aby 8253 na 2 MHz nezdržoval emulaci; test ji porovnává
   s jednotlivými takty.
+
+## 2026-10-07 – RTC 72421 na ZRMD-1: HOLD
+
+- `RTC421.COM` J. Bíby čte čas postupem z datasheetu (HOLD = 1, kontrola BUSY, čtení, HOLD = 0) a nic nevypsal:
+  emulace registry v HOLD neobnovovala. Náběh HOLD teď zachytí čas toho okamžiku (čip během HOLD jen nepřičítá).
+- Den v týdnu zůstává 0 = neděle (zvyklost Epsonu, tak ho emulace plní z času PC). Bíbův program ukazuje W + 1.

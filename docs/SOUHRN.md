@@ -61,6 +61,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   půlnoci), dva 8253, přerušení kabelem z XC2/14, watchdog na /RTL. /RTL teď berou i procesorové karty SAPI-1
   (dřív jen PKT-1), karty dostávají Φ2 sběrnice (`Bus::phi2_hz`). Opravený BCD v 8253 (zapsaný počet se nepřeváděl
   z BCD) a hromadné odpočítávání `I8253::ticks()`. Ověřeno `RTCZ.COM` J. Bíby pod CP/M (den a čas PC).
+  Jeho `RTC421.COM` pro hodiny na ZRMD-1 odhalil chybu emulace 72421: v HOLD registry neukazovaly aktuální čas
+  (opraveno, test v `test_zrmd`).
 - **Odpovědi EC1045 2026-10-07** (`..\Dotazy\EC1045_2026-10-07\`), zapracované téhož dne:
   - **dump EPROM „59“ znakového generátoru DBS-1:** je teď výchozím fontem DBS-1A (`roms/dbs-1a/DBS-1A_CharGen_59.bin`),
     potvrdil adresování i semigrafiku 2 × 3, navíc má rámečky a řecká písmena (`docs/desky/DBS-1A.md`);

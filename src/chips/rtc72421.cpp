@@ -131,6 +131,9 @@ void Rtc72421::write(int r, uint8_t v, uint64_t now, uint32_t cpu_hz)
             offset += (s >= 30) ? (60 - s) : -s;
         }
         cd = v & 0x09;
+        // HOLD stops the update of the registers: they keep the time of that moment (the usual reading
+        // is HOLD = 1, check BUSY, read, HOLD = 0)
+        if (!hold && new_hold && !stop && !fields_dirty) load_fields();
         if (hold && !new_hold && fields_dirty && !stop) { store_fields(); fields_dirty = false; }
         hold = new_hold;
         return;

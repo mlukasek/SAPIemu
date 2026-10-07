@@ -90,6 +90,11 @@ Zdroje:
 - **RTC:** hodiny běží podle místního času PC s posunem, který se mění, když program nastaví čas.
   HOLD, STOP, RESET, 30s ADJ, 12/24 h a periodické přerušení (1/64 s, 1 s, 1 min, 1 h) jsou emulované.
   Rozdíl mezi pulzním a úrovňovým režimem se zatím neemuluje, výstup je vždy úroveň do smazání příznaku.
+  Nastavení HOLD zachytí čas toho okamžiku (do 2026-10-07 registry v HOLD neukazovaly aktuální čas a čtení
+  postupem z datasheetu, HOLD → BUSY → čtení → HOLD = 0, vracelo starou hodnotu).
+- **Den v týdnu** (registr W) má 0 = neděle. `RTC421.COM` J. Bíby (disketa `media/pmd32sd/b_rtc_zdp_zrmd.8sd`,
+  zobrazení a nastavení času na ZRMD-1) vypisuje W + 1, středa je u něj tedy 4. Program je v emulátoru ověřený
+  (2026-10-07, CP/M ze ZRMD-1, ECMON volba 1).
 - **Nečtené bity:** horní 4 bity dat RTC nikdo nebudí, čtou se jako 1.
 
 ## Nejasnosti
