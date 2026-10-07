@@ -173,8 +173,15 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Registr 0FH (motory, hlavy) a výběr 0EH D1 D0 vedou jen na X3 FDC-1B. Motory zapínají BIOSy pro mechaniky PC
   (EC1045, dlouhé CP/M J. Bíby), formátovací programy SAPIMANa a FORM6. Vedly /M0–/M3 z X3 k mechanikám PC
   (MOTOR ON), a jak? Nuluje /RES registr 0FH (emulace ano)? Jak dlouho se mechaniky rozbíhají (emulace 500 ms)?
+  **EC1045 (2026-10-06):** mechaniky 5,25" HD připojoval přímým kabelem k FDC-1A jako 8": MOTOR ON mechaniky
+  z /HL (přiklopení hlavy 8272), READY mechaniky nezapojený (/RDY uzemněný), /M0–/M3 nepoužité. Motor se u něj
+  tedy točí, jen když 8272 přiklopí hlavu. Emulace (`motor_line`) zapíná motory registrem 0FH, jak to dělají
+  BIOSy J. Bíby a EC1045; varianta „motor z /HL“ zatím není.
 - Doba RQM po bajtu povelu (emulace 12 µs).
-- Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? Jak EC1045
-  připojoval mechaniky PC HD (přepínače, /RDY, signál HD/DD mechaniky)?
+- Volí přepínač SA2 S1–S4 („8"“) hodiny 8272 (8 MHz pro 8" a mechaniky HD, 4 MHz pro 5,25" DD)? **EC1045
+  (2026-10-06):** pro mechaniky HD má SA2 stejně jako pro 8", `11000011` (krajní dva na obou stranách sepnuté),
+  signál hustoty (kolík 2 mechaniky) nezapojený. S naším přiřazením (S1–S4 = 8" pro A–D, S5–S8 = DD) to je A, B
+  = 8" SD, proto má `cpm_ec1045` od 2026-10-07 `sa2_a`/`sa2_b` = `8sd`. Jeho BIOS port 0EH nečte. Které číslo
+  přepínače patří které mechanice, je dál odhad.
 - Kam až dojede hlava použitých mechanik (8" Consul, 5,25" a 3,5" PC)? Emulace má doraz na stopě 82. Programy
   SAPIMANa formátují stopy 0–80.

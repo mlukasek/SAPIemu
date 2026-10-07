@@ -189,7 +189,11 @@ RECALIBRATE. Mechaniky zapíná `DRVON EQU 40H` (D6 = 1), vypíná `DRVOF EQU 00
 
 - **Které zapojení mají vyrobené desky Tesla a podle kterého je postavená replika** (D4/D5, Q nebo /Q z DD23A)?
   Sken originálu a návod se s překreslením EC1045 neshodují. Při stavbě repliky doporučeno originál.
-- Fungoval BIOS ECBIM8 s MFC-1A na skutečném stroji? Podle obou schémat by se zasekl (chybí `RET` v `INIT_MFC`)
+  **EC1045 (2026-10-06):** J. Bíba rozchodil diskety na Petrově replice (měl ji zapůjčenou), systémy JB s D6 = 1
+  tedy sedí na repliku. Petr sám mechaniky na MFC-1A nerozchodil (kabel pro RPD-1). Možná má i originální MFC-1A
+  (sestava SAPI-1.5 8"), na které by šlo zapojení 0FH ověřit.
+- Fungoval BIOS ECBIM8 s MFC-1A na skutečném stroji? (EC1045 na to neodpověděl, MFC-1A s mechanikami sám
+  nerozchodil; nejspíš ho nikdo nezkoušel.) Podle obou schémat by se zasekl (chybí `RET` v `INIT_MFC`)
   a na originálu by navíc D6 = 1 mechaniky vypínal. Jaké MSR vrací 8272 v resetu?
 - RDYn (XP2-19) není v příkladech připojení mechanik zapojený. Jakou úroveň pak vidí 8272 na RDY? Výpisy
   `SAPI15\MFC_TEST_CPM` (sekce výše) ukazují stálé RDY (`rdy_ground = true`). Sestavy SAPIMANa

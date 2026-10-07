@@ -68,7 +68,8 @@ Kanál nesmí být stejný jako kanál PMD32-SD.
 
 ## Nejasnosti k ověření na HW
 
-- Co je v kabelu k tiskárně na kolíku 16 X3 (P2-IN7)? ECMON při 1 netiskne, emulace ho drží v 0.
+- Co je v kabelu k tiskárně na kolíku 16 X3 (P2-IN7)? ECMON při 1 netiskne, emulace ho drží v 0. (EC1045 neví,
+  na X3 měl jen plotter MINIGRAF přes rozhraní z AR 1988 s přepínači polarity STB a ACK.)
 - Bere tiskárna (LQ-1070, K6313) data při sestupné, nebo náběžné hraně /STROBE? Emulace je bere při náběžné.
 - Tiskárna na DPP-1: jak byl zapojený kabel (/OBF → /STROBE, /ACK → PC6, BUSY?) a přepínače S2–S4? Tiskl
   někdo přes `UL1:`, nebo tam byl jen děrovač?

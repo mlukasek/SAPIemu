@@ -231,15 +231,38 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
 ## Otázky na EC1045 (Petr Všijanský)
 
 - ~~Složka `…/PETR/2MB/`~~: je v kopii z FTP (`..\SAPI_DOKU_FTP`).
-- Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme.
+- Zdroják ROM `JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` (ECMON pro IDE-1, 2021): zdroják nemáme, EC1045 ho také nemá
+  (HDD nikdy připojený neměl, odpověď 2026-10-06).
 - Případně: měl MFC-1A zapojený podle originálu Tesla, nebo jako jeho překreslení (D4/D5, polarita D6)?
 - Diskety TNS ze Slušovic v `DEX\SAPI_ZPS3` (04A, 04B, 05): odkud jsou a proč jsou u ZPS-3? Má někdo ROM zavaděče
   TNS (ZAV) nebo popis řadiče KORD4? (`docs/software/TNS_Slusovice.md`, 2026-10-06, zatím neodesláno)
-- **Odesláno autorem 2026-10-06** (čeká se na odpověď): zdroják ECMON IDE-1; jestli ECBIM8 na skutečné MFC-1A
+- **Odesláno autorem 2026-10-06** (odpověď níže): zdroják ECMON IDE-1; jestli ECBIM8 na skutečné MFC-1A
   fungoval (chybějící `RET`); podle čeho je překreslení MFC-1A (D4/D5, D6) a podle kterého zapojení se staví
   repliky; mechaniky a RDY u MFC-1A; kdo dělal testy `SAPI15\MFC_TEST_CPM` a s jakým `DRVON`; připojení mechanik
   PC HD k FDC-1 (SA2, /RDY, HD/DD) a motory /M0–/M3 z X3; přepínače S2–S4 a kabel PMD32-SD na DPP-1; kanál 1
   DPP-1 (děrovač, nebo tisk přes `UL1:`); kolík 16 kabelu tiskárny na X3.
+- **Odpověď EC1045 (2026-10-06 večer, „z hlavy“)**, uložená mimo repo v `..\Dotazy\EC1045_2026-10-06\` (e-mail
+  `Re_Dotazy_k_ECMON_a_MFC-1.txt` s celou historií, zdrojáky, fotky `DPP-1_pro_PMD-32SD.jpg` a `PROM_prog.jpg`):
+  - **Zdrojáky** (`ECMON*.MAC`, `ECBI*.MAC` včetně `_cd` a `ECBIF8_nefunguje.MAC`) jsou bajt po bajtu shodné
+    s `..\SAPI-karty\ZRMD-1\SRC\orig\EC1045_2016\`. Nic nového, zdroják ECMONu pro IDE-1 nemá.
+  - **MFC-1A:** J. Bíba rozchodil diskety na Petrově replice MFC-1A (měl ji zapůjčenou). Systémy JB se zapínáním
+    mechanik D6 = 1 tedy odpovídají replice, což podporuje `wiring = ec1045` v jejich sestavách. Petrovi samotnému
+    mechaniky na MFC-1A nechodily (připojil je kabelem pro RPD-1, MFC-1A má jiné zapojení). Na `RET` v ECBIM8
+    neodpověděl; ECBIM8 na MFC-1A nejspíš nikdo nezkoušel (JB pracoval s bootovacím monitorem). Možná má
+    i originální MFC-1A se sestavou SAPI-1.5 8" (zdroj pro ověření zapojení 0FH na originálu).
+  - **FDC-1 a 5,25" HD „jako 8"“:** kabel přímý jako pro 8", přiklopení hlavy (/HL) vede na MOTOR ON mechaniky,
+    první mechanika má výběr nastavený na „0“ (v PC je na „1“). Přepínače SA2 stejně jako pro 8" (`11000011`,
+    krajní dva na obou stranách sepnuté). Nezapojené vodiče 2, 4, 6 a 34 (u mechaniky PC: výběr hustoty, nic, DS3,
+    READY / DISK CHANGE), /RDY FDC-1 tedy zůstal uzemněný. S FDC-1 to chodí, s RPD-1 ne (příčinu nezkoumal),
+    MFC-1A nezkoušel. /M0–/M3 z FDC-1B tedy nepoužíval (`docs/desky/FDC-1.md`).
+  - **DPP-1 a PMD-32SD:** PMD-32SD je na horním konektoru (podle ECMONu kanál 2, X3), zapojení podle dokumentace
+    PMD-32SD, signál DIR není potřeba. Nastavení přepínačů je na fotce, na spolehlivé přečtení nestačí rozlišení
+    (`docs/desky/DPP-1.md`).
+  - **Programátor PROM** na dolním konektoru DPP-1 (fotka `PROM_prog.jpg`, návod `SAPIMAN\Scany dokumentací\DPP1-
+    PROGRPROM.pdf`): úpravy +5 V (kolík do spodní řady připájený na spoj u konektoru) a +12 V přes dvě diody
+    v sérii (např. KY130/80). Přepínače pro druhý konektor „bez záruky“, platí pro obě desky.
+  - **Tiskárna:** na X3 měl jen plotter MINIGRAF přes rozhraní z AR (Mikroelektronika 1988) s přepínači polarity
+    STB a ACK. Kolík 16 neví (musel by kabel propískat).
 
 ## Plán (schválený autorem 2026-10-05)
 

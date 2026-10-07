@@ -56,6 +56,10 @@ připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi
 ## Nejasnosti k ověření na HW
 
 - Přepínače S2–S4 (směr 3216, polarita PC) při připojení PMD32-SD a tiskárny: jaké nastavení a jaký kabel se
-  používaly? Zapojení konektoru PMD32-SD na X3?
+  používaly? Zapojení konektoru PMD32-SD na X3? **EC1045 (2026-10-06):** PMD-32SD na horním konektoru (podle
+  ECMONu kanál 2 = X3), kabel podle dokumentace PMD-32SD, DIR se nezapojuje. Přepínače jsou na jeho fotce
+  `..\Dotazy\EC1045_2026-10-06\DPP-1_pro_PMD-32SD.jpg`, rozlišení na spolehlivé přečtení nestačí (případně
+  požádat o ostřejší). Na dolním konektoru měl **programátor PROM** (`PROM_prog.jpg`, návod
+  `SAPIMAN\Scany dokumentací\DPP1- PROGRPROM.pdf`, úpravy +5 V a +12 V přes dvě diody).
 - Kanál 1: děrovač (`PUN:`), nebo tiskárna přes `UL1:`? Zapojení signálů (STROBE, BUSY, ACK) na 1PA/1PC
   (emulace: /OBF → /STROBE, /ACK → PC6, BUSY nezapojený).

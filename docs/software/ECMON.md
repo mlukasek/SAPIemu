@@ -76,7 +76,7 @@ s originály bajt po bajtu**, kromě neinicializovaných oblastí DS:
 
 - **ECMON:** `ECMONM.MAC` = `ECMON_cd.MAC` (J. Bíba „V050815JB“, úprava EC1045 2016 „V100416EC“ s vektory
   PMD32-SD pro CD.COM) se změněnými texty menu (1 RPD8, 2 MFC8) a uživatelem. Dává přesně EPROM
-  `JPR-1ZI_ECMON_2k_Martin.bin`. Pro `ECMON_2k_IDE-1` zdroják není.
+  `JPR-1ZI_ECMON_2k_Martin.bin`. Pro `ECMON_2k_IDE-1` zdroják není (EC1045 ho také nemá, 2026-10-06).
 - **Systém na RAM disku:** 4 bloky po 8 KB na začátku obrazu (varianta n na n × 2000h): zavaděč 128 B
   (`bo200412`), CCP = **CCPZ V4.1** (public domain, zdroják z `run-ccpz.zip` na sydneysmith.com, vrácená jedna
   úprava z roku 2018), BDOS = **originální BDOS DRI
