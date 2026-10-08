@@ -137,7 +137,8 @@ Další programy z `media\` si nahrajete takto:
   INICIALIZACE“, po M → studený start (nastavení se smaže). Vypínejte vypínačem POWER, to proběhne jako výpadek
   sítě a nastavení zůstane.
 
-Celý postup a zapojení jsou v `docs/desky/APS-5.md`.
+**Ukázka krok za krokem** (tři pece v regulaci na 700 °C, dvě ručně, jako na obrázku v README):
+`docs/aps5-ukazka.md`. Zapojení a firmware: `docs/desky/APS-5.md`.
 
 ## Pro vývojáře
 

@@ -53,7 +53,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   - desky A/D převodníku ADP-1, měřicího zesilovače DMT-1 a relé DRV-1A, panel HRK-1 s klávesnicí, zámkem
     a watchdogem;
   - simulace pecí s termočlánky (Fe-Ko, ch-a, ch-k, PtRh) a okno, kde pece žhnou podle teploty, s grafem;
-  - výpadek sítě s varováním, jak ho firmware čeká ([docs/desky/APS-5.md](docs/desky/APS-5.md)).
+  - výpadek sítě s varováním, jak ho firmware čeká ([docs/desky/APS-5.md](docs/desky/APS-5.md), ukázka krok za
+    krokem [docs/aps5-ukazka.md](docs/aps5-ukazka.md)).
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem

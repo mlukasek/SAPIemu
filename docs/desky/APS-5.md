@@ -152,6 +152,8 @@ přerušení jsou RST na 14C9h. Obsluha čte P2-IN, bity 4–6 negované, a úlo
 
 ## Jak začít (první zapnutí = studený start)
 
+Podrobná ukázka s přesnými klávesami a tím, co zkusit dál, je v `docs/aps5-ukazka.md`. Stručně:
+
 1. Spustit `machines/aps5.sapi`. Po testech (asi 3 s) se objeví menu. Okno APS-5 se otevře vedle obrazovky.
 2. Kalibrace: `6R` →, `9990` → (KAL je v emulaci 9,99 V).
 3. Typy termočlánků: `0` → číslo pece →, pak `8R` → typ → (výchozí pece: 1, 2, 5, 7 ch-a = 3; 3 Fe-Ko = 1;
