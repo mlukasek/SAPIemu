@@ -224,6 +224,23 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         po 2 KB. RAM-64: 8 × 6264 se zálohou, PROM 74188 (stránkování). RFD-Z: WD2797 bez DMA, konektory pro 8"
         i 5,25"/3,5", adresace v portech i v paměti. Bez softwaru (ROM, systém) zatím není na čem emulaci ověřit;
      d) RPD-1Z (8271 + 8257, AR B 6/1985, replika EC1045): podle EC1045 pod CP/M náhodně chybuje, software chybí.
+     e) **Průzkum desek ze `sapi.cz/sapi/desky.php`** (2026-10-08), které mají podklady i software:
+        1. **APS-5** (měřicí ústředna Tesla, regulace pecí s termočlánky): ADP-1 (A/D C520D), DMT-1 (zesilovač
+           s reléovým multiplexem), DRV-1A (relé, 77h), HRK-1 (14klávesová klávesnice, watchdog). **Celý originální
+           firmware** (7 × 2 KB INTELHEX) je v `..\SAPI.CZ\sapi\doku\aps-5.php`, ostatní desky sestavy (JPR-1, REM-1,
+           AND-1, CRM-1, RTC-1) už emulujeme. Potřeba jednoduchý model pece a termočlánků;
+        2. **RKD-1** (řadič kazetového disku CM 5403, 8255 + 8253, 40h): ovladač, BIOS CP/M, boot ROM a formátovač
+           se zdrojáky (Tesla Elstroj 1987) na `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_mercl.8sd`,
+           `FORMRKD.COM` na `a_sluzebni CPM.8sd`; návod `rkd-1.php`, sken `SAPIMAN\Scany dokumentací\RKD1.pdf`;
+        3. **DSE-1** (simulátor a programátor EPROM 2716/2732, F0–F4h): programy pro MONITOR V4 (`SAPI_EPROM\ZPS-2\V4\
+           DSE-1_1000H_programator.BIN`), CP/M `DSE.COM` (`PERINA\dse.8sd`) a `SIMPROG` (`SAPI15\SimProg_opr`);
+        4. **DPS-1** (sběrnice IMS-2 / IEEE-488, 30–37h): BASIMS4.SYS je už v `media/rpd-1/MIKOS_D_V5.0_system.img`,
+           chtělo by to virtuální přístroj (voltmetr M1T330 z návodu);
+        5. **RMP-1** (řadič magnetické pásky IZOT): sada pro CP/M (DIRMT, MTCOPY, MTDAT…) na `a_lad_izo.8sd`;
+        6. BWP-1 + DTO-1 (tester obvodů autora sapi.cz, 38–3Bh) s programem IOT se zdrojáky.
+        Bez softwaru: ROM-1, MTS-1, PDS-1Z, UDR-1, AND-1 úprava, DOV-1, DRV-1, DAP-1, ADC/DAC, desky CHP 3000
+        (stránky `z-1xx`, Chemoprojekt). DMR-1A je nejspíš naše DMR-1. Vedlejší nález: programy pro plottery na DPP-1
+        (Aritma Minigraf 0507/0517, XY4130, plotter z AR 1990). Výpisy a extrakty v pracovní složce průzkumu (mimo git).
 - **Pracovní pravidla, která se osvědčila:**
   - Skripty s `\n`, `\r` a `\b` psát nástrojem Write do souboru, ne přes heredoc v bashi. Shell zpětná lomítka
     rozbije a do souborů se pak dostanou řídicí znaky.
