@@ -90,6 +90,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 ## Dokumentace
 
 - [docs/prvni-kroky.md](docs/prvni-kroky.md): spuštění, sestavy, klávesy, co vyzkoušet.
+- [docs/aps5-ukazka.md](docs/aps5-ukazka.md): měřicí jednotka APS-5 krok za krokem (nebo tlačítko DEMO).
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
 - [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045

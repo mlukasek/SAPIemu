@@ -1299,3 +1299,17 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Termočlánky podle norem** (NIST, DIN 43710, GOST), ne podle firmwaru (ten počítá v plovoucí čárce).
   Shoda 0–3 °C v celém rozsahu.
 - **Zesílení DMT-1** podle tabulky firmwaru (100, 199, 498, 1000), aby měření sedělo jako na seřízené desce.
+
+## 2026-10-09 – APS-5: tlačítko DEMO
+
+- **Přání autora:** stručný návod, jak zadat něco, co ukazuje (`docs/aps5-ukazka.md`), a pak tlačítko, které ho
+  odťuká samo.
+- **DEMO jako obsluha, ne zápis do paměti:** klávesy jdou přes panel HRK-1 a po každé se čeká na výzvu firmwaru
+  (`src/plant/aps5_demo.*`). Zadání tak dělá původní firmware a zůstává věrné. Zápis do CRM-1 by vyžadoval znát
+  jeho datové struktury a obešel by kontroly firmwaru.
+- **Zrychlení:** během zadávání a 25 minut nahřívání běží emulace naplno, pak se vrátí původní rychlost. Autor:
+  „klidně i zrychli emulaci a jen to oznam“, proto je oznámení pod tlačítkem i ve stavovém řádku.
+- **Program 1:** firmware nedovolí smazat program přiřazený peci. Demo proto program, který začíná jeho
+  segmentem, nechá a jiný nepřepíše.
+- **RESET zůstává věrný** („nech to věrně“): u APS-5 vede na CHYBA 0 a studený start, v dokumentaci je varování.
+
