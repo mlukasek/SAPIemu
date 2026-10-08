@@ -136,7 +136,8 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
   v `docs/desky/KZD-1.md`.
 - Chybová hlášení: 30 ZAZNAM NENI POVOLEN (chybí zoubek), 32 CHYBA CTENI DAT, 34 CHYBA OZNACENI BLOKU,
   36 KONEC PASKY, 38 NENI KONEC SOUBORU, 3A NENI BINARNI FORMAT, 3C SOUBOR NEEXISTUJE.
-- **Ověřeno** (`test_kzd1`): K_I, K_S, K_D, K_Z, K_L (data souhlasí), zápis bez zoubku.
+- Kopírovací program CKM (magnetofon ↔ KZD-1) je v `media/mikos/CKM.hex`, postup v `docs/desky/KZD-1.md`.
+- **Ověřeno** (`test_kzd1`): K_I, K_S, K_D, K_Z, K_L (data souhlasí), zápis bez zoubku, kopie přes CKM.
 
 ## Formát pásky
 

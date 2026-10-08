@@ -1,7 +1,10 @@
 // KZD-1 cassette data recorder on DPP-1 X2: the mechanism driven through the 8255 like MIKOS/K
 // drives it (recording bits, rewind to the motor overload, reading the pulses back, the write tab),
-// and MIKOS/K V5.0 itself: K_I, K_S, K_D, K_Z, K_L and a write without the tab.
+// and MIKOS/K V5.0 itself: K_I, K_S, K_D, K_Z, K_L and a write without the tab; the copy program CKM
+// (tape -> KZD-1).
 #include "cards/dpp1.h"
+#include "cards/dsm1.h"
+#include "chips/tape_deck.h"
 #include "chips/kzd1.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -126,45 +129,50 @@ static std::string screen(Machine& m)
     return s;
 }
 
-// the monitor waits for a command: its last line is the prompt "."
-static bool prompt(Machine& m)
+// the program waits for a command: its last line is the prompt ("." the monitor, "_" CKM with the K-10)
+static bool prompt(Machine& m, const char* p = ".")
 {
     std::vector<std::string> rows = m.display->text_rows();
     for (int i = (int)rows.size() - 1; i >= 0; i--) {
         std::string r = rows[(size_t)i];
         while (!r.empty() && r.back() == ' ') r.pop_back();
         if (r.empty()) continue;
-        return r == ".";
+        return r == p;
     }
     return false;
 }
 
-static bool command(Machine& m, const char* keys, double timeout_s)
+static bool command(Machine& m, const char* keys, double timeout_s, const char* p = ".")
 {
     m.type_text(keys);
     m.run_seconds(0.5);
     for (double t = 0; t < timeout_s; t += 0.25) {
-        if (prompt(m)) return true;
+        if (prompt(m, p)) return true;
         m.run_seconds(0.25);
     }
     fprintf(stderr, "\"%s\" did not end:\n%s", keys, screen(m).c_str());
     return false;
 }
 
-static void test_mikos_k(void)
+static void boot_mikos_k(Machine& m, const char* cassette)
 {
-    std::string file = "work/test/kzd_mikosk.kzd";
-    file_remove(data_path(file));
+    file_remove(data_path(cassette));
     std::string text, err;
     CHECK(file_read_text(data_path("machines/zps/ZPS-2_MIKOS_K.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);
     for (json& c : cfg["cards"])
-        if (c["type"] == "DPP-1") c["kzd1"]["cassette"] = file;
-    Machine m;
+        if (c["type"] == "DPP-1") c["kzd1"]["cassette"] = cassette;
     CHECK(m.load_json(cfg, err));
     CHECK(run_until_text(m, "MIKOS/K V5.0", 5.0));
     CHECK(run_until_text(m, "MONITOR V5.0", 5.0));
     m.run_seconds(0.5);
+}
+
+static void test_mikos_k(void)
+{
+    const char* file = "work/test/kzd_mikosk.kzd";
+    Machine m;
+    boot_mikos_k(m, file);
     // K_I: prepare the tape and name it
     m.type_text("KI");
     CHECK(run_until_text(m, "NAZEV:", 60.0));
@@ -208,10 +216,73 @@ static void test_mikos_k(void)
     file_remove(data_path(file));
 }
 
+// CKM, the copy program of TESLA ELTOS DIZ (media/mikos/CKM.hex, from 4400h): a program from a MIKOS tape
+// in the recorder on DSM-1 (K-10) goes to the KZD-1 and comes back with K_L of MIKOS/K
+static void test_ckm(void)
+{
+    const char* file = "work/test/kzd_ckm.kzd";
+    Machine m;
+    boot_mikos_k(m, file);
+    m.type_text("KI");
+    CHECK(run_until_text(m, "NAZEV:", 60.0));
+    CHECK(command(m, "PROGRAMY\r", 30.0));
+    // the tape: 768 bytes at 6000h, MIKOS format, made the way the Media window makes it
+    std::vector<uint8_t> prog(768);
+    for (size_t i = 0; i < prog.size(); i++) prog[i] = (uint8_t)(i * 13 + 5);
+    std::string bin = data_path("work/test/ckm_vzor.bin"), err;
+    CHECK(file_write_all(bin, prog.data(), prog.size()));
+    Dsm1* dsm = nullptr;
+    for (auto& c : m.cards)
+        if (Dsm1* d = dynamic_cast<Dsm1*>(c.get())) dsm = d;
+    CHECK(dsm != nullptr);
+    if (!dsm) return;
+    TapeProgram tp;
+    tp.name = "VZOR";
+    tp.address = 0x6000;
+    CHECK(dsm->tape()->load_program(bin, tp, err));
+    dsm->tape()->mode = TapeDeck::PLAY;
+    // CKM: K-10 (X), read (L) any file, write it to the KZD-1 as binary (B)
+    std::string text;
+    CHECK(file_read_text(data_path("media/mikos/CKM.hex"), text));
+    int n = 0;
+    CHECK(m.load_ihex_text(text, err, &n));
+    CHECK(command(m, "G4400\r", 5.0, ":"));
+    CHECK(screen(m).find("KOPIROVACI PROGRAM  MGF - KZD-1") != std::string::npos);
+    CHECK(command(m, "X", 5.0, "_"));
+    m.type_text("L");
+    CHECK(run_until_text(m, "NAZEV:", 5.0));
+    m.type_text("*\r");
+    CHECK(run_until_text(m, "HOTOVO ?", 5.0));   // K-10: PLAY pressed?
+    m.type_text("A");
+    CHECK(run_until_text(m, "VZOR --(A/N)?", 60.0));
+    CHECK(command(m, "A", 60.0, "_"));
+    m.type_text("B");
+    CHECK(run_until_text(m, "NAZEV:", 5.0));
+    CHECK(command(m, "VZOR\r", 60.0, "_"));
+    CHECK(command(m, "Q", 5.0));
+    CHECK(command(m, "KD", 60.0));
+    CHECK(screen(m).find("01 VZOR") != std::string::npos);
+    // from the KZD-1 back into the cleared memory
+    for (size_t i = 0; i < prog.size(); i++) m.poke((uint16_t)(0x6000 + i), 0);
+    CHECK(command(m, "KZ", 30.0));
+    m.type_text("KL");
+    CHECK(run_until_text(m, "NAZEV:", 30.0));
+    CHECK(command(m, "VZOR\r", 60.0));
+    CHECK(screen(m).find("CHYBA") == std::string::npos);
+    int bad = 0;
+    for (size_t i = 0; i < prog.size(); i++)
+        if (m.peek((uint16_t)(0x6000 + i)) != prog[i]) bad++;
+    CHECK_EQ(bad, 0);
+    if (bad) fprintf(stderr, "%s", screen(m).c_str());
+    file_remove(bin);
+    file_remove(data_path(file));
+}
+
 int main(void)
 {
     test_init();
     test_mechanism();
     test_mikos_k();
+    test_ckm();
     return TEST_RESULT();
 }

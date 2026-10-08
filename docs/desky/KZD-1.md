@@ -89,6 +89,24 @@ Země: KZD 3, 4, 5, 6 → X2 17, 19. Piny X2 → 8255 jsou podle netlistu replik
   verze 6. 4. 88 i 18. 5. 88 (přeložená M80 pro DPP-1 a vyzkoušená 2026-10-09). Podle návodu je správně
   **K_Z**, nebo jméno s tečkou (`.JMÉNO` = převinout a hledat). Emulace to nechává věrně.
 
+## Kopírovací program CKM
+
+- `media/mikos/CKM.hex` (od 4400h, sapi.cz `ckm_hex`, shodný s překladem `..\SAPI_DOKU\MIKOS5_K\CKM.MAC`). Obsahuje
+  ovladač magnetofonu z MIKOSu V5 (DSM-1 na 10h, dálkové ovládání SP-210 přes 8255 na 34h–37h, tj. kanál 2 DPP-1)
+  a záznamník volá přes služby MIKOSu/K (157h). Soubor načte do paměti za sebe (asi 44 KB) a zapíše ho na druhé zařízení.
+- Postup v sestavě `zps/ZPS-2_MIKOS_K.sapi`:
+  1. kazetu KZD-1 připravit `.K_I`;
+  2. do magnetofonu (okno Média, DSM-1) vložit nahrávku, nebo program `.hex`/`.bin` převedený na kazetu MIKOS,
+     a zmáčknout PŘEHRÁT;
+  3. Soubor → Nahrát program → `media\mikos\CKM.hex`, `.G=4400` (menu);
+  4. `X` přepne na magnetofon K-10 (výchozí je SP-210 s dálkovým ovládáním, v emulátoru ho DSM-1 nemá);
+  5. `L`, jméno (`*` = první soubor), `CTENI HOTOVO ?` → `A`, `JMÉNO --(A/N)?` → `A`;
+  6. `B` (binární soubor) nebo `A` (znakový), jméno na KZD-1;
+  7. `Q` zpět do monitoru, `.K_D` ukáže soubor, `.K_Z` a `.K_L` ho načte.
+  Opačně (KZD-1 → magnetofon) přepne `K`, při zápisu na magnetofon zmáčknout NAHRÁT.
+- **Ověřeno:** BASIC EXP V5.0 z kazety MIKOS zkopírovaný na KZD-1, načtený `.K_L` a spuštěný `.J` (`PRINT 6*7`
+  → 42; přes MCP 2026-10-09). Test `test_kzd1` dělá totéž s malým programem.
+
 ## Emulace
 
 - **Mechanika** (`Kzd1`): poloha pásky v mikrometrech, rozběh a doběh 9,6 m/s² (48 cm/s za 50 ms), rychlosti

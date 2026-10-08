@@ -63,6 +63,7 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 |---|---|---|
 | `BASIC_EXP_V5.0.hex` | BASIC EXP V5.0 (TESLA DIZ 1986), `BASIC5.HEX` | 4400–6B00 |
 | `BASIC_EXP_V5.0G.hex` | BASIC EXP V5.0/G s grafikou pro DGD-1, `BASIC5G.HEX` | 4400–7400 |
+| `CKM.hex` | Kopírovací program CKM magnetofon ↔ KZD-1 (TESLA ELTOS DIZ, 24. 3. 1988) pro MIKOS/K, spouští se `.G=4400`. Zdroj sapi.cz `data/ckm_hex.php`; překlad `CKM.MAC` ze SAPI_DOKU se s ním shoduje bajt po bajtu (4400–4D92, dál jen buffery). Návod v `docs/desky/KZD-1.md` | 4400–4FAA |
 
 ## `rpd-1/` – diskety 8" pro RPD-1
 
