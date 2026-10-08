@@ -27,9 +27,18 @@ Zdroje (`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI
 
   Porty jsou zrcadlené přes celý 1 KB blok. Výstupní registry nejdou číst, MIKROBASIC si P0 pamatuje v RAM
   (`PORT24` na 4000h).
-- **Přerušení:** MH3214 má požadavky na vstupech P2-IN (aktivní v 0). Při INTA dá 3212 na sběrnici
-  `RST (7 − úroveň)`. Zápis na 3000h nastaví aktuální stav (D0–D2), SGS (D3) a povolí další přerušení. Po
-  přijetí přerušení čeká 3214 na další zápis. Propojka 10-11 připojuje klávesu INT na R7.
+- **Přerušení:** MH3214 má požadavky na vstupech P2-IN (aktivní v 0; R0 = /INT0, R1 = /INT1 sběrnice, tytéž vodiče).
+  Při INTA dá 3212 na sběrnici `RST (7 − úroveň)`. Zápis na 3000h nastaví aktuální stav a povolí další
+  přerušení, po přijetí přerušení čeká 3214 na další zápis. Propojka 10-11 připojuje klávesu INT na R7.
+  - **Stav:** vstupy /B0–/B2 jsou aktivní v nule, zápis D2–D0 tedy dá stav `~D & 7`. Přerušení projde úroveň
+    vyšší než stav. D3 = 1 (SGS) pustí každou úroveň.
+  - Ověřeno firmwarem APS-5 (2026-10-08): zápis 04h musí pustit jen R4–R7 (na R0–R3 je kód klávesy), 02h jen
+    R6–R7. Do té doby emulace brala D2–D0 přímo a D3 = 0 jako „vše“.
+  - MIKOS zapisuje 01h nebo 02h: projde R7 (klávesa INT), případně i R6.
+  - Schéma JPR-1X (Libor Lasota) vede u 3214 /B0–/B2 a /SGS, tedy také aktivní v nule (`JPR-1X.md`).
+- **Konektory X2, X3** (tabulky návodu): X2 = P0-IN, P0-OUT, P1-IN (a STB/INT P0, P1); X3 = P1-OUT, P2-IN, P2-OUT
+  (a STB/INT). Všechny vstupy mají pull-up 4k7. V APS-5 na nich visí panel HRK-1 a svorkovnice
+  (`APS-5.md`); emulace je zapojuje jako „klávesnici“ `HRK-1`, která dostává i P2-IN, P1-OUT, P2-OUT a /RTL.
 - **Propojky:** 12-13 READY z 8224 (výchozí), 12-14 jeden čekací stav; 1-2 INTA na sběrnici.
 
 ## Emulace (`src/cards/jpr1.*`)
@@ -44,7 +53,8 @@ Zdroje (`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI
 
 ## Nejasnosti
 
-- Které RST dá která úroveň 3214 (odvozeno `RST 7 − úroveň`) a význam bitů zápisu na 3000h (D0–D2 stav, D3 SGS).
+- Které RST dá která úroveň 3214 (odvozeno `RST 7 − úroveň`; APS-5 to nerozliší, všechny vektory jdou na
+  jednu obsluhu). Význam D3 = 1 (emulace: všechny úrovně) firmware APS-5 nepoužívá.
 - Manuál uvádí 2. pozici 2708 na 0400, dekodér pro 2716 dává 0800 (emulace: 2708 po 1 KB, 2716 po 2 KB).
 - Co CPU čte z prázdných patic a z 3000h (emulace: prázdné patice = sběrnice, 3000h = FFh).
 - Polarita LED na P1-OUT D7 (emulace: 1 = svítí, LED na panelu v konfigurátoru).

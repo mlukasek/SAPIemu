@@ -276,3 +276,9 @@ boční tlačítka pro MIKROBASIC, a ta ANK-1M2 má (INT a „T“).
 
 - Který program joyport ANK-1M2 používá (hry, myš)? Emulace je jen podle schématu.
 - Má JPR-1 na vstupech P1-IN pull-upy (bez zapojeného joysticku se čte 1)? Emulace: 1.
+
+## HRK-1 (panel APS-5)
+
+Membránová klávesnice HRK-1A s elektronikou HRK-1B (MH 1KK1, 14 kláves 0–9, ←, M, →, R, zámek, watchdog) z měřicí
+jednotky APS-5. V emulátoru je to „klávesnice“ `HRK-1` na JPR-1, která zastupuje celé kabely APS-5 na X2 a X3
+(logické vstupy a výstupy, tiky z RTC-1, /PFAIL, /RTL). Kódy, mapování kláves PC a zapojení: `APS-5.md`.

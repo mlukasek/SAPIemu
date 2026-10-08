@@ -29,6 +29,9 @@ Nic neověřeno na HW.
     potřeby (2026-10-06). V nabídce jsou proto i obrazy MIKROBIOSů z `roms/jpr-1s` (8 KB = obě banky).
 - **Přerušení:** 3214 má INTE natvrdo v 1, takže povolený požadavek (zápisem stavu na 3000h) se hned zachytí do
   3212 IC7, i při DI. IC7 drží INTR až do INTA a 3214 čeká na další zápis stavu.
+  - Stav: /B0–/B2 a /SGS (IC8.1–4, D0–D3) jsou aktivní v nule. Zápis D2–D0 dá stav `~D & 7`, projde úroveň
+    vyšší než stav, D3 = 1 pustí všechny úrovně. Je to stejný model jako u JPR-1, odvozený z firmwaru APS-5
+    (2026-10-08). Ukázka `diag_int` proto zapisuje 08h (dřív 00h).
   - Vektor: RSTN/7 rozpojená = vždy RST 7, osazená = RST (7 − úroveň).
   - Požadavky: R0 = /INT0, R1 = /INT1 (zároveň P2-IN0/1), klávesa INT na R7 (11-10), R6 (10-R6) nebo nikam
     (z výroby).

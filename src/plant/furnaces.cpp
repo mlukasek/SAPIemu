@@ -26,7 +26,7 @@ static const FurnaceDefault k_defaults[8] = {
     { "Pec 4", TC_S, 4000, 1450, 20, 60 },
     { "Pec 5", TC_CHA, 2500, 1050, 10, 35 },
     { "Pec 6", TC_CHK, 1200, 600, 5, 20 },
-    { "Pec 7", TC_CHA, 5000, 1250, 25, 60 },
+    { "Pec 7", TC_CHA, 5000, 1150, 25, 60 },
     { "Pec 8", TC_B, 6000, 1700, 30, 90 },
 };
 
@@ -213,7 +213,21 @@ void FurnacePlant::state(StateIO& io)
     io.v(slot_t);
     io.v(started);
     io.v(battery);
-    if (io.loading) hist_pos = hist_count = 0;   // the plot starts again
+    // the plot: the samples there are, oldest first
+    int32_t n = hist_count;
+    io.v(n);
+    if (io.loading && (n < 0 || n > HIST_LEN)) { io.fail("plant: bad history"); return; }
+    for (int k = 0; k < n; k++) {
+        int idx = io.loading ? k : (hist_pos - n + k + HIST_LEN) % HIST_LEN;
+        for (int i = 0; i < 8; i++) {
+            io.v(hist[i][(size_t)idx]);
+            io.v(duty[i][(size_t)idx]);
+        }
+    }
+    if (io.loading) {
+        hist_count = n;
+        hist_pos = n % HIST_LEN;
+    }
 }
 
 Plant* plant_create(const json& cfg, std::string& err)

@@ -44,6 +44,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
+  - `plant/`: technologie mimo počítač (`core/plant.h`, `Bus::plant`): pece a termočlánky APS-5
+    (`docs/desky/APS-5.md`);
   - `main.cpp`.
 - **Nástroje** (`tools/`): `build.cmd`, `package.py`, `asm8080.py` (malý assembler 8080), `cpmrun.cpp` (programy
   pro CP/M jako M80/L80 na PC, cíl `cpmrun`; popis v `docs/build.md`).

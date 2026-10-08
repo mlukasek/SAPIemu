@@ -7,6 +7,9 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | Porty | Deska |
 |---|---|
 | 00–03 | JPR-1Z/ZI (00 = BOOT off, 01–03 = P0–P2; P2 a P1-OUT1 = tiskárna na X3, `docs/tiskarna.md`) |
+| x0–x1 | ADP-1: +0 data (NSD, LSD), +1 stav (READY, polarita, MSD) / řízení (kanál, zesílení); báze SA1–SA4, APS-5 00h (`docs/desky/ADP-1.md`) |
+| x0–xF | DMT-1: jen zápis, dekóduje jen A7–A4 (16 zrcadel), APS-5 80h (`docs/desky/DMT-1.md`) |
+| 40–77 | DRV-1A: jediný port 40–47, 50–57, 60–67 nebo 70–77h (z výroby 77h), jen zápis (`docs/desky/DRV-1A.md`) |
 | 04–0F | FDC-1 (8257 04–0B, 8272 0C–0D, FDC-1B 0E–0F: 0E výběr/SA2, 0F motory M3–M0 a hlavy; PROM D5B, `docs/desky/FDC-1.md`) nebo MFC-1A (8257 04, 05, 08, 8272 0C–0D, registr mechanik 0F: mechanika, motor D3 D2, reset, INT, D6; PROM DD9, `docs/desky/MFC-1A.md`) |
 | 10–13, 14–17, 18–1B, 1C–1F | DSM-1 / DMR-1, kanály #1–#4 |
 | 20–25 | RPD-1A (8253 20–23, data 24, řízení/stav 25; ověřeno z EBIOS) |
@@ -43,3 +46,4 @@ Druhý průzkum přečetl některé rozsahy z XLS jinak: RPD-1A 24–25, DPP-1/6
 | JPR-1X (`jpr1x_bgp1s`, `zps/ZPS-1_JPR-1X`) | ROM 0000–1FFF (banka podle propojky BIOS), RAM 2000–23FF, porty P0/P1/P2 v paměti 2400/2800/2C00, 3214 na 3000 (jen zápis), čtení 3000–FFFF ze sběrnice, každý zápis i na sběrnici. Žádné porty I/O |
 | JPR-1S + BGP-1S (`jpr1s_bgp1s`) | EEPROM 0000–1FFF, RAM 2000–23FF, porty P0/P1/P2 v paměti 2400/2800/2C00, RAM 4000–FFFF (banky JPR-1S); BGP-1S na C000 jen pro zápis, čte se banka pod ní. Žádné porty I/O |
 | ZPS-1 s AND-1B | jako ZPS-1: AND-1B na 3800–3FFF (okno 2 KB, 1 KB RAM), bez portů I/O |
+| APS-5 (`aps5`) | EPROM 0000–1FFF a 6000–77FF (REM-1), porty JPR-1 2400/2800/2C00, 3214 na 3000, AND-1 3800–3FFF, CRM-1 E000–EFFF; I/O: ADP-1 00–01, DRV-1A 77, DMT-1 80, RTC-1 F0–FC (`docs/desky/APS-5.md`) |

@@ -55,6 +55,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **APS-5** (2026-10-08, přání autora: „ať je co měřit a na co koukat“, `docs/desky/APS-5.md`): měřicí jednotka
+  Tesla s původním firmwarem (7 × 2716 ze sapi.cz) v sestavě `machines/aps5.sapi`, test `test_aps5`.
+  - Nové desky: ADP-1, DMT-1 a DRV-1A.
+  - Panel HRK-1 jako klávesnice JPR-1 (klávesy, zámek, watchdog, logické vstupy a výstupy, /PFAIL).
+  - RTC-1 má kabel XC2 (`xc2` = `aps5`).
+  - Technologie: osm pecí s termočlánky, okno „APS-5: panel a pece“ (žhnoucí pece, graf), MCP `plant`.
+  - Vypnutí sestavy proběhne jako výpadek sítě s varováním.
+  - Firmware měří s chybou 0–3 °C a reguluje adaptivním PSD (pece 1, 2 a 5 drží 700 °C).
+  - Při tom se opravila logika 3214 na JPR-1/JPR-1X (`docs/desky/JPR-1.md`).
 - **Sestava `libor_doma`** (2026-10-08, zadání autora): ImBUS12 s deskami V, AND-1V F800h při MAP1 = L, DGD-1V
   a CGA-1V na C000h při MAP1 = H (MAP2 = L / H), RAM-1V s dírami 2 KB a 16 KB, bez IDE-1. CP/M naběhne.
 - **Sběrnice ImBUS9 a ImBUS12** (2026-10-08, Libor Lasota, `docs/desky/ImBUS.md`): typy sběrnice s 9 a 12 pozicemi,
@@ -225,7 +234,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         i 5,25"/3,5", adresace v portech i v paměti. Bez softwaru (ROM, systém) zatím není na čem emulaci ověřit;
      d) RPD-1Z (8271 + 8257, AR B 6/1985, replika EC1045): podle EC1045 pod CP/M náhodně chybuje, software chybí.
      e) **Průzkum desek ze `sapi.cz/sapi/desky.php`** (2026-10-08), které mají podklady i software:
-        1. **APS-5** (měřicí ústředna Tesla, regulace pecí s termočlánky): ADP-1 (A/D C520D), DMT-1 (zesilovač
+        1. ~~**APS-5**~~ hotové 2026-10-08 (výše). Původní poznámka: (měřicí ústředna Tesla, regulace pecí s termočlánky): ADP-1 (A/D C520D), DMT-1 (zesilovač
            s reléovým multiplexem), DRV-1A (relé, 77h), HRK-1 (14klávesová klávesnice, watchdog). **Celý originální
            firmware** (7 × 2 KB INTELHEX) je v `..\SAPI.CZ\sapi\doku\aps-5.php`, ostatní desky sestavy (JPR-1, REM-1,
            AND-1, CRM-1, RTC-1) už emulujeme. Potřeba jednoduchý model pece a termočlánků;
@@ -251,7 +260,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - Sestavy ukládat zapisovačem konfigurátoru: `sapiemu-cli --mcp`, nástroj `set_machine_config` se `save_as`.
   - Výstup `sapiemu-cli` spolehlivě přesměrovat do souboru (`> soubor.txt 2>&1`) a ten přečíst.
   - Snímky GUI se změnou v konfigurátoru: `--ui-set SLOT:KLÍČ=HODNOTA` / `SLOT:remove`, tažení karty
-    `--ui-drag Z:DO[:drop]` (simulované události myši ImGui); okna `--ui-media`, `--ui-printer`, `--ui-diag`,
+    `--ui-drag Z:DO[:drop]` (simulované události myši ImGui); okna `--ui-media`, `--ui-printer`, `--ui-diag`, `--ui-aps5`,
     `--ui-terminal` (s `--ui-term-text`, `--ui-term-sel`); stav se scénou `--ui-state` (stav připravit přes
     `sapiemu-cli --save-state`).
   - Jiná sezení Claude (např. SAPI-Flappy) pouštějí `sapiemu-cli` z tohoto repa přes MCP, jejich uložené sestavy
@@ -688,6 +697,11 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 
 31. **RTC-1** (2026-10-07, `docs/desky/RTC-1.md`): čtení PA v módu 1 s propojkami z výroby (/STB A nezapojený),
     kabel /INT z XC2/14 do počítače, sepnuté SA na skutečných deskách, XC2/29 (OUT2) jako vstup podle návodu.
+
+33. **APS-5** (2026-10-08, `docs/desky/APS-5.md`, `ADP-1.md`, `DMT-1.md`): P2-IN7 = /PFAIL ze zdroje (odvozeno
+    z firmwaru), kódy kláves HRK-1 proti překreslenému schématu, kabel RTC-1 XC2 → JPR-1 X3, /RTL z HRK-1B,
+    doba převodu C 520 D a nevyužité bity stavu ADP-1. Logika 3214 (stav ~D & 7, D3 = vše) by šla ověřit na
+    skutečné JPR-1 krátkým programem.
 
 ## Jak pokračovat
 

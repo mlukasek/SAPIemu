@@ -203,6 +203,13 @@ vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při
 (JPR-1V, RAM-1V, AND-1V, DSM-1V 10h, ZRD-1V 60h, DGD-1V, CGA-1V, MPH-1V 50h, bez IDE-1). Displeje se střídají podle MAP:
 MAP1 = L AND-1V na F800h (díra 2 KB v RAM-1V), MAP1 = H grafika na C000h (díra 16 KB), MAP2 = L DGD-1V, MAP2 = H
 CGA-1V. JPR-1V a klávesnice jako v sestavě V.
+**APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
+na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
+- Na X2/X3 JPR-1 je panel HRK-1, zapsaný jako klávesnice `HRK-1`.
+- Sestava má navíc oddíl `"plant"`: technologii s osmi pecemi, termočlánky a svorkovnicí. Je mimo sběrnici,
+  takže ji konfigurátor nezobrazuje. Upravuje se v souboru a za chodu v okně APS-5.
+- Vypnutí sestavy je výpadek sítě s varováním. Firmware si uloží stav, příště naběhne teplým startem.
+Podrobnosti v `docs/desky/APS-5.md`.
 **ZPS-4 běží** s CP/M 2.2/P od Peřiny (`ZPS-4.sapi`, s řadičem FDC-1 `ZPS-4_FDC-1.sapi`) i se systémem ELIS
 (`ZPS-4_ELIS.sapi`), včetně RAM disku RMD-1
 (`docs/software/CPM_ZPS-4.md`).
@@ -251,6 +258,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 
 `sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
+`--ui-aps5` okno APS-5 (panel a pece; s `--ui-state` i se žhavými pecemi a grafem),
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`

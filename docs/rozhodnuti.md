@@ -1276,3 +1276,26 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Ze schématu:** X1 (K1) je pro procesorovou kartu, její A0–A15 jdou přes 4 × MH3216 (vypíná je /AEN) do ostatních
   pozic, data a řídicí signály vedou přímo. Propojka jako JP3 u ARB-1C tu není, proto `has_jp3 = false` a X1 jen
   pro CPU (stejné pravidlo jako ostatní sběrnice). Napájení z ATX, LED a JP1/JP2 (S4, /RTL) emulace nepotřebuje.
+
+## 2026-10-08 – APS-5: desky, panel a technologie
+
+- **Přání autora:** emulovat APS-5 tak, aby bylo co měřit a na co koukat (jinak než v emulátoru už to asi nikdo
+  nezapojí). Proto vznikla simulace pecí s oknem.
+- **Technologie mimo sběrnici** (`Plant`, `Bus::plant`, oddíl `"plant"` sestavy). Pece, termočlánky
+  a svorkovnice nejsou desky SAPI. Karty (DMT-1, ADP-1, DRV-1A, HRK-1) si z technologie berou napětí a vstupy
+  a posílají jí kontakty a výstupy. Konfigurátor ji neukazuje, upravuje se v souboru a v okně APS-5.
+- **Panel HRK-1 jako „klávesnice“ JPR-1:** HRK-1 i všechny kabely APS-5 vedou na X2/X3, kde je u JPR-1 klávesnice.
+  `KeyboardDevice` proto dostal P2-IN, P1-OUT, P2-OUT a /RTL. Nový typ vazby se zavádět nemusel.
+- **Zapojení odvozené z firmwaru** (návod ho nepopisuje): ADP-1 S6 = 0 V, S7 = KAL (kalibrace měří nejdřív
+  nulu), P2-IN4/5 = 1 Hz / 50 Hz z DD5 RTC-1, kódy kláves, P2-IN7 = /PFAIL. P2-IN7 jsem nejdřív zkusil jako
+  kontakt relé KA1, ale firmware pak po resetu dostal trvalou žádost R7 (RST 0). Jako výpadek sítě to sedí na
+  všechna místa i na návod (uložení stavu, změření výpadku, „CHYBA n“ po resetu watchdogem).
+- **Logika 3214 opravená pro všechny JPR-1 a JPR-1X:** stav ~D & 7, projde úroveň vyšší, D3 = 1 všechno. Dokládá
+  to firmware APS-5 (04h, 02h) a schéma JPR-1X (/B0–/B2, /SGS). Vlastní ukázka `diag_int` a test JPR-1X teď
+  zapisují 08h.
+- **Vypnutí = výpadek sítě s varováním** (`Machine::power_down`, jen když to zařízení umí, tj. APS-5). Bez toho by
+  každé vypnutí emulátoru vypadalo jako reset watchdogem a firmware by po „CHYBA“ smazal programy. Skutečný
+  zdroj varování dává vždy. Násilné ukončení procesu ho nedá, pak se APS-5 chová jako po chybě.
+- **Termočlánky podle norem** (NIST, DIN 43710, GOST), ne podle firmwaru (ten počítá v plovoucí čárce).
+  Shoda 0–3 °C v celém rozsahu.
+- **Zesílení DMT-1** podle tabulky firmwaru (100, 199, 498, 1000), aby měření sedělo jako na seřízené desce.

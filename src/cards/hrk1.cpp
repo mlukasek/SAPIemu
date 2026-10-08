@@ -158,7 +158,7 @@ bool Hrk1::host_key(int key, int)
 std::string Hrk1::status() const
 {
     char b[64];
-    snprintf(b, sizeof(b), "APS-5 klic %d%s", lock, wd_armed && now() < wd_end ? "" : " PORUCHA");
+    snprintf(b, sizeof(b), "APS-5 klíč %d%s", lock, wd_armed && now() < wd_end ? "" : ", PORUCHA");
     return b;
 }
 

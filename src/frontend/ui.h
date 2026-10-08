@@ -87,6 +87,10 @@ struct UiState {
     bool show_media = false;
     bool show_printer = false;
     bool show_diag = false;        // the diagnostic board on K3 (JPR-1S, JPR-1X)
+    bool show_aps5 = false;        // APS-5: the front panel and the furnaces
+    uint64_t aps5_gen = 0;         // machine generation the APS-5 window opened itself for
+    int aps5_span = 1;             // plot: 0 = 10 min, 1 = 1 h, 2 = 4 h
+    float aps5_outage_s = 60.0f;   // length of an outage from the window
     bool show_rack = false;
     bool quit = false;             // exit confirmed (no unsaved machine description)
     std::string error;             // error for the message box of the main window
@@ -201,6 +205,7 @@ void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
 void draw_printer(UiState& ui);
 void draw_diag(UiState& ui);
+void draw_aps5(UiState& ui);
 // File -> Load program (Intel HEX): native dialog, then a confirmation with the addresses.
 void hex_load_dialog(UiState& ui);
 // File -> Load binary file: native dialog, then the address; the file goes into memory as is.

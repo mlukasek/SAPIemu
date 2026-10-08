@@ -37,6 +37,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35`: 3,5") | „dlouhé“ CP/M J. Bíby: A:, B: 8" (RPD-1), C: ZRMD-1, D:, E: 5,25" HD (FDC-1) | naběhne CP/M, zkuste `DIR B:`, `STAT D:` |
 | `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `1` = CP/M z RAM disku A:, `3` = i s IDE diskem B:, C: |
 | `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `1` = CP/M z RAM disku |
+| `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
 | `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
 | `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
 | `jpr1s_bgp1s.sapi` | JPR-1S s grafikou BGP-1S (PMD-85) a MIKROBIOSem 1.02 | Soubor → Nahrát program `media/jpr-1s/manic_miner.hex`, pak `JUMP 4400` a Enter |
@@ -121,6 +122,19 @@ Další programy z `media\` si nahrajete takto:
   1. Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0G.hex`;
   2. `B`;
   3. `CLSG:FOR I=0 TO 319 STEP 8:MOVE I,0:PLOT 319-I,239:NEXT I`.
+
+**APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
+- vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát
+  na PC: číslice, `M` (Esc), `R`, Backspace = ←, Enter = →;
+- příkaz se zadá číslem a →, rezervované příkazy číslem, `R` a → (zámek musí být v poloze 2);
+- první zapnutí je studený start. Nejdřív kalibrace `6R` → `9990` →, pak pro každou pec `0` → číslo pece →
+  a `8R` → typ termočlánku → (pec 1: 3 = ch-a);
+- program: `2` → `1` →, `3R` → `20` → `700` → (20 minut na 700 °C) a další segmenty, `M` → zpět;
+- pec 1: `4R` → `6` → (vzorkovací perioda 60 s), `9R` → `1` → (program 1), `1` → `1` → (zapnout regulaci);
+- `11` → je tabulka stavu pecí. Pec v okně začne žhnout, graf ukazuje průběh. Tlačítko „Výpadek sítě“ zkusí,
+  jak si jednotka poradí.
+
+Celý postup a zapojení jsou v `docs/desky/APS-5.md`.
 
 ## Pro vývojáře
 

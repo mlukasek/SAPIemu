@@ -16,6 +16,8 @@ PROM dumpů). Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI 
 
 ![ZPS-2 s MIKOSem a BASICem EXP V5.0/G kreslí na grafice DGD-1](docs/img/zps2-mikos-dgd.png)
 
+![Měřicí jednotka APS-5: původní firmware reguluje pece na 700 °C, vpravo panel a simulace pecí](docs/img/aps5-pece.png)
+
 ## Stažení
 
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
@@ -47,6 +49,11 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   - tiskárna Centronics na X3 procesorové karty nebo na DPP-1: soubor s bajty a okno s vytištěným textem;
   - okno Média: mechaniky podle jednotek řadiče s písmenem v CP/M (ze sestavy, nebo zjištěné za chodu);
   - sériové linky do PC přes TCP nebo COM port, okno terminálu s odesíláním a příjmem souborů (i XMODEM) a schránkou (výběr myší rovnou do schránky).
+- **Měření a regulace: měřicí jednotka APS-5** s původním firmwarem Tesla (regulace osmi pecí adaptivním PSD):
+  - desky A/D převodníku ADP-1, měřicího zesilovače DMT-1 a relé DRV-1A, panel HRK-1 s klávesnicí, zámkem
+    a watchdogem;
+  - simulace pecí s termočlánky (Fe-Ko, ch-a, ch-k, PtRh) a okno, kde pece žhnou podle teploty, s grafem;
+  - výpadek sítě s varováním, jak ho firmware čeká ([docs/desky/APS-5.md](docs/desky/APS-5.md)).
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem

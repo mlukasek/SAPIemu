@@ -57,7 +57,8 @@ Stav: **emulovaná** (typ `RTC-1`, `src/cards/rtc1.*`) od 2026-10-07, test `test
 ## Emulace
 
 - **Parametry:** `base` (SA1–SA8 a propojka A7, výchozí **A0h** = SA3, jako programy J. Bíby), `mode` (`async`
-  z výroby / `realtime`), `int` (kabel z XC2/14: `none` výchozí, `int0`, `int1`), `time`, `battery`, `file`.
+  z výroby / `realtime`), `int` (kabel z XC2/14: `none` výchozí, `int0`, `int1`), `time`, `battery`, `file`, `xc2`
+  (`none`, `aps5`).
 - **Čas** (`time`):
   - `pc` (výchozí): čítač běží podle hodin PC jako RTC na ZRMD-1. **Po prvním zapnutí ukazuje čas od pondělní
     půlnoci** (ve dvousekundách), takže týdenní hodiny `RTCZ` hned ukážou správný den a čas. Zápis programu
@@ -70,7 +71,9 @@ Stav: **emulovaná** (typ `RTC-1`, `src/cards/rtc1.*`) od 2026-10-07, test `test
   hodnoty.
 - **DD6** běží z `Φ2` procesorové karty (JPR-1ZI, JPR-1V, JPR-1X: takt sběrnice, ostatní takt CPU). Watchdog drží
   /RTL a procesorové karty SAPI-1 (JPR-1, JPR-1A, JPR-1Z/ZI/V/S/X) i PKT-1 na něj odpoví resetem celé sestavy.
-- **DD5** má jen registry: hodiny a hradla jsou na XC2, emulace na ně nic nepřipojuje.
+- **DD5** má jen registry: hodiny a hradla jsou na XC2, emulace na ně nic nepřipojuje. Výjimka je parametr
+  `xc2` = `aps5` (kabel APS-5): OUT2 DD6 (XC2/29) taktuje CLK0 i CLK1 DD5 a OUT0/OUT1 jdou na P2-IN5/P2-IN4
+  JPR-1. Firmware APS-5 si z toho dělá 50 Hz a 1 Hz (`APS-5.md`).
 - **8255 v módu 1 bez propojky na PC4** (z výroby, `async`): /STB A visí ve vzduchu. Emulace bere vstupní záchytný
   registr jako průchozí (čtení PA dává aktuální čítač), protože tak s RTC-1 počítá `RTCZ` J. Bíby (inicializace 0B3h).
   Je to předpoklad, viz Nejasnosti.

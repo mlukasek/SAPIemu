@@ -558,6 +558,12 @@ const PanelItem k_pl_fdc[] = {
     { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
+// APS-5 boards (ADP-1, DMT-1, DRV-1A): X3 at the top, X2 below (manual of APS-5, positions in the frame)
+const PanelItem k_pl_x3x2[] = {
+    { PI_TEXT, 17.2f, 56.4f, "X3" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "X2" },
+    { PI_END, 0, 0, nullptr },
+};
 // DSM-1 (Tesla): K3 = X2 terminal with its port, K2 = X3 cassette
 const PanelItem k_pl_dsm1[] = {
     { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_PORT, 41.0f, 56.4f, "0" }, { PI_FRB, 23.85f, 146.7f, nullptr },
@@ -665,6 +671,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     if (!strcmp(p, "AND") || !strcmp(p, "DGD") || !strcmp(p, "BGP")) return k_pl_frb_k2;   // FRB K2 (BGP-1S: TV)
     if (!strcmp(p, "MPH")) return k_pl_mph;
     if (!strcmp(ci->type, "ZRD-1V")) return k_pl_zrd;
+    if (!strcmp(ci->type, "ADP-1") || !strcmp(ci->type, "DMT-1") || !strcmp(ci->type, "DRV-1A")) return k_pl_x3x2;
     return nullptr;
 }
 
