@@ -146,7 +146,11 @@ přerušení jsou RST na 14C9h. Obsluha čte P2-IN, bity 4–6 negované, a úlo
   - výpadek sítě zadané délky, baterie, okolí, teplota svorkovnice;
   - osm pecí: komora žhne podle teploty, spirály podle teploty tělesa, lampa topení (kontakt DRV-1A), LO1/LO2,
     přepínače LI a/b, přerušený termočlánek, vadné topení;
-  - graf teplot za 10 min, 1 h nebo 4 h (ukládá se i ve stavu).
+  - graf teplot za 10 min, 1 h nebo 4 h (ukládá se i ve stavu);
+  - tlačítko **DEMO** (`src/plant/aps5_demo.*`): automatická obsluha, která na panelu odťuká ukázku
+    z `docs/aps5-ukazka.md`. Po každé klávese čeká na výzvu firmwaru (do paměti nesahá), mezitím a 25 minut
+    nahřívání běží emulace naplno. Prázdný program 1 při výmazu hlásí CHYBA PARAMETRU, přiřazený program
+    CHYBA PŘÍSTUPU (demo ho pak nechá, když začíná jeho segmentem). Test v `test_aps5`.
 - **MCP:** nástroj `plant` (stav pecí a panelu, nastavení teplot, poruch, vstupů, zámku, výpadek), klávesy přes
   `type_text`.
 

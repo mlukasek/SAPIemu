@@ -6,6 +6,7 @@
 #include "core/machine.h"
 #include "core/util.h"
 #include "plant/furnaces.h"
+#include "plant/aps5_demo.h"
 #include "plant/thermocouple.h"
 #include "test_util.h"
 
@@ -204,11 +205,48 @@ static void test_firmware(void)
     battery_files_enable(false);
 }
 
+// The DEMO button: from a cold start, and once more on the set up unit (program 1 written again)
+static void run_demo(Machine& m)
+{
+    Aps5Demo d;
+    std::string err;
+    CHECK(d.start(m, err));
+    for (int i = 0; i < 3000 && d.phase == Aps5Demo::TYPING; i++) {
+        m.run_seconds(0.2);
+        d.poll(m);
+    }
+    CHECK(d.phase == Aps5Demo::HEATING);
+    if (d.phase != Aps5Demo::HEATING)
+        fprintf(stderr, "demo step %d/%d (%s): %s\n%s", d.step + 1, d.steps, d.label, d.error.c_str(), screen(m).c_str());
+    m.run_seconds(25.0);   // the table of the furnaces filled
+    std::string s = screen(m);
+    for (const char* row : { "1 *  1 I", "2 *  1 I", "5 *  1 I" }) CHECK(s.find(row) != std::string::npos);
+    CHECK(s.find("I  70\n") != std::string::npos || s.find("I  70 ") != std::string::npos);
+    FurnacePlant* p = dynamic_cast<FurnacePlant*>(m.plant.get());
+    CHECK(p && p->furnaces[3].th > 30);    // Pec 4 heats by hand
+}
+
+static void test_demo(void)
+{
+    std::string err;
+    Machine m;
+    CHECK(m.load_json(aps5_config("work/test/aps5_demo.bin"), err));
+    CHECK(run_until_text(m, "ZOBRAZENI TABULKY PORUCH", 10.0));
+    run_demo(m);
+    run_demo(m);
+    // program 1 has its three segments once (the demo deleted it first)
+    CHECK(step(m, "M\r", "ZOBRAZENI TABULKY PORUCH"));
+    CHECK(step(m, "2\r", "(1-32)"));
+    CHECK(step(m, "1\r", "REZERVA"));
+    CHECK(screen(m).find("509") != std::string::npos);
+}
+
 int main(void)
 {
     test_init();
     test_thermocouples();
     test_cards();
     test_firmware();
+    test_demo();
     return TEST_RESULT();
 }

@@ -263,9 +263,95 @@ static void draw_plot(FurnacePlant* pl, UiState& ui, float u)
     }
 }
 
+// The emulation back to the speed before the demo.
+static void demo_speed_back(UiState& ui)
+{
+    if (!ui.aps5_demo_fast) return;
+    ui.host->max_speed = ui.aps5_demo_was_max;
+    ui.aps5_demo_fast = false;
+}
+
+// The demo goes on every frame (also with the window closed); it stops with its machine.
+static void demo_poll(UiState& ui, Machine* m)
+{
+    Aps5Demo& d = ui.aps5_demo;
+    if (!d.running()) {
+        demo_speed_back(ui);
+        return;
+    }
+    if (!m || ui.aps5_demo_gen != ui.host->machine_generation()) {
+        d.stop();
+        demo_speed_back(ui);
+        return;
+    }
+    d.poll(*m);
+    if (!d.running()) demo_speed_back(ui);
+}
+
+static void demo_start(UiState& ui, Machine* m)
+{
+    std::string err;
+    if (!m || !ui.aps5_demo.start(*m, err)) return;
+    ui.aps5_demo_gen = ui.host->machine_generation();
+    if (!ui.aps5_demo_fast) {
+        ui.aps5_demo_was_max = ui.host->max_speed;
+        ui.aps5_demo_fast = true;
+    }
+    ui.host->max_speed = true;
+}
+
+static void demo_controls(UiState& ui, Machine* m, float u)
+{
+    if (ui.aps5_demo_autostart && m && m->display) {   // --ui-aps5-demo
+        ui.aps5_demo_autostart = false;
+        demo_start(ui, m);
+    }
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 10.1f * u);   // as wide as the panel
+    Aps5Demo& d = ui.aps5_demo;
+    if (!d.running()) {
+        if (ImGui::Button(tr("DEMO"), ImVec2(5.5f * u, 0))) ImGui::OpenPopup("##aps5demo");
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", tr("Types the example of docs/aps5-ukazka.md on the panel: calibration, program 1, "
+                                       "furnaces 1, 2, 5 regulated to 700 degC, 4 and 6 by hand."));
+        if (d.phase == Aps5Demo::DONE) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.5f, 1), "%s", tr("Demo done"));
+        } else if (d.phase == Aps5Demo::FAILED) {
+            ImGui::TextColored(ImVec4(1, 0.45f, 0.35f, 1), "%s %s", tr("Demo stopped:"), tr(d.error.c_str()));
+        }
+    } else {
+        if (ImGui::Button(tr("Stop the demo"))) {
+            d.stop();
+            demo_speed_back(ui);
+        }
+        ImVec4 c(1, 0.8f, 0.3f, 1);
+        if (d.phase == Aps5Demo::TYPING)
+            ImGui::TextColored(c, "%s %d/%d: %s", tr("DEMO"), d.step + 1, d.steps, tr(d.label));
+        else
+            ImGui::TextColored(c, "%s %.0f min", tr("DEMO: the furnaces heat up,"), ceil(d.heat_left / 60));
+        if (ui.aps5_demo_fast) ImGui::TextColored(c, "%s", tr("Emulation at full speed (F8 changes it)"));
+    }
+    ImGui::PopTextWrapPos();
+    if (ImGui::BeginPopup("##aps5demo")) {
+        ImGui::TextUnformatted(tr("The demo types on the panel like an operator:"));
+        ImGui::BulletText("%s", tr("calibration, program 1 (20 min to 700 degC, 20 min hold, 20 min to 300 degC)"));
+        ImGui::BulletText("%s", tr("furnaces 1, 2 and 5 regulated by it, furnaces 4 and 6 by hand (70 %, 50 %)"));
+        ImGui::BulletText("%s", tr("then 25 minutes of heating"));
+        ImGui::TextUnformatted(tr("It overwrites program 1 and these furnaces and runs the emulation at full speed."));
+        if (ImGui::Button(tr("Start"))) {
+            demo_start(ui, m);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(tr("Cancel"))) ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    }
+}
+
 void draw_aps5(UiState& ui)
 {
     Machine* m = ui.host->machine();
+    demo_poll(ui, m);
     FurnacePlant* pl = m ? dynamic_cast<FurnacePlant*>(m->plant.get()) : nullptr;
     Hrk1* panel = m ? dynamic_cast<Hrk1*>(m->keyboard()) : nullptr;
     // a machine with the plant opens the window when it starts (once for each machine)
@@ -302,6 +388,7 @@ void draw_aps5(UiState& ui)
             ImGui::SameLine();
             ImGui::DragFloat("##outage", &ui.aps5_outage_s, 1.0f, 1.0f, 36000.0f, "%.0f s");
         }
+        demo_controls(ui, m, u);
         if (pl) {
             float bat = (float)pl->battery;
             if (ImGui::SliderFloat(tr("Battery"), &bat, 3.0f, 5.0f, "%.2f V")) pl->battery = bat;

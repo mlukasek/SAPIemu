@@ -1159,7 +1159,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_diag = snap->diag;
-        app.ui.show_aps5 = snap->aps5;
+        app.ui.show_aps5 = snap->aps5 || snap->aps5_demo;
+        app.ui.aps5_demo_autostart = snap->aps5_demo;
         app.ui.show_terminal = snap->terminal;
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;

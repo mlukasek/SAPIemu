@@ -52,7 +52,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - **Měření a regulace: měřicí jednotka APS-5** s původním firmwarem Tesla (regulace osmi pecí adaptivním PSD):
   - desky A/D převodníku ADP-1, měřicího zesilovače DMT-1 a relé DRV-1A, panel HRK-1 s klávesnicí, zámkem
     a watchdogem;
-  - simulace pecí s termočlánky (Fe-Ko, ch-a, ch-k, PtRh) a okno, kde pece žhnou podle teploty, s grafem;
+  - simulace pecí s termočlánky (Fe-Ko, ch-a, ch-k, PtRh) a okno, kde pece žhnou podle teploty, s grafem
+    a tlačítkem DEMO, které ukázku odťuká na panelu samo;
   - výpadek sítě s varováním, jak ho firmware čeká ([docs/desky/APS-5.md](docs/desky/APS-5.md), ukázka krok za
     krokem [docs/aps5-ukazka.md](docs/aps5-ukazka.md)).
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.

@@ -62,6 +62,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - RTC-1 má kabel XC2 (`xc2` = `aps5`).
   - Technologie: osm pecí s termočlánky, okno „APS-5: panel a pece“ (žhnoucí pece, graf), MCP `plant`.
   - Vypnutí sestavy proběhne jako výpadek sítě s varováním.
+  - Tlačítko DEMO (2026-10-09) odťuká ukázku `docs/aps5-ukazka.md` na panelu a pece zrychleně nahřeje.
   - Firmware měří s chybou 0–3 °C a reguluje adaptivním PSD (pece 1, 2 a 5 drží 700 °C).
   - Při tom se opravila logika 3214 na JPR-1/JPR-1X (`docs/desky/JPR-1.md`).
 - **Sestava `libor_doma`** (2026-10-08, zadání autora): ImBUS12 s deskami V, AND-1V F800h při MAP1 = L, DGD-1V

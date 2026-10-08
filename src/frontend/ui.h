@@ -8,6 +8,7 @@
 #include "json.hpp"
 #include "core/machine_map.h"
 #include "core/term.h"
+#include "plant/aps5_demo.h"
 
 class Card;
 class DisplayDevice;
@@ -91,6 +92,11 @@ struct UiState {
     uint64_t aps5_gen = 0;         // machine generation the APS-5 window opened itself for
     int aps5_span = 1;             // plot: 0 = 10 min, 1 = 1 h, 2 = 4 h
     float aps5_outage_s = 60.0f;   // length of an outage from the window
+    Aps5Demo aps5_demo;            // DEMO button: an operator typing the example
+    uint64_t aps5_demo_gen = 0;    // the machine it types on
+    bool aps5_demo_fast = false;   // it switched the emulation to full speed
+    bool aps5_demo_was_max = false;   // the speed before
+    bool aps5_demo_autostart = false; // --ui-aps5-demo: start it without the dialog
     bool show_rack = false;
     bool quit = false;             // exit confirmed (no unsaved machine description)
     std::string error;             // error for the message box of the main window

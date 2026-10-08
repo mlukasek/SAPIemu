@@ -7,6 +7,16 @@ Návod naplní jednotku tak, aby po půl hodině emulovaného času vypadala jak
 
 Postup je vyzkoušený od studeného startu (2026-10-08).
 
+**Zkratka: tlačítko DEMO** v okně APS-5 (pod „Výpadek sítě“). Po potvrzení:
+- vypne všechny pece, odťuká na panelu všechno níže a u každé klávesy počká na odpověď firmwaru, jako obsluha.
+  Průběh je vidět pod tlačítkem („DEMO 23/67: Pec 1: program 1“);
+- přepne emulaci naplno a pece nechá 25 minut emulovaného času nahřívat, pak vrátí původní rychlost;
+- „Zastavit demo“ ho kdykoli ukončí. Přepíše program 1 a nastavení pecí 1, 2, 4, 5 a 6;
+- jiný program 1, který už je přiřazený nějaké peci, nepřepíše (firmware ho nedovolí smazat) a skončí s hláškou;
+- celé trvá zhruba minutu.
+
+Ruční postup:
+
 ![Výsledek ukázky](img/aps5-pece.png)
 
 ## Jak se ovládá
