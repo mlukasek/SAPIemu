@@ -199,6 +199,10 @@ bez MFC-1A a DBS-1) nemá dochovaný firmware.
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,
 `docs/desky/MPH-1V.md`).
+**Libor doma** (`machines/libor_doma.sapi`, 2026-10-08): sestava Libora Lasoty na sběrnici ImBUS12 s jeho deskami V
+(JPR-1V, RAM-1V, AND-1V, DSM-1V 10h, ZRD-1V 60h, DGD-1V, CGA-1V, MPH-1V 50h, bez IDE-1). Displeje se střídají podle MAP:
+MAP1 = L AND-1V na F800h (díra 2 KB v RAM-1V), MAP1 = H grafika na C000h (díra 16 KB), MAP2 = L DGD-1V, MAP2 = H
+CGA-1V. JPR-1V a klávesnice jako v sestavě V.
 **ZPS-4 běží** s CP/M 2.2/P od Peřiny (`ZPS-4.sapi`, s řadičem FDC-1 `ZPS-4_FDC-1.sapi`) i se systémem ELIS
 (`ZPS-4_ELIS.sapi`), včetně RAM disku RMD-1
 (`docs/software/CPM_ZPS-4.md`).

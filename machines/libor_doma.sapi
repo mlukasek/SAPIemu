@@ -1,0 +1,94 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "Libor doma (ImBUS12: JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, DGD-1V, CGA-1V, MPH-1V)",
+    "description": "Sestava Libora Lasoty doma na sběrnici ImBUS12 s jeho deskami V. Displeje se střídají podle MAP (registr 63h na RAM-1V): MAP1 = L: AND-1V na F800h (RAM-1V tam má díru 2 KB); MAP1 = H: grafika na C000h (díra 16 KB v RAM-1V), MAP2 = L: DGD-1V, MAP2 = H: CGA-1V. DSM-1V na 10h, MPH-1V na 50h, ZRD-1V na 60h. JPR-1V jako v sestavě V (EEPROM banka 1 = ECMON, TURBO 4 MHz): po startu 1 = CP/M z RAM disku. docs/desky/ImBUS.md, RAM-1V.md, AND-1V.md, DGD-1V.md, CGA-1V.md.",
+    "bus": {
+        "type": "ImBUS12"                   // ImBUS12 (L. Lasota, 1 CPU + 11 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1V",               // CPU card Z80 (V)
+            "rom": "roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin",  // EEPROM 28C64 (two 2 KB banks) - bank 0 MikroBIOS 3.0, bank 1 ECMON IDE-1
+            "bios": "open",                 // Jumper BIOS: EEPROM bank - open: bank 1 (EEPROM 0800-0FFF)
+            "turbo": true,                  // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
+            "osc_hz": 8000000,              // Oscillator (Hz, bus = /4, CPU = /4 or /2)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": false }  // Keyboard (connector K2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RAM-1V",               // Configurable SRAM 64 KB with MAP (V)
+            "sram_a": true,                 // SRAM A (0000-7FFF)
+            "sram_b": true,                 // SRAM B (8000-FFFF)
+            "sram_c": "none",               // Socket C (instead of A) - empty
+            "c_select": "never",            // S4 CONF: chip C when
+            "hole16_base": "C000h",         // S5 /A14 /A15: 16 KB hole at
+            "hole16_map1": "h",             // S5 MAP1MODE - only when MAP = H
+            "hole16_map2": "ignore",        // S5 MAP2MODE - MAP ignored
+            "hole2_base": "F800h",          // S6 /A11-/A15: 2 KB hole at
+            "hole2_map1": "l",              // S6 MAP1MODE - only when MAP = L
+            "map_port": "63h",              // S3: MAP register port
+            "map1_enable": true,            // S1 EN: drive MAP1 (pin 21)
+            "map1_bit": 6,                  // S1 B1/B2/B4: MAP1 data bit
+            "map2_enable": true,            // S2 EN: drive MAP2 (pin 22)
+            "map2_bit": 7                   // S2 B1/B2/B4: MAP2 data bit
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1V",               // VGA display 64x20 (V)
+            "base": "F800h",                // S2 /A11-/A15: VRAM base (2 KB steps)
+            "map": "map1_l",                // S2 MAP1OFF, H/L - both open: MAP1 = L
+            "color": "amber",               // S1: ink colour
+            "font": "roms/and-1v/font_and1v22_1024.bin"  // Character generator 27C256 - 10x24 type 1
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1V",               // Two serial channels (V)
+            "a": {                          // Channel A (K3)
+                "enabled": true,            // S3 5-6: channel enabled
+                "base": "10h",              // S3 1-2, 3-4: ports
+                "baud": 115200,             // S2: baud rate - 115200 (N = FEh)
+                "connected": false          // Terminal connected (DCD)
+            },
+            "b": {                          // Channel B (K2)
+                "enabled": true,            // S3 11-12: channel enabled
+                "base": "14h",              // S3 7-8, 9-10: ports
+                "baud": 115200,             // S1: baud rate - 115200 (N = FEh)
+                "connected": false          // Terminal connected (DCD)
+            }
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "ZRD-1V",               // RAM disk 4 MB (V)
+            "revision": "1.1",              // Board revision - rev 1.1 (no lock, no LEDs)
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
+            "mode": "rw"                    // Mode - read/write, saved
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "DGD-1V",               // Graphic display 320x240, VGA (V)
+            "base": "C000h",                // S2 /A15 /A14: graphics RAM 16 KB from - C000h (/A15 and /A14 open)
+            "map1": "h",                    // S2 MAP1EN MAP1LOW: MAP1 - EN fitted: MAP = H
+            "map2": "l",                    // S2 MAP2EN MAP2LOW: MAP2 - EN and LOW fitted: MAP = L
+            "color": "white",               // S1: ink colour - white (S1 all open)
+            "wait_states": true             // Wait states (CPU waits for its slot of the video)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "CGA-1V",               // Colour graphics 320x200, VGA (V)
+            "base": "C000h",                // S1 /A15 /A14: base (16 KB) - C000h (/A15 and /A14 open)
+            "map1": "h",                    // S1 M1EN M1LO: MAP1 - EN fitted: MAP = H
+            "map2": "h",                    // S1 M2EN M2LO: MAP2 - EN fitted: MAP = H
+            "wait_states": true,            // Wait states (CPU waits for its slot of the video)
+            "frame_blend": true             // Blend the last two frames (page flipping every frame, like the eye)
+        },
+        {
+            "slot": 8,                      // position X8
+            "type": "MPH-1V",               // Sound YM3812, timer 82C54, joystick (V)
+            "base": "50h",                  // S1: port base (8 ports)
+            "k4": "joystick",               // K4 (OVL): plugged in - joystick (Atari)
+            "k2": "mouse_atari"             // K2 (MYŠ): plugged in - mouse Atari ST
+        }
+    ]
+}

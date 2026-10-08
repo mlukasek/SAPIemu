@@ -24,3 +24,4 @@ Stav: **v emulátoru** jako typy sběrnice `ImBUS9` (9 pozic) a `ImBUS12` (12 po
 
 - Typ sběrnice v sestavě: `"bus": { "type": "ImBUS9" }` nebo `"ImBUS12"`, v konfigurátoru v seznamu sběrnic.
 - **X1 je jen pro procesorovou kartu** (karta jinde než v K1 by adresy neviděla). JP3 není.
+- Sestava `machines/libor_doma.sapi` (ImBUS12, desky V Libora Lasoty).
