@@ -1,6 +1,7 @@
 #include "core/bus.h"
 #include "core/state.h"
 #include "core/card.h"
+#include "core/plant.h"
 #include "core/log.h"
 
 #include <stdio.h>
@@ -217,6 +218,7 @@ void Bus::audio_put(const int16_t* s, size_t n)
 void Bus::advance_all(void)
 {
     for (Card* c : cards) c->advance(now);
+    if (plant) plant->advance(now);
 }
 
 bool Bus::rtl(void)

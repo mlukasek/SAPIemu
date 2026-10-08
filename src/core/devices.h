@@ -44,6 +44,17 @@ public:
     virtual uint8_t p1_in() { return 0xFF; }
     // P0-OUT latch written by the CPU (ACK, beeper, rows, LEDs...).
     virtual void p0_out(uint8_t value) {}
+    // A device on both connectors of JPR-1 (X2 and X3: the cables of APS-5 with HRK-1): P2-IN
+    // levels (ANDed in; on JPR-1 also the interrupt requests of the 3214), the P1-OUT and P2-OUT
+    // latches, and /RTL (a watchdog resetting the whole machine).
+    virtual uint8_t p2_in() { return 0xFF; }
+    virtual void p1_out(uint8_t value) {}
+    virtual void p2_out(uint8_t value) {}
+    virtual bool rtl() { return false; }
+    // Switching the machine off: a device that warns the computer of a power failure (the supply of
+    // APS-5 through HRK-1) gets power_fail() and the machine runs this many seconds before it stops.
+    virtual double power_fail_warning() const { return 0; }
+    virtual void power_fail() {}
     // Host typed a Unicode character (text input, MCP); control characters
     // (CR, ESC, Ctrl+letter...) included. Characters the keyboard cannot
     // produce are ignored.

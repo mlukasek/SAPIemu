@@ -8,6 +8,7 @@
 #include "json.hpp"
 #include "core/bus.h"
 #include "core/devices.h"
+#include "core/plant.h"
 #include "core/disasm.h"
 #include "serial/bridge.h"
 
@@ -67,6 +68,8 @@ public:
     bool set_keyboard(const std::string& preset, std::string& err);
 
     void flush(void);   // persist RAM disks etc.
+    // Switch off as the mains goes away: the power fail warning runs first (APS-5), then flush().
+    void power_down(void);
 
     // Save state (core/state.h, docs/stav.md): the machine description, the time of the bus and
     // the state of every card, the keyboard and the serial channels. `file` = the machine file
@@ -110,6 +113,7 @@ public:
 
     Bus bus;
     std::vector<std::unique_ptr<Card>> cards;
+    std::unique_ptr<Plant> plant;   // the process outside the computer (description "plant"), or none
     std::string name;          // human readable name from the config
     std::string config_path;
     nlohmann::json config;

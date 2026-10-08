@@ -26,6 +26,9 @@
 #include "cards/crm1.h"
 #include "cards/dsp1.h"
 #include "cards/rtc1.h"
+#include "cards/adp1.h"
+#include "cards/dmt1.h"
+#include "cards/drv1a.h"
 #include "cards/dbs1a.h"
 #include "cards/pkt1.h"
 #include "cards/rsw1.h"
@@ -67,6 +70,9 @@ Card* card_create(const std::string& type)
     if (type == "PKT-1") return new Pkt1();
     if (type == "CRM-1") return new Crm1();
     if (type == "RTC-1") return new Rtc1();
+    if (type == "ADP-1") return new Adp1();
+    if (type == "DMT-1") return new Dmt1();
+    if (type == "DRV-1A") return new Drv1a();
     if (type == "DSP-1") return new Dsp1();
     if (type == "RSW-1") return new Rsw1();
     if (type == "DBS-1A" || type == "DBS-1") return new Dbs1a();

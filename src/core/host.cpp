@@ -19,7 +19,7 @@ EmuHost::EmuHost() {}
 EmuHost::~EmuHost()
 {
     shutdown();
-    if (m) m->flush();
+    if (m) m->power_down();
 }
 
 void EmuHost::shutdown(void)
@@ -51,7 +51,7 @@ bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::
     // machines is a power cycle: the old one saves its RAM disks
     if (m) {
         m->stop_bridges();
-        m->flush();
+        m->power_down();
     }
     std::unique_ptr<Machine> nm(new Machine());
     nm->config_path = f.empty() ? std::string() : data_path(f);
@@ -77,7 +77,7 @@ void EmuHost::power_off(void)
 {
     if (!m) return;
     m->stop_bridges();
-    m->flush();
+    m->power_down();
     m.reset();
     generation++;
     paused = false;

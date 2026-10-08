@@ -344,6 +344,7 @@ uint8_t Jpr1::p2_in(void)
     uint8_t d = 0xFF;
     if (diag && diag_btn[0]) d &= (uint8_t)~0x01;
     if (diag && diag_btn[1]) d &= (uint8_t)~0x80;
+    if (kbd) d &= kbd->p2_in();   // a device on X3 (HRK-1 of APS-5)
     if (model_s) return d;   // K3 with pull-ups
     if (model_x) {   // P2-IN0/1 = bus /INT0, /INT1 (the same wires); P2-IN7 = the INT key with 11-10; the rest K3
         uint8_t v = d;
@@ -353,7 +354,7 @@ uint8_t Jpr1::p2_in(void)
         return v;
     }
     // interrupt requests are active low: R0 = /INT0, R1 = /INT1, R7 = INT key
-    uint8_t v = 0xFF;
+    uint8_t v = kbd ? kbd->p2_in() : 0xFF;
     if (bus_irq & IRQ_INT0) v &= (uint8_t)~0x01;
     if (bus_irq & IRQ_INT1) v &= (uint8_t)~0x02;
     if (int_key_jumper && kbd && !(p1_in() & 0x80)) v &= (uint8_t)~0x80;
@@ -431,8 +432,14 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
             p0_out = v;
             if (kbd) kbd->p0_out(v);
             break;
-        case L_P1: p1_out = v; break;
-        case L_P2: p2_out = v; break;
+        case L_P1:
+            p1_out = v;
+            if (kbd) kbd->p1_out(v);
+            break;
+        case L_P2:
+            p2_out = v;
+            if (kbd) kbd->p2_out(v);
+            break;
         default: break;   // EPROM: /WE held high
         }
         bus->wait = 0;
@@ -447,10 +454,16 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
             p0_out = v;
             if (kbd) kbd->p0_out(v);
             break;
-        case L_P1: p1_out = v; break;
-        case L_P2: p2_out = v; break;
+        case L_P1:
+            p1_out = v;
+            if (kbd) kbd->p1_out(v);
+            break;
+        case L_P2:
+            p2_out = v;
+            if (kbd) kbd->p2_out(v);
+            break;
         case L_ECS:
-            irq_status = v & 7;
+            irq_status = ~v & 7;   // /B2-/B0
             irq_sgs = (v & 0x08) != 0;
             irq_enabled = true;
             update_interrupt();
@@ -472,11 +485,15 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
     case L_P1:
         if ((p1_out ^ v) & 0x80) LOGD("JPR-1 LED %s", (v & 0x80) ? "on" : "off");
         p1_out = v;
+        if (kbd) kbd->p1_out(v);
         return;
-    case L_P2: p2_out = v; return;   // printer
+    case L_P2:   // printer (APS-5: WD of HRK-1)
+        p2_out = v;
+        if (kbd) kbd->p2_out(v);
+        return;
     case L_ECS:
         // load the current status of the 3214 and enable the next interrupt
-        irq_status = v & 7;
+        irq_status = ~v & 7;   // /B2-/B0
         irq_sgs = (v & 0x08) != 0;
         irq_enabled = true;
         update_interrupt();
@@ -519,9 +536,11 @@ void Jpr1::cpu_out(uint8_t port, uint8_t v)
     bus->io_write(port, v);
 }
 
-// 3214: the highest active request (R7 highest) interrupts the CPU when the
-// 3214 is enabled and, with SGS, the level is above the current status. The
-// 3212 then puts RST (7 - level) on the data bus.
+// 3214: the highest active request (R7 highest) interrupts the CPU when the 3214 is enabled and
+// its level is above the current status; the status inputs /B0-/B2 are active low (a write of D2-D0
+// sets the status ~D & 7). D3 = 1 (SGS) lets every level through. The 3212 then puts RST (7 - level)
+// on the data bus. Confirmed by the firmware of APS-5: 04h takes R4-R7 only (the key code is on
+// R0-R3), 02h only R6-R7 (docs/desky/JPR-1.md).
 void Jpr1::update_interrupt(void)
 {
     if (model_s) {   // INT_SRC wired OR, level; INT_ADR RST 7 or /INTA on the bus
@@ -541,7 +560,7 @@ void Jpr1::update_interrupt(void)
             int level = -1;
             for (int i = 7; i >= 0; i--)
                 if (req & (1 << i)) { level = i; break; }
-            if (level >= 0 && (!irq_sgs || level > irq_status)) {
+            if (level >= 0 && (irq_sgs || level > irq_status)) {
                 x_latched = true;
                 irq_enabled = false;
                 x_vector = rst7_jumper ? 0xFF : (uint8_t)(0xC7 | ((7 - level) << 3));
@@ -560,7 +579,7 @@ void Jpr1::update_interrupt(void)
     int level = -1;
     for (int i = 7; i >= 0; i--)
         if (req & (1 << i)) { level = i; break; }
-    bool want = irq_enabled && level >= 0 && (!irq_sgs || level > irq_status);
+    bool want = irq_enabled && level >= 0 && (irq_sgs || level > irq_status);
     cpu.interrupt_pending = want;
     if (want) cpu.interrupt_vector = (uint8_t)(0xC7 | ((7 - level) << 3));
 }
@@ -568,7 +587,7 @@ void Jpr1::update_interrupt(void)
 void Jpr1::sync(void)
 {
     bus->advance_all();
-    if (bus->rtl()) {   // /RTL (pin 1, a watchdog): RESIN of the 8224, /RES of the whole system
+    if (bus->rtl() || (kbd && kbd->rtl())) {   // /RTL (pin 1, a watchdog; HRK-1): RESIN of the 8224, /RES of all
         bus->reset();
         return;
     }

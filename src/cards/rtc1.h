@@ -11,6 +11,8 @@
 //   OUT1: jumpers 5-6, 9-11 (async, factory) /INT while OUT1 is high; 5-7, 6-8, 10-11 (realtime)
 //   OUT1 = /STB A of the 8255 in mode 1, /INT = INTR A (PC3), bit 19 cleared by a load.
 // - /INT goes only to XC2/14: a cable to INT0 or INT1 of the computer (parameter).
+// - XC2 in APS-5 (parameter xc2): OUT2 of DD6 (XC2/29) clocks CLK0 and CLK1 of DD5, its OUT0 and OUT1
+//   go to P2-IN5 and P2-IN4 of JPR-1 (HRK-1 reads them through user_out()).
 #include <string>
 #include "chips/i8253.h"
 #include "chips/i8255.h"
@@ -37,6 +39,8 @@ public:
     uint8_t pins_b() override { return (uint8_t)(value() >> 8); }
     uint8_t pins_c() override;
 
+    bool user_out(int n);                // OUTn of the user 8253 DD5 now (XC2)
+
 private:
     uint32_t value(void);                // the 20-bit real time counter now
     void load(uint32_t v);               // set the counter (the 2 s phase goes on)
@@ -55,4 +59,5 @@ private:
     uint64_t last = 0;                   // bus time of the last clock_system()
     double phase = 0;                    // Phi2 fraction
     bool out1_prev = true;
+    bool xc2_aps5 = false;               // the cable of APS-5 on XC2
 };

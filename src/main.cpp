@@ -258,6 +258,7 @@ int main(int argc_ansi, char** argv_ansi)
             return 1;
         }
         int rc = headless_run(*m, actions);
+        m->power_down();   // APS-5: the power fail warning before the batteries take over
         fflush(stdout);
         return rc;
     }

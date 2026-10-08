@@ -1,6 +1,7 @@
 #include "mcp/mcp_tools.h"
 #include "cards/catalog.h"
 #include "cards/dsm1.h"
+#include "cards/hrk1.h"
 #include "cards/ide1.h"
 #include "chips/printer.h"
 #include "core/charset.h"
@@ -14,6 +15,7 @@
 #include "core/version.h"
 #include "core/wav.h"
 #include "input/keyboards.h"
+#include "plant/furnaces.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -866,6 +868,55 @@ json t_diag_board(EmuHost& h, const json& a)
     return text_result(j.dump());
 }
 
+json t_plant(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    FurnacePlant* p = dynamic_cast<FurnacePlant*>(m.plant.get());
+    Hrk1* panel = dynamic_cast<Hrk1*>(m.keyboard());
+    if (!p && !panel) return error_result("this machine has no plant (description \"plant\") and no APS-5 panel (keyboard HRK-1)");
+    if (a.contains("lock")) {
+        long long l = arg_num(a, "lock", 2);
+        if (!panel) throw ToolError{ "lock: no HRK-1 panel" };
+        if (l != 1 && l != 2) throw ToolError{ "lock must be 1 or 2" };
+        panel->lock = (int)l;
+    }
+    if (a.contains("outage_s")) {
+        if (!panel) throw ToolError{ "outage_s: no HRK-1 panel" };
+        if (!a["outage_s"].is_number() || a["outage_s"].get<double>() < 0) throw ToolError{ "outage_s must be a number >= 0" };
+        panel->outage(a["outage_s"].get<double>());
+    }
+    if (p) {
+        if (a.contains("ambient_c")) p->ambient = a["ambient_c"].is_number() ? a["ambient_c"].get<double>() : p->ambient;
+        if (a.contains("block_c")) p->block_c = a["block_c"].is_number() ? a["block_c"].get<double>() : p->block_c;
+        if (a.contains("battery_v")) p->battery = a["battery_v"].is_number() ? a["battery_v"].get<double>() : p->battery;
+        if (a.value("reset", false)) p->reset_process();
+        if (a.contains("channel")) {
+            long long ch = arg_num(a, "channel", 1);
+            if (ch < 1 || ch > (long long)p->furnaces.size()) throw ToolError{ "channel must be 1.." + std::to_string(p->furnaces.size()) };
+            Furnace& f = p->furnaces[(size_t)ch - 1];
+            if (a.contains("temperature_c")) {
+                if (!a["temperature_c"].is_number()) throw ToolError{ "temperature_c must be a number" };
+                f.th = f.tch = f.tm = a["temperature_c"].get<double>();
+            }
+            if (a.contains("tc_broken")) f.tc_broken = a.value("tc_broken", false);
+            if (a.contains("heater_broken")) f.heater_broken = a.value("heater_broken", false);
+            if (a.contains("li_a")) f.li[0] = a.value("li_a", true);
+            if (a.contains("li_b")) f.li[1] = a.value("li_b", true);
+        }
+    }
+    json j;
+    if (p) {
+        m.bus.advance_all();
+        p->describe(j);
+    }
+    if (panel) {
+        j["panel"] = { { "lock", panel->lock }, { "fault_led", panel->led_fault() }, { "powered", panel->powered() },
+                       { "outage_left_s", round(panel->outage_left() * 10) / 10 },
+                       { "relay_ka1", panel->relay() ? "energized (K0-K2)" : "released (K0-K1)" } };
+    }
+    return json_result(j);
+}
+
 json t_mouse(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1257,6 +1308,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
     { "diag_board", "Diagnostic board on K3 of JPR-1S / JPR-1X (parameter k3 = diag): two seven segment displays (left = P2-OUT, right = P1-OUT; segments a..g, dp = bits 0..7) and two buttons, \"+\" on P2-IN0 (JPR-1X: interrupt request R0) and \"-\" on P2-IN7 (R7). Without arguments it reports what the displays show; press = \"+\" or \"-\" holds the button for hold_ms (default 150) while the machine runs, then runs after_ms (default 200).",
       R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
+    { "plant", "APS-5: the plant (furnaces, thermocouples, terminal block) and the front panel HRK-1. Without arguments it reports the temperatures, heaters (DRV-1A contacts), logic inputs/outputs and the panel (key switch, fault LED, watchdog relay). Arguments change it: lock (1 operator, 2 programming), outage_s (a mains failure of that many seconds: the power fail warning, then no power, then power again; run the machine to see it), ambient_c, block_c (isothermal terminal block), battery_v, reset (all furnaces to the ambient temperature), and for channel (1-8): temperature_c (sets the furnace at once), tc_broken, heater_broken, li_a / li_b (logic inputs, true = H open). Keys of the panel: type_text with 0-9, M, R, backspace (<-), CR (->).",
+      R"({"type":"object","properties":{"lock":{"type":"integer","enum":[1,2]},"outage_s":{"type":"number"},"ambient_c":{"type":"number"},"block_c":{"type":"number"},"battery_v":{"type":"number"},"reset":{"type":"boolean"},"channel":{"type":"integer"},"temperature_c":{"type":"number"},"tc_broken":{"type":"boolean"},"heater_broken":{"type":"boolean"},"li_a":{"type":"boolean"},"li_b":{"type":"boolean"}}})", t_plant },
     { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 or the ANK-1M2 keyboard connector set to joystick; ANK-1M2 follows port 0): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",
       R"({"type":"object","properties":{"port":{"type":"integer","default":0},"pressed":{"type":"array","items":{"type":"string","enum":["down","up","right","left","fire1","fire2"]}}}})", t_joystick },
     { "mouse", "Mouse of the machine (an MPH-1V connector or the ANK-1M2 keyboard connector set to mouse_atari / mouse_amiga): dx, dy = counts to move (+x right, +y down), sent as quadrature steps at 1000 per second and axis; 'buttons' sets what is held (left, right). Reports the counts still pending.",

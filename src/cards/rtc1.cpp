@@ -54,6 +54,9 @@ bool Rtc1::configure(const json& cfg, std::string& err)
     pc_time = s == "pc";
     if (!cfg_bool(cfg, "battery", battery, true, err)) return false;
     if (!cfg_string(cfg, "file", file, "work/rtc-1/rtc.bin", err)) return false;
+    if (!cfg_string(cfg, "xc2", s, "none", err)) return false;
+    if (s != "none" && s != "aps5") { err = "xc2 must be none or aps5"; return false; }
+    xc2_aps5 = s == "aps5";
 
     // power on: the batteries kept the counter running (PC time) or holding (emulated time)
     uint32_t start = pc_time ? week_periods() : 0;
@@ -124,6 +127,10 @@ void Rtc1::clock_system(uint64_t now)
     if (!n) return;
     uint32_t edges = sys.ticks(2, n);                    // CLK0 = CLK1 = OUT2
     if (!edges) return;
+    if (xc2_aps5) {                                      // APS-5: XC2/29 (OUT2) to CLK0 and CLK1 of DD5
+        user.ticks(0, edges);
+        user.ticks(1, edges);
+    }
     sys.ticks(0, edges);
     uint32_t falls1 = sys.ticks(1, edges);
     bool o1 = sys.out(1);
@@ -228,6 +235,16 @@ void Rtc1::describe(json& out)
     snprintf(b, sizeof(b), "%ud %02u:%02u:%02u", (v * 2) / 86400, (v * 2) / 3600 % 24, (v * 2) / 60 % 60, (v * 2) % 60);
     out["counter_time"] = b;
     out["watchdog_armed"] = pc_out(7);
+    if (xc2_aps5) {
+        out["dd5_out0"] = user.out(0);
+        out["dd5_out1"] = user.out(1);
+    }
+}
+
+bool Rtc1::user_out(int n)
+{
+    if (bus) clock_system(bus->now);
+    return user.out(n);
 }
 
 void Rtc1::state(StateIO& io)

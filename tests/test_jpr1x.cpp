@@ -78,8 +78,8 @@ static void interrupt(void)
     CHECK(run_until_text(m, "READY", 3.0));
     static const uint8_t prog[] = {
         0xF3,               // DI
-        0x3E, 0x00,         // MVI A,0
-        0x32, 0x00, 0x30,   // STA 3000h: 3214 status 0, enabled
+        0x3E, 0x08,         // MVI A,08h
+        0x32, 0x00, 0x30,   // STA 3000h: 3214 enabled, D3 = 1: every level
         0x01, 0x00, 0x40,   // LXI B,4000h
         0x0B,               // loop: DCX B
         0x78, 0xB1,         // MOV A,B; ORA C

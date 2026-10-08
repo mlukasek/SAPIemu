@@ -1,0 +1,80 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "APS-5 měřicí jednotka (regulace osmi pecí)",
+    "description": "Měřicí jednotka Tesla Liberec APS-5 (6XV 122 89) podle návodu na sapi.cz/sapi/doku/aps-5.php: JPR-1 (8080), REM-1/00K s původním firmwarem (7x 2716: 0000-1FFF, 6000-77FF), AND-1, zálohovaná CRM-1 (E000-EFFF), RTC-1 na F0h (DD5 tiká z DD6 kabelem XC2: 50 Hz a 1 Hz), DMT-1 na 80h, ADP-1 na 00h, DRV-1A na 77h (topení pecí). Na X2/X3 JPR-1 je panel HRK-1 (klávesnice 0-9, <-, M, ->, R, zámek, watchdog). Pece, termočlánky a izotermickou svorkovnici simuluje technologie (okno Stroj -> APS-5). docs/desky/APS-5.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (the firmware is on REM-1)
+            "eprom_type": "2716",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2716 (2 KB)
+            "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7 (APS-5: R7 = relay KA1 of HRK-1B)
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "HRK-1" } // Keyboard (connector X2): the APS-5 front panel on X2 and X3
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RTC-1",                // Real time clock, timers and watchdog
+            "base": "F0h",                  // SA1-SA8 and the A7 jumper: the 16 ports
+            "mode": "async",                // Jumpers 5-11: interrupt mode
+            "int": "none",                  // Cable from XC2/14 (/INT) to the computer
+            "time": "pc",                   // The real time counter follows
+            "battery": true,                // Backup cells (the counter survives power off)
+            "file": "work/aps-5/rtc.bin",   // Counter kept by the cells
+            "xc2": "aps5"                   // Cable on XC2 (DD5 clocks and outputs)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "DRV-1A",               // Relay outputs (8 reed relays)
+            "port": "77h",                  // Jumpers: the port
+            "load": "plant"                 // Contacts S1-S8 switch: heaters of the furnaces
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "roms/aps-5/APS-5_REM-1.bin",  // EPROMs (from socket 1) - APS-5 firmware, EPROM 0-6
+            "eprom_type": "2716",           // Jumpers H/G/I/J: EPROM type - 2716 (2 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": 3,              // Jumper F: second EPROM block (2716) - 6000-7FFF
+            "ram_block": "none",            // Jumper R: RAM block - not connected (REM-1/00K)
+            "ram_kb": 0                     // RAM fitted (KB, 2 per 4x 2114)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false                   // Jumper 49-50: INT1 at the end of the frame (APS-5: /INT1 = P2-IN1 = Q2)
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "ADP-1",                // A/D converter C 520 D, 16 inputs
+            "base": "00h",                  // SA1-SA4: base address (ports +0, +1)
+            "wiring": "aps5"                // Cables to the inputs S1-S16 (X3)
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "CRM-1",                // Battery backed CMOS RAM 4 KB
+            "base": "E000h",                // Jumpers 1-2..1-9: the 8 KB block
+            "battery": true,                // Backup batteries (the content survives power off)
+            "file": "work/aps-5/crm.bin"    // Content kept by the batteries
+        },
+        {
+            "slot": 8,                      // position X8
+            "type": "DMT-1",                // Measuring amplifier, 8 thermocouple inputs
+            "base": "80h",                  // SA1-SA4: address (A7-A4, 16 mirrors)
+            "break_detect": true,           // Jumper 5-6: an open input shows as about -15 mV
+            "int1": false,                  // Jumper 7-8: interrupt INT1 600 ms after bit 5
+            "supply_15v": true              // +-15 V on XC3 from ZDR-1A: output up to +-10 V
+        }
+    ],
+    "plant": {
+        "type": "APS-5"                     // eight furnaces with thermocouples on the isothermal terminal block
+    }
+}

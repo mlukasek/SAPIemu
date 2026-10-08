@@ -1492,6 +1492,120 @@ static const ParamOption k_rtc1_time[] = {
     { "\"emulated\"", "the emulated time (the same in every run)", "čas emulace (v každém běhu stejný)" },
     { nullptr, nullptr, nullptr },
 };
+static const ParamOption k_adp1_base[] = {
+    { "\"00h\"", "00h (SA 1111)", "00h (SA 1111)" },
+    { "\"10h\"", "10h (SA 1110)", "10h (SA 1110)" },
+    { "\"20h\"", "20h (SA 1101)", "20h (SA 1101)" },
+    { "\"30h\"", "30h (SA 1100)", "30h (SA 1100)" },
+    { "\"40h\"", "40h (SA 1011)", "40h (SA 1011)" },
+    { "\"50h\"", "50h (SA 1010)", "50h (SA 1010)" },
+    { "\"60h\"", "60h (SA 1001)", "60h (SA 1001)" },
+    { "\"70h\"", "70h (SA 1000)", "70h (SA 1000)" },
+    { "\"80h\"", "80h (SA 0111)", "80h (SA 0111)" },
+    { "\"90h\"", "90h (SA 0110)", "90h (SA 0110)" },
+    { "\"A0h\"", "A0h (SA 0101)", "A0h (SA 0101)" },
+    { "\"B0h\"", "B0h (SA 0100)", "B0h (SA 0100)" },
+    { "\"C0h\"", "C0h (SA 0011)", "C0h (SA 0011)" },
+    { "\"D0h\"", "D0h (SA 0010)", "D0h (SA 0010)" },
+    { "\"E0h\"", "E0h (SA 0001)", "E0h (SA 0001)" },
+    { "\"F0h\"", "F0h (SA 0000)", "F0h (SA 0000)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dmt1_base[] = {
+    { "\"00h\"", "00h (SA 1111)", "00h (SA 1111)" },
+    { "\"10h\"", "10h (SA 1110)", "10h (SA 1110)" },
+    { "\"20h\"", "20h (SA 1101)", "20h (SA 1101)" },
+    { "\"30h\"", "30h (SA 1100)", "30h (SA 1100)" },
+    { "\"40h\"", "40h (SA 1011)", "40h (SA 1011)" },
+    { "\"50h\"", "50h (SA 1010)", "50h (SA 1010)" },
+    { "\"60h\"", "60h (SA 1001)", "60h (SA 1001)" },
+    { "\"70h\"", "70h (SA 1000)", "70h (SA 1000)" },
+    { "\"80h\"", "80h (SA 0111)", "80h (SA 0111)" },
+    { "\"90h\"", "90h (SA 0110)", "90h (SA 0110)" },
+    { "\"A0h\"", "A0h (SA 0101)", "A0h (SA 0101)" },
+    { "\"B0h\"", "B0h (SA 0100)", "B0h (SA 0100)" },
+    { "\"C0h\"", "C0h (SA 0011)", "C0h (SA 0011)" },
+    { "\"D0h\"", "D0h (SA 0010)", "D0h (SA 0010)" },
+    { "\"E0h\"", "E0h (SA 0001)", "E0h (SA 0001)" },
+    { "\"F0h\"", "F0h (SA 0000)", "F0h (SA 0000)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_drv1a_port[] = {
+    { "\"40h\"", "40h", "40h" },
+    { "\"41h\"", "41h", "41h" },
+    { "\"42h\"", "42h", "42h" },
+    { "\"43h\"", "43h", "43h" },
+    { "\"44h\"", "44h", "44h" },
+    { "\"45h\"", "45h", "45h" },
+    { "\"46h\"", "46h", "46h" },
+    { "\"47h\"", "47h", "47h" },
+    { "\"50h\"", "50h", "50h" },
+    { "\"51h\"", "51h", "51h" },
+    { "\"52h\"", "52h", "52h" },
+    { "\"53h\"", "53h", "53h" },
+    { "\"54h\"", "54h", "54h" },
+    { "\"55h\"", "55h", "55h" },
+    { "\"56h\"", "56h", "56h" },
+    { "\"57h\"", "57h", "57h" },
+    { "\"60h\"", "60h", "60h" },
+    { "\"61h\"", "61h", "61h" },
+    { "\"62h\"", "62h", "62h" },
+    { "\"63h\"", "63h", "63h" },
+    { "\"64h\"", "64h", "64h" },
+    { "\"65h\"", "65h", "65h" },
+    { "\"66h\"", "66h", "66h" },
+    { "\"67h\"", "67h", "67h" },
+    { "\"70h\"", "70h", "70h" },
+    { "\"71h\"", "71h", "71h" },
+    { "\"72h\"", "72h", "72h" },
+    { "\"73h\"", "73h", "73h" },
+    { "\"74h\"", "74h", "74h" },
+    { "\"75h\"", "75h", "75h" },
+    { "\"76h\"", "76h", "76h" },
+    { "\"77h\"", "77h", "77h" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_adp1_wiring[] = {
+    { "\"none\"", "inputs not connected", "vstupy nezapojené" },
+    { "\"aps5\"", "APS-5: S1 = DMT-1 U1, S2 = DMT-1 U2, S5 = battery, S6 = 0 V, S7 = +9.99 V (KAL)",
+      "APS-5: S1 = DMT-1 U1, S2 = DMT-1 U2, S5 = baterie, S6 = 0 V, S7 = +9,99 V (KAL)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_adp1[] = {
+    { "base", PK_CHOICE, "SA1-SA4: base address (ports +0, +1)", "SA1-SA4: bázová adresa (porty +0, +1)", "\"30h\"",
+      k_adp1_base, 0, 0 },
+    { "wiring", PK_CHOICE, "Cables to the inputs S1-S16 (X3)", "Kabely na vstupy S1-S16 (X3)", "\"none\"", k_adp1_wiring, 0, 0 },
+    { "ref_mv", PK_INT, "RP1: reference +9.99 V (mV)", "RP1: reference +9,99 V (mV)", "9990", nullptr, 9000, 11000 },
+    { "conversion_ms", PK_INT, "One conversion of the C 520 D (ms)", "Jeden převod C 520 D (ms)", "20", nullptr, 1, 1000 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+static const CardParam k_dmt1[] = {
+    { "base", PK_CHOICE, "SA1-SA4: address (A7-A4, 16 mirrors)", "SA1-SA4: adresa (A7-A4, 16 zrcadel)", "\"80h\"",
+      k_dmt1_base, 0, 0 },
+    { "break_detect", PK_BOOL, "Jumper 5-6: an open input shows as about -15 mV", "Propojka 5-6: rozpojený vstup jako asi -15 mV",
+      "true", nullptr, 0, 0 },
+    { "int1", PK_BOOL, "Jumper 7-8: interrupt INT1 600 ms after bit 5", "Propojka 7-8: přerušení INT1 600 ms po bitu 5",
+      "false", nullptr, 0, 0 },
+    { "supply_15v", PK_BOOL, "+-15 V on XC3 (1-2, 3-4 open): output up to +-10 V", "+-15 V na XC3 (1-2, 3-4 rozpojeno): výstup až +-10 V",
+      "false", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+static const ParamOption k_drv1a_load[] = {
+    { "\"none\"", "nothing connected", "nic nepřipojeno" },
+    { "\"plant\"", "heaters of the furnaces (APS-5, plant of the machine)", "topení pecí (APS-5, technologie sestavy)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_drv1a[] = {
+    { "port", PK_CHOICE, "Jumpers: the port", "Propojky: port", "\"77h\"", k_drv1a_port, 0, 0 },
+    { "load", PK_CHOICE, "Contacts S1-S8 switch", "Kontakty S1-S8 spínají", "\"none\"", k_drv1a_load, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+static const ParamOption k_rtc1_xc2[] = {
+    { "\"none\"", "nothing (DD5 without clocks)", "nic (DD5 bez hodin)" },
+    { "\"aps5\"", "APS-5: OUT2 of DD6 clocks DD5, OUT0/OUT1 to JPR-1 P2-IN5/4",
+      "APS-5: OUT2 DD6 taktuje DD5, OUT0/OUT1 do JPR-1 P2-IN5/4" },
+    { nullptr, nullptr, nullptr },
+};
 static const CardParam k_rtc1[] = {
     { "base", PK_CHOICE, "SA1-SA8 and the A7 jumper: the 16 ports", "SA1-SA8 a propojka A7: 16 portů", "\"A0h\"",
       k_rtc1_base, 0, 0 },
@@ -1502,6 +1616,7 @@ static const CardParam k_rtc1[] = {
     { "battery", PK_BOOL, "Backup cells (the counter survives power off)", "Záložní články (čítač přežije vypnutí)", "true",
       nullptr, 0, 0 },
     { "file", PK_FILE, "Counter kept by the cells", "Čítač držený články", "\"work/rtc-1/rtc.bin\"", k_none, 0, 0 },
+    { "xc2", PK_CHOICE, "Cable on XC2 (DD5 clocks and outputs)", "Kabel na XC2 (hodiny a výstupy DD5)", "\"none\"", k_rtc1_xc2, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -1683,6 +1798,12 @@ CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 82C54, joystick (V)", "Zvuk 
      CC_IO, 1, true, k_mph1v)
 CARD(c_rtc1, "RTC-1", "RTC", "Real time clock, timers and watchdog", "Reálný čas, čítače a watchdog", CC_IO, 1, true,
      k_rtc1)
+CARD(c_adp1, "ADP-1", "ADP", "A/D converter C 520 D, 16 inputs", "A/D převodník C 520 D, 16 vstupů", CC_IO, 1, true,
+     k_adp1)
+CARD(c_dmt1, "DMT-1", "DMT", "Measuring amplifier, 8 thermocouple inputs", "Měřicí zesilovač, 8 vstupů pro termočlánky",
+     CC_IO, 1, true, k_dmt1)
+CARD(c_drv1a, "DRV-1A", "DRV", "Relay outputs (8 reed relays)", "Reléové výstupy (8 jazýčkových relé)", CC_IO, 1, true,
+     k_drv1a)
 CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldeska (prázdná, bez funkce)", CC_OTHER, 1,
      true, nullptr)
 
@@ -1694,7 +1815,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
-        &c_mph1v, &c_dpp1, &c_rtc1, &c_bdk1,
+        &c_mph1v, &c_dpp1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_bdk1,
     };
     return list;
 }

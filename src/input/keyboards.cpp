@@ -2,6 +2,7 @@
 #include "input/ank1.h"
 #include "input/consul.h"
 #include "input/ekl1.h"
+#include "cards/hrk1.h"
 
 using nlohmann::json;
 
@@ -69,7 +70,8 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         a->hold_cycles = us_to_cycles(100000, cpu_hz);
         return a;
     }
-    err = "unknown keyboard type '" + type + "' (EKL-1, Consul 262.3, Consul 259.11, ANK-1, ANK-1M2)";
+    if (type == "HRK-1") return new Hrk1(cpu_hz);   // the front panel of APS-5 with its cables on X2 and X3
+    err = "unknown keyboard type '" + type + "' (EKL-1, Consul 262.3, Consul 259.11, ANK-1, ANK-1M2, HRK-1)";
     return nullptr;
 }
 
@@ -84,6 +86,7 @@ const std::vector<KeyboardPreset>& keyboard_presets(void)
         { "ANK-1", R"({"type":"ANK-1"})" },
         { "ANK-1 (MIKOS)", R"({"type":"ANK-1","software":"mikos"})" },
         { "ANK-1M2", R"({"type":"ANK-1M2"})" },   // joyport: joystick unless set
+        { "HRK-1 (APS-5)", R"({"type":"HRK-1"})" },
     };
     return presets;
 }

@@ -177,6 +177,18 @@ bool Machine::load_json(const json& cfg, std::string& err)
         return false;
     }
 
+    if (cfg.contains("plant") && !cfg["plant"].is_null()) {   // the furnaces of APS-5
+        std::string perr;
+        Plant* p = plant_create(cfg["plant"], perr);
+        if (!p) {
+            err = "plant: " + perr;
+            return false;
+        }
+        plant.reset(p);
+        p->bus = &bus;
+        bus.plant = p;
+    }
+
     std::vector<Card*> sorted;
     for (auto& c : cards) sorted.push_back(c.get());
     std::stable_sort(sorted.begin(), sorted.end(), [](Card* a, Card* b) { return a->slot < b->slot; });
@@ -398,6 +410,20 @@ void Machine::flush(void)
     for (auto& c : cards) c->flush();
 }
 
+void Machine::power_down(void)
+{
+    KeyboardDevice* k = keyboard();
+    double s = k ? k->power_fail_warning() : 0;
+    if (s > 0 && cpu) {   // the supply warns the program, which saves what it needs
+        k->power_fail();
+        std::vector<uint8_t> saved(bp_exec, bp_exec + sizeof(bp_exec));   // no breakpoint stops it
+        memset(bp_exec, 0, sizeof(bp_exec));
+        run_seconds(s);
+        memcpy(bp_exec, saved.data(), sizeof(bp_exec));
+    }
+    flush();
+}
+
 DisplayDevice* Machine::find_display(const std::string& n)
 {
     if (n.empty()) return display;
@@ -566,6 +592,11 @@ static void state_body(StateIO& io, Machine& m)
         m.serials[i]->state(io);
         io.end();
     }
+    if (m.plant) {
+        if (!io.begin("plant")) return;
+        m.plant->state(io);
+        io.end();
+    }
 }
 
 bool Machine::save_state(std::vector<uint8_t>& out, const std::string& file, std::string& err)
@@ -591,6 +622,8 @@ bool Machine::load_state(const std::vector<uint8_t>& in, std::string& err, bool 
         flush();
         bus.cards.clear();
         cards.clear();
+        bus.plant = nullptr;
+        plant.reset();
         cpu = nullptr;
         display = nullptr;
         displays.clear();

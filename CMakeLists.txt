@@ -57,7 +57,7 @@ endif()
 
 file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
     src/core/*.cpp src/cpu/*.cpp src/chips/*.cpp src/cards/*.cpp
-    src/input/*.cpp src/serial/*.cpp src/mcp/*.cpp)
+    src/input/*.cpp src/serial/*.cpp src/mcp/*.cpp src/plant/*.cpp)
 add_library(sapicore STATIC ${CORE_SOURCES})
 target_include_directories(sapicore PUBLIC src)
 target_include_directories(sapicore PRIVATE ${TP}/minimp3)

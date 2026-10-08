@@ -33,8 +33,11 @@ struct IoLogEntry {
     bool write;
 };
 
+class Plant;
+
 struct Bus {
     std::vector<Card*> cards;   // in slot order (not owned)
+    Plant* plant = nullptr;     // the process outside the computer (APS-5 furnaces), owned by Machine
     uint64_t now = 0;           // CPU clock cycles since power-on
     uint32_t cpu_hz = 2000000;  // CPU clock, used by cards to convert time
     uint32_t phi2_hz = 2000000; // Φ2 TTL on the bus (pin 60), from the CPU card

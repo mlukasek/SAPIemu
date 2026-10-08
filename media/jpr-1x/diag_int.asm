@@ -26,7 +26,7 @@ START:  DI
         XRA A
         STA COUNT
         CALL SHOW
-        XRA A           ; 3214: status 0, SGS 0 = any request
+        MVI A,08H       ; 3214: D3 = 1, every level may interrupt (D2-D0 = /B2-/B0)
         STA I3214
         EI
 
@@ -74,7 +74,7 @@ REL:    LDA P2          ; one step per press
         ANI 81H
         JNZ REL
         CALL DELAY      ; the contacts bounce
-        XRA A           ; 3214: the next interrupt
+        MVI A,08H       ; 3214: the next interrupt, every level
         STA I3214
         POP H
         POP PSW

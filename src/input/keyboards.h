@@ -11,6 +11,7 @@
 //   { "type": "ANK-1" }
 //   { "type": "ANK-1M2", "joyport": "joystick" }       // or none, mouse_atari, mouse_amiga
 //                                                       // ("ANK-1M5", its predecessor, is the same)
+//   { "type": "HRK-1" }                                // APS-5 front panel on X2 and X3 of JPR-1
 // Returns nullptr and fills err on error.
 KeyboardDevice* keyboard_from_config(const nlohmann::json& cfg, uint32_t cpu_hz, std::string& err);
 
