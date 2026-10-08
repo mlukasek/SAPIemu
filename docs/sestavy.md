@@ -145,6 +145,8 @@ Pořadí karet ve slotech je odhad (viz Nejasnosti v `docs/SOUHRN.md`). **ZPS-1 
 `ZPS-2_MIKOS_V5.sapi` je ZPS-2 s Monitorem V5.0F, MIKOSem V5.0, klávesnicí Consul 262.3 a grafickým displejem
 DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno „DGD-1“. `ZPS-2_MIKOS_V5_DGD-1V.sapi` je
 totéž s Liborovou DGD-1V (VGA, jantarová) místo DGD-1 (`docs/desky/DGD-1V.md`).
+`ZPS-2_MIKOS_K.sapi` je ZPS-2 s MIKOSem/K V5.0 a kazetopáskovým záznamníkem dat KZD-1 na DPP-1 (30h, X2), kazeta
+v okně Média, poprvé ji připravit `.K_I` (`docs/desky/KZD-1.md`).
 `ZPS-2_MIKOS_D.sapi` je ZPS-2 s disketovým MIKOSem/D V5.0, řadičem RPD-1 (dva sloty) a 8" mechanikou se
 systémovou disketou (`docs/desky/RPD-1.md`). BDK-1
 (bastldeska) je prázdná deska pro vlastní zapojení uživatele, na sběrnici nic nedělá a jen zabírá slot.

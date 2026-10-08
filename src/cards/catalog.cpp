@@ -1178,6 +1178,11 @@ static const ParamOption k_dpp1_prn_channel[] = {
     { "2", "channel 2 (base+4..7, X3)", "kanál 2 (základ+4..7, X3)" },
     { nullptr, nullptr, nullptr },
 };
+static const ParamOption k_dpp1_kzd_channel[] = {
+    { "1", "channel 1 (base+0..3, X2), as MIKOS/K (30h)", "kanál 1 (základ+0..3, X2), jako MIKOS/K (30h)" },
+    { "2", "channel 2 (base+4..7, X3)", "kanál 2 (základ+4..7, X3)" },
+    { nullptr, nullptr, nullptr },
+};
 static const CardParam k_dpp1[] = {
     { "base", PK_CHOICE, "S1: ports", "S1: porty", "\"28h\"", k_dpp1_base, 0, 0 },
     { "pmd_channel", PK_CHOICE, "PMD32-SD on", "PMD32-SD na", "2", k_dpp1_channel, 0, 0 },
@@ -1197,6 +1202,11 @@ static const CardParam k_dpp1[] = {
       nullptr, 0, 0 },
     { "pmd32sd.startup_ms", PK_INT, "Start-up delay (ms, real 3000)", "Prodleva po zapnutí (ms, skutečně 3000)",
       "0", nullptr, 0, 10000 },
+    { "kzd1_channel", PK_CHOICE, "KZD-1 on", "KZD-1 na", "1", k_dpp1_kzd_channel, 0, 0 },
+    { "kzd1", PK_SECTION, "KZD-1 cassette data recorder (MIKOS/K)", "Kazetopáskový záznamník dat KZD-1 (MIKOS/K)", "false",
+      nullptr, 0, 0 },
+    { "kzd1.cassette", PK_FILE, "Cassette (.kzd, created empty when missing)", "Kazeta (.kzd, prázdná se vytvoří)",
+      "\"work/kzd-1/kazeta.kzd\"", k_none, 0, 0 },
     { "printer_channel", PK_CHOICE, "Printer on (8255 mode 1: /OBF = /STROBE, /ACK)",
       "Tiskárna na (8255 mód 1: /OBF = /STROBE, /ACK)", "1", k_dpp1_prn_channel, 0, 0 },
     { "printer", PK_SECTION, "Printer (Centronics), ECMON and J. Biba: PUN:, LST: = UL1:",

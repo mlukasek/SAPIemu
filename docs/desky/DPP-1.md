@@ -2,7 +2,8 @@
 
 Stav: **emulovaná** (typ `DPP-1`, `src/cards/dpp1.*`), od 2026-10-05. Na kanál 2 (nebo 1) jde připojit emulátor disket
 PMD32-SD (`docs/desky/PMD32-SD.md`), jak ho používají ECMON a CP/M J. Bíby. Od 2026-10-06 jde na druhý kanál
-připojit tiskárnu Centronics (`docs/tiskarna.md`). Sestavy `cpm_zrmd_dpp1.sapi`, `cpm_pmd_rpd1.sapi`, `cpm_pmd_fdc1.sapi`, testy
+připojit tiskárnu Centronics (`docs/tiskarna.md`). Od 2026-10-09 jde na kanál 1 (X2) připojit kazetopáskový záznamník
+dat KZD-1 pro MIKOS/K (`docs/desky/KZD-1.md`, sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`). Sestavy `cpm_zrmd_dpp1.sapi`, `cpm_pmd_rpd1.sapi`, `cpm_pmd_fdc1.sapi`, testy
 `test_sapi_sys`, `test_printer`.
 
 ## Podklady
@@ -78,7 +79,11 @@ na fotce otočeného o 90° (X1 vpravo, **X3 vlevo nahoře**, X2 vlevo dole). Se
 - **Tiskárna** (sekce `printer`, `printer_channel`, výchozí kanál 1): port A v módu 1, /OBF = /STROBE, /ACK
   tiskárny na PC6. ECMON na ni tiskne při `LST: = UL1:`. 8255 má od 2026-10-06 mód 1 i na portu A (vstup
   i výstup).
-- Okno Média a nástroje MCP (`pmd32_images`, `pmd32_mount`) najdou PMD32-SD na IDE-1 i na DPP-1.
+- **KZD-1** (sekce `kzd1` s `cassette`, `kzd1_channel`, výchozí kanál 1 = X2): port A řízení (výstup), port B stav
+  (vstup), řídicí slovo 8Bh, jak to chce MIKOS/K na 30h (1S1 = 1, 2S1 = 0, 3S1 = 1, 1S2 = 1, 2S2 = 0, 1S3 = 0).
+  Kanál nesmí sdílet s PMD32-SD ani tiskárnou. Podrobnosti v `docs/desky/KZD-1.md`.
+- Okno Média a nástroje MCP (`pmd32_images`, `pmd32_mount`) najdou PMD32-SD na IDE-1 i na DPP-1. Okno Média ukazuje
+  i kazetu KZD-1, MCP má nástroj `kzd1`.
 
 ## Nejasnosti k ověření na HW
 

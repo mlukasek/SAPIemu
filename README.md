@@ -43,7 +43,9 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   - řadiče disket RPD-1, FDC-1 a MFC-1A: 8" SS SD i diskety PC 3,5"/5,25" HD a DD (MFM, dvě strany), obrazy
     `.img` i ImageDisk `.imd` (libovolná geometrie, čtení i zápis, nová disketa `.imd` přijme jakýkoli formát),
     motory mechanik PC s rozběhem; formátování ověřené originálními programy J. Bíby a výpisy z reálných MFC-1A;
-  - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD, tiskárna);
+  - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD, tiskárna, KZD-1);
+  - kazetopáskový záznamník dat KZD-1 s MIKOSem/K V5.0: model mechaniky a dvou stop, kazety `.kzd` s oběma
+    stranami a zoubky proti zápisu, kreslená kazeta s cívkami v okně Média;
   - DSP-1 se dvěma sériovými kanály 8251 (programy XMODEM J. Bíby ověřené oběma směry);
   - deska reálného času RTC-1 (čítač ve dvousekundách podle hodin PC, 8253, přerušení, watchdog);
   - tiskárna Centronics na X3 procesorové karty nebo na DPP-1: soubor s bajty a okno s vytištěným textem;
@@ -99,6 +101,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   v [kazeta.md](docs/software/kazeta.md)).
 - [docs/8085.md](docs/8085.md): procesor 8085 (JPR-1X): takty, RIM/SIM, nedokumentované instrukce, příznaky.
 - [docs/tiskarna.md](docs/tiskarna.md): tiskárna Centronics (X3 procesorové karty, DPP-1).
+- [docs/desky/KZD-1.md](docs/desky/KZD-1.md): kazetopáskový záznamník dat KZD-1 a MIKOS/K.
 - [docs/stav.md](docs/stav.md): ukládání stavu. [docs/mcp.md](docs/mcp.md): MCP server.
   [docs/build.md](docs/build.md): sestavení a tipy pro vývoj.
 - [docs/SOUHRN.md](docs/SOUHRN.md): stav projektu, plán, otázky k ověření na skutečném hardwaru.

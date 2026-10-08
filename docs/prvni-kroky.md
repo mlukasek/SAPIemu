@@ -44,7 +44,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `jpr1x_bgp1s.sapi` | JPR-1X (8085, TURBO) s RAM-1, BGP-1S a MIKROBIOSem 1.02 | jako `jpr1s_bgp1s`; TURBO tlačítkem na panelu ZDR nebo v menu Stroj |
 | `zps/ZPS-1_JPR-1X.sapi` | ekvivalent ZPS-1 s JPR-1X: MIKROBASIC 2.4 z horní banky ROM | rovnou píšete v BASICu |
 | `zps/ZPS-6.sapi` | SAPI-1.5 (1990): PKT-1, RSW-1, MFC-1A, barevná DBS-1A, CP/M 2.2 62K z 5,25" diskety | `DIR`, `SETDBS1` (barvy a celá znaková sada), další diskety Melsoft `media/sapi15` v okně Média |
-| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
+| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety, MIKOS/K se záznamníkem dat KZD-1 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
 | `zps/ZPS-3*.sapi`, `zps/ZPS-4*.sapi` | CP/M 2.2/P z 8" diskety (RPD-1, u `_FDC-1` řadič FDC-1), 48K a 62K, ELIS | naběhne CP/M |
 | `zps/ZPS-3_CPM48K_IMA.sapi` | originální CP/M 2.2 46K Tesla IMA s MON V1.0-C1 (systém z MOVCPM48) | `DIR`, `DIR B:` |
 | `zps/ZPS-3_CPM64K_IMA.sapi` | originální CP/M 2.2 64K Tesla IMA (B: MBASIC, COBOL) | `B:`, `MBASIC` |
@@ -122,6 +122,11 @@ Další programy z `media\` si nahrajete takto:
   1. Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0G.hex`;
   2. `B`;
   3. `CLSG:FOR I=0 TO 319 STEP 8:MOVE I,0:PLOT 319-I,239:NEXT I`.
+- **Záznamník dat KZD-1** (`zps\ZPS-2_MIKOS_K.sapi`, kazeta v okně Média):
+  1. `.K` `I`, název pásky (nová kazeta se musí připravit, chvíli to trvá);
+  2. `.K` `S`, jméno, `=5000 53FF` a Enter uloží paměť;
+  3. `.K` `D` vypíše adresář;
+  4. `.K` `Z` převine na začátek, `.K` `L` a jméno soubor načte (návod v `docs/desky/KZD-1.md`).
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

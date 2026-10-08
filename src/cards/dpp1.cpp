@@ -2,7 +2,9 @@
 #include "cards/pmd32link.h"
 #include "core/bus.h"
 #include "core/state.h"
+#include "core/util.h"
 
+#include <math.h>
 #include <stdio.h>
 
 using nlohmann::json;
@@ -35,13 +37,32 @@ bool Dpp1::configure(const json& cfg, std::string& err)
         return false;
     }
     prn_channel = (int)v - 1;
+    if (!cfg_number(cfg, "kzd1_channel", v, 1, err)) return false;
+    if (v != 1 && v != 2) {
+        err = "kzd1_channel must be 1 or 2";
+        return false;
+    }
+    kzd_channel = (int)v - 1;
+    kzd_enabled = cfg.contains("kzd1") && !cfg["kzd1"].is_null();
     pmd_enabled = cfg.contains("pmd32sd") && !cfg["pmd32sd"].is_null();
     prn_enabled = cfg.contains("printer") && !cfg["printer"].is_null();
     if (pmd_enabled && prn_enabled && pmd_channel == prn_channel) {
         err = "the PMD32-SD and the printer cannot share a channel";
         return false;
     }
+    if (kzd_enabled && ((pmd_enabled && pmd_channel == kzd_channel) || (prn_enabled && prn_channel == kzd_channel))) {
+        err = "the KZD-1 needs its own channel";
+        return false;
+    }
     if (prn_enabled && !prn.configure(cfg["printer"], err)) return false;
+    if (kzd_enabled) {
+        kzd.bus = bus;
+        kzd.ppi = &ppi[kzd_channel];
+        ppi[kzd_channel].dev = &kzd;
+        std::string cas;
+        if (!cfg_string(cfg["kzd1"], "cassette", cas, "work/kzd-1/kazeta.kzd", err)) return false;
+        if (!probe && !cas.empty() && !kzd.insert(data_path(cas), err)) return false;
+    }
     if (pmd_enabled) {
         pmd.attach(&ppi[pmd_channel]);
         pmd.cpm_drive = &bus->cpm_drive;
@@ -61,6 +82,7 @@ void Dpp1::reset()
 
 void Dpp1::advance(uint64_t now)
 {
+    if (kzd_enabled) kzd.advance(now);
     if (pmd_enabled) pmd.advance(now, bus->cpu_hz);
     if (prn_enabled) printer_service(now);
 }
@@ -85,6 +107,7 @@ int Dpp1::decode_io(uint8_t port, const char** what)
     if ((port & 0xF8) != base) return 0;
     int ch = (port >> 2) & 1;
     if (pmd_enabled && ch == pmd_channel) *what = ch ? "DPP-1 channel 2 (8255), PMD32-SD" : "DPP-1 channel 1 (8255), PMD32-SD";
+    else if (kzd_enabled && ch == kzd_channel) *what = ch ? "DPP-1 channel 2 (8255), KZD-1" : "DPP-1 channel 1 (8255), KZD-1";
     else if (prn_enabled && ch == prn_channel) *what = ch ? "DPP-1 channel 2 (8255), printer" : "DPP-1 channel 1 (8255), printer";
     else *what = ch ? "DPP-1 channel 2 (8255)" : "DPP-1 channel 1 (8255)";
     return DEC_READ | DEC_WRITE;
@@ -122,6 +145,7 @@ bool Dpp1::io_write(uint8_t port, uint8_t data)
 
 void Dpp1::flush()
 {
+    if (kzd_enabled) kzd.flush();
     pmd.flush();
     prn.flush();
 }
@@ -135,6 +159,10 @@ void Dpp1::describe(json& out)
     if (pmd_enabled) pmd32_describe(pmd, out);
     if (prn_enabled)
         out["printer"] = json{ { "channel", prn_channel + 1 }, { "output", prn.path() }, { "bytes", prn.bytes } };
+    if (kzd_enabled)
+        out["kzd1"] = json{ { "channel", kzd_channel + 1 }, { "cassette", kzd.loaded() ? kzd.path() : std::string() },
+                            { "side", kzd.side ? "B" : "A" }, { "position_m", round(kzd.position_m() * 100) / 100 },
+                            { "motion", kzd.motion() } };
 }
 
 void Dpp1::state(StateIO& io)
@@ -148,4 +176,9 @@ void Dpp1::state(StateIO& io)
     io.end();
     io.v(prn_wait_ack);
     prn.state(io);
+    if (kzd_enabled) {
+        io.begin("kzd1");
+        kzd.state(io);
+        io.end();
+    }
 }

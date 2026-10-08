@@ -122,6 +122,22 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
   - `BASIMS4.SYS` (BASIC s IMS-2), `KONVERT.SYS` (převod kazeta ↔ disketa);
   - `COPYSYS.SYS`, `X2.SYS`.
 
+## MIKOS/K V5.0 (kazetopáskový záznamník dat KZD-1)
+
+- Zdroj: `..\SAPI_DOKU\MIKOS5_K\` (návod `MIKOS5K.DOC`, zdroják `KZD.MAC` z 6. 4. 88, překlad, binárky
+  3× 2716). V repu `roms/mikos/MONITOR_V5.0E_MIKOS_K_V5.0.bin` = `MIKOS5K.BIN` (Monitor V5.0E 0000–0BFF, MIKOS/K
+  0C00–17FF). Sestava `machines/zps/ZPS-2_MIKOS_K.sapi`: jako ZPS-2 s MIKOSem V5, navíc DPP-1 na 30h s KZD-1 na X2.
+  Magnetofon na DSM-1 zůstává pro kopírovací program CKM.
+- Po resetu `MIKOS/K V5.0 (C) TESLA DIZ 1987` a `MONITOR V5.0`. Příkazy jsou jako u MIKOSu V5 (`.K` a písmeno,
+  `NAZEV:`), služby přes 157h zůstaly kompatibilní.
+- **Novou kazetu je nutné připravit `.K_I`** (název pásky), jinak se na ni nedá zapsat.
+- Pro načtení od začátku pásky použít `.K_Z` nebo jméno s tečkou (`.K_L` `.JMÉNO`), ne `.K_R`. Po K_R a K_D najde
+  K_L soubor na špatném místě a skončí `CHYBA - NENI KONEC SOUBORU`. Je to chování originálu, rozbor
+  v `docs/desky/KZD-1.md`.
+- Chybová hlášení: 30 ZAZNAM NENI POVOLEN (chybí zoubek), 32 CHYBA CTENI DAT, 34 CHYBA OZNACENI BLOKU,
+  36 KONEC PASKY, 38 NENI KONEC SOUBORU, 3A NENI BINARNI FORMAT, 3C SOUBOR NEEXISTUJE.
+- **Ověřeno** (`test_kzd1`): K_I, K_S, K_D, K_Z, K_L (data souhlasí), zápis bez zoubku.
+
 ## Formát pásky
 
 Podrobně (ověřeno podle zdrojáků ROM a skutečných nahrávek, 2026-10-06): `docs/software/kazeta.md`.

@@ -10,9 +10,12 @@
 // of ECMON and J. Biba use it (channel 2, 2Ch-2Fh), and a Centronics printer on port A of a
 // channel in mode 1 output: /OBF (PC7) is its /STROBE, its /ACK goes to PC6 (/ACK of the 8255).
 // ECMON and J. Biba send PUN: (and LST: = UL1:) there, channel 1 (28h-2Bh, control word AEh).
+// The KZD-1 cassette data recorder on X2 (channel 1, MIKOS/K: 30h-33h, control word 8Bh): port A
+// drives it, port B reads it (chips/kzd1.h).
 // The switches S2-S4 (direction of the 3216 buffers, polarity of the PC signals) are assumed
 // set as the devices need; a channel without a device reads high.
 #include "chips/i8255.h"
+#include "chips/kzd1.h"
 #include "chips/pmd32sd.h"
 #include "chips/printer.h"
 #include "core/card.h"
@@ -34,6 +37,7 @@ public:
     unsigned panel_leds() override;
     Pmd32Sd* pmd32sd() override { return pmd_enabled ? &pmd : nullptr; }
     Printer* printer() override { return prn_enabled ? &prn : nullptr; }
+    Kzd1* kzd1() override { return kzd_enabled ? &kzd : nullptr; }
 
 private:
     uint8_t base = 0x28;          // S1
@@ -45,6 +49,9 @@ private:
     bool prn_enabled = false;
     Printer prn;
     bool prn_wait_ack = false;    // the printer has the byte of /OBF, its /ACK is to come
+    int kzd_channel = 0;          // KZD-1: 0 = channel 1 (X2), 1 = channel 2 (X3)
+    bool kzd_enabled = false;
+    Kzd1 kzd;
     void printer_service(uint64_t now);
     uint64_t access_at = 0;       // activity LED of the panel drawing (not on the real card)
     bool accessed = false;

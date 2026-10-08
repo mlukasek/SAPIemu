@@ -5,9 +5,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 ## Kde jsme skončili (2026-10-09) a co dál
 
 - **Stav:**
-  - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 42 v debug i v release (2026-10-08, s `test_aps5`); release `full` naposledy 45 včetně ZEX, 8080EXM
-    a 8085EXM, Linux ve WSL 41 (2026-10-07, GCC 13 bez varování ve vlastním kódu). Vše prochází. Kdy které testy:
+  - Všechno je commitnuté na `main`. KZD-1 (2026-10-09) je zatím jen lokálně, push jen na vyžádání (repo je
+    neveřejné).
+  - Testy: 43 v debug (2026-10-09, s `test_kzd1`), release naposledy 42 (2026-10-08, s `test_aps5`); release
+    `full` naposledy 45 včetně ZEX, 8080EXM a 8085EXM, Linux ve WSL 41 (2026-10-07, GCC 13 bez varování ve vlastním kódu). Vše prochází. Kdy které testy:
     `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).
@@ -55,6 +56,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **KZD-1** (2026-10-09, přání autora, `docs/desky/KZD-1.md`): kazetopáskový záznamník dat na DPP-1 X2 s MIKOSem/K
+  V5.0 (originální EPROM 6. 4. 88), sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`.
+  - Model signálů rozhraní: dvě stopy, impulsy 40 µs, rozběh motorů, přetížení na konci pásky, zoubky proti zápisu.
+  - Kazety `.kzd` (obě strany), okno Média s kreslenou kazetou a cívkami, MCP `kzd1`.
+  - MIKOS/K: K_I, K_S, K_D, K_Z, K_L ověřené. Po K_R a K_D hlásí K_L `NENI KONEC SOUBORU`: chyba originálu
+    (stejně i verze 18. 5. 88), ponecháno věrně, správně je K_Z nebo `.JMÉNO`.
+  - Otázky na HW v Nejasnostech `KZD-1.md`. Dál: kopírovací program CKM, převod programu na kazetu `.kzd`.
 - **APS-5** (2026-10-08, přání autora: „ať je co měřit a na co koukat“, `docs/desky/APS-5.md`): měřicí jednotka
   Tesla s původním firmwarem (7 × 2716 ze sapi.cz) v sestavě `machines/aps5.sapi`, test `test_aps5`.
   - Nové desky: ADP-1, DMT-1 a DRV-1A.
@@ -252,6 +260,25 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         Bez softwaru: ROM-1, MTS-1, PDS-1Z, UDR-1, AND-1 úprava, DOV-1, DRV-1, DAP-1, ADC/DAC, desky CHP 3000
         (stránky `z-1xx`, Chemoprojekt). DMR-1A je nejspíš naše DMR-1. Vedlejší nález: programy pro plottery na DPP-1
         (Aritma Minigraf 0507/0517, XY4130, plotter z AR 1990). Výpisy a extrakty v pracovní složce průzkumu (mimo git).
+     f) **Zásobník nápadů (2026-10-09, autor: „všechno jsou dobré nápady, vrátíme se k nim“):**
+        1. model plotteru na DPP-1 (okno s kreslením, export PNG/SVG; ovladače Minigraf 0507/0517, XY 4130,
+           AR 1990; ovladač XY 4130 je za MIKOSem V5 v `_ROM\MIKOS v5\MIKOS5.BIN`);
+        2. RKD-1 (kazetový disk CM 5403, CP/M ze zdrojáků Tesla Elstroj);
+        3. DSE-1 (simulátor a programátor EPROM);
+        4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;
+        5. souhrnný seznam otázek k ověření na HW (bod a);
+        6. další várka otázek pro EC1045 (bod b);
+        7. alfa 0.4.0 pro kamarády (APS-5 s DEMEM, CRM-1, RTC-1, DSP-1, ImBUS, nové sestavy).
+     g) **KZD-1** (kazetopáskový záznamník dat ZPA Košíře 1986, k SAPI s MIKOSem/K V5.0 TESLA ELTOS DIZ 1988).
+        **Hotovo 2026-10-09:** `docs/desky/KZD-1.md`, sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`. Dál se nabízí
+        kopírovací program CKM (magnetofon ↔ KZD-1, zdroják `CKM.MAC`) a převod programu na kazetu `.kzd`. Podklady:
+        - `..\SAPI_DOKU\KZD-1\` (sken návodu `kzd1.pdf`, 29 stran);
+        - MIKOS/K V5.0 (6. 4. 88 a 18. 5. 88, zdroje, PRN, HEX) v `..\SAPI_DOKU\SAPI_EPROM\ZPS-2\V5\`
+          a `MIKOS5_K\`; kopírovací program CKM (magnetofon ↔ KZD-1);
+        - ovladač z PMD 85-3 upravený pro MIKROBASIC na SAPI (port 2C00h, `KZD_SAPI.txt`);
+        - návod MIKOS V5 na sapi.cz (`doku2/v5.php`): kabel KZD-1 → DPP-1 X2, 8255 na 30h/31h/33h, formát
+          záznamu (dvě stopy, asi 10 kbit/s, bloky se synchronizací FBh);
+        - wiki https://pmd85.borik.net/wiki/KZD-1.
 - **Pracovní pravidla, která se osvědčila:**
   - Skripty s `\n`, `\r` a `\b` psát nástrojem Write do souboru, ne přes heredoc v bashi. Shell zpětná lomítka
     rozbije a do souborů se pak dostanou řídicí znaky.

@@ -37,7 +37,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     **každá karta musí mít `state()`**);
   - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`, upravené o režim 8085 pro JPR-1X,
     `docs/8085.md`);
-  - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421…);
+  - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421…) a mechaniky (magnetofon, záznamník dat
+    KZD-1 `kzd1`);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap, diag = okno desky diagnostiky na K3, `shot` = snímky

@@ -3,6 +3,7 @@
 #include "cards/dsm1.h"
 #include "cards/hrk1.h"
 #include "cards/ide1.h"
+#include "chips/kzd1.h"
 #include "chips/printer.h"
 #include "core/charset.h"
 #include "core/headless.h"
@@ -917,6 +918,49 @@ json t_plant(EmuHost& h, const json& a)
     return json_result(j);
 }
 
+json t_kzd1(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    Card* card = nullptr;
+    for (auto& c : m.cards)
+        if (c->kzd1() && (!a.contains("card") || c->name == a.value("card", std::string()) || c->type == a.value("card", std::string()))) {
+            card = c.get();
+            break;
+        }
+    if (!card) return error_result("no KZD-1 in this machine (DPP-1 parameter kzd1)");
+    Kzd1* k = card->kzd1();
+    std::string err;
+    if (a.value("eject", false)) k->eject();
+    if (a.contains("new")) {
+        std::string p = data_path(arg_str(a, "new", nullptr, true));
+        KzdCassette empty;
+        if (!empty.save(p, err) || !k->insert(p, err)) return error_result(err);
+    }
+    if (a.contains("insert") && !k->insert(data_path(arg_str(a, "insert", nullptr, true)), err)) return error_result(err);
+    if (a.value("flip", false)) k->flip();
+    if (a.contains("tab_a")) k->set_tab(0, a.value("tab_a", true));
+    if (a.contains("tab_b")) k->set_tab(1, a.value("tab_b", true));
+    if (a.value("flush", false)) k->flush();
+    json j;
+    j["card"] = card->name;
+    j["cassette"] = k->loaded() ? k->path() : std::string();
+    if (k->loaded()) {
+        j["side"] = k->side ? "B" : "A";
+        j["position_m"] = round(k->position_m() * 1000) / 1000;
+        j["tab_a"] = k->tab(0);
+        j["tab_b"] = k->tab(1);
+        j["transitions"] = k->transitions();
+    }
+    j["motion"] = k->motion();
+    j["speed_m_s"] = round(k->speed() * 100) / 100;
+    j["overload_motor1"] = k->overload(1);
+    j["overload_motor2"] = k->overload(2);
+    char b[8];
+    snprintf(b, sizeof(b), "%02Xh", k->controls());
+    j["controls_port_a"] = b;
+    return json_result(j);
+}
+
 json t_mouse(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1308,6 +1352,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
     { "diag_board", "Diagnostic board on K3 of JPR-1S / JPR-1X (parameter k3 = diag): two seven segment displays (left = P2-OUT, right = P1-OUT; segments a..g, dp = bits 0..7) and two buttons, \"+\" on P2-IN0 (JPR-1X: interrupt request R0) and \"-\" on P2-IN7 (R7). Without arguments it reports what the displays show; press = \"+\" or \"-\" holds the button for hold_ms (default 150) while the machine runs, then runs after_ms (default 200).",
       R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
+    { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). Paths relative to the data root.",
+      R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"string"},"eject":{"type":"boolean"},"flip":{"type":"boolean"},"tab_a":{"type":"boolean"},"tab_b":{"type":"boolean"},"flush":{"type":"boolean"}}})", t_kzd1 },
     { "plant", "APS-5: the plant (furnaces, thermocouples, terminal block) and the front panel HRK-1. Without arguments it reports the temperatures, heaters (DRV-1A contacts), logic inputs/outputs and the panel (key switch, fault LED, watchdog relay). Arguments change it: lock (1 operator, 2 programming), outage_s (a mains failure of that many seconds: the power fail warning, then no power, then power again; run the machine to see it), ambient_c, block_c (isothermal terminal block), battery_v, reset (all furnaces to the ambient temperature), and for channel (1-8): temperature_c (sets the furnace at once), tc_broken, heater_broken, li_a / li_b (logic inputs, true = H open). Keys of the panel: type_text with 0-9, M, R, backspace (<-), CR (->).",
       R"({"type":"object","properties":{"lock":{"type":"integer","enum":[1,2]},"outage_s":{"type":"number"},"ambient_c":{"type":"number"},"block_c":{"type":"number"},"battery_v":{"type":"number"},"reset":{"type":"boolean"},"channel":{"type":"integer"},"temperature_c":{"type":"number"},"tc_broken":{"type":"boolean"},"heater_broken":{"type":"boolean"},"li_a":{"type":"boolean"},"li_b":{"type":"boolean"}}})", t_plant },
     { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 or the ANK-1M2 keyboard connector set to joystick; ANK-1M2 follows port 0): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",

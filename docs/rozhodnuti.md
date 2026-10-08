@@ -1313,3 +1313,22 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   segmentem, nechá a jiný nepřepíše.
 - **RESET zůstává věrný** („nech to věrně“): u APS-5 vede na CHYBA 0 a studený start, v dokumentaci je varování.
 
+
+## 2026-10-09 – KZD-1 (kazetopáskový záznamník dat) a MIKOS/K
+
+- **Přání autora:** připojit KZD-1 k SAPI-1 („jsem přesvědčen, že se k SAPI připojoval“). Potvrzuje to MIKOS/K
+  V5.0 (TESLA ELTOS DIZ 1988) s kabelem na DPP-1 X2. Plán (DPP-1, soubory `.kzd`, sestava, kazeta s cívkami, testy)
+  autor odsouhlasil.
+- **Model na úrovni signálů rozhraní, ne bajtů:** páska je seznam změn magnetizace (poloha v µm, stopa), mechanika
+  má rozběh, doběh a přetížení motorů na konci. MIKOS/K tak běží nezměněný se svým časováním (hledání mezer,
+  převíjení do přetížení) a jde použít i jiný software (ovladač z PMD 85, CKM).
+- **Vlastní formát `.kzd`** místo zvuku: KZD-1 je digitální záznamník (impulsy 40 µs, žádný analogový signál),
+  WAV by nic nepřidal. Soubor nese obě strany a zoubky proti zápisu.
+- **Zoubek jen hlásí** (ZÁZN. U.V.*), zápis neblokuje, jak je to na skutečném přístroji. Kontrolu dělá software.
+- **ROM = originální dump 6. 4. 88** (`MIKOS5K.BIN`). Verzi 18. 5. 88 (`KZD2.MAC`) jsem přeložil pro DPP-1 jen
+  kvůli ověření. Chová se stejně, do repa nejde.
+- **K_R před K_L nechávám věrně:** po K_R hledá K_L od fyzického začátku pásky. Úsek 55h z K_I přečte jako vadný
+  blok a jméno porovná se starým bufferem. Po K_D tak skončí `NENI KONEC SOUBORU`. Ověřeno trasováním obou verzí
+  MIKOSu/K, chyba je ve firmwaru, ne v emulaci. Návod k načítání od začátku nabízí K_Z nebo `.JMÉNO`, test je používá.
+- **Bez povoleného zápisu souborů** (testy, `battery` vypnuté) se chybějící kazeta vytvoří jen v paměti. Testy tak
+  nezakládají soubory ve `work/`.

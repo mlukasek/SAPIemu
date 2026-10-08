@@ -16,7 +16,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 00–03, 0E | PKT-1 (SAPI-1.5): 8255 00–03 (tiskárna, klávesnice), 0E = BOOT, MAP2, MAP1 (`docs/desky/PKT-1.md`) |
 | 18–1F | RSW-1 (SAPI-1.5): 8251 18–19, 8253 1A–1D, maska přerušení 1E, watchdog 1F (`docs/desky/RSW-1.md`) |
 | E0–E1 | DBS-1A (SAPI-1.5): 6845 adresa a data (`docs/desky/DBS-1A.md`) |
-| 00–3F | DPP-1: 8 portů na základu 00h, 08h … 38h podle přepínačů S1 (+0–3 kanál 1, +4–7 kanál 2; ECMON a CP/M J. Bíby 28–2Fh: 28–2Bh `PUN:` nebo tiskárna (mód 1), PMD32-SD na 2C–2Fh; `docs/desky/DPP-1.md`) |
+| 00–3F | DPP-1: 8 portů na základu 00h, 08h … 38h podle přepínačů S1 (+0–3 kanál 1, +4–7 kanál 2; ECMON a CP/M J. Bíby 28–2Fh: 28–2Bh `PUN:` nebo tiskárna (mód 1), PMD32-SD na 2C–2Fh; MIKOS/K 30–33h: KZD-1 na kanálu 1, 30h řízení, 31h stav, 33h = 8Bh, `docs/desky/KZD-1.md`; `docs/desky/DPP-1.md`) |
 | 30–37 | DPP-1/7 |
 | 38–3B | BWP-1 |
 | 3C–3F | RPD-1B |

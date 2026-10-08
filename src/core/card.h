@@ -14,6 +14,7 @@ class SerialChannel;
 class StateIO;
 struct FloppyDrive;
 class Pmd32Sd;
+class Kzd1;
 struct Printer;
 
 enum IrqLine {
@@ -71,6 +72,8 @@ public:
     virtual Pmd32Sd* pmd32sd() { return nullptr; }
     // Printer connected to the card (JPR X3, DPP-1), nullptr if none.
     virtual Printer* printer() { return nullptr; }
+    // KZD-1 cassette data recorder connected to the card (DPP-1 X2), nullptr if none.
+    virtual Kzd1* kzd1() { return nullptr; }
     virtual bool floppy_insert(int index, const std::string& image, bool write_protect, std::string& err)
     {
         err = "no such drive";

@@ -10,6 +10,7 @@
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
 #include "chips/floppy.h"
+#include "chips/kzd1.h"
 #include "core/host.h"
 #include "core/ihex.h"
 #include "core/log.h"
@@ -25,6 +26,7 @@ static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX (HEX, IHX, TXT
 static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD, 8SD, SP2, SP1)", "img;8sd;imd;sp2;sp1" },
                                                      { "*", "*" } };
 static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
+static const SDL_DialogFileFilter k_kzd_filter[] = { { "Kazeta KZD-1 (KZD)", "kzd" }, { "*", "*" } };
 
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
 
@@ -63,6 +65,8 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 2, where.c_str(), false);
     else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
     else if (kind == 9) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
+    else if (kind == 10) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 2, where.c_str(), false);
+    else if (kind == 11) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
@@ -146,6 +150,23 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     if (kind == 6) {   // a binary file: ask for the address first
         ui.bin_path = path;
         ui.bin_ask = true;
+        return;
+    }
+    if (kind == 10 || kind == 11) {   // a cassette for the KZD-1 data recorder
+        Card* r = m->find_card(card);
+        Kzd1* k = r ? r->kzd1() : nullptr;
+        if (!k) return;
+        std::string err;
+        if (kind == 11) {   // a new one: empty (the save dialog asked before replacing a file)
+            size_t slash = path.find_last_of("/\\");
+            if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".kzd";
+            KzdCassette empty;
+            if (!empty.save(path, err)) {
+                LOGE("%s", err.c_str());
+                return;
+            }
+        }
+        if (!k->insert(path, err)) LOGE("%s", err.c_str());
         return;
     }
     if (kind == 4 || kind == 5) {   // a floppy for a drive of a disk controller (RPD-1, FDC-1)
@@ -267,6 +288,100 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     ImGui::SameLine();
     if (dsm->motor_on()) ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "%s", tr("motor running"));
     else ImGui::TextDisabled("%s", tr("motor stopped"));
+    ImGui::PopID();
+}
+
+// KZD-1: the cassette drawn with its reels (the tape wound from one to the other), its state and controls.
+static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
+{
+    ImGui::PushID(k);
+    float u = ImGui::GetFontSize();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImVec2 o = ImGui::GetCursorScreenPos();
+    float w = 15.0f * u, h = 9.4f * u;
+    bool has = k->loaded();
+    ImU32 shell = has ? IM_COL32(52, 54, 60, 255) : IM_COL32(36, 36, 38, 255);
+    dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), shell, 0.5f * u);
+    dl->AddRect(o, ImVec2(o.x + w, o.y + h), IM_COL32(120, 122, 128, 255), 0.5f * u, 0, 1.5f);
+    if (has) {
+        // label strip and the side letter
+        dl->AddRectFilled(ImVec2(o.x + 0.8f * u, o.y + 0.6f * u), ImVec2(o.x + w - 0.8f * u, o.y + 2.0f * u),
+                          IM_COL32(225, 215, 180, 255), 0.2f * u);
+        std::string name = k->path();
+        size_t sl = name.find_last_of("/\\");
+        if (sl != std::string::npos) name = name.substr(sl + 1);
+        dl->AddText(ImVec2(o.x + 1.1f * u, o.y + 0.8f * u), IM_COL32(30, 30, 30, 255), name.c_str());
+        char sd[4] = { (char)(k->side ? 'B' : 'A'), 0 };
+        dl->AddText(ImGui::GetFont(), 1.4f * u, ImVec2(o.x + w - 2.0f * u, o.y + 0.65f * u), IM_COL32(170, 30, 30, 255), sd);
+        // reels: hub 11 mm, full 24 mm; the tape of this side from the left reel to the right one
+        const double hub = 0.011, full = 0.024, len = KzdCassette::LENGTH_UM * 1e-6;
+        double p = k->position_m();
+        double left = len - p;
+        double rl = sqrt(hub * hub + (full * full - hub * hub) * left / len);
+        double rr = sqrt(hub * hub + (full * full - hub * hub) * p / len);
+        float sc = 2.6f * u / (float)full;   // pixels a metre
+        ImVec2 cl(o.x + 4.2f * u, o.y + 5.3f * u), cr(o.x + w - 4.2f * u, o.y + 5.3f * u);
+        ImU32 tape = IM_COL32(92, 58, 36, 255);
+        dl->AddCircleFilled(cl, (float)rl * sc, tape, 40);
+        dl->AddCircleFilled(cr, (float)rr * sc, tape, 40);
+        // the tape between the reels past the head (bottom)
+        float hy = o.y + h - 0.9f * u;
+        dl->AddLine(ImVec2(cl.x, cl.y + (float)rl * sc), ImVec2(o.x + 3.0f * u, hy), tape, 2.0f);
+        dl->AddLine(ImVec2(o.x + 3.0f * u, hy), ImVec2(o.x + w - 3.0f * u, hy), tape, 2.0f);
+        dl->AddLine(ImVec2(o.x + w - 3.0f * u, hy), ImVec2(cr.x, cr.y + (float)rr * sc), tape, 2.0f);
+        bool rec = k->recording() && k->speed() != 0;
+        dl->AddRectFilled(ImVec2(o.x + w * 0.5f - 0.8f * u, hy - 0.1f * u), ImVec2(o.x + w * 0.5f + 0.8f * u, hy + 0.6f * u),
+                          rec ? IM_COL32(220, 50, 40, 255) : IM_COL32(170, 172, 178, 255), 0.15f * u);
+        // hubs turning: the angle follows the tape wound on the reel
+        for (int side = 0; side < 2; side++) {
+            ImVec2 c = side ? cr : cl;
+            double r = side ? rr : rl;
+            float a = (float)((side ? p : -left) / (r > 0 ? r : hub));
+            float hr = (float)hub * sc;
+            dl->AddCircleFilled(c, hr, IM_COL32(215, 215, 220, 255), 24);
+            for (int s = 0; s < 6; s++) {
+                float t = a + s * 3.14159265f / 3;
+                dl->AddLine(c, ImVec2(c.x + cosf(t) * hr * 0.85f, c.y + sinf(t) * hr * 0.85f), IM_COL32(60, 60, 64, 255), 2.0f);
+            }
+        }
+    } else {
+        dl->AddText(ImVec2(o.x + 1.0f * u, o.y + 4.0f * u), IM_COL32(150, 150, 150, 255), tr("(no cassette)"));
+    }
+    ImGui::Dummy(ImVec2(w, h));
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    if (has) {
+        ImGui::Text("%s %c   %.2f / %.0f m", tr("Side"), k->side ? 'B' : 'A', k->position_m(), KzdCassette::LENGTH_UM * 1e-6);
+        ImGui::ProgressBar((float)(k->position_m() / (KzdCassette::LENGTH_UM * 1e-6)), ImVec2(12.0f * u, 0), "");
+    }
+    double sp = k->speed();
+    if (sp != 0 || k->target() != 0)
+        ImGui::TextColored(k->recording() ? ImVec4(1, 0.45f, 0.4f, 1) : ImVec4(0.5f, 1, 0.5f, 1), "%s  %.2f m/s", tr(k->motion()), sp);
+    else
+        ImGui::TextDisabled("%s", tr("stop"));
+    if (k->overload(1) || k->overload(2))
+        ImGui::TextColored(ImVec4(1, 0.7f, 0.3f, 1), "%s %d", tr("End of tape: overload of motor"), k->overload(1) ? 1 : 2);
+    if (has) {
+        bool ta = k->tab(0), tb = k->tab(1);
+        const char* tip = tr("The break-out tab of the side: present = recording allowed (MIKOS/K checks it)");
+        if (ImGui::Checkbox(tr("Tab A"), &ta)) k->set_tab(0, ta);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+        ImGui::SameLine();
+        if (ImGui::Checkbox(tr("Tab B"), &tb)) k->set_tab(1, tb);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+    }
+    ImGui::EndGroup();
+    if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 10, card->name);
+    ImGui::SameLine();
+    if (ImGui::Button(tr("New cassette..."))) tape_dialog(ui, 11, card->name);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!has);
+    if (ImGui::Button(tr("Eject"))) k->eject();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Turn over"))) k->flip();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("The other side of the cassette faces the head (the position is mirrored)."));
+    ImGui::EndDisabled();
     ImGui::PopID();
 }
 
@@ -575,7 +690,7 @@ void draw_media(UiState& ui)
     tape_program_question(ui, ui.host->machine());
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
-    ImGui::SetNextWindowSize(ImVec2(760, 340), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(760, 440), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr_id("Media"), &ui.show_media) || !m) {
         ImGui::End();
         return;
@@ -597,6 +712,14 @@ void draw_media(UiState& ui)
             ImGui::SeparatorText(title);
             draw_floppies(ui, c.get());
             continue;
+        }
+        if (Kzd1* k = c->kzd1()) {
+            any = true;
+            char title[96];
+            snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("KZD-1 cassette data recorder"));
+            ImGui::SeparatorText(title);
+            draw_kzd(ui, c.get(), k);
+            if (!c->pmd32sd()) continue;
         }
         Ide1* ide = dynamic_cast<Ide1*>(c.get());
         if (!ide && !c->pmd32sd()) continue;
