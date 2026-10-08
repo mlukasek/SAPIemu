@@ -2,8 +2,10 @@
 #include "core/bus.h"
 #include "core/log.h"
 #include "core/state.h"
+#include "core/tapegen.h"
 #include "core/util.h"
 
+#include <ctype.h>
 #include <math.h>
 #include <string.h>
 #include <algorithm>
@@ -76,6 +78,129 @@ bool KzdCassette::load(const std::string& path, std::string& err)
     return true;
 }
 
+// ---------------------------------------------------------------- a cassette made from a program
+// The layout MIKOS/K leaves on a new tape after K_I and one K_S (seen on tapes it wrote here): after the
+// leader the rest of the 55h lead-in of K_I (BOT, i.e. K_Z, reads 500 bytes of it), a long gap, the tape
+// name block (':'), FM, a long gap, the header (SOH), the data blocks ('B', the last EOT), FM, a long gap
+// and EM. A block: FBh, number, length (0 = 256), file, check (the four add up to 0), the data with its
+// type, CRC-16 (polynomial 0007h), the name (11), 55h 55h. FM and EM are 16 zero bytes. Bits 58 um apart
+// (PISBYT, 120 us at 48 cm/s), 78 um across a byte boundary, about 200 um after FBh and after the marking
+// (without them the read of MIKOS/K slips a bit); gaps as ZAKMM (110 ms) and ZADMM (819 ms).
+
+struct KzdWriter {
+    std::vector<uint32_t>& tr;
+    double pos;
+    void byte(uint8_t v)
+    {
+        for (int i = 7; i >= 0; i--) {
+            tr.push_back((uint32_t)(pos + 0.5) << 1 | ((v >> i) & 1u));
+            pos += i ? 58 : 78;
+        }
+    }
+    void bytes(const uint8_t* p, size_t n) { for (size_t i = 0; i < n; i++) byte(p[i]); }
+    void gap_mm(double mm) { pos += mm * 1000; }
+    void mark(void) { for (int i = 0; i < 16; i++) byte(0); }   // FM or EM
+};
+
+static uint16_t kzd_crc(const uint8_t* p, size_t n)
+{
+    uint16_t c = 0;
+    for (size_t i = 0; i < n; i++)
+        for (int b = 7; b >= 0; b--) {
+            bool fb = ((p[i] >> b) & 1) != ((c >> 15) & 1);
+            c = (uint16_t)(c << 1);
+            if (fb) c ^= 0x0007;
+        }
+    return c;
+}
+
+static void kzd_block(KzdWriter& w, uint8_t blk, uint8_t file, const uint8_t* data, size_t n, const uint8_t* name11)
+{
+    uint8_t len = (uint8_t)n;   // 256 = 0
+    uint8_t hdr[5] = { 0xFB, blk, len, file, (uint8_t)(0 - blk - len - file) };
+    w.byte(hdr[0]);
+    w.pos += 198 - 78;   // the writer (and the reader) need time after the sync byte and after the marking
+    w.bytes(hdr + 1, 4);
+    w.pos += 204 - 78;
+    w.bytes(data, n);
+    uint16_t c = kzd_crc(data, n);
+    w.byte((uint8_t)(c >> 8));
+    w.byte((uint8_t)c);
+    w.bytes(name11, 11);
+    w.byte(0x55);
+    w.byte(0x55);
+}
+
+// the data of a name block (the type, the name as typed, two spaces, zeros: 65 bytes) and the name field
+static void kzd_name(uint8_t type, const std::string& name, uint8_t* data65, uint8_t* name11)
+{
+    memset(data65, 0, 65);
+    data65[0] = type;
+    memcpy(data65 + 1, name.data(), name.size());
+    data65[1 + name.size()] = ' ';
+    data65[2 + name.size()] = ' ';
+    for (int i = 0; i < 11; i++) name11[i] = data65[1 + i] ? data65[1 + i] : ' ';
+}
+
+bool kzd_from_program(const std::string& path, const TapeProgram& p, const std::string& volume, KzdCassette& c,
+                      std::string& info, std::string& err)
+{
+    std::vector<uint8_t> mem, s;
+    uint32_t lo, hi;
+    if (!tape_load_image(path, p, mem, lo, hi, err)) return false;
+    std::vector<uint8_t> prog(mem.begin() + lo, mem.begin() + hi + 1);
+    if (!tape_mikos_file(prog, lo, p.entry, s, err)) return false;
+    std::string name = tape_name_clean(p.name);
+    if (name.empty()) name = tape_default_name(path);
+    std::string vol = tape_name_clean(volume);
+    if (vol.empty()) vol = name;
+    size_t blocks = (s.size() + 254) / 255;
+    if (blocks + 1 > 254) {
+        err = "the program is too long for one MIKOS/K file";
+        return false;
+    }
+    c = KzdCassette();
+    KzdWriter w = { c.tr[0], KzdCassette::LEADER_UM + 100.0 };
+    for (int i = 0; i < 1100; i++) w.byte(0x55);
+    w.gap_mm(720);
+    uint8_t d[256], nm[11];
+    kzd_name(':', vol, d, nm);
+    kzd_block(w, 1, 0, d, 65, nm);
+    w.gap_mm(53);
+    w.mark();
+    w.gap_mm(700);
+    kzd_name(0x01, name, d, nm);
+    kzd_block(w, 1, 1, d, 65, nm);
+    for (size_t b = 0; b < blocks; b++) {
+        size_t n = s.size() - b * 255 < 255 ? s.size() - b * 255 : 255;
+        memset(d, 0, sizeof(d));
+        d[0] = b + 1 == blocks ? 0x04 : 'B';
+        memcpy(d + 1, &s[b * 255], n);
+        w.gap_mm(53);
+        kzd_block(w, (uint8_t)(b + 2), 1, d, 256, nm);
+    }
+    w.gap_mm(53);
+    w.mark();
+    w.gap_mm(393);
+    w.mark();
+    char buf[160];
+    snprintf(buf, sizeof(buf), "MIKOS/K \"%s\" on tape \"%s\": %04X-%04Xh, %u B, %u blocks, .K_L then .J",
+             name.c_str(), vol.c_str(), (unsigned)lo, (unsigned)(s[1] | s[2] << 8), (unsigned)(s.size() - 9),
+             (unsigned)blocks + 1);
+    info = buf;
+    return true;
+}
+
+std::string kzd_program_path(const std::string& name)
+{
+    std::string n;
+    for (char ch : name) n += isalnum((unsigned char)ch) || ch == '-' ? ch : '_';
+    if (n.empty()) n = "PROGRAM";
+    std::string base = data_path("work/kzd-1/" + n), p = base + ".kzd";
+    for (int i = 2; file_exists(p) && i < 1000; i++) p = base + "-" + std::to_string(i) + ".kzd";
+    return p;
+}
+
 // ---------------------------------------------------------------- the recorder
 
 double Kzd1::now_s(void) const
@@ -99,6 +224,17 @@ bool Kzd1::insert(const std::string& p, std::string& err)
     side = 0;
     pos_um = KzdCassette::LEADER_UM;   // a cassette goes in wound to the start of side A
     return true;
+}
+
+void Kzd1::insert(const KzdCassette& c, const std::string& p)
+{
+    eject();
+    cas = c;
+    file = p;
+    has_cassette = true;
+    dirty = true;
+    side = 0;
+    pos_um = KzdCassette::LEADER_UM;
 }
 
 void Kzd1::flush(void)

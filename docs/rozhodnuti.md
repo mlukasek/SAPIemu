@@ -1332,3 +1332,8 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   MIKOSu/K, chyba je ve firmwaru, ne v emulaci. Návod k načítání od začátku nabízí K_Z nebo `.JMÉNO`, test je používá.
 - **Bez povoleného zápisu souborů** (testy, `battery` vypnuté) se chybějící kazeta vytvoří jen v paměti. Testy tak
   nezakládají soubory ve `work/`.
+- **CKM z originálního HEXu** (sapi.cz), ne z vlastního překladu. Překlad `CKM.MAC` se s ním shoduje, jen jeden
+  symbol se musel opravit (`SPSTAR` → `SPSTART`, starý M80 rozlišoval 6 znaků).
+- **Program → kazeta `.kzd` podle toho, co zapisuje MIKOS/K** (rozložení, mezery a rozestupy bitů změřené na páskách,
+  které zapsal emulovaný MIKOS/K), ne podle vlastního zjednodušeného formátu. Načte ho originální K_L. Kazeta se
+  ukládá do `work/kzd-1/JMÉNO.kzd`, existující soubor se nepřepisuje (`JMÉNO-2.kzd`…).

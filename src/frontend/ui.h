@@ -132,7 +132,8 @@ struct UiState {
     uint32_t hex_lo = 0, hex_hi = 0;
     // Media -> Insert a program (HEX, BIN) into a recorder: the format of the tape first
     std::string tprog_path;        // chosen file, empty = no question open
-    std::string tprog_card;        // DSM-1
+    std::string tprog_card;        // DSM-1, or DPP-1 with the KZD-1
+    bool tprog_kzd = false;        // for the KZD-1: a new cassette as MIKOS/K writes it
     bool tprog_ask = false;        // open the question in the next frame
     int tprog_format = 0;          // TAPE_MIKOS (remembered while running)
     char tprog_name[12] = "";

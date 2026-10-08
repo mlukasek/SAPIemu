@@ -76,7 +76,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8; u DBS-1A i rámečky a řecká písmena z EPROM „59“) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |
-| `kzd1` | Kazetopáskový záznamník dat KZD-1 (DPP-1, MIKOS/K): bez argumentů stav (kazeta, strana, poloha v metrech, pohyb, přetížení motorů, řídicí linky). `insert` = kazeta `.kzd` (chybějící se vytvoří prázdná), `new` = nová prázdná kazeta, `eject`, `flip` (otočit), `tab_a` / `tab_b` (zoubky proti zápisu), `flush` (zapsat soubor kazety hned) |
+| `kzd1` | Kazetopáskový záznamník dat KZD-1 (DPP-1, MIKOS/K): bez argumentů stav (kazeta, strana, poloha v metrech, pohyb, přetížení motorů, řídicí linky). `insert` = kazeta `.kzd` (chybějící se vytvoří prázdná), `new` = nová prázdná kazeta, `eject`, `flip` (otočit), `tab_a` / `tab_b` (zoubky proti zápisu), `flush` (zapsat soubor kazety hned), `program` = soubor `.hex`/`.bin` převedený na novou kazetu `work/kzd-1/JMÉNO.kzd` tak, jak ji zapisuje MIKOS/K (`name`, `volume` = název pásky, `address` u `.bin`, `entry`) |
 | `printer_output` | Vytištěný text tiskárny (X3 karty JPR nebo DPP-1): poslední řádky, soubor s bajty, počet bajtů; `clear` = nový papír |
 | `serial_set_connected` | Připojení a odpojení terminálu (DCD/CTS/DSR). ECMON a MikroMon podle DCD volí konzoli |
 | `io_log`, `get_log` | Záznam I/O přístupů a log emulátoru |

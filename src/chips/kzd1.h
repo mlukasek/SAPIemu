@@ -23,6 +23,7 @@
 
 struct Bus;
 class StateIO;
+struct TapeProgram;
 
 struct KzdCassette {
     static const int32_t LENGTH_UM = 86000000;   // 86 m a side (C 60)
@@ -33,6 +34,14 @@ struct KzdCassette {
     bool save(const std::string& path, std::string& err) const;
 };
 
+// A cassette with a program (Intel HEX or binary file) as MIKOS/K writes it: side A prepared by K_I
+// (tape name `volume`, empty = the program name), then one binary file (K_S) that .K_L loads and .J starts.
+// `info` gets the name, range and blocks.
+bool kzd_from_program(const std::string& path, const TapeProgram& p, const std::string& volume, KzdCassette& c,
+                      std::string& info, std::string& err);
+// A new file for such a cassette: work/kzd-1/NAME.kzd, NAME-2.kzd… when it exists.
+std::string kzd_program_path(const std::string& name);
+
 class Kzd1 : public I8255Peripheral {
 public:
     Bus* bus = nullptr;
@@ -40,6 +49,7 @@ public:
 
     // the cassette
     bool insert(const std::string& path, std::string& err);   // creates an empty one if missing
+    void insert(const KzdCassette& c, const std::string& path);   // a made one; written to path by flush()
     void eject(void);              // writes it back when changed
     void flush(void);
     bool loaded(void) const { return has_cassette; }

@@ -27,6 +27,8 @@ static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD, 8SD, 
                                                      { "*", "*" } };
 static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
 static const SDL_DialogFileFilter k_kzd_filter[] = { { "Kazeta KZD-1 (KZD)", "kzd" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "Kazeta KZD-1 (KZD)", "kzd" },
+                                                          { "Program (HEX, BIN)", "hex;ihx;bin" }, { "*", "*" } };
 
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
 
@@ -65,7 +67,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 2, where.c_str(), false);
     else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
     else if (kind == 9) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
-    else if (kind == 10) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 2, where.c_str(), false);
+    else if (kind == 10) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_kzd_open_filter, 3, where.c_str(), false);
     else if (kind == 11) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
@@ -152,6 +154,15 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         ui.bin_ask = true;
         return;
     }
+    if (kind == 10 && tape_is_program(path)) {   // a program: made into a cassette, the name first
+        ui.tprog_path = path;
+        ui.tprog_card = card;
+        ui.tprog_kzd = true;
+        ui.tprog_ask = true;
+        ui.tprog_error.clear();
+        snprintf(ui.tprog_name, sizeof(ui.tprog_name), "%s", tape_default_name(path).c_str());
+        return;
+    }
     if (kind == 10 || kind == 11) {   // a cassette for the KZD-1 data recorder
         Card* r = m->find_card(card);
         Kzd1* k = r ? r->kzd1() : nullptr;
@@ -202,6 +213,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     if (kind == 1 && tape_is_program(path)) {   // a program: the format of the tape first
         ui.tprog_path = path;
         ui.tprog_card = card;
+        ui.tprog_kzd = false;
         ui.tprog_ask = true;
         ui.tprog_error.clear();
         snprintf(ui.tprog_name, sizeof(ui.tprog_name), "%s", tape_default_name(path).c_str());
@@ -595,11 +607,16 @@ static void tape_program_question(UiState& ui, Machine* m)
     }
     if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
     ImGui::TextUnformatted(ui.tprog_path.c_str());
-    ImGui::RadioButton(tr("MIKOS (ZPS-2): .K_L name, then .J"), &ui.tprog_format, TAPE_MIKOS);
-    ImGui::RadioButton(tr("MIKROBASIC (ZPS-1): LOAD"), &ui.tprog_format, TAPE_MIKROBASIC);
-    ImGui::TextDisabled("%s", ui.tprog_format == TAPE_MIKOS
-                                  ? tr("From 4400h up; .J starts the program at its lowest address.")
-                                  : tr("A BASIC program at 40EFh, or machine code from 4102h up (RUN starts it)."));
+    if (ui.tprog_kzd) {   // KZD-1: a new cassette as MIKOS/K writes it
+        ImGui::TextUnformatted(tr("A new KZD-1 cassette (work/kzd-1) with the program as MIKOS/K saves it."));
+        ImGui::TextDisabled("%s", tr("From 4400h up; .K_Z, .K_L name, then .J starts the program at its lowest address."));
+    } else {
+        ImGui::RadioButton(tr("MIKOS (ZPS-2): .K_L name, then .J"), &ui.tprog_format, TAPE_MIKOS);
+        ImGui::RadioButton(tr("MIKROBASIC (ZPS-1): LOAD"), &ui.tprog_format, TAPE_MIKROBASIC);
+        ImGui::TextDisabled("%s", ui.tprog_format == TAPE_MIKOS
+                                      ? tr("From 4400h up; .J starts the program at its lowest address.")
+                                      : tr("A BASIC program at 40EFh, or machine code from 4102h up (RUN starts it)."));
+    }
     ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
     ImGui::InputText(tr("Name on the tape"), ui.tprog_name, sizeof(ui.tprog_name), ImGuiInputTextFlags_CharsUppercase);
     bool bin = !tape_is_hex(ui.tprog_path);
@@ -611,18 +628,34 @@ static void tape_program_question(UiState& ui, Machine* m)
     ImGui::InputText(tr("Start (hex, empty = lowest address)"), ui.tprog_entry, sizeof(ui.tprog_entry),
                      ImGuiInputTextFlags_CharsHexadecimal);
     if (!ui.tprog_error.empty()) ImGui::TextColored(k_load_error, "%s", ui.tprog_error.c_str());
-    Dsm1* dsm = m ? dynamic_cast<Dsm1*>(m->find_card(ui.tprog_card)) : nullptr;
-    ImGui::BeginDisabled(!dsm);
+    Card* card = m ? m->find_card(ui.tprog_card) : nullptr;
+    Dsm1* dsm = ui.tprog_kzd ? nullptr : dynamic_cast<Dsm1*>(card);
+    Kzd1* kzd = ui.tprog_kzd && card ? card->kzd1() : nullptr;
+    ImGui::BeginDisabled(!dsm && !kzd);
     if (ImGui::Button(tr("Insert"))) {
         TapeProgram p;
-        p.format = ui.tprog_format;
+        p.format = ui.tprog_kzd ? TAPE_MIKOS : ui.tprog_format;
         p.name = ui.tprog_name;
         p.address = bin ? strtol(ui.tprog_addr, nullptr, 16) : -1;
         p.entry = ui.tprog_entry[0] ? strtol(ui.tprog_entry, nullptr, 16) : -1;
-        std::string err;
-        TapeDeck* t = dsm->tape();
-        t->eject();
-        if (t->load_program(ui.tprog_path, p, err)) {
+        std::string err, info;
+        bool ok;
+        if (kzd) {
+            KzdCassette c;
+            ok = kzd_from_program(ui.tprog_path, p, "", c, info, err);
+            if (ok) {
+                std::string name = tape_name_clean(p.name);
+                std::string to = kzd_program_path(name.empty() ? tape_default_name(ui.tprog_path) : name);
+                kzd->insert(c, to);
+                kzd->flush();
+                state_notice(ui, true, info + " -> " + to);
+            }
+        } else {
+            TapeDeck* t = dsm->tape();
+            t->eject();
+            ok = t->load_program(ui.tprog_path, p, err);
+        }
+        if (ok) {
             ui.tprog_path.clear();
             ImGui::CloseCurrentPopup();
         } else {

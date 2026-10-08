@@ -4,6 +4,7 @@
 #include "cards/hrk1.h"
 #include "cards/ide1.h"
 #include "chips/kzd1.h"
+#include "core/tapegen.h"
 #include "chips/printer.h"
 #include "core/charset.h"
 #include "core/headless.h"
@@ -937,6 +938,19 @@ json t_kzd1(EmuHost& h, const json& a)
         if (!empty.save(p, err) || !k->insert(p, err)) return error_result(err);
     }
     if (a.contains("insert") && !k->insert(data_path(arg_str(a, "insert", nullptr, true)), err)) return error_result(err);
+    std::string made;
+    if (a.contains("program")) {   // a program becomes a new cassette (K_I and K_S as MIKOS/K writes them)
+        TapeProgram p;
+        p.name = arg_str(a, "name", "");
+        p.address = arg_num(a, "address", -1);
+        p.entry = arg_num(a, "entry", -1);
+        KzdCassette c;
+        std::string src = data_path(arg_str(a, "program", nullptr, true));
+        if (!kzd_from_program(src, p, arg_str(a, "volume", ""), c, made, err)) return error_result(err);
+        std::string name = tape_name_clean(p.name);
+        k->insert(c, kzd_program_path(name.empty() ? tape_default_name(src) : name));
+        k->flush();
+    }
     if (a.value("flip", false)) k->flip();
     if (a.contains("tab_a")) k->set_tab(0, a.value("tab_a", true));
     if (a.contains("tab_b")) k->set_tab(1, a.value("tab_b", true));
@@ -951,6 +965,7 @@ json t_kzd1(EmuHost& h, const json& a)
         j["tab_b"] = k->tab(1);
         j["transitions"] = k->transitions();
     }
+    if (!made.empty()) j["program"] = made;
     j["motion"] = k->motion();
     j["speed_m_s"] = round(k->speed() * 100) / 100;
     j["overload_motor1"] = k->overload(1);
@@ -1352,8 +1367,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
     { "diag_board", "Diagnostic board on K3 of JPR-1S / JPR-1X (parameter k3 = diag): two seven segment displays (left = P2-OUT, right = P1-OUT; segments a..g, dp = bits 0..7) and two buttons, \"+\" on P2-IN0 (JPR-1X: interrupt request R0) and \"-\" on P2-IN7 (R7). Without arguments it reports what the displays show; press = \"+\" or \"-\" holds the button for hold_ms (default 150) while the machine runs, then runs after_ms (default 200).",
       R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
-    { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). Paths relative to the data root.",
-      R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"string"},"eject":{"type":"boolean"},"flip":{"type":"boolean"},"tab_a":{"type":"boolean"},"tab_b":{"type":"boolean"},"flush":{"type":"boolean"}}})", t_kzd1 },
+    { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). program = an Intel HEX or binary file (address = its load address, hex) made into a new cassette work/kzd-1/NAME.kzd as MIKOS/K writes it (K_I with tape name volume, then K_S with name; entry = start address for .J): .K_Z, .K_L NAME, .J. Paths relative to the data root.",
+      R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"string"},"eject":{"type":"boolean"},"flip":{"type":"boolean"},"tab_a":{"type":"boolean"},"tab_b":{"type":"boolean"},"flush":{"type":"boolean"},"program":{"type":"string"},"name":{"type":"string"},"volume":{"type":"string"},"address":{"type":"string"},"entry":{"type":"string"}}})", t_kzd1 },
     { "plant", "APS-5: the plant (furnaces, thermocouples, terminal block) and the front panel HRK-1. Without arguments it reports the temperatures, heaters (DRV-1A contacts), logic inputs/outputs and the panel (key switch, fault LED, watchdog relay). Arguments change it: lock (1 operator, 2 programming), outage_s (a mains failure of that many seconds: the power fail warning, then no power, then power again; run the machine to see it), ambient_c, block_c (isothermal terminal block), battery_v, reset (all furnaces to the ambient temperature), and for channel (1-8): temperature_c (sets the furnace at once), tc_broken, heater_broken, li_a / li_b (logic inputs, true = H open). Keys of the panel: type_text with 0-9, M, R, backspace (<-), CR (->).",
       R"({"type":"object","properties":{"lock":{"type":"integer","enum":[1,2]},"outage_s":{"type":"number"},"ambient_c":{"type":"number"},"block_c":{"type":"number"},"battery_v":{"type":"number"},"reset":{"type":"boolean"},"channel":{"type":"integer"},"temperature_c":{"type":"number"},"tc_broken":{"type":"boolean"},"heater_broken":{"type":"boolean"},"li_a":{"type":"boolean"},"li_b":{"type":"boolean"}}})", t_plant },
     { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 or the ANK-1M2 keyboard connector set to joystick; ANK-1M2 follows port 0): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",

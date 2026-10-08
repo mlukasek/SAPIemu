@@ -123,10 +123,18 @@ Země: KZD 3, 4, 5, 6 → X2 17, 19. Piny X2 → 8255 jsou podle netlistu replik
 - **Okno Média:** kreslená kazeta s cívkami (navinutí podle polohy, otáčející se náboje, hlava při záznamu
   červená), strana a poloha v metrech, pohyb, přetížení, zoubky A a B, Vložit, Nová kazeta, Vysunout, Otočit
   (druhá strana, poloha se zrcadlí).
-- **MCP:** nástroj `kzd1` (stav, `insert`, `new`, `eject`, `flip`, `tab_a`, `tab_b`, `flush`), `describe` u DPP-1.
+- **Program rovnou na kazetu:** okno Média → Vložit… → soubor `.hex` nebo `.bin` (jméno, u `.bin` adresa, start).
+  Emulátor vyrobí novou kazetu `work/kzd-1/JMÉNO.kzd` přesně tak, jak by ji zapsal MIKOS/K: úsek 55h z K_I, blok
+  s názvem pásky, FM, hlavička, bloky `B` (poslední EOT), FM a EM, se stejnými rozestupy bitů a mezerami. Pak stačí
+  `.K_Z`, `.K_L JMÉNO` a `.J`. Přes MCP `kzd1` s `program` (a `name`, `volume`, `address`, `entry`).
+  - Zjištěno při tom: MIKOS/K při zápisu dělá za FBh a za čtyřbajtovým označením bloku delší pauzu (asi 200 µm,
+    400 µs). Čtení na ni spoléhá. Bez ní se čtení posune o bit (jména a data vyjdou posunutá).
+- **MCP:** nástroj `kzd1` (stav, `insert`, `new`, `program`, `eject`, `flip`, `tab_a`, `tab_b`, `flush`), `describe`
+  u DPP-1.
 - **Ověřeno** (`test_kzd1`): záznam bajtů přes 8255 a jejich přečtení zpět, převinutí do přetížení motoru,
   ZÁZN. U.V.* se zoubkem a bez něj, soubor kazety. MIKOS/K: K_I, K_S 1 KB, K_D (`00 PASKA1`, `01 VZOREK`), K_Z,
-  K_L do vymazané paměti (data souhlasí), K_S bez zoubku → `ZAZNAM NENI POVOLEN`.
+  K_L do vymazané paměti (data souhlasí), K_S bez zoubku → `ZAZNAM NENI POVOLEN`, kopie přes CKM, kazeta vyrobená
+  z BASICu EXP (`.K_D`, `.K_Z`, `.K_L BASIC`, `.J`, `PRINT 6*7`).
 
 ## Nejasnosti k ověření na HW
 

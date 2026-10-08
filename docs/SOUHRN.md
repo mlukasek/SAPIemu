@@ -62,7 +62,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (stejně i verze 18. 5. 88), ponecháno věrně, správně je K_Z nebo `.JMÉNO`.
   - Kopírovací program CKM (originál ze sapi.cz, `media/mikos/CKM.hex`): BASIC EXP z kazety MIKOS přešel na KZD-1
     a odtud naběhl.
-  - Otázky na HW v Nejasnostech `KZD-1.md`. Dál: převod programu rovnou na kazetu `.kzd`.
+  - Program `.hex`/`.bin` jde vložit rovnou do KZD-1 (okno Média, MCP `kzd1 program`): vznikne kazeta, jakou by
+    zapsal MIKOS/K (`kzd_from_program`, sdílí `tape_load_image` a `tape_mikos_file` s magnetofonem).
+  - Otázky na HW v Nejasnostech `KZD-1.md`.
 - **APS-5** (2026-10-08, přání autora: „ať je co měřit a na co koukat“, `docs/desky/APS-5.md`): měřicí jednotka
   Tesla s původním firmwarem (7 × 2716 ze sapi.cz) v sestavě `machines/aps5.sapi`, test `test_aps5`.
   - Nové desky: ADP-1, DMT-1 a DRV-1A.

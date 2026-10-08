@@ -34,3 +34,11 @@ bool tape_build(const uint8_t* image, uint32_t lo, uint32_t hi, const TapeProgra
 // The same from a file (path as given, not relative to the data root).
 bool tape_from_file(const std::string& path, const TapeProgram& p, std::vector<int16_t>& samples,
                     int& rate, std::string& info, std::string& err);
+
+// The program of a file (Intel HEX, or binary at p.address) in a 64 KB image `mem`, at lo..hi.
+bool tape_load_image(const std::string& path, const TapeProgram& p, std::vector<uint8_t>& mem, uint32_t& lo,
+                     uint32_t& hi, std::string& err);
+
+// The binary file of MIKOS (V4, V5, MIKOS/K) for the program bytes `mem` at `lo`: '<' end start '>' KS1
+// data KS2 1Ah. A start address other than the lowest puts a JMP before the program (lo moves down).
+bool tape_mikos_file(std::vector<uint8_t> mem, uint32_t& lo, int64_t entry, std::vector<uint8_t>& out, std::string& err);

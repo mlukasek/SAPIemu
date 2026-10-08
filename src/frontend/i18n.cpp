@@ -162,6 +162,8 @@ static const Translation k_table[] = {
     { "Tab B", "Zoubek B" },
     { "The break-out tab of the side: present = recording allowed (MIKOS/K checks it)", "Vylamovací zoubek strany: zachovaný = záznam povolen (MIKOS/K to kontroluje)" },
     { "Turn over", "Otočit" },
+    { "A new KZD-1 cassette (work/kzd-1) with the program as MIKOS/K saves it.", "Nová kazeta KZD-1 (work/kzd-1) s programem, jak ho ukládá MIKOS/K." },
+    { "From 4400h up; .K_Z, .K_L name, then .J starts the program at its lowest address.", "Od 4400h výš; .K_Z, .K_L jméno, pak .J spustí program od nejnižší adresy." },
     { "stop", "stojí" },
     { "The other side of the cassette faces the head (the position is mirrored).", "K hlavě přijde druhá strana kazety (poloha se zrcadlí)." },
     { "KZD-1 cassette data recorder", "kazetopáskový záznamník dat KZD-1" },

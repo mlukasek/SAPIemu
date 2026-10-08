@@ -5,6 +5,7 @@
 #include "cards/dpp1.h"
 #include "cards/dsm1.h"
 #include "chips/tape_deck.h"
+#include "core/tapegen.h"
 #include "chips/kzd1.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -278,11 +279,53 @@ static void test_ckm(void)
     file_remove(data_path(file));
 }
 
+// A cassette made from a program (the Media window, MCP kzd1 program): BASIC EXP V5.0 as MIKOS/K would
+// have saved it; .K_Z, .K_L BASIC and .J run it
+static void test_program_cassette(void)
+{
+    KzdCassette c;
+    TapeProgram p;
+    p.name = "basic";
+    std::string info, err;
+    CHECK(kzd_from_program(data_path("media/mikos/BASIC_EXP_V5.0.hex"), p, "", c, info, err));
+    CHECK(info.find("\"BASIC\"") != std::string::npos);
+    Machine m;
+    boot_mikos_k(m, "work/test/kzd_prog.kzd");
+    Kzd1* k = nullptr;
+    for (auto& cd : m.cards)
+        if (cd->kzd1()) k = cd->kzd1();
+    CHECK(k != nullptr);
+    if (!k) return;
+    k->insert(c, data_path("work/test/kzd_prog.kzd"));
+    CHECK(command(m, "KD", 60.0));
+    CHECK(screen(m).find("00 BASIC") != std::string::npos && screen(m).find("01 BASIC") != std::string::npos);
+    CHECK(command(m, "KZ", 30.0));
+    m.type_text("KL");
+    CHECK(run_until_text(m, "NAZEV:", 30.0));
+    CHECK(command(m, "BASIC\r", 60.0));
+    CHECK(screen(m).find("CHYBA") == std::string::npos);
+    m.type_text("J");
+    CHECK(run_until_text(m, "* BASIC - EXP V5.0 *", 5.0));
+    CHECK(run_until_text(m, "READY", 3.0));
+    m.run_seconds(0.5);
+    m.type_text("PRINT 6*7\r");
+    CHECK(run_until_text(m, " 42", 5.0));
+    // a binary at 4000h (MIKOS RAM) is refused
+    p.name = "";
+    p.address = 0x4000;
+    std::string bin = data_path("work/test/kzd_low.bin");
+    uint8_t b[4] = { 1, 2, 3, 4 };
+    CHECK(file_write_all(bin, b, sizeof(b)));
+    CHECK(!kzd_from_program(bin, p, "", c, info, err));
+    file_remove(bin);
+}
+
 int main(void)
 {
     test_init();
     test_mechanism();
     test_mikos_k();
     test_ckm();
+    test_program_cassette();
     return TEST_RESULT();
 }

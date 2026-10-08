@@ -135,10 +135,9 @@ static std::vector<uint8_t> mikos_block(uint8_t type, const uint8_t* data255, co
     return b;
 }
 
-static bool build_mikos(std::vector<uint8_t> mem, uint32_t lo, const TapeProgram& p, const std::string& name,
-                        Line& line, std::string& info, std::string& err)
+bool tape_mikos_file(std::vector<uint8_t> mem, uint32_t& lo, int64_t entry_addr, std::vector<uint8_t>& s, std::string& err)
 {
-    uint32_t entry = p.entry < 0 ? lo : (uint32_t)p.entry;
+    uint32_t entry = entry_addr < 0 ? lo : (uint32_t)entry_addr;
     if (entry != lo) {   // .J jumps to the lowest address: a JMP to the entry goes before the program
         if (lo < MIKOS_LOWEST + 3) {
             err = "MIKOS: no room for the jump to the start address below the program (4400h at the lowest)";
@@ -157,11 +156,21 @@ static bool build_mikos(std::vector<uint8_t> mem, uint32_t lo, const TapeProgram
     }
     uint32_t hi = lo + (uint32_t)mem.size() - 1;
     // the file: '<' end start '>' KS1 data KS2 1Ah, the addresses low byte first
-    std::vector<uint8_t> s = { 0x3C, (uint8_t)hi, (uint8_t)(hi >> 8), (uint8_t)lo, (uint8_t)(lo >> 8), 0x3E };
+    s = { 0x3C, (uint8_t)hi, (uint8_t)(hi >> 8), (uint8_t)lo, (uint8_t)(lo >> 8), 0x3E };
     s.push_back(sum8(&s[1], 5));
     s.insert(s.end(), mem.begin(), mem.end());
     s.push_back(sum8(mem.data(), mem.size()));
     s.push_back(0x1A);
+    return true;
+}
+
+static bool build_mikos(std::vector<uint8_t> mem, uint32_t lo, const TapeProgram& p, const std::string& name,
+                        Line& line, std::string& info, std::string& err)
+{
+    std::vector<uint8_t> s;
+    if (!tape_mikos_file(mem, lo, p.entry, s, err)) return false;
+    uint32_t hi = (uint32_t)s[1] | (uint32_t)s[2] << 8;   // the end address in the file
+    mem.resize(s.size() - 9);                              // the size on the tape (with a jump 3 bytes more)
 
     // header data: the name in ASCII, a space, zeros; in every block the name as AND-1 screen codes
     uint8_t hd[255];
@@ -289,11 +298,10 @@ static void hex_byte(void* user, uint32_t addr, uint8_t v)
     h->count++;
 }
 
-bool tape_from_file(const std::string& path, const TapeProgram& p, std::vector<int16_t>& samples,
-                    int& rate, std::string& info, std::string& err)
+bool tape_load_image(const std::string& path, const TapeProgram& p, std::vector<uint8_t>& mem, uint32_t& lo,
+                     uint32_t& hi, std::string& err)
 {
-    std::vector<uint8_t> mem(0x10000, 0);   // gaps of a HEX file are zeros
-    uint32_t lo, hi;
+    mem.assign(0x10000, 0);   // gaps of a HEX file are zeros
     if (tape_is_hex(path)) {
         std::string text;
         if (!file_read_text(path, text)) {
@@ -326,6 +334,15 @@ bool tape_from_file(const std::string& path, const TapeProgram& p, std::vector<i
         hi = lo + (uint32_t)d.size() - 1;
         memcpy(&mem[lo], d.data(), d.size());
     }
+    return true;
+}
+
+bool tape_from_file(const std::string& path, const TapeProgram& p, std::vector<int16_t>& samples,
+                    int& rate, std::string& info, std::string& err)
+{
+    std::vector<uint8_t> mem;
+    uint32_t lo, hi;
+    if (!tape_load_image(path, p, mem, lo, hi, err)) return false;
     TapeProgram q = p;
     if (tape_name_clean(q.name).empty()) q.name = tape_default_name(path);
     return tape_build(mem.data(), lo, hi, q, samples, rate, info, err);

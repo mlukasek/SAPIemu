@@ -127,7 +127,8 @@ Další programy z `media\` si nahrajete takto:
   2. `.K` `S`, jméno, `=5000 53FF` a Enter uloží paměť;
   3. `.K` `D` vypíše adresář;
   4. `.K` `Z` převine na začátek, `.K` `L` a jméno soubor načte (návod v `docs/desky/KZD-1.md`);
-  5. programy z kazet magnetofonu na KZD-1 zkopíruje originální program CKM (`media\mikos\CKM.hex`, `.G=4400`).
+  5. programy z kazet magnetofonu na KZD-1 zkopíruje originální program CKM (`media\mikos\CKM.hex`, `.G=4400`);
+  6. program `.hex` nebo `.bin` jde do KZD-1 vložit rovnou (Média → Vložit…), vznikne z něj kazeta jako od MIKOSu/K.
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát
