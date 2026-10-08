@@ -88,6 +88,10 @@ přerušení jsou RST na 14C9h. Obsluha čte P2-IN, bity 4–6 negované, a úlo
     (příkaz 7R);
   - AAh bez /PFAIL (reset watchdogem) znamená „CHYBA n“ a „INICIALIZACE“, po M → studený start;
   - jiná hodnota znamená studený start.
+- **RESET** (F9/F12, Stroj → Reset, tlačítko na panelu ZDR) je reset bez varování: firmware ukáže „CHYBA 0“ a
+  „INICIALIZACE“ a po M → udělá studený start (smaže programy, typy termočlánků i kalibraci). Skutečná APS-5
+  tlačítko RESET nemá, takhle reaguje na reset watchdogem. Autor chce věrné chování (2026-10-08), proto RESET
+  u této sestavy nepoužívat a vypínat síťovým vypínačem (POWER) nebo „Výpadek sítě“ v okně.
 - **Emulátor:** při vypnutí (tlačítko POWER, jiná sestava, konec programu) proběhne u této sestavy nejdřív
   varování /PFAIL a 100 ms běhu (`Machine::power_down`). Firmware si uloží stav a příště naběhne teplým
   startem. Okno APS-5 a MCP (`plant`, `outage_s`) umí výpadek dané délky: 100 ms varování, pak bez napájení

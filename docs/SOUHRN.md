@@ -2,12 +2,12 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-07) a co dál
+## Kde jsme skončili (2026-10-08) a co dál
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 37 v debug, paralelně asi 25 s; release `full` 41 včetně ZEX, 8080EXM a 8085EXM; Linux ve WSL všech 37
-    (GCC 13 bez varování ve vlastním kódu). Vše prochází (2026-10-07). Kdy které testy:
+  - Testy: 42 v debug i v release (2026-10-08, s `test_aps5`); release `full` naposledy 45 včetně ZEX, 8080EXM
+    a 8085EXM, Linux ve WSL 41 (2026-10-07, GCC 13 bez varování ve vlastním kódu). Vše prochází. Kdy které testy:
     `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
     příkaz v příkazové řádce a na „move anyway“ odpovídá N).

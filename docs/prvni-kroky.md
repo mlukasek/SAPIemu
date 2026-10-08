@@ -133,6 +133,9 @@ Další programy z `media\` si nahrajete takto:
 - pec 1: `4R` → `6` → (vzorkovací perioda 60 s), `9R` → `1` → (program 1), `1` → `1` → (zapnout regulaci);
 - `11` → je tabulka stavu pecí. Pec v okně začne žhnout, graf ukazuje průběh. Tlačítko „Výpadek sítě“ zkusí,
   jak si jednotka poradí.
+- **RESET u APS-5 nepoužívejte.** Skutečná jednotka ho nemá a firmware ho bere jako chybu: „CHYBA 0 /
+  INICIALIZACE“, po M → studený start (nastavení se smaže). Vypínejte vypínačem POWER, to proběhne jako výpadek
+  sítě a nastavení zůstane.
 
 Celý postup a zapojení jsou v `docs/desky/APS-5.md`.
 
