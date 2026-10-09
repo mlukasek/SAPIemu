@@ -1,0 +1,1731 @@
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1
+
+
+                                TITLE	BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)
+                                ;
+                                ; BIOS-3K for the CP/M of J. Biba with the cartridge disk RKD-1 and the Bulgarian drive CM 5400.
+                                ; NOT AN ORIGINAL: made 2026-10-09 for the emulator SAPIemu (docs/desky/RKD-1.md), because no CP/M for
+                                ; RKD-1 with the CM 5400 was found and FORMRKD of J. Biba could format disks no system could use.
+                                ; Made from:
+                                ;  - BIOS JPR1-Z 3 KB DLOUHY BIOS V260811JB, EDIT D: E: BLOK/DEBLOK 512/8 261211JB (bi2612E4 8x512.txt,
+                                ;    SAPI_DOKU\SAPIMAN\CPM_SYSTEMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\RPD A MFC\3K RPD MFC 8 512 261211): the frame,
+                                ;    A: B: (RPD-1 through the monitor), the blocking/deblocking of 512 B sectors, boot and warm boot;
+                                ;  - CBIOS JPR-1(Z) V271111_ZRMD_JB (bi271111EC_ZRMD4.txt): C: = ZRMD-1 4 MB, with the DPB of the boot disk
+                                ;    r1_zrmd4m_271111 ("C: ZRMD1/4 MB + SYSTEM": OFF 32, DSM 1021), so C: keeps its files;
+                                ;  - RKD.MAC 87-02-13 (Tesla ELSTROJ & JaMeSoft) as linked into FORMRKD.COM v1.1 of J. Biba: the header of a
+                                ;    sector is only the track (track * 32, low byte first), so the disks formatted by FORMRKD read here.
+                                ;    One fix of the original: RK_SEEK returned with BC left on the stack on an error.
+                                ; D: E: = the fixed disk (lower, upper surface), F: G: = the cartridge (lower, upper), as FORMRKD names them.
+                                ; 204 tracks x 12 sectors x 512 B, 2 KB blocks, 256 directory entries, 1224 KB per surface.
+                                ;
+                                ;************************
+                                .Z80
+  000D                          VERZE	EQU	13
+                                ;
+  F800                          MEMORY	EQU	0F800H		;VELIKOST PAMETI 62 KB
+  0C00                          CBIOSL	EQU	0C00H		;DELKA CBIOS NA DISKETE (MAX 13 SEKTORU)
+                                				;+ DIRBUF+ALL+CHK JE MAX 15 SEKTORU
+                                				;DALSICH 6 SEKTORU NA STOPE 76
+                                				;A: B: 8" SS SD RPD-1
+                                				;C: ZRMD-1/4MB + SYSTEM
+                                				;D: E: F: G: RKD-1 CM 5400 12x512
+  0800                          MONITL	EQU	0800H		;DELKA MONITORU (ROM) VCETNE TABULEK
+  1400                          BIOSL	EQU	CBIOSL+MONITL	;CELKOVA DELKA BIOS 
+  0800                          CCPL	EQU	0800H		;DELKA CCP (KONST.)
+  0E00                          BDOSL	EQU	0E00H		;DELKA BDOS (KONST)
+  2A00                          OVERL	EQU	CCPL+BDOSL+BIOSL	;DELKA SYSTEMU CELKEM
+                                	;
+  CE00                          CCPB	EQU	MEMORY-OVERL		;CCP BASE
+  D606                          BDOSB	EQU	CCPB+CCPL+6		;BDOS BASE
+  E400                          CBIOSB	EQU	CCPB+CCPL+BDOSL		;BIOS BASE
+  F000                          MONITB	EQU	CCPB+CCPL+BDOSL+CBIOSL	;MONITOR (ROM) BASE
+  E400                          BIOSB	EQU	CBIOSB			;BIOS BASE=CBIOS BASE
+  F800                          STACK	EQU	MEMORY
+  0004                          DRVINP	EQU	4
+                                
+                                
+  F004                          VCOMP	EQU	MONITB+4H
+  F006                          MCONST	EQU	MONITB+06H	;CONST UTILITY MONITORU
+  F009                          MCONIN	EQU	MONITB+09H	;CONIN UTILITY MONITORU
+  F00C                          MCONOU	EQU	MONITB+0CH	;CONOUT UTILITY MONITORU
+  F00F                          MLSTST	EQU	MONITB+0FH	;LSTST UTILITY MONITORU
+  F012                          MLSTOU	EQU	MONITB+12H	;LSTOUT UTILITY MONITORU
+  F015                          MPUNCH	EQU	MONITB+15H	;PUNCH UTILITY MONITORU
+  F018                          MREADR	EQU	MONITB+18H	;READER UTILITY MONITORU
+  F01B                          MSELE	EQU	MONITB+1BH	;SELECT UTILITY MONITORU
+  F01E                          MHOME	EQU	MONITB+1EH	;HOME UTILITY MONITORU
+  F021                          MSEEK	EQU	MONITB+21H	;SEEK UTILITY MONITORU
+  F024                          MREAD	EQU	MONITB+24H	;READ UTILITY MONITORU
+  F027                          MWRITE	EQU	MONITB+27H	;WRITE UTILITY MONITORU
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-1
+
+
+                                
+                                ;************************
+  0000'                         PATRN::
+                                	PUBLIC	BIOS
+                                
+                                	.PHASE	CBIOSB
+                                ;************************
+                                
+  E400                          BIOS::
+  E400    C3 E970               	JP BOOT
+  E403    C3 E8C4               	JP WBOOT
+  E406    C3 F006               	JP MCONST
+  E409    C3 F009               	JP MCONIN
+  E40C    C3 F00C               	JP MCONOU
+  E40F    C3 F012               	JP MLSTOU
+  E412    C3 F015               	JP MPUNCH
+  E415    C3 F018               	JP MREADR
+  E418    C3 E50D               	JP HOME
+  E41B    C3 E4F9               	JP SELECT
+  E41E    C3 E510               	JP SEEK
+  E421    C3 E515               	JP SETSEC
+  E424    C3 E51A               	JP SETPTR
+  E427    C3 E51F               	JP READ
+  E42A    C3 E568               	JP WRITE
+  E42D    C3 F00F               	JP MLSTST
+  E430    C3 E595               	JP TRANS
+                                ;----------------------------
+  E433                          DP_BASE::
+  E433    E4A3 0000             	DW SKEW81, 0,0,0,DIRBUF,DPB_81, CHK_A,ALL_A
+  E437    0000 0000             
+  E43B    EC5F E4BD             
+  E43F    E9CB EA6B             
+  E443    E4A3 0000             	DW SKEW81, 0,0,0,DIRBUF,DPB_81, CHK_B,ALL_B
+  E447    0000 0000             
+  E44B    EC5F E4BD             
+  E44F    E9DB EA8B             
+  E453    0000 0000             	DW 0,0,0,0,      DIRBUF,DPB_ZR,CHK_C,ALL_C
+  E457    0000 0000             
+  E45B    EC5F E4EA             
+  E45F    E9EB EAAB             
+  E463    0000 0000             	DW 0,0,0,0,      DIRBUF,DPB_RF,CHK_D,ALL_D	;RKD pevny dolni
+  E467    0000 0000             
+  E46B    EC5F E4CC             
+  E46F    E9EB EB2B             
+  E473    0000 0000             	DW 0,0,0,0,      DIRBUF,DPB_RF,CHK_E,ALL_E	;RKD pevny horni
+  E477    0000 0000             
+  E47B    EC5F E4CC             
+  E47F    E9EB EB78             
+  E483    0000 0000             	DW 0,0,0,0,      DIRBUF,DPB_RV,CHK_F,ALL_F	;RKD vymenny dolni
+  E487    0000 0000             
+  E48B    EC5F E4DB             
+  E48F    E9EB EBC5             
+  E493    0000 0000             	DW 0,0,0,0,      DIRBUF,DPB_RV,CHK_G,ALL_G	;RKD vymenny horni
+  E497    0000 0000             
+  E49B    EC5F E4DB             
+  E49F    EA2B EC12             
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-2
+
+
+                                ;----------------------------
+  E4A3                          SKEW81::
+  E4A3    01 07 0D 13           	db	1,7,13,19,25
+  E4A7    19                    
+  E4A8    05 0B 11 17           	db	5,11,17,23
+  E4AC    03 09 0F 15           	db	3,9,15,21
+  E4B0    02 08 0E 14           	db	2,8,14,20,26
+  E4B4    1A                    
+  E4B5    06 0C 12 18           	db	6,12,18,24
+  E4B9    04 0A 10 16           	db	4,10,16,22
+                                
+                                ;CISLOVANO OD 0!! KVULI BLOK/DEBLOK
+                                ;----------------------------
+                                ;8" SS SD 26x128x77, AB=1k, 64 polozek adresare
+  E4BD                          DPB_81::
+  E4BD    001A                  	DW	26	;SEKTORU / STOPU
+  E4BF    03                    	DB	3	;BLOCK SHIFT
+  E4C0    07                    	DB	7	;BLOCK MASK
+  E4C1    00                    	DB	0	;EXTENT MASK
+  E4C2    00F2                  	DW	242	;CISLO MAX. ALOK. SKUPINY -1
+  E4C4    003F                  	DW	63	;POLOZEK V ADRESarI -1
+  E4C6    C0                    	DB	11000000B ;BIT MAPA ALOK. SKUP. PRO ADRESAR
+  E4C7    00                    	DB	00000000B
+  E4C8    0010                  	DW	16	;BYTU PRO KONTROLU ADRESARE
+  E4CA    0002                  	DW	2	;SYSTEMOVE STOPY
+                                	
+                                ;----------------------------
+                                ;8" SS SD fyz 8x512x77, log 32x128x77, AB=2k, 64 polozek adresare
+                                ;RKD-1 CM 5400 pevny disk: fyz 12x512x204, log 48x128x204, AB=2k, 256 polozek adresare
+  E4CC                          DPB_RF::
+  E4CC    0030                  	DW	48	;SEKTORU / STOPU
+  E4CE    04                    	DB	4	;BLOCK SHIFT
+  E4CF    0F                    	DB	15	;BLOCK MASK
+  E4D0    00                    	DB	0	;EXTENT MASK
+  E4D1    0263                  	DW	611	;CISLO MAX. ALOK. SKUPINY -1
+  E4D3    00FF                  	DW	255	;POLOZEK V ADRESARI -1
+  E4D5    F0                    	DB	11110000B ;BIT MAPA ALOK. SKUP. PRO ADRESAR
+  E4D6    00                    	DB	00000000B
+  E4D7    0000                  	DW	0	;PEVNY DISK, BEZ KONTROLY ADRESARE
+  E4D9    0000                  	DW	0	;SYSTEMOVE STOPY NEJSOU
+                                ;----------------------------
+                                ;RKD-1 CM 5400 kazeta (vymenna): jako pevny, s kontrolou adresare
+  E4DB                          DPB_RV::
+  E4DB    0030                  	DW	48	;SEKTORU / STOPU
+  E4DD    04                    	DB	4	;BLOCK SHIFT
+  E4DE    0F                    	DB	15	;BLOCK MASK
+  E4DF    00                    	DB	0	;EXTENT MASK
+  E4E0    0263                  	DW	611	;CISLO MAX. ALOK. SKUPINY -1
+  E4E2    00FF                  	DW	255	;POLOZEK V ADRESARI -1
+  E4E4    F0                    	DB	11110000B ;BIT MAPA ALOK. SKUP. PRO ADRESAR
+  E4E5    00                    	DB	00000000B
+  E4E6    0040                  	DW	64	;BYTU PRO KONTROLU ADRESARE
+  E4E8    0000                  	DW	0	;SYSTEMOVE STOPY NEJSOU
+                                ;----------------------------
+                                ; ZRMD-1 RAMDISK 4Mb, 4 kB bloky, 1024 polozek adresare, 32 stop (8 kB) systemu
+                                ; (jako bootovaci disketa r1_zrmd4m_271111 "C: ZRMD1/4 MB + SYSTEM")
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-3
+
+
+  E4EA                          DPB_ZR::
+  E4EA    0002                  	DW	2	;SPT
+  E4EC    05                    	DB	5	;BSH
+  E4ED    1F                    	DB	31	;BLM
+  E4EE    01                    	DB	1	;EXM
+  E4EF    03FD                  	DW	1021	;DSM
+  E4F1    03FF                  	DW	1023	;DRM
+  E4F3    FF                    	DB	0FFH	;AL0
+  E4F4    00                    	DB	0	;AL1
+  E4F5    0000                  	DW	0	;CKS
+  E4F7    0020                  	DW	32	;OFF
+                                ;*****************************************
+                                ;	DISKOVE FUNKCE
+                                ;*****************************************
+                                ; Vyber aktualniho disku.
+                                ; I: cislo disku 0 az n
+                                ; O: HL=adresa tabulky DPH, pokud je OK
+                                ;    HL=0, pri chybe
+                                
+  E4F9                          SELECT::
+  E4F9    21 0000               	LD	HL,0
+  E4FC    79                    	LD	A,C
+  E4FD    FE 07                 	CP	7		;A: az G:
+  E4FF    D0                    	RET	NC
+  E500    32 E9BE               	LD	(LOG_DISK),A	;ULOZ CISLO DISKU
+  E503    6F                    	LD	L,A
+                                	REPT	4
+                                	ADD	HL,HL
+                                	ENDM
+  E504    29              +     	ADD	HL,HL
+  E505    29              +     	ADD	HL,HL
+  E506    29              +     	ADD	HL,HL
+  E507    29              +     	ADD	HL,HL
+  E508    11 E433               	LD	DE,DP_BASE
+  E50B    19                    	ADD	HL,DE
+  E50C    C9                    	RET
+                                ;----------------------------
+                                ; Nastaveni vybrane mechaniky na hlavu 0.
+                                
+  E50D                          HOME::
+  E50D    01 0000               	LD	BC,0
+                                ;----------------------------
+                                ; Nastaveni hlavy vybrane mechaniky na vybranou stopu (cylindr).
+                                ; I: BC=cislo cylindra
+                                
+  E510                          SEEK::
+  E510    ED 43 E9BF            	LD	(LOG_TRACK),BC
+  E514    C9                    	RET
+                                ;----------------------------
+                                ; Nastaveni cisla pozadovaneho sektoru.
+                                ; I: C=cislo sektoru
+                                
+  E515                          SETSEC::
+  E515    79                    	LD	A,C
+  E516    32 E9C1               	LD	(LOG_SECTOR),A
+  E519    C9                    	RET
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-4
+
+
+                                ;----------------------------
+                                ; Nastaveni DMA adresy
+                                ; I: BC=DMA adresa
+                                ; O: -
+                                ; M: HL
+                                
+  E51A                          SETPTR::
+  E51A    ED 43 E9C2            	LD	(DMA_ADR),BC	
+  E51E    C9                    	RET
+                                ;----------------------------
+                                ; Precteni pozadovaneho sektoru
+                                ; I: dopredu nastaveny sektor, stopa a DMA
+                                ; O: A=0 a Z - OK
+                                ;    A=1 a NZ - chyba
+                                ; M: vsechny
+                                
+  E51F                          READ::
+  E51F    3A E9BE               	LD	A,(LOG_DISK)
+  E522    FE 02                 	CP	2
+  E524    28 1B                 	JR	Z,RDRMD		;C: ZRMD
+  E526    D2 E5B9               	JP	NC,READ_RKD	;D: az G:
+  E529    CD E5A0               	CALL	WICH_DISK	;A: B:
+  E52C    CD F024               	CALL	MREAD		;cteni v monitoru
+  E52F    C8                    	RET	Z		;pokud neni chyba
+  E530    21 E58A               	LD	HL,RWERR
+  E533    CD E95F               	CALL	PMSG		;vypis chyby
+  E536    CD F009               	CALL	MCONIN		;znak z klav.
+  E539    FE 1B                 	CP	1BH
+  E53B    20 E2                 	JR	NZ,READ		;pokud neni ESC
+  E53D    3E 01                 	LD	A,1		;navrat s chybou
+  E53F    B7                    	OR	A
+  E540    C9                    	RET
+                                ;----------------------------
+                                ;----------------------------
+                                ; ZRMD-1 (z BIOS-1K V271111_ZRMD_JB)
+  0060                          Z_R_W	EQU	60H		;BASE ZRMD1
+  E541                          RDRMD::
+  E541    CD E54F               	CALL	RMD.1
+  E544    ED B2                 	INIR
+  E546    AF                    	XOR	A
+  E547    C9                    	RET
+  E548                          WRRMD::
+  E548    CD E54F               	CALL	RMD.1
+  E54B    ED B3                 	OTIR
+  E54D    AF                    	XOR	A
+  E54E    C9                    	RET
+  E54F                          RMD.1::
+  E54F    0E 61                 	LD	C,Z_R_W+1	; bazova adresa
+  E551    3A E9C1               	LD	A,(LOG_SECTOR)	; sektor 0 nebo 1
+  E554    0F                    	RRCA			; sektor do do B7
+  E555    ED 79                 	OUT	(C),A		; nastaveni citacu A0-A7
+  E557    2A E9BF               	LD	HL,(LOG_TRACK)	; cislo stopy do HL
+  E55A    0C                    	INC	C		; port pro A8 - A15
+  E55B    ED 69                 	OUT	(C),L		; zapis nizsiho byte stopy
+  E55D    0C                    	INC	C		; port pro A16 - A19
+  E55E    ED 61                 	OUT	(C),H		; zapis vyssiho byte stopy
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-5
+
+
+  E560    2A E9C2               	LD	HL,(DMA_ADR)	; zdrojova/cilova adresa do HL
+  E563    0E 60                 	LD	C,Z_R_W		; C=datovy port R/W
+  E565    06 80                 	LD	B,80H		; B=128 bytu
+  E567    C9                    	RET
+                                ;----------------------------
+                                ; Zapis pozadovaneho sektoru
+                                ; I: dopredu nastaveny sektor, stopa a DMA
+                                ; O: A=0 a Z - OK
+                                ;    A=1 a NZ - chyba
+                                ; M: vsechny
+                                
+  E568                          WRITE::
+  E568    3A E9BE               	LD	A,(LOG_DISK)
+  E56B    FE 02                 	CP	2
+  E56D    28 D9                 	JR	Z,WRRMD		;C: ZRMD
+  E56F    D2 E5ED               	JP	NC,WRITE_RKD	;D: az G:
+  E572    CD E5A0               	CALL	WICH_DISK	;A: B:
+  E575    CD F027               	CALL	MWRITE		;zapis v monitoru
+  E578    C8                    	RET	Z		;pokud neni chyba
+  E579    21 E58A               	LD	HL,RWERR
+  E57C    CD E95F               	CALL	PMSG		;vypis chyby
+  E57F    CD F009               	CALL	MCONIN		;znak z klav.
+  E582    FE 1B                 	CP	1BH
+  E584    20 E2                 	JR	NZ,WRITE	;pokud neni ESC
+  E586    3E 01                 	LD	A,1		;navrat s chybou
+  E588    B7                    	OR	A
+  E589    C9                    	RET
+                                ;----------------------------
+  E58A                          RWERR::
+  E58A    0D 0A 52 2F           	DB	0DH,0AH,'R/W err!',0
+  E58E    57 20 65 72           
+  E592    72 21 00              
+                                ;----------------------------
+                                ; Prepocet logickych cisel sektoru na fyzicke
+                                ; I: DE=adresa prekladove tabulky
+                                ;    BC=logicke cislo sektoru 0 az n
+                                ; O: HL=fyzicke cislo sektoru
+                                ; M: HL, DE, BC, PSW
+                                
+  E595    69                    TRANS::	LD	L,C		; cislo sektora do HL
+  E596    60                    	LD	H,B
+  E597    7B                    	LD	A,E		; platna adresa prekladove tabulky ?
+  E598    B2                    	OR	D
+  E599    C8                    	RET	Z		; ne vrat se s puvodni hodnotou cisla sektoru
+  E59A    EB                    	EX	DE,HL
+  E59B    09                    	ADD	HL,BC
+  E59C    6E                    	LD	L,(HL)
+  E59D    26 00                 	LD	H,0
+  E59F    C9                    	RET
+                                ;----------------------------
+                                ; Procedury pred vlastnim ctenim/zapisem RPD-1
+                                ; Provede se Selekt, nastavi Stopa, nacte Sektor a DMA adresa
+                                ; O: HL= DMA adresa
+                                ;    A,C=logicke cislo sektoru 0 az n
+                                ; M: HL, C, PSW
+                                
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-6
+
+
+  E5A0                          WICH_DISK::
+  E5A0    3A E9BE               	LD	A,(LOG_DISK)
+  E5A3    4F                    	LD	C,A
+  E5A4    CD F01B               	CALL	MSELE		;vyber disk na RPD
+  E5A7    3A E9BF               	LD	A,(LOG_TRACK)
+  E5AA    4F                    	LD	C,A
+  E5AB    CD F021               	CALL	MSEEK		;vyber stopu na RPD
+  E5AE    2A E9C2               	LD	HL,(DMA_ADR)	;kam cist/psat do HL
+  E5B1    3E 01                 	LD	A,1
+  E5B3    B7                    	OR	A
+  E5B4    3A E9C1               	LD	A,(LOG_SECTOR)	;sektor do A, C
+  E5B7    4F                    	LD	C,A
+  E5B8    C9                    	RET
+                                ;*******************************
+                                SUBTTL BLOK/DEBLOK 512 B PRO RKD-1 (z V261211JB)
+                                ;*******************************
+                                ;********************************
+  E5B9                          READ_RKD::
+                                ; BDOS ma prilis maly zasobnik
+                                ;
+  E5B9    21 0000               	ld	hl,0	
+  E5BC    39                    	add	hl,sp
+  E5BD    22 E9BC               	ld	(sp_save),hl
+  E5C0    31 E9BC               	ld	sp,bios_stack
+  E5C3    CD E5CB               	call	rd512		;12 urovni SP=24 byte
+  E5C6    2A E9BC               	ld	hl,(sp_save)
+  E5C9    F9                    	ld	sp,hl
+  E5CA    C9                    	ret
+                                ;--------------------------------
+                                
+  E5CB                          rd512::
+  E5CB    CD E651               	call	set_reg		;nastavi log. do registru
+  E5CE    CD E681               	call	fill_buf	;11 nacti sektor do bufferu
+                                				;cteni OK A=0, Z
+  E5D1    C0                    	ret	nz		;navrat pri chybe A=FF, NZ
+                                ;--------------------------------
+  E5D2    21 EC5F               	ld	hl,buf_8-128	;pocatek bufferu fyz.sektoru
+  E5D5    11 0080               	ld	de,128		;delka log.sektoru
+  E5D8    3A E9C1               	ld	a,(log_sector)
+  E5DB    E6 03                 	and	3		;jen spodni 2 byty (4 sektory)
+                                ;--------------------------------
+  E5DD    47                    	ld	b,a
+  E5DE    04                    	inc	b
+  E5DF    19                    rd1::	add	hl,de
+  E5E0    10 FD                 	djnz	rd1
+                                				;HL=buf_8 + x
+  E5E2    ED 5B E9C2            	ld	de,(dma_adr)	;kam ulozit dle CP/M
+  E5E6    01 0080               	ld	bc,128		;delka log.sektoru
+  E5E9    ED B0                 	ldir			;prepis z buf_8 do DMA
+  E5EB    AF                    	xor	a		;cteni OK A=0,Z	
+  E5EC    C9                    	ret
+                                ;********************************
+  E5ED                          WRITE_RKD::
+                                ; BDOS ma prilis maly zasobnik
+                                ;
+  E5ED    21 0000               	ld	hl,0	
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-7
+BLOK/DEBLOK 512 B PRO RKD-1 (z V261211JB)
+
+  E5F0    39                    	add	hl,sp
+  E5F1    22 E9BC               	ld	(sp_save),hl
+  E5F4    31 E9BC               	ld	sp,bios_stack
+  E5F7    CD E5FF               	call	wr512		;12 urovni SP=24 byte
+  E5FA    2A E9BC               	ld	hl,(sp_save)
+  E5FD    F9                    	ld	sp,hl
+  E5FE    C9                    	ret
+                                ;********************************
+  E5FF                          wr512::
+  E5FF    79                    	ld	a,c
+  E600    32 E9C4               	ld	(wr_type),a	;uloz typ zapisu
+                                				;0=normalni zapis do jiz al.bloku
+                                				;1=adresar 
+  E603    CD E651               	call	set_reg		;nastavi log. do registru
+                                ;--------------------------------
+  E606    3A E9C4               	ld	a,(wr_type)
+  E609    FE 02                 	cp	2		;write nealokov. bloku?
+  E60B    C2 E625               	jp	nz,.0.$write	;pokud ne (0, 1)
+                                ;--------------------------------
+                                ; write neaalokovaneho bloku
+  E60E    3A E9C8               	ld	a,(buf_write)	;je jiz neco v bufferu
+  E611    B7                    	or	a		
+  E612    C4 E665               	call	nz,flush_buf	;ano tak zapis na disk
+                                				;zapis OK A=0,Z
+  E615    C0                    	ret	nz		;chyba, navrat A=1, NZ
+                                ;--------------------------------
+  E616    7A                    	ld	a,d
+  E617    32 E9C5               	ld	(buf_disk),a	;uloz fyz.disk do buf_disk
+  E61A    7B                    	ld	a,e
+  E61B    32 E9C6               	ld	(buf_track),a	;uloz fyz.track do buf_track
+  E61E    79                    	ld	a,c
+  E61F    32 E9C7               	ld	(buf_sector),a	;uloz fyz.sektor do buf_sektor
+  E622    C3 E629               	jp	.0a.$write
+                                ;================================
+                                ; zapis normalni(0) nebo do adresare(1)
+                                ; predecteni, dopsani log. sektoru a nekdy zapis
+  E625                          .0.$write::
+  E625    CD E681               	call	fill_buf	;11 predecti sektor
+                                				;cteni OK A=0, Z
+  E628    C0                    	ret	nz		;chyba cteni A=FF, NZ
+                                ;--------------------------------
+  E629                          .0a.$write::
+  E629    21 EC5F               	ld	hl,buf_8-128	;zacatek bufferu
+  E62C    11 0080               	ld	de,128		;delka log. sektoru
+  E62F    3A E9C1               	ld	a,(log_sector)
+  E632    E6 03                 	and	3		;jen spodni 2 byty (4 sektory)
+                                ;--------------------------------
+  E634    47                    	ld	b,a
+  E635    04                    	inc	b
+  E636    19                    writ1::	add	hl,de
+                                
+  E637    10 FD                 	djnz	writ1
+  E639    EB                    	ex	de,hl		;DE=buf_8+x
+  E63A    2A E9C2               	ld	hl,(dma_adr)
+  E63D    01 0080               	ld	bc,128		;delka log.sektoru
+  E640    ED B0                 	ldir			;prepis z DMA do buf_8			;prepis DMA do bufferu	
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-8
+BLOK/DEBLOK 512 B PRO RKD-1 (z V261211JB)
+
+  E642    3E 01                 	ld	a,1
+  E644    32 E9C8               	ld	(buf_write),a	;priznak bylo zapsano do bufferu
+  E647    3A E9C4               	ld	a,(wr_type)
+  E64A    FE 01                 	cp	1
+  E64C    CA E665               	jp	z,flush_buf	;zapis do adresare
+                                ;--------------------------------
+                                ; normalni zapis(0)
+  E64F    AF                    	xor	a
+  E650    C9                    	ret
+                                
+                                ;********************************
+                                ;pripravi parametry z log.popisu
+  E651                          set_reg::
+  E651    3A E9BE               	ld	a,(log_disk)	;nastaveno po inicializaci
+  E654    D6 03                 	SUB	3		;ODECTI ZA A: B: C:
+  E656    57                    	ld	d,a		;D - fyz.disk
+  E657    3A E9BF               	ld	a,(log_track)	;nastaveno pri SEEK
+  E65A    5F                    	ld	e,a		;E - fyz.stopa 
+  E65B    3A E9C1               	ld	a,(log_sector)	;nastaveno pri SETSEC
+  E65E    B7                    	or	a
+  E65F    CB 3F                 	srl	a		;deleno 4 (4x128 byte)
+  E661    CB 3F                 	srl	a		;fyz_sector = log_sektor/2 
+  E663    4F                    	ld	c,a		;C - fyz.sektor
+  E664    C9                    	ret
+                                ;********************************
+                                ;zapis bufferu na disketu
+                                
+  E665                          flush_buf::			;10 urovni SP
+  E665    E5                    	push	hl
+  E666    D5                    	push	de
+  E667    C5                    	push	bc
+  E668    3A E9C5               	ld	a,(buf_disk)	;fyz. disk (medium 0-3)
+  E66B    57                    	ld	d,a
+  E66C    3A E9C6               	ld	a,(buf_track)
+  E66F    5F                    	ld	e,a
+  E670    3A E9C7               	ld	a,(buf_sector)
+  E673    4F                    	ld	c,a		;sektor 0-11
+  E674    CD E897               	call	wr_RKD		;zapis RKD-1
+                                				;zapis OK A=0,Z
+                                				;chyba A=1, NZ
+  E677    F5                    	push	af
+  E678    AF                    	xor	a
+  E679    32 E9C8               	ld	(buf_write),a	;priznak buffer je prazdny
+  E67C    F1                    	pop	af
+  E67D    C1                    	pop	bc
+  E67E    D1                    	pop	de
+  E67F    E1                    	pop	hl
+  E680    C9                    	ret
+                                
+                                ;*******************************
+                                ;kontroly cteni a cteni z diskety
+  E681                          fill_buf::			;10 urovni SP
+                                ;vstup	<d> - fyz. cislo disku
+                                ;	<e> - fyz. cislo stopy
+                                ;	<c> - fyz. cislo sektoru
+                                
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-9
+BLOK/DEBLOK 512 B PRO RKD-1 (z V261211JB)
+
+  E681    E5                    	push	hl
+  E682    D5                    	push	de
+  E683    C5                    	push	bc
+  E684    3A E9C5               	ld	a,(buf_disk)
+  E687    BA                    	cp	d		;disk stejny?
+  E688    C2 E69E               	jp	nz,.1.fill_buf	;neni, napln buffer
+                                ;-------------------------------
+                                ; disk ok
+  E68B    3A E9C6               	ld	a,(buf_track)
+  E68E    BB                    	cp	e		;stopa stejna?
+  E68F    C2 E69E               	jp	nz,.1.fill_buf	;neni, napln buffer
+                                ;-------------------------------
+                                ; stopa ok
+  E692    3A E9C7               	ld	a,(buf_sector)
+  E695    B9                    	cp	c		;sektor stejny?
+  E696    C2 E69E               	jp	nz,.1.fill_buf	;neni, napln buffer
+                                ;-------------------------------
+                                ; fyz. a buf. souhlasi, v buferu jiz jsou pozadovana data
+                                ; - netreba cist 
+  E699    AF                    	xor	a		;priznak cteni OK A=0,Z
+  E69A                          .0.fill_buf::
+  E69A    C1                    	pop	bc		;zadna zmena disku stopy a sektoru
+  E69B    D1                    	pop	de
+  E69C    E1                    	pop	hl
+  E69D    C9                    	ret
+                                ;===============================
+                                ; musime cist je rozdil v disku nebo stope nebo sektoru 
+                                ; pokud je neco v bufferu, musime to nejdriv zapsat!! 
+  E69E                          .1.fill_buf::
+  E69E    3A E9C8               	ld	a,(buf_write)	;musime zapsat buf?
+  E6A1    B7                    	or	a
+  E6A2    C4 E665               	call	nz,flush_buf	;ano
+                                				;pri WR ok, A=0,Z
+                                				;pri chybe A=1,NZ
+  E6A5    C2 E69A               	jp	nz,.0.fill_buf	;chyba zapisu
+                                ;--------------------------------
+                                ; muzeme cist
+                                ;vstup	<d> - fyz. cislo disku
+                                ;	<e> - fyz. cislo stopy
+                                ;	<c> - fyz. cislo sektoru
+                                ;nastaveni hodnot v COMTAB
+  E6A8    CD E894               	call	rd_RKD		;cti RKD-1 (D, E, C)
+                                				;pri RD ok, A=0,Z
+                                				;pri chybe A=1, NZ
+  E6AB    CA E6B6               	jp	z,.2.fill_buf	;bez chyb
+                                ;-------------------------------
+                                ; chyba cteni
+  E6AE    3E FF                 	ld	a,-1
+  E6B0    32 E9C5               	ld	(buf_disk),a	;neexistujici disk
+  E6B3    C3 E69A               	jp	.0.fill_buf
+                                ;===============================
+                                ; cteni ok
+  E6B6                          .2.fill_buf::
+  E6B6    C1                    	pop	bc
+  E6B7    D1                    	pop	de
+  E6B8    E1                    	pop	hl
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-10
+BLOK/DEBLOK 512 B PRO RKD-1 (z V261211JB)
+
+  E6B9    7A                    	ld	a,d		;ulozeni pro priste
+  E6BA    32 E9C5               	ld	(buf_disk),a	
+  E6BD    7B                    	ld	a,e
+  E6BE    32 E9C6               	ld	(buf_track),a
+  E6C1    79                    	ld	a,c
+  E6C2    32 E9C7               	ld	(buf_sector),a
+  E6C5    AF                    	xor	a
+  E6C6    C9                    	ret
+                                
+                                ;*******************************
+                                SUBTTL OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, upraveny)
+                                ;*******************************
+                                ;************************************************************
+                                ;	DEFINICE
+                                ;************************************************************
+                                
+                                ;************************************************************
+                                ;	kOdy vYsledkJ operacI, <z> flag nastaven podle <a>
+                                ;************************************************************
+                                
+  0080                          cretry		equ	80h	;mJZeme zkusit znovu
+  0007                          bcretry		equ	7
+                                
+                                ;............................................................
+                                ; operace bez chyb
+  0000                          OK		EQU	0
+                                ;............................................................
+                                ; vybranA jednotka nenI pRipravena
+  0001                          NOT_READY	EQU	1
+                                ;............................................................
+                                ; najetI na stopu neskonCilo vCas
+  0082                          SEEK_TOUT	EQU	2+cretry
+                                ;............................................................
+                                ; zadAno neexistujIcI CIslo stopy
+  0083                          ILL_TRACK	EQU	3+cretry
+                                ;............................................................
+                                ; chyba najetI na stopu
+  0084                          SEEK_ERR	EQU	4+cretry
+                                ;............................................................
+                                ; pReCtenY sektor neobsahuje sprAvnY poCet dat
+  0085                          MISSING_DATA	EQU	5+cretry
+                                ;............................................................
+                                ; rozdIl mezi oCekAvanYm a pReCtenYm zAhlavIm sektoru
+  0086                          MARK_ERR	EQU	6+cretry
+                                ;............................................................
+                                ; chyba kontrolnIho souCtu
+  0087                          SUM_ERR		EQU	7+cretry
+                                ;............................................................
+                                
+  000A                          retry		equ	10	;pokusJ o CtenI/zApis
+                                
+  0001                          MASK0		EQU	1
+  0002                          MASK1		EQU	2
+  0004                          MASK2		EQU	4
+  0008                          MASK3		EQU	8
+  0010                          MASK4		EQU	16
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-11
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  0020                          MASK5		EQU	32
+  0040                          MASK6		EQU	64
+  0080                          MASK7		EQU	128
+                                
+  001A                          S_OF_LEAD	EQU	26	;poCet nul pRed sync polem
+  0001                          S_OF_SYNC	EQU	1	;poCet sync bytJ pRed zAhlavIm
+  0002                          S_OF_MARK	EQU	2	;poCet bytJ zAhlavI
+  0002                          S_OF_SUM	EQU	2	;poCet bytJ souCtu
+  0002                          S_OF_TRAIL	EQU	2	;poCet bytJ za souCtem
+  0080                          SYNC		EQU	80H	;data sync pole
+                                
+  0040                          BAZE		EQU	40H	;zAklad adres RKD-1
+                                
+  0040                          CLK_DIV		EQU	BAZE	;8253 #0
+  0041                          DELAY_COUNTER	EQU	BAZE+1	;8253 #1
+  0042                          DATA_COUNTER	EQU	BAZE+2	;8253 #2
+  0043                          CTRL_8253	EQU	BAZE+3	;8253 RIzenI
+                                
+  0014                          MODE_CNT0	EQU	14H	;#0 mOd 2, 1 byte
+  005A                          MODE_CNT1	EQU	5AH	;#1 mOd 5, 1 byte
+  00B0                          MODE_CNT2	EQU	0B0H	;#2 mOd 0, l/h byte
+                                
+  0002                          CLK_N		EQU	2	;dElIcI pomEr hodin
+  0014                          DELAY_READ	EQU	20	;zpoZdEnI pRed CtenIm
+  0003                          DELAY_WRITE	EQU	3	;zpoZdEnI pRed zApisem
+                                
+  0044                          TRACK_NO	EQU	BAZE+4	;8255 PA CIslo stopy
+                                
+  0045                          RKD_STATUS	EQU	BAZE+5	;8255 PB stav jednotky a RadiCe
+                                ; signAly pRi sel_status=0
+  0080                           ERROR_L	EQU	MASK7	;porucha jednotky
+  0040                           UNIT_RDY_L	EQU	MASK6	;jednotka pRipravena
+  0020                           SEEK_TOUT_L	EQU	MASK5	;seek neproveden
+  0010                           SEEK_RDY_L	EQU	MASK4	;seek ok
+                                ; signAly pRi sel_status=1
+  0080                           atn3_l		equ	mask7	;konec seek operace na jedn. 3
+  0040                           atn2_l		equ	mask6	; 2
+  0020                           atn1_l		equ	mask5	; 1
+  0010                           atn0_l		equ	mask4	; 0
+                                ; signAly nezAvislW na sel_status
+  0008                           TRACK_NO_ACK_H	EQU	MASK3	;CIslo stopy ok
+  0004                           DATA_CNT_OK_H	EQU	MASK2	;poCet pRenesenYch dat ok
+  0002                           WPROTECT_H	EQU	MASK1	;jednotka mA ochranu zApisu
+  0001                           BUSY_H		EQU	MASK0	;RadiC provAdI r/w operaci
+                                
+  0046                          RKD_CTRL	EQU	BAZE+6	;8255 PC RIzenI RadiCe
+  0080                           SEL_STATUS	EQU	MASK7	;0:atn0..3; 1:status
+  0007                           B_SEL_STATUS	EQU	7
+  0010                           WR_ENBL	EQU	MASK4	;ZAdost o zApis
+  0008                           RD_ENBL	EQU	MASK3	;ZAdost o CtenI
+  0001                           ENBL_TRK_NO	EQU	MASK0	;povolenI vysIlAnI CIsla stopy
+  0000                           B_ENBL_TRK_NO	EQU	0
+                                
+  0047                          CTRL_8255	EQU	BAZE+7	;RIzenI 8255
+  0082                           MODE_8255	EQU	82H	;PA,PC out, PB in
+                                
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-12
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  0048                          STROBE		EQU	BAZE+8	;adresy seeku
+  0049                          RUN		EQU	BAZE+9	;go RadiCe
+  004A                          RPTR_SECNO	EQU	BAZE+10	;+inverze CIsla sektoru
+  0080                           RESET_PTR	EQU	MASK7	;nulovAnI adresy RAM
+  0007                           B_RESET_PTR	EQU	7
+  004B                          WP_RESTORE	EQU	BAZE+11
+  0002                           SET_WPROT	EQU	MASK1	;zapni ochranu zApisu
+  0001                           RESTORE	EQU	MASK0	;bezadresnY seek na T00
+  004C                          DATA		EQU	BAZE+12	;data RadiCe
+                                
+                                ;############################################################
+                                ;	MAKROINSTRUKCE
+                                ;############################################################
+                                
+                                ;############################################################
+                                ; testuj <f>, pRi chybE vraT err kOd
+                                ;
+                                CHECK	MACRO	CC,ECODE
+                                	LOCAL	LBL
+                                	JR	CC,LBL
+                                	LD	A,ECODE
+                                	RET
+                                LBL:	
+                                	ENDM
+                                
+                                ;############################################################
+                                ; zApis konstanty do portu
+                                ;
+                                IOW	MACRO	PORT,DATA
+                                	IFNB	<DATA>
+                                	 LD	A,DATA
+                                	ENDC
+                                	OUT	(PORT),A
+                                	ENDM
+                                
+                                ;############################################################
+                                ; CtenI RAM RadiCe
+                                ;
+                                RDATA	MACRO	DEST
+                                	IN	A,(DATA)
+                                	IFNB	<DEST>
+                                	 LD	DEST,A
+                                	ENDC
+                                	ENDM
+                                
+                                ;############################################################
+                                ; start operace CtenI/zApis
+                                ;
+                                GO	MACRO
+                                	OUT	(RUN),A
+                                	WAIT_BUSY
+                                	ENDM
+                                
+                                ;############################################################
+                                ; potvrzenI seeku
+                                ;
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-13
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+                                STROBE	MACRO
+                                	OUT	(STROBE),A
+                                	ENDM
+                                
+                                ;############################################################
+                                ; nastav <z> podle stavu portu
+                                ;
+                                TEST	MACRO	PORT,MASK
+                                	IN	A,(PORT)
+                                	AND	MASK
+                                	ENDM
+                                
+                                ;############################################################
+                                ; Cekej na pRipravenost RadiCe
+                                ;
+                                WAIT_BUSY MACRO
+                                	CALL	WAIT_BUSY
+                                	ENDM
+                                
+                                ;############################################################
+                                ; Cekej na dokonCenI najetI na stopu
+                                ;
+                                WAIT_SEEK MACRO
+                                	CALL	WAIT_SEEK
+                                	ENDM
+                                
+                                ;############################################################
+                                ; zapiS byte do RAM RadiCe
+                                ;
+                                WDATA	MACRO	SOURCE
+                                	IFNB	<SOURCE>
+                                	 LD	A,SOURCE
+                                	ENDC
+                                	OUT	(DATA),A
+                                	ENDM
+                                
+                                ;************************************************************
+                                ;funkce	RK_INIT
+                                ;vstup	-
+                                ;vYstup	<af> - kOd vYsledku operace
+                                ;popis:	RK_INIT inicializuje RadiC RKD-1
+                                
+  E6C7                          RK_INIT:
+  E6C7    E5                    	PUSH	HL		;budeme potRebovat registry
+  E6C8    C5                    	PUSH	BC
+                                	IOW	CTRL_8255,MODE_8255	;inicializace 8255
+  E6C9    3E 82           +     	 LD	A,MODE_8255
+  E6CB    D3 47           +     	OUT	(CTRL_8255),A
+  E6CD    21 E6E1               	LD	HL,INI_8253
+  E6D0    01 0343               	LD	BC,CTRL_8253+(S_OF_INI_8253 SHL 8)
+  E6D3    ED B3                 	OTIR			;inicializace 8253
+                                	IOW	CLK_DIV,CLK_N	;nastav dEliC hodin
+  E6D5    3E 02           +     	 LD	A,CLK_N
+  E6D7    D3 40           +     	OUT	(CLK_DIV),A
+                                	IOW	RKD_CTRL,SEL_STATUS	;vyber stavovW signAly
+  E6D9    3E 80           +     	 LD	A,SEL_STATUS
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-14
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E6DB    D3 46           +     	OUT	(RKD_CTRL),A
+  E6DD    AF                    	XOR	A
+  E6DE    C1                    	POP	BC		;obnov registry
+  E6DF    E1                    	POP	HL
+  E6E0    C9                    	RET
+                                
+                                ;************************************************************
+                                ;	data pro init 8253, nastavenI mOdJ CItaCJ
+                                ;************************************************************
+                                
+  E6E1                          INI_8253:
+  E6E1    14 5A B0              	DEFB	MODE_CNT0,MODE_CNT1,MODE_CNT2
+  0003                          S_OF_INI_8253	EQU	$-INI_8253	;poCet bytJ pro 8253
+                                
+                                ;************************************************************
+                                ;funkce	RK_HOME
+                                ;vsrup	-
+                                ;vYstup	<af> - kOd vYsledku operace
+                                ;popis	RK_HOME najede na stopu 0 na vybranW jednotce.
+                                ;	Nuluje klopnY obvod chyb v jednotce disku
+                                
+  E6E4                          RK_HOME:
+                                	WAIT_BUSY		;Cekej na pRipravenost RadiCe
+  E6E4    CD E872         +     	CALL	WAIT_BUSY
+  E6E7    C0                    	RET	NZ		;chyba
+                                ;------------------------------------------------------------
+                                	WAIT_SEEK		;nesmI bYt seek
+  E6E8    CD E861         +     	CALL	WAIT_SEEK
+  E6EB    C0                    	RET	NZ		;chyba
+                                ;------------------------------------------------------------
+                                	IOW	WP_RESTORE,RESTORE	;pRIkaz k najetI na T0
+  E6EC    3E 01           +     	 LD	A,RESTORE
+  E6EE    D3 4B           +     	OUT	(WP_RESTORE),A
+                                	STROBE			;potvrD
+  E6F0    D3 48           +     	OUT	(STROBE),A
+                                	iow	rkd_ctrl,(m_sh)	;zvol signAly ATN
+  E6F2    3A E9C9         +     	 LD	A,(m_sh)
+  E6F5    D3 46           +     	OUT	(rkd_ctrl),A
+  E6F7                          .1.rk_home:
+                                	test	rkd_status,atn0_l ;hotovo?
+  E6F7    DB 45           +     	IN	A,(rkd_status)
+  E6F9    E6 10           +     	AND	atn0_l
+  E6FB    20 FA                 	jr	nz,.1.rk_home	;ne, Cekej
+                                ;------------------------------------------------------------
+                                ; skonCila operace restore
+  E6FD    3A E9C9               	ld	a,(m_sh)	;CIslo povrchu
+  E700    CB FF                 	set	b_sel_status,a	;vol normAlnI stav. signAly
+                                	iow	rkd_ctrl
+  E702    D3 46           +     	OUT	(rkd_ctrl),A
+  E704    C3 E861               	jp	wait_seek	;otestuj JspEch restore
+                                
+                                ;************************************************************
+                                ;funkce	RK_SEL
+                                ;vstup	<a> - CIslo mWdia:0..3
+                                ;vYstup	<af> - kOd vYsledku operace
+                                ;popis	RK_SEL provAdI vYbEr mWdia v jednotce.
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-15
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+                                
+  E707                          RK_SEL:
+  E707    F5                    	PUSH	AF		;schovej CIslo mWdia
+                                	WAIT_BUSY		;Cekej na pRipravenost RadiCe
+  E708    CD E872         +     	CALL	WAIT_BUSY
+  E70B    F1                    	POP	AF		;CIslo mWdia
+  E70C    E6 03                 	AND	3		;maskuj na 0..3
+  E70E    0F                    	RRCA			;pRemIsti pro bity v RadiCi
+  E70F    0F                    	RRCA
+  E710    0F                    	RRCA
+  E711    32 E9C9               	LD	(M_SH),A	;zapamatuj
+  E714    CB FF                 	SET	B_SEL_STATUS,A	;volba stavovYch signAlJ
+  E716    D3 46                 	OUT	(RKD_CTRL),A	;proveD
+  E718    AF                    	XOR	A		;vYsledek=OK
+  E719    C9                    	RET			;hotovo
+                                
+                                ;************************************************************
+                                ;funkce	RK_SEEK
+                                ;vstup	<a> - CIslo stopy:0..203
+                                ;vYstup	<af> - kOd vYsledku operace
+                                ;popis	RK_SEEK zahAjI operaci najetI na stopu, zkontroluje
+                                ;	zda jednotka pRijala CIslo stopy. DokonCenI seeku
+                                ;	se dElA aZ v pRi RK_RW.
+                                
+  E71A                          RK_SEEK:
+  E71A    C5                    	push	bc
+  E71B    4F                    	ld	c,a
+                                	WAIT_BUSY		;cekej na pripravenost radice
+  E71C    CD E872         +     	CALL	WAIT_BUSY
+  E71F    20 2A                 	jr	nz,.9.rk_seek	;SAPIemu: oprava, BC ze zasobniku
+                                ;------------------------------------------------------------
+                                	wait_seek
+  E721    CD E861         +     	CALL	WAIT_SEEK
+  E724    20 25                 	jr	nz,.9.rk_seek
+                                ;------------------------------------------------------------
+  E726    79                    	ld	a,c
+  E727    C1                    	pop	bc
+                                	IOW	TRACK_NO	;zapiS do RadiCe
+  E728    D3 44           +     	OUT	(TRACK_NO),A
+                                	TEST	RKD_STATUS,UNIT_RDY_L	;jednotka pRipravena?
+  E72A    DB 45           +     	IN	A,(RKD_STATUS)
+  E72C    E6 40           +     	AND	UNIT_RDY_L
+                                	CHECK	Z,NOT_READY	;ne, chyba
+  E72E    28 03           +     	JR	Z,..0000
+  E730    3E 01           +     	LD	A,NOT_READY
+  E732    C9              +     	RET
+  E733                    +     ..0000:	
+                                ;============================================================
+  E733    3A E9C9               	LD	A,(M_SH)	;CIslo mWdia
+  E736    F6 81                 	OR	SEL_STATUS+ENBL_TRK_NO	;+vol status+dej stopu
+  E738    D3 46                 	OUT	(RKD_CTRL),A	;proveD
+                                	STROBE			;potvrD
+  E73A    D3 48           +     	OUT	(STROBE),A
+  E73C    CB 87                 	RES	B_ENBL_TRK_NO,A	;zakaZ vysIlAnI stopy
+  E73E    D3 46                 	OUT	(RKD_CTRL),A	;proveD
+                                	TEST	RKD_STATUS,TRACK_NO_ACK_H	;pRijato?
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-16
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E740    DB 45           +     	IN	A,(RKD_STATUS)
+  E742    E6 08           +     	AND	TRACK_NO_ACK_H
+                                	CHECK	NZ,ILL_TRACK	;ne, chyba
+  E744    20 03           +     	JR	NZ,..0001
+  E746    3E 83           +     	LD	A,ILL_TRACK
+  E748    C9              +     	RET
+  E749                    +     ..0001:	
+                                ;============================================================
+  E749    AF                    	XOR	A		;operace OK
+  E74A    C9                    	RET			;hotovo
+  E74B                          .9.rk_seek:
+  E74B    C1                    	pop	bc		;SAPIemu: chyba, zasobnik v poradku
+  E74C    C9                    	ret
+                                
+                                ;************************************************************
+                                ;funkce	RK_RW
+                                ;vstup	(hl) - bufer pro sektor
+                                ;	<d> - CIslo stopy
+                                ;	<e> - CIslo sektoru
+                                ;	<bc> - dWlka sektoru:(256,512)
+                                ;	<a> - funkce: 0 => CtenI
+                                ;		      1 => zApis
+                                ;vYstup	<af> - kOd vYsledku operace
+                                ;popis	RK_RW provAdI zApis/CtenI sektoru. PRedpoklAdA, Ze bylo
+                                ;	volAno RK_SEL a RK_SEEK. PRi volAnI RK_RW je nutnW
+                                ;	zopakovat v <d> CIslo stopy na kterW chceme CIst/psAt.
+                                ;	Rutina je spoleCnA pro disky se sektory 256 i 512 byte.
+                                ;	DWlka sektoru v bytech je v <bc>. Pokud pRi operaci
+                                ;	dojde k chybE u kterW mA smysl pokusit se znova,
+                                ;	provede se RETRY pokusJ.
+                                
+  E74D                          RK_RW:
+  E74D    F5                    	push	af		;Cteni/zApis
+  E74E    7A                    	ld	a,d		;stopa CtenI/zApisu
+  E74F    32 E9CA               	ld	(track),a	;zapamatuj
+  E752    F1                    	pop	af		;obnov kOd operace
+  E753    D9                    	exx			;sek. reg
+  E754    C5                    	push	bc		;pro CItaC pokusJ a op.
+  E755    4F                    	ld	c,a		;zapamatuj operaci
+  E756    06 0A                 	ld	b,retry		;poCet pokusJ
+  E758    D9                    	exx			;primArnI reg.
+  E759                          .1.rk_rw:
+  E759    E5                    	push	hl		;schovej primArnI reg.
+  E75A    D5                    	push	de
+  E75B    C5                    	push	bc
+  E75C    CD E78A               	call	rw		;proveD CtenI/zApis
+  E75F    28 21                 	jr	z,.3.rk_rw	;ok
+                                ;------------------------------------------------------------
+                                ; chyba r/w
+  E761    CB 7F                 	bit	bcretry,a 	;znova?
+  E763    28 1D                 	jr	z,.3.rk_rw	;ne
+                                ;------------------------------------------------------------
+                                ; opravitelnA chyba
+  E765    D9                    	exx			;CItaC pokusJ
+  E766                          .1a.rk_rw:
+  E766    05                    	dec	b		;dalSI pokus?
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-17
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E767    28 18                 	jr	z,.2.rk_rw	;ne
+                                ;------------------------------------------------------------
+                                ; jeStE jednou to zkusIme
+  E769    CD E6E4               	call	rk_home		;zkus vynulovat chybu
+  E76C    3A E9CA               	ld	a,(track)	;stopa CtenI/zApisu
+  E76F    CD E71A               	call	rk_seek		;znovu najeD
+  E772    28 06                 	jr	z,.1b.rk_rw	;ok
+                                ;------------------------------------------------------------
+                                ; chyba seek pRi pokusu o opravu chyby
+  E774    CB 7F                 	bit	bcretry,a	;opravitelnA?
+  E776    20 EE                 	jr	nz,.1a.rk_rw	;ano
+                                ;------------------------------------------------------------
+                                ; neopravitelnA chyba seek
+  E778    18 07                 	jr	.2.rk_rw	;nech toho
+                                ;============================================================
+                                ; dalSI pokus
+  E77A                          .1b.rk_rw:
+  E77A    79                    	ld	a,c		;kOd operace
+  E77B    D9                    	exx			;primArnI reg.
+  E77C    C1                    	pop	bc		;obnov primArnI
+  E77D    D1                    	pop	de
+  E77E    E1                    	pop	hl
+  E77F    18 D8                 	jr	.1.rk_rw	;zkus znovu CIst/zapsat
+                                ;============================================================
+  E781                          .2.rk_rw:
+  E781    D9                    	exx			;primArnI reg
+  E782                          .3.rk_rw:
+  E782    B7                    	or	a		;nastav <z> podle vYsledku
+  E783    C1                    	pop	bc		;obnov
+  E784    D1                    	pop	de
+  E785    E1                    	pop	hl
+  E786    D9                    	exx			;sek. reg.
+  E787    C1                    	pop	bc		;obnov
+  E788    D9                    	exx			;primArnI reg.
+  E789    C9                    	ret			;hotovo
+                                
+                                ;************************************************************
+                                ;	podprogramy ovladaCe RadiCe kazetovWho disku RKD-1
+                                ;************************************************************
+                                
+                                ;************************************************************
+                                ;funkce	RW
+                                ;vstup	viz RK_RW
+                                ;vYstup viz RK_RW
+                                ;popis	RW je samotnY podprogram CtenI/zApisu, neobnovuje ale
+                                ;	primArnI registry. UZivatelsky je proto pRIstupnW pouze
+                                ;	RK_RW.
+                                
+  E78A                          RW:
+  E78A    F5                    	PUSH	AF		;kOd operace
+                                	WAIT_BUSY		;Cekej na pRipravenost RadiCe
+  E78B    CD E872         +     	CALL	WAIT_BUSY
+                                	IOW	CTRL_8253,MODE_CNT1	;mOd CItaCe zpoZdenI
+  E78E    3E 5A           +     	 LD	A,MODE_CNT1
+  E790    D3 43           +     	OUT	(CTRL_8253),A
+                                	IOW	CTRL_8253,MODE_CNT2	;mOd CItaCe dat
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-18
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E792    3E B0           +     	 LD	A,MODE_CNT2
+  E794    D3 43           +     	OUT	(CTRL_8253),A
+  E796    F1                    	POP	AF		;kOd operace
+  E797    B7                    	OR	A
+  E798    20 65                 	JR	NZ,.2.RW	;operace zApisu
+                                ;------------------------------------------------------------
+                                ; CtenI
+  E79A    3A E9C9               	LD	A,(M_SH)	;CIslo mWdia
+  E79D    F6 88                 	OR	SEL_STATUS+RD_ENBL	;+vol status+CtenI
+  E79F    D3 46                 	OUT	(RKD_CTRL),A	;proveD
+                                	IOW	DELAY_COUNTER,DELAY_READ ;zpoZdenI pRed CtenIm
+  E7A1    3E 14           +     	 LD	A,DELAY_READ
+  E7A3    D3 41           +     	OUT	(DELAY_COUNTER),A
+  E7A5    79                    	LD	A,C		;lsbyte dWlky sektoru
+  E7A6    C6 04                 	ADD	A,S_OF_MARK+S_OF_SUM	;+poCet dalSIch bytJ
+                                				;kterW se budou CIst
+  E7A8    D3 42                 	OUT	(DATA_COUNTER),A	;nastav lsb CItaCe dat
+  E7AA    3E 00                 	LD	A,0
+  E7AC    88                    	ADC	A,B		;pRenos do msb poCtu
+  E7AD    D3 42                 	OUT	(DATA_COUNTER),A	;nastav msb CItaCe dat
+                                	WAIT_SEEK		;poCkej na dokonCenI seeku
+  E7AF    CD E861         +     	CALL	WAIT_SEEK
+  E7B2    C0                    	RET	NZ		;nepokraCuj pRi chybE seeku
+                                ;------------------------------------------------------------
+  E7B3    7B                    	LD	A,E		;CIslo sektoru
+  E7B4    2F                    	CPL			;musI bYt inverznE
+  E7B5    D3 4A                 	OUT	(RPTR_SECNO),A	;nastav+nuluj RAM pointr
+                                	GO			;start CtenI, Cekej BUSY
+  E7B7    D3 49           +     	OUT	(RUN),A
+  E7B9    CD E872         +     	CALL	WAIT_BUSY
+                                	TEST	RKD_STATUS,DATA_CNT_OK_H	;poCet dat ok?
+  E7BC    DB 45           +     	IN	A,(RKD_STATUS)
+  E7BE    E6 04           +     	AND	DATA_CNT_OK_H
+                                	CHECK	NZ,MISSING_DATA	;pReCetlo se mAlo dat
+  E7C0    20 03           +     	JR	NZ,..0002
+  E7C2    3E 85           +     	LD	A,MISSING_DATA
+  E7C4    C9              +     	RET
+  E7C5                    +     ..0002:	
+                                ;============================================================
+                                	IOW	RPTR_SECNO,RESET_PTR	;nuluj RAM pointr
+  E7C5    3E 80           +     	 LD	A,RESET_PTR
+  E7C7    D3 4A           +     	OUT	(RPTR_SECNO),A
+  E7C9    CD E885               	CALL	PREP_MARK	;vytvoR zAhlavI
+                                	RDATA			;lsb zAhlavI z disku
+  E7CC    DB 4C           +     	IN	A,(DATA)
+  E7CE    BB                    	CP	E		;SAPIemu: jako FORMRKD, nizsi byte prvni
+                                	CHECK	Z,MARK_ERR	;ne, chyba zAhlavI
+  E7CF    28 03           +     	JR	Z,..0003
+  E7D1    3E 86           +     	LD	A,MARK_ERR
+  E7D3    C9              +     	RET
+  E7D4                    +     ..0003:	
+                                ;============================================================
+                                	RDATA			;msbyte zAhlavI
+  E7D4    DB 4C           +     	IN	A,(DATA)
+  E7D6    BA                    	CP	D
+                                	CHECK	Z,MARK_ERR	;ne, chyba zAhlavI
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-19
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E7D7    28 03           +     	JR	Z,..0004
+  E7D9    3E 86           +     	LD	A,MARK_ERR
+  E7DB    C9              +     	RET
+  E7DC                    +     ..0004:	
+                                ;============================================================
+  E7DC    11 0000               	LD	DE,0		;nuluj sumu
+  E7DF                          .1.RW:
+                                	RDATA	(HL)		;Cti data do buf
+  E7DF    DB 4C           +     	IN	A,(DATA)
+  E7E1    77              +     	 LD	(HL),A
+  E7E2    83                    	ADD	A,E		;poCItej sumu
+  E7E3    5F                    	LD	E,A
+  E7E4    3E 00                 	LD	A,0		;16-ti bitovA suma
+  E7E6    8A                    	ADC	A,D
+  E7E7    57                    	LD	D,A
+  E7E8    ED A1                 	CPI			;(buf)++, cnt--
+  E7EA    EA E7DF               	JP	PE,.1.RW	;dalSI byte
+                                ;------------------------------------------------------------
+                                	RDATA			;lsb sumy z disku
+  E7ED    DB 4C           +     	IN	A,(DATA)
+  E7EF    BB                    	CP	E		;souhlasI?
+                                	CHECK	Z,SUM_ERR	;ne, chyba souCtu
+  E7F0    28 03           +     	JR	Z,..0005
+  E7F2    3E 87           +     	LD	A,SUM_ERR
+  E7F4    C9              +     	RET
+  E7F5                    +     ..0005:	
+                                ;============================================================
+                                	RDATA			;msbyte sumy z disku
+  E7F5    DB 4C           +     	IN	A,(DATA)
+  E7F7    BA                    	CP	D		;souhlasI?
+                                	CHECK	Z,SUM_ERR	;ne, chyba souCtu
+  E7F8    28 03           +     	JR	Z,..0006
+  E7FA    3E 87           +     	LD	A,SUM_ERR
+  E7FC    C9              +     	RET
+  E7FD                    +     ..0006:	
+                                ;============================================================
+  E7FD    AF                    	XOR	A		;vYsledek=OK
+  E7FE    C9                    	RET			;hotovo
+                                ;============================================================
+                                ; zApis
+  E7FF                          .2.RW:
+                                	IOW	DELAY_COUNTER,DELAY_WRITE ;zpoZdenI zApisu
+  E7FF    3E 03           +     	 LD	A,DELAY_WRITE
+  E801    D3 41           +     	OUT	(DELAY_COUNTER),A
+  E803    79                    	LD	A,C		;lsb dWlky sektoru
+  E804    C6 1F                 	ADD	A,S_OF_LEAD+S_OF_SYNC+S_OF_SUM+S_OF_TRAIL
+                                				;+poCet dalSIch butJ pro zApis
+  E806    D3 42                 	OUT	(DATA_COUNTER),A	;nastav lsb CItaCe dat
+  E808    3E 00                 	LD	A,0
+  E80A    88                    	ADC	A,B		;pRenos do msb dWlky sektoru
+  E80B    D3 42                 	OUT	(DATA_COUNTER),A	;nastav msb CItaCe dat
+                                	IOW	RPTR_SECNO,RESET_PTR	;nuluj RAM pointr
+  E80D    3E 80           +     	 LD	A,RESET_PTR
+  E80F    D3 4A           +     	OUT	(RPTR_SECNO),A
+  E811    C5                    	PUSH	BC		;dWlka sektoru
+  E812    06 1A                 	LD	B,S_OF_LEAD	;poCet UvodnIch nul
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-20
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E814    AF                    	XOR	A		;nula
+  E815                          .3.RW:
+                                	WDATA			;do RAM RadiCe
+  E815    D3 4C           +     	OUT	(DATA),A
+  E817    10 FC                 	DJNZ	.3.RW		;S_OF_LEAD krAt
+                                ;------------------------------------------------------------
+  E819    C1                    	POP	BC		;dWlka sektoru
+                                	WDATA	SYNC		;sync byte
+  E81A    3E 80           +     	 LD	A,SYNC
+  E81C    D3 4C           +     	OUT	(DATA),A
+  E81E    D5                    	PUSH	DE		;stopa, sektor
+  E81F    CD E885               	CALL	PREP_MARK	;vytvoR zAhlavI
+                                	WDATA	E		;SAPIemu: jako FORMRKD, nizsi byte zahlavi prvni
+  E822    7B              +     	 LD	A,E
+  E823    D3 4C           +     	OUT	(DATA),A
+                                	WDATA	D
+  E825    7A              +     	 LD	A,D
+  E826    D3 4C           +     	OUT	(DATA),A
+  E828    11 0000               	LD	DE,0		;nuluj souCet
+  E82B                          .4.RW:
+                                	WDATA	(HL)		;data z buferu do RAM RadiCe
+  E82B    7E              +     	 LD	A,(HL)
+  E82C    D3 4C           +     	OUT	(DATA),A
+  E82E    83                    	ADD	A,E		;poCItej 16-ti botovou sumu
+  E82F    5F                    	LD	E,A
+  E830    3E 00                 	LD	A,0
+  E832    8A                    	ADC	A,D
+  E833    57                    	LD	D,A
+  E834    ED A1                 	CPI			;(buf)++, cnt--
+  E836    EA E82B               	JP	PE,.4.RW	;dalSI byte
+                                ;------------------------------------------------------------
+                                	WDATA	E		;lsb sumy
+  E839    7B              +     	 LD	A,E
+  E83A    D3 4C           +     	OUT	(DATA),A
+                                	WDATA	D		;msb sumy
+  E83C    7A              +     	 LD	A,D
+  E83D    D3 4C           +     	OUT	(DATA),A
+                                	REPT	S_OF_TRAIL+1	;nuly za sumou
+                                	WDATA	0		;nula
+                                	ENDM
+  E83F    3E 00           +     	 LD	A,0
+  E841    D3 4C           +     	OUT	(DATA),A
+  E843    3E 00           +     	 LD	A,0
+  E845    D3 4C           +     	OUT	(DATA),A
+  E847    3E 00           +     	 LD	A,0
+  E849    D3 4C           +     	OUT	(DATA),A
+  E84B    D1                    	POP	DE		;stopa, sektor
+  E84C    7B                    	LD	A,E		;sektor
+  E84D    2F                    	CPL			;musI bYt inverznE
+  E84E    D3 4A                 	OUT	(RPTR_SECNO),A	;vol sektor a nuluj RAM pointr
+                                	WAIT_SEEK		;poCkej na konec seeku
+  E850    CD E861         +     	CALL	WAIT_SEEK
+  E853    C0                    	RET	NZ		;nepokraCuj, chyba
+                                ;------------------------------------------------------------
+  E854    3A E9C9               	ld	a,(m_sh)	;posunutW CIslo povrchu
+  E857    F6 90                 	OR	SEL_STATUS+WR_ENBL	;+vol status+zApis
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-21
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E859    D3 46                 	OUT	(RKD_CTRL),A		;proveD
+                                	GO			;start zApisu, Cekej BUSY
+  E85B    D3 49           +     	OUT	(RUN),A
+  E85D    CD E872         +     	CALL	WAIT_BUSY
+  E860    C9                    	RET			;hotovo
+                                
+                                ;************************************************************
+                                ;funkce	WAIT_SEEK
+                                ;vstup	-
+                                ;vYstup	<af> kOd vYsledku operace
+                                ;popis	WAIT_SEEK CekA na dokonCenI najetI na stopu.
+                                ;	PRi chybE seeku vracI jejI kOd.
+                                
+  E861                          WAIT_SEEK:
+                                	TEST	RKD_STATUS,SEEK_RDY_L	;dokonCen seek?
+  E861    DB 45           +     	IN	A,(RKD_STATUS)
+  E863    E6 10           +     	AND	SEEK_RDY_L
+  E865    28 11                 	JR	Z,.1.WAIT_BUSY		;ano, testuj jeStE
+                                					;jednotku
+                                ;------------------------------------------------------------
+                                	TEST	RKD_STATUS,SEEK_TOUT_L	;nedokonCen vCas?
+  E867    DB 45           +     	IN	A,(RKD_STATUS)
+  E869    E6 20           +     	AND	SEEK_TOUT_L
+                                	CHECK	NZ,SEEK_TOUT		;ano, chyba
+  E86B    20 03           +     	JR	NZ,..0007
+  E86D    3E 82           +     	LD	A,SEEK_TOUT
+  E86F    C9              +     	RET
+  E870                    +     ..0007:	
+                                ;============================================================
+  E870    18 EF                 	JR	WAIT_SEEK		;jeStE probIhA seek
+                                
+                                ;************************************************************
+                                ;funkce	WAIT_BUSY
+                                ;vstup	-
+                                ;vYstup	<af> - kOd vYsledku operace
+                                ;popis	WAIT_BUSY CekA na pRipravenost RadiCe, zAroveN testuje
+                                ;	vybranou jednotku na chyby a pRipravenost.
+                                
+  E872                          WAIT_BUSY:
+                                	TEST	RKD_STATUS,BUSY_H	;RadiC busy?
+  E872    DB 45           +     	IN	A,(RKD_STATUS)
+  E874    E6 01           +     	AND	BUSY_H
+  E876    20 FA                 	JR	NZ,WAIT_BUSY		;ano, Cekej
+                                ;------------------------------------------------------------
+                                ; RadiC pRipraven
+  E878                          .1.WAIT_BUSY:
+                                	TEST	RKD_STATUS,ERROR_L+UNIT_RDY_L	;jednotka OK?
+  E878    DB 45           +     	IN	A,(RKD_STATUS)
+  E87A    E6 C0           +     	AND	ERROR_L+UNIT_RDY_L
+  E87C    FE 80                 	CP	ERROR_L	
+  E87E    3E 00                 	LD	A,0			;pRiprav OK
+  E880    C8                    	RET	Z			;ano, hotovo
+                                ;------------------------------------------------------------
+                                ; jednotka nenI ready
+  E881    3E 01                 	LD	A,NOT_READY		;kOd vYsledku
+  E883    B7                    	OR	A			;nastav jeStE <z>
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-22
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E884    C9                    	RET				;hotovo
+                                
+                                ;************************************************************
+                                ;funkce	PREP_MARK
+                                ;vstup	<d> - CIslo stopy
+                                ;	<e> - CIslo sektoru
+                                ;	<bc> - dWlka sektoru v bytech
+                                ;vYstup	<de> - zAhlavI sektoru
+                                ;popis	PREP_MARK transformuje stopu, sektor, dWlku sektoru
+                                ;	a CIslo mWdia do 16-ti bitovWho zAhlavI:
+                                ;
+                                ; bit 15: 0 => sektor 256 byte
+                                ;	  1 => 	      512 byte
+                                ; bit 14: 0 => mWdium 0
+                                ;	  1 =>	      1
+                                ; bit 13: 0 => povrch 0
+                                ;	  1 =>	      1
+                                ; bit 12..5: CIslo stopy: 0..203
+                                ; bit 4..0: CIslo sektoru: 0..11 nebo 0..23
+                                ;			    512	       256
+                                
+  E885                          PREP_MARK:
+                                ; SAPIemu: jako ovladac ve FORMRKD.COM (J. Biba): zahlavi je jen stopa * 32,
+                                ; bez sektoru, media a priznaku 512 B (RKD.MAC 87-02-13 je pridava)
+  E885    C5                    	PUSH	BC
+  E886    06 03                 	LD	B,3
+  E888    4B                    	LD	C,E
+  E889    1E 00                 	LD	E,0
+  E88B    B7                    	OR	A
+  E88C                          .1.PREP_MARK:
+  E88C    CB 1A                 	RR	D
+  E88E    CB 1B                 	RR	E
+  E890    10 FA                 	DJNZ	.1.PREP_MARK
+  E892    C1                    	POP	BC
+  E893    C9                    	RET
+                                
+                                ;************************************************************
+                                ;	data ovladaCe RKD-1
+                                ;************************************************************
+                                
+                                ;*******************************
+                                ; fyzicke cteni / zapis sektoru 512 B do/z buf_8
+                                ; I: D = medium 0-3 (D: az G:), E = stopa, C = sektor 0-11
+                                ; O: A=0,Z OK; A=1,NZ chyba
+  E894                          rd_RKD::
+  E894    AF                    	XOR	A		;cteni
+  E895    18 02                 	JR	RKD_IO
+  E897                          wr_RKD::
+  E897    3E 01                 	LD	A,1		;zapis
+  E899                          RKD_IO::
+  E899    E5                    	PUSH	HL
+  E89A    D5                    	PUSH	DE
+  E89B    C5                    	PUSH	BC
+  E89C    F5                    	PUSH	AF
+  E89D    7A                    	LD	A,D
+  E89E    CD E707               	CALL	RK_SEL		;medium
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-23
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E8A1    7B                    	LD	A,E
+  E8A2    CD E71A               	CALL	RK_SEEK		;najeti, dokonci se v RK_RW
+  E8A5    20 15                 	JR	NZ,RKD_ER
+  E8A7    F1                    	POP	AF
+  E8A8    C1                    	POP	BC
+  E8A9    C5                    	PUSH	BC
+  E8AA    53                    	LD	D,E		;stopa
+  E8AB    59                    	LD	E,C		;sektor
+  E8AC    21 ECDF               	LD	HL,buf_8
+  E8AF    01 0200               	LD	BC,512
+  E8B2    CD E74D               	CALL	RK_RW
+  E8B5    20 06                 	JR	NZ,RKD_E1
+  E8B7    C1                    	POP	BC
+  E8B8    D1                    	POP	DE
+  E8B9    E1                    	POP	HL
+  E8BA    AF                    	XOR	A
+  E8BB    C9                    	RET
+  E8BC                          RKD_ER::
+  E8BC    F1                    	POP	AF
+  E8BD                          RKD_E1::
+  E8BD    C1                    	POP	BC
+  E8BE    D1                    	POP	DE
+  E8BF    E1                    	POP	HL
+  E8C0    3E 01                 	LD	A,1
+  E8C2    B7                    	OR	A
+  E8C3    C9                    	RET
+                                ;****************************************
+                                ;WBOOT A BOOT PROCEDURY
+                                ;****************************************
+  E8C4                          WBOOT::
+  E8C4    31 F800               	LD	SP,STACK
+  E8C7    AF                    	XOR	A
+  E8C8    32 E9BE               	LD	(LOG_DISK),A
+  E8CB    4F                    	LD	C,A
+  E8CC    CD F01B               	CALL	MSELE
+  E8CF    20 5C                 	JR	NZ,BOMB
+  E8D1    CD F021               	CALL	MSEEK
+  E8D4    20 57                 	JR	NZ,BOMB
+  E8D6    21 CF00               	LD	HL,CCPB+100H	;0CF00H
+  E8D9    01 0804               	LD	BC,804H
+  E8DC    1E 03                 	LD	E,3
+  E8DE    CD E909               	CALL	RDLOOP
+  E8E1                          DAL_STO::
+  E8E1    21 DA00               	LD	HL,CCPB+0C00H	;0DA00H
+  E8E4    0E 1A                 	LD	C,1AH
+  E8E6    CD F024               	CALL	MREAD
+  E8E9    20 F6                 	JR	NZ,DAL_STO
+  E8EB    0E 01                 	LD	C,1
+  E8ED    CD F021               	CALL	MSEEK
+  E8F0    20 3B                 	JR	NZ,BOMB
+  E8F2    21 DC00               	LD	HL,CCPB+0E00H	;0DC00H
+  E8F5    01 0604               	LD	BC,604H
+  E8F8    1E 03                 	LD	E,3
+  E8FA    CD E909               	CALL	RDLOOP
+  E8FD                          DAL_SEC::
+  E8FD    21 DA80               	LD	HL,CCPB+0C80H	;0DA80H
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-24
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E900    0E 01                 	LD	C,1
+  E902    CD F024               	CALL	MREAD
+  E905    20 F6                 	JR	NZ,DAL_SEC
+  E907    18 2C                 	JR	GOCPM
+                                ;----------------------------
+  E909                          RDLOOP::
+  E909    D5                    	PUSH	DE
+  E90A    C5                    	PUSH	BC
+  E90B    E5                    	PUSH 	HL
+  E90C                          RD0::
+  E90C    C5                    	PUSH	BC
+  E90D    E5                    	PUSH	HL
+  E90E    CD F024               	CALL	MREAD
+  E911    E1                    	POP	HL
+  E912    C1                    	POP	BC
+  E913    B7                    	OR	A
+  E914    20 F6                 	JR	NZ,RD0
+  E916    3E 03                 	LD	A,3
+  E918    81                    	ADD	A,C
+  E919    4F                    	LD	C,A
+  E91A    11 0180               	LD	DE,180H
+  E91D    19                    	ADD	HL,DE
+  E91E    05                    	DEC	B
+  E91F    20 EB                 	JR	NZ,RD0
+  E921    E1                    	POP	HL
+  E922    C1                    	POP	BC
+  E923    11 FF80               	LD	DE,-80H
+  E926    19                    	ADD	HL,DE
+  E927    0D                    	DEC	C
+  E928    D1                    	POP	DE
+  E929    1D                    	DEC	E
+  E92A    C8                    	RET	Z
+  E92B    18 DC                 	JR	RDLOOP
+                                ;----------------------------
+  E92D                          BOMB::
+  E92D    21 EA60               	LD	HL,DEAD
+  E930    CD E95F               BOMB1::	CALL	PMSG
+  E933                          LOOP::
+  E933    18 FE                 	JR	LOOP
+                                ;----------------------------
+  E935                          GOCPM::
+  E935    3E FF                 	ld	a,-1
+  E937    32 E9C5               	ld	(buf_disk),a
+  E93A    AF                    	xor	a
+  E93B    32 E9C8               	ld	(buf_write),a
+                                
+  E93E    3E C3                 	LD	A,0C3H
+  E940    32 0000               	LD	(0),A
+  E943    21 E403               	LD	HL,BIOS+3
+  E946    22 0001               	LD	(1),HL
+  E949    32 0005               	LD	(5),A
+  E94C    21 D606               	LD	HL,BDOSB
+  E94F    22 0006               	LD	(6),HL
+  E952    01 0080               	LD	BC,80H
+  E955    CD E51A               	CALL	SETPTR
+  E958    3A 0004               	LD	A,(DRVINP)
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-25
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E95B    4F                    	LD	C,A
+  E95C    C3 CE00               	JP	CCPB
+                                ;----------------------------
+  E95F                          PMSG::
+  E95F    7E                    	LD	A,(HL)
+  E960    23                    	INC	HL
+  E961    B7                    	OR	A
+  E962    C8                    	RET	Z
+  E963    4F                    	LD	C,A
+  E964    E5                    	PUSH	HL
+  E965    CD F00C               	CALL	MCONOU
+  E968    E1                    	POP	HL
+  E969    18 F4                 	JR	PMSG
+                                ;----------------------------
+  E96B                          VERROR::
+  E96B    21 EA6C               	LD	HL,TVERR
+  E96E    18 C0                 	JR	BOMB1
+                                ;----------------------------
+  E970                          BOOT::
+  E970    21 F004               	LD	HL,VCOMP
+  E973    7E                    	LD	A,(HL)
+  E974    FE 0D                 	CP	VERZE
+  E976    20 F3                 	JR	NZ,VERROR
+  E978    AF                    	XOR	A
+  E979    32 0004               	LD	(DRVINP),A
+  E97C    32 E9BE               	LD	(LOG_DISK),A
+  E97F    21 E9CB               	LD	HL,SIGNON
+  E982    CD E95F               	CALL	PMSG
+  E985    CD E6C7               	CALL	RK_INIT		;RKD-1
+  E988    18 AB                 	JR	GOCPM
+                                
+                                ;****************************************
+                                ;PROMENNE BIOSU
+                                ;****************************************
+                                
+  E98A                          	ds	50
+  E9BC                          bios_stack::
+  E9BC                          sp_save::
+  E9BC                          	ds	2
+                                
+  E9BE                          LOG_DISK::
+  E9BE    00                    	DB	0
+  E9BF                          LOG_TRACK::
+  E9BF    0000                  	DW	0
+  E9C1                          LOG_SECTOR::
+  E9C1    00                    	DB	0
+  E9C2                          DMA_ADR::
+  E9C2    0000                  	DW	0
+                                
+  E9C4                          wr_type::
+  E9C4                          	ds	1
+  E9C5                          buf_disk::
+  E9C5                          	ds	1
+  E9C6                          buf_track::
+  E9C6                          	ds	1
+  E9C7                          buf_sector::
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-26
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  E9C7                          	ds	1
+  E9C8                          buf_write::
+  E9C8                          	ds	1
+                                ;-------------------------------
+  E9C9                          M_SH::	DS	1		;RKD: posunute cislo media
+  E9CA                          track::	DS	1		;RKD: stopa pro restore pri chybe
+  E9CB                          SIGNON::
+  E9CB    0D 0A 4A 50           	DB 0DH,0AH,'JPR-1Z 62K CP/M V2.2'
+  E9CF    52 2D 31 5A           
+  E9D3    20 36 32 4B           
+  E9D7    20 43 50 2F           
+  E9DB    4D 20 56 32           
+  E9DF    2E 32                 
+  E9E1    0D 0A 42 49           	DB 0DH,0AH,'BIOS-3K RKD SAPIemu (V261211JB)'
+  E9E5    4F 53 2D 33           
+  E9E9    4B 20 52 4B           
+  E9ED    44 20 53 41           
+  E9F1    50 49 65 6D           
+  E9F5    75 20 28 56           
+  E9F9    32 36 31 32           
+  E9FD    31 31 4A 42           
+  EA01    29                    
+  EA02    0D 0A 41 2C           	DB 0DH,0AH,'A,B: RPD1; C: ZRMD1/4 MB+SYS'
+  EA06    42 3A 20 52           
+  EA0A    50 44 31 3B           
+  EA0E    20 43 3A 20           
+  EA12    5A 52 4D 44           
+  EA16    31 2F 34 20           
+  EA1A    4D 42 2B 53           
+  EA1E    59 53                 
+  EA20    0D 0A 44 2D           	DB 0DH,0AH,'D-G: RKD1 CM5400 12x512'
+  EA24    47 3A 20 52           
+  EA28    4B 44 31 20           
+  EA2C    43 4D 35 34           
+  EA30    30 30 20 31           
+  EA34    32 78 35 31           
+  EA38    32                    
+  EA39    0D 0A 43 4F           	DB 0DH,0AH,'CON: AND1Z + C259.11'
+  EA3D    4E 3A 20 41           
+  EA41    4E 44 31 5A           
+  EA45    20 2B 20 43           
+  EA49    32 35 39 2E           
+  EA4D    31 31                 
+  EA4F    0D 0A 4C 53           	DB 0DH,0AH,'LST: CENTRONIX'
+  EA53    54 3A 20 43           
+  EA57    45 4E 54 52           
+  EA5B    4F 4E 49 58           
+  EA5F    00                    	DB 0
+                                ;----------------------------
+  EA60                          DEAD::
+  EA60    0D 0A 42 6F           	DB 0DH,0AH,'Boot err!',0
+  EA64    6F 74 20 65           
+  EA68    72 72 21 00           
+                                ;----------------------------
+  EA6C                          TVERR::
+  EA6C    0D 0A 42 61           	DB 0DH,0AH,'Bad ver!',0
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	1-27
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+  EA70    64 20 76 65           
+  EA74    72 21 00              
+                                
+                                ;****************************************
+                                	.DEPHASE
+                                ;****************************************
+                                	.PHASE	SIGNON
+  E9CB                          CHK_A::
+  E9CB                          	DS	16
+  E9DB                          CHK_B::
+  E9DB                          	DS	16
+  E9EB                          CHK_C::
+  E9EB                          CHK_D::
+  E9EB                          CHK_E::
+  E9EB                          	DS	0
+  E9EB                          CHK_F::
+  E9EB                          	DS	64
+  EA2B                          CHK_G::
+  EA2B                          	DS	64
+  EA6B                          ALL_A::
+  EA6B                          	DS	32
+  EA8B                          ALL_B::
+  EA8B                          	DS	32
+  EAAB                          ALL_C::
+  EAAB                          	DS	128
+  EB2B                          ALL_D::
+  EB2B                          	DS	77
+  EB78                          ALL_E::
+  EB78                          	DS	77
+  EBC5                          ALL_F::
+  EBC5                          	DS	77
+  EC12                          ALL_G::
+  EC12                          	DS	77
+                                
+  EC5F                          DIRBUF::
+  EC5F                          	DS	128
+                                
+  ECDF                          buf_8::	ds	512
+  EEDF                          	ds	1
+  EEE0                          BIOS_END::
+                                
+                                	.DEPHASE
+                                
+                                	END	BIOS
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	S
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+Macros:
+CHECK           GO              IOW             RDATA           STROBE          
+TEST            WAIT_BUSY       WAIT_SEEK       WDATA           
+
+Symbols:
+E733 	..0000          E749 	..0001          E7C5 	..0002          
+E7D4 	..0003          E7DC 	..0004          E7F5 	..0005          
+E7FD 	..0006          E870 	..0007          E625I 	.0.$WRITE       
+E69AI 	.0.FILL_BUF     E629I 	.0A.$WRITE      E69EI 	.1.FILL_BUF     
+E88C 	.1.PREP_MARK    E6F7 	.1.RK_HOME      E759 	.1.RK_RW        
+E7DF 	.1.RW           E878 	.1.WAIT_BUSY    E766 	.1A.RK_RW       
+E77A 	.1B.RK_RW       E6B6I 	.2.FILL_BUF     E781 	.2.RK_RW        
+E7FF 	.2.RW           E782 	.3.RK_RW        E815 	.3.RW           
+E82B 	.4.RW           E74B 	.9.RK_SEEK      EA6BI 	ALL_A           
+EA8BI 	ALL_B           EAABI 	ALL_C           EB2BI 	ALL_D           
+EB78I 	ALL_E           EBC5I 	ALL_F           EC12I 	ALL_G           
+0010 	ATN0_L          0020 	ATN1_L          0040 	ATN2_L          
+0080 	ATN3_L          0040 	BAZE            0007 	BCRETRY         
+D606 	BDOSB           0E00 	BDOSL           E400I 	BIOS            
+E400 	BIOSB           1400 	BIOSL           EEE0I 	BIOS_END        
+E9BCI 	BIOS_STACK      E92DI 	BOMB            E930I 	BOMB1           
+E970I 	BOOT            ECDFI 	BUF_8           E9C5I 	BUF_DISK        
+E9C7I 	BUF_SECTOR      E9C6I 	BUF_TRACK       E9C8I 	BUF_WRITE       
+0001 	BUSY_H          0000 	B_ENBL_TRK_NO   0007 	B_RESET_PTR     
+0007 	B_SEL_STATUS    E400 	CBIOSB          0C00 	CBIOSL          
+CE00 	CCPB            0800 	CCPL            E9CBI 	CHK_A           
+E9DBI 	CHK_B           E9EBI 	CHK_C           E9EBI 	CHK_D           
+E9EBI 	CHK_E           E9EBI 	CHK_F           EA2BI 	CHK_G           
+0040 	CLK_DIV         0002 	CLK_N           0080 	CRETRY          
+0043 	CTRL_8253       0047 	CTRL_8255       E8FDI 	DAL_SEC         
+E8E1I 	DAL_STO         004C 	DATA            0004 	DATA_CNT_OK_H   
+0042 	DATA_COUNTER    EA60I 	DEAD            0041 	DELAY_COUNTER   
+0014 	DELAY_READ      0003 	DELAY_WRITE     EC5FI 	DIRBUF          
+E9C2I 	DMA_ADR         E4BDI 	DPB_81          E4CCI 	DPB_RF          
+E4DBI 	DPB_RV          E4EAI 	DPB_ZR          E433I 	DP_BASE         
+0004 	DRVINP          0001 	ENBL_TRK_NO     0080 	ERROR_L         
+E681I 	FILL_BUF        E665I 	FLUSH_BUF       E935I 	GOCPM           
+E50DI 	HOME            0083 	ILL_TRACK       E6E1 	INI_8253        
+E9BEI 	LOG_DISK        E9C1I 	LOG_SECTOR      E9BFI 	LOG_TRACK       
+E933I 	LOOP            0086 	MARK_ERR        0001 	MASK0           
+0002 	MASK1           0004 	MASK2           0008 	MASK3           
+0010 	MASK4           0020 	MASK5           0040 	MASK6           
+0080 	MASK7           F009 	MCONIN          F00C 	MCONOU          
+F006 	MCONST          F800 	MEMORY          F01E 	MHOME           
+0085 	MISSING_DATA    F012 	MLSTOU          F00F 	MLSTST          
+0082 	MODE_8255       0014 	MODE_CNT0       005A 	MODE_CNT1       
+00B0 	MODE_CNT2       F000 	MONITB          0800 	MONITL          
+F015 	MPUNCH          F024 	MREAD           F018 	MREADR          
+F021 	MSEEK           F01B 	MSELE           F027 	MWRITE          
+E9C9I 	M_SH            0001 	NOT_READY       0000 	OK              
+2A00 	OVERL           0000I'	PATRN           E95FI 	PMSG            
+E885 	PREP_MARK       E90CI 	RD0             E5DFI 	RD1             
+E5CBI 	RD512           E909I 	RDLOOP          E541I 	RDRMD           
+0008 	RD_ENBL         E894I 	RD_RKD          E51FI 	READ            
+E5B9I 	READ_RKD        0080 	RESET_PTR       0001 	RESTORE         
+000A 	RETRY           0046 	RKD_CTRL        E8BDI 	RKD_E1          
+BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)	MACRO-80 3.44	09-Dec-81	PAGE	S-1
+OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, u
+
+E8BCI 	RKD_ER          E899I 	RKD_IO          0045 	RKD_STATUS      
+E6E4 	RK_HOME         E6C7 	RK_INIT         E74D 	RK_RW           
+E71A 	RK_SEEK         E707 	RK_SEL          E54FI 	RMD.1           
+004A 	RPTR_SECNO      0049 	RUN             E78A 	RW              
+E58AI 	RWERR           E510I 	SEEK            0084 	SEEK_ERR        
+0010 	SEEK_RDY_L      0082 	SEEK_TOUT       0020 	SEEK_TOUT_L     
+E4F9I 	SELECT          0080 	SEL_STATUS      E51AI 	SETPTR          
+E515I 	SETSEC          E651I 	SET_REG         0002 	SET_WPROT       
+E9CBI 	SIGNON          E4A3I 	SKEW81          E9BCI 	SP_SAVE         
+F800 	STACK           0048 	STROBE          0087 	SUM_ERR         
+0080 	SYNC            0003 	S_OF_INI_8253   001A 	S_OF_LEAD       
+0002 	S_OF_MARK       0002 	S_OF_SUM        0001 	S_OF_SYNC       
+0002 	S_OF_TRAIL      E9CAI 	TRACK           0044 	TRACK_NO        
+0008 	TRACK_NO_ACK_H  E595I 	TRANS           EA6CI 	TVERR           
+0040 	UNIT_RDY_L      F004 	VCOMP           E96BI 	VERROR          
+000D 	VERZE           E872 	WAIT_BUSY       E861 	WAIT_SEEK       
+E8C4I 	WBOOT           E5A0I 	WICH_DISK       0002 	WPROTECT_H      
+004B 	WP_RESTORE      E5FFI 	WR512           E636I 	WRIT1           
+E568I 	WRITE           E5EDI 	WRITE_RKD       E548I 	WRRMD           
+0010 	WR_ENBL         E897I 	WR_RKD          E9C4I 	WR_TYPE         
+0060 	Z_R_W           
+
+
+
+No Fatal error(s)
+
+
+RANS           EA6CI 	TVERR           
+00

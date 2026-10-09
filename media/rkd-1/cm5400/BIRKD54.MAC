@@ -1,0 +1,1378 @@
+TITLE	BIOS JPR1-Z 3 KB RKD-1 CM 5400 V091026 (SAPIemu)
+;
+; BIOS-3K for the CP/M of J. Biba with the cartridge disk RKD-1 and the Bulgarian drive CM 5400.
+; NOT AN ORIGINAL: made 2026-10-09 for the emulator SAPIemu (docs/desky/RKD-1.md), because no CP/M for
+; RKD-1 with the CM 5400 was found and FORMRKD of J. Biba could format disks no system could use.
+; Made from:
+;  - BIOS JPR1-Z 3 KB DLOUHY BIOS V260811JB, EDIT D: E: BLOK/DEBLOK 512/8 261211JB (bi2612E4 8x512.txt,
+;    SAPI_DOKU\SAPIMAN\CPM_SYSTEMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\RPD A MFC\3K RPD MFC 8 512 261211): the frame,
+;    A: B: (RPD-1 through the monitor), the blocking/deblocking of 512 B sectors, boot and warm boot;
+;  - CBIOS JPR-1(Z) V271111_ZRMD_JB (bi271111EC_ZRMD4.txt): C: = ZRMD-1 4 MB, with the DPB of the boot disk
+;    r1_zrmd4m_271111 ("C: ZRMD1/4 MB + SYSTEM": OFF 32, DSM 1021), so C: keeps its files;
+;  - RKD.MAC 87-02-13 (Tesla ELSTROJ & JaMeSoft) as linked into FORMRKD.COM v1.1 of J. Biba: the header of a
+;    sector is only the track (track * 32, low byte first), so the disks formatted by FORMRKD read here.
+;    One fix of the original: RK_SEEK returned with BC left on the stack on an error.
+; D: E: = the fixed disk (lower, upper surface), F: G: = the cartridge (lower, upper), as FORMRKD names them.
+; 204 tracks x 12 sectors x 512 B, 2 KB blocks, 256 directory entries, 1224 KB per surface.
+;
+;************************
+.Z80
+VERZE	EQU	13
+;
+MEMORY	EQU	0F800H		;VELIKOST PAMETI 62 KB
+CBIOSL	EQU	0C00H		;DELKA CBIOS NA DISKETE (MAX 13 SEKTORU)
+				;+ DIRBUF+ALL+CHK JE MAX 15 SEKTORU
+				;DALSICH 6 SEKTORU NA STOPE 76
+				;A: B: 8" SS SD RPD-1
+				;C: ZRMD-1/4MB + SYSTEM
+				;D: E: F: G: RKD-1 CM 5400 12x512
+MONITL	EQU	0800H		;DELKA MONITORU (ROM) VCETNE TABULEK
+BIOSL	EQU	CBIOSL+MONITL	;CELKOVA DELKA BIOS 
+CCPL	EQU	0800H		;DELKA CCP (KONST.)
+BDOSL	EQU	0E00H		;DELKA BDOS (KONST)
+OVERL	EQU	CCPL+BDOSL+BIOSL	;DELKA SYSTEMU CELKEM
+	;
+CCPB	EQU	MEMORY-OVERL		;CCP BASE
+BDOSB	EQU	CCPB+CCPL+6		;BDOS BASE
+CBIOSB	EQU	CCPB+CCPL+BDOSL		;BIOS BASE
+MONITB	EQU	CCPB+CCPL+BDOSL+CBIOSL	;MONITOR (ROM) BASE
+BIOSB	EQU	CBIOSB			;BIOS BASE=CBIOS BASE
+STACK	EQU	MEMORY
+DRVINP	EQU	4
+
+
+VCOMP	EQU	MONITB+4H
+MCONST	EQU	MONITB+06H	;CONST UTILITY MONITORU
+MCONIN	EQU	MONITB+09H	;CONIN UTILITY MONITORU
+MCONOU	EQU	MONITB+0CH	;CONOUT UTILITY MONITORU
+MLSTST	EQU	MONITB+0FH	;LSTST UTILITY MONITORU
+MLSTOU	EQU	MONITB+12H	;LSTOUT UTILITY MONITORU
+MPUNCH	EQU	MONITB+15H	;PUNCH UTILITY MONITORU
+MREADR	EQU	MONITB+18H	;READER UTILITY MONITORU
+MSELE	EQU	MONITB+1BH	;SELECT UTILITY MONITORU
+MHOME	EQU	MONITB+1EH	;HOME UTILITY MONITORU
+MSEEK	EQU	MONITB+21H	;SEEK UTILITY MONITORU
+MREAD	EQU	MONITB+24H	;READ UTILITY MONITORU
+MWRITE	EQU	MONITB+27H	;WRITE UTILITY MONITORU
+
+;************************
+PATRN::
+	PUBLIC	BIOS
+
+	.PHASE	CBIOSB
+;************************
+
+BIOS::
+	JP BOOT
+	JP WBOOT
+	JP MCONST
+	JP MCONIN
+	JP MCONOU
+	JP MLSTOU
+	JP MPUNCH
+	JP MREADR
+	JP HOME
+	JP SELECT
+	JP SEEK
+	JP SETSEC
+	JP SETPTR
+	JP READ
+	JP WRITE
+	JP MLSTST
+	JP TRANS
+;----------------------------
+DP_BASE::
+	DW SKEW81, 0,0,0,DIRBUF,DPB_81, CHK_A,ALL_A
+	DW SKEW81, 0,0,0,DIRBUF,DPB_81, CHK_B,ALL_B
+	DW 0,0,0,0,      DIRBUF,DPB_ZR,CHK_C,ALL_C
+	DW 0,0,0,0,      DIRBUF,DPB_RF,CHK_D,ALL_D	;RKD pevny dolni
+	DW 0,0,0,0,      DIRBUF,DPB_RF,CHK_E,ALL_E	;RKD pevny horni
+	DW 0,0,0,0,      DIRBUF,DPB_RV,CHK_F,ALL_F	;RKD vymenny dolni
+	DW 0,0,0,0,      DIRBUF,DPB_RV,CHK_G,ALL_G	;RKD vymenny horni
+;----------------------------
+SKEW81::
+	db	1,7,13,19,25
+	db	5,11,17,23
+	db	3,9,15,21
+	db	2,8,14,20,26
+	db	6,12,18,24
+	db	4,10,16,22
+
+;CISLOVANO OD 0!! KVULI BLOK/DEBLOK
+;----------------------------
+;8" SS SD 26x128x77, AB=1k, 64 polozek adresare
+DPB_81::
+	DW	26	;SEKTORU / STOPU
+	DB	3	;BLOCK SHIFT
+	DB	7	;BLOCK MASK
+	DB	0	;EXTENT MASK
+	DW	242	;CISLO MAX. ALOK. SKUPINY -1
+	DW	63	;POLOZEK V ADRES·ÚI -1
+	DB	11000000B ;BIT MAPA ALOK. SKUP. PRO ADRESAR
+	DB	00000000B
+	DW	16	;BYTU PRO KONTROLU ADRESARE
+	DW	2	;SYSTEMOVE STOPY
+	
+;----------------------------
+;8" SS SD fyz 8x512x77, log 32x128x77, AB=2k, 64 polozek adresare
+;RKD-1 CM 5400 pevny disk: fyz 12x512x204, log 48x128x204, AB=2k, 256 polozek adresare
+DPB_RF::
+	DW	48	;SEKTORU / STOPU
+	DB	4	;BLOCK SHIFT
+	DB	15	;BLOCK MASK
+	DB	0	;EXTENT MASK
+	DW	611	;CISLO MAX. ALOK. SKUPINY -1
+	DW	255	;POLOZEK V ADRESARI -1
+	DB	11110000B ;BIT MAPA ALOK. SKUP. PRO ADRESAR
+	DB	00000000B
+	DW	0	;PEVNY DISK, BEZ KONTROLY ADRESARE
+	DW	0	;SYSTEMOVE STOPY NEJSOU
+;----------------------------
+;RKD-1 CM 5400 kazeta (vymenna): jako pevny, s kontrolou adresare
+DPB_RV::
+	DW	48	;SEKTORU / STOPU
+	DB	4	;BLOCK SHIFT
+	DB	15	;BLOCK MASK
+	DB	0	;EXTENT MASK
+	DW	611	;CISLO MAX. ALOK. SKUPINY -1
+	DW	255	;POLOZEK V ADRESARI -1
+	DB	11110000B ;BIT MAPA ALOK. SKUP. PRO ADRESAR
+	DB	00000000B
+	DW	64	;BYTU PRO KONTROLU ADRESARE
+	DW	0	;SYSTEMOVE STOPY NEJSOU
+;----------------------------
+; ZRMD-1 RAMDISK 4Mb, 4 kB bloky, 1024 polozek adresare, 32 stop (8 kB) systemu
+; (jako bootovaci disketa r1_zrmd4m_271111 "C: ZRMD1/4 MB + SYSTEM")
+DPB_ZR::
+	DW	2	;SPT
+	DB	5	;BSH
+	DB	31	;BLM
+	DB	1	;EXM
+	DW	1021	;DSM
+	DW	1023	;DRM
+	DB	0FFH	;AL0
+	DB	0	;AL1
+	DW	0	;CKS
+	DW	32	;OFF
+;*****************************************
+;	DISKOVE FUNKCE
+;*****************************************
+; Vyber aktualniho disku.
+; I: cislo disku 0 az n
+; O: HL=adresa tabulky DPH, pokud je OK
+;    HL=0, pri chybe
+
+SELECT::
+	LD	HL,0
+	LD	A,C
+	CP	7		;A: az G:
+	RET	NC
+	LD	(LOG_DISK),A	;ULOZ CISLO DISKU
+	LD	L,A
+	REPT	4
+	ADD	HL,HL
+	ENDM
+	LD	DE,DP_BASE
+	ADD	HL,DE
+	RET
+;----------------------------
+; Nastaveni vybrane mechaniky na hlavu 0.
+
+HOME::
+	LD	BC,0
+;----------------------------
+; Nastaveni hlavy vybrane mechaniky na vybranou stopu (cylindr).
+; I: BC=cislo cylindra
+
+SEEK::
+	LD	(LOG_TRACK),BC
+	RET
+;----------------------------
+; Nastaveni cisla pozadovaneho sektoru.
+; I: C=cislo sektoru
+
+SETSEC::
+	LD	A,C
+	LD	(LOG_SECTOR),A
+	RET
+;----------------------------
+; Nastaveni DMA adresy
+; I: BC=DMA adresa
+; O: -
+; M: HL
+
+SETPTR::
+	LD	(DMA_ADR),BC	
+	RET
+;----------------------------
+; Precteni pozadovaneho sektoru
+; I: dopredu nastaveny sektor, stopa a DMA
+; O: A=0 a Z - OK
+;    A=1 a NZ - chyba
+; M: vsechny
+
+READ::
+	LD	A,(LOG_DISK)
+	CP	2
+	JR	Z,RDRMD		;C: ZRMD
+	JP	NC,READ_RKD	;D: az G:
+	CALL	WICH_DISK	;A: B:
+	CALL	MREAD		;cteni v monitoru
+	RET	Z		;pokud neni chyba
+	LD	HL,RWERR
+	CALL	PMSG		;vypis chyby
+	CALL	MCONIN		;znak z klav.
+	CP	1BH
+	JR	NZ,READ		;pokud neni ESC
+	LD	A,1		;navrat s chybou
+	OR	A
+	RET
+;----------------------------
+;----------------------------
+; ZRMD-1 (z BIOS-1K V271111_ZRMD_JB)
+Z_R_W	EQU	60H		;BASE ZRMD1
+RDRMD::
+	CALL	RMD.1
+	INIR
+	XOR	A
+	RET
+WRRMD::
+	CALL	RMD.1
+	OTIR
+	XOR	A
+	RET
+RMD.1::
+	LD	C,Z_R_W+1	; bazova adresa
+	LD	A,(LOG_SECTOR)	; sektor 0 nebo 1
+	RRCA			; sektor do do B7
+	OUT	(C),A		; nastaveni citacu A0-A7
+	LD	HL,(LOG_TRACK)	; cislo stopy do HL
+	INC	C		; port pro A8 - A15
+	OUT	(C),L		; zapis nizsiho byte stopy
+	INC	C		; port pro A16 - A19
+	OUT	(C),H		; zapis vyssiho byte stopy
+	LD	HL,(DMA_ADR)	; zdrojova/cilova adresa do HL
+	LD	C,Z_R_W		; C=datovy port R/W
+	LD	B,80H		; B=128 bytu
+	RET
+;----------------------------
+; Zapis pozadovaneho sektoru
+; I: dopredu nastaveny sektor, stopa a DMA
+; O: A=0 a Z - OK
+;    A=1 a NZ - chyba
+; M: vsechny
+
+WRITE::
+	LD	A,(LOG_DISK)
+	CP	2
+	JR	Z,WRRMD		;C: ZRMD
+	JP	NC,WRITE_RKD	;D: az G:
+	CALL	WICH_DISK	;A: B:
+	CALL	MWRITE		;zapis v monitoru
+	RET	Z		;pokud neni chyba
+	LD	HL,RWERR
+	CALL	PMSG		;vypis chyby
+	CALL	MCONIN		;znak z klav.
+	CP	1BH
+	JR	NZ,WRITE	;pokud neni ESC
+	LD	A,1		;navrat s chybou
+	OR	A
+	RET
+;----------------------------
+RWERR::
+	DB	0DH,0AH,'R/W err!',0
+;----------------------------
+; Prepocet logickych cisel sektoru na fyzicke
+; I: DE=adresa prekladove tabulky
+;    BC=logicke cislo sektoru 0 az n
+; O: HL=fyzicke cislo sektoru
+; M: HL, DE, BC, PSW
+
+TRANS::	LD	L,C		; cislo sektora do HL
+	LD	H,B
+	LD	A,E		; platna adresa prekladove tabulky ?
+	OR	D
+	RET	Z		; ne vrat se s puvodni hodnotou cisla sektoru
+	EX	DE,HL
+	ADD	HL,BC
+	LD	L,(HL)
+	LD	H,0
+	RET
+;----------------------------
+; Procedury pred vlastnim ctenim/zapisem RPD-1
+; Provede se Selekt, nastavi Stopa, nacte Sektor a DMA adresa
+; O: HL= DMA adresa
+;    A,C=logicke cislo sektoru 0 az n
+; M: HL, C, PSW
+
+WICH_DISK::
+	LD	A,(LOG_DISK)
+	LD	C,A
+	CALL	MSELE		;vyber disk na RPD
+	LD	A,(LOG_TRACK)
+	LD	C,A
+	CALL	MSEEK		;vyber stopu na RPD
+	LD	HL,(DMA_ADR)	;kam cist/psat do HL
+	LD	A,1
+	OR	A
+	LD	A,(LOG_SECTOR)	;sektor do A, C
+	LD	C,A
+	RET
+;*******************************
+SUBTTL BLOK/DEBLOK 512 B PRO RKD-1 (z V261211JB)
+;*******************************
+;********************************
+READ_RKD::
+; BDOS ma prilis maly zasobnik
+;
+	ld	hl,0	
+	add	hl,sp
+	ld	(sp_save),hl
+	ld	sp,bios_stack
+	call	rd512		;12 urovni SP=24 byte
+	ld	hl,(sp_save)
+	ld	sp,hl
+	ret
+;--------------------------------
+
+rd512::
+	call	set_reg		;nastavi log. do registru
+	call	fill_buf	;11 nacti sektor do bufferu
+				;cteni OK A=0, Z
+	ret	nz		;navrat pri chybe A=FF, NZ
+;--------------------------------
+	ld	hl,buf_8-128	;pocatek bufferu fyz.sektoru
+	ld	de,128		;delka log.sektoru
+	ld	a,(log_sector)
+	and	3		;jen spodni 2 byty (4 sektory)
+;--------------------------------
+	ld	b,a
+	inc	b
+rd1::	add	hl,de
+	djnz	rd1
+				;HL=buf_8 + x
+	ld	de,(dma_adr)	;kam ulozit dle CP/M
+	ld	bc,128		;delka log.sektoru
+	ldir			;prepis z buf_8 do DMA
+	xor	a		;cteni OK A=0,Z	
+	ret
+;********************************
+WRITE_RKD::
+; BDOS ma prilis maly zasobnik
+;
+	ld	hl,0	
+	add	hl,sp
+	ld	(sp_save),hl
+	ld	sp,bios_stack
+	call	wr512		;12 urovni SP=24 byte
+	ld	hl,(sp_save)
+	ld	sp,hl
+	ret
+;********************************
+wr512::
+	ld	a,c
+	ld	(wr_type),a	;uloz typ zapisu
+				;0=normalni zapis do jiz al.bloku
+				;1=adresar 
+	call	set_reg		;nastavi log. do registru
+;--------------------------------
+	ld	a,(wr_type)
+	cp	2		;write nealokov. bloku?
+	jp	nz,.0.$write	;pokud ne (0, 1)
+;--------------------------------
+; write neaalokovaneho bloku
+	ld	a,(buf_write)	;je jiz neco v bufferu
+	or	a		
+	call	nz,flush_buf	;ano tak zapis na disk
+				;zapis OK A=0,Z
+	ret	nz		;chyba, navrat A=1, NZ
+;--------------------------------
+	ld	a,d
+	ld	(buf_disk),a	;uloz fyz.disk do buf_disk
+	ld	a,e
+	ld	(buf_track),a	;uloz fyz.track do buf_track
+	ld	a,c
+	ld	(buf_sector),a	;uloz fyz.sektor do buf_sektor
+	jp	.0a.$write
+;================================
+; zapis normalni(0) nebo do adresare(1)
+; predecteni, dopsani log. sektoru a nekdy zapis
+.0.$write::
+	call	fill_buf	;11 predecti sektor
+				;cteni OK A=0, Z
+	ret	nz		;chyba cteni A=FF, NZ
+;--------------------------------
+.0a.$write::
+	ld	hl,buf_8-128	;zacatek bufferu
+	ld	de,128		;delka log. sektoru
+	ld	a,(log_sector)
+	and	3		;jen spodni 2 byty (4 sektory)
+;--------------------------------
+	ld	b,a
+	inc	b
+writ1::	add	hl,de
+	djnz	writ1
+	ex	de,hl		;DE=buf_8+x
+	ld	hl,(dma_adr)
+	ld	bc,128		;delka log.sektoru
+	ldir			;prepis z DMA do buf_8			;prepis DMA do bufferu	
+	ld	a,1
+	ld	(buf_write),a	;priznak bylo zapsano do bufferu
+	ld	a,(wr_type)
+	cp	1
+	jp	z,flush_buf	;zapis do adresare
+;--------------------------------
+; normalni zapis(0)
+	xor	a
+	ret
+
+;********************************
+;pripravi parametry z log.popisu
+set_reg::
+	ld	a,(log_disk)	;nastaveno po inicializaci
+	SUB	3		;ODECTI ZA A: B: C:
+	ld	d,a		;D - fyz.disk
+	ld	a,(log_track)	;nastaveno pri SEEK
+	ld	e,a		;E - fyz.stopa 
+	ld	a,(log_sector)	;nastaveno pri SETSEC
+	or	a
+	srl	a		;deleno 4 (4x128 byte)
+	srl	a		;fyz_sector = log_sektor/2 
+	ld	c,a		;C - fyz.sektor
+	ret
+;********************************
+;zapis bufferu na disketu
+
+flush_buf::			;10 urovni SP
+	push	hl
+	push	de
+	push	bc
+	ld	a,(buf_disk)	;fyz. disk (medium 0-3)
+	ld	d,a
+	ld	a,(buf_track)
+	ld	e,a
+	ld	a,(buf_sector)
+	ld	c,a		;sektor 0-11
+	call	wr_RKD		;zapis RKD-1
+				;zapis OK A=0,Z
+				;chyba A=1, NZ
+	push	af
+	xor	a
+	ld	(buf_write),a	;priznak buffer je prazdny
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ret
+
+;*******************************
+;kontroly cteni a cteni z diskety
+fill_buf::			;10 urovni SP
+;vstup	<d> - fyz. cislo disku
+;	<e> - fyz. cislo stopy
+;	<c> - fyz. cislo sektoru
+
+	push	hl
+	push	de
+	push	bc
+	ld	a,(buf_disk)
+	cp	d		;disk stejny?
+	jp	nz,.1.fill_buf	;neni, napln buffer
+;-------------------------------
+; disk ok
+	ld	a,(buf_track)
+	cp	e		;stopa stejna?
+	jp	nz,.1.fill_buf	;neni, napln buffer
+;-------------------------------
+; stopa ok
+	ld	a,(buf_sector)
+	cp	c		;sektor stejny?
+	jp	nz,.1.fill_buf	;neni, napln buffer
+;-------------------------------
+; fyz. a buf. souhlasi, v buferu jiz jsou pozadovana data
+; - netreba cist 
+	xor	a		;priznak cteni OK A=0,Z
+.0.fill_buf::
+	pop	bc		;zadna zmena disku stopy a sektoru
+	pop	de
+	pop	hl
+	ret
+;===============================
+; musime cist je rozdil v disku nebo stope nebo sektoru 
+; pokud je neco v bufferu, musime to nejdriv zapsat!! 
+.1.fill_buf::
+	ld	a,(buf_write)	;musime zapsat buf?
+	or	a
+	call	nz,flush_buf	;ano
+				;pri WR ok, A=0,Z
+				;pri chybe A=1,NZ
+	jp	nz,.0.fill_buf	;chyba zapisu
+;--------------------------------
+; muzeme cist
+;vstup	<d> - fyz. cislo disku
+;	<e> - fyz. cislo stopy
+;	<c> - fyz. cislo sektoru
+;nastaveni hodnot v COMTAB
+	call	rd_RKD		;cti RKD-1 (D, E, C)
+				;pri RD ok, A=0,Z
+				;pri chybe A=1, NZ
+	jp	z,.2.fill_buf	;bez chyb
+;-------------------------------
+; chyba cteni
+	ld	a,-1
+	ld	(buf_disk),a	;neexistujici disk
+	jp	.0.fill_buf
+;===============================
+; cteni ok
+.2.fill_buf::
+	pop	bc
+	pop	de
+	pop	hl
+	ld	a,d		;ulozeni pro priste
+	ld	(buf_disk),a	
+	ld	a,e
+	ld	(buf_track),a
+	ld	a,c
+	ld	(buf_sector),a
+	xor	a
+	ret
+
+;*******************************
+SUBTTL OVLADAC RKD-1 (RKD.MAC 87-02-13 Tesla ELSTROJ & JaMeSoft, upraveny)
+;*******************************
+;************************************************************
+;	DEFINICE
+;************************************************************
+
+;************************************************************
+;	kœdy vŸsledk  operac…, <z> flag nastaven podle <a>
+;************************************************************
+
+cretry		equ	80h	;m ⁄eme zkusit znovu
+bcretry		equ	7
+
+;............................................................
+; operace bez chyb
+OK		EQU	0
+;............................................................
+; vybran¡ jednotka nen… p“ipravena
+NOT_READY	EQU	1
+;............................................................
+; najet… na stopu neskon√ilo v√as
+SEEK_TOUT	EQU	2+cretry
+;............................................................
+; zad¡no neexistuj…c… √…slo stopy
+ILL_TRACK	EQU	3+cretry
+;............................................................
+; chyba najet… na stopu
+SEEK_ERR	EQU	4+cretry
+;............................................................
+; p“e√tenŸ sektor neobsahuje spr¡vnŸ po√et dat
+MISSING_DATA	EQU	5+cretry
+;............................................................
+; rozd…l mezi o√ek¡vanŸm a p“e√tenŸm z¡hlav…m sektoru
+MARK_ERR	EQU	6+cretry
+;............................................................
+; chyba kontroln…ho sou√tu
+SUM_ERR		EQU	7+cretry
+;............................................................
+
+retry		equ	10	;pokus  o √ten…/z¡pis
+
+MASK0		EQU	1
+MASK1		EQU	2
+MASK2		EQU	4
+MASK3		EQU	8
+MASK4		EQU	16
+MASK5		EQU	32
+MASK6		EQU	64
+MASK7		EQU	128
+
+S_OF_LEAD	EQU	26	;po√et nul p“ed sync polem
+S_OF_SYNC	EQU	1	;po√et sync byt  p“ed z¡hlav…m
+S_OF_MARK	EQU	2	;po√et byt  z¡hlav…
+S_OF_SUM	EQU	2	;po√et byt  sou√tu
+S_OF_TRAIL	EQU	2	;po√et byt  za sou√tem
+SYNC		EQU	80H	;data sync pole
+
+BAZE		EQU	40H	;z¡klad adres RKD-1
+
+CLK_DIV		EQU	BAZE	;8253 #0
+DELAY_COUNTER	EQU	BAZE+1	;8253 #1
+DATA_COUNTER	EQU	BAZE+2	;8253 #2
+CTRL_8253	EQU	BAZE+3	;8253 “…zen…
+
+MODE_CNT0	EQU	14H	;#0 mœd 2, 1 byte
+MODE_CNT1	EQU	5AH	;#1 mœd 5, 1 byte
+MODE_CNT2	EQU	0B0H	;#2 mœd 0, l/h byte
+
+CLK_N		EQU	2	;d≈l…c… pom≈r hodin
+DELAY_READ	EQU	20	;zpo⁄d≈n… p“ed √ten…m
+DELAY_WRITE	EQU	3	;zpo⁄d≈n… p“ed z¡pisem
+
+TRACK_NO	EQU	BAZE+4	;8255 PA √…slo stopy
+
+RKD_STATUS	EQU	BAZE+5	;8255 PB stav jednotky a “adi√e
+; sign¡ly p“i sel_status=0
+ ERROR_L	EQU	MASK7	;porucha jednotky
+ UNIT_RDY_L	EQU	MASK6	;jednotka p“ipravena
+ SEEK_TOUT_L	EQU	MASK5	;seek neproveden
+ SEEK_RDY_L	EQU	MASK4	;seek ok
+; sign¡ly p“i sel_status=1
+ atn3_l		equ	mask7	;konec seek operace na jedn. 3
+ atn2_l		equ	mask6	; 2
+ atn1_l		equ	mask5	; 1
+ atn0_l		equ	mask4	; 0
+; sign¡ly nez¡visl◊ na sel_status
+ TRACK_NO_ACK_H	EQU	MASK3	;√…slo stopy ok
+ DATA_CNT_OK_H	EQU	MASK2	;po√et p“enesenŸch dat ok
+ WPROTECT_H	EQU	MASK1	;jednotka m¡ ochranu z¡pisu
+ BUSY_H		EQU	MASK0	;“adi√ prov¡d… r/w operaci
+
+RKD_CTRL	EQU	BAZE+6	;8255 PC “…zen… “adi√e
+ SEL_STATUS	EQU	MASK7	;0:atn0..3; 1:status
+ B_SEL_STATUS	EQU	7
+ WR_ENBL	EQU	MASK4	;⁄¡dost o z¡pis
+ RD_ENBL	EQU	MASK3	;⁄¡dost o √ten…
+ ENBL_TRK_NO	EQU	MASK0	;povolen… vys…l¡n… √…sla stopy
+ B_ENBL_TRK_NO	EQU	0
+
+CTRL_8255	EQU	BAZE+7	;“…zen… 8255
+ MODE_8255	EQU	82H	;PA,PC out, PB in
+
+STROBE		EQU	BAZE+8	;adresy seeku
+RUN		EQU	BAZE+9	;go “adi√e
+RPTR_SECNO	EQU	BAZE+10	;+inverze √…sla sektoru
+ RESET_PTR	EQU	MASK7	;nulov¡n… adresy RAM
+ B_RESET_PTR	EQU	7
+WP_RESTORE	EQU	BAZE+11
+ SET_WPROT	EQU	MASK1	;zapni ochranu z¡pisu
+ RESTORE	EQU	MASK0	;bezadresnŸ seek na T00
+DATA		EQU	BAZE+12	;data “adi√e
+
+;############################################################
+;	MAKROINSTRUKCE
+;############################################################
+
+;############################################################
+; testuj <f>, p“i chyb≈ vra‘ err kœd
+;
+CHECK	MACRO	CC,ECODE
+	LOCAL	LBL
+	JR	CC,LBL
+	LD	A,ECODE
+	RET
+LBL:	
+	ENDM
+
+;############################################################
+; z¡pis konstanty do portu
+;
+IOW	MACRO	PORT,DATA
+	IFNB	<DATA>
+	 LD	A,DATA
+	ENDC
+	OUT	(PORT),A
+	ENDM
+
+;############################################################
+; √ten… RAM “adi√e
+;
+RDATA	MACRO	DEST
+	IN	A,(DATA)
+	IFNB	<DEST>
+	 LD	DEST,A
+	ENDC
+	ENDM
+
+;############################################################
+; start operace √ten…/z¡pis
+;
+GO	MACRO
+	OUT	(RUN),A
+	WAIT_BUSY
+	ENDM
+
+;############################################################
+; potvrzen… seeku
+;
+STROBE	MACRO
+	OUT	(STROBE),A
+	ENDM
+
+;############################################################
+; nastav <z> podle stavu portu
+;
+TEST	MACRO	PORT,MASK
+	IN	A,(PORT)
+	AND	MASK
+	ENDM
+
+;############################################################
+; √ekej na p“ipravenost “adi√e
+;
+WAIT_BUSY MACRO
+	CALL	WAIT_BUSY
+	ENDM
+
+;############################################################
+; √ekej na dokon√en… najet… na stopu
+;
+WAIT_SEEK MACRO
+	CALL	WAIT_SEEK
+	ENDM
+
+;############################################################
+; zapi” byte do RAM “adi√e
+;
+WDATA	MACRO	SOURCE
+	IFNB	<SOURCE>
+	 LD	A,SOURCE
+	ENDC
+	OUT	(DATA),A
+	ENDM
+
+;************************************************************
+;funkce	RK_INIT
+;vstup	-
+;vŸstup	<af> - kœd vŸsledku operace
+;popis:	RK_INIT inicializuje “adi√ RKD-1
+
+RK_INIT:
+	PUSH	HL		;budeme pot“ebovat registry
+	PUSH	BC
+	IOW	CTRL_8255,MODE_8255	;inicializace 8255
+	LD	HL,INI_8253
+	LD	BC,CTRL_8253+(S_OF_INI_8253 SHL 8)
+	OTIR			;inicializace 8253
+	IOW	CLK_DIV,CLK_N	;nastav d≈li√ hodin
+	IOW	RKD_CTRL,SEL_STATUS	;vyber stavov◊ sign¡ly
+	XOR	A
+	POP	BC		;obnov registry
+	POP	HL
+	RET
+
+;************************************************************
+;	data pro init 8253, nastaven… mœd  √…ta√ 
+;************************************************************
+
+INI_8253:
+	DEFB	MODE_CNT0,MODE_CNT1,MODE_CNT2
+S_OF_INI_8253	EQU	$-INI_8253	;po√et byt  pro 8253
+
+;************************************************************
+;funkce	RK_HOME
+;vsrup	-
+;vŸstup	<af> - kœd vŸsledku operace
+;popis	RK_HOME najede na stopu 0 na vybran◊ jednotce.
+;	Nuluje klopnŸ obvod chyb v jednotce disku
+
+RK_HOME:
+	WAIT_BUSY		;√ekej na p“ipravenost “adi√e
+	RET	NZ		;chyba
+;------------------------------------------------------------
+	WAIT_SEEK		;nesm… bŸt seek
+	RET	NZ		;chyba
+;------------------------------------------------------------
+	IOW	WP_RESTORE,RESTORE	;p“…kaz k najet… na T0
+	STROBE			;potvrƒ
+	iow	rkd_ctrl,(m_sh)	;zvol sign¡ly ATN
+.1.rk_home:
+	test	rkd_status,atn0_l ;hotovo?
+	jr	nz,.1.rk_home	;ne, √ekej
+;------------------------------------------------------------
+; skon√ila operace restore
+	ld	a,(m_sh)	;√…slo povrchu
+	set	b_sel_status,a	;vol norm¡ln… stav. sign¡ly
+	iow	rkd_ctrl
+	jp	wait_seek	;otestuj  sp≈ch restore
+
+;************************************************************
+;funkce	RK_SEL
+;vstup	<a> - √…slo m◊dia:0..3
+;vŸstup	<af> - kœd vŸsledku operace
+;popis	RK_SEL prov¡d… vŸb≈r m◊dia v jednotce.
+
+RK_SEL:
+	PUSH	AF		;schovej √…slo m◊dia
+	WAIT_BUSY		;√ekej na p“ipravenost “adi√e
+	POP	AF		;√…slo m◊dia
+	AND	3		;maskuj na 0..3
+	RRCA			;p“em…sti pro bity v “adi√i
+	RRCA
+	RRCA
+	LD	(M_SH),A	;zapamatuj
+	SET	B_SEL_STATUS,A	;volba stavovŸch sign¡l 
+	OUT	(RKD_CTRL),A	;proveƒ
+	XOR	A		;vŸsledek=OK
+	RET			;hotovo
+
+;************************************************************
+;funkce	RK_SEEK
+;vstup	<a> - √…slo stopy:0..203
+;vŸstup	<af> - kœd vŸsledku operace
+;popis	RK_SEEK zah¡j… operaci najet… na stopu, zkontroluje
+;	zda jednotka p“ijala √…slo stopy. Dokon√en… seeku
+;	se d≈l¡ a⁄ v p“i RK_RW.
+
+RK_SEEK:
+	push	bc
+	ld	c,a
+	WAIT_BUSY		;cekej na pripravenost radice
+	jr	nz,.9.rk_seek	;SAPIemu: oprava, BC ze zasobniku
+;------------------------------------------------------------
+	wait_seek
+	jr	nz,.9.rk_seek
+;------------------------------------------------------------
+	ld	a,c
+	pop	bc
+	IOW	TRACK_NO	;zapi” do “adi√e
+	TEST	RKD_STATUS,UNIT_RDY_L	;jednotka p“ipravena?
+	CHECK	Z,NOT_READY	;ne, chyba
+;============================================================
+	LD	A,(M_SH)	;√…slo m◊dia
+	OR	SEL_STATUS+ENBL_TRK_NO	;+vol status+dej stopu
+	OUT	(RKD_CTRL),A	;proveƒ
+	STROBE			;potvrƒ
+	RES	B_ENBL_TRK_NO,A	;zaka⁄ vys…l¡n… stopy
+	OUT	(RKD_CTRL),A	;proveƒ
+	TEST	RKD_STATUS,TRACK_NO_ACK_H	;p“ijato?
+	CHECK	NZ,ILL_TRACK	;ne, chyba
+;============================================================
+	XOR	A		;operace OK
+	RET			;hotovo
+.9.rk_seek:
+	pop	bc		;SAPIemu: chyba, zasobnik v poradku
+	ret
+
+;************************************************************
+;funkce	RK_RW
+;vstup	(hl) - bufer pro sektor
+;	<d> - √…slo stopy
+;	<e> - √…slo sektoru
+;	<bc> - d◊lka sektoru:(256,512)
+;	<a> - funkce: 0 => √ten…
+;		      1 => z¡pis
+;vŸstup	<af> - kœd vŸsledku operace
+;popis	RK_RW prov¡d… z¡pis/√ten… sektoru. P“edpokl¡d¡, ⁄e bylo
+;	vol¡no RK_SEL a RK_SEEK. P“i vol¡n… RK_RW je nutn◊
+;	zopakovat v <d> √…slo stopy na kter◊ chceme √…st/ps¡t.
+;	Rutina je spole√n¡ pro disky se sektory 256 i 512 byte.
+;	D◊lka sektoru v bytech je v <bc>. Pokud p“i operaci
+;	dojde k chyb≈ u kter◊ m¡ smysl pokusit se znova,
+;	provede se RETRY pokus .
+
+RK_RW:
+	push	af		;√teni/z¡pis
+	ld	a,d		;stopa √ten…/z¡pisu
+	ld	(track),a	;zapamatuj
+	pop	af		;obnov kœd operace
+	exx			;sek. reg
+	push	bc		;pro √…ta√ pokus  a op.
+	ld	c,a		;zapamatuj operaci
+	ld	b,retry		;po√et pokus 
+	exx			;prim¡rn… reg.
+.1.rk_rw:
+	push	hl		;schovej prim¡rn… reg.
+	push	de
+	push	bc
+	call	rw		;proveƒ √ten…/z¡pis
+	jr	z,.3.rk_rw	;ok
+;------------------------------------------------------------
+; chyba r/w
+	bit	bcretry,a 	;znova?
+	jr	z,.3.rk_rw	;ne
+;------------------------------------------------------------
+; opraviteln¡ chyba
+	exx			;√…ta√ pokus 
+.1a.rk_rw:
+	dec	b		;dal”… pokus?
+	jr	z,.2.rk_rw	;ne
+;------------------------------------------------------------
+; je”t≈ jednou to zkus…me
+	call	rk_home		;zkus vynulovat chybu
+	ld	a,(track)	;stopa √ten…/z¡pisu
+	call	rk_seek		;znovu najeƒ
+	jr	z,.1b.rk_rw	;ok
+;------------------------------------------------------------
+; chyba seek p“i pokusu o opravu chyby
+	bit	bcretry,a	;opraviteln¡?
+	jr	nz,.1a.rk_rw	;ano
+;------------------------------------------------------------
+; neopraviteln¡ chyba seek
+	jr	.2.rk_rw	;nech toho
+;============================================================
+; dal”… pokus
+.1b.rk_rw:
+	ld	a,c		;kœd operace
+	exx			;prim¡rn… reg.
+	pop	bc		;obnov prim¡rn…
+	pop	de
+	pop	hl
+	jr	.1.rk_rw	;zkus znovu √…st/zapsat
+;============================================================
+.2.rk_rw:
+	exx			;prim¡rn… reg
+.3.rk_rw:
+	or	a		;nastav <z> podle vŸsledku
+	pop	bc		;obnov
+	pop	de
+	pop	hl
+	exx			;sek. reg.
+	pop	bc		;obnov
+	exx			;prim¡rn… reg.
+	ret			;hotovo
+
+;************************************************************
+;	podprogramy ovlada√e “adi√e kazetov◊ho disku RKD-1
+;************************************************************
+
+;************************************************************
+;funkce	RW
+;vstup	viz RK_RW
+;vŸstup viz RK_RW
+;popis	RW je samotnŸ podprogram √ten…/z¡pisu, neobnovuje ale
+;	prim¡rn… registry. U⁄ivatelsky je proto p“…stupn◊ pouze
+;	RK_RW.
+
+RW:
+	PUSH	AF		;kœd operace
+	WAIT_BUSY		;√ekej na p“ipravenost “adi√e
+	IOW	CTRL_8253,MODE_CNT1	;mœd √…ta√e zpo⁄den…
+	IOW	CTRL_8253,MODE_CNT2	;mœd √…ta√e dat
+	POP	AF		;kœd operace
+	OR	A
+	JR	NZ,.2.RW	;operace z¡pisu
+;------------------------------------------------------------
+; √ten…
+	LD	A,(M_SH)	;√…slo m◊dia
+	OR	SEL_STATUS+RD_ENBL	;+vol status+√ten…
+	OUT	(RKD_CTRL),A	;proveƒ
+	IOW	DELAY_COUNTER,DELAY_READ ;zpo⁄den… p“ed √ten…m
+	LD	A,C		;lsbyte d◊lky sektoru
+	ADD	A,S_OF_MARK+S_OF_SUM	;+po√et dal”…ch byt 
+				;kter◊ se budou √…st
+	OUT	(DATA_COUNTER),A	;nastav lsb √…ta√e dat
+	LD	A,0
+	ADC	A,B		;p“enos do msb po√tu
+	OUT	(DATA_COUNTER),A	;nastav msb √…ta√e dat
+	WAIT_SEEK		;po√kej na dokon√en… seeku
+	RET	NZ		;nepokra√uj p“i chyb≈ seeku
+;------------------------------------------------------------
+	LD	A,E		;√…slo sektoru
+	CPL			;mus… bŸt inverzn≈
+	OUT	(RPTR_SECNO),A	;nastav+nuluj RAM pointr
+	GO			;start √ten…, √ekej BUSY
+	TEST	RKD_STATUS,DATA_CNT_OK_H	;po√et dat ok?
+	CHECK	NZ,MISSING_DATA	;p“e√etlo se m¡lo dat
+;============================================================
+	IOW	RPTR_SECNO,RESET_PTR	;nuluj RAM pointr
+	CALL	PREP_MARK	;vytvo“ z¡hlav…
+	RDATA			;lsb z¡hlav… z disku
+	CP	E		;SAPIemu: jako FORMRKD, nizsi byte prvni
+	CHECK	Z,MARK_ERR	;ne, chyba z¡hlav…
+;============================================================
+	RDATA			;msbyte z¡hlav…
+	CP	D
+	CHECK	Z,MARK_ERR	;ne, chyba z¡hlav…
+;============================================================
+	LD	DE,0		;nuluj sumu
+.1.RW:
+	RDATA	(HL)		;√ti data do buf
+	ADD	A,E		;po√…tej sumu
+	LD	E,A
+	LD	A,0		;16-ti bitov¡ suma
+	ADC	A,D
+	LD	D,A
+	CPI			;(buf)++, cnt--
+	JP	PE,.1.RW	;dal”… byte
+;------------------------------------------------------------
+	RDATA			;lsb sumy z disku
+	CP	E		;souhlas…?
+	CHECK	Z,SUM_ERR	;ne, chyba sou√tu
+;============================================================
+	RDATA			;msbyte sumy z disku
+	CP	D		;souhlas…?
+	CHECK	Z,SUM_ERR	;ne, chyba sou√tu
+;============================================================
+	XOR	A		;vŸsledek=OK
+	RET			;hotovo
+;============================================================
+; z¡pis
+.2.RW:
+	IOW	DELAY_COUNTER,DELAY_WRITE ;zpo⁄den… z¡pisu
+	LD	A,C		;lsb d◊lky sektoru
+	ADD	A,S_OF_LEAD+S_OF_SYNC+S_OF_SUM+S_OF_TRAIL
+				;+po√et dal”…ch but  pro z¡pis
+	OUT	(DATA_COUNTER),A	;nastav lsb √…ta√e dat
+	LD	A,0
+	ADC	A,B		;p“enos do msb d◊lky sektoru
+	OUT	(DATA_COUNTER),A	;nastav msb √…ta√e dat
+	IOW	RPTR_SECNO,RESET_PTR	;nuluj RAM pointr
+	PUSH	BC		;d◊lka sektoru
+	LD	B,S_OF_LEAD	;po√et ’vodn…ch nul
+	XOR	A		;nula
+.3.RW:
+	WDATA			;do RAM “adi√e
+	DJNZ	.3.RW		;S_OF_LEAD kr¡t
+;------------------------------------------------------------
+	POP	BC		;d◊lka sektoru
+	WDATA	SYNC		;sync byte
+	PUSH	DE		;stopa, sektor
+	CALL	PREP_MARK	;vytvo“ z¡hlav…
+	WDATA	E		;SAPIemu: jako FORMRKD, nizsi byte zahlavi prvni
+	WDATA	D
+	LD	DE,0		;nuluj sou√et
+.4.RW:
+	WDATA	(HL)		;data z buferu do RAM “adi√e
+	ADD	A,E		;po√…tej 16-ti botovou sumu
+	LD	E,A
+	LD	A,0
+	ADC	A,D
+	LD	D,A
+	CPI			;(buf)++, cnt--
+	JP	PE,.4.RW	;dal”… byte
+;------------------------------------------------------------
+	WDATA	E		;lsb sumy
+	WDATA	D		;msb sumy
+	REPT	S_OF_TRAIL+1	;nuly za sumou
+	WDATA	0		;nula
+	ENDM
+	POP	DE		;stopa, sektor
+	LD	A,E		;sektor
+	CPL			;mus… bŸt inverzn≈
+	OUT	(RPTR_SECNO),A	;vol sektor a nuluj RAM pointr
+	WAIT_SEEK		;po√kej na konec seeku
+	RET	NZ		;nepokra√uj, chyba
+;------------------------------------------------------------
+	ld	a,(m_sh)	;posunut◊ √…slo povrchu
+	OR	SEL_STATUS+WR_ENBL	;+vol status+z¡pis
+	OUT	(RKD_CTRL),A		;proveƒ
+	GO			;start z¡pisu, √ekej BUSY
+	RET			;hotovo
+
+;************************************************************
+;funkce	WAIT_SEEK
+;vstup	-
+;vŸstup	<af> kœd vŸsledku operace
+;popis	WAIT_SEEK √ek¡ na dokon√en… najet… na stopu.
+;	P“i chyb≈ seeku vrac… jej… kœd.
+
+WAIT_SEEK:
+	TEST	RKD_STATUS,SEEK_RDY_L	;dokon√en seek?
+	JR	Z,.1.WAIT_BUSY		;ano, testuj je”t≈
+					;jednotku
+;------------------------------------------------------------
+	TEST	RKD_STATUS,SEEK_TOUT_L	;nedokon√en v√as?
+	CHECK	NZ,SEEK_TOUT		;ano, chyba
+;============================================================
+	JR	WAIT_SEEK		;je”t≈ prob…h¡ seek
+
+;************************************************************
+;funkce	WAIT_BUSY
+;vstup	-
+;vŸstup	<af> - kœd vŸsledku operace
+;popis	WAIT_BUSY √ek¡ na p“ipravenost “adi√e, z¡roveŒ testuje
+;	vybranou jednotku na chyby a p“ipravenost.
+
+WAIT_BUSY:
+	TEST	RKD_STATUS,BUSY_H	;“adi√ busy?
+	JR	NZ,WAIT_BUSY		;ano, √ekej
+;------------------------------------------------------------
+; “adi√ p“ipraven
+.1.WAIT_BUSY:
+	TEST	RKD_STATUS,ERROR_L+UNIT_RDY_L	;jednotka OK?
+	CP	ERROR_L	
+	LD	A,0			;p“iprav OK
+	RET	Z			;ano, hotovo
+;------------------------------------------------------------
+; jednotka nen… ready
+	LD	A,NOT_READY		;kœd vŸsledku
+	OR	A			;nastav je”t≈ <z>
+	RET				;hotovo
+
+;************************************************************
+;funkce	PREP_MARK
+;vstup	<d> - √…slo stopy
+;	<e> - √…slo sektoru
+;	<bc> - d◊lka sektoru v bytech
+;vŸstup	<de> - z¡hlav… sektoru
+;popis	PREP_MARK transformuje stopu, sektor, d◊lku sektoru
+;	a √…slo m◊dia do 16-ti bitov◊ho z¡hlav…:
+;
+; bit 15: 0 => sektor 256 byte
+;	  1 => 	      512 byte
+; bit 14: 0 => m◊dium 0
+;	  1 =>	      1
+; bit 13: 0 => povrch 0
+;	  1 =>	      1
+; bit 12..5: √…slo stopy: 0..203
+; bit 4..0: √…slo sektoru: 0..11 nebo 0..23
+;			    512	       256
+
+PREP_MARK:
+; SAPIemu: jako ovladac ve FORMRKD.COM (J. Biba): zahlavi je jen stopa * 32,
+; bez sektoru, media a priznaku 512 B (RKD.MAC 87-02-13 je pridava)
+	PUSH	BC
+	LD	B,3
+	LD	C,E
+	LD	E,0
+	OR	A
+.1.PREP_MARK:
+	RR	D
+	RR	E
+	DJNZ	.1.PREP_MARK
+	POP	BC
+	RET
+
+;************************************************************
+;	data ovlada√e RKD-1
+;************************************************************
+
+;*******************************
+; fyzicke cteni / zapis sektoru 512 B do/z buf_8
+; I: D = medium 0-3 (D: az G:), E = stopa, C = sektor 0-11
+; O: A=0,Z OK; A=1,NZ chyba
+rd_RKD::
+	XOR	A		;cteni
+	JR	RKD_IO
+wr_RKD::
+	LD	A,1		;zapis
+RKD_IO::
+	PUSH	HL
+	PUSH	DE
+	PUSH	BC
+	PUSH	AF
+	LD	A,D
+	CALL	RK_SEL		;medium
+	LD	A,E
+	CALL	RK_SEEK		;najeti, dokonci se v RK_RW
+	JR	NZ,RKD_ER
+	POP	AF
+	POP	BC
+	PUSH	BC
+	LD	D,E		;stopa
+	LD	E,C		;sektor
+	LD	HL,buf_8
+	LD	BC,512
+	CALL	RK_RW
+	JR	NZ,RKD_E1
+	POP	BC
+	POP	DE
+	POP	HL
+	XOR	A
+	RET
+RKD_ER::
+	POP	AF
+RKD_E1::
+	POP	BC
+	POP	DE
+	POP	HL
+	LD	A,1
+	OR	A
+	RET
+;****************************************
+;WBOOT A BOOT PROCEDURY
+;****************************************
+WBOOT::
+	LD	SP,STACK
+	XOR	A
+	LD	(LOG_DISK),A
+	LD	C,A
+	CALL	MSELE
+	JR	NZ,BOMB
+	CALL	MSEEK
+	JR	NZ,BOMB
+	LD	HL,CCPB+100H	;0CF00H
+	LD	BC,804H
+	LD	E,3
+	CALL	RDLOOP
+DAL_STO::
+	LD	HL,CCPB+0C00H	;0DA00H
+	LD	C,1AH
+	CALL	MREAD
+	JR	NZ,DAL_STO
+	LD	C,1
+	CALL	MSEEK
+	JR	NZ,BOMB
+	LD	HL,CCPB+0E00H	;0DC00H
+	LD	BC,604H
+	LD	E,3
+	CALL	RDLOOP
+DAL_SEC::
+	LD	HL,CCPB+0C80H	;0DA80H
+	LD	C,1
+	CALL	MREAD
+	JR	NZ,DAL_SEC
+	JR	GOCPM
+;----------------------------
+RDLOOP::
+	PUSH	DE
+	PUSH	BC
+	PUSH 	HL
+RD0::
+	PUSH	BC
+	PUSH	HL
+	CALL	MREAD
+	POP	HL
+	POP	BC
+	OR	A
+	JR	NZ,RD0
+	LD	A,3
+	ADD	A,C
+	LD	C,A
+	LD	DE,180H
+	ADD	HL,DE
+	DEC	B
+	JR	NZ,RD0
+	POP	HL
+	POP	BC
+	LD	DE,-80H
+	ADD	HL,DE
+	DEC	C
+	POP	DE
+	DEC	E
+	RET	Z
+	JR	RDLOOP
+;----------------------------
+BOMB::
+	LD	HL,DEAD
+BOMB1::	CALL	PMSG
+LOOP::
+	JR	LOOP
+;----------------------------
+GOCPM::
+	ld	a,-1
+	ld	(buf_disk),a
+	xor	a
+	ld	(buf_write),a
+
+	LD	A,0C3H
+	LD	(0),A
+	LD	HL,BIOS+3
+	LD	(1),HL
+	LD	(5),A
+	LD	HL,BDOSB
+	LD	(6),HL
+	LD	BC,80H
+	CALL	SETPTR
+	LD	A,(DRVINP)
+	LD	C,A
+	JP	CCPB
+;----------------------------
+PMSG::
+	LD	A,(HL)
+	INC	HL
+	OR	A
+	RET	Z
+	LD	C,A
+	PUSH	HL
+	CALL	MCONOU
+	POP	HL
+	JR	PMSG
+;----------------------------
+VERROR::
+	LD	HL,TVERR
+	JR	BOMB1
+;----------------------------
+BOOT::
+	LD	HL,VCOMP
+	LD	A,(HL)
+	CP	VERZE
+	JR	NZ,VERROR
+	XOR	A
+	LD	(DRVINP),A
+	LD	(LOG_DISK),A
+	LD	HL,SIGNON
+	CALL	PMSG
+	CALL	RK_INIT		;RKD-1
+	JR	GOCPM
+
+;****************************************
+;PROMENNE BIOSU
+;****************************************
+
+	ds	50
+bios_stack::
+sp_save::
+	ds	2
+
+LOG_DISK::
+	DB	0
+LOG_TRACK::
+	DW	0
+LOG_SECTOR::
+	DB	0
+DMA_ADR::
+	DW	0
+
+wr_type::
+	ds	1
+buf_disk::
+	ds	1
+buf_track::
+	ds	1
+buf_sector::
+	ds	1
+buf_write::
+	ds	1
+;-------------------------------
+M_SH::	DS	1		;RKD: posunute cislo media
+track::	DS	1		;RKD: stopa pro restore pri chybe
+SIGNON::
+	DB 0DH,0AH,'JPR-1Z 62K CP/M V2.2'
+	DB 0DH,0AH,'BIOS-3K RKD SAPIemu (V261211JB)'
+	DB 0DH,0AH,'A,B: RPD1; C: ZRMD1/4 MB+SYS'
+	DB 0DH,0AH,'D-G: RKD1 CM5400 12x512'
+	DB 0DH,0AH,'CON: AND1Z + C259.11'
+	DB 0DH,0AH,'LST: CENTRONIX'
+	DB 0
+;----------------------------
+DEAD::
+	DB 0DH,0AH,'Boot err!',0
+;----------------------------
+TVERR::
+	DB 0DH,0AH,'Bad ver!',0
+
+;****************************************
+	.DEPHASE
+;****************************************
+	.PHASE	SIGNON
+CHK_A::
+	DS	16
+CHK_B::
+	DS	16
+CHK_C::
+CHK_D::
+CHK_E::
+	DS	0
+CHK_F::
+	DS	64
+CHK_G::
+	DS	64
+ALL_A::
+	DS	32
+ALL_B::
+	DS	32
+ALL_C::
+	DS	128
+ALL_D::
+	DS	77
+ALL_E::
+	DS	77
+ALL_F::
+	DS	77
+ALL_G::
+	DS	77
+
+DIRBUF::
+	DS	128
+
+buf_8::	ds	512
+	ds	1
+BIOS_END::
+
+	.DEPHASE
+
+	END	BIOS
+

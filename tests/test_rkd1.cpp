@@ -421,6 +421,31 @@ static void cm5400_formrkd(void)
         CHECK((q.data[q.record(1, 0, 0)] | q.data[q.record(1, 0, 0) + 1]) == 0);   // G:, E: not formatted
     }
     CHECK(r->units[0].cyl == 1);   // RK_HOME at the end: T00 alone on the cable = cylinder 1
+    // the CP/M of the boot disk has D: to G: on the RKD-1 (BIOS made in SAPIemu, media/rkd-1/cm5400): files on
+    // the disks FORMRKD formatted, a copy between them with verify, a program run from D:
+    m.type_text("D");   // the end of FORMRKD is a kind of work: a drive first, then K
+    m.run_seconds(0.5);
+    m.type_text("K");
+    CHECK(run_until_text(m, "A>", 20.0));
+    m.run_seconds(0.5);
+    m.type_text("DIR F:\r");
+    CHECK(run_until_text(m, "NO FILE", 30.0));
+    m.run_seconds(0.3);
+    m.type_text("B:PIP F:=B:STAT.COM[V]\r");
+    m.run_seconds(30.0);
+    m.type_text("B:PIP D:=F:STAT.COM[V]\r");
+    m.run_seconds(30.0);
+    m.type_text("D:STAT D:*.*\r");
+    bool stat = run_until_text(m, "REMAINING ON D:", 60.0);
+    m.run_seconds(3.0);
+    printf("%s\n", screen_text(m).c_str());
+    CHECK(stat);
+    std::string s = screen_text(m);
+    CHECK(s.find("ON D: 1210K") != std::string::npos);   // 1224 KB - 8 KB directory - 6 KB of STAT.COM
+    CHECK(s.find("D:STAT.COM") != std::string::npos && s.find("Bdos") == std::string::npos &&
+          s.find("VERIFY") == std::string::npos);
+    m.type_text("DIR F:\r");
+    CHECK(run_until_text(m, "STAT     COM", 20.0));
 }
 
 static void trace_boot(void)
