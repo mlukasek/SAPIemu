@@ -434,6 +434,15 @@ json t_power(EmuHost& h, const json& a)
     return t_machine_info(h, a);
 }
 
+// The machine is switched off first (tapes, cassettes and RAM disks saved), then the program ends; the
+// answer goes out before the MCP server stops.
+json t_quit(EmuHost& h, const json&)
+{
+    h.power_off();
+    h.quit_requested = true;
+    return text_result("switched off, the emulator ends");
+}
+
 json t_reset(EmuHost& h, const json&)
 {
     need_machine(h).reset();
@@ -1379,6 +1388,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"action":{"type":"string","enum":["play","record","stop","rewind","eject","save","export","protect","unprotect"]},"path":{"type":"string","description":"WAV file for export"},"card":{"type":"string"}},"required":["action"]})", t_tape_control },
     { "power", "Power switch of the machine: off (RAM lost, battery backed SRAM and RAM disks kept, host connections closed), on (with the last machine description), cycle = off and on. Reset (tool reset) keeps the RAM.",
       R"({"type":"object","properties":{"state":{"type":"string","enum":["on","off","cycle"]}},"required":["state"]})", t_power },
+    { "quit", "End the emulator process (sapiemu-cli --mcp or the GUI): the machine is switched off first, so recorded tapes, cassettes, battery backed memories and RAM disks are saved, then the program exits.",
+      R"({"type":"object","properties":{}})", t_quit },
     { "load_machine", "Load a machine description (cards and jumpers) and power it on. Path is relative to the emulator data directory, e.g. machines/mikromon.sapi.",
       R"({"type":"object","properties":{"path":{"type":"string"}},"required":["path"]})", t_load_machine },
     { "reset", "Press the reset button (/RES): CPU card BOOT flag set, cards reset. RAM content is kept.",

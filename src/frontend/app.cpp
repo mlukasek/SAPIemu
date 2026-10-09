@@ -1226,7 +1226,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             app.title_gen = app.host.machine_generation();
             set_title(app);
         }
-        if (app.ui.quit) app.quit = true;
+        if (app.ui.quit || app.host.quit_requested) app.quit = true;
         uint64_t now = SDL_GetTicksNS();
         if (Machine* jm = app.host.machine()) {   // the joystick ports follow the gamepads and the keyboard
             for (int i = 0; i < 2; i++) {

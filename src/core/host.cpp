@@ -215,7 +215,7 @@ json EmuHost::call(std::function<json(EmuHost&)> fn, int timeout_ms)
 void EmuHost::run_loop(std::atomic<bool>& quit)
 {
     uint64_t last = host_time_ns();
-    while (!quit) {
+    while (!quit && !quit_requested) {
         poll();
         uint64_t now = host_time_ns();
         frame(now - last);

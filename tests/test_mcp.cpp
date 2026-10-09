@@ -210,6 +210,12 @@ int main(void)
     r = tool(s, "tape_control", { { "action", "eject" } });
     CHECK(json::parse(text_of(r))["tape"]["loaded"] == false);
 
+    // quit: the machine is switched off, the loop of the program is asked to end
+    CHECK(!host.quit_requested);
+    r = tool(s, "quit", json::object());
+    CHECK(r["isError"] == false);
+    CHECK(host.quit_requested && !host.powered());
+
     quit = true;
     emu.join();
     return TEST_RESULT();

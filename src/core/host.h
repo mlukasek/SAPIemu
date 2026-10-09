@@ -70,8 +70,10 @@ public:
     // named states in memory (MCP save_state / load_state without a file)
     std::map<std::string, std::vector<uint8_t>> snapshots;
 
-    // Headless real-time loop (used by sapiemu-cli --mcp) until `quit` is set.
+    // Headless real-time loop (used by sapiemu-cli --mcp) until `quit` or quit_requested is set.
     void run_loop(std::atomic<bool>& quit);
+    // MCP quit: the loop of the program (headless or GUI) ends as if closed by the user
+    std::atomic<bool> quit_requested{ false };
     // Fail pending and future call()s; call before stopping the MCP server.
     void shutdown(void);
 

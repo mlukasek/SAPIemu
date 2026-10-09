@@ -15,8 +15,10 @@
 #include "mcp/mcp_server.h"
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <signal.h>
+#include <thread>
 
 #include "frontend/app.h"
 #ifdef SAPIEMU_GUI
@@ -157,6 +159,8 @@ static int serve_mcp(const std::string& machine_file, int port)
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
     host.run_loop(g_quit);
+    if (host.quit_requested)   // MCP quit: let its answer reach the client first
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
     host.shutdown();
     mcp.stop();
     return 0;
