@@ -147,6 +147,7 @@ static void test_driver(void)
     std::string text;
     CHECK(file_read_text(svg, text));
     CHECK(text.find("<polyline") != std::string::npos);
+    CHECK(text.find("stroke-linejoin=\"round\">\n<") != std::string::npos);   // the whole header, not cut short
     CHECK(text.find("width=\"93.75mm\" height=\"194.75mm\"") != std::string::npos);   // cropped: 5 mm around
     file_remove(png);
     file_remove(svg);

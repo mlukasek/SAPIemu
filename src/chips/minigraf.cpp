@@ -181,7 +181,7 @@ static void export_range(const Minigraf& g, bool crop, int32_t& left, int32_t& t
 bool Minigraf::save_svg(const std::string& path, bool crop, std::string& err) const
 {
     std::string o;
-    char b[256];
+    char b[512];   // the header alone is about 300 bytes
     int32_t left, top, ww, hh;
     export_range(*this, crop, left, top, ww, hh);
     snprintf(b, sizeof(b),
