@@ -120,6 +120,9 @@ Další programy z `media\` si nahrajete takto:
   Skladby nejsou součástí balíku (RAD z https://www.3eality.com/Public/Modules/RAD-v1/). Soubor RAD nahrajte
   binárně od 0100h a uložte příkazem, který okno nabídne.
 - **Test karty MPH-1V:** `media\mph-1v\mph_test_0v99.hex`, `SAVE 31 MPH.COM`.
+- **Rychlost RAM disku a CGA-1V** (sestava V): `media\zrd-1v\zrdbench.hex`, `SAVE 7 ZRDBENCH.COM`, `ZRDBENCH`.
+  Ukáže takt CPU a takty na bajt, porovnání se skutečným SAPI-1 V je v `docs\desky\ZRMD-1.md`. Zkuste i
+  s vypnutým TURBO (tlačítko na panelu ZDR).
 - **MIKOS a grafika** (`zps\ZPS-2_MIKOS_V5.sapi`):
   1. Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0G.hex`;
   2. `B`;
@@ -166,3 +169,13 @@ Další programy z `media\` si nahrajete takto:
 
 `sapiemu-cli.exe` běží bez okna (skripty, testy). Přehled voleb vypíše `sapiemu-cli --help`. Emulátor má
 i MCP server pro práci s Claude, viz `docs\mcp.md`. Podrobnosti o deskách jsou v `docs\desky\`.
+
+Pomůcky při vývoji programů:
+- **Náhodný obsah pamětí po zapnutí** (konfigurátor, zaškrtávátko u názvu sestavy): RAM, videopaměti a palety
+  nejsou po zapnutí vynulované, stejně jako na železe. Program, který spoléhá na nuly, se tak ukáže hned.
+- **CGA-1V se kreslí s paprskem:** přepnutí stránky nebo zápis do palety v nevhodnou chvíli je vidět jako trhání,
+  stejně jako na monitoru. MCP `machine_info` ukáže počet zápisů do palety během zobrazování a přepnutí
+  uprostřed snímku s číslem řádku.
+- **Přerušení:** MCP `int_log` zaznamená každé přijaté přerušení (karta, IM, vektor, obsluha). Vektor IM 2
+  přečtený z videopaměti hlásí log vždy.
+- MCP `quit` emulátor korektně ukončí (média se uloží).

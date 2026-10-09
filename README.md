@@ -28,7 +28,8 @@ Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mluk
 spustit `sapiemu.exe`, nic se neinstaluje. Jak začít: [docs/prvni-kroky.md](docs/prvni-kroky.md).
 
 Jde o **alfa verzi** (poslední je 0.4.0-alpha, novinky v
-[docs/release-notes/v0.4.0-alpha.md](docs/release-notes/v0.4.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
+[docs/release-notes/v0.4.0-alpha.md](docs/release-notes/v0.4.0-alpha.md), co přibylo od té doby, je v
+[docs/release-notes/v0.5.0-alpha.md](docs/release-notes/v0.5.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
 Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 ## Co umí
@@ -40,7 +41,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1, RSW-1 (SAPI-1.5: RAM, 8251, watchdog), CRM-1 (4 KB CMOS zálohovaná bateriemi). RAM disky RMD-1, ZRMD-1
   (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
-  (Bt476) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845, znakový
+  (Bt476; kreslí se po řádcích s paprskem, takže přepnutí stránky nebo palety uprostřed snímku trhá obraz jako na
+  monitoru; čekací stavy podle schématu, ověřené měřicím programem ZRDBENCH na skutečném SAPI-1 V) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845, znakový
   generátor z dumpu EPROM od EC1045).
 - **Komunikace a disky:**
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3, program HEX/BIN se převede na kazetu MIKOS nebo
@@ -91,7 +93,10 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
   - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
 - **Ladění:** debugger (registry, disassembler, paměť, breakpointy a watchpointy, I/O log), ukládání stavu (i
-  rychlé checkpointy), nahrávání programů (Intel HEX i `.txt`, binární soubory), nahrávání zvuku do WAV,
+  rychlé checkpointy), záznam přerušení (MCP `int_log`, varování, když se vektor IM 2 čte z videopaměti),
+  volba sestavy „náhodný obsah pamětí po zapnutí“ (RAM, videopaměti, palety jako na železe), počty zápisů do
+  palety CGA-1V během zobrazování a přepnutí uprostřed snímku, nahrávání programů (Intel HEX i `.txt`, binární
+  soubory), nahrávání zvuku do WAV,
   snímky obrazovek do PNG nebo schránky (Ctrl+F5, pravé tlačítko na obraz), video se zvukem do MP4 přes ffmpeg
   (Ctrl+Alt+F5).
 - **Windows 11, sestaví se i na Linuxu** (ověřeno ve WSL, `docs/build.md`).
@@ -99,7 +104,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
   `--save-state` …).
 - **MCP server** (`http://127.0.0.1:8580/mcp`): Claude Code může emulátor ovládat, psát a ladit programy
-  ([docs/mcp.md](docs/mcp.md)).
+  a nakonec ho i ukončit (`quit`, média se uloží) ([docs/mcp.md](docs/mcp.md)).
 
 ## Dokumentace
 

@@ -16,8 +16,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - CGA-1V se kreslí s paprskem (trhání, změny uprostřed snímku, počty zápisů do palety v `machine_info`);
   - volba sestavy `power_on_memory: random` (zaškrtávátko v konfigurátoru);
   - MCP `int_log` (přerušení Z80, varování na vektor IM 2 z videopaměti), MCP `quit`, `lost_samples`
-    u `audio_record`, hláška v logu při resetu ECMONu s `(003Bh) > 3`.
-  Zatím nepushnuté.
+    u `audio_record`, hláška v logu při resetu ECMONu s `(003Bh) > 3`;
+  - měřicí program ZRDBENCH z PoP převzatý do `media/zrd-1v`; `test_sapi1v` ho spouští pod CP/M při 4 i 2 MHz
+    a porovnává všech sedm řádků se skutečným SAPI-1 V (paměť, ZRD-1V a porty na setinu, CGA-1V do 0,07 T, jen
+    zápis při 2 MHz o 0,3 T méně), stejně tak ZRDTEST (okno zápisu rev 2.1, `docs/desky/ZRMD-1.md`);
+  - novinky pro další verzi se sbírají v `docs/release-notes/v0.5.0-alpha.md`.
+  Pushnuté 2026-10-09 (autor: „jsou to důležité kroky“), alfa z toho zatím není.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
   - Testy: 44 v debug i v release (2026-10-09, s `test_kzd1` a `test_minigraf`); release `full` 48 včetně ZEX,

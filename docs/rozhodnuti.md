@@ -1386,5 +1386,33 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   kousku). Zdroje smí přidat nejvýš 4 s před smíchanou částí a karta dohání nejvýš 1 s naráz, takže jedno
   `run_for 40000` dřív nechalo v nahrávce ticho. Zahozené vzorky se počítají (`Bus::audio_lost`) a `audio_record`
   je hlásí, aby ticho nešlo splést s chybou programu.
-- **Kreslení CGA-1V po řádcích, náhodný obsah po zapnutí, log přerušení, MCP `quit`** jsou zatím jen v „Na
-  promyšlení“ (SOUHRN): nejsou to chyby, ale vylepšení, a autor je zatím nezadal.
+- **Vylepšení z podnětů zadal autor** („jdi do těch vylepšení“, do příští alfy, 0.4.0 už byla odeslaná):
+  - **CGA-1V se kreslí s paprskem, výchozí zapnuto.** Řádek pixelů y tvoří řádky VGA 2y a 2y+1. Karta před každým
+    zápisem (videopaměť, CONFIG, COLMASK, paleta) dokreslí řádky, kterými paprsek mezitím prošel, starým
+    stavem. Trhání a změny uprostřed snímku jsou tak vidět jako na monitoru. Na HW se to ukázalo
+    u PoP: první verze „zasněžila“ a přeblikla, v emulátoru vidět nebylo. Volba `beam` vrací kreslení celého
+    snímku z jednoho stavu. Prolínání snímků (REMBRAN2) zůstává, prolínají se dva hotové snímky. Kreslený obraz
+    se neukládá do stavu, po načtení se nakreslí znovu z videopaměti.
+  - **„Sníh“ Bt476 jen jako volba (`palette_snow`, výchozí vypnuto)**: jak přesně vypadá na železe, nevíme.
+    Přibližné zobrazení je pomůcka, ne věrná emulace, a je tak označené. Věrná je statistika: zápisy do palety
+    během zobrazování a přepnutí uprostřed snímku v `describe` (MCP `machine_info`), první zápis jednou v logu.
+  - **Náhodný obsah pamětí po zapnutí je volba sestavy (`power_on_memory`), výchozí jsou nuly.** Věrnější je
+    náhodný obsah, ale na nulách stojí stávající sestavy a testy (deterministické výsledky). Generátor je
+    xorshift32 se semínkem z hodin, každé zapnutí je jiné. Paměti zálohované baterií a RAM disky mají dál
+    obsah ze souboru, nezálohovaná RAM, videopaměti i palety jsou náhodné.
+  - **Log přerušení** je kruhový (1024 záznamů) a zapíná se přes MCP `int_log`. Vektor IM 2 čtený z paměti
+    zobrazovací karty je skoro jistě chyba programu (I ukazuje do videopaměti), proto ho log hlásí vždy, jednou
+    za kartu.
+  - **ECMON se nemění.** Reset s podpisem `AA 55 00` a `(003Bh) > 3` bootuje dál bez kontroly, jako originální
+    EPROM. Emulátor jen napíše do logu varování. Podpis najde v paměti F000–FFFF podle instrukcí, které ho
+    testují (`CHECK EQU $+2`), takže funguje pro všechny překlady ECMONu. Kontrola běží jednou za reset:
+    držená /RTL (watchdog, výpadek sítě u APS-5) resetuje sběrnici při každé synchronizaci JPR-1 a kontrola
+    při každém volání zpomalila `test_aps5` z 8 s na 113 s (release). Tlačítko RESET kontroluje vždy.
+  - **MCP `quit`** stroj nejdřív vypne (média se uloží jako při vypnutí), odpověď ještě odejde, pak program skončí.
+  - **Čekání v celých taktech CPU i na JPR-1V při 2 MHz**: Z80 vzorkuje /WAIT na svých hranách, půl taktu stát
+    nemůže.
+- **ZRDBENCH převzatý do `media/zrd-1v`** (port PoP to nabídl, vlastní kód bez dat hry). Test spouští skutečný
+  program pod CP/M při 4 i 2 MHz a porovnává všech sedm řádků s měřením na železe. Testovat originální program
+  je lepší než napodobený `LDIR`: smyčky, okraje bloků a kalibrace časovačem jsou stejné jako na HW. ZRDTEST
+  hlídá test také, okno 74LS123 při 2 MHz vyjde „19..20 ms“ jen kvůli kalibraci jeho smyčky
+  (`docs/desky/ZRMD-1.md`).

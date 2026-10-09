@@ -12,6 +12,10 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
   `cpu_turbo`. Banka EEPROM se čte jen při BOOT, změna se tedy projeví po RESETu.
   - Časová základna emulace je osc/2 (4 MHz). Při 2 MHz udělá CPU takt jen v každé druhé jednotce, ostatní
     karty se proto nemusí přepočítávat.
+  - **Čekání karet při 2 MHz** (od 2026-10-09): Z80 vzorkuje /WAIT na svých hranách, CPU proto stojí vždy celé
+    své takty (2 jednotky). Čekání, které karta hlásí v jednotkách 4 MHz, se zaokrouhlí na celé takty CPU
+    (`whole_clocks` v `jpr1zi.cpp`: n = ⌈(w − ½ taktu) / takt⌉). Dřív mohl CPU stát půl taktu. Týká se hlavně
+    CGA-1V, ověřeno programem ZRDBENCH proti skutečné desce (`docs/desky/ZRMD-1.md`).
   - Stavový řádek ukazuje skutečný takt CPU.
 - **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z), viz „Na promyšlení“ v SOUHRN.
 
