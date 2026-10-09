@@ -9,6 +9,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   a BASICem EXP V5.0/G+SZ (`KRES`), vkládání textu na klávesnici (Ctrl+Shift+V), podklady k XY 4130. Autor to ráno
   vyzkoušel („funguje to skvěle“) a chtěl návody k obsluze KZD-1 a Minigrafu a opravenou kopii CKM (hotové, viz níže).
 
+- **Odpoledne 2026-10-09 (podněty z portu Prince of Persia a dema Bad Apple!!, soubory `docs/sapiemu-podnety.md`
+  v jejich repech), pro příští alfu (0.4.0 už je odeslaná):**
+  - opravy: zvuk při jednom dlouhém `run_for` (ticho po 4 s), čekací stavy CGA-1V podle schématu a měření
+    ZRDBENCH (zápis o takt později než čtení), čekání karet v celých taktech na JPR-1V při 2 MHz;
+  - CGA-1V se kreslí s paprskem (trhání, změny uprostřed snímku, počty zápisů do palety v `machine_info`);
+  - volba sestavy `power_on_memory: random` (zaškrtávátko v konfigurátoru);
+  - MCP `int_log` (přerušení Z80, varování na vektor IM 2 z videopaměti), MCP `quit`, `lost_samples`
+    u `audio_record`, hláška v logu při resetu ECMONu s `(003Bh) > 3`.
+  Zatím nepushnuté.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
   - Testy: 44 v debug i v release (2026-10-09, s `test_kzd1` a `test_minigraf`); release `full` 48 včetně ZEX,
