@@ -12,6 +12,16 @@ using nlohmann::json;
 // Cards are synchronised and interrupt lines sampled every SYNC_CYCLES CPU cycles.
 static const int SYNC_CYCLES = 64;
 
+// A card asks for `w` units of bus time with RDY low from the access (T2). The Z80 samples /WAIT at the falling
+// edge of T2 and of every Tw, half a clock after it starts, so it waits whole clocks: with the CPU at osc/4
+// (JPR-1V without TURBO, `step` = 2) RDY released within the first half clock costs nothing, and so on.
+static int whole_clocks(int w, int step)
+{
+    if (step == 1 || w <= 0) return w;
+    int n = (2 * w - step + 2 * step - 1) / (2 * step);   // ceil((w - step / 2) / step)
+    return n * step;
+}
+
 Jpr1zi::Jpr1zi(const char* type) : CpuCard(type)
 {
     memset(&z80, 0, sizeof(z80));
@@ -260,7 +270,7 @@ int Jpr1zi::run(int cycles)
                 if (rom_selected(addr)) d = eprom[eprom_off + (addr & eprom_mask)];
                 else d = bus->mem_read(addr);
                 Z80_SET_DATA(pins, d);
-                stall += bus->wait;
+                stall += whole_clocks(bus->wait, bus->cpu_step);
                 if ((pins & Z80_M1) && !z80.prefix_active) {
                     // opcode fetch of a new instruction
                     instr_pc = addr;
@@ -280,7 +290,7 @@ int Jpr1zi::run(int cycles)
             } else if (pins & Z80_WR) {
                 bus->wait = 0;
                 bus->mem_write(addr, Z80_GET_DATA(pins));
-                stall += bus->wait;
+                stall += whole_clocks(bus->wait, bus->cpu_step);
             }
             if (bus->break_request) {   // memory watchpoint
                 stop_hit = true;

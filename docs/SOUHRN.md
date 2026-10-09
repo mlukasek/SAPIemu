@@ -593,8 +593,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 - **Ostatní podněty z PoP (hotové 2026-10-09):** MCP `int_log` (přerušení Z80, varování na vektor IM 2 z videopaměti),
   hláška v logu při resetu ECMONu s `(003Bh) > 3`, MCP `quit`. Takt „1.99 MHz“ z jejich měření ukáže i emulátor
   při přesných 2,000 MHz (zaokrouhlení měřicího programu), to rozdíl není.
-- **AND-1V, DGD-1V a další karty s oknem CPU** počítají čekání v jednotkách času sběrnice, ne v taktech CPU. Při
-  2 MHz na JPR-1V to může být půl taktu. CGA-1V už používá `Bus::cpu_step`.
+- ~~Karty s oknem CPU a půl taktu čekání při 2 MHz~~ JPR-1V od 2026-10-09 převádí čekání karet na celé takty
+  CPU podle vzorkování /WAIT (`whole_clocks`). Samotné čekací stavy AND-1V nejsou modelované (viz výše).
 
 ## Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově)
 
