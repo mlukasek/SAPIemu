@@ -26,6 +26,7 @@ bool And1v::configure(const json& cfg, std::string& err)
     if (!cfg_string(cfg, "color", s1, "white", err)) return false;
     if (!set_ink(s1, err)) return false;
     if (!cfg_string(cfg, "font", font_file, "roms/and-1v/font_and1v22_1024.bin", err)) return false;
+    if (!cfg_bool(cfg, "wait_states", waits, true, err)) return false;
     if (!rom_load(font_file, font, 0x8000, 0x00, 0, err)) return false;
     font.resize(0x8000, 0x00);
     return true;
@@ -53,9 +54,23 @@ bool And1v::selected(uint16_t a, int map) const
     }
 }
 
+// RDY (sheet 4/7), the same scheme as CGA-1V: the window of the CPU is the half character with VIDEO low,
+// every 10 dots of 25.175 MHz. The delays of the gates and flip-flops (74LS) are taken from CGA-1V, where
+// they are measured (docs/desky/CGA-1V.md); AND-1V itself is not measured yet (docs/desky/AND-1V.md).
+static const double SLOT_NS = 10.0 * 1e9 / 25.175e6;
+static const double REQ_NS = 40.0;   // the Z80 edge through IC22A/B, IC5C, IC23B to D of IC16B
+static const double REL_NS = 50.0;   // IC16A, IC16B, IC7A, the diode to /WAIT at the Z80
+
+int And1v::wait_states(bool write) const
+{
+    if (!waits) return 0;
+    return bus->window_waits(write, SLOT_NS, SLOT_NS / 2, REQ_NS, REL_NS);
+}
+
 bool And1v::mem_read(uint16_t a, uint8_t& data)
 {
     if (!selected(a, bus->map)) return false;
+    bus->wait += wait_states(false);
     data = vram[a & 0x7FF];
     return true;
 }
@@ -63,13 +78,16 @@ bool And1v::mem_read(uint16_t a, uint8_t& data)
 bool And1v::mem_write(uint16_t a, uint8_t data)
 {
     if (!selected(a, bus->map)) return false;
+    bus->wait += wait_states(true);
     vram[a & 0x7FF] = data;
     return true;
 }
 
 bool And1v::mem_peek(uint16_t a, uint8_t& data)
 {
-    return mem_read(a, data);
+    if (!selected(a, bus->map)) return false;
+    data = vram[a & 0x7FF];
+    return true;
 }
 
 int And1v::decode_mem(uint16_t a, int map, const char** what)

@@ -131,6 +131,10 @@ struct Bus {
     uint8_t inta(void);
     // a Z80 card took a maskable interrupt (after inta()): log it, check where an IM 2 vector comes from
     void int_ack(uint16_t pc, int im, uint8_t i, uint8_t data);
+    // Wait states (units of `now`) of a card that gives the CPU the memory in a window of its own clock
+    // (CGA-1V, AND-1V): RDY low from STSTB, the request synchronised to the next window start (every slot_ns),
+    // RDY high open_ns later; req_ns / rel_ns are the delays to the synchroniser and back to /WAIT.
+    int window_waits(bool write, double slot_ns, double open_ns, double req_ns, double rel_ns) const;
     void int_log_copy(std::vector<IntLogEntry>& out, size_t max) const;
     uint8_t mem_peek(uint16_t addr);
     Card* mem_card(uint16_t addr);   // the card that answers a read of addr (nullptr = open bus)

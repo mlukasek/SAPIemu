@@ -87,16 +87,7 @@ static const double REL_NS = 50.0;   // the end of the window to /WAIT high at t
 int Cga1v::wait_states(bool write) const
 {
     if (!waits) return 0;
-    double unit = 1e9 / (double)bus->cpu_hz;
-    double clk = unit * bus->cpu_step;                     // CPU clock period
-    double t2 = (double)bus->now * unit;                   // the access is seen in T2
-    double sample = t2 + clk / 2;                          // falling edge of T2: first /WAIT sample
-    double req = (write ? sample : sample - clk) + REQ_NS;
-    double grant = SLOT_NS * ceil(req / SLOT_NS);          // rising edge of QA
-    double release = grant + SLOT_NS / 2 + REL_NS;         // end of the window
-    int n = 0;
-    while (release > sample + n * clk) n++;
-    return n * bus->cpu_step;
+    return bus->window_waits(write, SLOT_NS, SLOT_NS / 2, REQ_NS, REL_NS);   // window from the QA edge
 }
 
 void Cga1v::update_vbi(void)

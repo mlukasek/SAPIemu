@@ -327,16 +327,17 @@ static void cga_vbi(void)
 
 // CGA-1V wait states: LDIR into and from the card, T-states per byte against ZRDBENCH on a real SAPI-1 V
 // (PoP port 2026-10-08: 4 MHz 23.61 / 22.44, 2 MHz 22.75 / 21.27; memory to memory 21.18).
-static double cga_ldir(bool turbo, bool write)
+// card_hi: the high byte of the card memory, len_hi: of the block length, map: the RAM-1V MAP register
+static double card_ldir(bool turbo, bool write, uint8_t card_hi, uint8_t len_hi, uint8_t map, const char* card)
 {
     Machine m;
     std::string err;
     CHECK(m.load_json(machine_cfg(), err));
     CHECK(m.set_live_param(m.cpu, "turbo", turbo, err));
     m.run_seconds(0.2);
-    m.bus.io_write(0x63, 0xC0);   // RAM-1V: MAP1 = MAP2 = H, CGA-1V at C000
-    const uint8_t prog[] = { 0xF3, 0x21, 0x00, (uint8_t)(write ? 0x90 : 0xC0), 0x11, 0x00, (uint8_t)(write ? 0xC0 : 0x90),
-                             0x01, 0x00, 0x30, 0xED, 0xB0, 0x76 };   // DI, LD HL / DE, LD BC,3000h, LDIR, HALT
+    m.bus.io_write(0x63, map);
+    const uint8_t prog[] = { 0xF3, 0x21, 0x00, (uint8_t)(write ? 0x90 : card_hi), 0x11, 0x00, (uint8_t)(write ? card_hi : 0x90),
+                             0x01, 0x00, len_hi, 0xED, 0xB0, 0x76 };   // DI, LD HL / DE, LD BC, LDIR, HALT
     for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
     CpuRegs r;
     m.cpu->get_regs(r);
@@ -349,9 +350,15 @@ static double cga_ldir(bool turbo, bool write)
         if (r.halted) break;
     }
     CHECK(r.halted);
-    double w = (double)(m.bus.now - t0) / m.bus.cpu_step / 0x3000 - 21.0;   // LDIR is 21 T without waits
-    printf("CGA-1V: LDIR %s at %d MHz, %.2f wait T per byte\n", write ? "into the card" : "from the card", turbo ? 4 : 2, w);
+    double w = (double)(m.bus.now - t0) / m.bus.cpu_step / (len_hi * 256) - 21.0;   // LDIR is 21 T without waits
+    printf("%s: LDIR %s at %d MHz, %.2f wait T per byte\n", card, write ? "into the card" : "from the card", turbo ? 4 : 2, w);
+    m.bus.io_write(0x63, 0x00);
     return w;
+}
+
+static double cga_ldir(bool turbo, bool write)
+{
+    return card_ldir(turbo, write, 0xC0, 0x30, 0xC0, "CGA-1V");   // MAP1 = MAP2 = H: CGA-1V at C000
 }
 
 // wait T per byte on the real card (ZRDBENCH minus its 21.18 without waits)
@@ -365,6 +372,20 @@ static void cga_waits(void)
     CHECK(fabs(r2 - 0.09) < 0.15);
 }
 
+// AND-1V: the same synchroniser with a window every character (397 ns), open half of it; not measured on
+// the real card yet, so this only keeps the model: some waits, a write waits longer than a read.
+static void vrambench(bool turbo, double w_and, double r_and);
+
+static void and1v_waits(void)
+{
+    double w4 = card_ldir(true, true, 0xF8, 0x08, 0x00, "AND-1V"), r4 = card_ldir(true, false, 0xF8, 0x08, 0x00, "AND-1V");
+    double w2 = card_ldir(false, true, 0xF8, 0x08, 0x00, "AND-1V"), r2 = card_ldir(false, false, 0xF8, 0x08, 0x00, "AND-1V");
+    CHECK(w4 > r4 && r4 > 0.5 && w4 < 4.0);
+    CHECK(w2 >= r2 && w2 > 0.5 && w2 < 3.0);
+    vrambench(true, w4, r4);
+    vrambench(false, w2, r2);
+}
+
 // ZRDBENCH (media/zrd-1v, PoP port) under CP/M against the real SAPI-1 V of the author (2026-10-08):
 // T-states per byte or loop turn, calibrated by the 82C54 of MPH-1V. ZRD-1V rev 1.1 as on the author's
 // board (rev 2.1 would lock on the long OTIR, which never touches 62h).
@@ -376,8 +397,8 @@ static double bench_value(const std::string& s, const char* name)
     return atof(s.c_str() + p + strlen(name));
 }
 
-// CP/M at the given CPU clock, a program from media/zrd-1v saved by SAVE and run
-static void zrd_program(Machine& m, json cfg, bool turbo, const char* hex, int pages, const char* name, const char* cmd)
+// CP/M at the given CPU clock, a program from media/ saved by SAVE and run
+static void cpm_program(Machine& m, json cfg, bool turbo, const char* hex, int pages, const char* name, const char* cmd)
 {
     std::string err, text;
     CHECK(m.load_json(cfg, err));
@@ -387,7 +408,7 @@ static void zrd_program(Machine& m, json cfg, bool turbo, const char* hex, int p
     m.type_text("1");
     CHECK(run_until_text(m, "\nA>", 20.0));
     m.run_seconds(0.3);
-    CHECK(file_read_text(data_path(std::string("media/zrd-1v/") + hex), text));
+    CHECK(file_read_text(data_path(hex), text));
     CHECK(m.load_ihex_text(text, err));
     char line[64];
     snprintf(line, sizeof(line), "SAVE %d %s.COM\r", pages, name);
@@ -404,7 +425,7 @@ static void zrdbench(bool turbo)
     for (json& c : cfg["cards"])
         if (c.value("type", std::string()) == "ZRD-1V") c["revision"] = "1.1";
     Machine m;
-    zrd_program(m, cfg, turbo, "zrdbench.hex", 7, "ZRDBENCH", "ZRDBENCH");
+    cpm_program(m, cfg, turbo, "media/zrd-1v/zrdbench.hex", 7, "ZRDBENCH", "ZRDBENCH");
     CHECK(run_until_text(m, "Done.", 30.0));
     std::string s = screen_text(m);
     printf("%s\n", s.c_str());
@@ -429,13 +450,30 @@ static void zrdbench(bool turbo)
     }
 }
 
+// VRAMBENCH (media/and-1v): LDIR into and from the AND-1V under CP/M; the card is not measured on the real
+// SAPI-1 V yet (docs/desky/AND-1V.md), so only the memory row is held to the hardware and the card rows to
+// the model of card_ldir (the loop of 256 B blocks gives the same within 0.15 T).
+static void vrambench(bool turbo, double w_and, double r_and)
+{
+    Machine m;
+    cpm_program(m, machine_cfg(), turbo, "media/and-1v/vrambench.hex", 6, "VRAMBENCH", "VRAMBENCH");
+    CHECK(run_until_text(m, "Done.", 30.0));
+    std::string s = screen_text(m);
+    printf("%s\n", s.c_str());
+    CHECK(fabs(bench_value(s, "CPU clock:") - (turbo ? 4.00 : 1.99)) < 0.015);
+    CHECK(fabs(bench_value(s, "LDIR memory -> memory") - 21.17) < 0.1);
+    CHECK(fabs(bench_value(s, "LDIR AND-1V -> memory") - (21.18 + r_and)) < 0.15);
+    CHECK(fabs(bench_value(s, "LDIR memory -> AND-1V") - (21.18 + w_and)) < 0.15);
+    CHECK(s.find("CP/M") != std::string::npos || s.find("A>") != std::string::npos);   // the screen kept
+}
+
 // ZRDTEST (media/zrd-1v) on ZRD-1V rev 2.1: its millisecond loops count CPU clocks (ZRDTEST [MHz]),
 // one "ms" is 984 x MHz + 34 T: 0.9925 ms at 4 MHz, 1.001 ms at 2 MHz. The write window of the 74LS123
 // (20.0 ms) therefore shows as 20..21 at 4 MHz and 19..20 at 2 MHz; the card locks at the end.
 static void zrdtest(bool turbo)
 {
     Machine m;
-    zrd_program(m, machine_cfg(), turbo, "zrdtest.hex", 6, "ZRDTEST", turbo ? "ZRDTEST" : "ZRDTEST 2");
+    cpm_program(m, machine_cfg(), turbo, "media/zrd-1v/zrdtest.hex", 6, "ZRDTEST", turbo ? "ZRDTEST" : "ZRDTEST 2");
     CHECK(run_until_text(m, "Konec.", 10.0));
     std::string s = screen_text(m);
     printf("%s\n", s.c_str());
@@ -612,6 +650,7 @@ int main(void)
     ecmon_variant();
     int_log_im2();
     cga_waits();
+    and1v_waits();
     zrdbench(true);
     zrdbench(false);
     zrdtest(true);

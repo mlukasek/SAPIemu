@@ -12,8 +12,10 @@
 // - Character generator 27C256: A0-A3 = line index, A4-A11 = code, A12 = right
 //   half, A13 = odd microline, A14 = 1; dots D3 (left) .. D7. Microline m
 //   (0-23): line = m >> 1, index = line < 6 ? line + 2 : line + 4.
-// - Not modelled: wait states (one CPU slot per character, 0-1 waits at 2 MHz;
-//   none on I/O).
+// - Wait states (sheet 4/7): STSTB with SEL sets IC7A, RDY low. IC16B takes the CPU request (/MR or /MW
+//   with SEL) at the falling edge of VIDEO, the start of the half character of the CPU (the address
+//   multiplexers then show the CPU address); IC16A ends it at the rising edge, IC16B Q clocks IC7A, RDY
+//   high. A window every character (10 dots, 397 ns), open 5 dots. /IOR, /IOW clear IC7A: no waits on I/O.
 #include <vector>
 #include "core/devices.h"
 
@@ -45,11 +47,13 @@ public:
 
 private:
     bool selected(uint16_t addr, int map) const;
+    int wait_states(bool write) const;
 
     uint8_t vram[2048];
     std::vector<uint8_t> font;     // 32 KB (27C256)
     uint16_t base = 0xF800;
     int map_mode = 0;              // 0 always (MAP1OFF), 1 MAP1 = H, 2 MAP1 = L, 3 never
+    bool waits = true;
     uint32_t ink_argb = 0xFFFFFFFFu;   // S1
     std::string color = "white";
     std::string font_file;

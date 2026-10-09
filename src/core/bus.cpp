@@ -5,6 +5,7 @@
 #include "core/plant.h"
 #include "core/log.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -184,6 +185,22 @@ void Bus::int_ack(uint16_t pc, int im, uint8_t i, uint8_t data)
     if (int_log.size() < INT_LOG_SIZE) int_log.push_back(e);
     else int_log[int_log_next] = e;
     int_log_next = (int_log_next + 1) % INT_LOG_SIZE;
+}
+
+// The access is seen in T2. /RD falls with /MREQ at the falling edge of T1, /WR only at the falling edge of
+// T2, so a write is synchronised a clock later. The Z80 samples /WAIT at the falling edge of T2 and of every
+// Tw, so it waits whole CPU clocks.
+int Bus::window_waits(bool write, double slot_ns, double open_ns, double req_ns, double rel_ns) const
+{
+    double unit = 1e9 / (double)cpu_hz;
+    double clk = unit * cpu_step;                            // CPU clock period
+    double sample = (double)now * unit + clk / 2;            // falling edge of T2: the first /WAIT sample
+    double req = (write ? sample : sample - clk) + req_ns;
+    double grant = slot_ns * ceil(req / slot_ns);            // the next window start
+    double release = grant + open_ns + rel_ns;
+    int n = 0;
+    while (release > sample + n * clk) n++;
+    return n * cpu_step;
 }
 
 void Bus::int_log_copy(std::vector<IntLogEntry>& out, size_t max) const

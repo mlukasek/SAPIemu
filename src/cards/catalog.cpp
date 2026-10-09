@@ -282,6 +282,8 @@ static const CardParam k_and1v[] = {
     { "color", PK_CHOICE, "S1: ink colour", "S1: barva", "\"white\"", k_and1v_color, 0, 0 },
     { "font", PK_FILE, "Character generator 27C256", "Generátor znaků 27C256", "\"roms/and-1v/font_and1v22_1024.bin\"",
       k_and1v_fonts, 0, 0 },
+    { "wait_states", PK_BOOL, "Wait states (CPU waits for its slot of the video)",
+      "Čekací stavy (CPU čeká na svůj takt videa)", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 

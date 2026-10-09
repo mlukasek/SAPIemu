@@ -177,6 +177,17 @@ Zdroj: `..\SAPI-karty\CGA-1V\sw\` (Libor Lasota). V CP/M sestavy V:
 | `rembran2.hex` | Rembrandt (Syndikové), CGA se střídáním stránek po snímcích | 127 |
 | `cga_test.hex` | CGATEST rev. 0.99, testy karty | 18 |
 
+## `and-1v/` – měření AND-1V (Intel HEX, CP/M `.COM` od 0100h)
+
+Vlastní program projektu (2026-10-09), udělaný podle ZRDBENCH (`zrd-1v/`). Zdroj `VRAMBENCH.ASM` pro pasmo,
+překlad `pasmo --hex VRAMBENCH.ASM vrambench.hex`.
+
+| Soubor | Program | `SAVE` |
+|---|---|---|
+| `vrambench.hex` | VRAMBENCH: takty na bajt `LDIR` paměť ↔ videopaměť AND-1V (F800h, MAP1 = L), takt CPU podle 82C54 na MPH-1V; obrazovka zůstane, jak byla (sestava `sapi1v.sapi`) | 6 |
+
+Výsledky emulace a otázka na skutečnou desku: `docs/desky/AND-1V.md`.
+
 ## `mph-1v/` – programy pro zvukovou kartu MPH-1V (Intel HEX, CP/M `.COM` od 0100h)
 
 Zdroj: `..\SAPI-karty\MPH-1V\` (Libor Lasota), do repa se souhlasem autora. Hudba (VGM v `SPLAY\*.hex`, RAD
