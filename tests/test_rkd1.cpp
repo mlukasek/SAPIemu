@@ -297,6 +297,130 @@ static void media_system(void)
     m.type_text(" ");
     CHECK(run_until_text(m, "u\xc5\xbeivatele", 30.0));
     file_remove(data_path(fresh));
+    // a new system cartridge as the guide does it: the shell files to the fixed disk C:, a new cartridge with the
+    // help "System..." of the Media window (formatted as FORMTRKD, the same bytes as its sectors on the system
+    // cartridge, and the system tracks), RESET, the files back with PIP from C:, RESET: the shell runs from it
+    // (as user 0: Enter without a number; the plain CCP after the RESET runs as user 0 too)
+    m.run_seconds(0.5);
+    m.type_text("\r");
+    CHECK(run_until_text(m, "b0$", 30.0));
+    m.run_seconds(0.5);
+    m.type_text("PIP C:=A:SH.*\r");
+    m.run_seconds(15.0);
+    m.type_text("PIP C:=A:STARTSYS.SUB\r");
+    m.run_seconds(15.0);
+    m.type_text("PIP C:=A:PIP.COM\r");
+    m.run_seconds(15.0);
+    m.type_text("DIR C:\r");
+    CHECK(run_until_text(m, "PIP      COM", 10.0));
+    m.run_seconds(1.0);
+    printf("%s\n", screen_text(m).c_str());
+    RkdPlatter& sp = r->units[0].disk[Rkd1::CARTRIDGE];
+    std::vector<uint8_t> e5_ref(&sp.data[sp.record(1, 203, 23)], &sp.data[sp.record(1, 203, 23)] + 2 + sp.cap());
+    std::vector<uint8_t> sys_ref(&sp.data[sp.record(0, 0, 0)], &sp.data[sp.record(0, 2, 0)]);
+    const char* fresh2 = "work/test/rkd_sysgen.rkd";
+    file_remove(data_path(fresh2));
+    r->eject(0);
+    CHECK(r->insert(0, fresh2, false, err));
+    CHECK(!r->platter_formatted(0, Rkd1::CARTRIDGE));
+    CHECK(r->format_platter(0, Rkd1::CARTRIDGE, err));
+    CHECK(r->write_system(0, Rkd1::SYSTEM_SOURCE, err));
+    CHECK(r->platter_formatted(0, Rkd1::CARTRIDGE));
+    RkdPlatter& np = r->units[0].disk[Rkd1::CARTRIDGE];
+    CHECK(memcmp(&np.data[np.record(1, 203, 23)], e5_ref.data(), e5_ref.size()) == 0);
+    CHECK(memcmp(&np.data[np.record(0, 0, 0)], sys_ref.data(), sys_ref.size()) == 0);
+    m.reset();
+    CHECK(run_until_text(m, "Cbios 87-02-13", 10.0));
+    CHECK(run_until_text(m, "P0A>", 20.0));   // no SH on the new cartridge: the plain CCP
+    m.run_seconds(0.5);
+    m.type_text("DIR A:\r");
+    CHECK(run_until_text(m, "NO FILE", 10.0));
+    m.type_text("C:PIP A:=C:*.*\r");
+    CHECK(run_until_text(m, "PIP.COM\n\nP0A>", 120.0));
+    m.run_seconds(0.5);
+    printf("%s\n", screen_text(m).c_str());
+    m.reset();
+    CHECK(run_until_text(m, "u\xc5\xbeivatele", 30.0));   // SH and STARTSYS.SUB from the new cartridge
+    file_remove(data_path(fresh2));
+}
+
+// The Bulgarian drive CM 5400 on the cable SM 5400 with FORMRKD v1.1 of J. Biba (12 x 512 B) under his
+// CP/M from an RPD-1 floppy: the cartridge F: formatted and read back (O), the fixed disk D: formatted (F).
+static void cm5400_formrkd(void)
+{
+    std::string t, err;
+    CHECK(file_read_text(data_path("machines/rkd1_jb_cm5400.sapi"), t));
+    json cfg = json::parse(t, nullptr, false, true);
+    std::vector<uint8_t> img;
+    for (json& c : cfg["cards"]) {
+        std::string ty = c.value("type", std::string());
+        if (ty == "RPD-1") {
+            const char* src[2] = { "drive_a", "drive_b" };
+            const char* dst[2] = { "work/test/jb5400_a.img", "work/test/jb5400_b.img" };
+            for (int i = 0; i < 2; i++) {
+                CHECK(file_read_all(data_path(c[src[i]]["image"].get<std::string>()), img));
+                CHECK(file_write_all(data_path(dst[i]), img.data(), img.size()));
+                c[src[i]]["image"] = dst[i];
+            }
+            c["working_copy"] = false;
+        }
+        if (ty == "RKD-1") {
+            c["working_copy"] = false;
+            c["unit0"]["cartridge"] = "work/test/rkd5400_cart.rkd";
+        }
+        if (ty == "ZRMD-1") {
+            c["mode"] = "nosave";
+            c["working_copy"] = false;
+            c["unit0"]["fixed"] = "work/test/rkd5400_fixed.rkd";
+        }
+    }
+    file_remove(data_path("work/test/rkd5400_cart.rkd"));
+    file_remove(data_path("work/test/rkd5400_fixed.rkd"));
+    Machine m;
+    CHECK(m.load_json(cfg, err));
+    if (!err.empty()) printf("%s\n", err.c_str());
+    CHECK(run_until_text(m, "\nA>", 20.0));
+    m.run_seconds(0.3);
+    Rkd1* r = rkd_of(m);
+    if (!r) return;
+    CHECK(r->units[0].drive == Rkd1::CM5400 && r->units[0].disk[Rkd1::CARTRIDGE].sectors == 12 &&
+          r->units[0].disk[Rkd1::FIXED].sectors == 12);
+    m.type_text("B:FORMRKD\r");
+    CHECK(run_until_text(m, "SM 5400", 20.0));
+    m.run_seconds(1.0);
+    const char* jobs[2][2] = { { "F", "O" }, { "D", "F" } };   // cartridge lower: format and read; fixed lower: format
+    for (int j = 0; j < 2; j++) {
+        m.type_text(jobs[j][0]);
+        m.run_seconds(0.5);
+        m.type_text(jobs[j][1]);
+        m.run_seconds(0.5);
+        m.type_text("A");
+        double t0 = m.bus.seconds();
+        // "Cteni skoncilo" after O, "Formatovani skoncilo" after F
+        const char* end = j == 0 ? "\xc4\x8cten\xc3\xad skon" : "Form\xc3\xa1tov\xc3\xa1n\xc3\xad skon";
+        bool done = run_until_text(m, end, 400.0);
+        printf("FORMRKD %s %s: %s after %.0f s\n", jobs[j][0], jobs[j][1], done ? "done" : "NOT DONE", m.bus.seconds() - t0);
+        CHECK(done);
+        std::string s = screen_text(m);
+        CHECK(s.find("Chyb") == std::string::npos && s.find("HARD") == std::string::npos);
+        if (!done) printf("%s\n", s.c_str());
+        m.run_seconds(3.0);   // the delay of FORMRKD, back to the question for the drive
+    }
+    // the sectors as the driver in FORMRKD.COM writes them: an older PREP_MARK than RKD.MAC 87-02-13, the
+    // header is only the track (track x 32, low byte first), no sector, disk or 512 B bits
+    for (int d = 0; d < 2; d++) {
+        RkdPlatter& q = r->units[0].disk[d == 0 ? Rkd1::CARTRIDGE : Rkd1::FIXED];
+        for (int tt : { 0, 101, 203 }) {
+            const uint8_t* x = &q.data[q.record(0, tt, 11)] + 2;
+            int len = x[-2] | x[-1] << 8;
+            bool zeros = true;
+            for (int i = 0; i < 26; i++) zeros = zeros && x[i] == 0;
+            CHECK(len == 512 + 31 && zeros && x[26] == 0x80 && x[27] == (uint8_t)(tt << 5) && x[28] == (uint8_t)(tt >> 3) &&
+                  x[29] == 0xE5 && x[29 + 511] == 0xE5 && x[29 + 512] == 0x00 && x[29 + 513] == 0xCA);
+        }
+        CHECK((q.data[q.record(1, 0, 0)] | q.data[q.record(1, 0, 0) + 1]) == 0);   // G:, E: not formatted
+    }
+    CHECK(r->units[0].cyl == 1);   // RK_HOME at the end: T00 alone on the cable = cylinder 1
 }
 
 static void trace_boot(void)
@@ -320,7 +444,9 @@ int main(void)
         trace_boot();
         return 0;
     }
-    media_system();
-    tesla_system();
+    const char* part = getenv("RKD_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
+    if (!part || !strcmp(part, "media")) media_system();
+    if (!part || !strcmp(part, "cm5400")) cm5400_formrkd();
+    if (!part || !strcmp(part, "tesla")) tesla_system();
     return TEST_RESULT();
 }

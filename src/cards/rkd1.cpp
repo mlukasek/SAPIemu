@@ -19,10 +19,19 @@ static const double WRITE_LEAD_US = 3.0;   // where the stream starts after the 
 static const char MAGIC[8] = { 'S', 'A', 'P', 'I', 'R', 'K', 'D', '1' };
 static const size_t HEADER = 16;
 
-static double seek_us(int from, int to)
+// CM 5400 on the cable SM 5400 - RKD-FRB: the controller track N is cylinder 2N (+1 with T00). FORMRKD of
+// J. Biba formats tracks 0-203 on it, so the drive takes cylinders up to 407 (an assumption: 203 cylinders
+// would end at track 101; docs/desky/RKD-1.md). The seek over the whole disk as long as on the CM 5403.
+static const int CYL_5400 = 408;
+
+const char* const Rkd1::SYSTEM_SOURCE = "media/rkd-1/tesla_cpm_system.rkd";
+
+// `from`, `to` in cylinders of the drive
+static double seek_us(int drive, int from, int to)
 {
     int d = from > to ? from - to : to - from;
-    return d == 0 ? 1000.0 : 10000.0 + 370.0 * d;
+    if (d == 0) return 1000.0;
+    return 10000.0 + (drive == Rkd1::CM5400 ? 185.0 : 370.0) * d;
 }
 
 // --- platter ------------------------------------------------------------------------------------------
@@ -123,13 +132,23 @@ bool Rkd1::configure(const json& cfg, std::string& err)
     if (!cfg_number(cfg, "spinup_s", v, 0, err)) return false;
     if (v < 0 || v > 120) { err = "spinup_s must be 0..120"; return false; }
     spinup_s = (double)v;
-    if (!cfg_number(cfg, "new_sectors", v, 24, err)) return false;
+    static const char* const keys[UNITS] = { "unit0", "unit1", "unit2", "unit3" };
+    for (int i = 0; i < UNITS; i++) {   // the drives first: the format of new platters depends on them
+        units[i].drive = CM5403;
+        if (!cfg.contains(keys[i]) || !cfg[keys[i]].is_object()) continue;
+        std::string dr;
+        if (!cfg_string(cfg[keys[i]], "drive", dr, "CM 5403", err)) return false;
+        if (dr == "CM 5400") units[i].drive = CM5400;
+        else if (dr != "CM 5403") { err = std::string(keys[i]) + ".drive must be \"CM 5403\" or \"CM 5400\""; return false; }
+    }
+    // new cartridges: 24 x 256 B for the CP/M of Tesla on the CM 5403, 12 x 512 B (SMEP) on the CM 5400
+    if (!cfg_number(cfg, "new_sectors", v, units[0].drive == CM5400 ? 12 : 24, err)) return false;
     if (v != 12 && v != 24) { err = "new_sectors must be 12 or 24"; return false; }
     new_sectors = (int)v;
-    static const char* const keys[UNITS] = { "unit0", "unit1", "unit2", "unit3" };
     for (int i = 0; i < UNITS; i++) {
         Unit& u = units[i];
         u.fitted = i == 0;
+        u.cyl = u.track = 0;
         if (!cfg.contains(keys[i])) continue;
         const json& d = cfg[keys[i]];
         if (d.is_boolean()) {
@@ -138,6 +157,7 @@ bool Rkd1::configure(const json& cfg, std::string& err)
         }
         if (!d.is_object()) { err = std::string(keys[i]) + " must be an object"; return false; }
         if (!cfg_bool(d, "fitted", u.fitted, true, err)) return false;
+        int fixed_sectors = u.drive == CM5400 ? 12 : new_sectors;   // the fixed platter of a CM 5400: SMEP
         std::string cart, fixed;
         bool wp;
         if (!cfg_string(d, "cartridge", cart, "", err)) return false;
@@ -150,7 +170,7 @@ bool Rkd1::configure(const json& cfg, std::string& err)
         u.disk[FIXED].image = fixed;
         if (probe || !u.fitted) continue;
         if (!cart.empty() && !insert(i, cart, wp, err)) return false;
-        if (!open_platter(u.disk[FIXED], fixed, new_sectors, work_copy, err)) return false;
+        if (!open_platter(u.disk[FIXED], fixed, fixed_sectors, work_copy, err)) return false;
     }
     if (!probe && units[0].fitted && !units[0].disk[FIXED].loaded) {   // unit0 not described: its fixed disk
         units[0].disk[FIXED].image = "work/rkd-1/unit0_fixed.rkd";
@@ -230,24 +250,34 @@ bool Rkd1::ready(const Unit& u) const
     return u.fitted && u.disk[CARTRIDGE].loaded && bus->now >= ready_at[i];
 }
 
-// STB: the selected drive takes the track number (PC0, the line drivers on) or a restore (T00).
+// STB: the selected drive takes the address on the lines. CM 5403: the track number (PC0, the line drivers
+// on) or a restore (T00). CM 5400 on the cable SM 5400: cylinder 2N + T00 (the two exclude each other,
+// PC0 clears T00), no restore: RK_HOME goes to cylinder 1.
 void Rkd1::strobe(void)
 {
     Unit& u = unit();
     if (!ready(u)) return;
-    int to;
-    if (ppi.out_c & 0x01) to = ppi.out_a;
-    else if (t00) to = 0;
-    else to = 0;   // no address on the lines: track 0
-    if (to >= RkdPlatter::TRACKS) {   // NSA
+    int n = (ppi.out_c & 0x01) ? ppi.out_a : 0;   // no address on the lines: 0
+    int cyl, limit;
+    if (u.drive == CM5400) {
+        cyl = 2 * n + (t00 ? 1 : 0);
+        limit = CYL_5400;
+    } else {
+        cyl = n;
+        limit = RkdPlatter::TRACKS;
+        if (t00 && !(ppi.out_c & 0x01)) u.err = false;   // a restore clears the errors of the drive
+    }
+    if (cyl >= limit) {   // NSA
         u.apt = false;
         return;
     }
     u.apt = true;
-    if (t00 && !(ppi.out_c & 0x01)) u.err = false;   // a restore clears the errors of the drive
     uint64_t from = bus->now > u.seek_end ? bus->now : u.seek_end;
-    u.seek_end = from + us(seek_us(u.track, to));
-    u.track = to;
+    u.seek_end = from + us(seek_us(u.drive, u.cyl, cyl));
+    u.cyl = cyl;
+    // the data of track N lie on cylinder 2N of a CM 5400; an odd cylinder (only after RK_HOME, the driver
+    // always seeks before a transfer) is taken as the track below it
+    u.track = u.drive == CM5400 ? cyl / 2 : cyl;
 }
 
 // RUN: the sector compare waits for the pulse of the sector in 4AH, then the delay of counter 1, then the
@@ -262,9 +292,9 @@ void Rkd1::start(void)
     op_write = wr;
     op_ok = false;
     op_unit = unit_no();
-    op_disk = (ppi.out_c & 0x40) ? FIXED : CARTRIDGE;
-    op_surface = (ppi.out_c & 0x20) ? 1 : 0;
     Unit& u = units[op_unit];
+    op_disk = disk_index(u);
+    op_surface = (ppi.out_c & 0x20) ? 1 : 0;
     RkdPlatter& p = u.disk[op_disk];
     if (!ready(u) || !p.loaded) {   // no turning disk, no sector pulses: RUN stays until /RES
         op_end = UINT64_MAX;
@@ -351,6 +381,11 @@ static uint16_t sector_header(int disk, int surface, int track, int sector, int 
     return (uint16_t)((len == 512 ? 0x8000 : 0) | (disk ? 0x4000 : 0) | (surface ? 0x2000 : 0) | (track << 5) | sector);
 }
 
+int Rkd1::disk_line(int ui, int disk) const
+{
+    return (disk == FIXED) != (units[ui].drive == CM5400) ? 1 : 0;
+}
+
 bool Rkd1::write_sector(int ui, int disk, int surface, int track, int sector, const uint8_t* d, int len)
 {
     if (ui < 0 || ui >= UNITS || disk < 0 || disk > 1 || surface < 0 || surface > 1 || track < 0 ||
@@ -359,7 +394,7 @@ bool Rkd1::write_sector(int ui, int disk, int surface, int track, int sector, co
     RkdPlatter& p = units[ui].disk[disk];
     if (!p.loaded || sector < 0 || sector >= p.sectors || 31 + len > p.cap()) return false;
     std::vector<uint8_t> s(26, 0);
-    uint16_t h = sector_header(disk, surface, track, sector, len);
+    uint16_t h = sector_header(disk_line(ui, disk), surface, track, sector, len);
     s.push_back(0x80);
     s.push_back((uint8_t)(h >> 8));
     s.push_back((uint8_t)h);
@@ -391,13 +426,83 @@ bool Rkd1::read_sector(int ui, int disk, int surface, int track, int sector, uin
     while (i < n && rec[2 + i] == 0) i++;
     if (i >= n || rec[2 + i] != 0x80 || i + 1 + 2 + (size_t)len + 2 > n) return false;
     const uint8_t* s = rec + 2 + i + 1;
-    if ((uint16_t)(s[0] << 8 | s[1]) != sector_header(disk, surface, track, sector, len)) return false;
+    if ((uint16_t)(s[0] << 8 | s[1]) != sector_header(disk_line(ui, disk), surface, track, sector, len)) return false;
     uint16_t sum = 0;
     for (int k = 0; k < len; k++) {
         d[k] = s[2 + k];
         sum = (uint16_t)(sum + d[k]);
     }
     return s[2 + len] == (uint8_t)sum && s[3 + len] == (uint8_t)(sum >> 8);
+}
+
+// Every sector E5H, as FORMTRKD (24 x 256 B) and FORMRKD (12 x 512 B) write them through RKD.MAC: the same
+// bytes, so the result cannot be told from a platter formatted in CP/M.
+bool Rkd1::format_platter(int ui, int disk, std::string& err)
+{
+    if (ui < 0 || ui >= UNITS || disk < 0 || disk > 1 || !units[ui].disk[disk].loaded) {
+        err = "no platter";
+        return false;
+    }
+    RkdPlatter& p = units[ui].disk[disk];
+    if (p.write_protect) {
+        err = "write protected";
+        return false;
+    }
+    int len = p.sectors == 12 ? 512 : 256;
+    std::vector<uint8_t> e5((size_t)len, 0xE5);
+    for (int s = 0; s < RkdPlatter::SURFACES; s++)
+        for (int t = 0; t < RkdPlatter::TRACKS; t++)
+            for (int c = 0; c < p.sectors; c++)
+                if (!write_sector(ui, disk, s, t, c, e5.data(), len)) {
+                    err = "format failed";
+                    return false;
+                }
+    LOGI("%s: unit %d %s formatted (%d x %d B, E5H)", name.c_str(), ui, disk == FIXED ? "fixed disk" : "cartridge",
+         p.sectors, len);
+    return true;
+}
+
+bool Rkd1::platter_formatted(int ui, int disk)
+{
+    if (ui < 0 || ui >= UNITS || disk < 0 || disk > 1 || !units[ui].disk[disk].loaded) return false;
+    RkdPlatter& p = units[ui].disk[disk];
+    int len = p.sectors == 12 ? 512 : 256;
+    std::vector<uint8_t> b((size_t)len);
+    return read_sector(ui, disk, 0, 2, 0, b.data(), len);
+}
+
+// The system of Tesla Elstroj (CCP, BDOS, CBIOS: tracks 0 and 1 of medium 0) copied sector by sector from a
+// system cartridge, the bytes as its SYSGEN would have written them. Only the system tracks change.
+bool Rkd1::write_system(int ui, const std::string& source, std::string& err)
+{
+    if (ui < 0 || ui >= UNITS || !units[ui].fitted || !units[ui].disk[CARTRIDGE].loaded) {
+        err = "no cartridge in the unit";
+        return false;
+    }
+    Unit& u = units[ui];
+    RkdPlatter& p = u.disk[CARTRIDGE];
+    if (u.drive != CM5403 || p.sectors != 24) {
+        err = "the CP/M of Tesla Elstroj needs a CM 5403 with a 24 x 256 B cartridge";
+        return false;
+    }
+    if (p.write_protect) {
+        err = "the cartridge is write protected";
+        return false;
+    }
+    RkdPlatter src;
+    if (!src.load(source, false, err)) return false;
+    if (src.sectors != 24) {
+        err = source + ": not a 24 x 256 B cartridge";
+        return false;
+    }
+    size_t rec = 2 + (size_t)p.cap();
+    for (int t = 0; t < 2; t++)
+        for (int c = 0; c < 24; c++)
+            memcpy(&p.data[p.record(0, t, c)], &src.data[src.record(0, t, c)], rec);
+    p.dirty = true;
+    LOGI("%s: unit %d: the system written on the cartridge (tracks 0 and 1 of A:) from %s", name.c_str(), ui,
+         source.c_str());
+    return true;
 }
 
 void Rkd1::update(void)
@@ -494,8 +599,10 @@ void Rkd1::describe(json& out)
         if (!u.fitted) continue;
         json j;
         j["unit"] = i;
+        j["drive"] = u.drive == CM5400 ? "CM 5400" : "CM 5403";
         j["ready"] = ready(u);
         j["track"] = u.track;
+        if (u.drive == CM5400) j["cylinder"] = u.cyl;
         j["seeking"] = bus && seeking(u);
         j["error"] = u.err;
         static const char* const names[2] = { "cartridge", "fixed" };
@@ -516,7 +623,7 @@ void Rkd1::describe(json& out)
     out["units"] = us_;
     out["busy"] = busy;
     out["selected_unit"] = unit_no();
-    out["selected_disk"] = (ppi.out_c & 0x40) ? "fixed" : "cartridge";
+    out["selected_disk"] = disk_index(units[unit_no()]) == FIXED ? "fixed" : "cartridge";
     out["surface"] = (ppi.out_c & 0x20) ? 1 : 0;
 }
 
@@ -552,6 +659,7 @@ void Rkd1::state(StateIO& io)
         io.v(fwp);
         u.disk[FIXED].write_protect = fwp;
         io.e(u.track);
+        io.e(u.cyl);
         io.v(u.seek_end);
         io.v(u.err);
         io.v(u.apt);

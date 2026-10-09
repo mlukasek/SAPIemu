@@ -184,7 +184,25 @@ static const Translation k_table[] = {
     { "stop", "stojí" },
     { "The other side of the cassette faces the head (the position is mirrored).", "K hlavě přijde druhá strana kazety (poloha se zrcadlí)." },
     { "KZD-1 cassette data recorder", "kazetopáskový záznamník dat KZD-1" },
-    { "cartridge disk CM 5403", "kazetový disk CM 5403" },
+    { "cartridge disk", "kazetový disk" },
+    { "System...", "Systém…" },
+    { "Write the CP/M system on the cartridge (emulator help, no original SYSGEN)",
+      "Zapsat na kazetu systém CP/M (pomoc emulátoru, originální SYSGEN chybí)" },
+    { "System on the cartridge (SYSGEN)", "Systém na kazetu (SYSGEN)" },
+    { "Emulator help: the original SYSGEN for RKD-1 was not found. This writes CP/M 2.2 of Tesla Elstroj (CCP, BDOS, "
+      "CBIOS 87-02-13) on tracks 0 and 1 of A:, byte for byte as on the system cartridge. The files on A: and B: stay.",
+      "Pomoc emulátoru: originální SYSGEN pro RKD-1 se nenašel. Zapíše CP/M 2.2 Tesla Elstroj (CCP, BDOS, CBIOS "
+      "87-02-13) na stopy 0 a 1 disku A:, bajt po bajtu jako na systémové kazetě. Soubory na A: a B: zůstanou." },
+    { "Source:", "Zdroj:" },
+    { "Format the whole cartridge first (A: and B: as FORMTRKD does; erases all files)",
+      "Nejdřív naformátovat celou kazetu (A: i B: jako FORMTRKD; smaže všechny soubory)" },
+    { "The cartridge is not formatted: A: cannot be used without it.",
+      "Kazeta není naformátovaná: bez toho A: nejde používat." },
+    { "Then Reset (F12): the CBIOS does not notice a changed cartridge. Copy SH.COM, SH.OVR, STARTSYS.SUB and other "
+      "files with PIP, e.g. through the fixed disk C:.",
+      "Potom Reset (F12): CBIOS výměnu kazety nepozná. SH.COM, SH.OVR, STARTSYS.SUB a další soubory zkopírujte "
+      "PIPem, třeba přes pevný disk C:." },
+    { "Write the system", "Zapsat systém" },
     { "New cartridge", "Nová kazeta" },
     { "New cartridge...", "Nová kazeta…" },
     { "Unit", "Jednotka" },

@@ -729,8 +729,58 @@ static void draw_floppies(UiState& ui, Card* r)
     ImGui::PopID();
 }
 
+// Emulator help "System..." (the SYSGEN of Tesla for RKD-1 was not found): the system tracks of A: from the
+// system cartridge, optionally a format first (as FORMTRKD). Marked as help in the dialog.
+static int s_rkd_sys_unit = -1;
+static bool s_rkd_sys_format = false;
+static std::string s_rkd_sys_error;
+
+static void rkd_system_dialog(Rkd1* r, bool open)
+{
+    const char* title = tr_id("System on the cartridge (SYSGEN)");
+    if (open) ImGui::OpenPopup(title);
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    int u = s_rkd_sys_unit;
+    float wrap = ImGui::GetFontSize() * 34;
+    ImGui::PushTextWrapPos(wrap);
+    ImGui::TextUnformatted(tr("Emulator help: the original SYSGEN for RKD-1 was not found. This writes CP/M 2.2 of "
+                              "Tesla Elstroj (CCP, BDOS, CBIOS 87-02-13) on tracks 0 and 1 of A:, byte for byte as on "
+                              "the system cartridge. The files on A: and B: stay."));
+    ImGui::TextDisabled("%s %s", tr("Source:"), Rkd1::SYSTEM_SOURCE);
+    ImGui::Checkbox(tr("Format the whole cartridge first (A: and B: as FORMTRKD does; erases all files)"),
+                    &s_rkd_sys_format);
+    if (u >= 0 && !s_rkd_sys_format && !r->platter_formatted(u, Rkd1::CARTRIDGE))
+        ImGui::TextColored(k_load_error, "%s", tr("The cartridge is not formatted: A: cannot be used without it."));
+    ImGui::TextUnformatted(tr("Then Reset (F12): the CBIOS does not notice a changed cartridge. Copy SH.COM, SH.OVR, "
+                              "STARTSYS.SUB and other files with PIP, e.g. through the fixed disk C:."));
+    if (!s_rkd_sys_error.empty()) ImGui::TextColored(k_load_error, "%s", s_rkd_sys_error.c_str());
+    ImGui::PopTextWrapPos();
+    if (ImGui::Button(tr("Write the system"))) {
+        std::string err;
+        bool ok = u >= 0;
+        if (ok && s_rkd_sys_format) ok = r->format_platter(u, Rkd1::CARTRIDGE, err);
+        if (ok) ok = r->write_system(u, Rkd1::SYSTEM_SOURCE, err);
+        if (ok) {
+            s_rkd_sys_error.clear();
+            s_rkd_sys_unit = -1;
+            ImGui::CloseCurrentPopup();
+        } else {
+            s_rkd_sys_error = err;
+            LOGE("RKD-1: %s", err.c_str());
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) {
+        s_rkd_sys_error.clear();
+        s_rkd_sys_unit = -1;
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+}
+
 static void draw_rkd(UiState& ui, Rkd1* r)
 {
+    bool open_sys = false;
     ImGui::PushID(r);
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(tr("New cartridge"));
@@ -744,7 +794,7 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         if (!u.fitted) continue;
         ImGui::PushID(i);
         RkdPlatter& c = u.disk[Rkd1::CARTRIDGE];
-        ImGui::Text("%s %d, %s:", tr("Unit"), i, tr("cartridge"));
+        ImGui::Text("%s %d (%s), %s:", tr("Unit"), i, u.drive == Rkd1::CM5400 ? "CM 5400" : "CM 5403", tr("cartridge"));
         ImGui::SameLine();
         if (!c.loaded) ImGui::TextDisabled("%s", tr("(no cartridge)"));
         else {
@@ -763,6 +813,17 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         ImGui::Checkbox(tr("Write protect"), &c.write_protect);
         ImGui::SameLine();
         ImGui::Text("%s %d%s", tr("track"), u.track, c.dirty ? tr(", modified") : "");
+        if (u.drive == Rkd1::CM5403 && c.sectors == 24) {   // emulator help, the dialog says so
+            ImGui::SameLine();
+            if (ImGui::Button(tr("System..."))) {
+                s_rkd_sys_unit = i;
+                s_rkd_sys_format = !r->platter_formatted(i, Rkd1::CARTRIDGE);
+                s_rkd_sys_error.clear();
+                open_sys = true;
+            }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("%s", tr("Write the CP/M system on the cartridge (emulator help, no original SYSGEN)"));
+        }
         ImGui::EndDisabled();
         RkdPlatter& x = u.disk[Rkd1::FIXED];
         ImGui::Text("   %s:", tr("fixed disk"));
@@ -774,6 +835,7 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         } else ImGui::TextDisabled("-");
         ImGui::PopID();
     }
+    rkd_system_dialog(r, open_sys);
     ImGui::PopID();
 }
 
@@ -811,7 +873,7 @@ void draw_media(UiState& ui)
         if (Rkd1* rk = dynamic_cast<Rkd1*>(c.get())) {
             any = true;
             char title[96];
-            snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("cartridge disk CM 5403"));
+            snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("cartridge disk"));
             ImGui::SeparatorText(title);
             draw_rkd(ui, rk);
             continue;

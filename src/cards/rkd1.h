@@ -19,6 +19,10 @@
 // platter), 204 tracks, two surfaces; one cartridge (removable) and one fixed platter (DISK); bit 400 ns
 // (3.2 us per byte) with the data separator in the drive. A platter keeps the byte stream written into
 // every sector slot (zeros, 80H, header, data, sum), so both formats and the errors of the driver work.
+// Two drives: CM 5403 (Zbrojovka Brno; DISK inactive = the cartridge, T00 = restore, as the CP/M of Tesla
+// Elstroj uses it) and CM 5400 (IZOT, Bulgaria) on the cable of [R1] page 15: DISK inactive = the fixed
+// platter (FORMRKD of J. Biba), T00 on cylinder bit 2^0 and T1-T128 on 2^1-2^8 (cylinder 2N + T00), the
+// restore of the drive not connected.
 #include <string>
 #include <vector>
 #include "core/card.h"
@@ -68,13 +72,16 @@ public:
     void outputs_changed(int port, uint8_t value) override;
 
     static const int UNITS = 4;
-    static const int CARTRIDGE = 0;   // DISK inactive (PC6 = 0): the removable cartridge
+    static const int CARTRIDGE = 0;   // the removable cartridge (CM 5403: DISK inactive, PC6 = 0)
     static const int FIXED = 1;
+    enum { CM5403 = 0, CM5400 = 1 };
 
     struct Unit {
         bool fitted = false;
+        int drive = CM5403;           // CM5403, CM5400
         RkdPlatter disk[2];           // CARTRIDGE, FIXED
-        int track = 0;                // where the heads are
+        int cyl = 0;                  // where the heads are (cylinder of the drive)
+        int track = 0;                // the track of the controller there (CM 5400: cylinder / 2)
         uint64_t seek_end = 0;        // bus time: the heads settled (SRDY, ATN)
         bool err = false;             // ERR of the drive, cleared by a restore
         bool apt = false;             // APT: the last track number was accepted
@@ -94,12 +101,23 @@ public:
     bool write_sector(int unit, int disk, int surface, int track, int sector, const uint8_t* data, int len);
     bool read_sector(int unit, int disk, int surface, int track, int sector, uint8_t* data, int len);
 
+    // Emulator help for the Media window (marked there; the SYSGEN of Tesla for RKD-1 was not found):
+    // format a platter as FORMTRKD / FORMRKD do (every sector E5H, both surfaces), write the system of
+    // Tesla Elstroj (tracks 0 and 1 of the first surface of the cartridge) from a system cartridge.
+    static const char* const SYSTEM_SOURCE;   // media/rkd-1/tesla_cpm_system.rkd
+    bool format_platter(int unit, int disk, std::string& err);
+    bool write_system(int unit, const std::string& source, std::string& err);
+    bool platter_formatted(int unit, int disk);   // the first directory sector reads (surface 0, track 2)
+    int disk_line(int unit, int disk) const;      // DISK as the drive wants it for the platter (header bit 14)
+
 private:
     uint64_t us(double t) const;      // microseconds as bus time
     double now_us(void) const;
     int unit_no(void) const { return (ppi.out_c >> 1) & 3; }
     Unit& unit(void) { return units[unit_no()]; }
-    RkdPlatter& platter(void) { return unit().disk[(ppi.out_c & 0x40) ? FIXED : CARTRIDGE]; }
+    // the platter DISK (PC6) selects: CM 5403 active = fixed, CM 5400 active = cartridge
+    int disk_index(const Unit& u) const { return ((ppi.out_c & 0x40) != 0) != (u.drive == CM5400) ? FIXED : CARTRIDGE; }
+    RkdPlatter& platter(void) { return unit().disk[disk_index(unit())]; }
     bool ready(const Unit& u) const;
     bool seeking(const Unit& u) const;
     void strobe(void);

@@ -732,6 +732,13 @@ static const ParamOption k_rkd1_carts[] = {
     { nullptr, nullptr, nullptr },
 };
 
+static const ParamOption k_rkd1_drive[] = {
+    { "\"CM 5403\"", "CM 5403 (Zbrojovka Brno; CP/M of Tesla Elstroj)", "CM 5403 (Zbrojovka Brno; CP/M Tesla Elstroj)" },
+    { "\"CM 5400\"", "CM 5400 (IZOT, Bulgaria; cable SM 5400, FORMRKD of J. Biba, 12 x 512 B)",
+      "CM 5400 (IZOT, Bulharsko; kabel SM 5400, FORMRKD J. Bíby, 12 x 512 B)" },
+    { nullptr, nullptr, nullptr },
+};
+
 static const ParamOption k_rkd1_sectors[] = {
     { "24", "24 x 256 B (Tesla Elstroj CP/M)", "24 x 256 B (CP/M Tesla Elstroj)" },
     { "12", "12 x 512 B (SMEP, FORMRKD)", "12 x 512 B (SMEP, FORMRKD)" },
@@ -739,35 +746,39 @@ static const ParamOption k_rkd1_sectors[] = {
 };
 
 static const CardParam k_rkd1[] = {
-    { "unit0", PK_SECTION, "Unit 0 (CM 5403: cartridge + fixed disk)", "Jednotka 0 (CM 5403: kazeta + pevný disk)", "true",
+    { "unit0", PK_SECTION, "Unit 0 (cartridge + fixed disk)", "Jednotka 0 (kazeta + pevný disk)", "true",
       nullptr, 0, 0 },
+    { "unit0.drive", PK_CHOICE, "Drive", "Mechanika", "\"CM 5403\"", k_rkd1_drive, 0, 0 },
     { "unit0.cartridge", PK_FILE, "Cartridge image (.rkd; a new file = an unformatted cartridge)",
       "Obraz kazety (.rkd; nový soubor = nenaformátovaná kazeta)", "\"\"", k_rkd1_carts, 0, 0 },
     { "unit0.write_protect", PK_BOOL, "Cartridge write protected", "Kazeta chráněná proti zápisu", "false", nullptr, 0, 0 },
     { "unit0.fixed", PK_FILE, "Fixed disk image (.rkd, created when missing)", "Obraz pevného disku (.rkd, vytvoří se, když chybí)",
       "\"work/rkd-1/unit0_fixed.rkd\"", nullptr, 0, 0 },
-    { "unit1", PK_SECTION, "Unit 1 (CM 5403: cartridge + fixed disk)", "Jednotka 1 (CM 5403: kazeta + pevný disk)", "false",
+    { "unit1", PK_SECTION, "Unit 1 (cartridge + fixed disk)", "Jednotka 1 (kazeta + pevný disk)", "false",
       nullptr, 0, 0 },
+    { "unit1.drive", PK_CHOICE, "Drive", "Mechanika", "\"CM 5403\"", k_rkd1_drive, 0, 0 },
     { "unit1.cartridge", PK_FILE, "Cartridge image (.rkd; a new file = an unformatted cartridge)",
       "Obraz kazety (.rkd; nový soubor = nenaformátovaná kazeta)", "\"\"", k_rkd1_carts, 0, 0 },
     { "unit1.write_protect", PK_BOOL, "Cartridge write protected", "Kazeta chráněná proti zápisu", "false", nullptr, 0, 0 },
     { "unit1.fixed", PK_FILE, "Fixed disk image (.rkd, created when missing)", "Obraz pevného disku (.rkd, vytvoří se, když chybí)",
       "\"work/rkd-1/unit1_fixed.rkd\"", nullptr, 0, 0 },
-    { "unit2", PK_SECTION, "Unit 2 (CM 5403: cartridge + fixed disk)", "Jednotka 2 (CM 5403: kazeta + pevný disk)", "false",
+    { "unit2", PK_SECTION, "Unit 2 (cartridge + fixed disk)", "Jednotka 2 (kazeta + pevný disk)", "false",
       nullptr, 0, 0 },
+    { "unit2.drive", PK_CHOICE, "Drive", "Mechanika", "\"CM 5403\"", k_rkd1_drive, 0, 0 },
     { "unit2.cartridge", PK_FILE, "Cartridge image (.rkd; a new file = an unformatted cartridge)",
       "Obraz kazety (.rkd; nový soubor = nenaformátovaná kazeta)", "\"\"", k_rkd1_carts, 0, 0 },
     { "unit2.write_protect", PK_BOOL, "Cartridge write protected", "Kazeta chráněná proti zápisu", "false", nullptr, 0, 0 },
     { "unit2.fixed", PK_FILE, "Fixed disk image (.rkd, created when missing)", "Obraz pevného disku (.rkd, vytvoří se, když chybí)",
       "\"work/rkd-1/unit2_fixed.rkd\"", nullptr, 0, 0 },
-    { "unit3", PK_SECTION, "Unit 3 (CM 5403: cartridge + fixed disk)", "Jednotka 3 (CM 5403: kazeta + pevný disk)", "false",
+    { "unit3", PK_SECTION, "Unit 3 (cartridge + fixed disk)", "Jednotka 3 (kazeta + pevný disk)", "false",
       nullptr, 0, 0 },
+    { "unit3.drive", PK_CHOICE, "Drive", "Mechanika", "\"CM 5403\"", k_rkd1_drive, 0, 0 },
     { "unit3.cartridge", PK_FILE, "Cartridge image (.rkd; a new file = an unformatted cartridge)",
       "Obraz kazety (.rkd; nový soubor = nenaformátovaná kazeta)", "\"\"", k_rkd1_carts, 0, 0 },
     { "unit3.write_protect", PK_BOOL, "Cartridge write protected", "Kazeta chráněná proti zápisu", "false", nullptr, 0, 0 },
     { "unit3.fixed", PK_FILE, "Fixed disk image (.rkd, created when missing)", "Obraz pevného disku (.rkd, vytvoří se, když chybí)",
       "\"work/rkd-1/unit3_fixed.rkd\"", nullptr, 0, 0 },
-    { "new_sectors", PK_CHOICE, "New cartridge: sector pulses per turn", "Nová kazeta: sektorových značek na otáčku", "24",
+    { "new_sectors", PK_CHOICE, "New cartridge: sector pulses per turn (CM 5400: 12)", "Nová kazeta: sektorových značek na otáčku (CM 5400: 12)", "24",
       k_rkd1_sectors, 0, 0 },
     { "spinup_s", PK_INT, "Drive start after a cartridge goes in (s; 0 = at once, comfort)",
       "Rozběh mechaniky po vložení kazety (s; 0 = hned, pohodlí)", "0", nullptr, 0, 120 },
@@ -1862,8 +1873,8 @@ CARD(c_dsp1, "DSP-1", "DSP", "Two serial ports (8251), RS-232 and current loop",
 // disks
 CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič pružných disků (desky A + B)", CC_DISK,
      2, true, k_rpd1)
-CARD(c_rkd1, "RKD-1", "RKD", "Cartridge disk controller CM 5403 (boards A + B)",
-     "Řadič kazetového disku CM 5403 (desky A + B)", CC_DISK, 2, true, k_rkd1)
+CARD(c_rkd1, "RKD-1", "RKD", "Cartridge disk controller CM 5403 / CM 5400 (boards A + B)",
+     "Řadič kazetového disku CM 5403 / CM 5400 (desky A + B)", CC_DISK, 2, true, k_rkd1)
 CARD(c_rpd1z, "RPD-1Z", "RPD", "Floppy disk controller \"Z\"", "Řadič pružných disků \"Z\"", CC_DISK, 1, false,
      nullptr)
 CARD(c_mfc1a, "MFC-1A", "MFC", "Mini floppy controller 8272 + DMA", "Řadič minidisket 8272 + DMA", CC_DISK, 1, true,

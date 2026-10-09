@@ -44,8 +44,9 @@
         },
         {
             "slot": 6,                      // position X6
-            "type": "RKD-1",                // Cartridge disk controller CM 5403 (boards A + B)
-            "unit0": {                      // Unit 0 (CM 5403: cartridge + fixed disk)
+            "type": "RKD-1",                // Cartridge disk controller CM 5403 / CM 5400 (boards A + B)
+            "unit0": {                      // Unit 0 (cartridge + fixed disk)
+                "drive": "CM 5403",         // Drive - CM 5403 (Zbrojovka Brno; CP/M of Tesla Elstroj)
                 "cartridge": "media/rkd-1/tesla_cpm_system.rkd",  // Cartridge image - CP/M 2.2 Tesla Elstroj 1987 (system cartridge, 24 x 256 B)
                 "write_protect": false,     // Cartridge write protected
                 "fixed": "work/rkd-1/unit0_fixed.rkd"  // Fixed disk image (.rkd, created when missing)
