@@ -57,6 +57,10 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
     mechanika CM 5400 s formátovačem FORMRKD J. Bíby a CP/M s disky D: až G: (BIOS vznikl v emulátoru, není
     dobový) ([docs/desky/RKD-1.md](docs/desky/RKD-1.md), návod k obsluze
     [docs/navod-rkd1.md](docs/navod-rkd1.md));
+  - řadič magnetické pásky RMP-1 s mechanikou IZOT SM 5300 (9 stop, 800 bpi, cívky s 350 m pásky): okno Média
+    s nakreslenou mechanikou, cívkami, kontrolkami a mapou pásky, obraz pásky SIMH `.tap`; běží na ní původní
+    ovladač Tesly Elstroj a programy J. Bíby pro výměnu souborů s počítači JSEP (MTDAT, DIRMT, MTCOPY), ukázková
+    páska ([docs/desky/RMP-1.md](docs/desky/RMP-1.md), návod k obsluze [docs/navod-rmp1.md](docs/navod-rmp1.md));
   - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
     a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
     `KRES` kreslí v milimetrech (kružnice, šrafování, text);
@@ -122,6 +126,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   z BASICu přes `CALL`, příkaz `KRES` v milimetrech, s příklady).
 - [docs/navod-rkd1.md](docs/navod-rkd1.md): návod ke kazetovému disku RKD-1 s CP/M Tesla Elstroj (start, shell SH
   a uživatelé, formátování pevného disku, kopírování, výměna kazet, ochrana proti zápisu).
+- [docs/navod-rmp1.md](docs/navod-rmp1.md): návod k magnetické pásce RMP-1 (mechanika v okně Média, obsah pásky,
+  kopírování mezi páskou a disketou programem MTDAT, nová páska).
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
 - [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045

@@ -1493,3 +1493,25 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Prince of Persia jen v repu:** POP.DAT jsou data hry (Jordan Mechner, Broderbund). Repo je neveřejné, ale balíček
   alfy jde kamarádům, proto ho `tools/package.py` vynechá (`REPO_ONLY`: oba obrazy s PoP a `sapi1v_PoP.sapi`).
   V konfigurátoru jsou volby obrazů i tak; v balíčku by obraz chyběl.
+
+## 2026-10-10 – magnetická páska RMP-1
+
+- **Mechanika IZOT SM 5300 bez manuálu:** parametry z RMP-1 (12,5 palce/s, 800 bpi, 9 stop), z robotrontechnik.de
+  (cívka 216 mm, 350 m, převíjení asi 5 min) a z toho, co čeká ovladač `RMP.MAC` (čtení po zápisu do 32 ms, mezery
+  20 ms při čtení). Vzdálenost hlav 0,15", rozběh a doběh 0,2" (ECMA-62), značka BOT 28 mm a EOT jsou odhady
+  v Nejasnostech `docs/desky/RMP-1.md`.
+- **Rozběh a doběh pásky se modelují:** bez nich DIRMT po přeskočení bloku vzad (`mt.bsr`) hlásí „Chyba cteni“.
+  Ovladač zastaví 9 ms za blokem a při čtení vpřed čeká 20 ms bez dat, počítá tedy s doběhem mechaniky. Pásku
+  posouvá rychlost s rampou 32,8 ms. Převíjení rampu nemá (trvá minuty).
+- **Značka BOT drží 1,1":** `RMP.MAC` se na BOT ptá až po rozjetí pásky. S bodovou značkou zapsal VOL1 bez dlouhé
+  mezery od BOT a čtení od BOT (260 ms bez čtení) ho pak přeskočilo.
+- **Obraz pásky SIMH `.tap`:** záznamy a značky, jak je znají emulátory velkých počítačů a jejich nástroje. Uvnitř
+  emulace je páska řádky s polohou, při načtení se rozloží s mezerami, jaké píše `RMP.MAC`, CRC a LRC se dopočítají.
+  Chybný záznam (parita, CRC, LRC) se uloží s příznakem chyby SIMH.
+- **`ready_at_start` (pohodlí, výchozí zapnuto, přiznané):** páska je po zapnutí zavedená a ON-LINE. Na železe to
+  dělá obsluha tlačítky. Vypnutím se chová jako železo. Vložená páska za chodu se zavádí LOAD a ON-LINE vždy.
+- **Ukázková páska vyrobená programem MTDAT** v testu (`RMP_MAKE`), ne skriptem: návěští a bloky jsou přesně, jak
+  je dobový program zapisuje. Disketa s programy `a_lad_izo` je v repu jako `media/rmp-1/a_lad_izo.img`.
+- **Panel mechaniky v okně Média je kreslený:** skutečný panel SM 5300 neznáme. Kontrolky odpovídají stavovým
+  signálům rozhraní (port C5h), tlačítka běžným ovládacím prvkům páskových jednotek. MTDAT tomu, čemu emulátor
+  říká ON-LINE, říká „DISTANC“.

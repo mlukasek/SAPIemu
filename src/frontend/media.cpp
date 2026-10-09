@@ -1,8 +1,9 @@
-// Media window: cassette recorders of DSM-1 cards, images of the PMD32-SD drives
-// and the IDE disk of IDE-1 cards.
+// Media window: cassette recorders of DSM-1 cards, images of the PMD32-SD drives,
+// the IDE disk of IDE-1 cards, cartridge disks of RKD-1 and the magnetic tape drives of RMP-1.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL3/SDL.h>
@@ -10,6 +11,7 @@
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
 #include "cards/rkd1.h"
+#include "cards/rmp1.h"
 #include "chips/floppy.h"
 #include "chips/kzd1.h"
 #include "core/host.h"
@@ -32,6 +34,7 @@ static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "Kazeta KZD-1 (KZD)"
                                                           { "Program (HEX, BIN)", "hex;ihx;bin" }, { "*", "*" } };
 
 static const SDL_DialogFileFilter k_rkd_filter[] = { { "Kazeta RKD-1 (RKD)", "rkd" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_tap_filter[] = { { "Magnetická páska (SIMH TAP)", "tap" }, { "*", "*" } };
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
@@ -73,6 +76,8 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     else if (kind == 11) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 1, where.c_str());
     else if (kind == 12) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_rkd_filter, 2, where.c_str(), false);
     else if (kind == 13) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_rkd_filter, 1, where.c_str());
+    else if (kind == 14) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tap_filter, 2, where.c_str(), false);
+    else if (kind == 15) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_tap_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
@@ -192,6 +197,16 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         if (kind == 13) file_remove(path);   // the save dialog asked before replacing it
         std::string err;
         if (!r->insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
+        return;
+    }
+    if (kind == 14 || kind == 15) {   // a reel for a unit of the RMP-1 (a new one: blank tape)
+        Rmp1* r = dynamic_cast<Rmp1*>(m->find_card(card));
+        if (!r) return;
+        size_t slash = path.find_last_of("/\\");
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".tap";
+        if (kind == 15) file_remove(path);   // the save dialog asked before replacing it
+        std::string err;
+        if (!r->insert(drive, data_relative(path), err)) LOGE("%s", err.c_str());
         return;
     }
     if (kind == 4 || kind == 5) {   // a floppy for a drive of a disk controller (RPD-1, FDC-1)
@@ -839,6 +854,321 @@ static void draw_rkd(UiState& ui, Rkd1* r)
     ImGui::PopID();
 }
 
+// ---------------------------------------------------------------- RMP-1 magnetic tape
+
+// EBCDIC (code page 037) to ASCII for the labels and the dump, '.' for the rest
+static char ebcdic(uint8_t c)
+{
+    static const char* const tab =
+        "................................................................"
+        " ...........<(+|&.........!$*);.-/.........,%_>?.........`:#@'=\""
+        ".abcdefghi.......jklmnopqr.......~stuvwxyz......^.........[]...."
+        "{ABCDEFGHI......}JKLMNOPQR......\\.STUVWXYZ......0123456789......";
+    return tab[c];
+}
+
+// What the tape holds, grouped for the map: the records change only while the drive writes, the
+// grouping is made again when the rows change (at most four times a second).
+struct RmpMapItem {
+    int kind;          // 0 label (VOL1, HDR1...), 1 data blocks, 2 tape mark
+    int count;         // data blocks in the group
+    int bad;           // of them with a parity, CRC or LRC error
+    int64_t pos;       // the first row
+    int64_t end;       // the last row
+    char label[5];
+    size_t bytes;      // the size of the first block
+};
+struct RmpMapCache {
+    const MagTape* tape = nullptr;
+    size_t rows = 0;
+    int64_t last = -1;
+    uint64_t time = 0;
+    std::vector<RmpMapItem> items;
+    std::vector<MagTape::Record> recs;
+};
+static RmpMapCache s_rmp_map[Rmp1::UNITS];
+
+static void rmp_map_update(RmpMapCache& c, const MagTape& t)
+{
+    int64_t last = t.rows.empty() ? -1 : t.rows.back().pos;
+    uint64_t now = SDL_GetTicks();
+    if (c.tape == &t && c.rows == t.rows.size() && c.last == last) return;
+    if (c.tape == &t && now - c.time < 250) return;
+    c.tape = &t;
+    c.rows = t.rows.size();
+    c.last = last;
+    c.time = now;
+    c.recs = t.records();
+    c.items.clear();
+    for (const MagTape::Record& r : c.recs) {
+        int64_t end = r.pos;
+        RmpMapItem it = { 1, 1, r.bad ? 1 : 0, r.pos, end, "", r.data.size() };
+        if (r.mark) it.kind = 2;
+        else if (r.data.size() == 80) {   // a JSEP label: VOL1, HDR1, HDR2, EOF1, EOF2, EOV1...
+            char l[5];
+            for (int i = 0; i < 4; i++) l[i] = ebcdic(r.data[i]);
+            l[4] = 0;
+            if ((!strncmp(l, "VOL", 3) || !strncmp(l, "HDR", 3) || !strncmp(l, "EOF", 3) || !strncmp(l, "EOV", 3)) &&
+                l[3] >= '1' && l[3] <= '9') {
+                it.kind = 0;
+                memcpy(it.label, l, 5);
+            }
+        }
+        if (it.kind == 1 && !c.items.empty() && c.items.back().kind == 1) {
+            c.items.back().count++;
+            c.items.back().bad += it.bad;
+            c.items.back().end = r.pos;
+            continue;
+        }
+        c.items.push_back(it);
+    }
+}
+
+// One unit: the drive drawn with its reels, lamps and buttons, the tape and what is on it.
+static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
+{
+    Rmp1::Unit& u = r->units[i];
+    MagTape& t = u.tape;
+    ImGui::PushID(i);
+    float s = ImGui::GetFontSize();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImVec2 o = ImGui::GetCursorScreenPos();
+    float w = 20.0f * s, h = 16.9f * s;
+    dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), IM_COL32(222, 220, 208, 255), 0.4f * s);
+    dl->AddRect(o, ImVec2(o.x + w, o.y + h), IM_COL32(120, 118, 110, 255), 0.4f * s, 0, 1.5f);
+    dl->AddText(ImGui::GetFont(), 1.15f * s, ImVec2(o.x + 0.8f * s, o.y + 0.5f * s), IM_COL32(40, 40, 40, 255), "IZOT SM 5300.01");
+    char unit_s[32];
+    snprintf(unit_s, sizeof(unit_s), "%s %d", tr("unit"), i);
+    dl->AddText(ImVec2(o.x + w - 5.0f * s, o.y + 0.6f * s), IM_COL32(90, 90, 90, 255), unit_s);
+    // the tape deck: reels of 216 mm with a hub of 100 mm, 350 m of tape from the left reel to the right one
+    ImVec2 p0(o.x + 0.8f * s, o.y + 2.0f * s), p1(o.x + w - 0.8f * s, o.y + 11.4f * s);
+    dl->AddRectFilled(p0, p1, IM_COL32(44, 46, 50, 255), 0.3f * s);
+    const double hub = 0.050, full = 0.105, len = (double)MagTape::END_POS / MagTape::UNIT * 0.0254;
+    double pm = t.loaded ? (double)(u.pos > 0 ? u.pos : 0) / MagTape::UNIT * 0.0254 : 0;
+    float sc = 3.4f * s / (float)full;
+    ImVec2 cl(o.x + 5.0f * s, o.y + 5.8f * s), cr(o.x + w - 5.0f * s, o.y + 5.8f * s);
+    for (int side = 0; side < 2; side++) {
+        ImVec2 c = side ? cr : cl;
+        dl->AddCircleFilled(c, (float)full * sc, IM_COL32(150, 152, 158, 255), 48);   // the flange
+        dl->AddCircle(c, (float)full * sc, IM_COL32(190, 192, 198, 255), 48, 1.5f);
+    }
+    if (t.loaded) {
+        double on_left = len - pm;   // the supply reel (left) holds what is still before the head
+        double rl = sqrt(hub * hub + (full * full - hub * hub) * on_left / len);
+        double rr = u.loaded ? sqrt(hub * hub + (full * full - hub * hub) * pm / len) : hub;
+        ImU32 tape = IM_COL32(86, 56, 38, 255);
+        dl->AddCircleFilled(cl, (float)rl * sc, tape, 48);
+        if (u.loaded) dl->AddCircleFilled(cr, (float)rr * sc, tape, 48);
+        // the path past the tension arms and the heads at the bottom
+        float hy = o.y + 10.6f * s;
+        ImVec2 al(o.x + 3.0f * s, o.y + 9.9f * s), ar(o.x + w - 3.0f * s, o.y + 9.9f * s);
+        if (u.loaded) {
+            dl->AddLine(ImVec2(cl.x - (float)rl * sc * 0.3f, cl.y + (float)rl * sc * 0.95f), al, tape, 2.5f);
+            dl->AddLine(al, ImVec2(o.x + w * 0.5f - 1.4f * s, hy), tape, 2.5f);
+            dl->AddLine(ImVec2(o.x + w * 0.5f + 1.4f * s, hy), ar, tape, 2.5f);
+            dl->AddLine(ar, ImVec2(cr.x + (float)rr * sc * 0.3f, cr.y + (float)rr * sc * 0.95f), tape, 2.5f);
+            dl->AddLine(ImVec2(o.x + w * 0.5f - 1.4f * s, hy), ImVec2(o.x + w * 0.5f + 1.4f * s, hy), tape, 2.5f);
+        }
+        dl->AddCircleFilled(al, 0.35f * s, IM_COL32(170, 172, 178, 255), 16);
+        dl->AddCircleFilled(ar, 0.35f * s, IM_COL32(170, 172, 178, 255), 16);
+        ImU32 head = u.writing ? IM_COL32(220, 50, 40, 255) : IM_COL32(150, 152, 160, 255);
+        dl->AddRectFilled(ImVec2(o.x + w * 0.5f - 0.9f * s, hy - 0.2f * s), ImVec2(o.x + w * 0.5f + 0.9f * s, hy + 0.7f * s),
+                          head, 0.15f * s);
+        // hubs turning: the angle follows the tape wound on (the right reel turns only when threaded)
+        for (int side = 0; side < 2; side++) {
+            ImVec2 c = side ? cr : cl;
+            double rad = side ? rr : rl;
+            float a = (float)((side ? pm : -on_left) / rad);
+            if (side && !u.loaded) a = 0;
+            float hr = (float)hub * sc * 0.75f;
+            dl->AddCircleFilled(c, hr, IM_COL32(200, 202, 208, 255), 32);
+            for (int k = 0; k < 3; k++) {
+                float an = a + k * 2.0943951f;
+                dl->AddLine(c, ImVec2(c.x + cosf(an) * hr * 0.9f, c.y + sinf(an) * hr * 0.9f), IM_COL32(70, 70, 76, 255), 3.0f);
+            }
+            dl->AddCircleFilled(c, hr * 0.25f, IM_COL32(70, 70, 76, 255), 16);
+        }
+    } else {
+        for (int side = 0; side < 2; side++) dl->AddCircleFilled(side ? cr : cl, (float)hub * sc * 0.75f, IM_COL32(200, 202, 208, 255), 32);
+        dl->AddText(ImVec2(o.x + w * 0.5f - 3.0f * s, o.y + 10.2f * s), IM_COL32(170, 170, 170, 255), tr("(no tape)"));
+    }
+    // the lamps: what the controller reads in port B of D2B for this unit
+    struct Lamp { const char* name; bool on; ImU32 col; };
+    bool sel = r->selected() == i;
+    const Lamp lamps[7] = {
+        { "PON", r->power_on_reset() && sel, IM_COL32(240, 180, 40, 255) },
+        { "ONL", u.online, IM_COL32(70, 220, 90, 255) },
+        { "RDY", t.loaded && u.loaded && !u.rewinding, IM_COL32(70, 220, 90, 255) },
+        { "BOT", r->bot(u), IM_COL32(240, 180, 40, 255) },
+        { "EOT", r->eot(u), IM_COL32(240, 80, 60, 255) },
+        { "RWS", u.rewinding, IM_COL32(240, 180, 40, 255) },
+        { "WPT", t.loaded && !u.ring, IM_COL32(240, 80, 60, 255) },
+    };
+    float lx = o.x + 1.6f * s, ly = o.y + 12.3f * s, step = (w - 3.2f * s) / 6;
+    for (int k = 0; k < 7; k++) {
+        ImVec2 c(lx + k * step, ly);
+        dl->AddCircleFilled(c, 0.55f * s, lamps[k].on ? lamps[k].col : IM_COL32(88, 88, 86, 255), 20);
+        dl->AddCircle(c, 0.55f * s, IM_COL32(60, 60, 58, 255), 20, 1.0f);
+        ImVec2 ts = ImGui::CalcTextSize(lamps[k].name);
+        dl->AddText(ImVec2(c.x - ts.x * 0.5f, c.y + 0.8f * s), IM_COL32(50, 50, 50, 255), lamps[k].name);
+    }
+    // the buttons of the drive, on its panel
+    ImGui::SetCursorScreenPos(ImVec2(o.x + 0.8f * s, o.y + 14.4f * s));
+    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(236, 234, 226, 255));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(250, 248, 240, 255));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(200, 198, 190, 255));
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(30, 30, 30, 255));
+    float bw = (w - 1.6f * s - 3 * ImGui::GetStyle().ItemSpacing.x) / 4;
+    ImGui::BeginDisabled(!t.loaded || u.loaded);
+    if (ImGui::Button("LOAD", ImVec2(bw, 1.8f * s))) r->press_load(i);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("Thread the tape and wind it to the BOT marker (RDY)."));
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!u.loaded);
+    if (ImGui::Button(u.online ? "OFF-LINE" : "ON-LINE", ImVec2(bw, 1.8f * s))) r->press_online(i);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("ON-LINE: the computer controls the drive (MTDAT: \"DISTANC\")."));
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!u.loaded || u.online || u.pos <= 0);
+    if (ImGui::Button("REWIND", ImVec2(bw, 1.8f * s))) r->press_rewind(i);
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!u.loaded || u.online);
+    if (ImGui::Button("UNLOAD", ImVec2(bw, 1.8f * s))) r->press_unload(i);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("Rewind and unthread (OFF-LINE only)."));
+    ImGui::PopStyleColor(4);
+    ImGui::SetCursorScreenPos(o);
+    ImGui::Dummy(ImVec2(w, h));
+
+    // the right side: the reel, the position, the map of the tape and the block at the head
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    if (t.loaded) {
+        ImGui::Text("%s %s", tr("Tape:"), t.path.c_str());
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.path.c_str());
+    } else ImGui::TextDisabled("%s", tr("(no tape)"));
+    if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 14, r->name, i);
+    ImGui::SameLine();
+    if (ImGui::Button(tr("New tape..."))) tape_dialog(ui, 15, r->name, i);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!t.loaded || u.online);
+    if (ImGui::Button(tr("Eject"))) r->eject(i);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && u.online)
+        ImGui::SetTooltip("%s", tr("Switch the drive OFF-LINE first."));
+    ImGui::SameLine();
+    ImGui::BeginDisabled(u.loaded);
+    ImGui::Checkbox(tr("Write ring"), &u.ring);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("The ring in the reel allows writing, without it WPT. Changed only with the tape unthreaded."));
+    if (t.loaded) {
+        const char* mot = u.rewinding ? tr("rewinding") : u.dir > 0 ? (u.writing ? tr("forward, writing") : tr("forward"))
+                        : u.dir < 0 ? tr("reverse") : tr("stop");
+        double pos_m = (double)u.pos / MagTape::UNIT * 0.0254;
+        ImGui::Text("%s, %s %.1f m %s %.0f m%s", mot, tr("position"), pos_m, tr("of"), len, t.dirty ? tr(", modified") : "");
+        ImGui::ProgressBar((float)(pos_m / len), ImVec2(-1, 0.5f * s), "");
+
+        RmpMapCache& c = s_rmp_map[i];
+        rmp_map_update(c, t);
+        int data = 0, marks = 0;
+        for (const MagTape::Record& rec : c.recs) (rec.mark ? marks : data)++;
+        ImGui::TextDisabled("%s: %d %s, %d %s", tr("On the tape"), data, tr("blocks"), marks, tr("tape marks"));
+        // the map: the groups in order, not to scale (the gaps would hide everything)
+        float mh = 2.6f * s;
+        ImGui::BeginChild("map", ImVec2(-1, mh + ImGui::GetStyle().ScrollbarSize + 0.4f * s), ImGuiChildFlags_Borders,
+                          ImGuiWindowFlags_HorizontalScrollbar);
+        ImDrawList* md = ImGui::GetWindowDrawList();
+        ImVec2 m0 = ImGui::GetCursorScreenPos();
+        float x = m0.x + 0.2f * s, y0 = m0.y + 0.5f * s, y1 = m0.y + mh - 0.3f * s;
+        md->AddRectFilled(ImVec2(x, y0 - 0.3f * s), ImVec2(x + 0.3f * s, y1 + 0.3f * s), IM_COL32(230, 230, 230, 255));   // BOT foil
+        x += 0.8f * s;
+        float head_x = -1;
+        for (size_t k = 0; k < c.items.size(); k++) {
+            const RmpMapItem& it = c.items[k];
+            char txt[32];
+            float iw;
+            ImU32 col;
+            if (it.kind == 2) {
+                txt[0] = 0;
+                iw = 0.45f * s;
+                col = IM_COL32(220, 70, 60, 255);
+            } else if (it.kind == 0) {
+                snprintf(txt, sizeof(txt), "%s", it.label);
+                iw = 3.0f * s;
+                col = IM_COL32(120, 80, 170, 255);
+            } else {
+                if (it.count == 1) snprintf(txt, sizeof(txt), "%u B", (unsigned)it.bytes);
+                else snprintf(txt, sizeof(txt), "%d x", it.count);
+                iw = ImGui::CalcTextSize(txt).x + 1.0f * s;
+                col = it.bad ? IM_COL32(220, 140, 40, 255) : IM_COL32(50, 110, 200, 255);
+            }
+            if (head_x < 0 && u.pos < it.pos) head_x = x - 0.2f * s;
+            else if (head_x < 0 && u.pos <= it.end + MagTape::ROW * 12) head_x = x + iw * 0.5f;
+            md->AddRectFilled(ImVec2(x, y0), ImVec2(x + iw, y1), col, 0.15f * s);
+            if (txt[0]) md->AddText(ImVec2(x + 0.5f * s, (y0 + y1) * 0.5f - 0.5f * s), IM_COL32(255, 255, 255, 255), txt);
+            if (ImGui::IsMouseHoveringRect(ImVec2(x, y0), ImVec2(x + iw, y1))) {
+                double at = (double)it.pos / MagTape::UNIT * 0.0254;
+                if (it.kind == 2) ImGui::SetTooltip("%s, %.2f m", tr("tape mark"), at);
+                else if (it.kind == 0) ImGui::SetTooltip("%s %s, %.2f m", tr("label"), it.label, at);
+                else ImGui::SetTooltip("%d %s (%s %u B), %.2f m%s", it.count, tr("blocks"), tr("the first"),
+                                       (unsigned)it.bytes, at, it.bad ? tr(", with errors") : "");
+            }
+            x += iw + 0.25f * s;
+        }
+        if (head_x < 0) head_x = x;
+        if (u.dir != 0 || u.rewinding) {   // moving: the head stays in view
+            float vw = ImGui::GetWindowWidth(), at = head_x - m0.x;   // m0 is the content origin (scrolled)
+            if (at < ImGui::GetScrollX() + 1.0f * s || at > ImGui::GetScrollX() + vw - 1.0f * s)
+                ImGui::SetScrollX(at - vw * 0.5f);
+        }
+        md->AddTriangleFilled(ImVec2(head_x - 0.4f * s, m0.y), ImVec2(head_x + 0.4f * s, m0.y), ImVec2(head_x, m0.y + 0.45f * s),
+                              IM_COL32(250, 200, 40, 255));
+        ImGui::Dummy(ImVec2(x - m0.x + 0.5f * s, mh));
+        ImGui::EndChild();
+
+        // the block last passed under the read head (as the controller reads it)
+        const MagTape::Record* last = nullptr;
+        int idx = 0;
+        for (size_t k = 0; k < c.recs.size(); k++)
+            if (c.recs[k].pos <= u.pos) {
+                last = &c.recs[k];
+                idx = (int)k + 1;
+            }
+        if (last && !last->mark) {
+            ImGui::TextDisabled("%s %d, %u B%s:", tr("Block at the head"), idx, (unsigned)last->data.size(),
+                                last->bad ? tr(", with errors") : tr(", parity, CRC and LRC good"));
+            // the first 48 bytes in hex, then the first 160 as EBCDIC text
+            for (size_t off = 0; off < last->data.size() && off < 48; off += 16) {
+                char line[80];
+                int n = snprintf(line, sizeof(line), "%04X ", (unsigned)off);
+                for (size_t k = 0; k < 16 && off + k < last->data.size(); k++)
+                    n += snprintf(line + n, sizeof(line) - n, " %02X", last->data[off + k]);
+                ImGui::TextUnformatted(line);
+            }
+            char txt[161];
+            size_t k;
+            for (k = 0; k < 160 && k < last->data.size(); k++) txt[k] = ebcdic(last->data[k]);
+            txt[k] = 0;
+            ImGui::TextWrapped("%s", txt);
+        } else if (last) ImGui::TextDisabled("%s %d: %s", tr("Block at the head"), idx, tr("tape mark"));
+    }
+    ImGui::EndGroup();
+    ImGui::PopID();
+}
+
+static void draw_rmp(UiState& ui, Rmp1* r)
+{
+    ImGui::PushID(r);
+    for (int i = 0; i < Rmp1::UNITS; i++)
+        if (r->units[i].fitted) draw_rmp_unit(ui, r, i);
+    ImGui::PopID();
+}
+
 void draw_media(UiState& ui)
 {
     tape_dialog_result(ui, ui.host->machine());   // also the HEX and binary dialogs of the File menu
@@ -876,6 +1206,14 @@ void draw_media(UiState& ui)
             snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("cartridge disk"));
             ImGui::SeparatorText(title);
             draw_rkd(ui, rk);
+            continue;
+        }
+        if (Rmp1* mt = dynamic_cast<Rmp1*>(c.get())) {
+            any = true;
+            char title[128];
+            snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("magnetic tape IZOT SM 5300 (9 tracks, 800 bpi NRZI, 12.5 ips)"));
+            ImGui::SeparatorText(title);
+            draw_rmp(ui, mt);
             continue;
         }
         if (Kzd1* k = c->kzd1()) {

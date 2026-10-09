@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **221** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **226** v 46 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -473,6 +473,23 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
   bit 3 → příprava čtení.
 
 - Časové limity: INIR při 2/4 MHz, je NOP po `OUT 43` nutný?
+
+
+## [RMP-1 – řadič magnetické pásky (IZOT SM 5300)](desky/RMP-1.md) – Nejasnosti (5)
+
+- **Parametry SM 5300:** vzdálenost čtecí a zápisové hlavy (emulace 0,15"), čas a dráha rozběhu a doběhu
+  (emulace 32,8 ms a 0,2"), délka značky BOT (emulace 28 mm), poloha EOT a rychlost převíjení (emulace
+  50 palců/s). Ověřit měřením nebo v manuálu SM 5300, pokud se najde.
+
+- **Panel SM 5300:** jaká tlačítka a kontrolky skutečně má (LOAD, ON-LINE, REWIND, UNLOAD?) a jak se jmenují
+  (MTDAT píše „DISTANC“). Fotografie [W1] panel nečitelně ukazují.
+
+- **OFC a RWC:** jsou to impulzy (podle [R1] ano). Emulace bere náběžnou hranu bitu v PA. Vrací se jednotka
+  po OFC sama do ON-LINE jen tlačítkem?
+
+- **RDY při převíjení:** emulace RDY během převíjení shazuje (`wait.rewind` v [R2] čeká na RWS, ne na RDY).
+
+- **Test TSX 10** výrobce se nenašel.
 
 
 ## [RPD-1 – řadič pružných disků (RPD-1A + RPD-1B)](desky/RPD-1.md) – Nejasnosti (5)

@@ -703,6 +703,8 @@ static const ParamOption k_rpd1_disks[] = {
       "J. Bíba Z9 + dlouhé CP/M 050412 pro 3,5\" HD" },
     { "\"media/sapiman/Z3_RPD050412_dlouhe_CPM_zdroje.img\"", "J. Biba Z3: sources of the long CP/M",
       "J. Bíba Z3: zdroje dlouhého CP/M" },
+    { "\"media/rmp-1/a_lad_izo.img\"", "J. Biba: magnetic tape programs (MTDAT, DIRMT, MTCOPY, MTZAP, RMP-1)",
+      "J. Bíba: programy pro magnetickou pásku (MTDAT, DIRMT, MTCOPY, MTZAP, RMP-1)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_rpd1[] = {
@@ -722,6 +724,37 @@ static const CardParam k_rpd1[] = {
     { "step_ms", PK_CHOICE, "Drive: step period", "Mechanika: perioda kroku", "8", k_rpd1_step, 0, 0 },
     { "settle_ms", PK_INT, "Drive: head load settle time (ms)", "Mechanika: ustálení přiklopené hlavy (ms)", "35",
       nullptr, 0, 500 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
+// RMP-1 magnetic tape controller (IZOT SM 5300)
+static const ParamOption k_rmp1_tapes[] = {
+    { "\"work/rmp-1/paska0.tap\"", "Own tape in work/ (created blank)", "Vlastní páska ve work/ (vytvoří se prázdná)" },
+    { "\"media/rmp-1/sapi01_ukazka.tap\"", "Sample tape SAPI01 (JSEP labels, EBCDIC; MTDAT)",
+      "Ukázková páska SAPI01 (návěští JSEP, EBCDIC; MTDAT)" },
+    { "\"\"", "no tape", "bez pásky" },
+    { nullptr, nullptr, nullptr },
+};
+
+static const CardParam k_rmp1[] = {
+    { "unit0", PK_SECTION, "Unit 0 (IZOT SM 5300)", "Jednotka 0 (IZOT SM 5300)", "true", nullptr, 0, 0 },
+    { "unit0.tape", PK_FILE, "Tape image (SIMH .tap; a new file = a blank tape)",
+      "Obraz pásky (SIMH .tap; nový soubor = prázdná páska)", "\"work/rmp-1/paska0.tap\"", k_rmp1_tapes, 0, 0 },
+    { "unit0.write_ring", PK_BOOL, "Write enable ring in the reel (without it WPT)",
+      "Kroužek povolení zápisu v cívce (bez něj WPT)", "true", nullptr, 0, 0 },
+    { "unit1", PK_SECTION, "Unit 1 (IZOT SM 5300)", "Jednotka 1 (IZOT SM 5300)", "false", nullptr, 0, 0 },
+    { "unit1.tape", PK_FILE, "Tape image (SIMH .tap; a new file = a blank tape)",
+      "Obraz pásky (SIMH .tap; nový soubor = prázdná páska)", "\"\"", k_rmp1_tapes, 0, 0 },
+    { "unit1.write_ring", PK_BOOL, "Write enable ring in the reel (without it WPT)",
+      "Kroužek povolení zápisu v cívce (bez něj WPT)", "true", nullptr, 0, 0 },
+    { "unit2", PK_SECTION, "Unit 2 (IZOT SM 5300)", "Jednotka 2 (IZOT SM 5300)", "false", nullptr, 0, 0 },
+    { "unit2.tape", PK_FILE, "Tape image (SIMH .tap; a new file = a blank tape)",
+      "Obraz pásky (SIMH .tap; nový soubor = prázdná páska)", "\"\"", k_rmp1_tapes, 0, 0 },
+    { "unit2.write_ring", PK_BOOL, "Write enable ring in the reel (without it WPT)",
+      "Kroužek povolení zápisu v cívce (bez něj WPT)", "true", nullptr, 0, 0 },
+    { "ready_at_start", PK_BOOL, "Tapes threaded and on-line at power on (comfort: LOAD and ON-LINE pressed)",
+      "Pásky založené a ON-LINE po zapnutí (pohodlí: stisknuto LOAD a ON-LINE)", "true", nullptr, 0, 0 },
+    { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -1880,6 +1913,8 @@ CARD(c_rpd1, "RPD-1", "RPD", "Floppy disk controller (boards A + B)", "Řadič p
      2, true, k_rpd1)
 CARD(c_rkd1, "RKD-1", "RKD", "Cartridge disk controller CM 5403 / CM 5400 (boards A + B)",
      "Řadič kazetového disku CM 5403 / CM 5400 (desky A + B)", CC_DISK, 2, true, k_rkd1)
+CARD(c_rmp1, "RMP-1", "RMP", "Magnetic tape controller (IZOT SM 5300)", "Řadič magnetické pásky (IZOT SM 5300)",
+     CC_DISK, 1, true, k_rmp1)
 CARD(c_rpd1z, "RPD-1Z", "RPD", "Floppy disk controller \"Z\"", "Řadič pružných disků \"Z\"", CC_DISK, 1, false,
      nullptr)
 CARD(c_mfc1a, "MFC-1A", "MFC", "Mini floppy controller 8272 + DMA", "Řadič minidisket 8272 + DMA", CC_DISK, 1, true,
@@ -1910,7 +1945,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
         &c_dmr1, &c_rsw1, &c_rem1, &c_ram1v, &c_ram1, &c_ram1a, &c_ram1z, &c_ram64, &c_crm1,
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
-        &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rkd1, &c_rpd1z, &c_mfc1a, &c_fdc1,
+        &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rkd1, &c_rmp1, &c_rpd1z, &c_mfc1a, &c_fdc1,
         &c_mph1v, &c_dpp1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_bdk1,
     };
     return list;

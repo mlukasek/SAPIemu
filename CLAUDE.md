@@ -11,7 +11,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Rozhodnutí s důvody:** `docs/rozhodnuti.md`. Nové rozhodnutí vždy dopsat tam.
 - **HW poznatky po deskách:** `docs/desky/*.md` (porty, PROM, jumpery, časování, **nejasnosti k ověření na HW**). Mapa portů je v `docs/porty.md`, software v `docs/software/` (SAPI-1.5, ZPS-6: `SAPI-1.5.md`), tiskárna (X3 karet JPR, DPP-1) v `docs/tiskarna.md`.
 - **Návody k obsluze pro uživatele** (krok za krokem, výpisy opsané z emulátoru): `docs/navod-kzd1.md`,
-  `docs/navod-minigraf.md`, `docs/navod-rkd1.md`, `docs/aps5-ukazka.md`. Po změně chování přístroje je zkontrolovat.
+  `docs/navod-minigraf.md`, `docs/navod-rkd1.md`, `docs/navod-rmp1.md`, `docs/aps5-ukazka.md`. Po změně chování přístroje je zkontrolovat.
 - **ROM, PROM a média:** `roms/` (dumpy, popis v `roms/README.md`) a `media/` (nedotčené originály obrazů, emulátor pracuje s kopiemi ve `work/`).
 - **Knihovny:** `third_party/` (vendorované, popis v `third_party/README.md`). SDL3 se stahuje přes CMake FetchContent.
 - **Podklady k deskám** jsou mimo repo, o složku výš ve složce `SAPI-karty` (`..\SAPI-karty\JPR-1ZI`,

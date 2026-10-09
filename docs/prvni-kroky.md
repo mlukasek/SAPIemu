@@ -41,6 +41,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `1` = CP/M z RAM disku |
 | `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
 | `rkd1_jb_cm5400.sapi` | CP/M J. Bíby s RKD-1 a bulharskou mechanikou CM 5400 (BIOS pro D: až G: vznikl v emulátoru) | `B:FORMRKD`, mechanika `F`, `O`, `A` naformátuje a zkontroluje kazetu (12 × 512 B), pak `DIR F:`, `B:PIP F:=B:*.COM` |
+| `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |
 | `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
 | `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
 | `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
@@ -162,6 +163,14 @@ Další programy z `media\` si nahrajete takto:
      (BIOS vznikl v emulátoru, dobový se nenašel).
 
   Celý návod s výpisy obrazovky: `docs/navod-rkd1.md`.
+- **Magnetická páska RMP-1** (`rmp1_jb_izot.sapi`, mechanika IZOT SM 5300, programy J. Bíby):
+  1. Zobrazení → Média: mechanika s cívkami a kontrolkami, vpravo mapa pásky;
+  2. `B:DIRMT 0` vypíše ukázkovou pásku SAPI01 (dva soubory);
+  3. `B:MTDAT`, funkce 1 zkopíruje soubor z pásky na disketu (páska `SAPI01`, soubor `2`, blok `800`, záznam
+     `80`, jméno `MTDATMAN`, cíl `A:MTDAT.MAN`), funkce 2 opačně;
+  4. nová páska: OFF-LINE, Nová páska…, LOAD, ON-LINE, pak MTDAT funkce 3.
+
+  Celý návod s výpisy obrazovky: `docs/navod-rmp1.md`.
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

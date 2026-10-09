@@ -25,6 +25,7 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
     - RKD-1: obě desky stejně, horní FRB (X3) propojuje plochý kabel (název v podkladech není, kreslí se bez
       popisu), dolní FRB (X2, „K2 DISK“) obou desek vede ke kazetovému disku, signály mechaniky jsou rozdělené mezi
       RKD-1A a RKD-1B;
+    - RMP-1: dva FRB 30 k magnetopáskové jednotce, K3 = X2 (data), K2 = X3 (povely a stav);
     - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2). LED na
       skutečné desce není, emulátor ji přidává: svítí 50 ms po přístupu na disk nebo PMD32-SD;
     - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, AND-1B, DGD-1V a CGA: K2 VGA uprostřed; BGP-1S: FRB K2 (TV);
@@ -226,6 +227,12 @@ DMR-1, AND-1Z-89, ZRMD-1 jako C:, RPD-1 s A: systémem a B: služební disketou 
 CM 5400 (`unit0.drive`): pevný disk D:, E:, kazeta F:, G:, 12 × 512 B, na začátku nenaformátované. A: je bootovací
 disketa `media/rkd-1/jb_cm5400_boot.img` s BIOSem-3K, který D: až G: zpřístupní v CP/M (vznikl v emulátoru, není
 dobový; `docs/desky/RKD-1.md`).
+
+**RMP-1** (`machines/rmp1_jb_izot.sapi`, 2026-10-10): CP/M J. Bíby z 8" diskety (JPR-1ZI s MON 271111, DMR-1,
+AND-1Z-89, ZRMD-1 jako C:, RPD-1 s A: systémem a B: disketou s programy pro pásku `media/rmp-1/a_lad_izo.img`),
+RMP-1 s mechanikou IZOT SM 5300 na jednotce 0 a ukázkovou páskou `media/rmp-1/sapi01_ukazka.tap`. Karta má až tři
+jednotky (`unit0`–`unit2`: `tape`, `write_ring`), `ready_at_start` (pohodlí: páska zavedená a ON-LINE po zapnutí).
+`docs/desky/RMP-1.md`, `docs/navod-rmp1.md`.
 
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).

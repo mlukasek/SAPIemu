@@ -213,6 +213,13 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 | `jb_cm5400_boot.img` | Bootovací 8" disketa (RPD-1) CP/M J. Bíby s BIOSem-3K pro RKD-1 a bulharskou mechaniku CM 5400 (D: až G:, 12 × 512 B). **BIOS není originál**, vznikl v emulátoru (soubory diskety jsou z `sapiman/r1_zrmd4m_271111.img`, systémové stopy z `sapiman/r3_mfc512x8_261211.img`). Vyrábí ho `tools/rkd5400_bios.py`. |
 | `cm5400/BIRKD54.MAC`, `.PRN` | Zdroják a výpis toho BIOSu (z 3K BIOSu J. Bíby, ovladače ZRMD-1 z jeho BIOSu-1K a ovladače `RKD.MAC` Tesly ve tvaru z FORMRKD; vyrábí ho `tools/rkd5400_bios_src.py`). |
 
+## `rmp-1/` – magnetická páska RMP-1 (IZOT SM 5300)
+
+| Soubor | Obsah |
+|---|---|
+| `a_lad_izo.img` | 8" disketa J. Bíby s programy pro pásku: MTDAT, DIRMT, MTCOPY, MTZAP, MTCTE, MTKAN, ovladač `RMP.REL`, zdroje a návody `MTDAT.MAN`, `MTKAN.MAN`. Kopie `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_lad_izo.8sd` (stejná je i v kopii z FTP). |
+| `sapi01_ukazka.tap` | Ukázková páska SAPI01 (SIMH `.tap`): VOL1, soubor 1 MTZAP (`MTZAP.MAC`) a soubor 2 MTDATMAN (`MTDAT.MAN`), blok 800, záznam 80, návěští JSEP, EBCDIC. Zapsal ji program MTDAT v emulátoru (`RMP_MAKE=… test_rmp1`). |
+
 ## `mph-1v/` – programy pro zvukovou kartu MPH-1V (Intel HEX, CP/M `.COM` od 0100h)
 
 Zdroj: `..\SAPI-karty\MPH-1V\` (Libor Lasota), do repa se souhlasem autora. Hudba (VGM v `SPLAY\*.hex`, RAD

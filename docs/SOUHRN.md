@@ -39,6 +39,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   tři souběžné části. Pak (autor: „udělat podporu disků bez toho, aniž by šly použít, mi přijde divné“) **vlastní
   BIOS-3K pro CM 5400** (D: až G: v CP/M J. Bíby; ne originál, otevřeně označený): `media/rkd-1/cm5400/BIRKD54.MAC`,
   `tools/rkd5400_bios_src.py` a `tools/rkd5400_bios.py`, disketa `media/rkd-1/jb_cm5400_boot.img`. Lokálně, nepushnuté.
+- **Noc 2026-10-10 (autor: „jdi na to … rozhoduj se sám“): magnetická páska RMP-1** s mechanikou IZOT SM 5300:
+  karta `src/cards/rmp1.*` (dvě 8255 a 8253, mechanika s rozběhem a doběhem, čtení po zápisu, obraz SIMH `.tap`),
+  okno Média s nakreslenou mechanikou (cívky, kontrolky, tlačítka, mapa pásky, blok pod hlavou), panel v konfigurátoru,
+  sestava `rmp1_jb_izot.sapi` s disketou programů J. Bíby `media/rmp-1/a_lad_izo.img`, ukázková páska
+  `media/rmp-1/sapi01_ukazka.tap` (vyrobená programem MTDAT), test `test_rmp1` (formát, MTZAP a MTCTE, MTDAT
+  s návěštími JSEP, páska ↔ disketa, DIRMT; ve dvou částech, asi 15 s), `docs/desky/RMP-1.md`, návod
+  `docs/navod-rmp1.md` s obrázkem. Programy MTDAT, DIRMT, MTZAP, MTCTE a MTCOPY běží beze změn. Lokálně, nepushnuté.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).
@@ -47,7 +54,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 47 v debug i v release (2026-10-09 večer, `test_rkd1` ve třech částech, debug asi 30 s); release `full` 48 včetně ZEX,
+  - Testy: 49 v debug (2026-10-10 noc, přibyl `test_rmp1` ve dvou částech, debug asi 33 s), 47 v release
+    (2026-10-09 večer, `test_rkd1` ve třech částech); release `full` 48 včetně ZEX,
     8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
     kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
     Kdy které testy:
