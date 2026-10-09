@@ -189,6 +189,35 @@ Na rev 2.1 zjistí délku okna a kartu na konci zamkne (odemkne RESET). Použív
 a vrací je. Překlad `python tools/asm8080.py` (nebo M80). V emulátoru vyjde rev 2.1: 3000 mV, IN 61h = DFh
 (čte se během převodu, DOUT = 0), okno 20…21 ms. Rev 1.1: převodník nenalezen, IN 61h = FFh, zámek není.
 
+Při 2 MHz (`ZRDTEST 2`, JPR-1V bez TURBO) ukáže okno 19…20 ms. Nejde o chybu: „milisekunda“ programu trvá
+984 · MHz + 34 taktů, tedy 0,9925 ms při 4 MHz a 1,001 ms při 2 MHz. Okno 20,0 ms tak padne pokaždé do jiného
+intervalu. Obě rychlosti hlídá `test_sapi1v` (`zrdtest`).
+
+### ZRDBENCH
+
+`media/zrd-1v/ZRDBENCH.ASM` a `zrdbench.hex` (z portu Prince of Persia, `SAVE 7 ZRDBENCH.COM`). Měří takty na bajt
+pro bloky 64 KB a takt CPU kalibruje čítačem 0 časovače 82C54 na MPH-1V (CLK0 55 930,4 Hz). Výsledky (T na bajt
+nebo průchod smyčkou; skutečné SAPI-1 V autora s ZRD-1V rev 1.1, 2026-10-08):
+
+| | železo 4 MHz | SAPIemu 4 MHz | železo 2 MHz | SAPIemu 2 MHz | bez čekání |
+|---|---|---|---|---|---|
+| takt CPU | 4,00 MHz | 3,99–4,00 MHz | 1,99 MHz | 1,99 MHz | |
+| `LDIR` paměť → paměť | 21,17 | 21,17 | 21,17 | 21,17 | 21,18 |
+| `INIR` ZRD-1V → paměť | 21,14 | 21,13 | 21,13 | 21,13 | 21,14 |
+| `OTIR` paměť → ZRD-1V | 21,22 | 21,21 | 21,22 | 21,22 | 21,22 |
+| smyčka `LD A,(HL)` / `INC HL` | 26,12 | 26,12 | 26,12 | 26,12 | 26,13 |
+| smyčka `IN A,(C)` z 60h | 25,08 | 25,08 | 25,08 | 25,08 | 25,09 |
+| `LDIR` paměť → CGA-1V | 23,61 | 23,54 | 22,75 | 22,44 | 21,18 |
+| `LDIR` CGA-1V → paměť | 22,44 | 22,38 | 21,27 | 21,27 | 21,18 |
+
+- RAM-1V a ZRD-1V jsou i při 4 MHz bez čekání, emulace sedí na setinu.
+- Takt: emulátor běží přesně 4,000 a 2,000 MHz. ZRDBENCH výsledek usekne na setiny podle fáze časovače,
+  proto ukáže 3,99 nebo 4,00 a 1,99. Údaj 1,99 MHz na železe tedy nemusí znamenat pomalejší krystal.
+- CGA-1V: čekací stavy podle schématu, rozbor v `docs/desky/CGA-1V.md`. Zbývá zápis při 2 MHz (o 0,3 T méně
+  než železo), je v Nejasnostech CGA-1V.
+- Hlídá to `test_sapi1v` (`zrdbench`): ZRDBENCH pod CP/M při 4 i 2 MHz, tolerance ±0,1 T (zápis do CGA-1V při
+  2 MHz ±0,4 T).
+
 ### Nejasnosti rev 2.1
 
 - Autorova deska je **rev 1.1** (autor), sestavy V to mají. Rev 2.1 se zatím nedá ověřit na skutečné desce.

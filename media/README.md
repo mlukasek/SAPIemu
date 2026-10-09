@@ -211,10 +211,18 @@ Kopie z `..\SAPI_DOKU\SAPIMAN\CPM_PROGRAMY\XMODEM\DSP-1\` (CP/M `.COM` od 0100h 
 
 Na RAM disku `SAPI_CPM_Martin_2019-10-07.bin` jsou `DOPCP.COM` a `DOCPMP.COM` také, test je ale ukládá z této složky.
 
-## `zrd-1v/` – test karty RAM disku ZRD-1V
+## `zrd-1v/` – test a měření RAM disku ZRD-1V
 
-Vlastní program projektu (zdroj `ZRDTEST.ASM`, překlad `python tools/asm8080.py ZRDTEST.ASM zrdtest.hex`).
+- **ZRDTEST** je vlastní program projektu (zdroj `ZRDTEST.ASM`, překlad
+  `python tools/asm8080.py ZRDTEST.ASM zrdtest.hex`).
+- **ZRDBENCH** je převzatý z portu Prince of Persia (`..\SAPI-Prince-of-Persia\sapi\zrdbench.asm`, vlastní kód
+  bez dat hry, převzetí nabízí jeho `docs/sapiemu-podnety.md`). Zdroj `ZRDBENCH.ASM` pro pasmo,
+  překlad `pasmo --hex ZRDBENCH.ASM zrdbench.hex`. Binárka je shodná s tou, kterou autor měřil na skutečném
+  SAPI-1 V (2026-10-08).
 
 | Soubor | Program | `SAVE` |
 |---|---|---|
 | `zrdtest.hex` | ZRDTEST 1.0: baterie (MAX187), čtení 61h, okno zápisu a zámek (rev 2.1), `ZRDTEST [MHz]` | 6 |
+| `zrdbench.hex` | ZRDBENCH: takty na bajt pro paměť, RAM disk ZRD-1V (INIR, OTIR, IN) a CGA-1V (LDIR oběma směry), takt CPU podle 82C54 na MPH-1V; potřebuje MPH-1V a CGA-1V na C000 (sestava `sapi1v.sapi`) | 7 |
+
+Výsledky ze skutečného SAPI-1 V a z emulátoru jsou v `docs/desky/ZRMD-1.md` (ZRDBENCH) a `docs/desky/CGA-1V.md`.

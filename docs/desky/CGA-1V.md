@@ -85,8 +85,8 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 - **Emulace (od 2026-10-09):** přesně tento sled. /WAIT se vzorkuje na sestupné hraně T2 a každého Tw, čekání je
   v celých taktech CPU (i při 2 MHz na JPR-1V). Zpoždění hran, hradel a předstihů je dohromady 90 ns (40 ns
   k žádosti, 50 ns k uvolnění), nastavené podle měření na skutečné SAPI-1 V.
-- **Měření** programem ZRDBENCH z portu Prince of Persia (`..\SAPI-Prince-of-Persia\sapi\zrdbench.asm`,
-  2026-10-08). Takty na bajt `LDIR`, bez čekání 21,18:
+- **Měření** programem ZRDBENCH z portu Prince of Persia (`media/zrd-1v/ZRDBENCH.ASM`, převzatý z
+  `..\SAPI-Prince-of-Persia\sapi\zrdbench.asm`, 2026-10-08). Takty na bajt `LDIR`, bez čekání 21,18:
 
   | | železo 4 MHz | emulace 4 MHz | železo 2 MHz | emulace 2 MHz | emulace do 0.4.0 |
   |---|---|---|---|---|---|
@@ -94,7 +94,9 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
   | CGA-1V → paměť | 22,44 | 22,38 | 21,27 | 21,27 | 21,27 |
 
   Výsledek je hodně citlivý na přesný poměr taktu CPU a okna (`LDIR` trvá 21 T a fáze vůči oknu se posouvá
-  deterministicky), proto se model neladil na setiny. Test `test_sapi1v` (`cga_waits`) hlídá všechny čtyři hodnoty.
+  deterministicky), proto se model neladil na setiny. Test `test_sapi1v` hlídá všechny čtyři hodnoty dvakrát:
+  vlastní `LDIR` (`cga_waits`) a skutečný ZRDBENCH pod CP/M (`zrdbench`, i ostatní řádky měření, celá tabulka
+  v `docs/desky/ZRMD-1.md`).
 - Řádek má 400 bodů MCLK (320 viditelných), 31,78 µs. Snímek má 525 řádků (400 viditelných), 16,68 ms (59,94 Hz).
 
 ## Emulace – poznámky

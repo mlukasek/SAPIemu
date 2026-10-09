@@ -365,6 +365,88 @@ static void cga_waits(void)
     CHECK(fabs(r2 - 0.09) < 0.15);
 }
 
+// ZRDBENCH (media/zrd-1v, PoP port) under CP/M against the real SAPI-1 V of the author (2026-10-08):
+// T-states per byte or loop turn, calibrated by the 82C54 of MPH-1V. ZRD-1V rev 1.1 as on the author's
+// board (rev 2.1 would lock on the long OTIR, which never touches 62h).
+static double bench_value(const std::string& s, const char* name)
+{
+    size_t p = s.find(name);
+    CHECK(p != std::string::npos);
+    if (p == std::string::npos) return -1.0;
+    return atof(s.c_str() + p + strlen(name));
+}
+
+// CP/M at the given CPU clock, a program from media/zrd-1v saved by SAVE and run
+static void zrd_program(Machine& m, json cfg, bool turbo, const char* hex, int pages, const char* name, const char* cmd)
+{
+    std::string err, text;
+    CHECK(m.load_json(cfg, err));
+    CHECK(m.set_live_param(m.cpu, "turbo", turbo, err));
+    CHECK(run_until_text(m, "Zadej 0-3", 6.0));
+    m.run_seconds(0.3);
+    m.type_text("1");
+    CHECK(run_until_text(m, "\nA>", 20.0));
+    m.run_seconds(0.3);
+    CHECK(file_read_text(data_path(std::string("media/zrd-1v/") + hex), text));
+    CHECK(m.load_ihex_text(text, err));
+    char line[64];
+    snprintf(line, sizeof(line), "SAVE %d %s.COM\r", pages, name);
+    m.type_text(line);
+    CHECK(run_until_text(m, "\nA>", 10.0));
+    m.run_seconds(0.3);
+    snprintf(line, sizeof(line), "%s\r", cmd);
+    m.type_text(line);
+}
+
+static void zrdbench(bool turbo)
+{
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "ZRD-1V") c["revision"] = "1.1";
+    Machine m;
+    zrd_program(m, cfg, turbo, "zrdbench.hex", 7, "ZRDBENCH", "ZRDBENCH");
+    CHECK(run_until_text(m, "Done.", 30.0));
+    std::string s = screen_text(m);
+    printf("%s\n", s.c_str());
+    struct Row { const char* name; double hw4, hw2, tol2; };
+    static const Row rows[] = {
+        { "LDIR memory -> memory", 21.17, 21.17, 0.1 },
+        { "INIR RAM disk -> memory", 21.14, 21.13, 0.1 },
+        { "OTIR memory -> RAM disk", 21.22, 21.22, 0.1 },
+        { "loop LD A,(HL) / INC HL", 26.12, 26.12, 0.1 },
+        { "loop IN A,(C) from 60h", 25.08, 25.08, 0.1 },
+        { "LDIR memory -> CGA-1V", 23.61, 22.75, 0.4 },   // 2 MHz: the model waits 0.3 T less (docs/desky/CGA-1V.md)
+        { "LDIR CGA-1V -> memory", 22.44, 21.27, 0.1 },
+    };
+    double mhz = bench_value(s, "CPU clock:");
+    CHECK(fabs(mhz - (turbo ? 4.00 : 1.99)) < 0.015);
+    for (const Row& r : rows) {
+        double v = bench_value(s, r.name);
+        double hw = turbo ? r.hw4 : r.hw2;
+        double tol = turbo ? 0.1 : r.tol2;
+        if (fabs(v - hw) >= tol) printf("ZRDBENCH %d MHz: %s %.2f, the real SAPI-1 V %.2f\n", turbo ? 4 : 2, r.name, v, hw);
+        CHECK(fabs(v - hw) < tol);
+    }
+}
+
+// ZRDTEST (media/zrd-1v) on ZRD-1V rev 2.1: its millisecond loops count CPU clocks (ZRDTEST [MHz]),
+// one "ms" is 984 x MHz + 34 T: 0.9925 ms at 4 MHz, 1.001 ms at 2 MHz. The write window of the 74LS123
+// (20.0 ms) therefore shows as 20..21 at 4 MHz and 19..20 at 2 MHz; the card locks at the end.
+static void zrdtest(bool turbo)
+{
+    Machine m;
+    zrd_program(m, machine_cfg(), turbo, "zrdtest.hex", 6, "ZRDTEST", turbo ? "ZRDTEST" : "ZRDTEST 2");
+    CHECK(run_until_text(m, "Konec.", 10.0));
+    std::string s = screen_text(m);
+    printf("%s\n", s.c_str());
+    CHECK(s.find(turbo ? "takt CPU 4 MHz" : "takt CPU 2 MHz") != std::string::npos);
+    CHECK(s.find("3000 mV") != std::string::npos);
+    CHECK(s.find("IN 61h = DFh") != std::string::npos);
+    CHECK(s.find(turbo ? "okno je 20..21 ms" : "okno je 19..20 ms") != std::string::npos);
+    Card* zrd = m.find_card("ZRD-1V");
+    CHECK(zrd && ((Zrmd1*)zrd)->locked());
+}
+
 // Interrupt log: IM 2 with I pointing at the CGA-1V (C000h), the VBI interrupt of the card; nobody answers
 // /INTA (FFh), so the vector C0FFh is read from the video memory, which is also reported in the log.
 static void int_log_im2(void)
@@ -530,6 +612,10 @@ int main(void)
     ecmon_variant();
     int_log_im2();
     cga_waits();
+    zrdbench(true);
+    zrdbench(false);
+    zrdtest(true);
+    zrdtest(false);
     zrd_rev11();
     turbo();
     cpm();
