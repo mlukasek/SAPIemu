@@ -25,6 +25,12 @@
 // - Frame blending (emulator option): software switching the shown page and the
 //   palette every frame (REMBRAN2) relies on the eye mixing both, so when the
 //   last two frames (captured at VBI) differ, their average is shown.
+// - Beam (option, default on): the picture is drawn row by row as the beam
+//   passes (VGA line 2y and 2y+1 = pixel row y), from the state of that moment,
+//   so a page, mode, COLMASK or palette change in the middle of a frame and
+//   drawing into the shown page tear the picture as on the monitor. Palette
+//   writes during the display and switches in the middle of a frame are
+//   counted for the programmer (describe), optionally drawn as "snow" dots.
 #include <vector>
 #include "core/devices.h"
 
@@ -59,6 +65,12 @@ private:
     void update_vbi(void);
     void dac_write(int rs, uint8_t data);
     void palette_argb(uint32_t* rgb) const;
+    // beam
+    int beam_line(uint64_t* frame) const;   // VGA line 0-524 of the beam now (0-399 shown)
+    void beam_catch_up(void);               // draw the rows the beam has passed since the last call
+    void draw_rows(int y0, int y1);         // into fb from the current state
+    void frame_done(void);
+    void note_switch(const char* what, int line);
 
     struct Frame {   // what was shown during a frame: page, mode and colours
         uint8_t page;
@@ -81,4 +93,22 @@ private:
     uint8_t dac_mask = 0xFF;
     Frame frames[2];
     int frame_count = 0;          // frames captured (up to 2), frames[1] is the newest
+    // beam (not in the saved state: drawn again from the video RAM)
+    bool beam = true;
+    bool snow = false;
+    std::vector<uint32_t> fb;     // WIDTH x HEIGHT: every row as the beam drew it last
+    std::vector<uint32_t> done[2];   // the last two finished frames, done[1] the newest (blending)
+    int done_count = 0;
+    uint64_t beam_frame = 0;      // frame being drawn
+    int beam_row = 0;             // next pixel row of it to draw
+    uint32_t rgb[256];            // palette_argb of the current state
+    bool rgb_dirty = true;
+    uint64_t render_now = ~0ull;  // bus time of the last render(): a write without time passing (debugger) redraws
+    bool live_dirty = false;
+    // for the programmer: palette writes during the display, switches in the middle of a frame
+    uint64_t pal_visible = 0;     // since power on
+    uint64_t pal_visible_frame = 0, pal_visible_last = 0;   // in the frame being drawn / the last finished one
+    struct Switch { uint64_t frame; int line; std::string what; };
+    std::vector<Switch> switches; // the last 16
+    bool hinted = false;          // the first palette write during the display went to the log
 };

@@ -1,6 +1,7 @@
 #include "cards/cga1v.h"
 #include "core/state.h"
 #include "core/bus.h"
+#include "core/log.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -15,6 +16,14 @@ static const double VBI_S = 400.0 * LINE_S;
 // The CPU slot: every 4 pixels of MCLK = 25.175 MHz / 2.
 static const double SLOT_NS = 4.0 * 2.0 * 1e9 / 25.175e6;
 static const uint16_t REG_OFF = 0x3FC0;
+
+// Pixel value P7..P0 of pixel px (0 = left) of byte b on line y.
+static inline unsigned pixel_value(unsigned b, int px, int y, bool cga)
+{
+    unsigned low = (cga ? b << px : b) & 0x0F;   // P4..P1 (IC16)
+    unsigned p0 = (b >> (7 - px)) & 1;            // IC15
+    return (unsigned)(y >> 5) << 5 | low << 1 | p0;   // P7:P5 = V256:V128:V64
+}
 
 static bool map_mode_of(const json& cfg, const char* key, int& out, std::string& err)
 {
@@ -38,6 +47,9 @@ bool Cga1v::configure(const json& cfg, std::string& err)
     if (!map_mode_of(cfg, "map2", map_mode[1], err)) return false;
     if (!cfg_bool(cfg, "wait_states", waits, true, err)) return false;
     if (!cfg_bool(cfg, "frame_blend", blend, true, err)) return false;
+    if (!cfg_bool(cfg, "beam", beam, true, err)) return false;
+    if (!cfg_bool(cfg, "palette_snow", snow, false, err)) return false;
+    fb.assign((size_t)WIDTH * HEIGHT, 0xFF000000u);
     power_on_fill(ram, sizeof(ram), 0);
     power_on_fill(&pal[0][0], sizeof(pal), 0);   // the Bt476 palette too
     return true;
@@ -125,6 +137,8 @@ bool Cga1v::mem_write(uint16_t a, uint8_t data)
 {
     if (!selected(a, bus->map)) return false;
     bus->wait += wait_states(true);
+    if (beam) beam_catch_up();   // the rows already passed keep the old content
+    live_dirty = true;
     uint16_t off = a & 0x3FFF;
     ram[(config & 2 ? 0x4000 : 0) | off] = data;   // /WE also for the registers
     if (off >= REG_OFF) {
@@ -132,11 +146,80 @@ bool Cga1v::mem_write(uint16_t a, uint8_t data)
             dac_write(off & 3, data);
         } else {
             update_vbi();
+            uint8_t old = config;
             config = (uint8_t)(data & 0x0F);
             if (data & 0x80) vbi = false;   // /IACK
+            int line = beam_line(nullptr);
+            if (line < 400 && ((old ^ config) & 5)) {   // the shown page or the mode within the picture
+                char w[48];
+                snprintf(w, sizeof(w), "%s%s", (old ^ config) & 1 ? (config & 1 ? "page A -> B " : "page B -> A ") : "",
+                         (old ^ config) & 4 ? (config & 4 ? "EGA -> CGA" : "CGA -> EGA") : "");
+                note_switch(w, line);
+            }
         }
     }
     return true;
+}
+
+// The beam: VGA line 0-524 of the frame now (frames start at line 0, the VBI at line 400), and how far
+// along the line it is (0-1).
+int Cga1v::beam_line(uint64_t* frame) const
+{
+    double t = (double)bus->now / (double)bus->cpu_hz;
+    uint64_t f = (uint64_t)(t / FRAME_S);
+    int line = (int)((t - (double)f * FRAME_S) / LINE_S);
+    if (frame) *frame = f;
+    return line > 524 ? 524 : line;
+}
+
+void Cga1v::beam_catch_up(void)
+{
+    uint64_t f;
+    int line = beam_line(&f);
+    if (f != beam_frame) {
+        draw_rows(beam_row, HEIGHT);   // the rest of that frame, from the state since the last access
+        frame_done();
+        if (f > beam_frame + 1) frame_done();   // whole frames without an access look the same
+        beam_frame = f;
+        beam_row = 0;
+    }
+    int row = line >= 400 ? HEIGHT : (line + 1) / 2;   // pixel row y = lines 2y, 2y+1
+    if (row > beam_row) {
+        draw_rows(beam_row, row);
+        beam_row = row;
+    }
+}
+
+void Cga1v::draw_rows(int y0, int y1)
+{
+    if (y0 >= y1) return;
+    if (rgb_dirty) {
+        palette_argb(rgb);
+        rgb_dirty = false;
+    }
+    const uint8_t* page = ram + (config & 1 ? 0x4000 : 0);
+    bool cga = (config & 4) != 0;
+    for (int y = y0; y < y1; y++) {
+        const uint8_t* line = page + y * LINE_BYTES;
+        uint32_t* out = fb.data() + (size_t)y * WIDTH;
+        for (int x = 0; x < LINE_BYTES; x++)
+            for (int px = 0; px < 4; px++) *out++ = rgb[pixel_value(line[x], px, y, cga)];
+    }
+}
+
+void Cga1v::frame_done(void)
+{
+    done[0].swap(done[1]);
+    done[1] = fb;
+    if (done_count < 2) done_count++;
+    pal_visible_last = pal_visible_frame;
+    pal_visible_frame = 0;
+}
+
+void Cga1v::note_switch(const char* what, int line)
+{
+    if (switches.size() >= 16) switches.erase(switches.begin());
+    switches.push_back({ beam_frame, line, what });
 }
 
 void Cga1v::dac_write(int rs, uint8_t data)
@@ -146,15 +229,49 @@ void Cga1v::dac_write(int rs, uint8_t data)
         dac_addr = data;
         dac_step = 0;
         break;
-    case 1:   // colour palette: R, G, B, then the address increments
+    case 1: {   // colour palette: R, G, B, then the address increments
         pal[dac_addr][dac_step] = data & 0x3F;
         if (++dac_step == 3) {
             dac_step = 0;
             dac_addr++;
         }
+        rgb_dirty = true;
+        // during the display the Bt476 shows disturbed dots on the monitor (it has no dual port palette)
+        double t = (double)bus->now / (double)bus->cpu_hz;
+        double in_frame = t - (double)(uint64_t)(t / FRAME_S) * FRAME_S;
+        int line = (int)(in_frame / LINE_S);
+        int dot = (int)((in_frame - line * LINE_S) / LINE_S * 800.0);
+        if (line < 400 && dot < 640) {
+            pal_visible++;
+            pal_visible_frame++;
+            if (!hinted) {
+                hinted = true;
+                LOGI("CGA-1V: palette written while the picture is shown (line %d): the real Bt476 shows disturbed "
+                     "dots then; write it in the vertical blanking (STATUS D7)", line);
+            }
+            if (snow && beam) {
+                int row = line / 2;
+                if (beam_row <= row) {
+                    draw_rows(beam_row, row + 1);
+                    beam_row = row + 1;
+                }
+                uint32_t v = (uint32_t)((data & 0x3F) << 2);
+                fb[(size_t)row * WIDTH + (size_t)(dot / 2)] = 0xFF000000u | v << 16 | v << 8 | v;
+            }
+        }
         break;
+    }
     case 2:
+        if (data != dac_mask) {
+            int line = beam_line(nullptr);
+            if (line < 400) {
+                char w[48];
+                snprintf(w, sizeof(w), "COLMASK %02X -> %02X", dac_mask, data);
+                note_switch(w, line);
+            }
+        }
         dac_mask = data;
+        rgb_dirty = true;
         break;
     default:  // address register (read mode): the colour goes to the read buffer, address + 1
         dac_addr = (uint8_t)(data + 1);
@@ -186,20 +303,26 @@ void Cga1v::palette_argb(uint32_t* rgb) const
     }
 }
 
-// Pixel value P7..P0 of pixel px (0 = left) of byte b on line y.
-static inline unsigned pixel_value(unsigned b, int px, int y, bool cga)
-{
-    unsigned low = (cga ? b << px : b) & 0x0F;   // P4..P1 (IC16)
-    unsigned p0 = (b >> (7 - px)) & 1;            // IC15
-    return (unsigned)(y >> 5) << 5 | low << 1 | p0;   // P7:P5 = V256:V128:V64
-}
-
 void Cga1v::render(uint32_t* argb, uint32_t bg)
 {
     const Frame& f0 = frames[0];
     const Frame& f1 = frames[1];
-    if (blend && frame_count == 2 &&
-        (f0.page != f1.page || f0.cga != f1.cga || memcmp(f0.rgb, f1.rgb, sizeof(f0.rgb)))) {
+    bool mixed = blend && frame_count == 2 &&
+                 (f0.page != f1.page || f0.cga != f1.cga || memcmp(f0.rgb, f1.rgb, sizeof(f0.rgb)));
+    if (beam) {
+        if (bus->now == render_now && live_dirty) draw_rows(0, HEIGHT);   // written while stopped (debugger)
+        else beam_catch_up();
+        render_now = bus->now;
+        live_dirty = false;
+        if (mixed && done_count == 2) {   // the last two finished frames
+            for (size_t i = 0; i < fb.size(); i++)
+                argb[i] = 0xFF000000u | (((done[0][i] & 0xFEFEFEu) >> 1) + ((done[1][i] & 0xFEFEFEu) >> 1));
+        } else {
+            memcpy(argb, fb.data(), fb.size() * sizeof(uint32_t));
+        }
+        return;
+    }
+    if (mixed) {
         const uint8_t* p0 = ram + (f0.page ? 0x4000 : 0);
         const uint8_t* p1 = ram + (f1.page ? 0x4000 : 0);
         for (int y = 0; y < HEIGHT; y++) {
@@ -215,16 +338,8 @@ void Cga1v::render(uint32_t* argb, uint32_t bg)
         }
         return;
     }
-    uint32_t rgb[256];   // live state: also shows writes while the CPU is stopped
-    palette_argb(rgb);
-    const uint8_t* page = ram + (config & 1 ? 0x4000 : 0);
-    bool cga = (config & 4) != 0;
-    for (int y = 0; y < HEIGHT; y++) {
-        const uint8_t* line = page + y * LINE_BYTES;
-        uint32_t* out = argb + (size_t)y * WIDTH;
-        for (int x = 0; x < LINE_BYTES; x++)
-            for (int px = 0; px < 4; px++) *out++ = rgb[pixel_value(line[x], px, y, cga)];
-    }
+    draw_rows(0, HEIGHT);   // without the beam: the whole picture from the state now
+    memcpy(argb, fb.data(), fb.size() * sizeof(uint32_t));
 }
 
 void Cga1v::describe(json& out)
@@ -243,6 +358,14 @@ void Cga1v::describe(json& out)
     out["frame_blend"] = blend;
     snprintf(b, sizeof(b), "%02X", dac_mask);
     out["colmask"] = b;
+    out["beam"] = beam;
+    out["beam_line"] = beam_line(nullptr);
+    // for the programmer: what tears or disturbs the picture on the real card
+    out["palette_writes_visible"] = pal_visible;
+    out["palette_writes_visible_last_frame"] = pal_visible_last;
+    json sw = json::array();
+    for (const Switch& s : switches) sw.push_back({ { "frame", s.frame }, { "line", s.line }, { "change", s.what } });
+    out["mid_frame_switches"] = sw;
 }
 
 void Cga1v::state(StateIO& io)
@@ -261,4 +384,11 @@ void Cga1v::state(StateIO& io)
         for (uint32_t& c : f.rgb) io.v(c);
     }
     io.e(frame_count);
+    if (io.loading) {   // the picture is drawn again from the video RAM
+        rgb_dirty = true;
+        draw_rows(0, HEIGHT);
+        done_count = 0;
+        beam_line(&beam_frame);
+        beam_row = HEIGHT;
+    }
 }

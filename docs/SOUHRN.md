@@ -585,14 +585,14 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 - **CGA-1V** (podněty z portu Prince of Persia, `..\SAPI-Prince-of-Persia\docs\sapiemu-podnety.md`):
   - ~~čekací stavy přibližné~~ od 2026-10-09 podle schématu a měření ZRDBENCH (`docs/desky/CGA-1V.md`), zbývá
     rozdíl 0,3 T u zápisu při 2 MHz;
-  - obraz se kreslí z jednoho stavu za snímek: přepnutí stránky nebo zápis do palety Bt476 uprostřed snímku
-    (trhání, „sníh“ na HW) nejsou vidět. Návrh PoP: kreslit po řádcích podle paprsku a pomůcka pro vývojáře
-    (počet zápisů do palety mimo zatemnění);
+  - ~~obraz z jednoho stavu za snímek~~ od 2026-10-09 kreslení s paprskem (`beam`), trhání a změny uprostřed
+    snímku jsou vidět, `machine_info` počítá zápisy do palety během zobrazování; „sníh“ Bt476 jen přibližně
+    (`palette_snow`, vypnuto);
   - prolínání snímků je náhrada za oko (REMBRAN2);
-  - paleta a VRAM jsou po zapnutí černé, ne náhodné (návrh PoP: volba „náhodný obsah po zapnutí“).
-- **Ostatní podněty z PoP:** log přijatých přerušení (zdroj, IM, vektor z oblasti karty), hláška při bootu ECMONu
-  bez nabídky s `(003Bh) > 3`, MCP `quit` pro ukončení `sapiemu-cli`. Takt „1.99 MHz“ z jejich měření ukáže
-  i emulátor při přesných 2,000 MHz (zaokrouhlení měřicího programu), to rozdíl není.
+  - ~~paleta a VRAM po zapnutí černé~~ volba sestavy `power_on_memory: random` (2026-10-09), výchozí nuly.
+- **Ostatní podněty z PoP (hotové 2026-10-09):** MCP `int_log` (přerušení Z80, varování na vektor IM 2 z videopaměti),
+  hláška v logu při resetu ECMONu s `(003Bh) > 3`, MCP `quit`. Takt „1.99 MHz“ z jejich měření ukáže i emulátor
+  při přesných 2,000 MHz (zaokrouhlení měřicího programu), to rozdíl není.
 - **AND-1V, DGD-1V a další karty s oknem CPU** počítají čekání v jednotkách času sběrnice, ne v taktech CPU. Při
   2 MHz na JPR-1V to může být půl taktu. CGA-1V už používá `Bus::cpu_step`.
 

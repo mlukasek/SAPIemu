@@ -465,9 +465,67 @@ static void power_on_random(void)
     CHECK(!bad.load_json(cfg, err));
 }
 
+// CGA-1V drawn with the beam: the shown page switched at line 200 tears the picture (VGA line 2y = pixel row y),
+// and the switch is listed for the programmer. Frame blending off (it would mix the two pages).
+static void run_to_line(Machine& m, int frames_on, int line)
+{
+    const double line_s = 800.0 / 25.175e6, frame_s = 525.0 * line_s;
+    double t = (double)m.bus.now / m.bus.cpu_hz;
+    double f = floor(t / frame_s) + frames_on;
+    uint64_t target = (uint64_t)((f * frame_s + (line + 0.5) * line_s) * m.bus.cpu_hz);
+    if (target > m.bus.now) m.run_cycles(target - m.bus.now);
+}
+
+static void cga_beam(void)
+{
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "CGA-1V") c["frame_blend"] = false;
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    m.run_seconds(0.1);
+    m.bus.io_write(0x63, 0xC0);   // RAM-1V: MAP1 = MAP2 = H, CGA-1V at C000
+    m.bus.mem_write(0xFFFB, 0x00);   // CPU page A
+    for (int i = 0; i < 16000; i++) m.bus.mem_write((uint16_t)(0xC000 + i), 0x00);
+    m.bus.mem_write(0xFFFB, 0x02);   // CPU page B
+    for (int i = 0; i < 16000; i++) m.bus.mem_write((uint16_t)(0xC000 + i), 0xFF);
+    m.bus.mem_write(0xFFFE, 0x1F);   // COLMASK: pixel values 00h (page A) and 1Fh (page B)
+    m.bus.mem_write(0xFFFC, 0x00);   // palette from 0: red
+    m.bus.mem_write(0xFFFD, 0x3F); m.bus.mem_write(0xFFFD, 0x00); m.bus.mem_write(0xFFFD, 0x00);
+    m.bus.mem_write(0xFFFC, 0x1F);   // 1Fh: green
+    m.bus.mem_write(0xFFFD, 0x00); m.bus.mem_write(0xFFFD, 0x3F); m.bus.mem_write(0xFFFD, 0x00);
+    m.bus.mem_write(0xFFFB, 0x00);   // show page A
+    run_to_line(m, 2, 0);
+    run_to_line(m, 0, 200);
+    m.bus.mem_write(0xFFFB, 0x01);   // show page B at line 200 (pixel row 100)
+    run_to_line(m, 1, 100);          // the next frame at row 50
+    DisplayDevice* d = m.find_display("CGA-1V");
+    CHECK(d != nullptr);
+    if (!d) return;
+    std::vector<uint32_t> px((size_t)d->screen_width() * d->screen_height());
+    d->render(px.data(), 0xFF000000u);
+    auto at = [&](int y) { return px[(size_t)y * d->screen_width() + 160] & 0xFFFFFFu; };
+    CHECK_EQ(at(10), 0x00FF00u);    // new frame, page B
+    CHECK_EQ(at(70), 0xFF0000u);    // the old frame above the switch, page A
+    CHECK_EQ(at(150), 0x00FF00u);   // the old frame below the switch, page B
+    json desc;
+    for (auto& c : m.cards)
+        if (c->type == "CGA-1V") c->describe(desc);
+    CHECK(desc["mid_frame_switches"].size() >= 1);
+    if (!desc["mid_frame_switches"].empty()) {
+        json last = desc["mid_frame_switches"].back();
+        CHECK(last["line"] == 200);
+        CHECK(last["change"].get<std::string>().find("page A -> B") != std::string::npos);
+    }
+    CHECK(desc["palette_writes_visible"].get<uint64_t>() <= 6);
+    m.bus.io_write(0x63, 0x00);
+}
+
 int main(void)
 {
     test_init();
+    cga_beam();
     power_on_random();
     ecmon_variant();
     int_log_im2();

@@ -101,12 +101,29 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 - Okno GUI „CGA-1V“ (`text_display() = false`). Snímek přes MCP `screenshot display=CGA-1V` nebo
   `sapiemu-cli --display CGA-1V --screenshot`.
+- **Kreslení s paprskem** (`beam`, výchozí zapnuto, od 2026-10-09 podle podnětu z portu Prince of Persia):
+  - obraz se kreslí po řádcích tak, jak je paprsek míjí (VGA řádky 2y a 2y+1 = řádek bodů y, snímek začíná
+    řádkem 0, VBI na řádku 400), ze stavu karty v tu chvíli. Před každým zápisem do karty se dokreslí řádky,
+    které paprsek už přejel;
+  - přepnutí zobrazené stránky, režimu EGA/CGA, COLMASK nebo palety uprostřed snímku a kreslení do zobrazené
+    stránky se tak projeví jako na monitoru (trhání, obraz napůl starý). Dřív se kreslil celý snímek z jednoho
+    stavu a tyhle chyby byly v emulátoru neviditelné;
+  - **pomůcka pro programátora** (MCP `machine_info`, údaje karty CGA-1V): `palette_writes_visible` (zápisy do palety Bt476
+    během zobrazování, na skutečném monitoru rušené body), `palette_writes_visible_last_frame`,
+    `mid_frame_switches` (posledních 16 přepnutí stránky, režimu nebo COLMASK uprostřed obrazu s číslem snímku
+    a řádku), `beam_line`. První zápis do palety během zobrazování se jednou ohlásí v logu;
+  - **„sníh“ Bt476** (`palette_snow`, výchozí vypnuto): zápis do palety během zobrazování nakreslí na místě
+    paprsku bod v odstínu šedi podle zapsaného bajtu. Jak přesně rušení vypadá na skutečné kartě, nevíme, je to
+    jen upozornění;
+  - s `beam: false` se kreslí celý obraz z okamžitého stavu jako dřív.
 - **Prolínání snímků** (`frame_blend`, výchozí zapnuto):
   - REMBRAN2 po každém VBI přepíná stránku A/B i paletu a teprve oko smíchá barvy obou snímků;
   - emulátor si na začátku VBI uloží, co se zobrazovalo (stránku, režim a barvy), a když se poslední dva
     snímky liší, kreslí jejich průměr;
-  - jinak se kreslí živý stav, takže je vidět i zápis při zastaveném CPU v debuggeru.
-- Po zapnutí jsou paleta i VRAM nulové (černá), COLMASK = FFh. Na skutečné desce je obsah po zapnutí náhodný.
+  - prolínají se dva poslední dokončené snímky nakreslené s paprskem. Při zastaveném CPU (debugger) se po
+    zápisu do karty obraz překreslí celý z okamžitého stavu, aby byl zápis vidět.
+- Po zapnutí jsou paleta i VRAM nulové (černá), COLMASK = FFh. Na skutečné desce je obsah po zapnutí náhodný,
+  s volbou sestavy `"power_on_memory": "random"` (`docs/sestavy.md`) je náhodná i VRAM a paleta.
 
 ## Programy (`media/cga-1v/`)
 

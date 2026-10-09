@@ -308,6 +308,10 @@ static const CardParam k_cga1v[] = {
       "Čekací stavy (CPU čeká na svůj takt videa)", "true", nullptr, 0, 0 },
     { "frame_blend", PK_BOOL, "Blend the last two frames (page flipping every frame, like the eye)",
       "Prolínat dva poslední snímky (střídání stránek po snímcích, jako oko)", "true", nullptr, 0, 0 },
+    { "beam", PK_BOOL, "Draw line by line with the beam (changes in the middle of a frame show, as on the monitor)",
+      "Kreslit po řádcích s paprskem (změny uprostřed snímku jsou vidět jako na monitoru)", "true", nullptr, 0, 0 },
+    { "palette_snow", PK_BOOL, "Show palette writes during the display as dots (Bt476 \"snow\", approximate)",
+      "Zápis do palety během zobrazování ukázat jako body („sníh“ Bt476, přibližně)", "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
