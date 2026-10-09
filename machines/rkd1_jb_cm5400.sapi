@@ -66,6 +66,7 @@
                 "write_protect": false,     // Cartridge write protected
                 "fixed": "work/rkd-1/cm5400_fixed.rkd"  // Fixed disk image (.rkd, created when missing)
             },
+            "new_sectors": 12,              // New cartridge: sector pulses per turn (CM 5400: 12) - 12 x 512 B (SMEP, FORMRKD)
             "working_copy": true            // Work on copies in work/
         }
     ]
