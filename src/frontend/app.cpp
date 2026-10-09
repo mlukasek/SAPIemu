@@ -139,7 +139,7 @@ nlohmann::json settings_json(App& app)
     j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
                      { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
                      { "printer", ui.show_printer }, { "configuration", ui.show_rack }, { "diag", ui.show_diag },
-                     { "aps5", ui.show_aps5 } };
+                     { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter } };
     j["screen"] = { { "integer_scale", app.integer_scale },
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
     j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
@@ -193,6 +193,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(w, "printer", ui.show_printer);
     get_opt(w, "diag", ui.show_diag);
     get_opt(w, "aps5", ui.show_aps5);
+    get_opt(w, "minigraf", ui.show_plotter);
     get_opt(w, "configuration", ui.show_rack);
     const nlohmann::json& s = j.value("screen", nlohmann::json::object());
     get_opt(s, "integer_scale", app.integer_scale);
@@ -385,6 +386,8 @@ void handle_key_up(App& app, const SDL_KeyboardEvent& ev)
 void shot_now(App& app);
 void video_toggle(App& app);
 
+static void paste_keyboard(App& app, Machine* m);
+
 void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
@@ -446,6 +449,10 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     int tcode = ctrl >= 0 ? ctrl : (hk != HK_NONE ? wordstar_code(hk, mods) : -1);
     if (tcode >= 0 && terminal_key(app.ui, tcode)) return;
     if (!app.ui.screen_focused) return;
+    if (ev.key == SDLK_V && (ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_SHIFT)) {
+        paste_keyboard(app, m);
+        return;
+    }
     if (held_key_down(app, ev)) return;   // ANK-1: held while held
     if (ctrl >= 0) {
         char c[2] = { (char)ctrl, 0 };
@@ -453,6 +460,25 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     } else if (hk != HK_NONE && m->host_key(hk, mods)) {
         // a keypad key the keyboard has itself (Consul 262.3): drop its text event
         app.suppress_text = keymap_keypad_text(ev.key, ev.mod);
+    }
+}
+
+// Machine -> Keyboard -> Paste text (Ctrl+Shift+V on the screen): the clipboard typed on the keyboard of
+// SAPI, lines ended by CR (a BASIC program from a file, a monitor command...)
+static void paste_keyboard(App& app, Machine* m)
+{
+    if (!m || !SDL_HasClipboardText()) return;
+    char* t = SDL_GetClipboardText();
+    if (!t) return;
+    std::string s;
+    for (const char* p = t; *p; p++) {
+        if (*p == '\r' && p[1] == '\n') continue;
+        s += *p == '\n' ? '\r' : *p;
+    }
+    SDL_free(t);
+    if (!m->type_text(s)) {
+        app.error_text = tr("This machine has no keyboard to type on.");
+        app.show_error = true;
     }
 }
 
@@ -713,6 +739,10 @@ void draw_menu(App& app)
                 }
             }
             ImGui::Separator();
+            if (ImGui::MenuItem(tr("Paste text"), "Ctrl+Shift+V", false, kb != nullptr)) paste_keyboard(app, m);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("%s", tr("The text of the clipboard is typed on the keyboard of SAPI (lines end with "
+                                           "Enter), e.g. a BASIC program from a file."));
             if (ImGui::MenuItem(tr("Game mode: keys by position, Shift = SHIFT"), "Ctrl+F7", &app.game_keys, kb && kb->held_keys()))
                 kb->release_all();
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -757,6 +787,7 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer);
+        ImGui::MenuItem(tr("Plotter Minigraf"), nullptr, &app.ui.show_plotter);
         ImGui::MenuItem(tr("Diagnostic board (K3)"), nullptr, &app.ui.show_diag, m && m->cpu && m->cpu->k3_diag());
         ImGui::MenuItem(tr("APS-5: panel and furnaces"), nullptr, &app.ui.show_aps5, m && m->plant);
         ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
@@ -1158,6 +1189,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_rack = snap->rack || !snap->open.empty();
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
+        app.ui.show_plotter = snap->plotter;
         app.ui.show_diag = snap->diag;
         app.ui.show_aps5 = snap->aps5 || snap->aps5_demo;
         app.ui.aps5_demo_autostart = snap->aps5_demo;
@@ -1241,6 +1273,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_terminal(app.ui);
         draw_media(app.ui);
         draw_printer(app.ui);
+        draw_plotter(app.ui);
         draw_diag(app.ui);
         draw_aps5(app.ui);
         draw_rack(app.ui);

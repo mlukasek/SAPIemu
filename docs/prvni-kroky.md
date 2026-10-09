@@ -44,7 +44,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `jpr1x_bgp1s.sapi` | JPR-1X (8085, TURBO) s RAM-1, BGP-1S a MIKROBIOSem 1.02 | jako `jpr1s_bgp1s`; TURBO tlačítkem na panelu ZDR nebo v menu Stroj |
 | `zps/ZPS-1_JPR-1X.sapi` | ekvivalent ZPS-1 s JPR-1X: MIKROBASIC 2.4 z horní banky ROM | rovnou píšete v BASICu |
 | `zps/ZPS-6.sapi` | SAPI-1.5 (1990): PKT-1, RSW-1, MFC-1A, barevná DBS-1A, CP/M 2.2 62K z 5,25" diskety | `DIR`, `SETDBS1` (barvy a celá znaková sada), další diskety Melsoft `media/sapi15` v okně Média |
-| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety, MIKOS/K se záznamníkem dat KZD-1 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
+| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety, MIKOS/K se záznamníkem dat KZD-1, zapisovač Minigraf 0507 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
 | `zps/ZPS-3*.sapi`, `zps/ZPS-4*.sapi` | CP/M 2.2/P z 8" diskety (RPD-1, u `_FDC-1` řadič FDC-1), 48K a 62K, ELIS | naběhne CP/M |
 | `zps/ZPS-3_CPM48K_IMA.sapi` | originální CP/M 2.2 46K Tesla IMA s MON V1.0-C1 (systém z MOVCPM48) | `DIR`, `DIR B:` |
 | `zps/ZPS-3_CPM64K_IMA.sapi` | originální CP/M 2.2 64K Tesla IMA (B: MBASIC, COBOL) | `B:`, `MBASIC` |
@@ -67,6 +67,8 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   - F10 / F11 krok v debuggeru;
   - **Ctrl+F2 / Ctrl+F3** rychlé uložení a načtení stavu;
   - Ctrl+F7 režim pro hry u klávesnice ANK-1 / ANK-1M2 (klávesy podle polohy, Shift = SHIFT; Manic Miner);
+  - **Ctrl+Shift+V** vloží text ze schránky na klávesnici SAPI (také Stroj → Klávesnice → Vložit text), třeba
+    program v BASICu;
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
 - **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů
@@ -129,6 +131,11 @@ Další programy z `media\` si nahrajete takto:
   4. `.K` `Z` převine na začátek, `.K` `L` a jméno soubor načte (návod v `docs/desky/KZD-1.md`);
   5. programy z kazet magnetofonu na KZD-1 zkopíruje originální program CKM (`media\mikos\CKM.hex`, `.G=4400`);
   6. program `.hex` nebo `.bin` jde do KZD-1 vložit rovnou (Média → Vložit…), vznikne z něj kazeta jako od MIKOSu/K.
+- **Zapisovač Minigraf 0507** (`zps\ZPS-2_MIKOS_V5_Minigraf.sapi`, okno Minigraf se otevře samo):
+  1. `.G=1800` (pero na počátek), `.G=1809` nakreslí znakovou sadu;
+  2. ukázka: Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0.hex`, `.B`, v okně Minigraf Nový papír, obsah
+     `media\mikos\MINIGRAF_DEMO.bas` zkopírovat a vložit Stroj → Klávesnice → Vložit text (Ctrl+Shift+V), `RUN`;
+  3. kresba se uloží tlačítkem Uložit PNG nebo SVG (`docs/desky/Minigraf.md`).
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

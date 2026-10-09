@@ -57,7 +57,8 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
 
 | Soubor | Obsah | Zdroj |
 |---|---|---|
-| `roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin` | Monitor V5.0F (0000–0BFF) + MIKOS V5.0 (0C00–13FF), 5 KB | prvních 5 KB `_ROM\MIKOS v5\MIKOS5.BIN` (MD5 celého 29d02716…). Za tím je v originálu ovladač souřadnicového zapisovače XY 4130 (1400–1FFF, autostart z 1800), ten v repu není. |
+| `roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin` | Monitor V5.0F (0000–0BFF) + MIKOS V5.0 (0C00–13FF), 5 KB | prvních 5 KB `_ROM\MIKOS v5\MIKOS5.BIN` (MD5 celého 29d02716…). Za tím je v originálu na 1400–17FF program přenosu dat (BLOCK DATA TRANSFER) a na 1800–1FFF ovladač zapisovače
+XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); v repu nejsou. |
 | `roms/mikos/MONITOR_V5.0E_MIKOS_V5.0.bin` | Monitor V5.0E + MIKOS V5.0, 5 KB | `_ROM\MIKOS v5\MONITOR5.BIN`, MD5 af17aef0… |
 
 - Shoda s výpisy na sapi.cz: MIKOS V5.0 bajt po bajtu. Monitory se liší jen výplní za koncem kódu (0801 u E,
@@ -138,6 +139,12 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
   36 KONEC PASKY, 38 NENI KONEC SOUBORU, 3A NENI BINARNI FORMAT, 3C SOUBOR NEEXISTUJE.
 - Kopírovací program CKM (magnetofon ↔ KZD-1) je v `media/mikos/CKM.hex`, postup v `docs/desky/KZD-1.md`.
 - **Ověřeno** (`test_kzd1`): K_I, K_S, K_D, K_Z, K_L (data souhlasí), zápis bez zoubku, kopie přes CKM.
+
+## Zapisovač Minigraf 0507 pod MIKOSem V5
+
+- `roms/mikos/MONITOR_V5.0F_MIKOS_V5.0_MINIGRAF.bin`: Monitor V5.0F + MIKOS V5.0 a ovladač V.1-MGF na 1800h, sestava
+  `zps/ZPS-2_MIKOS_V5_Minigraf.sapi`. `.G=1800` inicializace, `.G=1809` test, `.G=180F` kopie obrazovky, `.G=1815`
+  tiskárna; z BASICu EXP `CALL(6171…)`. Ukázka `media/mikos/MINIGRAF_DEMO.bas`, podrobně `docs/desky/Minigraf.md`.
 
 ## Formát pásky
 

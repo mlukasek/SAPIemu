@@ -577,6 +577,8 @@ static const ParamOption k_rem1_roms[] = {
     { "\"roms/mikos/MIKOS_V4.1F_Consul.bin\"", "Monitor V4.1F + MIKOS 4.0F (Consul)", "Monitor V4.1F + MIKOS 4.0F (Consul)" },
     { "\"roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin\"", "Monitor V5.0F + MIKOS V5.0 (Consul, 5 KB)", "Monitor V5.0F + MIKOS V5.0 (Consul, 5 KB)" },
     { "\"roms/mikos/MONITOR_V5.0E_MIKOS_V5.0.bin\"", "Monitor V5.0E + MIKOS V5.0 (Consul, 5 KB)", "Monitor V5.0E + MIKOS V5.0 (Consul, 5 KB)" },
+    { "\"roms/mikos/MONITOR_V5.0F_MIKOS_V5.0_MINIGRAF.bin\"", "Monitor V5.0F + MIKOS V5.0 + Minigraf 0507 driver at 1800h (8 KB)", "Monitor V5.0F + MIKOS V5.0 + ovladač Minigrafu 0507 na 1800h (8 KB)" },
+    { "\"roms/mikos/MONITOR_V5.0E_MIKOS_K_V5.0.bin\"", "Monitor V5.0E + MIKOS/K V5.0 for the KZD-1 (6 KB)", "Monitor V5.0E + MIKOS/K V5.0 pro KZD-1 (6 KB)" },
     { "\"\"", "empty sockets", "prázdné patice" },
     { nullptr, nullptr, nullptr },
 };
@@ -1178,6 +1180,11 @@ static const ParamOption k_dpp1_prn_channel[] = {
     { "2", "channel 2 (base+4..7, X3)", "kanál 2 (základ+4..7, X3)" },
     { nullptr, nullptr, nullptr },
 };
+static const ParamOption k_dpp1_mg_channel[] = {
+    { "1", "channel 1 (port B 31h with base 30h, X2), as the driver V.1-MGF", "kanál 1 (port B 31h při základu 30h, X2), jako ovladač V.1-MGF" },
+    { "2", "channel 2 (port B, X3)", "kanál 2 (port B, X3)" },
+    { nullptr, nullptr, nullptr },
+};
 static const ParamOption k_dpp1_kzd_channel[] = {
     { "1", "channel 1 (base+0..3, X2), as MIKOS/K (30h)", "kanál 1 (základ+0..3, X2), jako MIKOS/K (30h)" },
     { "2", "channel 2 (base+4..7, X3)", "kanál 2 (základ+4..7, X3)" },
@@ -1207,6 +1214,9 @@ static const CardParam k_dpp1[] = {
       nullptr, 0, 0 },
     { "kzd1.cassette", PK_FILE, "Cassette (.kzd, created empty when missing)", "Kazeta (.kzd, prázdná se vytvoří)",
       "\"work/kzd-1/kazeta.kzd\"", k_none, 0, 0 },
+    { "minigraf_channel", PK_CHOICE, "Minigraf on", "Minigraf na", "1", k_dpp1_mg_channel, 0, 0 },
+    { "minigraf", PK_SECTION, "Plotter ARITMA Minigraf 0507 (port B: X PB0-2, Y PB3-5, pen PB7; window Minigraf)",
+      "Zapisovač ARITMA Minigraf 0507 (port B: X PB0-2, Y PB3-5, pero PB7; okno Minigraf)", "false", nullptr, 0, 0 },
     { "printer_channel", PK_CHOICE, "Printer on (8255 mode 1: /OBF = /STROBE, /ACK)",
       "Tiskárna na (8255 mód 1: /OBF = /STROBE, /ACK)", "1", k_dpp1_prn_channel, 0, 0 },
     { "printer", PK_SECTION, "Printer (Centronics), ECMON and J. Biba: PUN:, LST: = UL1:",

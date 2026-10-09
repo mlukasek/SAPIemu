@@ -54,6 +54,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestavy `jpr1x_bgp1s` a `zps/ZPS-1_JPR-1X`. Debugger ukazuje instrukce 8085. Otázky na HW v Nejasnostech desky.
   Deska diagnostiky na K3 (rev 2.0, okno Zobrazení → Deska diagnostiky, MCP `diag_board`) s ukázkovými čítači
   `media/jpr-1x/diag_int.hex` (přerušení) a `diag_poll.hex`.
+- **Zapisovač ARITMA Minigraf 0507** (2026-10-09, z nápadů autora „model plotteru“, `docs/desky/Minigraf.md`):
+  DPP-1 port B, původní ovladač V.1-MGF v EPROM (sestava `zps/ZPS-2_MIKOS_V5_Minigraf.sapi`), okno Minigraf
+  s papírem, vozíkem a perem, PNG/SVG, MCP `plotter`, test `test_minigraf`.
+  - Znaková sada (`.G=1809`) i ukázka z IQ 151 (`media/mikos/MINIGRAF_DEMO.bas`) vyjdou stejně jako skutečné
+    kresby na sapi.cz (`obrazky/0507_3.png`, `0507_4.png`).
+  - Nově Stroj → Klávesnice → Vložit text (Ctrl+Shift+V): schránka se napíše na klávesnici SAPI.
+  - Dál se nabízí: XY 4130 (ovladač z `MIKOS5.BIN` 1800h, JPR-1 X3), BASIC EXP V5.0/G+SZ s příkazem `KRES`
+    (porty vrátit na 31h/33h), plotter z AR 1990 (JPR-1 jako řadič zapisovače). Poznámky průzkumu jsou mimo git
+    v pracovní složce sezení 2026-10-09; hlavní fakta jsou v `docs/desky/Minigraf.md`.
 - **KZD-1** (2026-10-09, přání autora, `docs/desky/KZD-1.md`): kazetopáskový záznamník dat na DPP-1 X2 s MIKOSem/K
   V5.0 (originální EPROM 6. 4. 88), sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`.
   - Model signálů rozhraní: dvě stopy, impulsy 40 µs, rozběh motorů, přetížení na konci pásky, zoubky proti zápisu.
@@ -264,8 +273,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         (stránky `z-1xx`, Chemoprojekt). DMR-1A je nejspíš naše DMR-1. Vedlejší nález: programy pro plottery na DPP-1
         (Aritma Minigraf 0507/0517, XY4130, plotter z AR 1990). Výpisy a extrakty v pracovní složce průzkumu (mimo git).
      f) **Zásobník nápadů (2026-10-09, autor: „všechno jsou dobré nápady, vrátíme se k nim“):**
-        1. model plotteru na DPP-1 (okno s kreslením, export PNG/SVG; ovladače Minigraf 0507/0517, XY 4130,
-           AR 1990; ovladač XY 4130 je za MIKOSem V5 v `_ROM\MIKOS v5\MIKOS5.BIN`);
+        1. ~~model plotteru na DPP-1~~ hotové 2026-10-09: Minigraf 0507 (`docs/desky/Minigraf.md`); zbývá XY 4130
+           (ovladač za MIKOSem V5 v `_ROM\MIKOS v5\MIKOS5.BIN` 1800h) a AR 1990;
         2. RKD-1 (kazetový disk CM 5403, CP/M ze zdrojáků Tesla Elstroj);
         3. DSE-1 (simulátor a programátor EPROM);
         4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;

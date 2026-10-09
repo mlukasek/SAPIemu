@@ -145,6 +145,8 @@ Pořadí karet ve slotech je odhad (viz Nejasnosti v `docs/SOUHRN.md`). **ZPS-1 
 `ZPS-2_MIKOS_V5.sapi` je ZPS-2 s Monitorem V5.0F, MIKOSem V5.0, klávesnicí Consul 262.3 a grafickým displejem
 DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno „DGD-1“. `ZPS-2_MIKOS_V5_DGD-1V.sapi` je
 totéž s Liborovou DGD-1V (VGA, jantarová) místo DGD-1 (`docs/desky/DGD-1V.md`).
+`ZPS-2_MIKOS_V5_Minigraf.sapi` je ZPS-2 s MIKOSem V5.0 a zapisovačem ARITMA Minigraf 0507 na DPP-1 (31h), ovladač
+V.1-MGF v EPROM od 1800h, RAM-1 přes 4000–FFFF, bez DGD-1 (`docs/desky/Minigraf.md`).
 `ZPS-2_MIKOS_K.sapi` je ZPS-2 s MIKOSem/K V5.0 a kazetopáskovým záznamníkem dat KZD-1 na DPP-1 (30h, X2), kazeta
 v okně Média, poprvé ji připravit `.K_I` (`docs/desky/KZD-1.md`).
 `ZPS-2_MIKOS_D.sapi` je ZPS-2 s disketovým MIKOSem/D V5.0, řadičem RPD-1 (dva sloty) a 8" mechanikou se
@@ -261,7 +263,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 `sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
 `--ui-aps5` okno APS-5 (panel a pece; s `--ui-state` i se žhavými pecemi a grafem), `--ui-aps5-demo` totéž
-se spuštěným DEMEM,
+se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou),
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`

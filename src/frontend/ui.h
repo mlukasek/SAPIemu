@@ -87,6 +87,8 @@ struct UiState {
     bool show_log = false;
     bool show_media = false;
     bool show_printer = false;
+    bool show_plotter = false;     // the plotter Minigraf (DPP-1)
+    uint64_t plotter_gen = 0;      // machine generation the plotter window opened itself for
     bool show_diag = false;        // the diagnostic board on K3 (JPR-1S, JPR-1X)
     bool show_aps5 = false;        // APS-5: the front panel and the furnaces
     uint64_t aps5_gen = 0;         // machine generation the APS-5 window opened itself for
@@ -211,6 +213,7 @@ void draw_iolog(UiState& ui);
 void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
 void draw_printer(UiState& ui);
+void draw_plotter(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);
 // File -> Load program (Intel HEX): native dialog, then a confirmation with the addresses.

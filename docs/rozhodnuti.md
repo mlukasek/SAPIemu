@@ -1337,3 +1337,22 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Program → kazeta `.kzd` podle toho, co zapisuje MIKOS/K** (rozložení, mezery a rozestupy bitů změřené na páskách,
   které zapsal emulovaný MIKOS/K), ne podle vlastního zjednodušeného formátu. Načte ho originální K_L. Kazeta se
   ukládá do `work/kzd-1/JMÉNO.kzd`, existující soubor se nepřepisuje (`JMÉNO-2.kzd`…).
+
+## 2026-10-09 – zapisovač ARITMA Minigraf 0507
+
+- **Proč Minigraf:** ze zapisovačů u SAPI-1 (Minigraf, XY 4130, BASIC EXP V5.0/G+SZ, plotter z AR 1990) má úplný
+  a ověřený software (tři verze ovladače s výpisy), popis rozhraní od výrobce, žádné zpětné signály a hlavně
+  skutečné výstupy ze SAPI-1 na sapi.cz, se kterými jde emulaci porovnat. XY 4130 nemá ukázku ani technické údaje.
+  Autor ho měl v zásobníku nápadů jako „nejvíc na koukání“.
+- **Model na úrovni signálů** (fázové kódy, pero, dorazy) a původní ovladač V.1-MGF v EPROM, ne vlastní příkazy.
+  Měřítko 0,125 mm na změnu kódu podle letáku. Průzkum z výpisu usoudil na půl kroku na jednotku, ale ovladač
+  rozdíl souřadnic zdvojuje (SMR, `DAD H`), takže jednotka je celý krok. Potvrzuje to i shoda se skutečnými kresbami
+  (znaková sada 83,75 × 184,75 mm, ukázka z IQ 151).
+- **Papír jako pás šířky A4:** originální ovladač posouvá papír při nastavení počátku o 212 mm a TEST o 437 mm.
+  Na list A4 by se nevešel a nevíme, jak se papír zakládal. Pás kreslí všechno a export se ořízne na kresbu.
+- **Rychlost se neomezuje:** kroky nad 400/s z letáku se jen počítají. Ovladač je při kreslení dělá běžně, kresby
+  na sapi.cz jsou přesto v pořádku. Otázka je v Nejasnostech.
+- **Pero dole po zapnutí** (port B je vstup a budiče dávají H) zůstává věrně. Tečku smaže Nový papír.
+- **Vložení textu na klávesnici** (Stroj → Klávesnice → Vložit text, Ctrl+Shift+V): ukázku v BASICu by jinak bylo
+  nutné opisovat. Klávesy jdou frontou klávesnice stejně jako `type_text` přes MCP. BASIC EXP stíhá celý program
+  vložený najednou (ověřeno).

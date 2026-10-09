@@ -37,7 +37,8 @@ sériové kanály. Hodí se při ladění (zastavit těsně před chybou a vrace
 
 - **Velká média jen odkazem:** IDE disk, SD karta PMD32-SD, diskety RPD-1, kazety DSM-1 (autor) a kazety KZD-1.
   Kazeta KZD-1 se před uložením stavu zapíše do svého souboru, ve stavu je jen mechanika (poloha, rychlost,
-  přetížení, rozpracovaný záznam). Stav si pamatuje
+  přetížení, rozpracovaný záznam).
+- Kresba Minigrafu (tahy na papíře) je součástí stavu, jako by papír zůstal v zapisovači. Stav si pamatuje
   vložený soubor, pozici kazety a polohu hlavy. Když je při načtení vložený jiný soubor, vloží ten ze stavu. Když se
   soubor od uložení změnil (velikost, čas), napíše varování do logu. Data se neukládají.
 - Věci PC: připojení sériových linek (TCP, COM), zvukový buffer, gamepad, zachycení myši, čekající pohyb myši.

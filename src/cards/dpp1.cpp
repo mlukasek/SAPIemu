@@ -44,6 +44,13 @@ bool Dpp1::configure(const json& cfg, std::string& err)
     }
     kzd_channel = (int)v - 1;
     kzd_enabled = cfg.contains("kzd1") && !cfg["kzd1"].is_null();
+    if (!cfg_number(cfg, "minigraf_channel", v, 1, err)) return false;
+    if (v != 1 && v != 2) {
+        err = "minigraf_channel must be 1 or 2";
+        return false;
+    }
+    mg_channel = (int)v - 1;
+    mg_enabled = cfg.contains("minigraf") && !cfg["minigraf"].is_null() && cfg["minigraf"] != false;
     pmd_enabled = cfg.contains("pmd32sd") && !cfg["pmd32sd"].is_null();
     prn_enabled = cfg.contains("printer") && !cfg["printer"].is_null();
     if (pmd_enabled && prn_enabled && pmd_channel == prn_channel) {
@@ -54,6 +61,10 @@ bool Dpp1::configure(const json& cfg, std::string& err)
         err = "the KZD-1 needs its own channel";
         return false;
     }
+    if (mg_enabled && ((pmd_enabled && pmd_channel == mg_channel) || (kzd_enabled && kzd_channel == mg_channel))) {
+        err = "the Minigraf needs a channel without the PMD32-SD and the KZD-1";
+        return false;
+    }
     if (prn_enabled && !prn.configure(cfg["printer"], err)) return false;
     if (kzd_enabled) {
         kzd.bus = bus;
@@ -62,6 +73,13 @@ bool Dpp1::configure(const json& cfg, std::string& err)
         std::string cas;
         if (!cfg_string(cfg["kzd1"], "cassette", cas, "work/kzd-1/kazeta.kzd", err)) return false;
         if (!probe && !cas.empty() && !kzd.insert(data_path(cas), err)) return false;
+    }
+    if (mg_enabled) {
+        mg.bus = bus;
+        mg.ppi = &ppi[mg_channel];
+        ppi[mg_channel].dev = &mg;
+        mg.power_on();
+        mg.lines_now();
     }
     if (pmd_enabled) {
         pmd.attach(&ppi[pmd_channel]);
@@ -75,6 +93,7 @@ void Dpp1::reset()
 {
     ppi[0].reset();
     ppi[1].reset();
+    if (mg_enabled) mg.lines_now();   // port B is an input: the lines go high
     for (char& c : pmd.cpm_seen) c = 0;   // another system may come
     prn_wait_ack = false;   // /OBF is high after the reset; a byte being printed is acknowledged to nobody
     // /RES does not reach the PMD32-SD: it keeps running
@@ -108,6 +127,7 @@ int Dpp1::decode_io(uint8_t port, const char** what)
     int ch = (port >> 2) & 1;
     if (pmd_enabled && ch == pmd_channel) *what = ch ? "DPP-1 channel 2 (8255), PMD32-SD" : "DPP-1 channel 1 (8255), PMD32-SD";
     else if (kzd_enabled && ch == kzd_channel) *what = ch ? "DPP-1 channel 2 (8255), KZD-1" : "DPP-1 channel 1 (8255), KZD-1";
+    else if (mg_enabled && ch == mg_channel) *what = ch ? "DPP-1 channel 2 (8255), Minigraf" : "DPP-1 channel 1 (8255), Minigraf";
     else if (prn_enabled && ch == prn_channel) *what = ch ? "DPP-1 channel 2 (8255), printer" : "DPP-1 channel 1 (8255), printer";
     else *what = ch ? "DPP-1 channel 2 (8255)" : "DPP-1 channel 1 (8255)";
     return DEC_READ | DEC_WRITE;
@@ -163,6 +183,10 @@ void Dpp1::describe(json& out)
         out["kzd1"] = json{ { "channel", kzd_channel + 1 }, { "cassette", kzd.loaded() ? kzd.path() : std::string() },
                             { "side", kzd.side ? "B" : "A" }, { "position_m", round(kzd.position_m() * 100) / 100 },
                             { "motion", kzd.motion() } };
+    if (mg_enabled)
+        out["minigraf"] = json{ { "channel", mg_channel + 1 }, { "x_mm", mg.x() / (double)Minigraf::STEPS_PER_MM },
+                                { "y_mm", mg.y() / (double)Minigraf::STEPS_PER_MM }, { "pen", mg.pen_down() ? "down" : "up" },
+                                { "strokes", mg.strokes.size() }, { "steps", mg.steps }, { "lost_steps", mg.lost }, { "steps_at_stop", mg.stopped } };
 }
 
 void Dpp1::state(StateIO& io)
@@ -179,6 +203,11 @@ void Dpp1::state(StateIO& io)
     if (kzd_enabled) {
         io.begin("kzd1");
         kzd.state(io);
+        io.end();
+    }
+    if (mg_enabled) {
+        io.begin("minigraf");
+        mg.state(io);
         io.end();
     }
 }

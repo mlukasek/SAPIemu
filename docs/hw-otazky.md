@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **203** v 41 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **207** v 42 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -358,6 +358,20 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Kdo dělal testy `SAPI15\MFC_TEST_CPM` (2010) a s jakým `DRVON` (40h, nebo 00h) běžel test na „Original MFC1A“?
 
 - Které mechaniky se k MFC-1A u SAPI skutečně připojovaly (5,25" s READY, nebo 8" Consul)?
+
+
+## [ARITMA Minigraf 0507 – souřadnicový zapisovač (plotter)](desky/Minigraf.md) – Nejasnosti k ověření na HW (4)
+
+- Ovladač po nastavení počátku krokuje až asi 780 kroků/s, leták uvádí nejvýš 400 kroků/s (u modelů od roku 1986
+  o 40 % víc). Stačil skutečný Minigraf, nebo ztrácel kroky? (Kresby na sapi.cz vypadají v pořádku.)
+
+- Pero po zapnutí: port B DPP-1 je po resetu vstup a budiče 3216 (nastavené na výstup) pak dávají H. Spustí se
+  pero, dokud program nezapíše řídicí slovo?
+
+- Originální ovladač posouvá papír při nastavení počátku o 212 mm a TEST o 437 mm. Kreslilo se na A4, nebo
+  na pás papíru? Jak se papír zakládal?
+
+- Přepínače DPP-1 pro Minigraf: stránka píše „2PB“, kabel je na X2 (1PB).
 
 
 ## [MPH-1V – zvuková a joysticková karta (Libor Lasota)](desky/MPH-1V.md) – Nejasnosti (2)

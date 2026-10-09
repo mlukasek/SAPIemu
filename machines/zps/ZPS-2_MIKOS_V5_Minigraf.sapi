@@ -1,0 +1,63 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-2 MIKOS V5.0 se zapisovačem Minigraf 0507 (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, DPP-1, Consul 262.3)",
+    "description": "ZPS-2 s Monitorem V5.0F a MIKOSem V5.0 a souřadnicovým zapisovačem ARITMA Minigraf 0507 na desce DPP-1 (30h, X2, port B 31h, řídicí slovo 99h). V EPROM na REM-1 (8× 2708) je za MIKOSem od 1800h ovladač V.1-MGF (15. 2. 1989, sapi.cz/sapi/doku2/0507.php): .G=1800 inicializace (pero na počátek), .G=1809 test (celá znaková sada), .G=180F kopie obrazovky, .G=1815 Minigraf jako systémová tiskárna; z BASICu EXP CALL(6171...). Ovladač má zápisník na FFD0-FFFF, proto RAM-1/48K přes celé 4000-FFFF a bez grafiky DGD-1. Kresba se ukazuje v okně Minigraf, uloží se jako PNG nebo SVG. docs/desky/Minigraf.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (ZPS-1: EPROMs on REM-1)
+            "eprom_type": "2708",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2708 (1 KB)
+            "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": true }  // Keyboard (connector X2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "roms/mikos/MONITOR_V5.0F_MIKOS_V5.0_MINIGRAF.bin",  // EPROMs (from socket 1) - Monitor V5.0F + MIKOS V5.0 + Minigraf 0507 driver at 1800h (8 KB)
+            "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
+            "ram_block": "none",            // Jumper R: RAM block - not connected
+            "ram_kb": 0                     // RAM fitted (KB, 2 per 4x 2114)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RAM-1",                // Dynamic RAM up to 48 KB
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": true,                     // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": false                     // S2
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false,                  // Jumper 49-50: INT1 at the end of the frame
+            "monitor": "amber"              // Monitor: phosphor colour (not on the card)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "tape": "",                     // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
+            "tape_write_protect": true      // Cassette write protected
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "DPP-1",                // Parallel ports (2x 8255), PMD32-SD
+            "base": "30h",                  // S1: ports - 30h-37h (1S1, 3S1 closed)
+            "minigraf_channel": 1,          // Minigraf on - channel 1 (port B 31h with base 30h, X2), as the driver V.1-MGF
+            "minigraf": {}                  // Plotter ARITMA Minigraf 0507 (port B: X PB0-2, Y PB3-5, pen PB7; window Minigraf)
+        }
+    ]
+}

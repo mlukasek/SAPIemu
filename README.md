@@ -18,6 +18,8 @@ PROM dumpů). Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI 
 
 ![Měřicí jednotka APS-5: původní firmware reguluje pece na 700 °C, vpravo panel a simulace pecí](docs/img/aps5-pece.png)
 
+![BASIC EXP kreslí na zapisovači ARITMA Minigraf 0507 ukázku z dokumentace IQ 151](docs/img/minigraf-ukazka.png)
+
 ## Stažení
 
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
@@ -44,6 +46,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
     `.img` i ImageDisk `.imd` (libovolná geometrie, čtení i zápis, nová disketa `.imd` přijme jakýkoli formát),
     motory mechanik PC s rozběhem; formátování ověřené originálními programy J. Bíby a výpisy z reálných MFC-1A;
   - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD, tiskárna, KZD-1);
+  - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
+    a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz;
   - kazetopáskový záznamník dat KZD-1 s MIKOSem/K V5.0: model mechaniky a dvou stop, kazety `.kzd` s oběma
     stranami a zoubky proti zápisu, kreslená kazeta s cívkami v okně Média;
   - DSP-1 se dvěma sériovými kanály 8251 (programy XMODEM J. Bíby ověřené oběma směry);
@@ -62,7 +66,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
   joysticku (joystick z šipek a mezerníku nebo gamepadu, myš). Matice ANK-1 drží klávesu, dokud ji držíš na PC
-  (bez fronty a autorepeatu), a má režim pro hry (Ctrl+F7: klávesy podle polohy, Shift = SHIFT).
+  (bez fronty a autorepeatu), a má režim pro hry (Ctrl+F7: klávesy podle polohy, Shift = SHIFT). Text ze schránky
+  se dá napsat na klávesnici SAPI (Ctrl+Shift+V), třeba program v BASICu.
 - **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4 s RPD-1
   i FDC-1, originální CP/M Tesla IMA 48K a 64K pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM
   disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. MIKROBIOS
@@ -102,6 +107,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
 - [docs/8085.md](docs/8085.md): procesor 8085 (JPR-1X): takty, RIM/SIM, nedokumentované instrukce, příznaky.
 - [docs/tiskarna.md](docs/tiskarna.md): tiskárna Centronics (X3 procesorové karty, DPP-1).
 - [docs/desky/KZD-1.md](docs/desky/KZD-1.md): kazetopáskový záznamník dat KZD-1 a MIKOS/K.
+- [docs/desky/Minigraf.md](docs/desky/Minigraf.md): zapisovač ARITMA Minigraf 0507 a jeho ovladač.
 - [docs/hw-otazky.md](docs/hw-otazky.md): všechny otevřené otázky k ověření na skutečném HW (generuje
   `tools/hw_otazky.py`).
 - [docs/stav.md](docs/stav.md): ukládání stavu. [docs/mcp.md](docs/mcp.md): MCP server.
