@@ -188,7 +188,7 @@ překlad `pasmo --hex VRAMBENCH.ASM vrambench.hex`.
 
 Výsledky emulace a otázka na skutečnou desku: `docs/desky/AND-1V.md`.
 
-## `rkd-1/` – kazety kazetového disku RKD-1 (CM 5403)
+## `rkd-1/` – kazety kazetového disku RKD-1 (CM 5403, CM 5400)
 
 | Soubor | Obsah |
 |---|---|
@@ -197,6 +197,11 @@ Výsledky emulace a otázka na skutečnou desku: `docs/desky/AND-1V.md`.
 Kazeta je vyrobená v emulátoru originálními programy (`FORMTRKD`, `ES 59`), jen zápis systému na stopy je náš
 (originální SYSGEN pro RKD-1 se nenašel). Postup a opakování: `docs/desky/RKD-1.md` (`RKD_MAKE=… test_rkd1`).
 Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsaný tamtéž.
+
+| Soubor | Obsah |
+|---|---|
+| `jb_cm5400_boot.img` | Bootovací 8" disketa (RPD-1) CP/M J. Bíby s BIOSem-3K pro RKD-1 a bulharskou mechaniku CM 5400 (D: až G:, 12 × 512 B). **BIOS není originál**, vznikl v emulátoru (soubory diskety jsou z `sapiman/r1_zrmd4m_271111.img`, systémové stopy z `sapiman/r3_mfc512x8_261211.img`). Vyrábí ho `tools/rkd5400_bios.py`. |
+| `cm5400/BIRKD54.MAC`, `.PRN` | Zdroják a výpis toho BIOSu (z 3K BIOSu J. Bíby, ovladače ZRMD-1 z jeho BIOSu-1K a ovladače `RKD.MAC` Tesly ve tvaru z FORMRKD; vyrábí ho `tools/rkd5400_bios_src.py`). |
 
 ## `mph-1v/` – programy pro zvukovou kartu MPH-1V (Intel HEX, CP/M `.COM` od 0100h)
 

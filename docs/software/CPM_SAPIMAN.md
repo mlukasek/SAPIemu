@@ -192,6 +192,10 @@ ve vedlejší složce `ZMENA_CPM`). Bootovací disketu jsme neměli, a tak je **
   - další varianty bootují také (`r2_rmd1m_mfc_261211`: MFC-1A 8" SS SD; `r2_rmd1_fdc_260811`,
     `r3_rmd1_fdc_260811`: FDC-1 8"; `r2_/r3_zrmd4mss_fdc_260811`: s ZRMD-1 SS256), sestavy z nich nejsou;
   - ve všech je v B: disketa Z6 kvůli `IRMD40` (C: je po zapnutí náhodná). Test `test_sapi_sys` (`rpd_second`).
+- **RKD-1 s CM 5400** (2026-10-09, `rkd1_jb_cm5400.sapi`): **vlastní** BIOS-3K (ne dobový) z `3K RPD MFC 8 512 261211`
+  (rámec a deblokování 512 B, přeložený shodně s disketou `r3_mfc512x8_261211`), ZRMD-1 z BIOSu-1K V271111 a ovladače
+  `RKD.MAC` ve tvaru z FORMRKD: D:, E: pevný disk, F:, G: kazeta 12 × 512 B. Disketa `media/rkd-1/jb_cm5400_boot.img`,
+  `tools/rkd5400_bios.py`, popis v `docs/desky/RKD-1.md`.
 - **Zbylé bootovací diskety** (2026-10-06, sestava jen z té, která se liší něčím zajímavým):
   - `FDC\f2_irmd1m_130711` („BIOS-2K V130711JB“, BIOS `BIRMD`): **RAM disk si připraví BIOS sám**. Při startu
     hledá v první položce adresáře skrytou značku „RAMDISK.RMD“, když chybí, zjistí velikost RMD-1 (256 KB nebo

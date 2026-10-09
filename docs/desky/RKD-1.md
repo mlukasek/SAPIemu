@@ -207,9 +207,27 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
      (CE00h–E5FFh) a stopa 1 sektory 0–16, přesně odkud ho čtou ROMES a WBOOT CBIOSu;
   4. boot z kazety přes ROMES, `F:PIP A:=E:*.*` (soubory `a_mercl.8sd`: zdrojáky, SH, STARTSYS, FORMTRKD, ES,
      MOVCPM, WM…) a `PIP.COM`.
-- **Sestava `machines/rkd1_jb_cm5400.sapi`:** CP/M J. Bíby z 8" diskety (RPD-1, MON 271111), C: RAM disk ZRMD-1,
-  B: služební disketa s `FORMRKD.COM` v1.1, RKD-1 s CM 5400 (nová nenaformátovaná kazeta a pevný disk). CP/M pro
-  RKD-1 s CM 5400 (12 × 512) jsme nenašli, FORMRKD je jediný program, který ji používá.
+- **Sestava `machines/rkd1_jb_cm5400.sapi`:** CP/M J. Bíby z 8" diskety (RPD-1, MON 271111) s BIOSem pro RKD-1
+  (níže), C: RAM disk ZRMD-1, B: služební disketa s `FORMRKD.COM` v1.1, RKD-1 s CM 5400 (nová nenaformátovaná
+  kazeta a pevný disk): D:, E: pevný disk, F:, G: kazeta.
+- **BIOS pro CM 5400 (vlastní, ne originál, 2026-10-09):** CP/M pro RKD-1 s CM 5400 (12 × 512) jsme nenašli,
+  dobový je jen FORMRKD. Aby šly naformátované disky používat (autor: „udělat podporu disků bez toho, aniž by šly
+  použít, mi přijde divné“), vznikl BIOS-3K `media/rkd-1/cm5400/BIRKD54.MAC` z dílů, které existují:
+  - rámec, A:, B: (RPD-1 přes monitor), deblokování sektorů 512 B, start a teplý start: 3K BIOS J. Bíby
+    `bi2612E4 8x512` (V261211JB, varianta s MFC-1A 8 × 512, `ZMENA_CPM\FUNKCNI\JEN 8 PALCU\RPD A MFC\3K RPD MFC 8
+    512 261211`). Přeložený přes `cpmrun` dává kód shodný s disketou `r3_mfc512x8_261211` bajt po bajtu;
+  - C: ZRMD-1 z BIOSu-1K V271111_ZRMD_JB, s DPB z bootovací diskety `r1_zrmd4m_271111` („4 MB + SYSTEM“: OFF 32,
+    DSM 1021), takže C: zůstává čitelný;
+  - D: až G: ovladač `RKD.MAC` Tesly 87-02-13 ve tvaru, jaký má FORMRKD.COM (hlavička jen stopa, nižší bajt první),
+    takže čte disky naformátované FORMRKD. Opravená chyba originálu: `RK_SEEK` se při chybě vracel s BC na
+    zásobníku (u nepřipravené mechaniky by systém spadl);
+  - DPB: 48 záznamů na stopu, bloky 2 KB, DSM 611, 256 položek adresáře, bez systémových stop; kazeta (F:, G:)
+    s kontrolou výměny (CKS 64), pevný disk bez ní. Bez prokládání sektorů (jeden sektor na otáčku).
+  Zdroják vyrobí `tools/rkd5400_bios_src.py` z originálů v `..\SAPI_DOKU` (úpravy jsou ve skriptu vidět),
+  `tools/rkd5400_bios.py` ho přeloží (M80/L80 pod `cpmrun`) a složí bootovací disketu
+  `media/rkd-1/jb_cm5400_boot.img`: soubory z `r1_zrmd4m_271111`, stopy 0, 1 a 6 sektorů stopy 76 (zavaděč
+  bo2608CE, CCP CE00h, BDOS D606h) z `r3_mfc512x8_261211`, BIOS E400h–EA7Fh. Úvodní hláška říká „BIOS-3K RKD
+  SAPIemu“, aby nikdo nemyslel, že je dobový.
 - **FORMRKD.COM má starší ovladač než `RKD.MAC` 87-02-13:** jeho `PREP_MARK` jen posune stopu o 5 bitů (hlavička
   = stopa × 32), číslo sektoru, médium ani příznak 512 B do ní nedá a zapisuje nižší bajt první. Zjištěno z bajtů,
   které FORMRKD zapsal, a z binárky (`PREP_MARK` na 1052h). Při čtení porovnává stejnou hlavičku, takže jeho
@@ -220,7 +238,8 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
   - nad kazetou z `media/`: start, SH, `FORMTRKD` na pevném disku C:, soubor na C:, zápis na chráněnou kazetu (nic
     se nezapíše, systém běží dál), Reset s kazetou bez systému („Chyba čtení disku A: při boot“) a návrat
     systémové kazety, nová systémová kazeta přes „Systém…“ (soubory SH přes C:, Reset, SH se ptá na uživatele);
-  - CM 5400: FORMRKD naformátuje a přečte kazetu F: a naformátuje pevný disk D:, kontrola bajtů a cylindru;
+  - CM 5400: FORMRKD naformátuje a přečte kazetu F: a naformátuje pevný disk D:, kontrola bajtů a cylindru, pak
+    v CP/M s BIOSem výše `PIP` na F: a z F: na D: s ověřením, `STAT` spuštěný z D: (1210K volných);
   - výroba systémové kazety výše (když je `..\SAPI_DOKU`).
 - **Výměna kazety za běhu** (pokus 2026-10-09): CBIOS drží poslední sektor ve vyrovnávací paměti a výměnu nepozná.
   Po výměně ukázal `DIR B:` adresář staré kazety a další `SAVE` ho zapsal na novou; BDOS výměnu A: poznal (R/O).

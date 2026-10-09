@@ -36,7 +36,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   formát jako FORMTRKD; postup nové systémové kazety v návodu, ověřený testem), **mechanika CM 5400** (`unitN.drive`,
   obrácený DISK, kabel SM 5400 s cylindrem 2N + T00), sestava `rkd1_jb_cm5400.sapi` s FORMRKD J. Bíby (formátuje
   a čte bez chyb; zjištěno, že FORMRKD.COM má starší ovladač s hlavičkou jen se stopou). Test RKD-1 rozdělený na
-  tři souběžné části.
+  tři souběžné části. Pak (autor: „udělat podporu disků bez toho, aniž by šly použít, mi přijde divné“) **vlastní
+  BIOS-3K pro CM 5400** (D: až G: v CP/M J. Bíby; ne originál, otevřeně označený): `media/rkd-1/cm5400/BIRKD54.MAC`,
+  `tools/rkd5400_bios_src.py` a `tools/rkd5400_bios.py`, disketa `media/rkd-1/jb_cm5400_boot.img`. Lokálně, nepushnuté.
 - **Potom (2026-10-09, autor: „pokračuj“):** čekací stavy AND-1V podle schématu rev 2.3 (list 4/7, stejný
   synchronizátor jako CGA-1V), společný výpočet `Bus::window_waits`, měřicí program VRAMBENCH
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.

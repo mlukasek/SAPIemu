@@ -219,7 +219,9 @@ stejné porty 40h, do sestavy s RKD-1 nepatří. Nová systémová kazeta: okno 
 
 **RKD-1 s CM 5400** (`machines/rkd1_jb_cm5400.sapi`, 2026-10-09): CP/M J. Bíby z 8" diskety (JPR-1ZI s MON 271111,
 DMR-1, AND-1Z-89, ZRMD-1 jako C:, RPD-1 s A: systémem a B: služební disketou s FORMRKD), RKD-1 s bulharskou mechanikou
-CM 5400 (`unit0.drive`): pevný disk D:, E:, kazeta F:, G:, 12 × 512 B, na začátku nenaformátované.
+CM 5400 (`unit0.drive`): pevný disk D:, E:, kazeta F:, G:, 12 × 512 B, na začátku nenaformátované. A: je bootovací
+disketa `media/rkd-1/jb_cm5400_boot.img` s BIOSem-3K, který D: až G: zpřístupní v CP/M (vznikl v emulátoru, není
+dobový; `docs/desky/RKD-1.md`).
 
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).

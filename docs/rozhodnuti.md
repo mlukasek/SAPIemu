@@ -1473,3 +1473,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   první) a emulace ji uloží, jak přišla. Obraz `.rkd` drží bajty, ne význam, takže fungují oba ovladače.
 - **Test RKD-1 ve třech částech** běžících souběžně (`RKD_PART`, `COST` v `tests/CMakeLists.txt`): celá debug sada
   zůstává kolem 30 s.
+- **Vlastní BIOS pro CM 5400** (autor: „udělat podporu disků bez toho, aniž by šly použít, mi přijde divné … byť bych
+  to někde otevřeně uvedl“): BIOS-3K poskládaný ze 3K BIOSu J. Bíby (rámec a deblokování 512 B, přeložený shodně
+  s originální disketou), ovladače ZRMD-1 z jeho BIOSu-1K a `RKD.MAC` Tesly ve tvaru z FORMRKD, aby šly číst disky
+  naformátované dobovým programem. Je to nový software, proto: úvodní hláška „BIOS-3K RKD SAPIemu“, poznámka
+  v hlavičce zdrojáku, v popisu sestavy, v návodu a v `media/README.md`. Zdroják vzniká skriptem z originálů, takže
+  každá změna je dohledatelná. Opravená chyba `RK_SEEK` (BC na zásobníku) je jen v tomto BIOSu, ROM a CP/M Tesly
+  ji mají dál.

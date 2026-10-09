@@ -327,15 +327,33 @@ vznikne jako nový nenaformátovaný pevný disk.
 
 Řadič RKD-1 uměl i bulharskou mechaniku **CM 5400** (IZOT) s kabelem podle dokumentace RKD-1. Sestava
 `rkd1_jb_cm5400.sapi` ji má s CP/M J. Bíby z 8" diskety a jeho programem **FORMRKD** v1.1 (1987, „Formátování
-a kontrola disku SM 5400 (203*12*512)“). FORMRKD umí disky naformátovat a zkontrolovat, nic víc.
+a kontrola disku SM 5400 (203*12*512)“).
 
-**V CP/M disky D: až G: nejsou.** CP/M J. Bíby (BIOS V271111JB) má jen A:, B: (diskety RPD-1) a C: (RAM disk
-ZRMD-1), `DIR D:` skončí hláškou `BDOS ERR ON D: SELECT`. CP/M, které by z CM 5400 pracovalo se soubory, se
-nenašlo. Písmena D: až G: jsou jen označení mechanik v programu FORMRKD, který si disk obsluhuje sám.
+**BIOS pro disky D: až G: není originál.** CP/M, které by z CM 5400 pracovalo se soubory, se nenašlo: dobový
+software je jen FORMRKD, který disky naformátuje a zkontroluje. Aby šly disky i používat, vznikl v emulátoru
+BIOS-3K z dílů J. Bíby a Tesly (`media\rkd-1\cm5400\BIRKD54.MAC`, popis v `docs/desky/RKD-1.md`). Bootovací
+disketa A: má stejné soubory jako dosavadní disketa J. Bíby, jen jiný systém. Po startu se hlásí:
 
-- Disk má formát SMEP 12 × 512 B. U CM 5400 je DISK obráceně než u CM 5403: FORMRKD označuje **pevný disk D:
-  (dolní plocha) a E: (horní)**, **výměnnou kazetu F: (dolní) a G: (horní)**.
-- Kazeta i pevný disk jsou na začátku nenaformátované (`work\rkd-1\cm5400_kazeta.rkd`, `cm5400_fixed.rkd`).
+```
+JPR-1Z 62K CP/M V2.2
+BIOS-3K RKD SAPIemu (V261211JB)
+A,B: RPD1; C: ZRMD1/4 MB+SYS
+D-G: RKD1 CM5400 12x512
+CON: AND1Z + C259.11
+LST: CENTRONIX
+A>
+```
+
+| Disk | Co to je | Velikost |
+|---|---|---|
+| A:, B: | 8" diskety RPD-1 (A: systém, B: služební disketa s FORMRKD, PIP, STAT) | 243 KB |
+| C: | RAM disk ZRMD-1 | 4 MB |
+| D:, E: | pevný disk CM 5400, dolní a horní plocha | 1224 KB |
+| F:, G: | kazeta CM 5400, dolní a horní plocha | 1224 KB |
+
+Písmena D: až G: jsou stejná jako ve FORMRKD. Disk má formát SMEP 12 × 512 B. Kazeta i pevný disk jsou na začátku
+nenaformátované (`work\rkd-1\cm5400_kazeta.rkd`, `cm5400_fixed.rkd`), `DIR` na nich po chvíli skončí hláškou
+`BDOS ERR ON E: BAD SECTOR` (Ctrl-C ukončí příkaz). Nejdřív je tedy naformátujte programem FORMRKD:
 
 ```
 A>B:FORMRKD
@@ -354,16 +372,32 @@ A>B:FORMRKD
 ```
 
 1. Mechanika: písmeno **D** až **G** (bez Enteru).
-2. Druh práce: **F** formátovat, **C** kontrolní čtení, **O** obojí, **K** konec programu.
+2. Druh práce: **F** formátovat, **C** kontrolní čtení, **O** obojí, **K** konec programu (K jde zadat až po
+   písmenu mechaniky).
 3. Na otázku `Bude se formátovat mechanika F: Opravdu?` klávesa **A**. Dole běží `Stopa:` a `Sektor:` (šestnáctkově,
    stopy 00–CB, sektory 00–0B), na konci „Formátování skončilo“, po kontrole „Čtení skončilo“.
 
 Jeden povrch se formátuje asi minutu, kontrola trvá stejně (F8 zrychlí). Chyby FORMRKD hlásí jako „Chyba při
 WRITE“, „Chyba při READ“ s popisem a nabídne `ignorovat = CR, formátovat = F, ukončit = E`.
 
-Pozor: FORMRKD.COM píše do hlaviček sektorů jen číslo stopy (starší verze ovladače než CP/M Tesly). Kazetu
-naformátovanou FORMRKD proto CP/M Tesly nepřečte, ani kdyby měla stejný počet sektorů. Podrobnosti a co se
-o CM 5400 neví: `docs/desky/RKD-1.md`.
+Pak se s disky pracuje jako s kterýmikoli jinými (vyzkoušené testem `test_rkd1_cm5400`):
+
+```
+A>DIR F:
+NO FILE
+A>B:PIP F:=B:STAT.COM[V]
+A>B:PIP D:=F:STAT.COM[V]
+A>D:STAT D:*.*
+ RECS  BYTES  EXT ACC
+   41     6K    1 R/W D:STAT.COM
+BYTES REMAINING ON D: 1210K
+```
+
+Jeden sektor na otáčku (25 ms): čtení a zápis jdou asi 20 KB/s, rychleji než 8" disketa.
+
+Pozor: FORMRKD.COM píše do hlaviček sektorů jen číslo stopy (starší verze ovladače než CP/M Tesly), BIOS pro D: až
+G: to dělá stejně. Kazetu naformátovanou FORMRKD proto CP/M Tesly nepřečte a naopak, ani kdyby měla stejný počet
+sektorů. Podrobnosti a co se o CM 5400 neví: `docs/desky/RKD-1.md`.
 
 ## 7. Co dál
 

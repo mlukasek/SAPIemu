@@ -53,7 +53,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Nástroje** (`tools/`): `build.cmd`, `package.py`, `asm8080.py` (malý assembler 8080), `cpmrun.cpp` (programy
   pro CP/M jako M80/L80 na PC, cíl `cpmrun`; popis v `docs/build.md`), `hw_otazky.py` (z Nejasností vygeneruje
   souhrn otázek na HW `docs/hw-otazky.md`; po změně Nejasností spustit znovu), `ckm_oprava.py` (z originálu
-  `media/mikos/CKM.hex` vyrobí opravenou kopii `CKM_opraveny.hex`, `docs/desky/KZD-1.md`).
+  `media/mikos/CKM.hex` vyrobí opravenou kopii `CKM_opraveny.hex`, `docs/desky/KZD-1.md`), `rkd5400_bios_src.py`
+  a `rkd5400_bios.py` (vlastní BIOS CP/M J. Bíby pro RKD-1 s CM 5400 a jeho bootovací disketa, `docs/desky/RKD-1.md`).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`.
