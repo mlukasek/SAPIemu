@@ -24,6 +24,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, "out", "build", "windows-release")
 DATA = ["roms", "media", "machines", "docs", "third_party/fonts"]
 FILES = ["README.md", "LICENSE", "third_party/README.md"]
+# in the repository only: the data of the game Prince of Persia (Jordan Mechner, Broderbund) is not passed on
+REPO_ONLY = {"media/zrmd-1/pop-ramdisk.bin", "media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin",
+             "machines/sapi1v_PoP.sapi"}
 
 
 def git_files(path):
@@ -56,7 +59,7 @@ def main():
         files += git_files(d)
     files += FILES
     files += [f for f in git_files("third_party") if os.path.basename(f).upper().startswith(("LICENSE", "COPYING"))]
-    files = sorted(set(files))
+    files = sorted(set(files) - REPO_ONLY)
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         z.write(gui, name + "/sapiemu.exe")

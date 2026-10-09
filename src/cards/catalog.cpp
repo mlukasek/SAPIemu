@@ -1173,6 +1173,11 @@ static const ParamOption k_zrmd_images[] = {
       "prázdný, CP/M přes celé 4 MB (systémy J. Bíby 2011)" },
     { "\"media/zrmd-1/ECSYS_zaloha_0-3.hex\"", "ECSYS 0-3 (HEX)", "ECSYS 0-3 (HEX)" },
     { "\"media/zrmd-1/puvodni_SYS0_3_s_CD.HEX\"", "original SYS 0-3 with CD (HEX)", "původní SYS 0-3 s CD (HEX)" },
+    { "\"media/zrmd-1/ba-ramdisk.bin\"", "CP/M with the demo Bad Apple!! (CGA-1V, MPH-1V)", "CP/M s demem Bad Apple!! (CGA-1V, MPH-1V)" },
+    // the two with Prince of Persia are in the repository only, not in the alpha packages (tools/package.py)
+    { "\"media/zrmd-1/pop-ramdisk.bin\"", "CP/M with Prince of Persia (CGA-1V, MPH-1V)", "CP/M s Prince of Persia (CGA-1V, MPH-1V)" },
+    { "\"media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin\"", "CP/M with PoP, FXS4, Flappy, Bomberman, BKP",
+      "CP/M s PoP, FXS4, Flappy, Bomberman, BKP" },
     { "\"\"", "empty", "prázdný" },
     { nullptr, nullptr, nullptr },
 };
