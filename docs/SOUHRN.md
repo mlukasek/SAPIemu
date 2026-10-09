@@ -11,8 +11,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 44 v debug i v release (2026-10-09, s `test_kzd1` a `test_minigraf`); release `full` naposledy 45
-    včetně ZEX, 8080EXM a 8085EXM, Linux ve WSL 41 (2026-10-07, GCC 13 bez varování ve vlastním kódu). Vše prochází.
+  - Testy: 44 v debug i v release (2026-10-09, s `test_kzd1` a `test_minigraf`); release `full` 48 včetně ZEX,
+    8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
+    kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
     Kdy které testy:
     `docs/build.md`.
   - Podklady mimo repo: `..\SAPI-karty\ZRMD-1\SRC\` (zdrojáky ECMON + CP/M, `build.py`, od 2026-10-06 dává L80
@@ -32,6 +33,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (ZEX, 8080EXM, 8085EXM), Linux ve WSL 41. Z rozbaleného zipu naběhne MikroMon, `jpr1x_bgp1s`, `jpr1s_bgp1s`, obě
   ZPS-1 s JPR-1X a JPR-1S (MIKROBASIC), sestava V (menu ECMONu), `cpm_ec1045`, `ZPS-3_CPM64K_IMA` a `zps/ZPS-6`
   (`A>`). Zase jen pro kamarády (soukromě), tag a veřejný release ne. (SOUHRN v zipu je o jeden commit starší.)
+- **Alfa 0.4.0-alpha (připravená 2026-10-09):** `out/package/SAPIemu-0.4.0-alpha-win64.zip` (374 souborů, 24,6 MB,
+  s IDE diskem `work/ide` jako minule), poznámky `docs/release-notes/v0.4.0-alpha.md`. Novinky: APS-5 s DEMEM, KZD-1
+  s MIKOSem/K a CKM (i opravená kopie), Minigraf 0507 s `KRES`, návody k obsluze, Ctrl+Shift+V, ImBUS9/12
+  a `libor_doma`, `cpm_zrmd_rtc_dsp`, 52 sestav. Release `full` 48 testů, Linux ve WSL 44. Z rozbaleného zipu
+  naběhne MikroMon, `zps/ZPS-2_MIKOS_K` (`.K_D`), `zps/ZPS-2_MIKOS_V5_Minigraf`, `libor_doma` (menu ECMONu),
+  `cpm_zrmd_rtc_dsp` (`A>`), `zps/ZPS-6` (`A>`) a GUI s okny APS-5 a Média (KZD-1). Jen pro kamarády (soukromě),
+  tag a veřejný release ne. (SOUHRN v zipu je o jeden commit starší.)
 - **Hotové v této sérii (2026-10-04/05), podrobnosti v blocích níže a v `docs/rozhodnuti.md`:**
   - karty: MPH-1V (zvuk, 82C54, joystick, myš), ZRD-1V rev 2.1 (zámek zápisu, MAX187);
   - emulace: ukládání stavu (`docs/stav.md`), bzučák klávesnice a míchání zvuku na sběrnici;
@@ -294,7 +302,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;
         5. ~~souhrnný seznam otázek k ověření na HW (bod a)~~ hotové, `docs/hw-otazky.md`;
         6. další várka otázek pro EC1045 (bod b);
-        7. alfa 0.4.0 pro kamarády (APS-5 s DEMEM, CRM-1, RTC-1, DSP-1, ImBUS, nové sestavy).
+        7. ~~alfa 0.4.0 pro kamarády~~ připravená 2026-10-09 (`out/package/SAPIemu-0.4.0-alpha-win64.zip`).
      g) **KZD-1** (kazetopáskový záznamník dat ZPA Košíře 1986, k SAPI s MIKOSem/K V5.0 TESLA ELTOS DIZ 1988).
         **Hotovo 2026-10-09:** `docs/desky/KZD-1.md`, sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`. Dál se nabízí
         kopírovací program CKM (magnetofon ↔ KZD-1, zdroják `CKM.MAC`) a převod programu na kazetu `.kzd`. Podklady:
