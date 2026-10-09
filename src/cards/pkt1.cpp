@@ -288,7 +288,11 @@ int Pkt1::run(int cycles)
         } else if (pins & Z80_IORQ) {
             uint8_t port = (uint8_t)Z80_GET_ADDR(pins);
             if (pins & Z80_M1) {
-                Z80_SET_DATA(pins, bus->inta());
+                {
+                    uint8_t v = bus->inta();
+                    bus->int_ack(z80.pc, z80.im, z80.i, v);
+                    Z80_SET_DATA(pins, v);
+                }
             } else if (pins & Z80_RD) {
                 Z80_SET_DATA(pins, bus->io_read(port));
                 if (wait_always) stall++;

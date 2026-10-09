@@ -291,6 +291,7 @@ int Jpr1zi::run(int cycles)
             if (pins & Z80_M1) {
                 // interrupt acknowledge
                 uint8_t v = bus->inta();
+                bus->int_ack(z80.pc, z80.im, z80.i, v);
                 Z80_SET_DATA(pins, v);
             } else if (pins & Z80_RD) {
                 // on-card ports are served through io_read() like any other card

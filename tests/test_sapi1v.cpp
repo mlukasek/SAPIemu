@@ -9,6 +9,7 @@
 #include "cards/zrmd1.h"
 #include "core/bus.h"
 #include "core/headless.h"
+#include "core/log.h"
 #include "core/machine.h"
 #include "core/png.h"
 #include "core/util.h"
@@ -364,9 +365,50 @@ static void cga_waits(void)
     CHECK(fabs(r2 - 0.09) < 0.15);
 }
 
+// Interrupt log: IM 2 with I pointing at the CGA-1V (C000h), the VBI interrupt of the card; nobody answers
+// /INTA (FFh), so the vector C0FFh is read from the video memory, which is also reported in the log.
+static void int_log_im2(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    m.run_seconds(0.2);
+    m.bus.io_write(0x63, 0xC0);   // RAM-1V: MAP1 = MAP2 = H, CGA-1V at C000
+    const uint8_t prog[] = { 0xF3, 0xED, 0x5E, 0x3E, 0xC0, 0xED, 0x47, 0xFB, 0x18, 0xFE };   // DI, IM 2, I = C0h, EI, JR $
+    for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
+    m.bus.mem_write(0xC0FF, 0x34);   // the vector in the video RAM: handler 1234h
+    m.bus.mem_write(0xC100, 0x12);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    r.pc = 0x8000;
+    m.cpu->set_regs(r);
+    m.bus.int_log_enabled = true;
+    m.bus.mem_write(0xFFFB, 0x88);   // CGA-1V: IRQ enabled
+    for (int i = 0; i < 40 && m.bus.int_log.empty(); i++) m.run_seconds(0.001);
+    CHECK(!m.bus.int_log.empty());
+    if (m.bus.int_log.empty()) return;
+    const IntLogEntry& e = m.bus.int_log[0];
+    CHECK_EQ(e.im, 2);
+    CHECK_EQ(e.i, 0xC0);
+    CHECK_EQ(e.data, 0xFF);
+    CHECK_EQ(e.vector, 0xC0FF);
+    CHECK_EQ(e.handler, 0x1234);
+    CHECK(e.table == "CGA-1V");
+    CHECK(e.from.find("CGA-1V") != std::string::npos);
+    CHECK(e.pc == 0x8008);
+    std::vector<std::string> lines;
+    log_recent(lines, 50);
+    bool warned = false;
+    for (const std::string& l : lines) warned |= l.find("video memory of CGA-1V") != std::string::npos;
+    CHECK(warned);
+    m.bus.mem_write(0xFFFB, 0x80);
+    m.bus.io_write(0x63, 0x00);
+}
+
 int main(void)
 {
     test_init();
+    int_log_im2();
     cga_waits();
     zrd_rev11();
     turbo();

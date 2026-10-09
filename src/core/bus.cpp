@@ -1,6 +1,7 @@
 #include "core/bus.h"
 #include "core/state.h"
 #include "core/card.h"
+#include "core/devices.h"
 #include "core/plant.h"
 #include "core/log.h"
 
@@ -113,9 +114,63 @@ uint8_t Bus::inta(void)
 {
     for (Card* c : cards) {
         uint8_t d;
-        if (c->inta(d)) return d;
+        if (c->inta(d)) {
+            inta_card = c;
+            return d;
+        }
     }
+    inta_card = nullptr;
     return OPEN_BUS;   // RST 38h in IM0
+}
+
+Card* Bus::mem_card(uint16_t addr)
+{
+    for (Card* c : cards) {
+        uint8_t d;
+        if (c->mem_peek(addr, d)) return c;
+    }
+    return nullptr;
+}
+
+void Bus::int_ack(uint16_t pc, int im, uint8_t i, uint8_t data)
+{
+    IntLogEntry e;
+    e.time = now;
+    e.pc = pc;
+    e.im = (uint8_t)im;
+    e.i = i;
+    e.data = data;
+    e.vector = 0;
+    e.handler = 0x0038;
+    if (im == 2) {
+        e.vector = (uint16_t)(i << 8 | data);
+        e.handler = (uint16_t)(mem_peek(e.vector) | mem_peek((uint16_t)(e.vector + 1)) << 8);
+        Card* t = mem_card(e.vector);
+        if (t) e.table = t->type;
+        if (t && dynamic_cast<DisplayDevice*>(t) && int_warned.find(t->type) == std::string::npos) {
+            int_warned += t->type + " ";
+            LOGW("IM 2 interrupt at %04Xh: the vector %04Xh (I = %02Xh, bus %02Xh%s%s) is read from the video "
+                 "memory of %s, handler %04Xh", pc, e.vector, i, data, inta_card ? " from " : ", nobody answered /INTA",
+                 inta_card ? inta_card->type.c_str() : "", t->type.c_str(), e.handler);
+        }
+    } else if (im == 0) {
+        e.handler = (data & 0xC7) == 0xC7 ? (uint16_t)(data & 0x38) : 0;   // RST n, else another opcode
+    }
+    if (!int_log_enabled) return;
+    for (Card* c : cards)
+        if (c->irq_lines() & IRQ_INT0) e.from += (e.from.empty() ? "" : ", ") + c->type;
+    if (int_log.size() < INT_LOG_SIZE) int_log.push_back(e);
+    else int_log[int_log_next] = e;
+    int_log_next = (int_log_next + 1) % INT_LOG_SIZE;
+}
+
+void Bus::int_log_copy(std::vector<IntLogEntry>& out, size_t max) const
+{
+    out.clear();
+    size_t n = int_log.size();
+    size_t start = (n < INT_LOG_SIZE) ? 0 : int_log_next;
+    size_t skip = n > max ? n - max : 0;
+    for (size_t i = skip; i < n; i++) out.push_back(int_log[(start + i) % n]);
 }
 
 uint8_t Bus::mem_peek(uint16_t addr)

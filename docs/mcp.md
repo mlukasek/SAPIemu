@@ -82,6 +82,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `printer_output` | Vytištěný text tiskárny (X3 karty JPR nebo DPP-1): poslední řádky, soubor s bajty, počet bajtů; `clear` = nový papír |
 | `serial_set_connected` | Připojení a odpojení terminálu (DCD/CTS/DSR). ECMON a MikroMon podle DCD volí konzoli |
 | `io_log`, `get_log` | Záznam I/O přístupů a log emulátoru |
+| `int_log` | Záznam přijatých přerušení procesoru Z80 (`enable`, `clear`, `count`): režim IM, registr I, bajt na sběrnici při /INTA (FFh = nikdo neodpověděl), u IM 2 adresa vektoru a karta, ze které se čte, obsluha, návratová adresa a karty, které drží /INT0. Vektor IM 2 z videopaměti zobrazovací karty (CGA-1V, AND-1V…) hlásí `get_log` i bez zapnutého záznamu, jednou za kartu |
 
 ## Poznámky k používání
 

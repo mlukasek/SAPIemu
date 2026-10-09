@@ -33,6 +33,19 @@ struct IoLogEntry {
     bool write;
 };
 
+// An accepted maskable interrupt of a Z80 CPU card (Bus::int_ack)
+struct IntLogEntry {
+    uint64_t time;      // CPU cycles
+    uint16_t pc;        // where the program goes on after the interrupt (the return address)
+    uint8_t im;         // interrupt mode 0, 1, 2
+    uint8_t i;          // register I
+    uint8_t data;       // byte on the bus at /INTA (FFh = nobody answered)
+    uint16_t vector;    // IM 2: address of the vector (I * 256 + data)
+    uint16_t handler;   // where the CPU goes (IM 2: the word at `vector`, IM 1: 0038h, IM 0: RST n)
+    std::string from;   // cards requesting /INT0 at that moment
+    std::string table;  // IM 2: the card holding the vector ("" = none, open bus)
+};
+
 class Plant;
 
 struct Bus {
@@ -94,6 +107,14 @@ struct Bus {
     std::vector<IoLogEntry> io_log;   // ring buffer
     size_t io_log_next = 0;
     static const size_t IO_LOG_SIZE = 4096;
+    // interrupts: the card that answered the last /INTA, the log of accepted interrupts; an IM 2 vector
+    // taken from the memory of a display card (video RAM) is reported once per card in the emulator log
+    Card* inta_card = nullptr;
+    bool int_log_enabled = false;
+    std::vector<IntLogEntry> int_log;   // ring buffer
+    size_t int_log_next = 0;
+    static const size_t INT_LOG_SIZE = 1024;
+    std::string int_warned;             // display cards already reported
 
     Bus();
     uint8_t mem_read(uint16_t addr);
@@ -101,7 +122,11 @@ struct Bus {
     uint8_t io_read(uint8_t port);
     void io_write(uint8_t port, uint8_t data);
     uint8_t inta(void);
+    // a Z80 card took a maskable interrupt (after inta()): log it, check where an IM 2 vector comes from
+    void int_ack(uint16_t pc, int im, uint8_t i, uint8_t data);
+    void int_log_copy(std::vector<IntLogEntry>& out, size_t max) const;
     uint8_t mem_peek(uint16_t addr);
+    Card* mem_card(uint16_t addr);   // the card that answers a read of addr (nullptr = open bus)
 
     void reset(void);
     void advance_all(void);

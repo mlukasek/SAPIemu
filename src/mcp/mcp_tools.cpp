@@ -1355,6 +1355,31 @@ json t_io_log(EmuHost& h, const json& a)
     return text_result(out);
 }
 
+json t_int_log(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    if (a.contains("enable")) {
+        m.bus.int_log_enabled = arg_bool(a, "enable", true);
+        if (arg_bool(a, "clear", false)) { m.bus.int_log.clear(); m.bus.int_log_next = 0; }
+    }
+    long long count = arg_num(a, "count", 50);
+    std::vector<IntLogEntry> log;
+    m.bus.int_log_copy(log, (size_t)std::max<long long>(1, std::min<long long>(count, (long long)Bus::INT_LOG_SIZE)));
+    std::string out = std::string("interrupt log ") + (m.bus.int_log_enabled ? "enabled" : "disabled") + "\n";
+    for (const IntLogEntry& e : log) {
+        char line[160];
+        if (e.im == 2)
+            snprintf(line, sizeof(line), "%12llu IM 2 I=%02X bus %02X vector %04X (%s) -> %04X, return %04X, from %s\n",
+                     (unsigned long long)e.time, e.i, e.data, e.vector, e.table.empty() ? "open bus" : e.table.c_str(),
+                     e.handler, e.pc, e.from.empty() ? "?" : e.from.c_str());
+        else
+            snprintf(line, sizeof(line), "%12llu IM %d bus %02X -> %04X, return %04X, from %s\n", (unsigned long long)e.time,
+                     e.im, e.data, e.handler, e.pc, e.from.empty() ? "?" : e.from.c_str());
+        out += line;
+    }
+    return text_result(out);
+}
+
 json t_get_log(EmuHost&, const json& a)
 {
     long long count = arg_num(a, "count", 50);
@@ -1468,6 +1493,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"card":{"type":"string","description":"card type or name; the first printer when omitted"},"lines":{"type":"integer","default":200},"clear":{"type":"boolean","default":false}}})", t_printer_output },
     { "io_log", "Show recent I/O port accesses; enable=true starts logging (clear=true empties the log).",
       R"({"type":"object","properties":{"enable":{"type":"boolean"},"clear":{"type":"boolean"},"count":{"type":"integer","default":50}}})", t_io_log },
+    { "int_log", "Show recent maskable interrupts taken by a Z80 CPU card: interrupt mode, register I, the byte on the bus at /INTA, for IM 2 the vector address and the card holding it, the handler, the return address and the cards requesting /INT0. enable=true starts logging (clear=true empties the log). An IM 2 vector read from the video memory of a display card (CGA-1V, AND-1V...) is reported in get_log even without the log.",
+      R"({"type":"object","properties":{"enable":{"type":"boolean"},"clear":{"type":"boolean"},"count":{"type":"integer","default":50}}})", t_int_log },
     { "get_log", "Recent emulator log messages (warnings, bus conflicts...).",
       R"({"type":"object","properties":{"count":{"type":"integer","default":50}}})", t_get_log },
 };
