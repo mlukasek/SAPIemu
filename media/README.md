@@ -64,7 +64,7 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 | `BASIC_EXP_V5.0.hex` | BASIC EXP V5.0 (TESLA DIZ 1986), `BASIC5.HEX` | 4400–6B00 |
 | `BASIC_EXP_V5.0G.hex` | BASIC EXP V5.0/G s grafikou pro DGD-1, `BASIC5G.HEX` | 4400–7400 |
 | `BASIC_EXP_V5.0G_SZ.hex` | BASIC EXP V5.0/G+SZ s příkazem `KRES` pro zapisovač (Minigraf 0507, XY 4130), zdroj sapi.cz `data/bexpgsz_hex.php` (kopie „JiM“, konfigurace 0Ch = Minigraf na DPP-1). **Upraveno:** porty F3h/F1h vráceny na 33h/31h podle tabulky v návodu `doku2/bexpgsz.php` (6 bajtů: 7951, 7AB5, 7B03, 7C23, 7CC2, 7CC6). `docs/desky/Minigraf.md` | 4400–8BC7 |
-| `KRES_DEMO.bas` | Ukázka příkazu `KRES` (rámeček, domek se šrafovanou střechou, slunce, otočený nápis, čárkovaná vlna), napsaná pro SAPIemu. Vkládá se Stroj → Klávesnice → Vložit text po `.B`. | (text) |
+| `KRES_DEMO.bas` | Ukázka příkazu `KRES` (rámeček, domek se šrafovanou střechou, slunce, otočený nápis, čárkovaná vlna), napsaná pro SAPIemu. Na začátku pero dojede na levý doraz a odtud 90 mm doprava, takže nezáleží, kde předtím stálo. Vkládá se Stroj → Klávesnice → Vložit text po `.B`. Návod: `docs/navod-minigraf.md`. | (text) |
 | `MINIGRAF_DEMO.bas` | Ukázka pro zapisovač Minigraf 0507 v BASICu EXP V5.0 (spirála šestiúhelníků, nápisy, logo ARITMA), převzatá ze sapi.cz `doku2/0507.php` s opraveným řádkem 450 (`TO 17302`). Text, vkládá se Stroj → Klávesnice → Vložit text po `.G=1800` a `.B`. `docs/desky/Minigraf.md` | (text) |
 | `CKM.hex` | Kopírovací program CKM magnetofon ↔ KZD-1 (TESLA ELTOS DIZ, 24. 3. 1988) pro MIKOS/K, spouští se `.G=4400`. Zdroj sapi.cz `data/ckm_hex.php`; překlad `CKM.MAC` ze SAPI_DOKU se s ním shoduje bajt po bajtu (4400–4D92, dál jen buffery). Návod v `docs/desky/KZD-1.md` | 4400–4FAA |
 

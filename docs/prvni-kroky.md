@@ -131,6 +131,8 @@ Další programy z `media\` si nahrajete takto:
   4. `.K` `Z` převine na začátek, `.K` `L` a jméno soubor načte (návod v `docs/desky/KZD-1.md`);
   5. programy z kazet magnetofonu na KZD-1 zkopíruje originální program CKM (`media\mikos\CKM.hex`, `.G=4400`);
   6. program `.hex` nebo `.bin` jde do KZD-1 vložit rovnou (Média → Vložit…), vznikne z něj kazeta jako od MIKOSu/K.
+
+  Celý návod s výpisy obrazovky: `docs/navod-kzd1.md`.
 - **Zapisovač Minigraf 0507** (`zps\ZPS-2_MIKOS_V5_Minigraf.sapi`, okno Minigraf se otevře samo):
   1. `.G=1800` (pero na počátek), `.G=1809` nakreslí znakovou sadu;
   2. ukázka: Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0.hex`, `.B`, v okně Minigraf Nový papír, obsah
@@ -138,6 +140,8 @@ Další programy z `media\` si nahrajete takto:
   3. kresba se uloží tlačítkem Uložit PNG nebo SVG (`docs/desky/Minigraf.md`);
   4. kreslení v milimetrech: `media\mikos\BASIC_EXP_V5.0G_SZ.hex`, `.B`, vložit `media\mikos\KRES_DEMO.bas`, `RUN`
      (příkaz `KRES`: kružnice, šrafování, text).
+
+  Celý návod s příklady vlastních kreseb: `docs/navod-minigraf.md`.
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

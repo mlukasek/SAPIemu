@@ -1337,6 +1337,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Program → kazeta `.kzd` podle toho, co zapisuje MIKOS/K** (rozložení, mezery a rozestupy bitů změřené na páskách,
   které zapsal emulovaný MIKOS/K), ne podle vlastního zjednodušeného formátu. Načte ho originální K_L. Kazeta se
   ukládá do `work/kzd-1/JMÉNO.kzd`, existující soubor se nepřepisuje (`JMÉNO-2.kzd`…).
+- **Chyba CKM s délkou bloku zůstává věrně** (nalezeno při psaní návodu): po čtení z KZD-1 CKM zapíše do `DEBL` 0
+  místo FFh a další zápisy na KZD-1 dělají jednobajtové bloky. Je to chyba originálního programu (zdroják i HEX ze
+  sapi.cz). Emulátor ani `CKM.hex` ji neopravují, návod ukazuje obejití (`.K_X FF`, reset). Opravenou kopii CKM
+  (jedna instrukce `CMA` navíc) by šlo přidat vedle originálu, pokud o ni autor bude stát.
+- **Návody k obsluze** (`docs/navod-kzd1.md`, `docs/navod-minigraf.md`) jsou zvlášť od technických popisů desek.
+  Jsou psané pro uživatele, krok za krokem, a výpisy obrazovky v nich jsou opsané z emulátoru, ne z původních
+  návodů. Co se nezkoušelo, je tak označené.
 
 ## 2026-10-09 – zapisovač ARITMA Minigraf 0507
 
@@ -1357,6 +1364,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   bajtů je vrácených na 33h/31h podle tabulky „původní obsah“ v návodu. Úprava je popsaná v `media/README.md`,
   originál zůstává na sapi.cz.
 - **Export oříznutý na kresbu** (MCP `crop`) pro obrázky do dokumentace; okno ukládá celou šířku papíru.
+- **Ukázky s `KRES` začínají dojetím na levý doraz** (`KRES #I -220,0,, #I 90,0,,`): `KRES` počítá od místa, kde
+  pero stojí, a to se liší (po zapnutí 60 mm od dorazu, po `.G=1800` 10 mm). Dojetí na doraz používá i původní
+  ovladač, na skutečném zapisovači je to běžný způsob, jak najít počátek (nemá koncové spínače).
 - **Vložení textu na klávesnici** (Stroj → Klávesnice → Vložit text, Ctrl+Shift+V): ukázku v BASICu by jinak bylo
   nutné opisovat. Klávesy jdou frontou klávesnice stejně jako `type_text` přes MCP. BASIC EXP stíhá celý program
   vložený najednou (ověřeno).

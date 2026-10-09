@@ -1,7 +1,7 @@
 # KZD-1 – kazetopáskový záznamník dat
 
 Stav: **emulovaný** od 2026-10-09 (`src/chips/kzd1.*`, připojený k DPP-1 parametrem `kzd1`), sestava
-`machines/zps/ZPS-2_MIKOS_K.sapi` s MIKOSem/K V5.0, test `test_kzd1`.
+`machines/zps/ZPS-2_MIKOS_K.sapi` s MIKOSem/K V5.0, test `test_kzd1`. **Návod k obsluze:** `docs/navod-kzd1.md`.
 
 Výrobce ZPA Košíře (KZD 1 stolní se zdrojem, KZD 1P panelový bez zdroje), návod OTS-N86/970 z 11/1986, opravenka
 12/1987. Datová kazeta ISO 3407 (Philips, pásek 3,81 mm, 86 m na stranu). K SAPI-1 ho připojuje TESLA ELTOS DIZ
@@ -103,9 +103,22 @@ Země: KZD 3, 4, 5, 6 → X2 17, 19. Piny X2 → 8255 jsou podle netlistu replik
   5. `L`, jméno (`*` = první soubor), `CTENI HOTOVO ?` → `A`, `JMÉNO --(A/N)?` → `A`;
   6. `B` (binární soubor) nebo `A` (znakový), jméno na KZD-1;
   7. `Q` zpět do monitoru, `.K_D` ukáže soubor, `.K_Z` a `.K_L` ho načte.
-  Opačně (KZD-1 → magnetofon) přepne `K`, při zápisu na magnetofon zmáčknout NAHRÁT.
-- **Ověřeno:** BASIC EXP V5.0 z kazety MIKOS zkopírovaný na KZD-1, načtený `.K_L` a spuštěný `.J` (`PRINT 6*7`
-  → 42; přes MCP 2026-10-09). Test `test_kzd1` dělá totéž s malým programem.
+  Opačně (KZD-1 → magnetofon) přepne `K`. Na novou (prázdnou) kazetu magnetofonu se píše jméno se zavináčem
+  (`@JMÉNO`): CKM pak zapisuje hned bez dotazu, NAHRÁT musí být zmáčknuté předem. Bez zavináče CKM nejdřív
+  přehrává a hledá konec záznamu (`CTENI HOTOVO ?`, ve zdrojáku pak `ZAPIS! HOTOVO ?`), na prázdné kazetě donekonečna.
+- **Ověřeno:**
+  - BASIC EXP V5.0 z kazety MIKOS zkopírovaný na KZD-1, načtený `.K_L` a spuštěný `.J` (`PRINT 6*7` → 42; přes MCP
+    2026-10-09). Test `test_kzd1` dělá totéž s malým programem.
+  - Cesta zpět (2026-10-09): BASIC z KZD-1 (`K`, `L .BASIC`) na magnetofon (`B @BASIC`, nová WAV, 64 s), přečtený
+    zpět z magnetofonu (`M`, `L *`), zapsaný na KZD-1 jako BASIC2, `.K_L .BASIC2`, `J`, `PRINT 6*7` → 42.
+- **Chyba v CKM (originál, ne emulace):** po čtení ze záznamníku CKM uzavře soubor kódem `XRA A`, `STA DEBL`
+  (komentář „BLOK 255 B“). Do délky bloku MIKOSu/K (427Fh) tak zapíše 0. MIKOS/K ve stejném místě (`DIRSTP`) dělá
+  `XRA A`, `CMA`, `STA DEBL`, tedy FFh. Při délce 0 končí blok po každém bajtu (`BUFEND`, `WOB`). Každý další zápis
+  na KZD-1, z CKM i `.K_S`, pak dělá jednobajtové bloky s mezerou: asi 70 ms a 67 mm pásky na bajt. Soubor 10 KB
+  skončí `CHYBA - KONEC PASKY`. `.K_I` délku nespraví, `.K_X FF` a reset ano (MIKOS/K ji při startu nastaví na FFh).
+  Stejné je to s MIKOSem/K 18. 5. 88 (`KZD2.MAC` má stejný `DIRSTP`, `WOB`, `BUFEND`). Vyzkoušeno 2026-10-09 přes MCP:
+  CKM `K`, `L`, `M`, `B` zapisoval přes 80 m. `.K_S` 1 KB s `DEBL` = 0 nahrával po 20 s ještě na 12 m, s FFh skončí
+  za 2 s na 3,9 m. Postup s obejitím chyby je v `docs/navod-kzd1.md`.
 
 ## Emulace
 

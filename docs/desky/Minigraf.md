@@ -2,7 +2,7 @@
 
 Stav: **emulovaný** od 2026-10-09 (`src/chips/minigraf.*`, připojený k DPP-1 parametrem `minigraf`), sestava
 `machines/zps/ZPS-2_MIKOS_V5_Minigraf.sapi` s ovladačem V.1-MGF v EPROM, okno Minigraf, MCP `plotter`, test
-`test_minigraf`.
+`test_minigraf`. **Návod k obsluze s příklady:** `docs/navod-minigraf.md`.
 
 Malý stolní zapisovač A4 podniku ARITMA Praha (0507 se síťovým zdrojem, stavebnice Amagraf 0517 na 24 V). Uvnitř
 jsou jen dekodéry fází a budiče krokových motorů, všechno ostatní dělá počítač. K SAPI-1 se připojoval na DPP-1,
@@ -95,10 +95,16 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
   3. Nový papír;
   4. obsah `media\mikos\KRES_DEMO.bas` vložit přes Stroj → Klávesnice → Vložit text, `RUN`.
 
-  `.G=1800` není potřeba, port nastaví `KRES #I`. Ukázka začíná `KRES #I 40,0,,`: po zapnutí stojí pero 60 mm
-  od levého dorazu a rámeček široký 160 mm by jinak na doraz narazil.
-- Ověřeno: kružnice `KRES #K 0,0,30,36` má 60,00 × 60,00 mm (`test_minigraf`), ukázka se nakreslí bez kroků na
-  dorazu.
+  `.G=1800` není potřeba, port nastaví `KRES #I`. `KRES` o dorazech neví a počítá od místa, kde pero stojí (po
+  zapnutí 60 mm od levého dorazu, po `.G=1800` 10 mm). Ukázka proto začíná `KRES #I -220,0,, #I 90,0,,`: pero
+  dojede na levý doraz (zbytek kroků se ztratí na dorazu, jako u ovladače z EPROM) a odtud 90 mm doprava. Rámeček
+  široký 160 mm se tak vejde mezi dorazy, ať pero předtím stálo kdekoli. Původní `#I 40,0,,` po `.G=1800` narazil
+  rámečkem 30 mm na doraz (2026-10-09).
+- Ověřeno: kružnice `KRES #K 0,0,30,36` má 60,00 × 60,00 mm (`test_minigraf`). Ukázka po zapnutí i po `.G=1800`
+  má kroky na dorazu jen z úvodního dojetí (1280, popřípadě 1680) a končí v počátku 90 mm od dorazu.
+- Při `KRES #I` a `CALL(6177)` (nové nastavení portu 8255) zapisovač ohlásí 2–4 ztracené kroky. Zápis řídicího
+  slova vynuluje výstupy a kód fáze skočí z posledního stavu na 0. Motor doskočí do nejbližší fáze, na skutečném
+  zapisovači stejně. Hned potom ovladač nastavuje počátek, takže to kresbě nevadí.
 
 ## Emulace
 

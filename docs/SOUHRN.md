@@ -79,7 +79,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - MIKOS/K: K_I, K_S, K_D, K_Z, K_L ověřené. Po K_R a K_D hlásí K_L `NENI KONEC SOUBORU`: chyba originálu
     (stejně i verze 18. 5. 88), ponecháno věrně, správně je K_Z nebo `.JMÉNO`.
   - Kopírovací program CKM (originál ze sapi.cz, `media/mikos/CKM.hex`): BASIC EXP z kazety MIKOS přešel na KZD-1
-    a odtud naběhl.
+    a odtud naběhl. Ověřený i směr zpět (KZD-1 → magnetofon `@JMÉNO` → KZD-1). **Chyba originálu CKM:** po čtení
+    z KZD-1 nastaví délku bloku 0, další zápisy na KZD-1 pak dělají jednobajtové bloky. Pomůže `.K_X FF` nebo reset.
+  - **Návody k obsluze** (2026-10-09, přání autora „ať to umí obsluhovat každý“): `docs/navod-kzd1.md` a
+    `docs/navod-minigraf.md`. Všechny kroky jsou vyzkoušené přes MCP a mají obrázky oken (`docs/img/navod-*.png`).
+    `KRES_DEMO.bas` při tom dostal úvodní dojetí na levý doraz (po `.G=1800` narážel rámečkem na doraz).
   - Program `.hex`/`.bin` jde vložit rovnou do KZD-1 (okno Média, MCP `kzd1 program`): vznikne kazeta, jakou by
     zapsal MIKOS/K (`kzd_from_program`, sdílí `tape_load_image` a `tape_mikos_file` s magnetofonem).
   - Otázky na HW v Nejasnostech `KZD-1.md`.
