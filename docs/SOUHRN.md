@@ -313,7 +313,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      f) **Zásobník nápadů (2026-10-09, autor: „všechno jsou dobré nápady, vrátíme se k nim“):**
         1. ~~model plotteru na DPP-1~~ hotové 2026-10-09: Minigraf 0507 (`docs/desky/Minigraf.md`); zbývá XY 4130
            (ovladač za MIKOSem V5 v `_ROM\MIKOS v5\MIKOS5.BIN` 1800h) a AR 1990;
-        2. RKD-1 (kazetový disk CM 5403, CP/M ze zdrojáků Tesla Elstroj);
+        2. RKD-1 (kazetový disk CM 5403, CP/M ze zdrojáků Tesla Elstroj); podklady a plán sepsané 2026-10-09 v
+           `docs/desky/RKD-1.md` (mechaniky CM 5403 a CM 5400, porty, formát, software, kabel SM 5400, Nejasnosti);
         3. DSE-1 (simulátor a programátor EPROM);
         4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;
         5. ~~souhrnný seznam otázek k ověření na HW (bod a)~~ hotové, `docs/hw-otazky.md`;
