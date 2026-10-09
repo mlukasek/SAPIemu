@@ -22,6 +22,9 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
       („K2 FDD“) vede k mechanikám; svislé typy „RPD-1A“ a „RPD-1B“;
     - FDC-1: stejně, horní FRB obou desek (FDC-1A vpravo, FDC-1B vlevo) propojuje stejný kabel, k mechanikám vede
       dolní FRB na FDC-1A („K2 FDD“), dolní FRB na FDC-1B má vlastní signály SEL, HL a MOT;
+    - RKD-1: obě desky stejně, horní FRB (X3) propojuje plochý kabel (název v podkladech není, kreslí se bez
+      popisu), dolní FRB (X2, „K2 DISK“) obou desek vede ke kazetovému disku, signály mechaniky jsou rozdělené mezi
+      RKD-1A a RKD-1B;
     - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2). LED na
       skutečné desce není, emulátor ji přidává: svítí 50 ms po přístupu na disk nebo PMD32-SD;
     - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, AND-1B, DGD-1V a CGA: K2 VGA uprostřed; BGP-1S: FRB K2 (TV);

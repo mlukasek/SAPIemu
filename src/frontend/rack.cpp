@@ -620,6 +620,13 @@ const PanelItem k_pl_fdc1b[] = {
     { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
+// RKD-1: both boards alike, X3 at the top linked by a flat cable (as RPD-1), X2 at the bottom
+// to the cartridge disk drive (the drive signals are split between A and B, [R1] page 15)
+const PanelItem k_pl_rkd1[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" }, { PI_NOTE, 41.0f, 437.8f, "DISK" },
+    { PI_END, 0, 0, nullptr },
+};
 // MFC-1A: one connector to the floppy drives (XP2)
 const PanelItem k_pl_mfc1a[] = {
     { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "FDD" },
@@ -656,6 +663,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     const char* p = ci->panel;
     if (!strcmp(ci->type, "RPD-1")) return board ? k_pl_rpd1b : k_pl_rpd1a;
     if (!strcmp(ci->type, "FDC-1")) return board ? k_pl_fdc1b : k_pl_fdc1a;
+    if (!strcmp(ci->type, "RKD-1")) return k_pl_rkd1;
     if (!strcmp(ci->type, "MFC-1A")) return k_pl_mfc1a;
     if (!strcmp(ci->type, "IDE-1")) return k_pl_ide1;
     if (!strcmp(ci->type, "PKT-1")) return k_pl_jpr_frb;   // XP3 printer, the BOOT LED, XP2 keyboard
@@ -811,8 +819,9 @@ void panel_plate(const Panel& P, float w, bool dim)
 
 // A narrow card panel: holes, the label at the top and the bottom, connectors.
 // Flat cable KB-17 between the top FRB connectors of RPD-1A (panel A) and RPD-1B (B, on its left);
-// FDC-1A and FDC-1B are linked by the same cable (manual of FDC-1).
-void draw_rpd_cable(const Panel& A, const Panel& B)
+// FDC-1A and FDC-1B are linked by the same cable (manual of FDC-1), RKD-1A and RKD-1B by a cable
+// with no name in the documents (`name` = nullptr).
+void draw_rpd_cable(const Panel& A, const Panel& B, const char* name)
 {
     ImDrawList* dl = A.dl;
     float k = A.k;
@@ -828,10 +837,19 @@ void draw_rpd_cable(const Panel& A, const Panel& B)
         dl->AddRectFilled(P->p(x - 10.5f, y - 70.0f), P->p(x + 10.5f, y + 70.0f), hood, 2.0f * k);
         dl->AddRect(P->p(x - 10.5f, y - 70.0f), P->p(x + 10.5f, y + 70.0f), IM_COL32(40, 42, 46, 255), 2.0f * k);
     }
+    if (!name) return;
     float fs = 9.0f * k;
     ImVec2 c = ImVec2((b0.x + a1.x) * 0.5f, (b0.y + a1.y) * 0.5f);
-    ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, "KB-17");
-    dl->AddText(ImGui::GetFont(), fs, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), IM_COL32(40, 40, 44, 255), "KB-17");
+    ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, name);
+    dl->AddText(ImGui::GetFont(), fs, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), IM_COL32(40, 40, 44, 255), name);
+}
+
+// Are the two boards of a card linked by a cable over their panels; `name` = its label or nullptr
+bool board_cable(const std::string& type, const char** name)
+{
+    *name = nullptr;
+    if (type == "RPD-1" || type == "FDC-1") *name = "KB-17";
+    return *name || type == "RKD-1";
 }
 
 void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type,
@@ -1063,10 +1081,11 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 draw_card_panel(P, ci, shown, ports, slot_has_error(problems, s + b), r.show_types, b, b == 0 ? leds : 0,
                                 b == 0 ? live : nullptr);
             }
-            if (wd == 2 && (type == "RPD-1" || type == "FDC-1")) {
+            const char* cable = nullptr;
+            if (wd == 2 && board_cable(type, &cable)) {
                 Panel A = { dl, ImVec2(slot_x(s) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
                 Panel B = { dl, ImVec2(slot_x(s + 1) + (PITCH - PANEL_W) * 0.5f * k, y0), k };
-                draw_rpd_cable(A, B);
+                draw_rpd_cable(A, B, cable);
             }
         }
     }
@@ -1146,7 +1165,8 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 draw_card_panel(G[b], ci, wd > 1 ? type + (char)('A' + b) : type, ports, false, r.show_types, b, 0,
                                 nullptr);
             }
-            if (wd == 2 && (type == "RPD-1" || type == "FDC-1")) draw_rpd_cable(G[0], G[1]);
+            const char* cable = nullptr;
+            if (wd == 2 && board_cable(type, &cable)) draw_rpd_cable(G[0], G[1], cable);
             for (int v = v0; v < dl->VtxBuffer.Size; v++) {   // 75 % opaque
                 ImU32& col = dl->VtxBuffer[v].col;
                 col = (col & ~IM_COL32_A_MASK) | ((((col >> IM_COL32_A_SHIFT) & 0xFF) * 3 / 4) << IM_COL32_A_SHIFT);

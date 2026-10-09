@@ -138,7 +138,8 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
 
 - **Karta `RKD-1`** zabírá dva sloty (desky A + B), porty 40h–4Fh (dekodér PROM MH 74188 nemáme, adresy jsou
   z popisu a ovladače). 8255 a 8253 jsou čipy emulátoru, 1 KB RAM s ukazatelem, porovnání čísla sektoru (zapsané
-  inverzně), RUN, STB, T00, WPP. Bity PB jsou surové stavy linek rozhraní, jak je čte ovladač.
+  inverzně), RUN, STB, T00, WPP. Bity PB jsou surové stavy linek rozhraní, jak je čte ovladač. V konfigurátoru má
+  každá deska dva FRB 30: horní X3 propojuje desky kabelem (jako u RPD-1), dolní X2 vede k mechanice („K2 DISK“).
 - **T00 je hladina, ne pulz** (schéma repliky, list RKD-1A): klopný obvod D7CA bere DB0 při zápisu na 4Bh a nuluje
   ho invertované PC0 (D4BA). T00 a adresa stopy (budiče povolené PC0) se proto vylučují: `RK_HOME` pošle T00 se
   STB, `RK_SEEK` nastaví PC0 a tím T00 smaže. WPP je pulz zápisu na 4Bh s DB1, STB pulz zápisu na 48h.
