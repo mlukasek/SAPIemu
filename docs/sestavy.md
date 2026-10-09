@@ -207,6 +207,12 @@ vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při
 (JPR-1V, RAM-1V, AND-1V, DSM-1V 10h, ZRD-1V 60h, DGD-1V, CGA-1V, MPH-1V 50h, bez IDE-1). Displeje se střídají podle MAP:
 MAP1 = L AND-1V na F800h (díra 2 KB v RAM-1V), MAP1 = H grafika na C000h (díra 16 KB), MAP2 = L DGD-1V, MAP2 = H
 CGA-1V. JPR-1V a klávesnice jako v sestavě V.
+**RKD-1** (`machines/rkd1_tesla_cpm.sapi`, 2026-10-09): CP/M 2.2 Tesla Elstroj & JaMeSoft 1987 z kazetového disku
+CM 5403. JPR-1Z s boot EPROM ROMES (přeložená ze zdrojáků), RAM-1Z 62 KB, AND-1Z, Consul 259.11, RPD-1 (E:, F:
+služební diskety J. Bíby), RKD-1 (A:, B: kazeta `media/rkd-1/tesla_cpm_system.rkd`, C:, D: pevný disk
+`work/rkd-1/unit0_fixed.rkd`, nový je nenaformátovaný). Po startu shell SH chce číslo uživatele. RAM disk RMD-1 má
+stejné porty 40h, do sestavy s RKD-1 nepatří. `docs/desky/RKD-1.md`.
+
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
 - Na X2/X3 JPR-1 je panel HRK-1, zapsaný jako klávesnice `HRK-1`.

@@ -1429,3 +1429,26 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Výchozí zapnuté** (parametr `wait_states`) jako u CGA-1V: věrnost má přednost, vypnutí je pohodlí pro
   rychlejší výpis. Textový výstup přes AND-1V se tím zpomalí o pár procent, jako na železe.
 - **`mem_peek` AND-1V už nevolá `mem_read`**, aby nahlížení debuggeru a MCP nepřidávalo čekání.
+
+## 2026-10-09 – řadič kazetového disku RKD-1
+
+- **Emulace podle ovladače a schématu, ověření originálním softwarem.** Mechaniku CM 5403 nikdo nepopsal a lidi,
+  kteří RKD-1 provozovali, autor nezná. Model proto vychází z toho, co čte a čeká ovladač `RKD.MAC` (Tesla Elstroj
+  1987), z popisu řadiče ([R1] na sapi.cz a sken) a ze schématu repliky EC1045. Měřítkem je, že originální programy
+  (FORMTRKD, ES, ROMES, CBIOS) běží beze změn: formátují, ověřují čtení, bootují a kopírují.
+- **Obraz kazety jako bajty zapsané do sektorů**, ne jako data sektorů: řadič nemá CRC ani adresové značky,
+  hlavičku a součet píše software. Tak funguje formát 24 × 256 i 12 × 512, rozbité sektory i zápis přes konec
+  sektoru bez zvláštních případů. Vlastní formát `.rkd` s hlavičkou, skutečné kazety stejně nikdo nemá.
+- **Polarita DISK podle Tesly** (kazeta = PC6 0): CBIOS bootuje z média 0 a dává mu systémové stopy. J. Bíba ji
+  ve FORMRKD pro bulharskou CM 5400 má opačně, nejspíš jiná mechanika.
+- **T00 jako hladina z klopného obvodu, který maže PC0** (netlist z vektorového PDF repliky, Eagle se zasekl na
+  dialogu). Tím se vysvětlil i kabel SM 5400 se T00 na nejnižším bitu cylindru.
+- **Časy mechaniky jsou odhad** (vystavení hlav jako DEC RK05, otáčky a délka bitu z popisu řadiče), rozběh po
+  vložení kazety je volba `spinup_s` (výchozí 0, pohodlí).
+- **Boot EPROM ze zdrojáků:** `ROMES.COM` z diskety je přeložený na 0100h (zavaděč z CP/M), jako EPROM nefunguje.
+  Zdrojáky 87-02-10 jsou o tři dny starší než binárka, novější se nenašly; pro boot na tom nezáleží.
+- **Náš SYSGEN jen jako krok výroby kazety:** systém z `ES 59` se zachytí v paměti při skoku do CBIOSu a zapíše se
+  na stopy 0 a 1 média 0, odkud ho čtou boot ROM i WBOOT. Vše ostatní (formát, soubory) dělají originální programy
+  a postup se dá zopakovat testem (`RKD_MAKE`).
+- **Bulharskou CM 5400 a jednotky 1–3 software Tesly nepoužívá** (ovladač nastavuje jen jednotku 0). Jednotky 1–3
+  karta umí, bulharskou mechaniku s posunutým kabelem zatím ne.

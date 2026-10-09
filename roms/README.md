@@ -70,6 +70,7 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `jpr-1z/MOR62ZF.bin` | JPR-1Z EPROM 2716 | Totéž pro řadič FDC-1 („SAPI-1 ZPS4-62K/FDC-1“, 1700 B), z sapi.cz `data/mor62zf_hex.php`. |
 | `jpr-1z/ELIS_V7.01.bin` | JPR-1Z EPROM 2716 | Monitor ELIS 62k MON-č R62Z v7.01 *JME/JPE (Z80, C259.11/C262.3 + K6313). Zdroj `H:\SAPI-1\Petr_repliky_k_vyrobe\JPR-1ZI\JPR-1Z_BIOS_ELIS.BIN`. |
 | `jpr-1z/ELIS_V3.00.bin` | JPR-1Z EPROM 2716 | Monitor ELIS V3.00 *JME (8080 kód, C262.3/CS + D100/P), z sapi.cz `data/elis_hex.php`. |
+| `jpr-1z/ROMES_RKD1_870210.bin` | JPR-1Z EPROM 2716 | Boot ROM RKD-1 Tesla Elstroj & JaMeSoft 1987 („Boot ROM pro RKD-1 2x2x203x24x256 87-02-10“): nahraje CP/M z kazetového disku. **Přeloženo ze zdrojáků** ROMES, AND1Z, C25911, NOMOTOFF, RKD z `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_mercl.8sd` (M80/L80 přes `cpmrun`, `/P:0,/D:F700`), zbytek FFh. `ROMES.COM` 87-02-13 na disketě je verze na 0100h pro CP/M, ne obraz EPROM (`docs/desky/RKD-1.md`). |
 | `jpr-1z/JPR-1Z_D14_74S287.bin` | JPR-1Z PROM D14 (= D3C ZI) | Dekodér paměti, dump `Petr_repliky_k_vyrobe\JPR-1ZI\JPR-1Z_PROM_D14.hex`. |
 | `jpr-1z/JPR-1Z_D10_74S287.bin` | JPR-1Z PROM D10 (= D6B ZI) | Dekodér I/O, dump `JPR-1Z_PROM_D10.hex` (shodný s `JPR-1ZI_D6B.bin`). |
 | `ram-1z/RAM-1Z_D3B_74S571.bin` | RAM-1Z PROM D3B | Dekodér RAM, dump `Petr_repliky_k_vyrobe\DMR-1\RAM-1Z_PROM_B9.hex` (shodný s HEX v návodu). |

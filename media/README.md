@@ -188,6 +188,16 @@ překlad `pasmo --hex VRAMBENCH.ASM vrambench.hex`.
 
 Výsledky emulace a otázka na skutečnou desku: `docs/desky/AND-1V.md`.
 
+## `rkd-1/` – kazety kazetového disku RKD-1 (CM 5403)
+
+| Soubor | Obsah |
+|---|---|
+| `tesla_cpm_system.rkd` | Systémová kazeta CP/M 2.2 Tesla Elstroj & JaMeSoft 1987 (24 × 256 B, A: a B:): systém na stopách 0 a 1 média 0 (CCP, BDOS, CBIOS 87-02-13), soubory diskety `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_mercl.8sd` (zdrojáky RKD.MAC, CBES.MAC, ROMES.MAC…, shell SH se STARTSYS.SUB, FORMTRKD, ES, MOVCPM, WM) a PIP.COM. |
+
+Kazeta je vyrobená v emulátoru originálními programy (`FORMTRKD`, `ES 59`), jen zápis systému na stopy je náš
+(originální SYSGEN pro RKD-1 se nenašel). Postup a opakování: `docs/desky/RKD-1.md` (`RKD_MAKE=… test_rkd1`).
+Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsaný tamtéž.
+
 ## `mph-1v/` – programy pro zvukovou kartu MPH-1V (Intel HEX, CP/M `.COM` od 0100h)
 
 Zdroj: `..\SAPI-karty\MPH-1V\` (Libor Lasota), do repa se souhlasem autora. Hudba (VGM v `SPLAY\*.hex`, RAD

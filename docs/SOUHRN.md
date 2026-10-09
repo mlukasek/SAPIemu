@@ -22,6 +22,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     zápis při 2 MHz o 0,3 T méně), stejně tak ZRDTEST (okno zápisu rev 2.1, `docs/desky/ZRMD-1.md`);
   - novinky pro další verzi se sbírají v `docs/release-notes/v0.5.0-alpha.md`.
   Pushnuté 2026-10-09 (autor: „jsou to důležité kroky“), alfa z toho zatím není.
+- **Večer 2026-10-09 (autor: „pusť se do toho“, RKD-1):** řadič kazetového disku RKD-1 s mechanikou CM 5403 a
+  originálním CP/M 2.2 Tesla Elstroj 1987: karta (`src/cards/rkd1.*`), okno Média, sestava `rkd1_tesla_cpm.sapi`,
+  boot EPROM přeložená ze zdrojáků (`ROMES.COM` je verze na 0100h), systémová kazeta `media/rkd-1` vyrobená
+  originálními FORMTRKD a ES, test `test_rkd1` (výroba kazety, start, SH, formátování pevného disku, ochrana zápisu).
+  Nejasnosti rozhodnuté z podkladů (T00 z netlistu repliky, polarita DISK z CBIOSu), zbytek v `docs/desky/RKD-1.md`.
+  Commitnuté lokálně, nepushnuté.
 - **Potom (2026-10-09, autor: „pokračuj“):** čekací stavy AND-1V podle schématu rev 2.3 (list 4/7, stejný
   synchronizátor jako CGA-1V), společný výpočet `Bus::window_waits`, měřicí program VRAMBENCH
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
@@ -298,7 +304,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
            s reléovým multiplexem), DRV-1A (relé, 77h), HRK-1 (14klávesová klávesnice, watchdog). **Celý originální
            firmware** (7 × 2 KB INTELHEX) je v `..\SAPI.CZ\sapi\doku\aps-5.php`, ostatní desky sestavy (JPR-1, REM-1,
            AND-1, CRM-1, RTC-1) už emulujeme. Potřeba jednoduchý model pece a termočlánků;
-        2. **RKD-1** (řadič kazetového disku CM 5403, 8255 + 8253, 40h): ovladač, BIOS CP/M, boot ROM a formátovač
+        2. ~~**RKD-1**~~ (hotové 2026-10-09, `docs/desky/RKD-1.md`) (řadič kazetového disku CM 5403, 8255 + 8253, 40h): ovladač, BIOS CP/M, boot ROM a formátovač
            se zdrojáky (Tesla Elstroj 1987) na `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_mercl.8sd`,
            `FORMRKD.COM` na `a_sluzebni CPM.8sd`; návod `rkd-1.php`, sken `SAPIMAN\Scany dokumentací\RKD1.pdf`;
         3. **DSE-1** (simulátor a programátor EPROM 2716/2732, F0–F4h): programy pro MONITOR V4 (`SAPI_EPROM\ZPS-2\V4\
@@ -313,8 +319,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      f) **Zásobník nápadů (2026-10-09, autor: „všechno jsou dobré nápady, vrátíme se k nim“):**
         1. ~~model plotteru na DPP-1~~ hotové 2026-10-09: Minigraf 0507 (`docs/desky/Minigraf.md`); zbývá XY 4130
            (ovladač za MIKOSem V5 v `_ROM\MIKOS v5\MIKOS5.BIN` 1800h) a AR 1990;
-        2. RKD-1 (kazetový disk CM 5403, CP/M ze zdrojáků Tesla Elstroj); podklady a plán sepsané 2026-10-09 v
-           `docs/desky/RKD-1.md` (mechaniky CM 5403 a CM 5400, porty, formát, software, kabel SM 5400, Nejasnosti);
+        2. ~~RKD-1~~ hotové 2026-10-09: karta, sestava `rkd1_tesla_cpm.sapi`, systémová kazeta z originálních
+           programů Tesla Elstroj (`docs/desky/RKD-1.md`);
         3. DSE-1 (simulátor a programátor EPROM);
         4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;
         5. ~~souhrnný seznam otázek k ověření na HW (bod a)~~ hotové, `docs/hw-otazky.md`;

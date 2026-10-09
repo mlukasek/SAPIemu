@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **217** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **219** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -429,18 +429,23 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Co CPU čte z prázdných patic EPROM a RAM (FFh, nebo plovoucí sběrnice).
 
 
-## [RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)](desky/RKD-1.md) – Nejasnosti (6)
+## [RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)](desky/RKD-1.md) – Nejasnosti (8)
+
+Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté z podkladů (viz Emulace), zbytek
+
+čeká na náhodný nález.
 
 - **Pevný a výměnný disk:** CBIOS Tesly [R4] bere médium 0 a 1 (PC6 = 0) jako výměnný disk a bootuje z něj.
-  FORMRKD J. Bíby [R7] má na médiu 0 a 1 pevný disk. Liší se polarita signálu DISK mezi CM 5403 a CM 5400, nebo
-  se jeden zdroj mýlí?
+  FORMRKD J. Bíby [R7] má na médiu 0 a 1 pevný disk. Emulace drží Teslu (CM 5403). Nejspíš se liší polarita signálu
+  DISK mezi CM 5403 a bulharskou CM 5400 (kabel na str. 15 vede DISK přímo), pro kterou psal J. Bíba.
 
 - **12 nebo 24 sektorů:** dávala mechanika počet sektorových impulzů podle kazety (sektorové značky na disku),
   nebo podle přepínače? Šla kazeta 24 × 256 přečíst na jiné mechanice?
 
-- **Kabel SM 5400 posunutý o bit** ([R1] str. 15): T00 na adresu cylindru 2⁰ a návrat nezapojený. Má SM 5400
-  ve vysoké hustotě 406 (nebo víc) cylindrů a řadič používá jen sudé? Jak pak funguje návrat na stopu 0
-  (`RK_HOME` posílá T00)? Byla tabulka úprava pro konkrétní sestavu?
+- **Kabel SM 5400 posunutý o bit** ([R1] str. 15): T00 na adresu cylindru 2⁰ a návrat nezapojený. Protože T00 je
+  hladina, kterou PC0 maže (schéma), dá řadič s tímto kabelem cylindr 2N pro stopu N a `RK_HOME` najede na
+  cylindr 1 (bez skutečného návratu). Vychází to, jen pokud má SM 5400 ve vysoké hustotě aspoň 408 cylindrů (signál
+  vysoké hustoty kabel nezapojuje). Emulace bulharskou mechaniku zatím nemá.
 
 - **Dekodér PROM MH 74188 (A6 na RKD-1A):** dump není, adresy 40h–4Fh jsou z popisu. Lze přepnout základ?
 
