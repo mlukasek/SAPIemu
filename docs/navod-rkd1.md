@@ -327,11 +327,14 @@ vznikne jako nový nenaformátovaný pevný disk.
 
 Řadič RKD-1 uměl i bulharskou mechaniku **CM 5400** (IZOT) s kabelem podle dokumentace RKD-1. Sestava
 `rkd1_jb_cm5400.sapi` ji má s CP/M J. Bíby z 8" diskety a jeho programem **FORMRKD** v1.1 (1987, „Formátování
-a kontrola disku SM 5400 (203*12*512)“). CP/M, které by z CM 5400 pracovalo se soubory, se nenašlo; FORMRKD umí
-disky naformátovat a zkontrolovat.
+a kontrola disku SM 5400 (203*12*512)“). FORMRKD umí disky naformátovat a zkontrolovat, nic víc.
 
-- Disk má formát SMEP 12 × 512 B. U CM 5400 je DISK obráceně než u CM 5403: FORMRKD má **pevný disk D: (dolní
-  plocha) a E: (horní)**, **výměnnou kazetu F: (dolní) a G: (horní)**.
+**V CP/M disky D: až G: nejsou.** CP/M J. Bíby (BIOS V271111JB) má jen A:, B: (diskety RPD-1) a C: (RAM disk
+ZRMD-1), `DIR D:` skončí hláškou `BDOS ERR ON D: SELECT`. CP/M, které by z CM 5400 pracovalo se soubory, se
+nenašlo. Písmena D: až G: jsou jen označení mechanik v programu FORMRKD, který si disk obsluhuje sám.
+
+- Disk má formát SMEP 12 × 512 B. U CM 5400 je DISK obráceně než u CM 5403: FORMRKD označuje **pevný disk D:
+  (dolní plocha) a E: (horní)**, **výměnnou kazetu F: (dolní) a G: (horní)**.
 - Kazeta i pevný disk jsou na začátku nenaformátované (`work\rkd-1\cm5400_kazeta.rkd`, `cm5400_fixed.rkd`).
 
 ```

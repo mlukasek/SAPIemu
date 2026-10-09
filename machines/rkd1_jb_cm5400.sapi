@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "CP/M J. Bíby s kazetovým diskem RKD-1 a bulharskou mechanikou CM 5400 (FORMRKD, 12 × 512 B)",
-    "description": "CP/M 2.2 J. Bíby z 8\" diskety A: (RPD-1, MON 271111), C: = RAM disk ZRMD-1, B: = služební disketa J. Bíby s programem FORMRKD v1.1 (20. 10. 1987, „Formátování a kontrola disku SM 5400 (203*12*512)“). RKD-1 s mechanikou CM 5400 (IZOT, Bulharsko) na kabelu SM 5400 podle dokumentace RKD-1: pevný disk D: (dolní plocha), E: (horní), výměnná kazeta F:, G:, formát SMEP 12 × 512 B. Kazeta i pevný disk jsou na začátku nenaformátované: B:FORMRKD, mechanika D až G, F = formátovat, C = kontrolní čtení, O = obojí. CP/M Tesly pro tuto mechaniku není (ta je pro CM 5403, rkd1_tesla_cpm.sapi). docs/desky/RKD-1.md.",
+    "description": "CP/M 2.2 J. Bíby z 8\" diskety A: (RPD-1, MON 271111), C: = RAM disk ZRMD-1, B: = služební disketa J. Bíby s programem FORMRKD v1.1 (20. 10. 1987, „Formátování a kontrola disku SM 5400 (203*12*512)“). RKD-1 s mechanikou CM 5400 (IZOT, Bulharsko) na kabelu SM 5400 podle dokumentace RKD-1: pevný disk D: (dolní plocha), E: (horní), výměnná kazeta F:, G:, formát SMEP 12 × 512 B. Kazeta i pevný disk jsou na začátku nenaformátované: B:FORMRKD, mechanika D až G (jen označení ve FORMRKD: v CP/M J. Bíby disky D: až G: nejsou, BIOS má jen A:, B:, C:), F = formátovat, C = kontrolní čtení, O = obojí. CP/M pro CM 5400 se nenašlo, CP/M Tesly je pro CM 5403 (ta je pro CM 5403, rkd1_tesla_cpm.sapi). docs/desky/RKD-1.md.",
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
