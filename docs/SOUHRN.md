@@ -27,13 +27,17 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   boot EPROM přeložená ze zdrojáků (`ROMES.COM` je verze na 0100h), systémová kazeta `media/rkd-1` vyrobená
   originálními FORMTRKD a ES, test `test_rkd1` (výroba kazety, start, SH, formátování pevného disku, ochrana zápisu).
   Nejasnosti rozhodnuté z podkladů (T00 z netlistu repliky, polarita DISK z CBIOSu), zbytek v `docs/desky/RKD-1.md`.
-  Commitnuté lokálně, nepushnuté.
+  Potom (autor: „čučím na kazetový disk u SAPI“): panely obou desek v konfigurátoru jako u RPD-1 (dva FRB 30, horní
+  propojené kabelem, dolní k mechanice), **návod k obsluze `docs/navod-rkd1.md`** (start, SH, formátování,
+  kopírování, výměna kazet; vše vyzkoušené, obrázek `docs/img/navod-rkd1.png`). Pokusy pro návod změnily dvě věci:
+  zápis na chráněnou kazetu se tiše neprovede (dřív porucha ERR, na které se systém zasekl kvůli chybě ovladače) a
+  kazeta se mění jen s Resetem (CBIOS výměnu za běhu nepozná). Pushnuté 2026-10-09.
 - **Potom (2026-10-09, autor: „pokračuj“):** čekací stavy AND-1V podle schématu rev 2.3 (list 4/7, stejný
   synchronizátor jako CGA-1V), společný výpočet `Bus::window_waits`, měřicí program VRAMBENCH
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 44 v debug i v release (2026-10-09, s `test_kzd1` a `test_minigraf`); release `full` 48 včetně ZEX,
+  - Testy: 45 v debug i v release (2026-10-09 večer, s `test_rkd1`, v debug asi 37 s); release `full` 48 včetně ZEX,
     8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
     kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
     Kdy které testy:
@@ -112,8 +116,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a odtud naběhl. Ověřený i směr zpět (KZD-1 → magnetofon `@JMÉNO` → KZD-1). **Chyba originálu CKM:** po čtení
     z KZD-1 nastaví délku bloku 0, další zápisy na KZD-1 pak dělají jednobajtové bloky. Pomůže `.K_X FF` nebo reset,
     nebo opravená kopie `media/mikos/CKM_opraveny.hex` (jeden bajt, `tools/ckm_oprava.py`, test s oběma verzemi).
-  - **Návody k obsluze** (2026-10-09, přání autora „ať to umí obsluhovat každý“): `docs/navod-kzd1.md` a
-    `docs/navod-minigraf.md`. Všechny kroky jsou vyzkoušené přes MCP a mají obrázky oken (`docs/img/navod-*.png`).
+  - **Návody k obsluze** (2026-10-09, přání autora „ať to umí obsluhovat každý“): `docs/navod-kzd1.md`,
+    `docs/navod-minigraf.md` a večer `docs/navod-rkd1.md`. Všechny kroky jsou vyzkoušené přes MCP a mají obrázky oken (`docs/img/navod-*.png`).
     `KRES_DEMO.bas` při tom dostal úvodní dojetí na levý doraz (po `.G=1800` narážel rámečkem na doraz).
   - Program `.hex`/`.bin` jde vložit rovnou do KZD-1 (okno Média, MCP `kzd1 program`): vznikne kazeta, jakou by
     zapsal MIKOS/K (`kzd_from_program`, sdílí `tape_load_image` a `tape_mikos_file` s magnetofonem).

@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **219** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **220** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -429,7 +429,7 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Co CPU čte z prázdných patic EPROM a RAM (FFh, nebo plovoucí sběrnice).
 
 
-## [RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)](desky/RKD-1.md) – Nejasnosti (8)
+## [RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)](desky/RKD-1.md) – Nejasnosti (9)
 
 Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté z podkladů (viz Emulace), zbytek
 
@@ -446,6 +446,10 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
   hladina, kterou PC0 maže (schéma), dá řadič s tímto kabelem cylindr 2N pro stopu N a `RK_HOME` najede na
   cylindr 1 (bez skutečného návratu). Vychází to, jen pokud má SM 5400 ve vysoké hustotě aspoň 408 cylindrů (signál
   vysoké hustoty kabel nezapojuje). Emulace bulharskou mechaniku zatím nemá.
+
+- **Ochrana proti zápisu:** co udělala CM 5403 se zápisem na chráněný disk? Tiše ho neprovedla (emulace, jako
+  RK05), nebo hlásila poruchu ERR / chybu přístupu STO? Ovladač Tesly bit WPROTECT nečte a s poruchou by se systém
+  zasekl (viz Emulace), takže chráněnou kazetu Tesla zřejmě nepoužívala.
 
 - **Dekodér PROM MH 74188 (A6 na RKD-1A):** dump není, adresy 40h–4Fh jsou z popisu. Lze přepnout základ?
 

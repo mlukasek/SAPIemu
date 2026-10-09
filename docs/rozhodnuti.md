@@ -1452,3 +1452,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   a postup se dá zopakovat testem (`RKD_MAKE`).
 - **Bulharskou CM 5400 a jednotky 1–3 software Tesly nepoužívá** (ovladač nastavuje jen jednotku 0). Jednotky 1–3
   karta umí, bulharskou mechaniku s posunutým kabelem zatím ne.
+- **Zápis na chráněnou kazetu se tiše neprovede** (doplněno večer při psaní návodu). První odhad „ochrana = porucha
+  mechaniky ERR“ systém zasekl: ovladač Tesly bit WPROTECT nečte, poruchu maže jen `RK_HOME` při opakování čtení,
+  WBOOT ani boot ROM ho nevolají a `RK_SEEK` se při chybě vrací s `PUSH BC` na zásobníku. Ze zaseknutí nepomohl ani
+  Reset. Mechaniky rodiny RK05 ochranou jen vypnou zápisový proud, emulace teď dělá totéž: nic se nezapíše, chyba
+  nevznikne, CP/M o ničem neví. Otázka zůstává v Nejasnostech.
+- **Výměnu kazety za běhu emulace nehlídá ani neopravuje:** CBIOS drží poslední sektor ve vyrovnávací paměti a výměnu
+  nepozná, takže zápis po výměně poškodí adresář nové kazety, jako by to udělal na železe. Návod radí měnit kazetu
+  s Resetem a používat jen kopie systémové kazety (bez SYSGENu jinou cestu nemáme).
+- **Panely v konfigurátoru jako u RPD-1:** obě desky mají dva FRB 30, horní (X3) propojuje plochý kabel (bez názvu,
+  v podkladech není), dolní (X2) vede k mechanice. Signály mechaniky jsou rozdělené mezi RKD-1A a RKD-1B.

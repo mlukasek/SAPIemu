@@ -37,7 +37,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35`: 3,5") | „dlouhé“ CP/M J. Bíby: A:, B: 8" (RPD-1), C: ZRMD-1, D:, E: 5,25" HD (FDC-1) | naběhne CP/M, zkuste `DIR B:`, `STAT D:` |
 | `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `1` = CP/M z RAM disku A:, `3` = i s IDE diskem B:, C: |
 | `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `1` = CP/M z RAM disku |
-| `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `A:FORMTRKD` |
+| `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
 | `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
 | `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
 | `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
@@ -148,6 +148,14 @@ Další programy z `media\` si nahrajete takto:
      (příkaz `KRES`: kružnice, šrafování, text).
 
   Celý návod s příklady vlastních kreseb: `docs/navod-minigraf.md`.
+- **Kazetový disk RKD-1** (`rkd1_tesla_cpm.sapi`, CP/M 2.2 Tesla Elstroj 1987 z kazety CM 5403):
+  1. po startu číslo uživatele (`1`) a název oblasti; výzva `b1$` je disk B:, uživatel 1;
+  2. `DIR A:` ukáže systémovou kazetu (shell, formátovač, zdrojáky systému);
+  3. pevný disk je nový: `FORMTRKD`, klávesy `2` a `3` (C: a D:), Enter, `a`; F8 formátování zrychlí;
+  4. `PIP C:=E:STAT.COM` zkopíruje program z diskety, `E:STAT` ukáže volné místo;
+  5. kazetu měnit jen s Resetem (F12) a jen za kopii systémové kazety.
+
+  Celý návod s výpisy obrazovky: `docs/navod-rkd1.md`.
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

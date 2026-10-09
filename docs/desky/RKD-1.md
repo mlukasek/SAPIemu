@@ -3,7 +3,8 @@
 Stav: **emulovaná** (2026-10-09), karta `RKD-1` (`src/cards/rkd1.*`), sestava `machines/rkd1_tesla_cpm.sapi`,
 test `tests/test_rkd1.cpp`. Dvoudeskový řadič RKD-1A („deska řízení“) a RKD-1B („deska dat“) pro 1 až 4 mechaniky
 kazetového disku. Emulace je ověřená originálním softwarem Tesla Elstroj a JaMeSoft 1987 (formátovač, generátor
-systému, boot ROM, CBIOS), který na ní běží beze změn.
+systému, boot ROM, CBIOS), který na ní běží beze změn. **Návod k obsluze** (start, shell SH, formátování,
+kopírování, výměna kazet): `docs/navod-rkd1.md`.
 
 Zdroje:
 - [R1] `..\SAPI_DOKU\SAPIMAN\Scany dokumentací\RKD1.pdf`: původní předvýrobní dokumentace, 38 stran skenu
@@ -146,7 +147,10 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
 - **Mechanika (model CM 5403):** 2400 ot./min, 12 nebo 24 sektorových impulzů (vlastnost talíře, kazeta si ji
   nese v obrazu), 204 stop, 2 povrchy, kazeta a pevný disk. Vystavení hlav je odhad podle DEC RK05 téže třídy:
   10 ms + 0,37 ms na stopu (přes celý disk asi 85 ms), stejná stopa 1 ms. Návrat T00 nuluje chybu mechaniky.
-  Zápis na chráněný disk mechanika odmítne a nastaví ERR (CP/M pak hlásí „Bdos Err On A: Bad Sector“).
+  Na chráněný disk mechanika nezapisuje (jako rodina RK05: ochrana jen vypne zápisový proud), řadič bajty odpočítá a
+  chyba nevznikne. Ovladač Tesly WPROTECT nečte, CP/M zápis bere jako hotový a kazeta zůstane beze změny (viz
+  Nejasnosti). Původní odhad „ochrana = porucha ERR“ systém zasekl: WBOOT ani boot ROM nevolají `RK_HOME`, které
+  jediné poruchu maže, a `RK_SEEK` se při chybě vrací s `PUSH BC` na zásobníku (chyba originálního ovladače).
 - **Časování RUN:** porovnání čeká na impulz zadaného sektoru, pak 40 µs impulz, zpoždění čítače 1 (µs) a bajty
   čítače 2 po 3,2 µs. Při čtení datový separátor přeskočí nuly a 80h. Sektor, který se neobjeví (číslo větší než
   počet sektorů) nebo nemá data (nenaformátovaný), ukončí RUN až po 256 sektorových impulzech bez DATA_CNT_OK, jak
@@ -186,7 +190,12 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
   4. boot z kazety přes ROMES, `F:PIP A:=E:*.*` (soubory `a_mercl.8sd`: zdrojáky, SH, STARTSYS, FORMTRKD, ES,
      MOVCPM, WM…) a `PIP.COM`.
 - **Test** (`test_rkd1`): výroba kazety výše (když je `..\SAPI_DOKU`), a nad kazetou z `media/`: start, SH,
-  `FORMTRKD` na pevném disku C:, soubor na C:, zápis na chráněnou kazetu.
+  `FORMTRKD` na pevném disku C:, soubor na C:, zápis na chráněnou kazetu (nic se nezapíše, systém běží dál),
+  Reset s kazetou bez systému („Chyba čtení disku A: při boot“) a návrat systémové kazety.
+- **Výměna kazety za běhu** (pokus 2026-10-09): CBIOS drží poslední sektor ve vyrovnávací paměti a výměnu nepozná.
+  Po výměně ukázal `DIR B:` adresář staré kazety a další `SAVE` ho zapsal na novou; BDOS výměnu A: poznal (R/O).
+  Shell SH bez svých souborů na A: hlásí u každého příkazu chybu čtení A:. Návod proto radí měnit kazetu jen
+  s Resetem a pracovat jen se systémovými kazetami (`docs/navod-rkd1.md`).
 
 ## Nejasnosti
 
@@ -202,6 +211,9 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
   hladina, kterou PC0 maže (schéma), dá řadič s tímto kabelem cylindr 2N pro stopu N a `RK_HOME` najede na
   cylindr 1 (bez skutečného návratu). Vychází to, jen pokud má SM 5400 ve vysoké hustotě aspoň 408 cylindrů (signál
   vysoké hustoty kabel nezapojuje). Emulace bulharskou mechaniku zatím nemá.
+- **Ochrana proti zápisu:** co udělala CM 5403 se zápisem na chráněný disk? Tiše ho neprovedla (emulace, jako
+  RK05), nebo hlásila poruchu ERR / chybu přístupu STO? Ovladač Tesly bit WPROTECT nečte a s poruchou by se systém
+  zasekl (viz Emulace), takže chráněnou kazetu Tesla zřejmě nepoužívala.
 - **Dekodér PROM MH 74188 (A6 na RKD-1A):** dump není, adresy 40h–4Fh jsou z popisu. Lze přepnout základ?
 - **Skutečné kazety:** existuje někde obraz nebo kazeta s daty (CP/M Tesla Elstroj, data ze SMEP)? Emulace
   zatím začne s prázdnými kazetami.
