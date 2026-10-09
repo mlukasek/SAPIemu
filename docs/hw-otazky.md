@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **207** v 42 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **210** v 43 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -462,6 +462,15 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 3. Které SA bylo sepnuté na deskách v sestavách (Bíba A0h; na Petrově fotce je jiný jen horní přepínač)?
 
 4. Výstup XC2/29 je v originále i replice spojený s OUT2 DD6, návod ho uvádí jako vstup CLK.
+
+
+## [XY 4130 – grafická jednotka (souřadnicový zapisovač)](desky/XY4130.md) – Nejasnosti k ověření na HW (3)
+
+- Jaký zapisovač XY 41x0 kdo k SAPI připojoval, jakým kabelem a s jakým programem (ovladač v EPROM, nebo `KRES`)?
+
+- Pracovní plocha, dorazy, krok 0,1 mm (z konstanty `KRES`)?
+
+- Byl ovladač v `MIKOS5.BIN` někdy použitý (sapi.cz píše „nezkoušen“)? Proč je v EPROM za MIKOSem V5?
 
 
 ## [ZRMD-1 / ZRD-1V – zálohovaný RAM disk](desky/ZRMD-1.md) – Nejasnosti (3)

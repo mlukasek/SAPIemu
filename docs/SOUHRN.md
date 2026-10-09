@@ -62,8 +62,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - Nově Stroj → Klávesnice → Vložit text (Ctrl+Shift+V): schránka se napíše na klávesnici SAPI.
   - BASIC EXP V5.0/G+SZ s příkazem `KRES` (kreslení v mm: kružnice, šrafování, text, natočení) s porty vrácenými
     na 31h/33h (`media/mikos/BASIC_EXP_V5.0G_SZ.hex`), ukázka `media/mikos/KRES_DEMO.bas`.
-  - Dál se nabízí: XY 4130 (ovladač z `MIKOS5.BIN` 1800h, JPR-1 X3; `KRES` ho umí taky) a plotter z AR 1990
-    (JPR-1 jako řadič zapisovače). Poznámky průzkumu jsou mimo git
+  - Dál se nabízí: XY 4130 (podklady a zjištění v `docs/desky/XY4130.md`: krok 0,1 mm z konstant `KRES`, ovladač
+    v `MIKOS5.BIN` 1800h na JPR-1 X3, dva různé kabely) a plotter z AR 1990 (JPR-1 jako řadič zapisovače). Poznámky průzkumu jsou mimo git
     v pracovní složce sezení 2026-10-09; hlavní fakta jsou v `docs/desky/Minigraf.md`.
 - **KZD-1** (2026-10-09, přání autora, `docs/desky/KZD-1.md`): kazetopáskový záznamník dat na DPP-1 X2 s MIKOSem/K
   V5.0 (originální EPROM 6. 4. 88), sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`.

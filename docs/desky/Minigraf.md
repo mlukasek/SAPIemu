@@ -20,8 +20,9 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
   - **skutečné výstupy ze SAPI-1** `obrazky/0507_1.png` až `0507_4.png`: kopie obrazovky, výpis programu, ukázka
     a znaková sada.
 - PMD 85: `..\SAPI.CZ\sapi\prislusenstvi\doku\0507_pmd85.php` (pracovní plocha 187,5 × 262,5 mm).
-- Průzkum všech zapisovačů u SAPI (XY 4130, BASIC EXP V5.0/G+SZ, plotter z AR 1990) je v bodě 11f
-  `docs/SOUHRN.md`.
+- Ostatní zapisovače u SAPI: XY 4130 v `docs/desky/XY4130.md` (zatím neemulovaný). Plotter z AR 1990 (V. Julius
+  OK1IVJ, `..\SAPI_DOKU\PLOTTER_JPR_PRILOHA_AR_1990\`) je zapisovač s JPR-1 jako řadičem (povely SHARP MZ-1P16), ne
+  periferie SAPI.
 
 ## Zapojení (leták a stránka SAPI)
 
