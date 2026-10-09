@@ -236,8 +236,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   10. ~~Uklidit varování GCC~~ hotové 2026-10-06 (čisté sestavení ve WSL bez varování ve vlastním kódu, všech 37
      testů včetně `test_tapegen` a `test_jpr1x` prochází).
   11. **Navržené další kroky (2026-10-08):**
-     a) souhrnný seznam otázek k ověření na HW podle desek, které autor má (teď rozházené po „Nejasnostech“
-        `docs/desky/*` a v bodech 1–32 níže), jako podklad na společnou akci;
+     a) ~~souhrnný seznam otázek k ověření na HW~~ hotové 2026-10-09: `docs/hw-otazky.md` generuje
+        `python tools/hw_otazky.py` ze všech sekcí „Nejasnosti“ (bez vyřešených bodů). Po úpravě Nejasností spustit
+        znovu;
      b) další várka otázek pro EC1045: software nebo ROM k sestavě **SAPI-IPS** (JPR-1Z, AND-30C, RAM-64, RFD-Z),
         software k RPD-1Z, pořadí A5/A6 na SA2 u DSP-1, kam vedl kabel /INT z XC2/14 u RTC-1;
      c) **SAPI-IPS** na sapi.cz (`..\SAPI.CZ\sapi\and-30c.php`, `ram-64.php`, `rfd-z.php`): schémata ze zpětného
@@ -268,7 +269,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         2. RKD-1 (kazetový disk CM 5403, CP/M ze zdrojáků Tesla Elstroj);
         3. DSE-1 (simulátor a programátor EPROM);
         4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;
-        5. souhrnný seznam otázek k ověření na HW (bod a);
+        5. ~~souhrnný seznam otázek k ověření na HW (bod a)~~ hotové, `docs/hw-otazky.md`;
         6. další várka otázek pro EC1045 (bod b);
         7. alfa 0.4.0 pro kamarády (APS-5 s DEMEM, CRM-1, RTC-1, DSP-1, ImBUS, nové sestavy).
      g) **KZD-1** (kazetopáskový záznamník dat ZPA Košíře 1986, k SAPI s MIKOSem/K V5.0 TESLA ELTOS DIZ 1988).
