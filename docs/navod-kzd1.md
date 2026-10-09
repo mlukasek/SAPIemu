@@ -193,8 +193,9 @@ originální kopírovací program CKM od TESLY DIZ:
 1. Kazetu KZD-1 připravte `.K_I` (třeba název `PROGRAMY`).
 2. V okně Média u magnetofonu (DSM-1) **Vložit…** nahrávku nebo program (u `.hex` zvolte formát MIKOS) a stiskněte
    **PŘEHRÁT**.
-3. Soubor → Nahrát program do paměti → `media\mikos\CKM.hex` a za tečku `G4400` Enter (na obrazovce `.G=4400`).
-   Objeví se menu:
+3. Soubor → Nahrát program do paměti → `media\mikos\CKM_opraveny.hex` (doporučeno, viz Pozor níže) nebo originál
+   `media\mikos\CKM.hex` a za tečku `G4400` Enter (na obrazovce `.G=4400`). Objeví se menu (opravená kopie má
+   v prvním řádku `OPRAVENY KOPIR. PROGRAM MGF-KZD-1`, jinak je stejné):
    ```
    KOPIROVACI PROGRAM  MGF - KZD-1
    * M...MGF CTENI, KZD ZAPIS
@@ -228,11 +229,14 @@ Opačně, z KZD-1 na magnetofon:
    zavináče by CKM nejdřív hledal konec záznamu na kazetě, a na prázdné nahrávce by ho hledal donekonečna.
 5. Až se vrátí menu, **STOP**. Nahrávku jde uložit tlačítkem **Uložit jako WAV…** a přehrát do skutečného SAPI.
 
-**Pozor, chyba v CKM:** po čtení ze záznamníku (`K` a `L`) nastaví CKM MIKOSu/K délku bloku 0 místo 255 (ve
-zdrojáku chybí jedna instrukce). Každý další zápis na KZD-1, z CKM i příkazem `.K_S`, pak dělá bloky po jednom
-bajtu: 10 KB by potřebovalo přes 600 m pásky a skončí `CHYBA - KONEC PASKY`. Před dalším zápisem na KZD-1 proto
-zadejte `.K_X` a `FF` (délka bloku 255), nebo stiskněte reset (F12). Soubor načtený do CKM po resetu v paměti
-zůstává: `.G=4400` a `B` ho zapíše znovu.
+**Pozor, chyba v originálním CKM:** po čtení ze záznamníku (`K` a `L`) nastaví CKM MIKOSu/K délku bloku 0 místo
+255 (ve zdrojáku chybí jedna instrukce). Každý další zápis na KZD-1, z CKM i příkazem `.K_S`, pak dělá bloky po
+jednom bajtu: 10 KB by potřebovalo přes 600 m pásky a skončí `CHYBA - KONEC PASKY`.
+
+- **Opravená kopie** `media\mikos\CKM_opraveny.hex` tuto chybu nemá. Liší se od originálu jen jedním bajtem
+  instrukce a prvním řádkem menu, ovládá se stejně.
+- **S originálem** před dalším zápisem na KZD-1 zadejte `.K_X` a `FF` (délka bloku 255), nebo stiskněte reset
+  (F12). Soubor načtený do CKM po resetu v paměti zůstává: `.G=4400` a `B` ho zapíše znovu.
 
 ## Hlášení MIKOSu/K
 

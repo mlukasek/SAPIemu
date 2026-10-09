@@ -52,7 +52,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `main.cpp`.
 - **Nástroje** (`tools/`): `build.cmd`, `package.py`, `asm8080.py` (malý assembler 8080), `cpmrun.cpp` (programy
   pro CP/M jako M80/L80 na PC, cíl `cpmrun`; popis v `docs/build.md`), `hw_otazky.py` (z Nejasností vygeneruje
-  souhrn otázek na HW `docs/hw-otazky.md`; po změně Nejasností spustit znovu).
+  souhrn otázek na HW `docs/hw-otazky.md`; po změně Nejasností spustit znovu), `ckm_oprava.py` (z originálu
+  `media/mikos/CKM.hex` vyrobí opravenou kopii `CKM_opraveny.hex`, `docs/desky/KZD-1.md`).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`.

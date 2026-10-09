@@ -6,8 +6,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Noc 2026-10-09 (autor: „rozhoduj se sám, překvap mě“):** KZD-1 pushnutý, kopírovací program CKM, program rovnou
   na kazetu KZD-1, souhrn otázek na HW (`docs/hw-otazky.md`), zapisovač ARITMA Minigraf 0507 s ovladačem z EPROM
-  a BASICem EXP V5.0/G+SZ (`KRES`), vkládání textu na klávesnici (Ctrl+Shift+V), podklady k XY 4130. Autor to ještě
-  neviděl: v GUI vyzkoušet okno Minigraf (`zps\ZPS-2_MIKOS_V5_Minigraf.sapi`, postup v `docs/desky/Minigraf.md`).
+  a BASICem EXP V5.0/G+SZ (`KRES`), vkládání textu na klávesnici (Ctrl+Shift+V), podklady k XY 4130. Autor to ráno
+  vyzkoušel („funguje to skvěle“) a chtěl návody k obsluze KZD-1 a Minigrafu a opravenou kopii CKM (hotové, viz níže).
 
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
@@ -80,7 +80,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (stejně i verze 18. 5. 88), ponecháno věrně, správně je K_Z nebo `.JMÉNO`.
   - Kopírovací program CKM (originál ze sapi.cz, `media/mikos/CKM.hex`): BASIC EXP z kazety MIKOS přešel na KZD-1
     a odtud naběhl. Ověřený i směr zpět (KZD-1 → magnetofon `@JMÉNO` → KZD-1). **Chyba originálu CKM:** po čtení
-    z KZD-1 nastaví délku bloku 0, další zápisy na KZD-1 pak dělají jednobajtové bloky. Pomůže `.K_X FF` nebo reset.
+    z KZD-1 nastaví délku bloku 0, další zápisy na KZD-1 pak dělají jednobajtové bloky. Pomůže `.K_X FF` nebo reset,
+    nebo opravená kopie `media/mikos/CKM_opraveny.hex` (jeden bajt, `tools/ckm_oprava.py`, test s oběma verzemi).
   - **Návody k obsluze** (2026-10-09, přání autora „ať to umí obsluhovat každý“): `docs/navod-kzd1.md` a
     `docs/navod-minigraf.md`. Všechny kroky jsou vyzkoušené přes MCP a mají obrázky oken (`docs/img/navod-*.png`).
     `KRES_DEMO.bas` při tom dostal úvodní dojetí na levý doraz (po `.G=1800` narážel rámečkem na doraz).

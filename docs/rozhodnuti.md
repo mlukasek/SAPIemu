@@ -1339,8 +1339,11 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   ukládá do `work/kzd-1/JMÉNO.kzd`, existující soubor se nepřepisuje (`JMÉNO-2.kzd`…).
 - **Chyba CKM s délkou bloku zůstává věrně** (nalezeno při psaní návodu): po čtení z KZD-1 CKM zapíše do `DEBL` 0
   místo FFh a další zápisy na KZD-1 dělají jednobajtové bloky. Je to chyba originálního programu (zdroják i HEX ze
-  sapi.cz). Emulátor ani `CKM.hex` ji neopravují, návod ukazuje obejití (`.K_X FF`, reset). Opravenou kopii CKM
-  (jedna instrukce `CMA` navíc) by šlo přidat vedle originálu, pokud o ni autor bude stát.
+  sapi.cz). Emulátor ani `CKM.hex` ji neopravují, návod ukazuje obejití (`.K_X FF`, reset).
+- **Opravená kopie CKM vedle originálu** (na přání autora): `media/mikos/CKM_opraveny.hex`, vyrobená skriptem
+  `tools/ckm_oprava.py` z nedotčeného `CKM.hex`, ne ručně. Místo vložení chybějící `CMA` (posunula by kód a skoky)
+  jeden bajt `XRA A` → `SBB A`, který na tom místě dává FFh díky vždy nastavenému CY z `CPI 0CH`. Na obrazovce je
+  poznat podle nápisu `OPRAVENY` v prvním řádku menu. Návod doporučuje opravenou kopii, originál zůstává pro věrnost.
 - **Návody k obsluze** (`docs/navod-kzd1.md`, `docs/navod-minigraf.md`) jsou zvlášť od technických popisů desek.
   Jsou psané pro uživatele, krok za krokem, a výpisy obrazovky v nich jsou opsané z emulátoru, ne z původních
   návodů. Co se nezkoušelo, je tak označené.

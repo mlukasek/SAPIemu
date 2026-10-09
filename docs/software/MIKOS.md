@@ -137,8 +137,10 @@ XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); v repu nejsou. |
   v `docs/desky/KZD-1.md`.
 - Chybová hlášení: 30 ZAZNAM NENI POVOLEN (chybí zoubek), 32 CHYBA CTENI DAT, 34 CHYBA OZNACENI BLOKU,
   36 KONEC PASKY, 38 NENI KONEC SOUBORU, 3A NENI BINARNI FORMAT, 3C SOUBOR NEEXISTUJE.
-- Kopírovací program CKM (magnetofon ↔ KZD-1) je v `media/mikos/CKM.hex`, postup v `docs/desky/KZD-1.md`.
-- **Ověřeno** (`test_kzd1`): K_I, K_S, K_D, K_Z, K_L (data souhlasí), zápis bez zoubku, kopie přes CKM.
+- Kopírovací program CKM (magnetofon ↔ KZD-1) je v `media/mikos/CKM.hex`, opravená kopie (délka bloku po čtení
+  z KZD-1) v `CKM_opraveny.hex`, postup v `docs/desky/KZD-1.md` a `docs/navod-kzd1.md`.
+- **Ověřeno** (`test_kzd1`): K_I, K_S, K_D, K_Z, K_L (data souhlasí), zápis bez zoubku, kopie přes CKM (originál
+  i opravená kopie).
 
 ## Zapisovač Minigraf 0507 pod MIKOSem V5
 

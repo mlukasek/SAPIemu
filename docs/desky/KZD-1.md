@@ -119,6 +119,16 @@ Země: KZD 3, 4, 5, 6 → X2 17, 19. Piny X2 → 8255 jsou podle netlistu replik
   Stejné je to s MIKOSem/K 18. 5. 88 (`KZD2.MAC` má stejný `DIRSTP`, `WOB`, `BUFEND`). Vyzkoušeno 2026-10-09 přes MCP:
   CKM `K`, `L`, `M`, `B` zapisoval přes 80 m. `.K_S` 1 KB s `DEBL` = 0 nahrával po 20 s ještě na 12 m, s FFh skončí
   za 2 s na 3,9 m. Postup s obejitím chyby je v `docs/navod-kzd1.md`.
+- **Opravená kopie `media/mikos/CKM_opraveny.hex`** (2026-10-09, na přání autora; originál `CKM.hex` zůstává
+  beze změny). Vyrábí ji z originálu `python tools/ckm_oprava.py`, který nejdřív zkontroluje původní bajty. Oprava
+  neposouvá žádnou adresu:
+  - 47D4h: `XRA A` (AFh) → `SBB A` (9Fh), za ní původní `STA DEBL`. Ve větvi KZD je po `ANI 0CH`, `CPI 0CH`
+    a `JZ CLOA3` vždy A < 0Ch, příznak CY je tedy nastavený a `SBB A` dá FFh, stejně jako `XRA A`, `CMA` v MIKOSu/K.
+    Vložit chybějící `CMA` by posunulo kód a všechny skoky za ním.
+  - 4467h: úvodní nápis `KOPIROVACI PROGRAM  MGF - KZD-1` (před ním tři odřádkování) → `OPRAVENY KOPIR. PROGRAM
+    MGF-KZD-1` (dvě odřádkování), stejná délka, aby kopie byla poznat na obrazovce.
+  - Test `test_kzd1` pouští CKM s originálem i opravenou kopií: po čtení z KZD-1 (`K`, `L .VZOR`) je `DEBL` 0,
+    resp. FFh.
 
 ## Emulace
 

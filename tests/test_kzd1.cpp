@@ -218,8 +218,10 @@ static void test_mikos_k(void)
 }
 
 // CKM, the copy program of TESLA ELTOS DIZ (media/mikos/CKM.hex, from 4400h): a program from a MIKOS tape
-// in the recorder on DSM-1 (K-10) goes to the KZD-1 and comes back with K_L of MIKOS/K
-static void test_ckm(void)
+// in the recorder on DSM-1 (K-10) goes to the KZD-1 and comes back with K_L of MIKOS/K. Then CKM reads it
+// from the KZD-1 (K): the original leaves the block length DEBL (427Fh) at 0 (its bug, kept faithful),
+// the patched copy CKM_opraveny.hex (tools/ckm_oprava.py) at FFh like MIKOS/K
+static void test_ckm(const char* hex, const char* title, uint8_t debl)
 {
     const char* file = "work/test/kzd_ckm.kzd";
     Machine m;
@@ -244,11 +246,11 @@ static void test_ckm(void)
     dsm->tape()->mode = TapeDeck::PLAY;
     // CKM: K-10 (X), read (L) any file, write it to the KZD-1 as binary (B)
     std::string text;
-    CHECK(file_read_text(data_path("media/mikos/CKM.hex"), text));
+    CHECK(file_read_text(data_path(hex), text));
     int n = 0;
     CHECK(m.load_ihex_text(text, err, &n));
     CHECK(command(m, "G4400\r", 5.0, ":"));
-    CHECK(screen(m).find("KOPIROVACI PROGRAM  MGF - KZD-1") != std::string::npos);
+    CHECK(screen(m).find(title) != std::string::npos);
     CHECK(command(m, "X", 5.0, "_"));
     m.type_text("L");
     CHECK(run_until_text(m, "NAZEV:", 5.0));
@@ -275,6 +277,15 @@ static void test_ckm(void)
         if (m.peek((uint16_t)(0x6000 + i)) != prog[i]) bad++;
     CHECK_EQ(bad, 0);
     if (bad) fprintf(stderr, "%s", screen(m).c_str());
+    // CKM reads the file from the KZD-1 (K) and closes it in DIRSTP
+    CHECK_EQ(m.peek(0x427F), 0xFF);
+    CHECK(command(m, "G4400\r", 5.0, ":"));
+    CHECK(command(m, "X", 5.0, "_"));
+    CHECK(command(m, "K", 5.0, "_"));
+    m.type_text("L");
+    CHECK(run_until_text(m, "NAZEV:", 5.0));
+    CHECK(command(m, ".VZOR\r", 60.0, "_"));
+    CHECK_EQ(m.peek(0x427F), debl);
     file_remove(bin);
     file_remove(data_path(file));
 }
@@ -325,7 +336,8 @@ int main(void)
     test_init();
     test_mechanism();
     test_mikos_k();
-    test_ckm();
+    test_ckm("media/mikos/CKM.hex", "KOPIROVACI PROGRAM  MGF - KZD-1", 0x00);
+    test_ckm("media/mikos/CKM_opraveny.hex", "OPRAVENY KOPIR. PROGRAM MGF-KZD-1", 0xFF);
     test_program_cassette();
     return TEST_RESULT();
 }
