@@ -266,14 +266,37 @@ static void media_system(void)
     Rkd1* r = rkd_of(m);
     if (!r) return;
     CHECK(r->units[0].disk[Rkd1::FIXED].loaded && r->units[0].track >= 0);
-    // write protect the cartridge (the WPP of the controller or the switch): writes fail
-    r->units[0].disk[Rkd1::CARTRIDGE].write_protect = true;
+    // write protect the cartridge (the WPP of the controller or the switch): the drive does not write, nobody
+    // notices (the driver does not read WPROTECT); the system keeps running
+    RkdPlatter& cart = r->units[0].disk[Rkd1::CARTRIDGE];
+    std::vector<uint8_t> before = cart.data;
+    cart.write_protect = true;
     m.run_seconds(0.3);
     m.type_text("SAVE 1 A:CHRANENO.COM\r");
-    m.run_seconds(15.0);
+    m.run_seconds(5.0);
+    m.type_text("E:STAT A:*.COM\r");   // a program: the warm start after it loads the system from the cartridge
+    CHECK(run_until_text(m, "A:WM.COM", 30.0));
+    m.run_seconds(2.0);
     std::string s = screen_text(m);
     printf("%s\n", s.c_str());
-    CHECK(s.find("Err") != std::string::npos || s.find("Chyba") != std::string::npos);
+    CHECK(cart.data == before);
+    CHECK(!r->units[0].err);
+    cart.write_protect = false;
+    // another cartridge and RESET (docs/navod-rkd1.md): without the system on it the boot ROM asks for a key;
+    // the system cartridge back (kept in memory, as ejected) and a key, the shell again
+    const char* fresh = "work/test/rkd_new.rkd";
+    file_remove(data_path(fresh));
+    RkdPlatter sys;
+    std::swap(sys, r->units[0].disk[Rkd1::CARTRIDGE]);
+    CHECK(r->insert(0, fresh, false, err));
+    m.reset();
+    CHECK(run_until_text(m, "opakovat", 30.0));   // "Chyba cteni disku A: pri boot", "Libovolna klavesa -> opakovat"
+    printf("%s\n", screen_text(m).c_str());
+    r->eject(0);
+    std::swap(sys, r->units[0].disk[Rkd1::CARTRIDGE]);
+    m.type_text(" ");
+    CHECK(run_until_text(m, "u\xc5\xbeivatele", 30.0));
+    file_remove(data_path(fresh));
 }
 
 static void trace_boot(void)

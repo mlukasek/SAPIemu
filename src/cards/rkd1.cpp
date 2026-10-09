@@ -317,8 +317,11 @@ void Rkd1::finish(void)
     uint8_t* rec = &p.data[p.record(op_surface, op_track, op_sector)];
     size_t cap = (size_t)p.cap();
     if (op_write) {
-        if (p.write_protect) {   // the drive refuses WR: a fault of the drive
-            u.err = true;
+        if (p.write_protect) {
+            // the drive inhibits its write current (as the RK05 family), the controller counts the bytes
+            // anyway: nothing written, no fault. The driver of Tesla does not read WPROTECT, CP/M does not
+            // notice. A fault (ERR) here hangs the system: WBOOT and the boot ROM never restore, RK_SEEK
+            // returns with BC left on the stack (docs/desky/RKD-1.md).
             ptr = (uint16_t)((ptr + op_count) & 0x3FF);
             return;
         }
