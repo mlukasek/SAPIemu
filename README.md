@@ -2,12 +2,14 @@
 
 **Emulátor počítače Tesla SAPI-1**: Z80, 8080 a 8085, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1
 až ZPS-4 a SAPI-1.5 (ZPS-6) po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
-PROM dumpů). Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
+PROM dumpů). K počítači patří i přístroje: měřicí jednotka APS-5 s regulací pecí, kazetopáskový záznamník dat
+KZD-1 a zapisovač ARITMA Minigraf 0507. Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
 
 > *English: an emulator of the Czechoslovak Tesla SAPI-1 modular computer (Z80/8080/8085, ARB-1 bus) for Windows.
 > Cards are configured like the real boards (jumpers, address decoders from PROM dumps). Original ZPS-1 to ZPS-4
 > machines with MIKROBASIC, MIKOS and CP/M, the new boards of Libor Lasota ("V" boards with VGA, colour graphics
-> and YM3812 sound, JPR-1S/JPR-1X, PMD-85 style graphics BGP-1S), cassette tapes made from programs, save
+> and YM3812 sound, JPR-1S/JPR-1X, PMD-85 style graphics BGP-1S), the APS-5 furnace control unit, the KZD-1
+> cassette data recorder and the ARITMA Minigraf 0507 plotter, cassette tapes made from programs, save
 > states, a debugger and a built-in MCP server. Alpha version, the documentation is in Czech.*
 
 ![Sestava V: CP/M na AND-1V a obrázek na barevné grafice CGA-1V](docs/img/sapi1v-cpm-cga.png)
@@ -25,8 +27,9 @@ PROM dumpů). Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI 
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
 spustit `sapiemu.exe`, nic se neinstaluje. Jak začít: [docs/prvni-kroky.md](docs/prvni-kroky.md).
 
-Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
-[Issues](https://github.com/mlukasek/SAPIemu/issues).
+Jde o **alfa verzi** (poslední je 0.4.0-alpha, novinky v
+[docs/release-notes/v0.4.0-alpha.md](docs/release-notes/v0.4.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
+Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 ## Co umí
 
@@ -137,7 +140,7 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
   Zdroje jsou v [roms/README.md](roms/README.md) a [media/README.md](media/README.md).
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,
   ze kterých emulace vychází, a překreslená schémata desek.
-- **Libor Lasota:** desky V, desky k původním sestavám (JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2), MikroMon, MIKROBIOS
+- **Libor Lasota:** desky V, desky k původním sestavám (JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2), sběrnice ImBUS, MikroMon, MIKROBIOS
   a programy pro CGA-1V, MPH-1V a BGP-1S, použité s jeho souhlasem.
 - **Jiří Bíba (SAPIMAN):** monitory a BIOSy CP/M pro SAPI-1 (RPD-1, FDC-1, MFC-1A, RAM disky, IDE) a sbírka disket
   a zdrojáků v SAPI_DOKU; **EC1045** je dál udržoval (ECMON, diskety PC, CD a MOUNT pro PMD32-SD).
