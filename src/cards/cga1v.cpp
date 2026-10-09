@@ -2,6 +2,7 @@
 #include "core/state.h"
 #include "core/bus.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -61,13 +62,29 @@ bool Cga1v::selected(uint16_t a, int map) const
     return true;
 }
 
-int Cga1v::wait_states(void) const
+// RDY (sheet 4): STSTB with SEL sets IC9B (RDY low). /READ or /WRITE is taken by IC7B at the next rising
+// edge of QA, the start of a CPU window (every 4 MCLK, 318 ns); IC7A ends the window with /QA half a period
+// later and the rising /CPU clears IC9B. The Z80 samples /WAIT at the falling edge of T2 and of every Tw.
+// /RD falls with /MREQ at the falling edge of T1, /WR only at the falling edge of T2, so a write gets its
+// window a clock later. REQ_NS + REL_NS (strobe delays, gates, set-up of the flip-flops and of /WAIT) is
+// fitted to ZRDBENCH on a real SAPI-1 V (PoP port, 2026-10-08): LDIR into the card 2.43 T per byte more at
+// 4 MHz, 1.57 T at 2 MHz, from the card 1.26 T and 0.09 T (docs/desky/CGA-1V.md).
+static const double REQ_NS = 40.0;   // the Z80 edge to the D input of IC7B
+static const double REL_NS = 50.0;   // the end of the window to /WAIT high at the Z80
+
+int Cga1v::wait_states(bool write) const
 {
     if (!waits) return 0;
-    double ns_per_cycle = 1e9 / (double)bus->cpu_hz;
-    double t = (double)bus->now * ns_per_cycle;
-    double phase = t - SLOT_NS * (double)(uint64_t)(t / SLOT_NS);
-    return (int)((SLOT_NS - phase) / ns_per_cycle);
+    double unit = 1e9 / (double)bus->cpu_hz;
+    double clk = unit * bus->cpu_step;                     // CPU clock period
+    double t2 = (double)bus->now * unit;                   // the access is seen in T2
+    double sample = t2 + clk / 2;                          // falling edge of T2: first /WAIT sample
+    double req = (write ? sample : sample - clk) + REQ_NS;
+    double grant = SLOT_NS * ceil(req / SLOT_NS);          // rising edge of QA
+    double release = grant + SLOT_NS / 2 + REL_NS;         // end of the window
+    int n = 0;
+    while (release > sample + n * clk) n++;
+    return n * bus->cpu_step;
 }
 
 void Cga1v::update_vbi(void)
@@ -88,7 +105,7 @@ void Cga1v::update_vbi(void)
 bool Cga1v::mem_read(uint16_t a, uint8_t& data)
 {
     if (!selected(a, bus->map)) return false;
-    bus->wait += wait_states();
+    bus->wait += wait_states(false);
     return mem_peek(a, data);
 }
 
@@ -107,7 +124,7 @@ bool Cga1v::mem_peek(uint16_t a, uint8_t& data)
 bool Cga1v::mem_write(uint16_t a, uint8_t data)
 {
     if (!selected(a, bus->map)) return false;
-    bus->wait += wait_states();
+    bus->wait += wait_states(true);
     uint16_t off = a & 0x3FFF;
     ram[(config & 2 ? 0x4000 : 0) | off] = data;   // /WE also for the registers
     if (off >= REG_OFF) {

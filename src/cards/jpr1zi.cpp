@@ -234,6 +234,7 @@ int Jpr1zi::run(int cycles)
 {
     stop_hit = false;
     if (cycles > 0) at_boundary = false;
+    bus->cpu_step = turbo_switch && !turbo_on ? 2 : 1;
     int done = 0;
     while (done < cycles) {
         bus->now++;

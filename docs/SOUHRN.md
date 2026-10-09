@@ -582,10 +582,19 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
   jen s terminálem i sériovou linku) a přidělit písmena jednotkám popořadě, jako třetí zdroj mezi sestavou a
   odhadem ze SELDSK (zobrazit „podle hlášky“). Proti: jen jedna rodina systémů, pořadí u PMD32-SD je odvozené,
   obrazovka může odrolovat. Sestavy už písmena mají a SELDSK je dodá při prvním čtení.
-- **CGA-1V:**
-  - čekací stavy jsou přibližné (do konce okna CPU 318 ns);
+- **CGA-1V** (podněty z portu Prince of Persia, `..\SAPI-Prince-of-Persia\docs\sapiemu-podnety.md`):
+  - ~~čekací stavy přibližné~~ od 2026-10-09 podle schématu a měření ZRDBENCH (`docs/desky/CGA-1V.md`), zbývá
+    rozdíl 0,3 T u zápisu při 2 MHz;
+  - obraz se kreslí z jednoho stavu za snímek: přepnutí stránky nebo zápis do palety Bt476 uprostřed snímku
+    (trhání, „sníh“ na HW) nejsou vidět. Návrh PoP: kreslit po řádcích podle paprsku a pomůcka pro vývojáře
+    (počet zápisů do palety mimo zatemnění);
   - prolínání snímků je náhrada za oko (REMBRAN2);
-  - paleta a VRAM jsou po zapnutí černé, ne náhodné.
+  - paleta a VRAM jsou po zapnutí černé, ne náhodné (návrh PoP: volba „náhodný obsah po zapnutí“).
+- **Ostatní podněty z PoP:** log přijatých přerušení (zdroj, IM, vektor z oblasti karty), hláška při bootu ECMONu
+  bez nabídky s `(003Bh) > 3`, MCP `quit` pro ukončení `sapiemu-cli`. Takt „1.99 MHz“ z jejich měření ukáže
+  i emulátor při přesných 2,000 MHz (zaokrouhlení měřicího programu), to rozdíl není.
+- **AND-1V, DGD-1V a další karty s oknem CPU** počítají čekání v jednotkách času sběrnice, ne v taktech CPU. Při
+  2 MHz na JPR-1V to může být půl taktu. CGA-1V už používá `Bus::cpu_step`.
 
 ## Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově)
 

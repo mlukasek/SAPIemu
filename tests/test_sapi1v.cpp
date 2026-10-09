@@ -2,6 +2,7 @@
 // and CP/M from the ZRD-1V RAM disk on the AND-1V, bank 0 is MikroBIOS 3.0;
 // the RAM-1V MAP register drives MAP1 and an AND-1V set to MAP1 = L hides;
 // DSM-1V gives two serial channels.
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
@@ -323,9 +324,50 @@ static void cga_vbi(void)
     m.bus.io_write(0x63, 0x00);
 }
 
+// CGA-1V wait states: LDIR into and from the card, T-states per byte against ZRDBENCH on a real SAPI-1 V
+// (PoP port 2026-10-08: 4 MHz 23.61 / 22.44, 2 MHz 22.75 / 21.27; memory to memory 21.18).
+static double cga_ldir(bool turbo, bool write)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    CHECK(m.set_live_param(m.cpu, "turbo", turbo, err));
+    m.run_seconds(0.2);
+    m.bus.io_write(0x63, 0xC0);   // RAM-1V: MAP1 = MAP2 = H, CGA-1V at C000
+    const uint8_t prog[] = { 0xF3, 0x21, 0x00, (uint8_t)(write ? 0x90 : 0xC0), 0x11, 0x00, (uint8_t)(write ? 0xC0 : 0x90),
+                             0x01, 0x00, 0x30, 0xED, 0xB0, 0x76 };   // DI, LD HL / DE, LD BC,3000h, LDIR, HALT
+    for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    r.pc = 0x8000;
+    m.cpu->set_regs(r);
+    uint64_t t0 = m.bus.now;
+    for (int i = 0; i < 100000; i++) {
+        m.run_cycles(50);
+        m.cpu->get_regs(r);
+        if (r.halted) break;
+    }
+    CHECK(r.halted);
+    double w = (double)(m.bus.now - t0) / m.bus.cpu_step / 0x3000 - 21.0;   // LDIR is 21 T without waits
+    printf("CGA-1V: LDIR %s at %d MHz, %.2f wait T per byte\n", write ? "into the card" : "from the card", turbo ? 4 : 2, w);
+    return w;
+}
+
+// wait T per byte on the real card (ZRDBENCH minus its 21.18 without waits)
+static void cga_waits(void)
+{
+    double w4 = cga_ldir(true, true), r4 = cga_ldir(true, false);
+    double w2 = cga_ldir(false, true), r2 = cga_ldir(false, false);
+    CHECK(fabs(w4 - 2.43) < 0.15);
+    CHECK(fabs(r4 - 1.26) < 0.15);
+    CHECK(fabs(w2 - 1.57) < 0.4);   // the model gives about 1.27 here (docs/desky/CGA-1V.md)
+    CHECK(fabs(r2 - 0.09) < 0.15);
+}
+
 int main(void)
 {
     test_init();
+    cga_waits();
     zrd_rev11();
     turbo();
     cpm();

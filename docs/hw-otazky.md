@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **210** v 43 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **209** v 43 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -112,12 +112,10 @@ Otevřených bodů: **210** v 43 sekcích. Desky jsou první, pak ostatní téma
 7. Kdo napsal hru „auto“?
 
 
-## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (4)
+## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (3)
 
 - `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
   to omylem, nebo k jiné desce?
-
-- Přesné číslo čekacích taktů (synchronizace IC7A/B, IC9B) při 2 a 4 MHz.
 
 - Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
 

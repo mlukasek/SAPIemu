@@ -1373,3 +1373,18 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Vložení textu na klávesnici** (Stroj → Klávesnice → Vložit text, Ctrl+Shift+V): ukázku v BASICu by jinak bylo
   nutné opisovat. Klávesy jdou frontou klávesnice stejně jako `type_text` přes MCP. BASIC EXP stíhá celý program
   vložený najednou (ověřeno).
+
+## 2026-10-09 – podněty z portu Prince of Persia a dema Bad Apple!!
+
+- **Čekací stavy CGA-1V podle schématu, ne podle průměru:** RDY drží IC9B od STSTB do konce okna CPU, které
+  přidělí IC7B na hraně QA. Čtení a zápis se liší jen hranou Z80 (/RD na sestupné hraně T1, /WR na sestupné
+  hraně T2), čekání je v celých taktech CPU (`Bus::cpu_step` pro JPR-1V při 2 MHz). Jediné volné číslo, součet
+  zpoždění 90 ns, je nastavené podle měření ZRDBENCH na skutečné SAPI-1 V. Ladit na setiny nemá smysl:
+  výsledek `LDIR` se mění o desetiny podle přesného poměru taktu CPU a okna. Rozdíl 0,3 T u zápisu při 2 MHz je
+  v Nejasnostech CGA-1V.
+- **Zvuk se míchá průběžně i během jednoho dlouhého běhu** (`Machine::run_cycles` volá `audio_collect` po každém
+  kousku). Zdroje smí přidat nejvýš 4 s před smíchanou částí a karta dohání nejvýš 1 s naráz, takže jedno
+  `run_for 40000` dřív nechalo v nahrávce ticho. Zahozené vzorky se počítají (`Bus::audio_lost`) a `audio_record`
+  je hlásí, aby ticho nešlo splést s chybou programu.
+- **Kreslení CGA-1V po řádcích, náhodný obsah po zapnutí, log přerušení, MCP `quit`** jsou zatím jen v „Na
+  promyšlení“ (SOUHRN): nejsou to chyby, ale vylepšení, a autor je zatím nezadal.

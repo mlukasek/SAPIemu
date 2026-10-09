@@ -19,8 +19,9 @@
 // - VGA 640x480/60 Hz, 25.175 MHz: 800 dots x 525 lines, each pixel 2x2, 400
 //   lines shown. VBI request (flip-flop IC9A) at the start of the vertical
 //   blanking (line 400), /INT0 when enabled.
-// - The CPU gets the SRAM in its slot of every 4 pixels (318 ns), RDY low until
-//   then (wait states).
+// - The CPU gets the SRAM in its window of every 4 pixels (318 ns), RDY low until
+//   the window ends (wait states; a write starts with /WR a clock later than a
+//   read with /RD, so it waits about a window longer).
 // - Frame blending (emulator option): software switching the shown page and the
 //   palette every frame (REMBRAN2) relies on the eye mixing both, so when the
 //   last two frames (captured at VBI) differ, their average is shown.
@@ -54,7 +55,7 @@ public:
 
 private:
     bool selected(uint16_t addr, int map) const;
-    int wait_states(void) const;
+    int wait_states(bool write) const;
     void update_vbi(void);
     void dac_write(int rs, uint8_t data);
     void palette_argb(uint32_t* rgb) const;

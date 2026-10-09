@@ -75,10 +75,26 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 - MCLK = 25,175/2 MHz (bod). Čtveřice bodů (QA, QB) se střídá: 2 takty VIDEO, 2 takty CPU (`cga1v_timing.png`),
   okno CPU je tedy každých 318 ns.
-- RDY je nízko od /ISTSTB (začátek strojového cyklu s vybranou kartou) do okna CPU (IC9B). I/O cykly a /RES
-  čekání ruší.
-- **Emulace:** čeká se do konce aktuálního okna 318 ns (0–1 takt při 4 MHz). Je to přibližné, viz „Na
-  promyšlení“ v SOUHRN.
+- RDY je nízko od /ISTSTB (začátek strojového cyklu s vybranou kartou) do konce okna CPU (IC9B). I/O cykly a /RES
+  čekání ruší. Podle listu 4:
+  - STSTB (na JPR-1V krátký impuls z 74LS123 na začátku /MREQ) se SEL nastaví IC9B, RDY = 0;
+  - /READ nebo /WRITE převezme IC7B náběžnou hranou QA, tedy na začátku okna CPU;
+  - IC7A okno ukončí hranou /QA o půl periody později, náběžná hrana /CPU vynuluje IC9B a RDY se uvolní.
+- **Zápis čeká déle než čtení:** Z80 dává /RD (s /MREQ) na sestupné hraně T1, ale /WR až na sestupné hraně T2,
+  kdy už poprvé vzorkuje /WAIT. Zápis tak dostane okno o takt později.
+- **Emulace (od 2026-10-09):** přesně tento sled. /WAIT se vzorkuje na sestupné hraně T2 a každého Tw, čekání je
+  v celých taktech CPU (i při 2 MHz na JPR-1V). Zpoždění hran, hradel a předstihů je dohromady 90 ns (40 ns
+  k žádosti, 50 ns k uvolnění), nastavené podle měření na skutečné SAPI-1 V.
+- **Měření** programem ZRDBENCH z portu Prince of Persia (`..\SAPI-Prince-of-Persia\sapi\zrdbench.asm`,
+  2026-10-08). Takty na bajt `LDIR`, bez čekání 21,18:
+
+  | | železo 4 MHz | emulace 4 MHz | železo 2 MHz | emulace 2 MHz | emulace do 0.4.0 |
+  |---|---|---|---|---|---|
+  | paměť → CGA-1V | 23,61 | 23,54 | 22,75 | 22,44 | 21,27 |
+  | CGA-1V → paměť | 22,44 | 22,38 | 21,27 | 21,27 | 21,27 |
+
+  Výsledek je hodně citlivý na přesný poměr taktu CPU a okna (`LDIR` trvá 21 T a fáze vůči oknu se posouvá
+  deterministicky), proto se model neladil na setiny. Test `test_sapi1v` (`cga_waits`) hlídá všechny čtyři hodnoty.
 - Řádek má 400 bodů MCLK (320 viditelných), 31,78 µs. Snímek má 525 řádků (400 viditelných), 16,68 ms (59,94 Hz).
 
 ## Emulace – poznámky
@@ -117,6 +133,9 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 - `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
   to omylem, nebo k jiné desce?
-- Přesné číslo čekacích taktů (synchronizace IC7A/B, IC9B) při 2 a 4 MHz.
+- ~~Přesné číslo čekacích taktů (synchronizace IC7A/B, IC9B) při 2 a 4 MHz.~~ Vyřešeno 2026-10-09 měřením
+  ZRDBENCH (viz Časování). Zbývá: zápis do karty při 2 MHz čeká na železe 1,57 T na bajt, model podle schématu
+  dává 1,27 T (při 4 MHz i u čtení sedí). Nemá JPR-1V při 2 MHz jinou střídu taktu, nebo není /WR vůči
+  sestupné hraně T2 zpožděné víc? Pomohl by osciloskop na /WR, QA a RDY při `LDIR` do karty.
 - Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
 - Samostatný dokument „Programování karty“ (datasheet str. 7 na něj odkazuje) zatím nemáme.
