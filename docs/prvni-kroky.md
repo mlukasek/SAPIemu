@@ -122,7 +122,8 @@ Další programy z `media\` si nahrajete takto:
 - **Test karty MPH-1V:** `media\mph-1v\mph_test_0v99.hex`, `SAVE 31 MPH.COM`.
 - **Rychlost RAM disku a CGA-1V** (sestava V): `media\zrd-1v\zrdbench.hex`, `SAVE 7 ZRDBENCH.COM`, `ZRDBENCH`.
   Ukáže takt CPU a takty na bajt, porovnání se skutečným SAPI-1 V je v `docs\desky\ZRMD-1.md`. Zkuste i
-  s vypnutým TURBO (tlačítko na panelu ZDR).
+  s vypnutým TURBO (tlačítko na panelu ZDR). Rychlost videopaměti AND-1V měří stejně `media\and-1v\vrambench.hex`
+  (`SAVE 6 VRAMBENCH.COM`, `VRAMBENCH`).
 - **MIKOS a grafika** (`zps\ZPS-2_MIKOS_V5.sapi`):
   1. Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0G.hex`;
   2. `B`;

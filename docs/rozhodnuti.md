@@ -1416,3 +1416,16 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   je lepší než napodobený `LDIR`: smyčky, okraje bloků a kalibrace časovačem jsou stejné jako na HW. ZRDTEST
   hlídá test také, okno 74LS123 při 2 MHz vyjde „19..20 ms“ jen kvůli kalibraci jeho smyčky
   (`docs/desky/ZRMD-1.md`).
+
+## 2026-10-09 – čekací stavy AND-1V
+
+- **Podle schématu rev 2.3, list 4/7, stejným výpočtem jako CGA-1V.** Obě desky Libora Lasoty mají stejný
+  synchronizátor: STSTB se SEL stáhne RDY, žádost CPU se zachytí na začátku okna CPU (u AND-1V sestupná
+  hrana VIDEO, jednou za znak = 397 ns) a RDY se uvolní na konci okna (o půl znaku později). Výpočet je proto
+  jeden, `Bus::window_waits(write, slot, open, req, rel)`, karty mu dají jen své časy.
+- **Zpoždění převzatá z CGA-1V** (40 ns k žádosti, 50 ns k uvolnění), protože AND-1V zatím nikdo neměřil a jde
+  o stejné rodiny obvodů (74LS74, 74LS00, 74LS32). Pro ověření je vlastní měřicí program VRAMBENCH
+  (`media/and-1v`, podle ZRDBENCH), otázka je v Nejasnostech AND-1V.
+- **Výchozí zapnuté** (parametr `wait_states`) jako u CGA-1V: věrnost má přednost, vypnutí je pohodlí pro
+  rychlejší výpis. Textový výstup přes AND-1V se tím zpomalí o pár procent, jako na železe.
+- **`mem_peek` AND-1V už nevolá `mem_read`**, aby nahlížení debuggeru a MCP nepřidávalo čekání.

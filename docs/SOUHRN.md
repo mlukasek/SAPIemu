@@ -22,6 +22,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     zápis při 2 MHz o 0,3 T méně), stejně tak ZRDTEST (okno zápisu rev 2.1, `docs/desky/ZRMD-1.md`);
   - novinky pro další verzi se sbírají v `docs/release-notes/v0.5.0-alpha.md`.
   Pushnuté 2026-10-09 (autor: „jsou to důležité kroky“), alfa z toho zatím není.
+- **Potom (2026-10-09, autor: „pokračuj“):** čekací stavy AND-1V podle schématu rev 2.3 (list 4/7, stejný
+  synchronizátor jako CGA-1V), společný výpočet `Bus::window_waits`, měřicí program VRAMBENCH
+  (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
   - Testy: 44 v debug i v release (2026-10-09, s `test_kzd1` a `test_minigraf`); release `full` 48 včetně ZEX,
@@ -585,7 +588,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 
 ## Na promyšlení (nemodelované věci a vylepšení)
 
-- **AND-1V:** čekací stavy (RDY, jedno okno CPU na znak, 0–1 takt při 2 MHz, žádné při I/O).
+- ~~**AND-1V:** čekací stavy~~ od 2026-10-09 podle schématu (list 4/7, stejný model jako CGA-1V,
+  `Bus::window_waits`), měřicí program VRAMBENCH (`media/and-1v`); na skutečné desce zatím neměřené.
 - **JPR-1V:** STSTB bez refreshe (u JPR-1ZI je STSTB jen z /MREQ, což u AND-1Z může při refreshi s I = F8–FF
   spustit čekání). Visení RDY u DGD-1 během BOOT.
 - **ZPS-4 / ELIS v3.00:** obsluha klávesnice (dvojité nebo nekonečné opakování kláves).
