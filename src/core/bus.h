@@ -137,6 +137,7 @@ struct Bus {
 
     void reset(void);
     void ecmon_reset_check(void);   // a hint in the log when ECMON will boot a variant above 3
+    uint64_t reset_last = UINT64_MAX;   // time of the last reset (a held /RES resets on every sync)
     void advance_all(void);
     int irq_lines(void);        // OR of all cards' interrupt requests
     bool rtl(void);             // a card pulls /RTL (pin 1, reset request: watchdog of RSW-1, RTC-1)

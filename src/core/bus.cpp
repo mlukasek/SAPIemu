@@ -221,7 +221,9 @@ void Bus::reset(void)
     cpm_drive = -1;
     for (Card* c : cards) c->reset();
     update_map();
-    ecmon_reset_check();
+    // a held /RES (watchdog, /RTL of JPR-1) resets again on every sync: check ECMON once per reset
+    if (reset_last == UINT64_MAX || now < reset_last || now - reset_last > (uint64_t)cpu_hz / 100) ecmon_reset_check();
+    reset_last = now;
 }
 
 // ECMON (JPR-1Z/ZI/V, ZRMD-1, IDE-1) after a reset: with its signature AA 55 00 still in RAM it boots the

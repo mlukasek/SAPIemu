@@ -216,6 +216,7 @@ bool Machine::load_json(const json& cfg, std::string& err)
 
 void Machine::reset(void)
 {
+    bus.reset_last = UINT64_MAX;   // the RESET button: a new reset, not a held one
     bus.reset();
     bus.break_request = false;
     clear_break();
