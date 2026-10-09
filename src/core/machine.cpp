@@ -241,6 +241,9 @@ uint64_t Machine::run_cycles(uint64_t cycles)
             stop = classify_stop(bus, cpu, bp_exec, stop_msg);
             break;
         }
+        // mix as we go: the sources add at most 4 s ahead of the mixed part (Bus::audio_add) and
+        // a card catches up at most 1 s at once, so a long run (MCP run_for 40000) lost its sound
+        if (done < cycles) bus.audio_collect();
     }
     bus.audio_collect();
     return done;

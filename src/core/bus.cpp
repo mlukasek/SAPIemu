@@ -163,9 +163,15 @@ double Bus::audio_pos(uint64_t t) const
 
 void Bus::audio_add(uint64_t index, int value)
 {
-    if (index < mix_base) return;   // too late: already mixed out
+    if (index < mix_base) {   // too late: already mixed out
+        audio_lost++;
+        return;
+    }
     size_t off = (size_t)(index - mix_base);
-    if (off > (size_t)audio_rate * 4) return;   // nonsense
+    if (off > (size_t)audio_rate * 4) {   // nonsense (or audio_collect not called for 4 s)
+        audio_lost++;
+        return;
+    }
     if (off >= mix.size()) mix.resize(off + 1, 0);
     mix[off] += value;
 }
@@ -198,7 +204,10 @@ void Bus::audio_restart(void)
 void Bus::audio_record(bool on)
 {
     advance_all();   // the sound up to now belongs to the previous state
-    if (on) audio_rec.clear();
+    if (on) {
+        audio_rec.clear();
+        audio_lost = 0;
+    }
     audio_recording = on;
 }
 

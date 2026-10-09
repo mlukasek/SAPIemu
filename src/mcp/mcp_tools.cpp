@@ -1119,6 +1119,7 @@ json t_audio_record(EmuHost& h, const json& a)
     }
     json r{ { "seconds", (double)s.size() / m.bus.audio_rate }, { "rate", m.bus.audio_rate },
             { "rms", s.empty() ? 0.0 : sqrt(sum / (double)s.size()) }, { "peak", peak } };
+    if (m.bus.audio_lost) r["lost_samples"] = m.bus.audio_lost;   // dropped by the mixer: the recording has gaps
     std::string file = a.value("file", std::string());
     if (!file.empty()) {
         std::string path = data_path(file);
@@ -1438,7 +1439,7 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"name":{"type":"string"},"file":{"type":"string"}}})", t_save_state },
     { "load_state", "Load a state saved by save_state (memory 'name' or 'file', also the GUI's .sapistate files): the machine of the state is built and continues from that moment; breakpoints, watchpoints and the pause are kept.",
       R"({"type":"object","properties":{"name":{"type":"string"},"file":{"type":"string"}}})", t_load_state },
-    { "audio_record", "Record the sound card output (MPH-1V, mono, 49716 Hz): start=true starts, then run the emulation; a call without start stops and reports seconds, rms and peak (16 bit), and with 'file' saves a WAV (relative paths from the data root).",
+    { "audio_record", "Record the sound card output (MPH-1V, mono, 49716 Hz): start=true starts, then run the emulation; a call without start stops and reports seconds, rms and peak (16 bit; lost_samples if the mixer dropped any), and with 'file' saves a WAV (relative paths from the data root, i.e. the folder with roms/ and machines/ of the emulator, not the caller's folder). The recording follows the emulated time of the machine: after resume it also takes what runs in real time between the calls.",
       R"({"type":"object","properties":{"start":{"type":"boolean","default":false},"file":{"type":"string"}}})", t_audio_record },
     { "screenshot", "PNG image of the display: the console screen, or display = card name of another display output (e.g. \"DGD-1\" graphics).",
       R"({"type":"object","properties":{"scale":{"type":"integer","default":2},"display":{"type":"string"}}})", t_screenshot },

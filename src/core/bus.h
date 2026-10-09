@@ -40,6 +40,7 @@ struct Bus {
     Plant* plant = nullptr;     // the process outside the computer (APS-5 furnaces), owned by Machine
     uint64_t now = 0;           // CPU clock cycles since power-on
     uint32_t cpu_hz = 2000000;  // CPU clock, used by cards to convert time
+    int cpu_step = 1;           // units of `now` per CPU clock (JPR-1V without TURBO: 2, the CPU at osc/4)
     uint32_t phi2_hz = 2000000; // Φ2 TTL on the bus (pin 60), from the CPU card
     int wait = 0;               // wait states requested during the current access (RDY low)
     uint32_t hold = 0;          // cycles a DMA controller held the bus (/HOLD); the CPU card adds
@@ -71,6 +72,7 @@ struct Bus {
     // recording (sapiemu-cli --audio-wav, MCP audio_record), independent of the player
     bool audio_recording = false;
     std::vector<int16_t> audio_rec;
+    uint64_t audio_lost = 0;      // samples a source added out of range (dropped); reset by audio_record(true)
     void audio_put(const int16_t* s, size_t n);
     void audio_record(bool on);   // starts a new recording / stops it (audio_rec is kept)
     // host game controllers (HostJoy bits) for the joystick ports of the cards

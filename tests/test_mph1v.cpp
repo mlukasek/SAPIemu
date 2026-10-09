@@ -201,6 +201,21 @@ static void tone(void)
     m.bus.audio_record(false);
     CHECK(m.bus.audio.empty());
     CHECK(m.bus.audio_rec.size() >= 4960 && m.bus.audio_rec.size() <= 4980);
+    // one long run (MCP run_for 40000 used to keep only the first ~4 s): the held tone all the way
+    ym(m, 0x01, 0x00);
+    m.bus.audio_record(true);
+    m.run_seconds(10.0);
+    m.bus.audio_record(false);
+    const std::vector<int16_t>& r = m.bus.audio_rec;
+    CHECK(r.size() >= 497100 && r.size() <= 497200);
+    int quiet = 0;
+    for (size_t s = 0; s + 49716 <= r.size(); s += 49716) {
+        double e = 0;
+        for (size_t i = s; i < s + 49716; i++) e += (double)r[i] * r[i];
+        if (sqrt(e / 49716) < 1000) quiet++;
+    }
+    CHECK_EQ(quiet, 0);
+    CHECK_EQ((int)m.bus.audio_lost, 0);
 }
 
 // The quadrature lines seen while the card sends `steps` of movement (low bits of the port).
