@@ -135,7 +135,9 @@ Další programy z `media\` si nahrajete takto:
   1. `.G=1800` (pero na počátek), `.G=1809` nakreslí znakovou sadu;
   2. ukázka: Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0.hex`, `.B`, v okně Minigraf Nový papír, obsah
      `media\mikos\MINIGRAF_DEMO.bas` zkopírovat a vložit Stroj → Klávesnice → Vložit text (Ctrl+Shift+V), `RUN`;
-  3. kresba se uloží tlačítkem Uložit PNG nebo SVG (`docs/desky/Minigraf.md`).
+  3. kresba se uloží tlačítkem Uložit PNG nebo SVG (`docs/desky/Minigraf.md`);
+  4. kreslení v milimetrech: `media\mikos\BASIC_EXP_V5.0G_SZ.hex`, `.B`, vložit `media\mikos\KRES_DEMO.bas`, `RUN`
+     (příkaz `KRES`: kružnice, šrafování, text).
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

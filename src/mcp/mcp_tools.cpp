@@ -937,13 +937,13 @@ json t_plotter(EmuHost& h, const json& a)
     if (a.contains("png")) {
         std::string p = data_path(arg_str(a, "png", nullptr, true));
         make_dirs(path_dir(p));
-        if (!g->save_png(p, (int)arg_num(a, "px_per_mm", 8), err)) return error_result(err);
+        if (!g->save_png(p, (int)arg_num(a, "px_per_mm", 8), a.value("crop", false), err)) return error_result(err);
         j["png"] = p;
     }
     if (a.contains("svg")) {
         std::string p = data_path(arg_str(a, "svg", nullptr, true));
         make_dirs(path_dir(p));
-        if (!g->save_svg(p, err)) return error_result(err);
+        if (!g->save_svg(p, a.value("crop", false), err)) return error_result(err);
         j["svg"] = p;
     }
     size_t points = 0;
@@ -1424,8 +1424,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
     { "diag_board", "Diagnostic board on K3 of JPR-1S / JPR-1X (parameter k3 = diag): two seven segment displays (left = P2-OUT, right = P1-OUT; segments a..g, dp = bits 0..7) and two buttons, \"+\" on P2-IN0 (JPR-1X: interrupt request R0) and \"-\" on P2-IN7 (R7). Without arguments it reports what the displays show; press = \"+\" or \"-\" holds the button for hold_ms (default 150) while the machine runs, then runs after_ms (default 200).",
       R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
-    { "plotter", "Plotter ARITMA Minigraf 0507 on DPP-1 port B (driver V.1-MGF: .G=1800 init, .G=1809 test, .G=180F screen copy, .G=1815 system printer; BASIC EXP CALL(6171...)). Without arguments the pen position on the paper (mm: x from its left edge, y up the paper from where it was put in; the paper is an A4 wide strip), the pen, strokes, the extent of the drawing, steps, steps against the stop of the carriage (the origin is set so), lost steps (the code skipped a phase). new_sheet = a clean sheet under the pen, png / svg = save the sheet (paths relative to the data root, px_per_mm for PNG, default 8).",
-      R"({"type":"object","properties":{"new_sheet":{"type":"boolean"},"png":{"type":"string"},"svg":{"type":"string"},"px_per_mm":{"type":"integer","default":8}}})", t_plotter },
+    { "plotter", "Plotter ARITMA Minigraf 0507 on DPP-1 port B (driver V.1-MGF: .G=1800 init, .G=1809 test, .G=180F screen copy, .G=1815 system printer; BASIC EXP CALL(6171...)). Without arguments the pen position on the paper (mm: x from its left edge, y up the paper from where it was put in; the paper is an A4 wide strip), the pen, strokes, the extent of the drawing, steps, steps against the stop of the carriage (the origin is set so), lost steps (the code skipped a phase). new_sheet = a clean sheet under the pen, png / svg = save the paper (paths relative to the data root, px_per_mm for PNG, default 8; crop = only the drawing with 5 mm around).",
+      R"({"type":"object","properties":{"new_sheet":{"type":"boolean"},"png":{"type":"string"},"svg":{"type":"string"},"px_per_mm":{"type":"integer","default":8},"crop":{"type":"boolean","default":false}}})", t_plotter },
     { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). program = an Intel HEX or binary file (address = its load address, hex) made into a new cassette work/kzd-1/NAME.kzd as MIKOS/K writes it (K_I with tape name volume, then K_S with name; entry = start address for .J): .K_Z, .K_L NAME, .J. Paths relative to the data root.",
       R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"string"},"eject":{"type":"boolean"},"flip":{"type":"boolean"},"tab_a":{"type":"boolean"},"tab_b":{"type":"boolean"},"flush":{"type":"boolean"},"program":{"type":"string"},"name":{"type":"string"},"volume":{"type":"string"},"address":{"type":"string"},"entry":{"type":"string"}}})", t_kzd1 },
     { "plant", "APS-5: the plant (furnaces, thermocouples, terminal block) and the front panel HRK-1. Without arguments it reports the temperatures, heaters (DRV-1A contacts), logic inputs/outputs and the panel (key switch, fault LED, watchdog relay). Arguments change it: lock (1 operator, 2 programming), outage_s (a mains failure of that many seconds: the power fail warning, then no power, then power again; run the machine to see it), ambient_c, block_c (isothermal terminal block), battery_v, reset (all furnaces to the ambient temperature), and for channel (1-8): temperature_c (sets the furnace at once), tc_broken, heater_broken, li_a / li_b (logic inputs, true = H open). Keys of the panel: type_text with 0-9, M, R, backspace (<-), CR (->).",

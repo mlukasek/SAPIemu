@@ -1353,6 +1353,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Rychlost se neomezuje:** kroky nad 400/s z letáku se jen počítají. Ovladač je při kreslení dělá běžně, kresby
   na sapi.cz jsou přesto v pořádku. Otázka je v Nejasnostech.
 - **Pero dole po zapnutí** (port B je vstup a budiče dávají H) zůstává věrně. Tečku smaže Nový papír.
+- **BASIC EXP V5.0/G+SZ s upravenými porty:** jediná dochovaná kopie má porty F3h/F1h, kam DPP-1 nedosáhne. Šest
+  bajtů je vrácených na 33h/31h podle tabulky „původní obsah“ v návodu. Úprava je popsaná v `media/README.md`,
+  originál zůstává na sapi.cz.
+- **Export oříznutý na kresbu** (MCP `crop`) pro obrázky do dokumentace; okno ukládá celou šířku papíru.
 - **Vložení textu na klávesnici** (Stroj → Klávesnice → Vložit text, Ctrl+Shift+V): ukázku v BASICu by jinak bylo
   nutné opisovat. Klávesy jdou frontou klávesnice stejně jako `type_text` přes MCP. BASIC EXP stíhá celý program
   vložený najednou (ověřeno).

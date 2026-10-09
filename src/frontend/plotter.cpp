@@ -120,13 +120,13 @@ void draw_plotter(UiState& ui)
     std::string err;
     if (ImGui::Button(tr("Save PNG"))) {
         std::string p = plot_path(".png");
-        if (g->save_png(p, 8, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
+        if (g->save_png(p, 8, false, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
         else plot_notice(ui, false, err);
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Save SVG"))) {
         std::string p = plot_path(".svg");
-        if (g->save_svg(p, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
+        if (g->save_svg(p, false, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
         else plot_notice(ui, false, err);
     }
     ImGui::Text("X %.1f  Y %.1f mm   %s   %s %llu", g->x() / (double)Minigraf::STEPS_PER_MM,

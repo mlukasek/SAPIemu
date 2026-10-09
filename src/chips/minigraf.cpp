@@ -150,14 +150,26 @@ bool Minigraf::extent(int32_t& x0, int32_t& y0, int32_t& x1, int32_t& y1) const
     return any;
 }
 
-// the part of the paper exported: the drawing with 10 mm above and below, at least A4 high
-static void export_range(const Minigraf& g, int32_t& top, int32_t& h)
+// The part of the paper exported (steps): the width of the paper and the drawing with 10 mm above and
+// below, at least A4 high; cropped: the drawing with 5 mm around.
+static void export_range(const Minigraf& g, bool crop, int32_t& left, int32_t& top, int32_t& w, int32_t& h)
 {
     int32_t x0, y0, x1, y1;
-    const int32_t m = 10 * Minigraf::STEPS_PER_MM;
     if (!g.extent(x0, y0, x1, y1)) {
+        x0 = x1 = g.x();
         y0 = y1 = g.y();
     }
+    if (crop) {
+        const int32_t m = 5 * Minigraf::STEPS_PER_MM;
+        left = x0 - m;
+        top = y1 + m;
+        w = x1 - x0 + 2 * m;
+        h = y1 - y0 + 2 * m;
+        return;
+    }
+    const int32_t m = 10 * Minigraf::STEPS_PER_MM;
+    left = 0;
+    w = Minigraf::SHEET_W;
     top = y1 + m;
     h = y1 - y0 + 2 * m;
     if (h < Minigraf::SHEET_H) {
@@ -166,28 +178,28 @@ static void export_range(const Minigraf& g, int32_t& top, int32_t& h)
     }
 }
 
-bool Minigraf::save_svg(const std::string& path, std::string& err) const
+bool Minigraf::save_svg(const std::string& path, bool crop, std::string& err) const
 {
     std::string o;
-    char b[200];
-    int32_t top, hh;
-    export_range(*this, top, hh);
+    char b[256];
+    int32_t left, top, ww, hh;
+    export_range(*this, crop, left, top, ww, hh);
     snprintf(b, sizeof(b),
-             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"210mm\" "
+             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%gmm\" "
              "height=\"%gmm\" viewBox=\"0 0 %d %d\">\n<rect width=\"100%%\" height=\"100%%\" fill=\"white\"/>\n"
              "<g fill=\"none\" stroke=\"black\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n",
-             hh / (double)STEPS_PER_MM, (int)SHEET_W, (int)hh);
+             ww / (double)STEPS_PER_MM, hh / (double)STEPS_PER_MM, (int)ww, (int)hh);
     o += b;
     for (const std::vector<int32_t>& s : strokes) {
         if (s.size() < 2) continue;
         o += s.size() == 2 ? "<circle r=\"1.5\" fill=\"black\" " : "<polyline points=\"";
         if (s.size() == 2) {
-            snprintf(b, sizeof(b), "cx=\"%d\" cy=\"%d\"/>\n", (int)s[0], (int)(top - s[1]));
+            snprintf(b, sizeof(b), "cx=\"%d\" cy=\"%d\"/>\n", (int)(s[0] - left), (int)(top - s[1]));
             o += b;
             continue;
         }
         for (size_t i = 0; i + 1 < s.size(); i += 2) {
-            snprintf(b, sizeof(b), "%s%d,%d", i ? " " : "", (int)s[i], (int)(top - s[i + 1]));
+            snprintf(b, sizeof(b), "%s%d,%d", i ? " " : "", (int)(s[i] - left), (int)(top - s[i + 1]));
             o += b;
         }
         o += "\"/>\n";
@@ -200,13 +212,13 @@ bool Minigraf::save_svg(const std::string& path, std::string& err) const
     return true;
 }
 
-bool Minigraf::save_png(const std::string& path, int px_per_mm, std::string& err) const
+bool Minigraf::save_png(const std::string& path, int px_per_mm, bool crop, std::string& err) const
 {
     if (px_per_mm < 1) px_per_mm = 1;
     if (px_per_mm > 16) px_per_mm = 16;
-    int32_t top, hh;
-    export_range(*this, top, hh);
-    int w = 210 * px_per_mm, h = (int)(hh / STEPS_PER_MM) * px_per_mm;
+    int32_t left, top, ww, hh;
+    export_range(*this, crop, left, top, ww, hh);
+    int w = (int)(ww / STEPS_PER_MM) * px_per_mm, h = (int)(hh / STEPS_PER_MM) * px_per_mm;
     std::vector<uint32_t> img((size_t)w * h, 0xFFFFFFFFu);
     double k = (double)px_per_mm / STEPS_PER_MM;
     int r = px_per_mm >= 6 ? 1 : 0;   // a pen about 0.3 mm wide
@@ -217,10 +229,10 @@ bool Minigraf::save_png(const std::string& path, int px_per_mm, std::string& err
     };
     for (const std::vector<int32_t>& s : strokes) {
         for (size_t i = 0; i + 1 < s.size(); i += 2) {
-            double x0 = s[i] * k, y0 = (top - s[i + 1]) * k;
+            double x0 = (s[i] - left) * k, y0 = (top - s[i + 1]) * k;
             double x1 = x0, y1 = y0;
             if (i + 3 < s.size()) {
-                x1 = s[i + 2] * k;
+                x1 = (s[i + 2] - left) * k;
                 y1 = (top - s[i + 3]) * k;
             }
             int n = (int)std::max(fabs(x1 - x0), fabs(y1 - y0)) + 1;

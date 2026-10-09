@@ -1,6 +1,7 @@
 // ARITMA Minigraf 0507 on DPP-1 port B: the phase codes, the pen, the stops and lost steps through the
 // 8255; the driver V.1-MGF in EPROM (ZPS-2 MIKOS V5): .G=1800 sets the origin against the left stop,
-// .G=1809 draws the character set as the real plotter did (sapi.cz obrazky/0507_4.png); PNG, SVG.
+// .G=1809 draws the character set as the real plotter did (sapi.cz obrazky/0507_4.png); PNG, SVG; KRES
+// of BASIC EXP V5.0/G+SZ.
 #include "chips/minigraf.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -9,6 +10,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <algorithm>
 
 using nlohmann::json;
 
@@ -140,13 +142,51 @@ static void test_driver(void)
     CHECK(fabs(h - 184.75) < 1.0);
     // exports
     std::string png = data_path("work/test/minigraf.png"), svg = data_path("work/test/minigraf.svg");
-    CHECK(g->save_png(png, 4, err));
-    CHECK(g->save_svg(svg, err));
+    CHECK(g->save_png(png, 4, false, err));
+    CHECK(g->save_svg(svg, true, err));
     std::string text;
     CHECK(file_read_text(svg, text));
     CHECK(text.find("<polyline") != std::string::npos);
+    CHECK(text.find("width=\"93.75mm\" height=\"194.75mm\"") != std::string::npos);   // cropped: 5 mm around
     file_remove(png);
     file_remove(svg);
+}
+
+// BASIC EXP V5.0/G+SZ (ports back on 31h, 33h): KRES draws in millimetres
+static void test_kres(void)
+{
+    Machine m;
+    std::string err, text;
+    CHECK(m.load_file("machines/zps/ZPS-2_MIKOS_V5_Minigraf.sapi", err));
+    CHECK(run_until_text(m, "MONITOR V5.0", 5.0));
+    m.run_seconds(0.5);
+    Minigraf* g = find(m);
+    CHECK(g != nullptr);
+    if (!g) return;
+    CHECK(file_read_text(data_path("media/mikos/BASIC_EXP_V5.0G_SZ.hex"), text));
+    int n = 0;
+    CHECK(m.load_ihex_text(text, err, &n));
+    m.type_text("B");
+    CHECK(run_until_text(m, "READY", 5.0));
+    m.run_seconds(0.5);
+    m.type_text("10 KRES #I 40,0,,\r20 KRES #K 0,0,30,36\rRUN\r");
+    for (int i = 0; i < 120 && g->strokes.size() < 2; i++) m.run_seconds(0.5);
+    m.run_seconds(20.0);
+    // the circle is the last stroke (the first one is the dot of the pen down since the power on)
+    int32_t x0 = 1 << 30, y0 = 1 << 30, x1 = -(1 << 30), y1 = -(1 << 30);
+    CHECK(g->strokes.size() >= 2);
+    if (g->strokes.empty()) return;
+    const std::vector<int32_t>& s = g->strokes.back();
+    for (size_t i = 0; i + 1 < s.size(); i += 2) {
+        x0 = std::min(x0, s[i]);
+        x1 = std::max(x1, s[i]);
+        y0 = std::min(y0, s[i + 1]);
+        y1 = std::max(y1, s[i + 1]);
+    }
+    printf("KRES circle: %.2f x %.2f mm\n", (x1 - x0) / 8.0, (y1 - y0) / 8.0);
+    CHECK(fabs((x1 - x0) / 8.0 - 60) < 0.5);
+    CHECK(fabs((y1 - y0) / 8.0 - 60) < 0.5);
+    CHECK_EQ(g->stopped, 0u);
 }
 
 int main(void)
@@ -154,5 +194,6 @@ int main(void)
     test_init();
     test_codes();
     test_driver();
+    test_kres();
     return TEST_RESULT();
 }

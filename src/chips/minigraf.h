@@ -50,9 +50,10 @@ public:
 
     // the extent of the drawing (steps); false when nothing is drawn
     bool extent(int32_t& x0, int32_t& y0, int32_t& x1, int32_t& y1) const;
-    // exports: the width of the paper, the height of the drawing with margins (at least A4)
-    bool save_svg(const std::string& path, std::string& err) const;
-    bool save_png(const std::string& path, int px_per_mm, std::string& err) const;
+    // exports: the width of the paper, the height of the drawing with margins (at least A4); crop = just the
+    // drawing with 5 mm around
+    bool save_svg(const std::string& path, bool crop, std::string& err) const;
+    bool save_png(const std::string& path, int px_per_mm, bool crop, std::string& err) const;
 
     void state(StateIO& io);
 

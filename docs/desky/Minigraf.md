@@ -69,6 +69,36 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
 - **Rychlost:** při nastavení počátku krokuje asi 390 kroků/s na osu, těsně pod limitem letáku. Při kreslení
   zrychlí rampu (P185 = 0Ah) a krokuje až asi 780 kroků/s (Nejasnosti).
 
+## BASIC EXP V5.0/G+SZ a příkaz KRES
+
+![Ukázka KRES_DEMO.bas: rámeček, domek se šrafovanou střechou, slunce, otočený nápis a čárkovaná vlna](../img/minigraf-kres.png)
+
+- Zdroj: sapi.cz `doku2/bexpgsz.php` (návod) a `data/bexpgsz_hex.php` (4400–8BC7). Kreslení je v assembleru
+  zařazené do BASICu EXP V5.0/G a ovládá Minigraf i XY 4130. Klíčové slovo `KRES` a za ním příkazy:
+  - `#I` inicializace, s `X,Y,,` nejdřív posun pera;
+  - `#N` posun pera klávesami, `#H` hranice kreslení, `#R` rychlost;
+  - `#P` počátek, `#M` měřítka, `#U` natočení os;
+  - `#C` typ čáry (plná, čárkovaná…), `;` přesun, souřadnice = čára, `#V` přírůstky;
+  - `#T` text, `#K` kružnice a oblouky, `#S` šrafování.
+
+  **Všechno v milimetrech.**
+- Konfigurační bajt 7D1Ch: bity 0–1 zapisovač (00 Minigraf, 01 XY 4130), bit 2 deska (DPP-1), bit 3 klávesnice
+  (Zbrojovka = Consul). Původní byl 0Dh (XY 4130), kopie na sapi.cz („JiM“) má 0Ch (Minigraf) a porty F3h/F1h.
+  DPP-1 je ale jen v 00–3Fh.
+- **`media/mikos/BASIC_EXP_V5.0G_SZ.hex`** je tato kopie se šesti bajty vrácenými na **33h/31h** podle tabulky
+  úprav v návodu: 7951 OUT 33h (řídicí slovo 80h), 7AB5, 7B03, 7C23, 7CC2, 7CC6 OUT 31h. Kontrolní součty záznamů
+  jsou přepočítané. Nic se nečte zpět (návod píše „DB31 vstup“, v kódu je OUT).
+- Postup:
+  1. sestava se zapisovačem;
+  2. Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0G_SZ.hex`, `.B` (`* BASIC - EXP V5.0/G *`);
+  3. Nový papír;
+  4. obsah `media\mikos\KRES_DEMO.bas` vložit přes Stroj → Klávesnice → Vložit text, `RUN`.
+
+  `.G=1800` není potřeba, port nastaví `KRES #I`. Ukázka začíná `KRES #I 40,0,,`: po zapnutí stojí pero 60 mm
+  od levého dorazu a rámeček široký 160 mm by jinak na doraz narazil.
+- Ověřeno: kružnice `KRES #K 0,0,30,36` má 60,00 × 60,00 mm (`test_minigraf`), ukázka se nakreslí bez kroků na
+  dorazu.
+
 ## Emulace
 
 - **Model** (`Minigraf`):
@@ -90,7 +120,8 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
   - papír s kresbou, kolejnice vozíku s dorazem a perem (červené = dole), poloha, počet kroků a kroků na dorazu;
   - tlačítka Nový papír, Uložit PNG a Uložit SVG (`work/minigraf/kresba_<datum-čas>`). Export má šířku A4 a
     výšku kresby s okraji, nejméně A4.
-- **MCP `plotter`:** stav (poloha v mm, pero, tahy, rozsah kresby, kroky), `new_sheet`, `png`, `svg`, `px_per_mm`.
+- **MCP `plotter`:** stav (poloha v mm, pero, tahy, rozsah kresby, kroky), `new_sheet`, `png`, `svg`, `px_per_mm`,
+  `crop` (jen kresba s okrajem 5 mm).
 - **Ověřeno:**
   - TEST nakreslí stejnou znakovou sadu jako skutečný Minigraf na sapi.cz (`0507_4.png`, 12 řádků po 8 znacích,
     83,75 × 184,75 mm);

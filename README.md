@@ -47,7 +47,8 @@ Jde o **alfa verzi**. Hlavní věci fungují, ale chyby čekejte. Hlaste je v
     motory mechanik PC s rozběhem; formátování ověřené originálními programy J. Bíby a výpisy z reálných MFC-1A;
   - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD, tiskárna, KZD-1);
   - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
-    a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz;
+    a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
+    `KRES` kreslí v milimetrech (kružnice, šrafování, text);
   - kazetopáskový záznamník dat KZD-1 s MIKOSem/K V5.0: model mechaniky a dvou stop, kazety `.kzd` s oběma
     stranami a zoubky proti zápisu, kreslená kazeta s cívkami v okně Média;
   - DSP-1 se dvěma sériovými kanály 8251 (programy XMODEM J. Bíby ověřené oběma směry);

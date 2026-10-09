@@ -77,7 +77,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |
 | `kzd1` | Kazetopáskový záznamník dat KZD-1 (DPP-1, MIKOS/K): bez argumentů stav (kazeta, strana, poloha v metrech, pohyb, přetížení motorů, řídicí linky). `insert` = kazeta `.kzd` (chybějící se vytvoří prázdná), `new` = nová prázdná kazeta, `eject`, `flip` (otočit), `tab_a` / `tab_b` (zoubky proti zápisu), `flush` (zapsat soubor kazety hned), `program` = soubor `.hex`/`.bin` převedený na novou kazetu `work/kzd-1/JMÉNO.kzd` tak, jak ji zapisuje MIKOS/K (`name`, `volume` = název pásky, `address` u `.bin`, `entry`) |
-| `plotter` | Zapisovač ARITMA Minigraf 0507 (DPP-1): poloha pera na papíře v mm, pero, tahy, rozsah kresby, kroky, kroky na dorazu, ztracené kroky a kroky nad 400/s; `new_sheet` = nový papír, `png` / `svg` = uložit kresbu (`px_per_mm`, výchozí 8) |
+| `plotter` | Zapisovač ARITMA Minigraf 0507 (DPP-1): poloha pera na papíře v mm, pero, tahy, rozsah kresby, kroky, kroky na dorazu, ztracené kroky a kroky nad 400/s; `new_sheet` = nový papír, `png` / `svg` = uložit kresbu (`px_per_mm`, výchozí 8; `crop` = jen kresba s okrajem 5 mm) |
 | `printer_output` | Vytištěný text tiskárny (X3 karty JPR nebo DPP-1): poslední řádky, soubor s bajty, počet bajtů; `clear` = nový papír |
 | `serial_set_connected` | Připojení a odpojení terminálu (DCD/CTS/DSR). ECMON a MikroMon podle DCD volí konzoli |
 | `io_log`, `get_log` | Záznam I/O přístupů a log emulátoru |
