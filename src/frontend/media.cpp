@@ -9,6 +9,7 @@
 #include "imgui.h"
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
+#include "cards/rkd1.h"
 #include "chips/floppy.h"
 #include "chips/kzd1.h"
 #include "core/host.h"
@@ -30,6 +31,7 @@ static const SDL_DialogFileFilter k_kzd_filter[] = { { "Kazeta KZD-1 (KZD)", "kz
 static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "Kazeta KZD-1 (KZD)", "kzd" },
                                                           { "Program (HEX, BIN)", "hex;ihx;bin" }, { "*", "*" } };
 
+static const SDL_DialogFileFilter k_rkd_filter[] = { { "Kazeta RKD-1 (RKD)", "rkd" }, { "*", "*" } };
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
@@ -69,6 +71,8 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     else if (kind == 9) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
     else if (kind == 10) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_kzd_open_filter, 3, where.c_str(), false);
     else if (kind == 11) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 1, where.c_str());
+    else if (kind == 12) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_rkd_filter, 2, where.c_str(), false);
+    else if (kind == 13) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_rkd_filter, 1, where.c_str());
     else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
 }
 
@@ -178,6 +182,16 @@ static void tape_dialog_result(UiState& ui, Machine* m)
             }
         }
         if (!k->insert(path, err)) LOGE("%s", err.c_str());
+        return;
+    }
+    if (kind == 12 || kind == 13) {   // a cartridge for a unit of the RKD-1 (a new one: unformatted)
+        Rkd1* r = dynamic_cast<Rkd1*>(m->find_card(card));
+        if (!r) return;
+        size_t slash = path.find_last_of("/\\");
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".rkd";
+        if (kind == 13) file_remove(path);   // the save dialog asked before replacing it
+        std::string err;
+        if (!r->insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
         return;
     }
     if (kind == 4 || kind == 5) {   // a floppy for a drive of a disk controller (RPD-1, FDC-1)
@@ -715,6 +729,54 @@ static void draw_floppies(UiState& ui, Card* r)
     ImGui::PopID();
 }
 
+static void draw_rkd(UiState& ui, Rkd1* r)
+{
+    ImGui::PushID(r);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("New cartridge"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 13);
+    const char* fmts[2] = { "24 x 256 B (Tesla CP/M)", "12 x 512 B (SMEP)" };
+    int f = r->new_sectors == 12 ? 1 : 0;
+    if (ImGui::Combo("##rkdfmt", &f, fmts, 2)) r->new_sectors = f ? 12 : 24;
+    for (int i = 0; i < Rkd1::UNITS; i++) {
+        Rkd1::Unit& u = r->units[i];
+        if (!u.fitted) continue;
+        ImGui::PushID(i);
+        RkdPlatter& c = u.disk[Rkd1::CARTRIDGE];
+        ImGui::Text("%s %d, %s:", tr("Unit"), i, tr("cartridge"));
+        ImGui::SameLine();
+        if (!c.loaded) ImGui::TextDisabled("%s", tr("(no cartridge)"));
+        else {
+            ImGui::TextUnformatted(c.path.c_str());
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", c.path.c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("(%d x %d B)", c.sectors, c.sectors == 12 ? 512 : 256);
+        }
+        if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 12, r->name, i);
+        ImGui::SameLine();
+        if (ImGui::Button(tr("New cartridge..."))) tape_dialog(ui, 13, r->name, i);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(!c.loaded);
+        if (ImGui::Button(tr("Eject"))) r->eject(i);
+        ImGui::SameLine();
+        ImGui::Checkbox(tr("Write protect"), &c.write_protect);
+        ImGui::SameLine();
+        ImGui::Text("%s %d%s", tr("track"), u.track, c.dirty ? tr(", modified") : "");
+        ImGui::EndDisabled();
+        RkdPlatter& x = u.disk[Rkd1::FIXED];
+        ImGui::Text("   %s:", tr("fixed disk"));
+        ImGui::SameLine();
+        if (x.loaded) {
+            ImGui::TextUnformatted(x.path.c_str());
+            ImGui::SameLine();
+            ImGui::Checkbox(tr("Write protect##fixed"), &x.write_protect);
+        } else ImGui::TextDisabled("-");
+        ImGui::PopID();
+    }
+    ImGui::PopID();
+}
+
 void draw_media(UiState& ui)
 {
     tape_dialog_result(ui, ui.host->machine());   // also the HEX and binary dialogs of the File menu
@@ -744,6 +806,14 @@ void draw_media(UiState& ui)
             snprintf(title, sizeof(title), "%s %s", c->name.c_str(), tr("floppy drives"));
             ImGui::SeparatorText(title);
             draw_floppies(ui, c.get());
+            continue;
+        }
+        if (Rkd1* rk = dynamic_cast<Rkd1*>(c.get())) {
+            any = true;
+            char title[96];
+            snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("cartridge disk CM 5403"));
+            ImGui::SeparatorText(title);
+            draw_rkd(ui, rk);
             continue;
         }
         if (Kzd1* k = c->kzd1()) {

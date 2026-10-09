@@ -22,7 +22,8 @@ struct TapeDialog {
     std::mutex mtx;
     int kind = 0;            // 0 none, 1 insert, 2 new tape, 3 Intel HEX into memory,
                              // 4 insert floppy, 5 new floppy, 6 binary file into memory,
-                             // 7 save state, 8 load state, 9 export tape as WAV
+                             // 7 save state, 8 load state, 9 export tape as WAV,
+                             // 10/11 KZD-1 cassette, 12 insert RKD-1 cartridge, 13 new cartridge
     bool done = false;
     std::string result;      // chosen file, empty = cancelled
     std::string card;        // DSM-1 / RPD-1 card name

@@ -20,6 +20,7 @@
 #include "cards/ram1z.h"
 #include "cards/rem1.h"
 #include "cards/rmd1.h"
+#include "cards/rkd1.h"
 #include "cards/rpd1.h"
 #include "cards/fdc1.h"
 #include "cards/mfc1a.h"
@@ -65,6 +66,7 @@ Card* card_create(const std::string& type)
     if (type == "ZRD-1V") return new Zrmd1(true);
     if (type == "BDK-1") return new BlankCard(type);
     if (type == "RPD-1") return new Rpd1();
+    if (type == "RKD-1") return new Rkd1();
     if (type == "FDC-1") return new Fdc1();
     if (type == "MFC-1A") return new Mfc1a();
     if (type == "PKT-1") return new Pkt1();
