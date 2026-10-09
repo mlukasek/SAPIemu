@@ -199,6 +199,29 @@ void Bus::reset(void)
     cpm_drive = -1;
     for (Card* c : cards) c->reset();
     update_map();
+    ecmon_reset_check();
+}
+
+// ECMON (JPR-1Z/ZI/V, ZRMD-1, IDE-1) after a reset: with its signature AA 55 00 still in RAM it boots the
+// variant in 003Bh without the menu, and does not check it is 0-3. A program that used 003Bh then boots
+// something else and hangs (seen with the Prince of Persia port). The signature is at `CHECK EQU $+2` after
+// the code, so it is found by the code that tests it: LDA CHECK, CPI 0AAH, JNZ, LDA CHECK+1, CPI 55H.
+void Bus::ecmon_reset_check(void)
+{
+    for (uint32_t a = 0xF000; a + 13 <= 0xFFFF; a++) {
+        if (mem_peek((uint16_t)a) != 0x3A || mem_peek((uint16_t)(a + 3)) != 0xFE || mem_peek((uint16_t)(a + 4)) != 0xAA ||
+            mem_peek((uint16_t)(a + 5)) != 0xC2 || mem_peek((uint16_t)(a + 8)) != 0x3A || mem_peek((uint16_t)(a + 11)) != 0xFE ||
+            mem_peek((uint16_t)(a + 12)) != 0x55)
+            continue;
+        uint16_t check = (uint16_t)(mem_peek((uint16_t)(a + 1)) | mem_peek((uint16_t)(a + 2)) << 8);
+        if (mem_peek((uint16_t)(a + 9)) != (uint8_t)(check + 1)) continue;
+        uint8_t variant = mem_peek(0x003B);
+        if (mem_peek(check) == 0xAA && mem_peek((uint16_t)(check + 1)) == 0x55 && mem_peek((uint16_t)(check + 2)) == 0x00 &&
+            variant > 3)
+            LOGW("ECMON: after this reset it boots variant %u from 003Bh without the menu, only 0-3 exist (did a program "
+                 "use 003Bh?). Hold a key 0-3 during the start for the menu, or switch the machine off and on.", variant);
+        return;
+    }
 }
 
 static const uint64_t AUDIO_MASTER = 14318182;   // the samples follow the MPH-1V oscillator

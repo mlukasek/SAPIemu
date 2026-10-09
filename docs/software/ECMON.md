@@ -47,6 +47,12 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
     vypíše menu a stisknutou klávesu rovnou bere jako volbu. Když ne, spustí variantu uloženou na 003Bh.
   - Pak načte 128 B zavaděče z RAM disku (porty 60h–63h, oblast podle varianty) na 0080h, zapíše podpis a skočí
     na 0080h.
+  - **Rozsah 0–3 se po resetu nekontroluje** (`ECMONEC.MAC`, za `TEST_VAR` rovnou `GETCPM`). Program, který
+    použije bajt 003Bh pro sebe (port Prince of Persia tam měl proměnnou), po resetu nabootuje jinou oblast RAM
+    disku a zasekne se (v sestavě V po `LST: CENTRONIX`). Emulátor to dělá stejně. Při resetu ale najde podpis
+    podle kódu ECMONu (`CHECK EQU $+2` je u každé verze jinde, u IDE-1 na F792h) a když je na 003Bh víc než 3,
+    zapíše do logu varování (`get_log`, okno Log). Pomůže stisknout klávesu 0–3 hned po resetu, nebo vypnout
+    a zapnout. Návrh pro ECMON: kontrolovat 003Bh ≤ 3, jinak ukázat menu.
 - **Baterie DMR-1:** autor ji na svých strojích nemá, sestavy v `machines/` proto mají u DMR-1 `"battery": false`
   (od 2026-10-05) a menu se ukáže po každém zapnutí. S baterií (výchozí hodnota parametru, soubor
   `work/dmr-1/sram.bin` sdílený sestavami jako jedna fyzická karta, `docs/desky/DMR-1.md`) podpis i volba

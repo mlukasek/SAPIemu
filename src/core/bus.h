@@ -129,6 +129,7 @@ struct Bus {
     Card* mem_card(uint16_t addr);   // the card that answers a read of addr (nullptr = open bus)
 
     void reset(void);
+    void ecmon_reset_check(void);   // a hint in the log when ECMON will boot a variant above 3
     void advance_all(void);
     int irq_lines(void);        // OR of all cards' interrupt requests
     bool rtl(void);             // a card pulls /RTL (pin 1, reset request: watchdog of RSW-1, RTC-1)

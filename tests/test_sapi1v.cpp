@@ -405,9 +405,38 @@ static void int_log_im2(void)
     m.bus.io_write(0x63, 0x00);
 }
 
+// ECMON after a reset boots the variant in 003Bh without the menu: a value above 3 is reported in the log
+static bool log_has(const char* text)
+{
+    std::vector<std::string> lines;
+    log_recent(lines, 100);
+    for (const std::string& l : lines)
+        if (l.find(text) != std::string::npos) return true;
+    return false;
+}
+
+static void ecmon_variant(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    CHECK(run_until_text(m, "Zadej 0-3", 3.0));
+    m.run_seconds(0.3);
+    m.type_text("1");
+    CHECK(run_until_text(m, "\nA>", 10.0));
+    CHECK_EQ(m.bus.mem_peek(0x003B), 1);
+    m.reset();
+    CHECK(!log_has("boots variant"));
+    CHECK(run_until_text(m, "\nA>", 10.0));   // variant 1 again, no menu
+    m.bus.mem_write(0x003B, 7);
+    m.reset();
+    CHECK(log_has("boots variant 7 from 003Bh"));
+}
+
 int main(void)
 {
     test_init();
+    ecmon_variant();
     int_log_im2();
     cga_waits();
     zrd_rev11();
