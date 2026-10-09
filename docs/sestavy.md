@@ -226,6 +226,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 {
     "name": "…",                      // název v titulku a v menu
     "description": "…",               // volitelný popis
+    "power_on_memory": "random",      // volitelné: náhodný obsah pamětí po zapnutí (výchozí "zero")
     "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
     "cards": [
         { "slot": 1, "type": "JPR-1ZI", "rom": "roms/…", "keyboard": { "type": "EKL-1" } },
@@ -234,6 +235,11 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 }
 ```
 
+- **Obsah pamětí po zapnutí** (`power_on_memory`, v konfigurátoru zaškrtávátko „Náhodný obsah pamětí po
+  zapnutí“): skutečné SRAM, DRAM, videopaměti i paleta Bt476 mají po zapnutí náhodný obsah. Emulátor je
+  výchozí nuluje (textové displeje plní mezerami), s `"random"` je naplní náhodně (při každém zapnutí jinak).
+  Hodí se na programy, které spoléhají na vymazanou paměť (podnět z portu Prince of Persia). Paměti se
+  zálohou z baterie (DMR-1, CRM-1) a RAM disky mají dál obsah ze souboru.
 - **Sběrnice:**
 
   | Typ | Pozic | JP3 |

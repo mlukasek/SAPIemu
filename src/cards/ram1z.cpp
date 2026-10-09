@@ -22,6 +22,7 @@ bool Ram1z::configure(const json& cfg, std::string& err)
     if (p.size() != 512) { err = prom_file + ": the D3B PROM (74S571) has 512 entries"; return false; }
     memcpy(prom, p.data(), 512);
     ram.assign(0x10000, 0x00);
+    power_on_fill(ram.data(), ram.size(), 0);
     return true;
 }
 

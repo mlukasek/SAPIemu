@@ -8,7 +8,7 @@ using nlohmann::json;
 
 bool Bgp1s::configure(const json& cfg, std::string& err)
 {
-    memset(vram, 0, sizeof(vram));
+    power_on_fill(vram, sizeof(vram), 0);
     long long b;
     if (!cfg_number(cfg, "base", b, 0xC000, err)) return false;
     if (b & 0x3FFF || b < 0 || b > 0xC000) { err = "base must be 0000h, 4000h, 8000h or C000h (S3 AD15, AD14)"; return false; }

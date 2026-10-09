@@ -27,6 +27,7 @@ bool Dmr1::configure(const json& cfg, std::string& err)
     if (!cfg_string(cfg, "decoder", prom_file, "roms/dmr-1/DMR-1_D2C.bin", err)) return false;
     if (!rom_load(prom_file, prom, 512, 0x01, 0, err)) return false;
     ram.assign(131072, 0x00);
+    power_on_fill(ram.data(), ram.size(), 0);
     if (!cfg_bool(cfg, "battery", battery, true, err)) return false;
     if (!cfg_string(cfg, "sram_file", sram_file, "work/dmr-1/sram.bin", err)) return false;
     if (battery && ram_enabled && !sram_file.empty() && battery_files_enabled()) {

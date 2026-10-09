@@ -20,6 +20,7 @@ And1::And1(const char* type) : Card(type)
 
 bool And1::configure(const json& cfg, std::string& err)
 {
+    power_on_fill(vram, sizeof(vram), 0x20);
     // jumpers 42-43 MHB 2501 (latin) / 41-42 MHB 2502 (cyrillic)
     std::string cs, cg;
     if (!cfg_string(cfg, "charset", cs, "MHB2501", err)) return false;

@@ -433,9 +433,42 @@ static void ecmon_variant(void)
     CHECK(log_has("boots variant 7 from 003Bh"));
 }
 
+// "power_on_memory": "random": RAM, video RAM and the palette hold random bits like real chips; ECMON
+// and CP/M start anyway. The default stays zero.
+static int nonzero(Machine& m, uint16_t from, int n)
+{
+    int k = 0;
+    for (int i = 0; i < n; i++) k += m.bus.mem_peek((uint16_t)(from + i)) != 0;
+    return k;
+}
+
+static void power_on_random(void)
+{
+    Machine z;
+    std::string err;
+    CHECK(z.load_json(machine_cfg(), err));
+    CHECK_EQ(nonzero(z, 0x8000, 4096), 0);
+    json cfg = machine_cfg();
+    cfg["power_on_memory"] = "random";
+    Machine m;
+    CHECK(m.load_json(cfg, err));
+    CHECK(nonzero(m, 0x8000, 4096) > 3500);   // RAM-1V
+    m.bus.io_write(0x63, 0xC0);
+    CHECK(nonzero(m, 0xC000, 4096) > 3500);   // CGA-1V
+    m.bus.io_write(0x63, 0x00);
+    CHECK(run_until_text(m, "Zadej 0-3", 3.0));
+    m.run_seconds(0.3);
+    m.type_text("1");
+    CHECK(run_until_text(m, "\nA>", 10.0));
+    cfg["power_on_memory"] = "noise";
+    Machine bad;
+    CHECK(!bad.load_json(cfg, err));
+}
+
 int main(void)
 {
     test_init();
+    power_on_random();
     ecmon_variant();
     int_log_im2();
     cga_waits();

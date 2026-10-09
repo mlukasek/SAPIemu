@@ -36,6 +36,7 @@ bool Crm1::configure(const json& cfg, std::string& err)
     if (v < 0 || v > 10000) { err = "rdy_ns must be 0-10000"; return false; }
     rdy_ns = (int)v;
     ram.assign(4096, 0x00);
+    power_on_fill(ram.data(), ram.size(), 0);
     if (battery && !file.empty() && battery_files_enabled() && !probe) {
         std::vector<uint8_t> saved;   // the batteries kept it while the computer was off
         if (file_read_all(data_path(file), saved) && saved.size() == ram.size()) ram = saved;

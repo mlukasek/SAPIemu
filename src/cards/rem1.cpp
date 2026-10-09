@@ -41,6 +41,7 @@ bool Rem1::configure(const json& cfg, std::string& err)
     eprom.assign(size, 0xFF);
     if (!rom.empty() && !rom_load(rom, eprom, size, 0xFF, 0, err)) return false;
     ram.assign((size_t)kb * 1024, 0x00);
+    if (!ram.empty()) power_on_fill(ram.data(), ram.size(), 0);
     return true;
 }
 

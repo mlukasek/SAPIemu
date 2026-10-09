@@ -23,6 +23,7 @@ bool Ram1::configure(const json& cfg, std::string& err)
     unsigned page = (s1 ? 0u : 0x40u) | (s2 ? 0u : 0x80u);   // a closed jumper pulls the input low
     for (int b = 0; b < 64; b++) sel[b] = prom[page | (unsigned)b] & 0x0F;
     ram.assign(0xC000, 0x00);
+    power_on_fill(ram.data(), ram.size(), 0);
     return true;
 }
 

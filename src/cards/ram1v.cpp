@@ -59,7 +59,10 @@ bool Ram1v::configure(const json& cfg, std::string& err)
         if (v < 0 || v > 7) { err = std::string(bit[i]) + " must be 0-7 (B1/B2/B4)"; return false; }
         map_bit[i] = (int)v;
     }
-    for (int i = 0; i < 3; i++) mem[i].assign(fitted[i] ? 0x8000 : 0, 0x00);
+    for (int i = 0; i < 3; i++) {
+        mem[i].assign(fitted[i] ? 0x8000 : 0, 0x00);
+        if (fitted[i]) power_on_fill(mem[i].data(), mem[i].size(), 0);
+    }
     return true;
 }
 

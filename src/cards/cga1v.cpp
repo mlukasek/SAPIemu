@@ -38,8 +38,8 @@ bool Cga1v::configure(const json& cfg, std::string& err)
     if (!map_mode_of(cfg, "map2", map_mode[1], err)) return false;
     if (!cfg_bool(cfg, "wait_states", waits, true, err)) return false;
     if (!cfg_bool(cfg, "frame_blend", blend, true, err)) return false;
-    memset(ram, 0, sizeof(ram));
-    memset(pal, 0, sizeof(pal));
+    power_on_fill(ram, sizeof(ram), 0);
+    power_on_fill(&pal[0][0], sizeof(pal), 0);   // the Bt476 palette too
     return true;
 }
 

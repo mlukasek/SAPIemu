@@ -97,6 +97,13 @@ struct Bus {
     // connectors with a mouse plugged in (MousePort bits; nonzero: the GUI captures the host mouse)
     uint8_t mouse_connected = 0;
 
+    // power-on content of memories (SRAM, DRAM, video RAM, palettes): a real chip holds random bits after
+    // power on. The emulator fills a fixed value (zeros, spaces in a text VRAM) unless the machine asks for
+    // "power_on_memory": "random", which catches programs relying on cleared memory.
+    bool power_on_random = false;
+    uint32_t power_on_rng = 1;
+    void power_on_fill(uint8_t* p, size_t n, uint8_t value);
+
     // debugging
     uint8_t mem_watch[65536];   // WatchFlags per address
     uint8_t io_watch[256];      // WatchFlags per port

@@ -50,6 +50,7 @@ bool Dgd1::configure(const json& cfg, std::string& err)
         if (!cfg_string(cfg, "color", c, "white", err)) return false;
         if (!set_ink(c, err)) return false;
         ram.assign(0x4000, 0x00);
+        power_on_fill(ram.data(), ram.size(), 0);
         return true;
     }
     std::string b;
@@ -64,6 +65,7 @@ bool Dgd1::configure(const json& cfg, std::string& err)
     if (!cfg_bool(cfg, "wait_states", waits, true, err)) return false;
     if (!monitor.configure(cfg, err)) return false;
     ram.assign(0x4000, 0x00);
+    power_on_fill(ram.data(), ram.size(), 0);
     return true;
 }
 

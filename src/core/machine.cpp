@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
+#include <chrono>
 
 using nlohmann::json;
 
@@ -78,6 +79,17 @@ bool Machine::load_json(const json& cfg, std::string& err)
 {
     config = cfg;
     name = cfg.value("name", std::string("SAPI-1"));
+
+    // memories after power on: zeros (default) or random bits like the real chips
+    std::string pom;
+    if (!cfg_string(cfg, "power_on_memory", pom, "zero", err)) return false;
+    if (pom != "zero" && pom != "random") {
+        err = "power_on_memory must be zero or random";
+        return false;
+    }
+    bus.power_on_random = pom == "random";
+    uint64_t seed = (uint64_t)std::chrono::steady_clock::now().time_since_epoch().count();
+    bus.power_on_rng = (uint32_t)(seed ^ (seed >> 32)) | 1;
 
     // bus: number of positions from its type, ARB-1C JP3 decides where the CPU may sit
     int slots = 8;

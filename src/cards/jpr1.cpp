@@ -123,6 +123,7 @@ static bool load_jpr1x_rom(const std::string& rom, std::vector<uint8_t>& banks, 
 
 bool Jpr1::configure(const json& cfg, std::string& err)
 {
+    power_on_fill(ram, sizeof(ram), 0);
     long long crystal;
     if (model_x) {
         long long osc;

@@ -20,6 +20,7 @@ And1z::And1z() : Card("AND-1Z-89")
 
 bool And1z::configure(const json& cfg, std::string& err)
 {
+    power_on_fill(vram, sizeof(vram), 0);
     std::string cg, d1;
     if (!cfg_string(cfg, "chargen", cg, "roms/and-1z-89/AND-1Z_CharGen.bin", err)) return false;
     if (!cfg_string(cfg, "decoder", d1, "roms/and-1z-89/PROM_D1.hex.bin", err)) return false;

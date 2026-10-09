@@ -123,6 +123,28 @@ uint8_t Bus::inta(void)
     return OPEN_BUS;   // RST 38h in IM0
 }
 
+void Bus::power_on_fill(uint8_t* p, size_t n, uint8_t value)
+{
+    if (!power_on_random) {
+        memset(p, value, n);
+        return;
+    }
+    uint32_t x = power_on_rng ? power_on_rng : 1;
+    for (size_t i = 0; i < n; i++) {   // xorshift32
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        p[i] = (uint8_t)(x >> 24);
+    }
+    power_on_rng = x;
+}
+
+void Card::power_on_fill(uint8_t* p, size_t n, uint8_t value)
+{
+    if (bus) bus->power_on_fill(p, n, value);
+    else memset(p, value, n);
+}
+
 Card* Bus::mem_card(uint16_t addr)
 {
     for (Card* c : cards) {

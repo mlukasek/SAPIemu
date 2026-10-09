@@ -41,6 +41,7 @@ bool Rsw1::configure(const json& cfg, std::string& err)
     bool connected, cts;
     if (!cfg_bool(cfg, "connected", connected, true, err) || !cfg_bool(cfg, "cts", cts, true, err)) return false;
     ram.assign(65536, 0x00);
+    power_on_fill(ram.data(), ram.size(), 0);
     serial.reset(new SerialChannel(type + " #18"));
     serial->connected = connected;
     serial->cts = cts;

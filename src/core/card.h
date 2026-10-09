@@ -120,6 +120,9 @@ public:
         return false;
     }
 
+    // power-on content of a memory of the card: `value`, or random bits (Bus::power_on_fill)
+    void power_on_fill(uint8_t* p, size_t n, uint8_t value);
+
     std::string type;   // e.g. "DMR-1"
     std::string name;   // unique instance name, defaults to type
     int slot = 0;

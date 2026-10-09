@@ -10,7 +10,7 @@ using nlohmann::json;
 
 bool And1v::configure(const json& cfg, std::string& err)
 {
-    memset(vram, 0x20, sizeof(vram));
+    power_on_fill(vram, sizeof(vram), 0x20);
     long long b;
     if (!cfg_number(cfg, "base", b, 0xF800, err)) return false;
     if (b < 0 || b > 0xF800 || (b & 0x7FF)) { err = "base must be a multiple of 800h (jumpers S2 /A11-/A15)"; return false; }

@@ -13,7 +13,7 @@ static const int INT_FIRST = 480, INT_LAST = 490;   // R24ZAT .. VSYNC (/IRQOFF)
 
 bool And1b::configure(const json& cfg, std::string& err)
 {
-    memset(vram, 0x20, sizeof(vram));
+    power_on_fill(vram, sizeof(vram), 0x20);
     long long b;
     if (!cfg_number(cfg, "base", b, 0x3800, err)) return false;
     if (b != 0x2800 && b != 0x3800 && b != 0xE800 && b != 0xF800) {

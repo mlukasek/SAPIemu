@@ -1544,6 +1544,17 @@ void draw_bus_props(RackEditor& r)
         if (desc[0]) r.cfg["description"] = std::string(desc);
         else r.cfg.erase("description");
     }
+    bool random_mem = r.cfg.value("power_on_memory", std::string("zero")) == "random";
+    if (ImGui::Checkbox(loc("Random memory content after power on", "Náhodný obsah pamětí po zapnutí"), &random_mem)) {
+        if (random_mem) r.cfg["power_on_memory"] = "random";
+        else r.cfg.erase("power_on_memory");
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", loc("RAM, video RAM and palettes hold random bits after power on, like the real chips. "
+                                    "Off: zeros (spaces in text displays), so programs relying on cleared memory work.",
+                                    "RAM, videopaměti a palety mají po zapnutí náhodný obsah jako skutečné obvody. "
+                                    "Vypnuto: nuly (u textových displejů mezery), takže fungují i programy, které "
+                                    "spoléhají na vymazanou paměť."));
     if (!r.cfg.contains("bus") || !r.cfg["bus"].is_object()) r.cfg["bus"] = { { "type", "ARB-1C-8" } };
     json& bus = r.cfg["bus"];
     std::string bt = bus.value("type", std::string("ARB-1C-8"));
