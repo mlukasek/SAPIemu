@@ -1313,6 +1313,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (snap && snap_frames == 9) {
             if (snap->screen_menu) app.open_screen_menu = true;
             if (snap->shot) shot_now(app);
+            if (snap->copy) {
+                std::string name;
+                DisplayDevice* d = shot_display(app, name);
+                if (d) shot_copy(app.ui, d, display_px_aspect(app, d));
+            }
             if (snap->video > 0) video_toggle(app);
         }
         if (snap && snap->video > 0 && video_recording(app.ui) && video_seconds(app.ui) >= snap->video)

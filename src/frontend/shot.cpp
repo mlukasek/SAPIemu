@@ -10,6 +10,12 @@
 #include "core/devices.h"
 #include "core/png.h"
 #include "core/util.h"
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 
 static const uint32_t k_shot_bg = 0xFF000000u;   // a monochrome picture's background
 
@@ -129,6 +135,42 @@ static const void* SDLCALL shot_clip_data(void*, const char* mime, size_t* size)
     return v.data();
 }
 
+#ifdef _WIN32
+// SDL 3 puts only the first picture format on the Windows clipboard (WIN_SetClipboardData): Word reads
+// "PNG", most programs (file managers, terminals, painting programs) only CF_DIB. Both are written here.
+static bool clip_put(UINT format, const uint8_t* data, size_t size)
+{
+    HGLOBAL hm = GlobalAlloc(GMEM_MOVEABLE, size);
+    if (!hm) return false;
+    void* p = GlobalLock(hm);
+    if (!p) {
+        GlobalFree(hm);
+        return false;
+    }
+    memcpy(p, data, size);
+    GlobalUnlock(hm);
+    if (SetClipboardData(format, hm)) return true;   // the clipboard owns it now
+    GlobalFree(hm);
+    return false;
+}
+
+static bool clip_windows(UiState& ui)
+{
+    HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(ui.window), SDL_PROP_WINDOW_WIN32_HWND_POINTER,
+                                             nullptr);
+    bool open = false;
+    for (int i = 0; i < 10 && !(open = OpenClipboard(hwnd) != 0); i++) SDL_Delay(10);   // another program may hold it
+    if (!open) return false;
+    EmptyClipboard();
+    const size_t file_header = 14;   // BITMAPFILEHEADER: CF_DIB is the BMP without it
+    bool ok = s_clip_bmp.size() > file_header &&
+              clip_put(CF_DIB, s_clip_bmp.data() + file_header, s_clip_bmp.size() - file_header);
+    ok = clip_put(RegisterClipboardFormatA("PNG"), s_clip_png.data(), s_clip_png.size()) && ok;
+    CloseClipboard();
+    return ok;
+}
+#endif
+
 void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect)
 {
     if (!d) return;
@@ -137,9 +179,17 @@ void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect)
     shot_pixels(ui, d, px_aspect, px, w, h, sx, sy);
     s_clip_png = png_encode_argb(px.data(), w, h, sx, sy);
     s_clip_bmp = bmp_encode_argb(px.data(), w, h, sx, sy);
+#ifdef _WIN32
+    if (clip_windows(ui))
+        shot_notice(ui, true, tr("Screenshot copied to the clipboard."));
+    else
+        shot_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ": Windows error " +
+                                   std::to_string((unsigned long)GetLastError()));
+#else
     static const char* mimes[] = { "image/png", "image/bmp" };
     if (SDL_SetClipboardData(shot_clip_data, nullptr, nullptr, mimes, 2))
         shot_notice(ui, true, tr("Screenshot copied to the clipboard."));
     else
         shot_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ":\n" + SDL_GetError());
+#endif
 }

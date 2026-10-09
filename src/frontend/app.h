@@ -24,6 +24,7 @@ struct UiSnapshot {
     bool terminal = false;   // show the Serial terminal window
     bool screen_menu = false;   // the right click menu of the console screen open
     bool shot = false;          // take a screenshot (Ctrl+F5) before the picture
+    bool copy = false;          // copy the screenshot to the clipboard (View -> Copy screenshot)
     double video = 0;           // record a video of so many seconds (Ctrl+Alt+F5) before the picture
     std::string term_text;   // text received on the first channel ("\n" written as two characters = a new line)
     std::string term_sel;    // "L0,C0-L1,C1": a selection in it (line indexes, cell boundaries)
