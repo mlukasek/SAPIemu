@@ -287,6 +287,7 @@ vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otev�
 `--ui-aps5` okno APS-5 (panel a pece; s `--ui-state` i se žhavými pecemi a grafem), `--ui-aps5-demo` totéž
 se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou),
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
+`--ui-copy` zkopíruje snímek do schránky (Zobrazení → Kopírovat snímek; přepíše schránku),
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
 v něm vybere od řádku 0, hranice 7 po řádek 4, hranici 12),

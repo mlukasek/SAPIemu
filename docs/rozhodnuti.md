@@ -1187,6 +1187,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Formát:** PNG s přesnými body emulovaného obrazu (bezeztrátově, jako cli `--screenshot`), volba „zvětšený 3×
   (jak je vidět)“: každý bod 3 řádky a šířka podle poměru stran TV (DBS-1A 1024 × 720). Automatický název
   `work/snimky/<karta>_<datum-čas>.png`, nebo dialog. Schránka dostane PNG i BMP (DIB ve Windows bere každý program).
+  **Oprava 2026-10-09:** SDL 3 ve Windows dá do schránky jen první formát obrázku (`WIN_SetClipboardData`), takže
+  tam bylo jen „PNG“: Word ho vložil, Salamander, terminály a další programy, které čtou `CF_DIB`, ne. Ve Windows
+  proto schránku plní emulátor sám přes Win32 (CF_DIB i PNG), jinde dál SDL. Ověřené `--ui-copy` a .NET
+  `Clipboard.GetImage()`.
   Kodér PNG zůstává bez komprese (malé obrázky, žádná knihovna navíc).
 - **Video (hotové týž den):** MP4 (H.264 + AAC) přes **ffmpeg**, který je potřeba mít (PATH, nebo `"video":
   {"ffmpeg"}` v nastavení); přehraje se všude a je malé. DOSBox má AVI s vlastním kodekem ZMBV, MAME nekomprimované
