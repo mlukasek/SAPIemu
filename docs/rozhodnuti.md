@@ -1462,3 +1462,14 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   s Resetem a používat jen kopie systémové kazety (bez SYSGENu jinou cestu nemáme).
 - **Panely v konfigurátoru jako u RPD-1:** obě desky mají dva FRB 30, horní (X3) propojuje plochý kabel (bez názvu,
   v podkladech není), dolní (X2) vede k mechanice. Signály mechaniky jsou rozdělené mezi RKD-1A a RKD-1B.
+- **SYSGEN jako přiznaná pomoc emulátoru** (tlačítko Systém… v okně Média, večer 2026-10-09): originál se nenašel a
+  bez něj nejde udělat novou systémovou kazetu. Tlačítko kopíruje stopy 0 a 1 ze systémové kazety v `media/`
+  (stejné bajty, jaké by zapsal SYSGEN) a volitelně formátuje stejnými bajty jako FORMTRKD. Soubory shellu se
+  kopírují v CP/M přes pevný disk, takže jde o jediný krok, který dělá emulátor místo programu.
+- **CM 5400 jako druhý typ mechaniky** (`unitN.drive`): obrácená polarita DISK (podle FORMRKD) a kabel SM 5400
+  (cylindr 2N + T00, návrat nezapojený). Mechanika bere 408 cylindrů, protože FORMRKD formátuje stopy 0–203;
+  s 203 cylindry by skončil na stopě 102. Odporuje to údaji 2,45 MB na disk, proto je to v Nejasnostech.
+- **Hlavičky sektorů se neopravují ani nekontrolují:** FORMRKD.COM píše starší hlavičku (jen stopa, nižší bajt
+  první) a emulace ji uloží, jak přišla. Obraz `.rkd` drží bajty, ne význam, takže fungují oba ovladače.
+- **Test RKD-1 ve třech částech** běžících souběžně (`RKD_PART`, `COST` v `tests/CMakeLists.txt`): celá debug sada
+  zůstává kolem 30 s.

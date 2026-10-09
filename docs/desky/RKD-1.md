@@ -1,6 +1,7 @@
 # RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)
 
-Stav: **emulovaná** (2026-10-09), karta `RKD-1` (`src/cards/rkd1.*`), sestava `machines/rkd1_tesla_cpm.sapi`,
+Stav: **emulovaná** (2026-10-09), karta `RKD-1` (`src/cards/rkd1.*`) s mechanikou CM 5403 nebo CM 5400, sestavy
+`machines/rkd1_tesla_cpm.sapi` (CM 5403, CP/M Tesly) a `machines/rkd1_jb_cm5400.sapi` (CM 5400, FORMRKD J. Bíby),
 test `tests/test_rkd1.cpp`. Dvoudeskový řadič RKD-1A („deska řízení“) a RKD-1B („deska dat“) pro 1 až 4 mechaniky
 kazetového disku. Emulace je ověřená originálním softwarem Tesla Elstroj a JaMeSoft 1987 (formátovač, generátor
 systému, boot ROM, CBIOS), který na ní běží beze změn. **Návod k obsluze** (start, shell SH, formátování,
@@ -144,7 +145,16 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
 - **T00 je hladina, ne pulz** (schéma repliky, list RKD-1A): klopný obvod D7CA bere DB0 při zápisu na 4Bh a nuluje
   ho invertované PC0 (D4BA). T00 a adresa stopy (budiče povolené PC0) se proto vylučují: `RK_HOME` pošle T00 se
   STB, `RK_SEEK` nastaví PC0 a tím T00 smaže. WPP je pulz zápisu na 4Bh s DB1, STB pulz zápisu na 48h.
-- **Mechanika (model CM 5403):** 2400 ot./min, 12 nebo 24 sektorových impulzů (vlastnost talíře, kazeta si ji
+- **Dvě mechaniky** (volba `drive` u každé jednotky, `CM 5403` výchozí):
+  - **CM 5403** (Zbrojovka): DISK neaktivní = kazeta, T00 = bezadresový návrat na stopu 0 (nuluje chybu), stopa
+    řadiče = cylindr. Pro ni je CP/M Tesly.
+  - **CM 5400** (IZOT) na kabelu SM 5400 podle [R1] str. 15: DISK neaktivní = **pevný** disk (FORMRKD J. Bíby: D:, E:
+    pevný, F:, G: výměnný), T00 na bitu 2⁰ adresy cylindru a T1–T128 na 2¹–2⁸, takže stopa N je cylindr 2N
+    a `RK_HOME` (jen T00) najede na cylindr 1; návrat mechaniky zapojený není. Mechanika bere cylindry do 407
+    (předpoklad, viz Nejasnosti), vystavení přes celý disk trvá stejně jako u CM 5403 (0,185 ms na cylindr). Nové
+    talíře mají 12 × 512 B (SMEP). Lichý cylindr (jen po `RK_HOME`, ovladač před přenosem vždy vystavuje) se bere
+    jako stopa pod ním.
+- **Mechanika (společný model):** 2400 ot./min, 12 nebo 24 sektorových impulzů (vlastnost talíře, kazeta si ji
   nese v obrazu), 204 stop, 2 povrchy, kazeta a pevný disk. Vystavení hlav je odhad podle DEC RK05 téže třídy:
   10 ms + 0,37 ms na stopu (přes celý disk asi 85 ms), stejná stopa 1 ms. Návrat T00 nuluje chybu mechaniky.
   Na chráněný disk mechanika nezapisuje (jako rodina RK05: ochrana jen vypne zápisový proud), řadič bajty odpočítá a
@@ -160,12 +170,20 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
   délka a bajty, které do něj řadič zapsal (26 × 00h, 80h, hlavička, data, součet). Zachová se tak formát obou
   druhů, rozbitý sektor i zápis přes konec sektoru (zničí následující sektor). 12 sektorů: 636 B na sektor,
   24 sektorů: 312 B (čas mezi impulzy). Soubor má asi 3 MB.
-- **Kazeta a pevný disk:** DISK neaktivní (PC6 = 0) = kazeta, aktivní = pevný disk. Polarita je podle CBIOSu Tesly,
-  který bootuje z média 0 a má na A:, B: systémové stopy (DPB výměnného disku). Pevný disk je soubor
+- **Kazeta a pevný disk:** u CM 5403 DISK neaktivní (PC6 = 0) = kazeta, aktivní = pevný disk. Polarita je podle
+  CBIOSu Tesly, který bootuje z média 0 a má na A:, B: systémové stopy (DPB výměnného disku). U CM 5400 obráceně
+  (FORMRKD). Pevný disk je soubor
   `work/rkd-1/unitN_fixed.rkd`, vytvoří se nenaformátovaný. Bez kazety mechanika neběží (UNR neaktivní).
-- **Okno Média:** jednotky, kazeta (Vložit, Nová kazeta s volbou 24 × 256 nebo 12 × 512, Vysunout, Ochrana proti
-  zápisu), pevný disk. Nová kazeta je nenaformátovaná: formátuje se v CP/M programem `FORMTRKD` (Tesla, 24 × 256)
-  nebo `FORMRKD` (J. Bíba, 12 × 512).
+- **Okno Média:** jednotky s typem mechaniky, kazeta (Vložit, Nová kazeta s volbou 24 × 256 nebo 12 × 512,
+  Vysunout, Ochrana proti zápisu), pevný disk. Nová kazeta je nenaformátovaná: formátuje se v CP/M programem
+  `FORMTRKD` (Tesla, 24 × 256) nebo `FORMRKD` (J. Bíba, 12 × 512).
+- **Pomoc emulátoru „Systém…“ (SYSGEN, 2026-10-09):** u kazety 24 × 256 v CM 5403. Originální SYSGEN pro RKD-1 se
+  nenašel, a bez něj nejde udělat novou systémovou kazetu (WBOOT i boot ROM čtou systém ze stop 0 a 1 média 0, SH
+  potřebuje své soubory na A:). Tlačítko zkopíruje stopy 0 a 1 prvního povrchu ze systémové kazety
+  `media/rkd-1/tesla_cpm_system.rkd` bajt po bajtu (záznamy sektorů včetně hlaviček), soubory na A: a B: nechá.
+  Volitelně předtím kazetu naformátuje stejnými bajty, jaké zapisuje FORMTRKD přes `RKD.MAC` (výchozí u
+  nenaformátované kazety; test to porovná se sektory systémové kazety). V dialogu je to označené jako pomoc
+  emulátoru. Postup s kopírováním SH přes pevný disk je v `docs/navod-rkd1.md`.
 - **Pohodlí:** `spinup_s` (rozběh mechaniky po vložení kazety, výchozí 0 = hned; skutečnou dobu neznáme).
 - **MCP:** `machine_info` ukáže jednotky, stopu, kazetu, pevný disk, formát a ochranu.
 
@@ -189,9 +207,21 @@ z řadiče N tak dá cylindr 2N + T00. Viz Nejasnosti.
      (CE00h–E5FFh) a stopa 1 sektory 0–16, přesně odkud ho čtou ROMES a WBOOT CBIOSu;
   4. boot z kazety přes ROMES, `F:PIP A:=E:*.*` (soubory `a_mercl.8sd`: zdrojáky, SH, STARTSYS, FORMTRKD, ES,
      MOVCPM, WM…) a `PIP.COM`.
-- **Test** (`test_rkd1`): výroba kazety výše (když je `..\SAPI_DOKU`), a nad kazetou z `media/`: start, SH,
-  `FORMTRKD` na pevném disku C:, soubor na C:, zápis na chráněnou kazetu (nic se nezapíše, systém běží dál),
-  Reset s kazetou bez systému („Chyba čtení disku A: při boot“) a návrat systémové kazety.
+- **Sestava `machines/rkd1_jb_cm5400.sapi`:** CP/M J. Bíby z 8" diskety (RPD-1, MON 271111), C: RAM disk ZRMD-1,
+  B: služební disketa s `FORMRKD.COM` v1.1, RKD-1 s CM 5400 (nová nenaformátovaná kazeta a pevný disk). CP/M pro
+  RKD-1 s CM 5400 (12 × 512) jsme nenašli, FORMRKD je jediný program, který ji používá.
+- **FORMRKD.COM má starší ovladač než `RKD.MAC` 87-02-13:** jeho `PREP_MARK` jen posune stopu o 5 bitů (hlavička
+  = stopa × 32), číslo sektoru, médium ani příznak 512 B do ní nedá a zapisuje nižší bajt první. Zjištěno z bajtů,
+  které FORMRKD zapsal, a z binárky (`PREP_MARK` na 1052h). Při čtení porovnává stejnou hlavičku, takže jeho
+  formátování a kontrola fungují. Ovladač Tesly by takové sektory odmítl (chybné záhlaví): disky FORMRKD a Tesly
+  nejsou záměnné ani při stejném počtu sektorů.
+- **Test** (`test_rkd1` ve třech částech, ctest je pouští souběžně: `test_rkd1`, `test_rkd1_cm5400`,
+  `test_rkd1_tesla`):
+  - nad kazetou z `media/`: start, SH, `FORMTRKD` na pevném disku C:, soubor na C:, zápis na chráněnou kazetu (nic
+    se nezapíše, systém běží dál), Reset s kazetou bez systému („Chyba čtení disku A: při boot“) a návrat
+    systémové kazety, nová systémová kazeta přes „Systém…“ (soubory SH přes C:, Reset, SH se ptá na uživatele);
+  - CM 5400: FORMRKD naformátuje a přečte kazetu F: a naformátuje pevný disk D:, kontrola bajtů a cylindru;
+  - výroba systémové kazety výše (když je `..\SAPI_DOKU`).
 - **Výměna kazety za běhu** (pokus 2026-10-09): CBIOS drží poslední sektor ve vyrovnávací paměti a výměnu nepozná.
   Po výměně ukázal `DIR B:` adresář staré kazety a další `SAVE` ho zapsal na novou; BDOS výměnu A: poznal (R/O).
   Shell SH bez svých souborů na A: hlásí u každého příkazu chybu čtení A:. Návod proto radí měnit kazetu jen
@@ -203,14 +233,19 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
 čeká na náhodný nález.
 
 - **Pevný a výměnný disk:** CBIOS Tesly [R4] bere médium 0 a 1 (PC6 = 0) jako výměnný disk a bootuje z něj.
-  FORMRKD J. Bíby [R7] má na médiu 0 a 1 pevný disk. Emulace drží Teslu (CM 5403). Nejspíš se liší polarita signálu
-  DISK mezi CM 5403 a bulharskou CM 5400 (kabel na str. 15 vede DISK přímo), pro kterou psal J. Bíba.
+  FORMRKD J. Bíby [R7] má na médiu 0 a 1 pevný disk. Emulace to bere jako rozdíl mechanik (CM 5403 a CM 5400,
+  kabel na str. 15 vede DISK přímo), ověřit to nejde.
 - **12 nebo 24 sektorů:** dávala mechanika počet sektorových impulzů podle kazety (sektorové značky na disku),
   nebo podle přepínače? Šla kazeta 24 × 256 přečíst na jiné mechanice?
 - **Kabel SM 5400 posunutý o bit** ([R1] str. 15): T00 na adresu cylindru 2⁰ a návrat nezapojený. Protože T00 je
   hladina, kterou PC0 maže (schéma), dá řadič s tímto kabelem cylindr 2N pro stopu N a `RK_HOME` najede na
-  cylindr 1 (bez skutečného návratu). Vychází to, jen pokud má SM 5400 ve vysoké hustotě aspoň 408 cylindrů (signál
-  vysoké hustoty kabel nezapojuje). Emulace bulharskou mechaniku zatím nemá.
+  cylindr 1 (bez skutečného návratu). Vychází to, jen pokud SM 5400 bere aspoň 408 cylindrů (signál vysoké hustoty
+  kabel nezapojuje), jinak by FORMRKD (stopy 0–203) skončil chybou na stopě 102. Emulace proto bere 408 cylindrů
+  (J. Bíba by program na půlku disku nepsal). CM 5400 má podle [W2] 2,45 MB na disk, tedy jen 203 cylindrů po
+  12 × 512 B na dvou plochách: buď je tabulka kabelu pro jinou mechaniku, nebo adresa mechaniky znamená něco jiného.
+- **Ovladač ve FORMRKD.COM:** proč má starší `PREP_MARK` (hlavička jen se stopou) než zdroják `RKD.MAC`
+  87-02-13, když je FORMRKD v1.1 z 20. 10. 1987? Měl J. Bíba vlastní verzi ovladače, nebo systém pro CM 5400
+  s touto hlavičkou?
 - **Ochrana proti zápisu:** co udělala CM 5403 se zápisem na chráněný disk? Tiše ho neprovedla (emulace, jako
   RK05), nebo hlásila poruchu ERR / chybu přístupu STO? Ovladač Tesly bit WPROTECT nečte a s poruchou by se systém
   zasekl (viz Emulace), takže chráněnou kazetu Tesla zřejmě nepoužívala.

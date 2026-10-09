@@ -32,12 +32,17 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   kopírování, výměna kazet; vše vyzkoušené, obrázek `docs/img/navod-rkd1.png`). Pokusy pro návod změnily dvě věci:
   zápis na chráněnou kazetu se tiše neprovede (dřív porucha ERR, na které se systém zasekl kvůli chybě ovladače) a
   kazeta se mění jen s Resetem (CBIOS výměnu za běhu nepozná). Pushnuté 2026-10-09.
+  Pak (autor: „pořádně dotáhnout RKD-1“): tlačítko **Systém…** v okně Média (SYSGEN jako pomoc emulátoru, volitelně
+  formát jako FORMTRKD; postup nové systémové kazety v návodu, ověřený testem), **mechanika CM 5400** (`unitN.drive`,
+  obrácený DISK, kabel SM 5400 s cylindrem 2N + T00), sestava `rkd1_jb_cm5400.sapi` s FORMRKD J. Bíby (formátuje
+  a čte bez chyb; zjištěno, že FORMRKD.COM má starší ovladač s hlavičkou jen se stopou). Test RKD-1 rozdělený na
+  tři souběžné části.
 - **Potom (2026-10-09, autor: „pokračuj“):** čekací stavy AND-1V podle schématu rev 2.3 (list 4/7, stejný
   synchronizátor jako CGA-1V), společný výpočet `Bus::window_waits`, měřicí program VRAMBENCH
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 45 v debug i v release (2026-10-09 večer, s `test_rkd1`, v debug asi 37 s); release `full` 48 včetně ZEX,
+  - Testy: 47 v debug i v release (2026-10-09 večer, `test_rkd1` ve třech částech, debug asi 30 s); release `full` 48 včetně ZEX,
     8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
     kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
     Kdy které testy:

@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **220** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **221** v 45 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -429,23 +429,29 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Co CPU čte z prázdných patic EPROM a RAM (FFh, nebo plovoucí sběrnice).
 
 
-## [RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)](desky/RKD-1.md) – Nejasnosti (9)
+## [RKD-1 – řadič kazetového disku (CM 5403 / CM 5400)](desky/RKD-1.md) – Nejasnosti (10)
 
 Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté z podkladů (viz Emulace), zbytek
 
 čeká na náhodný nález.
 
 - **Pevný a výměnný disk:** CBIOS Tesly [R4] bere médium 0 a 1 (PC6 = 0) jako výměnný disk a bootuje z něj.
-  FORMRKD J. Bíby [R7] má na médiu 0 a 1 pevný disk. Emulace drží Teslu (CM 5403). Nejspíš se liší polarita signálu
-  DISK mezi CM 5403 a bulharskou CM 5400 (kabel na str. 15 vede DISK přímo), pro kterou psal J. Bíba.
+  FORMRKD J. Bíby [R7] má na médiu 0 a 1 pevný disk. Emulace to bere jako rozdíl mechanik (CM 5403 a CM 5400,
+  kabel na str. 15 vede DISK přímo), ověřit to nejde.
 
 - **12 nebo 24 sektorů:** dávala mechanika počet sektorových impulzů podle kazety (sektorové značky na disku),
   nebo podle přepínače? Šla kazeta 24 × 256 přečíst na jiné mechanice?
 
 - **Kabel SM 5400 posunutý o bit** ([R1] str. 15): T00 na adresu cylindru 2⁰ a návrat nezapojený. Protože T00 je
   hladina, kterou PC0 maže (schéma), dá řadič s tímto kabelem cylindr 2N pro stopu N a `RK_HOME` najede na
-  cylindr 1 (bez skutečného návratu). Vychází to, jen pokud má SM 5400 ve vysoké hustotě aspoň 408 cylindrů (signál
-  vysoké hustoty kabel nezapojuje). Emulace bulharskou mechaniku zatím nemá.
+  cylindr 1 (bez skutečného návratu). Vychází to, jen pokud SM 5400 bere aspoň 408 cylindrů (signál vysoké hustoty
+  kabel nezapojuje), jinak by FORMRKD (stopy 0–203) skončil chybou na stopě 102. Emulace proto bere 408 cylindrů
+  (J. Bíba by program na půlku disku nepsal). CM 5400 má podle [W2] 2,45 MB na disk, tedy jen 203 cylindrů po
+  12 × 512 B na dvou plochách: buď je tabulka kabelu pro jinou mechaniku, nebo adresa mechaniky znamená něco jiného.
+
+- **Ovladač ve FORMRKD.COM:** proč má starší `PREP_MARK` (hlavička jen se stopou) než zdroják `RKD.MAC`
+  87-02-13, když je FORMRKD v1.1 z 20. 10. 1987? Měl J. Bíba vlastní verzi ovladače, nebo systém pro CM 5400
+  s touto hlavičkou?
 
 - **Ochrana proti zápisu:** co udělala CM 5403 se zápisem na chráněný disk? Tiše ho neprovedla (emulace, jako
   RK05), nebo hlásila poruchu ERR / chybu přístupu STO? Ovladač Tesly bit WPROTECT nečte a s poruchou by se systém

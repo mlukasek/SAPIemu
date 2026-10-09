@@ -8,7 +8,8 @@ obrovské místo: osmipalcová disketa RPD-1 má 243 KB.
 Sestava v emulátoru běží s původním systémem **CP/M 2.2 Tesla Elstroj & JaMeSoft 1987**: boot EPROM v JPR-1Z
 nahraje systém z kazety a spustí shell, který se ptá na číslo uživatele.
 
-Všechny kroky jsou vyzkoušené v emulátoru (2026-10-09), výpisy obrazovky jsou opsané z něj. Jak řadič funguje
+Všechny kroky jsou vyzkoušené v emulátoru (2026-10-09), výpisy obrazovky jsou opsané z něj nebo z testu
+`test_rkd1`. Jak řadič funguje
 a co je v emulaci odhad, je v `docs/desky/RKD-1.md`.
 
 ![Sestava RKD-1: shell SH s obsahem systémové kazety, vpravo okno Média s kazetou a pevným diskem](img/navod-rkd1.png)
@@ -16,7 +17,7 @@ a co je v emulaci odhad, je v `docs/desky/RKD-1.md`.
 ## Co je potřeba
 
 1. Soubor → Otevřít sestavu → `rkd1_tesla_cpm.sapi`.
-2. Zobrazení → **Média**. Dole je část „RKD-1: kazetový disk CM 5403“ s kazetou a pevným diskem.
+2. Zobrazení → **Média**. Dole je část „RKD-1: kazetový disk“ s kazetou a pevným diskem.
 
 V sestavě je vložená systémová kazeta (pracovní kopie `work\rkd-1\tesla_cpm_system.rkd` vyrobená z originálu
 `media\rkd-1\tesla_cpm_system.rkd`) a pevný disk `work\rkd-1\unit0_fixed.rkd`. Pevný disk je na začátku
@@ -26,10 +27,10 @@ V sestavě je vložená systémová kazeta (pracovní kopie `work\rkd-1\tesla_cp
 
 | Disk | Co to je | Velikost |
 |---|---|---|
-| A: | kazeta, horní povrch; na stopách 0 a 1 je systém CP/M | 1,2 MB (volno 944 KB) |
-| B: | kazeta, dolní povrch; tady má každý uživatel své soubory | 1,2 MB |
-| C: | pevný disk, horní povrch | 1,2 MB |
-| D: | pevný disk, dolní povrch | 1,2 MB |
+| A: | kazeta, první povrch; na stopách 0 a 1 je systém CP/M | 1,2 MB (volno 944 KB) |
+| B: | kazeta, druhý povrch; tady má každý uživatel své soubory | 1,2 MB |
+| C: | pevný disk, první povrch | 1,2 MB |
+| D: | pevný disk, druhý povrch | 1,2 MB |
 | E:, F: | osmipalcové diskety na řadiči RPD-1 (služební programy J. Bíby: PIP, STAT, M80, ED…) | 243 KB |
 
 ## 1. Start
@@ -231,12 +232,13 @@ nespustí znovu: Reset (F12) a nové přihlášení. Tak se CP/M chrání před 
 | Prvek | Význam |
 |---|---|
 | Nová kazeta | Formát nové kazety: **24 × 256 B** pro CP/M Tesly (výchozí), 12 × 512 B pro systém SMEP a formátovač FORMRKD J. Bíby. Počet sektorů je daný kazetou (sektorové značky), formátovací program ho změnit nemůže. |
-| Jednotka 0, kazeta | Soubor s kazetou a její formát. |
+| Jednotka 0 (CM 5403), kazeta | Mechanika, soubor s kazetou a její formát. |
 | Vložit… | Vloží jinou kazetu (soubor `.rkd`). |
 | Nová kazeta… | Založí novou **nenaformátovanou** kazetu pod zvoleným jménem a vloží ji. |
 | Vysunout | Kazetu vysune a uloží. Mechanika bez kazety není připravená (stojí, i pevný disk). |
 | Ochrana proti zápisu | Přepínač ochrany na mechanice (níže). |
 | stopa | Kde stojí hlavy, „změněno“ = kazeta má neuložené změny. |
+| Systém… | **Pomoc emulátoru:** zapíše na kazetu systém CP/M, volitelně ji předtím naformátuje (níže). |
 | pevný disk | Soubor s pevným diskem a jeho ochrana proti zápisu. |
 
 Kazeta i pevný disk jsou obyčejné soubory `.rkd` (asi 3 MB). Emulátor je zapíše při vysunutí kazety, při ukončení
@@ -247,10 +249,7 @@ a při přepnutí na jinou sestavu.
 CP/M Tesly počítá s tím, že v jednotce 0 je pořád **systémová kazeta**: boot EPROM z ní po Resetu nahrává systém
 (stopy 0 a 1 disku A:) a shell SH z ní čte své soubory (`SH.OVR`, programy na A:). Proto platí dvě pravidla:
 
-1. **Každá kazeta, se kterou se pracuje, musí být systémová.** Originální program, který systém na kazetu zapisoval
-   (SYSGEN pro RKD-1), se nedochoval. Nová kazeta se proto dělá kopií: ve Windows zkopírujte
-   `media\rkd-1\tesla_cpm_system.rkd` pod jiným jménem (třeba `work\rkd-1\moje.rkd`), v okně Média ji **Vložit…**
-   a nepotřebné soubory smažte (`ERA A:*.MAC`).
+1. **Každá kazeta, se kterou se pracuje, musí být systémová** (postup níže).
 2. **Po výměně kazety hned Reset (F12).** CBIOS si pamatuje poslední přečtený sektor a výměnu kazety nepozná: po
    výměně za běhu ukazuje `DIR` ještě adresář staré kazety a další zápis ho přepíše na novou. Na skutečném počítači
    by to dopadlo stejně. Po Resetu se systém nahraje z nové kazety a začne načisto.
@@ -265,8 +264,51 @@ Libovolná klávesa -> opakovat
 Stačí v okně Média vložit systémovou kazetu a stisknout libovolnou klávesu. Shell SH s kazetou bez svých souborů
 hlásí při každém příkazu `Bdos Err On A: Bad Sector`.
 
-Pro data je nejpohodlnější **pevný disk C:, D:**, který se nevyměňuje, a pro přenos diskety E:, F:. Tlačítko
-**Nová kazeta…** se hodí hlavně pro pokusy s formátovačem a pro FORMRKD J. Bíby na formát 12 × 512 B.
+Pro data je nejpohodlnější **pevný disk C:, D:**, který se nevyměňuje, a pro přenos diskety E:, F:.
+
+### Nová systémová kazeta
+
+Originální program, který zapisoval systém na kazetu (SYSGEN pro RKD-1), se nedochoval. Emulátor ho nahrazuje
+tlačítkem **Systém…** v okně Média: zapíše na stopy 0 a 1 disku A: systém ze systémové kazety
+`media\rkd-1\tesla_cpm_system.rkd`, bajt po bajtu, a na přání kazetu předtím naformátuje stejně jako FORMTRKD.
+Je to přiznaná pomoc emulátoru, ne program Tesly. Soubory shellu se pak zkopírují přes pevný disk:
+
+1. **Soubory shellu na pevný disk.** Při přihlášení do SH stiskněte jen Enter (uživatel 0, výzva `b0$`; po Resetu
+   bez shellu bude CP/M také uživatel 0). Pevný disk musí být naformátovaný (kapitola 3).
+
+   ```
+   b0$ PIP C:=A:SH.*
+   b0$ PIP C:=A:STARTSYS.SUB
+   b0$ PIP C:=A:PIP.COM
+   ```
+
+   Podle potřeby i další, třeba `PIP C:=A:FORMTRKD.COM`.
+2. **Nová kazeta:** okno Média, **Nová kazeta…**, jméno souboru (třeba `moje.rkd`).
+3. **Systém…:** zaškrtávátko „Nejdřív naformátovat celou kazetu“ je u nové kazety zapnuté, **Zapsat systém**.
+4. **Reset (F12).** Systém naběhne z nové kazety, shell na ní ještě není (`SH?`) a A: je prázdné:
+
+   ```
+   SH?
+
+   P0A>DIR A:
+   NO FILE
+   ```
+5. **Soubory zpět na kazetu** programem PIP z pevného disku:
+
+   ```
+   P0A>C:PIP A:=C:*.*
+
+   COPYING -
+   SH.COM
+   SH.OVR
+   STARTSYS.SUB
+   PIP.COM
+   ```
+6. **Reset (F12):** nová kazeta se ohlásí shellem a otázkou na číslo uživatele, jako systémová.
+
+Totéž jde i bez tlačítka: ve Windows zkopírovat `media\rkd-1\tesla_cpm_system.rkd` pod jiným jménem, vložit ji
+a nepotřebné soubory smazat (`ERA A:*.MAC`). Tlačítko **Systém…** zapíše systém i na kazetu, které chybí nebo se
+poškodil; soubory na ní nechá, pokud se nezaškrtne formátování.
 
 ### Ochrana proti zápisu
 
@@ -281,13 +323,52 @@ Pracovní kopie systémové kazety je `work\rkd-1\tesla_cpm_system.rkd`. Když j
 vznikne při dalším startu znovu z originálu v `media\rkd-1\`. Stejně tak smazaný `work\rkd-1\unit0_fixed.rkd`
 vznikne jako nový nenaformátovaný pevný disk.
 
-## 6. Co dál
+## 6. Bulharská mechanika CM 5400 a FORMRKD J. Bíby
+
+Řadič RKD-1 uměl i bulharskou mechaniku **CM 5400** (IZOT) s kabelem podle dokumentace RKD-1. Sestava
+`rkd1_jb_cm5400.sapi` ji má s CP/M J. Bíby z 8" diskety a jeho programem **FORMRKD** v1.1 (1987, „Formátování
+a kontrola disku SM 5400 (203*12*512)“). CP/M, které by z CM 5400 pracovalo se soubory, se nenašlo; FORMRKD umí
+disky naformátovat a zkontrolovat.
+
+- Disk má formát SMEP 12 × 512 B. U CM 5400 je DISK obráceně než u CM 5403: FORMRKD má **pevný disk D: (dolní
+  plocha) a E: (horní)**, **výměnnou kazetu F: (dolní) a G: (horní)**.
+- Kazeta i pevný disk jsou na začátku nenaformátované (`work\rkd-1\cm5400_kazeta.rkd`, `cm5400_fixed.rkd`).
+
+```
+A>B:FORMRKD
+***************************************************************
+     FORMÁTOVÁNÍ A KONTROLA DISKU SM 5400  (203*12*512)
+***************************************************************
+   DISK   |  PLOCHA  | MECH |     |        DRUH PRÁCE
+----------|----------|------|     |----------------------------
+          |  horní   |  G:  |     |    formátovat      = F
+  výměnný |----------|------|     |
+          |  dolní   |  F:  |     |    kontr. čtení    = C
+----------|----------|------|     |
+          |  horní   |  E:  |     |    form. a čti     = O
+  pevný   |----------|------|     |
+          |  dolní   |  D:  |     |    ukončit program = K
+```
+
+1. Mechanika: písmeno **D** až **G** (bez Enteru).
+2. Druh práce: **F** formátovat, **C** kontrolní čtení, **O** obojí, **K** konec programu.
+3. Na otázku `Bude se formátovat mechanika F: Opravdu?` klávesa **A**. Dole běží `Stopa:` a `Sektor:` (šestnáctkově,
+   stopy 00–CB, sektory 00–0B), na konci „Formátování skončilo“, po kontrole „Čtení skončilo“.
+
+Jeden povrch se formátuje asi minutu, kontrola trvá stejně (F8 zrychlí). Chyby FORMRKD hlásí jako „Chyba při
+WRITE“, „Chyba při READ“ s popisem a nabídne `ignorovat = CR, formátovat = F, ukončit = E`.
+
+Pozor: FORMRKD.COM píše do hlaviček sektorů jen číslo stopy (starší verze ovladače než CP/M Tesly). Kazetu
+naformátovanou FORMRKD proto CP/M Tesly nepřečte, ani kdyby měla stejný počet sektorů. Podrobnosti a co se
+o CM 5400 neví: `docs/desky/RKD-1.md`.
+
+## 7. Co dál
 
 - **Úpravy systému:** zdrojáky jsou na A: (`CBES.MAC` je CBIOS, `RKD.MAC` ovladač kazetového disku). Překládají se
   M80 a L80 z diskety E: (`E:M80`, `E:L80`). Dávka `M.SUB` (překlad s hlášením chyb) volá `m80` bez disku, SH ho
   proto hledá na B: a A:: nejdřív `PIP A:=E:M80.COM`. Generátor `ES` postaví systém pro
-  jinou velikost paměti (`ES 59`), ale bez SYSGENu ho na kazetu nezapíše. Jak vznikla systémová kazeta v emulátoru, je
-  v `docs/desky/RKD-1.md` (Sestava a systémová kazeta).
+  jinou velikost paměti (`ES 59`); na kazetu ho ale nezapíše (originální SYSGEN chybí, tlačítko Systém… zapisuje
+  systém ze systémové kazety). Jak vznikla systémová kazeta v emulátoru, je v `docs/desky/RKD-1.md` (Sestava
+  a systémová kazeta).
 - **Další jednotky:** řadič umí čtyři mechaniky (v konfigurátoru jednotky 1 až 3). Software Tesly ale používá
   jen jednotku 0.
-- **Bulharská mechanika CM 5400** (12 × 512 B, systém SMEP J. Bíby) zatím emulovaná není.

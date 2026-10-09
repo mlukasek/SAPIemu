@@ -214,7 +214,12 @@ CGA-1V. JPR-1V a klávesnice jako v sestavě V.
 CM 5403. JPR-1Z s boot EPROM ROMES (přeložená ze zdrojáků), RAM-1Z 62 KB, AND-1Z, Consul 259.11, RPD-1 (E:, F:
 služební diskety J. Bíby), RKD-1 (A:, B: kazeta `media/rkd-1/tesla_cpm_system.rkd`, C:, D: pevný disk
 `work/rkd-1/unit0_fixed.rkd`, nový je nenaformátovaný). Po startu shell SH chce číslo uživatele. RAM disk RMD-1 má
-stejné porty 40h, do sestavy s RKD-1 nepatří. `docs/desky/RKD-1.md`.
+stejné porty 40h, do sestavy s RKD-1 nepatří. Nová systémová kazeta: okno Média, Systém… (pomoc emulátoru).
+`docs/desky/RKD-1.md`, `docs/navod-rkd1.md`.
+
+**RKD-1 s CM 5400** (`machines/rkd1_jb_cm5400.sapi`, 2026-10-09): CP/M J. Bíby z 8" diskety (JPR-1ZI s MON 271111,
+DMR-1, AND-1Z-89, ZRMD-1 jako C:, RPD-1 s A: systémem a B: služební disketou s FORMRKD), RKD-1 s bulharskou mechanikou
+CM 5400 (`unit0.drive`): pevný disk D:, E:, kazeta F:, G:, 12 × 512 B, na začátku nenaformátované.
 
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).

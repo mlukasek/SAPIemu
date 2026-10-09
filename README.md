@@ -53,7 +53,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD, tiskárna, KZD-1);
   - řadič kazetového disku RKD-1 s mechanikou CM 5403 (Zbrojovka Brno: kazeta a pevný disk, 2 × 2,4 MB) a
     původním CP/M 2.2 Tesla Elstroj 1987: boot EPROM, CBIOS, shell, formátovač; systémová kazeta vyrobená
-    originálními programy ([docs/desky/RKD-1.md](docs/desky/RKD-1.md), návod k obsluze
+    originálními programy, nová systémová kazeta tlačítkem Systém… (originální SYSGEN chybí); i bulharská
+    mechanika CM 5400 s formátovačem FORMRKD J. Bíby ([docs/desky/RKD-1.md](docs/desky/RKD-1.md), návod k obsluze
     [docs/navod-rkd1.md](docs/navod-rkd1.md));
   - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
     a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
