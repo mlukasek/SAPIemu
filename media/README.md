@@ -53,6 +53,16 @@ Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
   - Duplicitní `.hex` verze (10 MB) se do repa nedává.
 - `puvodni_SYS0_3_s_CD.HEX`: systémová oblast (bajty 0–7FFF RAM disku), zaváděná na 4000–BFFF.
 - `ECSYS_zaloha_0-3.hex`: jiná varianta systémové oblasti.
+- Hry a dema pro sestavu V (CP/M jako `SAPI_CPM_Martin_2019-10-07.bin`, autorovy obrazy z 2026-10-08 a 09):
+  - `ba-ramdisk.bin`: BADAPPLE.COM a BADAPPLE.DAT (3,1 MB), demo Bad Apple!! z repa SAPI-Bad-Apple. Sestava
+    `sapi1v_BadApple.sapi`;
+  - `pop-ramdisk.bin`: POP.COM, POP.DAT (data hry, 3,3 MB), POP.SAV, ZRDBENCH.COM, port Prince of Persia z repa
+    SAPI-Prince-of-Persia. Sestava `sapi1v_PoP.sapi`;
+  - `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin`: PoP, FXS4, FLAPPY, BOMBER, BKP, DOCPM, DOCPM10, ZRDBENCH (záloha
+    se všemi hrami), volba v konfigurátoru u ZRD-1V.
+
+  **Obrazy s Prince of Persia jsou jen v repu**, do balíčku alfy je `tools/package.py` nedává (data hry Jordana
+  Mechnera / Broderbund se dál nešíří; `REPO_ONLY`, stejně tak sestava `sapi1v_PoP.sapi`).
 
 ## `mikos/` – programy pro MIKOS (Intel HEX)
 

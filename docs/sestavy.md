@@ -206,6 +206,10 @@ bez MFC-1A a DBS-1) nemá dochovaný firmware.
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,
 `docs/desky/MPH-1V.md`).
+**Hry na sestavě V** (2026-10-10): `sapi1v_PoP.sapi` (Prince of Persia, RAM disk `media/zrmd-1/pop-ramdisk.bin`, jen
+v repu, ne v balíčku alfy) a `sapi1v_BadApple.sapi` (demo Bad Apple!!, `ba-ramdisk.bin`). Sestava je stejná jako V,
+ZRD-1V rev 1.1; po startu volba 1, pak `POP` nebo `BADAPPLE`. Obraz se všemi hrami (PoP, FXS4, Flappy, Bomberman,
+BKP) jde u ZRD-1V vybrat v konfigurátoru.
 **Libor doma** (`machines/libor_doma.sapi`, 2026-10-08): sestava Libora Lasoty na sběrnici ImBUS12 s jeho deskami V
 (JPR-1V, RAM-1V, AND-1V, DSM-1V 10h, ZRD-1V 60h, DGD-1V, CGA-1V, MPH-1V 50h, bez IDE-1). Displeje se střídají podle MAP:
 MAP1 = L AND-1V na F800h (díra 2 KB v RAM-1V), MAP1 = H grafika na C000h (díra 16 KB), MAP2 = L DGD-1V, MAP2 = H

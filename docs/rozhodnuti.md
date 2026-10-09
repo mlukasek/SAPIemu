@@ -1484,3 +1484,12 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   v hlavičce zdrojáku, v popisu sestavy, v návodu a v `media/README.md`. Zdroják vzniká skriptem z originálů, takže
   každá změna je dohledatelná. Opravená chyba `RK_SEEK` (BC na zásobníku) je jen v tomto BIOSu, ROM a CP/M Tesly
   ji mají dál.
+
+## 2026-10-10 – RAM disky s hrami pro sestavu V
+
+- **Obrazy RAM disků s hrami autora jsou v `media/zrmd-1`** (Bad Apple!!, Prince of Persia, záloha se všemi hrami)
+  a dvě sestavy `sapi1v_BadApple.sapi`, `sapi1v_PoP.sapi` (autor: „chci je tam, naopak asi i commitnout“). Sestavy
+  pracují na kopiích ve `work/`, originály v `media/` zůstávají.
+- **Prince of Persia jen v repu:** POP.DAT jsou data hry (Jordan Mechner, Broderbund). Repo je neveřejné, ale balíček
+  alfy jde kamarádům, proto ho `tools/package.py` vynechá (`REPO_ONLY`: oba obrazy s PoP a `sapi1v_PoP.sapi`).
+  V konfigurátoru jsou volby obrazů i tak; v balíčku by obraz chyběl.
