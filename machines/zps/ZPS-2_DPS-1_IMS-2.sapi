@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "ZPS-2 MIKOS V4.0F s DPS-1 a měřicím pracovištěm IMS-2 (voltmetr M1T 330, zdroj BS 525)",
-    "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou přístrojové sběrnice DPS-1 (porty 30h-37h). Kabel IMS-2 z X2 vede k číslicovému voltmetru Metra M1T 330 (adresa 3), na jeho svorkách H a L je výstup I laboratorního zdroje Tesla BS 525. V magnetofonu je kazeta s BASIMS V4.0 (BASIC EX V4.0 s příkazy IMS# pro DPS-1): .K_L BASIMS, pak .J. Příklad z návodu: 10 IMS# N, 20 IMS# O3;\"R4D0E\", 30 IMS# T3, 40 IMS# I A$, 50 PRINT A$. Okno Měřicí pracoviště ukazuje přístroje a sběrnici. docs/desky/DPS-1.md, docs/navod-dps1.md.",
+    "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou přístrojové sběrnice DPS-1 (porty 30h-37h). Kabel IMS-2 z X2 vede k číslicovému voltmetru Metra M1T 330 (adresa 3), na jeho svorkách H a L je výstup I laboratorního zdroje Tesla BS 525. V magnetofonu je kazeta s BASIMS V4.0 (BASIC EX V4.0 s příkazy IMS# pro DPS-1): .K_L BASIMS, pak .J. Za ním jsou na kazetě programy BASIC PRIKLAD (příklad z návodu) a SMYCKA (měření ve smyčce): LOAD, jméno, Y, RUN. Příklad: 10 IMS# N, 20 IMS# O3;\"R4D0E\", 30 IMS# T3, 40 IMS# I A$, 50 PRINT A$. Okno Měřicí pracoviště ukazuje přístroje a sběrnici. docs/desky/DPS-1.md, docs/navod-dps1.md.",
     "windows": [ "ims2" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
@@ -49,7 +49,7 @@
             "base": "10h",                  // Jumpers 16-12..16-15: ports
             "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
             "int0": false,                  // UART interrupt on INT0
-            "tape": "media/dps-1/BASIMS.hex",  // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
+            "tape": "media/dps-1/BASIMS_IMS2.wav",  // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
             "tape_write_protect": true      // Cassette write protected
         },
         {

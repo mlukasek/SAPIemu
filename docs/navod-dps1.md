@@ -25,7 +25,15 @@ v `docs/desky/DPS-1.md`.
 
 ## 2. BASIMS z kazety
 
-V magnetofonu je kazeta s programem BASIMS. Za tečku napište `K` a `L` (na obrazovce `.K_L`), jméno a Enter:
+V magnetofonu je kazeta (`media/dps-1/BASIMS_IMS2.wav`, chráněná proti zápisu) se třemi soubory:
+
+| soubor | co to je | nahrává se |
+|---|---|---|
+| `BASIMS` | BASIMS V4.0 (4400h–635Fh) | z monitoru: `.K_L BASIMS`, `.J` |
+| `PRIKLAD` | příklad z kapitoly 3 | v BASICu: `LOAD`, `PRIKLAD` |
+| `SMYCKA` | měření ve smyčce z kapitoly 4 | v BASICu: `LOAD`, `SMYCKA` |
+
+Za tečku napište `K` a `L` (na obrazovce `.K_L`), jméno a Enter:
 
 ```
 .K_L
@@ -34,7 +42,7 @@ V magnetofonu je kazeta s programem BASIMS. Za tečku napište `K` a `L` (na obr
 PLAY  DONE?
 ```
 
-V okně **Média** u magnetofonu DSM-1 stiskněte **PLAY** a na otázku odpovězte `Y`. Čtení trvá asi minutu, na
+V okně **Média** u magnetofonu DSM-1 stiskněte **PŘEHRÁT** a na otázku odpovězte `Y`. Čtení trvá asi minutu, na
 prvním řádku obrazovky běží jméno a číslo bloku. Pak za tečku `J`:
 
 ```
@@ -46,7 +54,43 @@ READY
 **Rychleji:** Soubor → Nahrát program do paměti (Intel HEX)… → `media\dps-1\BASIMS.hex`, pak za tečku `G4400`
 a Enter.
 
+### Program z kazety
+
+Hned za BASIMS jsou na kazetě oba programy. Magnetofon pořád hraje (PŘEHRÁT), stačí:
+
+```
+LOAD
+ NAME
+:PRIKLAD
+PLAY  DONE?
+Y
+READY
+RUN
+V+1.2564E+1
+READY
+```
+
+`LOAD` starý program nemaže, jen přepíše řádky se stejnými čísly. Před nahráním jiného programu napište `NEW`.
+`SMYCKA` leží za `PRIKLAD`em, nahraje se stejně (magnetofon soubor `PRIKLAD` přeskočí). Kazeta se po vysunutí a
+novém vložení přetočí na začátek, `LOAD` pak hledá celou kazetu od začátku.
+
+### Uložení vlastního programu
+
+Kazeta sestavy je chráněná proti zápisu. Pro vlastní programy:
+
+1. V okně **Média** **Nová kazeta…** (soubor WAV ve `work\`), pak **NAHRÁT**.
+2. `BYE` (zpátky do MIKOSu), `.K_A`, na `RECORD  DONE?` `Y`, jméno souboru a Enter. Motor chvíli běží (zavaděč
+   souboru).
+3. `.G4403` a Enter: **teplý start BASIMS, program zůstane.** Pozor: `.B` a `.G4400` jsou studený start a program
+   smažou.
+4. `SAVE`. Motor běží, pak `READY`.
+
+Další program za ním stejně (`BYE`, `.K_A`…). Nahrávku uloží Média → Uložit jako WAV… Celou kazetu sestavy
+(BASIMS i oba programy) nahrává skript `tools/dps1_kazeta.py` přímo v emulátoru, s originálním MIKOSem a BASIMS.
+
 ## 3. První měření (příklad z návodu BASIMS)
+
+Na kazetě je jako `PRIKLAD` (s řádkem `10 REM` na začátku, ostatní řádky o 10 dál). Napsaný ručně:
 
 ```
 10 IMS# N
@@ -87,7 +131,7 @@ V+1.2565E+1   12.565
 V+1.2564E+1   12.564
 ```
 
-Za běhu otáčejte knoflíkem **NAPĚTÍ** výstupu I zdroje: hodnoty se mění. Pod 3 V přepne voltmetr na rozsah 3 V
+Na kazetě je jako `SMYCKA` (s `REM` na začátku). Za běhu otáčejte knoflíkem **NAPĚTÍ** výstupu I zdroje: hodnoty se mění. Pod 3 V přepne voltmetr na rozsah 3 V
 (odpověď s `E+0`), pod 0,3 V na 300 mV (třeba `V+1.2343E-1`, displej v mV). Smyčku zastaví Ctrl+C
 (`BREAK IN LINE 10`).
 
@@ -169,3 +213,4 @@ Příklad omezení proudu: výstup I 20 V, PROUD 0,1 A, zátěž 100 Ω. Rozsví
 | odpověď `V+9.9999E+9`, displej `OL` | napětí je nad rozsahem a automatika je vypnutá (R0–R3) |
 | tlačítka voltmetru nereagují | svítí EXT, voltmetr je v dálkovém ovládání |
 | `ERROR SN IN LINE …` u `IMS#` | za `IMS#` je nula místo písmene O (nebo jiné písmeno než N, O, T, I) |
+| po `BYE` a `.B` je program pryč | `.B` je u BASIMS studený start. Do BASICu s programem `.G4403` |

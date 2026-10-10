@@ -21,6 +21,8 @@ kanálu zapisovač ARITMA Minigraf 0507 (`docs/desky/Minigraf.md`, sestava `zps/
 
 - Dva téměř shodné kanály, každý s **8255** (MHB 8255A, D1B a D2B), od sběrnice oddělené obvody 3216. Porty PA a PB
   jdou přes 3216 na konektory X2 (kanál 1) a X3 (kanál 2); směr 3216 nastavují přepínače S2–S4.
+  Oba konektory jsou FRB 30 na čele desky, X2 nahoře, X3 dole (fotka `..\SAPI_DOKU\FOTO_poklady_petr\SAPI\DPP-1_soucastky.jpg`,
+  X1 vlevo); na panelu konfigurátoru K3 = X2, K2 = X3.
 - **Port PC:** PC0 a PC3 výstupní, vždy invertované (7405, otevřený kolektor); PC1, PC5, PC7 výstupní, inverzi volí
   přepínač (4S3/4S4, 5S3/5S4, 7S3/7S4); PC2, PC4, PC6 vstupní přes 7404, inverzi volí přepínač (3S, 2S, 6S).
 - **Adresa** (dekodér 3205 D5A, 7486 D4A, přepínače 1S1–3S1): osm prostorů po 8 portech v 00h–3Fh (A7 = A6 = 0).

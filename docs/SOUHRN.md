@@ -82,6 +82,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `roms/dps-1/DPS-1_D3D_74S571.bin`), test `test_dps1`, `docs/desky/DPS-1.md`, návod `docs/navod-dps1.md` s obrázkem.
   BASIMS V4.0 běží beze změn a příklad z návodu změří napětí. Nálezy: bez posluchače BASIMS spadne (rekurze
   ERRLI ↔ KONVY), ERR desky se s 8255 nenahodí, bajt 00h s ATN při přepnutí na posluchače. Lokálně, nepushnuté.
+- **2026-10-10 (autor: „Šlo by ten program v BASIC uložit na kazetu, aby se mohl nahrát za tím BASICem?“ a „DPS-1 má
+  podle fotky jeden FRB 30 … DPP-1 má 2 FRB 30“):** kazeta `media/dps-1/BASIMS_IMS2.wav` s BASIMS, `PRIKLAD` a
+  `SMYCKA` (nahraná skriptem `tools/dps1_kazeta.py` v emulátoru, WAV 22050 Hz 8 bitů, MP3 rozbije předěl), část
+  `kazeta` testu `test_dps1`, návod (nahrání a uložení vlastního programu: `.G4403`, ne `.B`, ten u BASIMS
+  smaže program). Konfigurátor: konektory na panelu DPS-1 (FRB 30 „IMS-2“) a DPP-1 (dva FRB 30, K3 a K2).
 - **2026-10-10: zasekávání FXS4 u L. Lasoty, jeho zjištění** (autor předal e-maily). Příčiny jsou dvě a sčítají se:
   JPR-1Z/1V dávají STSTB i při INTA, takže přerušení s PC v okně grafické karty (≥ C000h) nastaví RDY, které se
   už neuvolní. A RESET se vzorkuje jen s /M1, proto zaseknutý stroj nezresetuje. Libor chystá záplatu (od /IORQ

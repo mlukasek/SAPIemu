@@ -43,6 +43,7 @@ Sestava `machines/zps/ZPS-2.sapi`: JPR-1, REM-1 (EPROM 0000–0FFF, RAM odpojen�
   - IOBYTE po startu je A9h (`.Q` ukáže `C=C R=1 P=1 L=L`), čtečka i děrovač jsou už na magnetofonu.
   - **Prázdná kazeta:** `SAVE` se ptá `LAST NAME` a hledal by konec předchozího souboru. Výstupní soubor se proto
     otevře v monitoru: `BYE`, `.K` `A`, `RECORD  DONE?` → `Y`, jméno, `.B` (program zůstane), `SAVE`.
+    **BASIMS** (`docs/desky/DPS-1.md`) má na `.B` studený start a program smaže, u něj `.G4403` (teplý start).
   - **Kazeta s předchozím souborem:** `SAVE`, `LAST NAME` = jméno posledního souboru, PŘEHRÁT a `Y` (přečte
     ho), `RECORD  DONE?` → NAHRÁT a `Y`, `NEW  NAME` = jméno nového souboru.
   - **Načtení:** PŘEHRÁT, `LOAD`, jméno, `PLAY  DONE?` → `Y`.

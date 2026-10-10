@@ -58,7 +58,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `media/mikos/CKM.hex` vyrobí opravenou kopii `CKM_opraveny.hex`, `docs/desky/KZD-1.md`), `mtcopy_oprava.py`
   (opravená kopie MTCOPYO a disketa `media/rmp-1/a_lad_izo_opraveny.img`, `docs/desky/RMP-1.md`), `rkd5400_bios_src.py`
   a `rkd5400_bios.py` (vlastní BIOS CP/M J. Bíby pro RKD-1 s CM 5400 a jeho bootovací disketa, `docs/desky/RKD-1.md`),
-  `ar1990_rom.py` (EPROM plotteru z AR 1990 z výpisu `roms/ar1990/PLOTTER.MAC`, `docs/desky/AR1990.md`).
+  `ar1990_rom.py` (EPROM plotteru z AR 1990 z výpisu `roms/ar1990/PLOTTER.MAC`, `docs/desky/AR1990.md`),
+  `dps1_kazeta.py` (kazeta BASIMS s programy BASIC nahraná v emulátoru přes MCP, `docs/navod-dps1.md`).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`.

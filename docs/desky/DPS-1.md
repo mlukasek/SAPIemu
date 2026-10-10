@@ -48,7 +48,8 @@ Zdroje:
 - **/INT0** = ZS a IEZS, nebo SRQ a IESRQ, nebo INTR A, nebo INTR B.
 - **Propojky:** JP1 = IFC od tlačítka RESET (/RTL přes V1), JP2 = odpověď na paralelní hlášení na DIO1 (ATN a EOI,
   když deska není řidič, přes V2).
-- **Konektor X2** (FRB 30): signály IMS-2, převod na CANNON 25 v návodu. Deska podle návodu nestíhá odezvu na ATN
+- **Konektor X2** (FRB 30, jediný konektor na čele desky, na panelu konfigurátoru nahoře jako K3 „IMS-2“):
+  signály IMS-2, převod na CANNON 25 v návodu. Deska podle návodu nestíhá odezvu na ATN
   (200 ns), může být jen řidičem.
 
 ## Emulace
@@ -115,13 +116,19 @@ Zdroje:
 
 - **BASIMS V4.0** [D3]: BASIC EX V4.0 (varianta B) s klíčovým slovem `IMS#` místo `EDIT` (editace jen přes `@`).
   Běží jen pod Monitorem V4.x a **MIKOSem V4.0F** (volá jeho podprogramy TIME, START, NULBF, STOP, WOB). Načte se
-  z kazety `.K_L BASIMS`, `.J` (4400h–635Fh). Příkazy:
+  z kazety `.K_L BASIMS`, `.J` (4400h–635Fh). Studený start je 4400h (smaže program), teplý 4403h (program
+  zůstane). **`.B` z MIKOSu skočí u BASIMS na studený start**, zpátky k programu (např. po `BYE` a `.K_A` před
+  `SAVE`) proto `.G4403`. Příkazy:
   - `IMS# N` nulování sběrnice (IFC);
   - `IMS# O adr;seznam` adresuje posluchače a pošle seznam jako PRINT (na konci LF s EOI, pak UNL);
   - `IMS# T adr` adresuje mluvčího, deska se přepne na posluchače;
   - `IMS# I A$` čte řetězce až do čárky nebo EOI (ZS), pak REN pryč a IFC.
 - **Příklad z návodu** (v emulátoru ověřený, test `test_dps1`): `10 IMS# N`, `20 IMS# O3;"R4D0E"`, `30 IMS# T3`,
   `40 IMS# I A$`, `50 PRINT A$` → `V+1.2564E+1`.
+- **Kazeta sestavy** `media/dps-1/BASIMS_IMS2.wav`: soubory `BASIMS` (monitorem `.K_A` + `.K_S 4400 635F`), za ním
+  `PRIKLAD` a `SMYCKA` (BASIC `SAVE`). Nahrál ji skript `tools/dps1_kazeta.py` v emulátoru originálním MIKOSem
+  V4.0F a BASIMS, část `kazeta` testu `test_dps1` z ní nahraje BASIMS i `PRIKLAD` a změří napětí. WAV 22050 Hz,
+  8 bitů: v MP3 se nenašla data druhého souboru za předělem nahrávek (hlavička ano).
 - **Chyba BASIMS, když nikdo neposlouchá:** OUTDAT před zápisem testuje RDY a DAC. Při „NDAC i NRFD uvolněné“ volá
   ERRLI, ta KONVY, ta posílá UNL přes OUTDAT, který znovu zavolá ERRLI. Rekurze nekončí, zásobník přeteče
   a MIKOS se spustí znovu (v emulátoru ověřeno, test). Návod BASIMS mluví jen o neexistující adrese (jiný přístroj

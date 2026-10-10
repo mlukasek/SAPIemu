@@ -26,6 +26,8 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
       popisu), dolní FRB (X2, „K2 DISK“) obou desek vede ke kazetovému disku, signály mechaniky jsou rozdělené mezi
       RKD-1A a RKD-1B;
     - RMP-1: dva FRB 30 k magnetopáskové jednotce, K3 = X2 (data), K2 = X3 (povely a stav);
+    - DPS-1: jeden FRB 30 nahoře (K3 = X2, „IMS-2“), kabel k přístrojům; DPP-1: dva FRB 30, K3 = X2 kanál 1, K2 = X3
+      kanál 2 (podle fotografií desek, autor 2026-10-10);
     - IDE-1: nahoře IDC 40 pro disk („HDD“, SV1), LED, dole D-sub 15 dvouřadý pro PMD32-SD („PMD32“, X2). LED na
       skutečné desce není, emulátor ji přidává: svítí 50 ms po přístupu na disk nebo PMD32-SD;
     - DSM-1V: K3 „A“, K2 „B“ (D-sub); AND-1V, AND-1B, DGD-1V a CGA: K2 VGA uprostřed; BGP-1S: FRB K2 (TV);

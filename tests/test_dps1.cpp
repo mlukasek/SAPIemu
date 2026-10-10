@@ -7,11 +7,14 @@
 // - without the bench nobody listens: NDAC is released, so /ACK B (the received NDAC) is low and the 8255 takes
 //   the byte at once (/OBF B is reset by the level of /ACK, datasheet 8255A): the shift register never gets to
 //   the ERR check, no DAV, the byte is lost. BASIMS checks the listeners by its program and falls: its error path ERRLI -> KONVY -> OUTDAT (UNL) -> ERRLI never ends, the stack
-//   runs over the memory and MIKOS starts again (a property of BASIMS, the real one does the same).
+//   runs over the memory and MIKOS starts again (a property of BASIMS, the real one does the same);
+// - the cassette of the machine (media/dps-1/BASIMS_IMS2.wav, tools/dps1_kazeta.py): .K_L BASIMS, .J, then BASIC
+//   LOAD PRIKLAD (written behind BASIMS by SAVE) runs the example (DPS_PART=kazeta, a minute of tape).
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cards/dsm1.h"
 #include "core/headless.h"
 #include "core/ims2.h"
 #include "core/machine.h"
@@ -163,10 +166,61 @@ static void nobody_listens(void)
     CHECK(s.find("BASIC") == std::string::npos && s.find("SAPI-1 V4.0") != std::string::npos);
 }
 
+// MIKOS reads a key only some time after printing a question
+static bool answer(Machine& m, const char* prompt, const char* keys, double timeout_s)
+{
+    bool ok = run_until_text(m, prompt, timeout_s);
+    if (!ok) printf("NO PROMPT %s:\n%s\n", prompt, screen_text(m).c_str());
+    m.run_seconds(0.6);
+    m.type_text(keys);
+    return ok;
+}
+
+static void kazeta(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_file(MACHINE, err));
+    Dsm1* dsm = nullptr;
+    for (auto& c : m.cards)
+        if (Dsm1* d = dynamic_cast<Dsm1*>(c.get())) dsm = d;
+    CHECK(dsm && dsm->tape()->loaded() && dsm->tape()->write_protect);
+    if (!dsm) return;
+    CHECK(run_until_text(m, "SAPI-1 V4.0", 5.0));
+    m.run_seconds(0.8);
+    m.type_text("KL");
+    CHECK(answer(m, "NAME", "BASIMS\r", 3.0));
+    CHECK(answer(m, "PLAY  DONE?", "", 3.0));
+    dsm->tape()->mode = TapeDeck::PLAY;   // PLAY on the recorder, then Y
+    m.type_text("Y");
+    m.run_seconds(2.0);
+    for (int i = 0; i < 200 && dsm->motor_on(); i++) m.run_seconds(0.5);
+    m.run_seconds(1.0);
+    m.type_text("J");
+    CHECK(run_until_text(m, "READY", 5.0));
+    m.run_seconds(0.8);
+    m.type_text("LOAD\r");
+    CHECK(answer(m, "NAME", "PRIKLAD\r", 3.0));
+    CHECK(answer(m, "PLAY  DONE?", "Y", 3.0));
+    m.run_seconds(2.0);
+    for (int i = 0; i < 100 && dsm->motor_on(); i++) m.run_seconds(0.5);
+    m.run_seconds(1.0);
+    m.type_text("RUN\r");
+    m.run_seconds(3.0);
+    std::string r;
+    double v = last_reply(m, &r);
+    printf("cassette: %s (%g)\n%s\n", r.c_str(), v, screen_text(m).c_str());
+    CHECK(fabs(v - 12.564) < 0.005);
+}
+
 int main(void)
 {
     test_init();
-    example();
-    nobody_listens();
+    const char* part = getenv("DPS_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
+    if (!part || !strcmp(part, "bus")) {
+        example();
+        nobody_listens();
+    }
+    if (!part || !strcmp(part, "kazeta")) kazeta();
     return TEST_RESULT();
 }

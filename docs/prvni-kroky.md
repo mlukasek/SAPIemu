@@ -193,8 +193,9 @@ Další programy z `media\` si nahrajete takto:
 
 - **Měřicí pracoviště IMS-2** (`zps/ZPS-2_DPS-1_IMS-2.sapi`, deska DPS-1, BASIMS V4.0):
   1. nad ostatní okna se otevře Měřicí pracoviště: voltmetr M1T 330 měří výstup I zdroje BS 525;
-  2. BASIMS z kazety: `.K_L`, jméno `BASIMS`, v okně Média PLAY, `Y`, pak `.J` (nebo Soubor → Nahrát program
-     do paměti → `media\dps-1\BASIMS.hex` a `G4400`);
+  2. BASIMS z kazety: `.K_L`, jméno `BASIMS`, v okně Média PŘEHRÁT, `Y`, pak `.J` (nebo Soubor → Nahrát program
+     do paměti → `media\dps-1\BASIMS.hex` a `G4400`); za ním jsou na kazetě programy `PRIKLAD` a `SMYCKA`
+     (`LOAD`, jméno, `Y`, `RUN`);
   3. program `10 IMS# N`, `20 IMS# O3;"R4D0E"`, `30 IMS# T3`, `40 IMS# I A$`, `50 PRINT A$` vypíše `V+1.256…E+1`;
   4. knoflíky zdroje se točí myší, monitor sběrnice ukazuje adresování a texty.
 
