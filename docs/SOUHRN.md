@@ -63,6 +63,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`docs/desky/RMP-1.md`). Sestava `rmp1_jb_izot.sapi` má od autora jednotku 1 bez pásky. Pushnuté 2026-10-10.
   - pak: okno Média ukazuje jméno pásky z VOL1 a soubory z HDR1/HDR2 (pro řetězce MTCOPY), jednotka pásky má
     pevnou výšku (neposkakuje), okno obrazovky má po spuštění emulátoru i sestavy fokus. Pushnuté 2026-10-10.
+  - pak (autor: sestava `plotter_ar1990.sapi` „jen drnčí a nenaběhne“): fokus obrazovky vytáhl okno obrazovky
+    nad okno Minigraf a zakryl tlačítko READY, plotter tak dál pípal. Obrazovka teď dostane klávesnici a okna
+    nad ní zůstanou vepředu (`focus_screen_window`). Lokálně, nepushnuté.
   - pak: chyba počtu bloků v EOF1 je ve starší knihovně MTKAN slinkované v MTCOPY. **Opravená kopie MTCOPYO**
     (původní kód MTCOPY + MTKAN V060588JB z diskety, `tools/mtcopy_oprava.py`, `media/rmp-1/MTCOPYO.COM`
     a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5). Návod

@@ -544,6 +544,26 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
     zs.size = s;
 }
 
+// The keyboard to the screen window after a machine starts, the windows that were in front of it stay in front
+// (focusing raises a window: the screen would cover the Minigraf window with READY or the Media window).
+static void focus_screen_window(void)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
+    if (!screen) return;
+    int at = g.Windows.index_from_ptr(g.Windows.find(screen->RootWindowDockTree));
+    ImVector<ImGuiWindow*> front;   // back to front, as g.Windows
+    for (int i = at + 1; i < g.Windows.Size; i++) {
+        ImGuiWindow* w = g.Windows[i];
+        if (w->RootWindow == w && (w->Active || w->WasActive) && !w->DockIsActive &&
+            !(w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
+                          ImGuiWindowFlags_NoBringToFrontOnFocus)))
+            front.push_back(w);
+    }
+    ImGui::FocusWindow(screen);
+    for (ImGuiWindow* w : front) ImGui::BringWindowToDisplayFront(w);
+}
+
 // View -> Default window layout: every window undocked, at the place and size it gets at its first use
 // (the windows that give none go to the top left), not collapsed; the screen fits its window again.
 static void reset_window_layout(App& app)
@@ -1326,7 +1346,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_error(app);
         if (app.focus_screen > 0) {   // after the windows that opened with the machine
             app.focus_screen--;
-            if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) ImGui::SetWindowFocus("###screen");
+            if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window();
         }
         ImGui::Render();
 

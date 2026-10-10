@@ -1563,6 +1563,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   `CardParam.min = PF_NEW_MEDIUM`). Diskety potřebují zvolit formát, ty dál zakládá okno Média.
 - **Souborové dialogy:** složka dostane koncový oddělovač (`dialog_location`), soubor nabízený k uložení zůstává.
 
+## 2026-10-10 – fokus obrazovky po spuštění
+
+- **Obrazovka dostane klávesnici, ale nepřekryje ostatní okna.** Fokus v ImGui okno zároveň vytáhne dopředu.
+  U sestavy plotteru z AR 1990 (bez zobrazovací karty) tak prázdné okno obrazovky zakrylo okno Minigraf
+  s tlačítkem READY a plotter jen pípal (autor: „jen drnčí a nenaběhne“). Okna, která byla nad obrazovkou
+  (otevřená se sestavou: Minigraf, Média…), se po fokusu vrátí dopředu.
+
 ## 2026-10-10 – opravená kopie MTCOPY
 
 - **MTCOPYO = původní kód MTCOPY + novější knihovna MTKAN** (autor: „udělat novou opravenou verzi“). Chyba
