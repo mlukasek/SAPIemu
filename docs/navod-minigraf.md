@@ -20,7 +20,8 @@ Tečku smaže tlačítko Nový papír.
 ## Okno Minigraf
 
 - **Papír** je pás široký jako A4 a dlouhý, jak kresba potřebuje. Původní ovladač posouvá papír víc, než měří
-  list A4, proto se nekreslí na jednotlivé listy.
+  list A4, proto se nekreslí na jednotlivé listy. Papír vyplní šířku okna, delší kresba se posouvá svisle
+  (posuvník, kolečko myši). Když pero kreslí mimo viditelnou část, pohled za ním popojede.
 - **Kolejnice s vozíkem:** vlevo je doraz, čtvereček je pero. Pero dole je červené.
 - **Řádek pod tlačítky:** poloha pera X a Y v milimetrech, pero nahoře nebo dole a počet kroků. Dál:
   - **na dorazu:** kroky, kdy vozík tlačil do dorazu. Při nastavení počátku je to normální, ovladač ho tak hledá.

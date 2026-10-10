@@ -39,11 +39,14 @@ static std::string plot_path(const char* ext)
 }
 
 // The paper (a strip as wide as A4) around the drawing and the pen, at least as high as A4, on the
-// table; the rail goes over the travel of the carriage.
+// table; the rail goes over the travel of the carriage. The table fits the width of the window, a long roll
+// scrolls; while the pen moves, the view follows it when it would leave the view.
 static void draw_sheet(Minigraf* g)
 {
     ImVec2 avail = ImGui::GetContentRegionAvail();
     if (avail.y < 100) avail.y = 100;
+    ImGui::BeginChild("sheet", avail, ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    float vw = ImGui::GetContentRegionAvail().x, vh = ImGui::GetWindowHeight();
     const float spm = (float)Minigraf::STEPS_PER_MM;
     int32_t x0, y0, x1, y1;
     if (!g->extent(x0, y0, x1, y1)) y0 = y1 = g->y();
@@ -56,9 +59,10 @@ static void draw_sheet(Minigraf* g)
         bottom = c - 148.5f;
     }
     const float mw = 230.0f, mh = top - bottom;   // mm shown
-    float k = avail.x / mw < avail.y / mh ? avail.x / mw : avail.y / mh;   // pixels per mm
+    float k = vw / mw;                             // pixels per mm
+    float ch = mh * k;                             // height of the table, shorter ones in the middle
     ImVec2 o = ImGui::GetCursorScreenPos();
-    float ox = o.x + (avail.x - mw * k) * 0.5f, oy = o.y + (avail.y - mh * k) * 0.5f;
+    float ox = o.x, oy = o.y + (ch < vh ? (vh - ch) * 0.5f : 0.0f);
     ImDrawList* dl = ImGui::GetWindowDrawList();
     dl->AddRectFilled(ImVec2(ox, oy), ImVec2(ox + mw * k, oy + mh * k), IM_COL32(70, 74, 80, 255), 4.0f);
     // paper (x, y in steps, y up) to the screen
@@ -88,7 +92,14 @@ static void draw_sheet(Minigraf* g)
     dl->AddRect(ImVec2(pen.x - 4 * k, pen.y - 4 * k), ImVec2(pen.x + 4 * k, pen.y + 4 * k), IM_COL32(60, 62, 70, 230), 1.5f, 0, 2.0f);
     dl->AddCircleFilled(pen, 1.6f * k, g->pen_down() ? IM_COL32(200, 40, 40, 255) : IM_COL32(120, 120, 128, 220));
     dl->PopClipRect();
-    ImGui::Dummy(avail);
+    ImGui::Dummy(ImVec2(vw, ch > vh ? ch : vh - 1.0f));
+    static uint64_t s_steps = ~0ull;   // the pen moved: keep it in sight
+    if (g->steps != s_steps) {
+        s_steps = g->steps;
+        float py = pen.y - o.y, sy = ImGui::GetScrollY();
+        if (ch > vh && (py < sy + 0.15f * vh || py > sy + 0.85f * vh)) ImGui::SetScrollY(py - 0.5f * vh);
+    }
+    ImGui::EndChild();
 }
 
 // ---------------------------------------------------------------- the plotter of AR 1990
