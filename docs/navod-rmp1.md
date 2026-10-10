@@ -224,7 +224,14 @@ Kopie má stejná data bajt po bajtu. Návěští se od pásky zapsané programe
 Je to chyba programu MTCOPY, emulace na to vliv nemá. MTCOPY je slinkovaný se starší verzí knihovny MTKAN, která
 poslední blok souboru zapíše, ale nezapočítá. Novější MTDAT ji už má opravenou. Data jsou celá a MTDAT i DIRMT
 kopii přečtou. Velký počítač, který počet bloků v EOF1 kontroluje, by ale nejspíš ohlásil nesouhlas. Pro výměnu
-dat s ním je bezpečnější soubory kopírovat přes disketu programem MTDAT (jen jednotka 0).
+dat s ním použijte opravenou kopii MTCOPYO (níže), nebo kopírujte přes disketu programem MTDAT (jen jednotka 0).
+
+**Opravená kopie MTCOPYO** (není originál): v okně Média u RPD-1 **Vložit…** do mechaniky 1 (B:) disketu
+`media\rmp-1\a_lad_izo_opraveny.img`. Je to stejná disketa, jen je na ní MTCOPYO místo MTCOPY. Pak `B:MTCOPYO`.
+Menu má nadpis `===  FUNKCE  MTCOPY (OPRAVENY)  ===`, funkce i řetězce jsou stejné jako výše. Kopie pak má
+v EOF1 správné počty bloků (000001 a 000005) a v HDR2 mezeru, stejně jako páska zapsaná programem MTDAT.
+MTCOPYO je původní MTCOPY slinkovaný s novější knihovnou MTKAN z téže diskety. Podrobnosti jsou
+v `docs/desky/RMP-1.md`.
 
 ## 7. Zkouška pásky: MTZAP a MTCTE
 

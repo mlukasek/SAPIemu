@@ -4,6 +4,8 @@
 // - MTZAP: 255 blocks of the test sentence and a tape mark, MTCTE reads them back;
 // - MTDAT: a tape with JSEP labels (VOL1, HDR1/2, EOF1/2, EBCDIC), two files on it, a file back to the
 //   floppy, DIRMT lists the tape (a backspace over a block: the start and stop of the drive matter).
+// - MTCOPYO (the fixed MTCOPY of tools/mtcopy_oprava.py on media/rmp-1/a_lad_izo_opraveny.img): the sample tape
+//   copied tape to tape from unit 0 to unit 1, the data and the block counts in EOF1 as on the original.
 // RMP_MAKE=<file>: also save the sample tape made here (media/rmp-1/sapi01_ukazka.tap).
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,8 +59,9 @@ static Rmp1* rmp_of(Machine& m)
     return r;
 }
 
-// the machine of machines/rmp1_jb_izot.sapi on copies in work/test, a blank tape
-static bool jb_with_rmp(Machine& m)
+// the machine of machines/rmp1_jb_izot.sapi on copies in work/test, a blank tape (unit 0); with `copy` the
+// fixed disk B: and the sample tape on unit 0, a blank one on unit 1
+static bool jb_with_rmp(Machine& m, bool copy = false)
 {
     std::string t, err;
     CHECK(file_read_text(data_path("machines/rmp1_jb_izot.sapi"), t));
@@ -66,8 +69,13 @@ static bool jb_with_rmp(Machine& m)
     std::vector<uint8_t> img;
     CHECK(file_read_all(data_path("media/sapiman/r1_zrmd4m_271111.img"), img));
     CHECK(file_write_all(data_path("work/test/rmp_a.img"), img.data(), img.size()));
-    CHECK(file_read_all(data_path("media/rmp-1/a_lad_izo.img"), img));
+    CHECK(file_read_all(data_path(copy ? "media/rmp-1/a_lad_izo_opraveny.img" : "media/rmp-1/a_lad_izo.img"), img));
     CHECK(file_write_all(data_path("work/test/rmp_b.img"), img.data(), img.size()));
+    if (copy) {
+        CHECK(file_read_all(data_path("media/rmp-1/sapi01_ukazka.tap"), img));
+        CHECK(file_write_all(data_path("work/test/rmp_src.tap"), img.data(), img.size()));
+        file_remove(data_path("work/test/rmp_dst.tap"));
+    }
     for (json& c : cfg["cards"]) {
         std::string ty = c.value("type", std::string());
         if (ty == "ZRMD-1") c["mode"] = "nosave";
@@ -77,8 +85,9 @@ static bool jb_with_rmp(Machine& m)
             c["working_copy"] = false;
         }
         if (ty == "RMP-1") {
-            c["unit0"] = { { "tape", TAPE } };
-            c["unit1"] = false;   // one drive, whatever the machine file has
+            c["unit0"] = { { "tape", copy ? "work/test/rmp_src.tap" : TAPE } };
+            if (copy) c["unit1"] = { { "tape", "work/test/rmp_dst.tap" } };
+            else c["unit1"] = false;   // one drive, whatever the machine file has
             c["unit2"] = false;
             c["working_copy"] = false;
         }
@@ -243,6 +252,79 @@ static void mtdat(void)
     }
 }
 
+// the block count of the EOF1 labels of a tape (columns 55-60, EBCDIC digits)
+static std::vector<int> eof1_counts(const std::vector<MagTape::Record>& recs)
+{
+    static const uint8_t eof1[4] = { 0xC5, 0xD6, 0xC6, 0xF1 };
+    std::vector<int> n;
+    for (const MagTape::Record& x : recs) {
+        if (x.mark || x.data.size() != 80 || memcmp(x.data.data(), eof1, 4)) continue;
+        int v = 0;
+        for (int k = 54; k < 60; k++) v = v * 10 + (x.data[k] & 0x0F);
+        n.push_back(v);
+    }
+    return n;
+}
+
+// a string for MTKAN when the last line of the screen is the prompt alone (the titles of the questions scroll
+// away, the prompts stay on the screen with the answers)
+static void mtkan_string(Machine& m, const char* s)
+{
+    bool ok = false;
+    for (double t = 0; t < 120.0 && !ok; t += 0.2) {
+        m.run_seconds(0.2);
+        std::string x = screen_text(m);
+        size_t e = x.find_last_not_of(" \n");
+        if (e == std::string::npos) continue;
+        size_t b = x.rfind('\n', e);
+        b = b == std::string::npos ? 0 : b + 1;
+        ok = x.substr(b, e + 1 - b) == "Zadej retezec:";
+    }
+    if (!ok) printf("NO PROMPT for %s:\n%s\n", s, screen_text(m).c_str());
+    CHECK(ok);
+    m.run_seconds(0.3);
+    m.type_text(s);
+    m.type_text("\r");
+}
+
+// MTCOPYO 0: a file of unit 0 appended to unit 1 as file n
+static void mtcopy_file(Machine& m, int n, const char* name)
+{
+    char in[64], out[64];
+    CHECK(answer(m, "Zadej funkci", "0\r", 120.0));
+    mtkan_string(m, "0.0.4.D.SAPI01.");   // input tape, input file, output tape, output file
+    snprintf(in, sizeof in, "1.0.4.D.%d.R.800.80.%s.", n, name);
+    mtkan_string(m, in);
+    mtkan_string(m, "0.1.4.D.SAPI02.");
+    snprintf(out, sizeof out, "1.1.4.D.%d.W.800.80.%s.88001.", n, name);
+    mtkan_string(m, out);
+    CHECK(run_until_text(m, "Zadej funkci", 120.0));
+}
+
+static void mtcopy(void)
+{
+    Machine m;
+    if (!jb_with_rmp(m, true)) return;
+    Rmp1* r = rmp_of(m);
+    m.type_text("B:MTCOPYO\r");
+    CHECK(answer(m, "MTCOPY (OPRAVENY)", "4\r", 30.0));   // the menu of the fixed copy; 4: INIC of unit 1
+    CHECK(answer(m, "Zadej retezec:", "6.1.D.SAPI02.\r"));
+    mtcopy_file(m, 1, "MTZAP");
+    mtcopy_file(m, 2, "MTDATMAN");
+    std::vector<MagTape::Record> a = r->units[0].tape.records(), b = r->units[1].tape.records();
+    std::vector<int> na = eof1_counts(a), nb = eof1_counts(b);
+    printf("MTCOPYO: %d -> %d records, EOF1 blocks", (int)a.size(), (int)b.size());
+    for (size_t k = 0; k < nb.size(); k++) printf(" %d (%d)", nb[k], k < na.size() ? na[k] : -1);
+    printf("\n");
+    CHECK(na.size() == 2 && na[0] == 1 && na[1] == 5);   // the sample tape, written by MTDAT
+    CHECK(nb == na);                                    // the old MTCOPY gives 0 and 4
+    CHECK(a.size() == b.size());
+    for (size_t k = 1; k < a.size() && k < b.size(); k++) {   // the data blocks as they were (not the labels)
+        if (a[k].mark || a[k].data.size() == 80) continue;
+        CHECK(a[k].data == b[k].data);
+    }
+}
+
 int main(void)
 {
     test_init();
@@ -250,5 +332,6 @@ int main(void)
     const char* part = getenv("RMP_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
     if (!part || !strcmp(part, "mtzap")) mtzap();
     if (!part || !strcmp(part, "mtdat")) mtdat();
+    if (!part || !strcmp(part, "mtcopy")) mtcopy();
     return TEST_RESULT();
 }

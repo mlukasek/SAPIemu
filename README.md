@@ -59,8 +59,9 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
     [docs/navod-rkd1.md](docs/navod-rkd1.md));
   - řadič magnetické pásky RMP-1 s mechanikou IZOT SM 5300 (9 stop, 800 bpi, cívky s 350 m pásky): okno Média
     s nakreslenou mechanikou, cívkami, kontrolkami a mapou pásky, obraz pásky SIMH `.tap`; běží na ní původní
-    ovladač Tesly Elstroj a programy J. Bíby pro výměnu souborů s počítači JSEP (MTDAT, DIRMT, MTCOPY), ukázková
-    páska ([docs/desky/RMP-1.md](docs/desky/RMP-1.md), návod k obsluze [docs/navod-rmp1.md](docs/navod-rmp1.md));
+    ovladač Tesly Elstroj a programy J. Bíby pro výměnu souborů s počítači JSEP (MTDAT, DIRMT, MTCOPY a jeho
+    opravená kopie MTCOPYO), ukázková páska ([docs/desky/RMP-1.md](docs/desky/RMP-1.md), návod k obsluze
+    [docs/navod-rmp1.md](docs/navod-rmp1.md));
   - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
     a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
     `KRES` kreslí v milimetrech (kružnice, šrafování, text);

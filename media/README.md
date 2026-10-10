@@ -218,6 +218,8 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 | Soubor | Obsah |
 |---|---|
 | `a_lad_izo.img` | 8" disketa J. Bíby s programy pro pásku: MTDAT, DIRMT, MTCOPY, MTZAP, MTCTE, MTKAN, ovladač `RMP.REL`, zdroje a návody `MTDAT.MAN`, `MTKAN.MAN`. Kopie `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_lad_izo.8sd` (stejná je i v kopii z FTP). |
+| `MTCOPYO.COM` | **Opravená kopie** MTCOPY (není originál): kód MTCOPY V041287JB beze změny, od 3D70h knihovna MTKAN V060588JB z téže diskety s `RMP.REL` (jako MTDAT), takže EOF1 započítá i poslední blok souboru; nadpis menu `===  FUNKCE  MTCOPY (OPRAVENY)  ===`. Vyrábí ji `tools/mtcopy_oprava.py` z `a_lad_izo.img` (M80 a L80 pod `cpmrun`), popis v `docs/desky/RMP-1.md`. |
+| `a_lad_izo_opraveny.img` | `a_lad_izo.img`, na které je `MTCOPYO.COM` místo `MTCOPY.COM` (na originálu jsou volné jen 2 KB). Vyrábí ji tentýž skript. |
 | `sapi01_ukazka.tap` | Ukázková páska SAPI01 (SIMH `.tap`): VOL1, soubor 1 MTZAP (`MTZAP.MAC`) a soubor 2 MTDATMAN (`MTDAT.MAN`), blok 800, záznam 80, návěští JSEP, EBCDIC. Zapsal ji program MTDAT v emulátoru (`RMP_MAKE=… test_rmp1`). |
 
 ## `ar1990/` – povely pro plotter z AR 1990

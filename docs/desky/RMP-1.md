@@ -125,7 +125,26 @@ PON (D7A) se nastaví resetem a dokud ho program nezruší bitem RPON, nejdou po
   celá, MTKAN počet v EOF1 při čtení nekontroluje, takže MTDAT i DIRMT kopii přečtou. Systém velkého počítače
   (OS EC podle vzoru IBM OS) počet bloků v návěští při čtení kontroluje, tam by nesouhlas nejspíš vadil.
   Ověřeno ve strojovém kódu obou programů (`LD HL,(cnt) / INC HL / LD (cnt),HL`), zdroják MTCOPY je zpětně
-  získaný. Sloupec 37 v HDR2 (`A`) je nejspíš také rozdíl verzí knihovny, pro čtení nevadí.
+  získaný. Sloupec 37 v HDR2 (`A`) je také rozdíl verzí knihovny, pro čtení nevadí.
+
+  **Opravená kopie MTCOPYO** (není originál, 2026-10-10): `media/rmp-1/MTCOPYO.COM` a disketa
+  `media/rmp-1/a_lad_izo_opraveny.img` (originál, na kterém je MTCOPYO.COM místo MTCOPY.COM, protože na disketě
+  jsou volné jen 2 KB). Vyrábí je `tools/mtcopy_oprava.py` z nedotčené `a_lad_izo.img`. Kód MTCOPY (0100h–3D6Fh)
+  zůstává bajt po bajtu. Od 3D70h je knihovna MTKAN V060588JB z diskety, přeložená M80 a slinkovaná L80 s `RMP.REL`
+  pod `cpmrun`, jako by MTCOPY někdo slinkoval znovu. Vstup MTKAN i proměnné, na které MTCOPY sahá, vyšly na
+  stejných adresách. Na obrazovce je kopie poznat podle nadpisu menu `===  FUNKCE  MTCOPY (OPRAVENY)  ===`. Nová
+  knihovna se od staré liší tím, co má i MTDAT:
+  - poslední blok souboru se započítá (EOF1 1 a 5 jako u MTDAT, ověřuje `test_rmp1_mtcopy`);
+  - v HDR2 a EOF2 je ve sloupci 37 mezera místo `A`;
+  - při čtení se nekontroluje `B` (blokované věty) ve sloupci 39 HDR2;
+  - blok se zkouší přečíst 8krát místo 5krát;
+  - uzavření bez otevřeného souboru hlásí chybu 30 místo 26 (MTCOPY má texty obou).
+
+  Zdroják `MTCOPY.MAC` na disketě je zpětně získaný a stejné bajty nedává (posunutá data, jiný nadpis menu), proto
+  se nepoužívá. **M80 a L80 rozlišují u veřejných jmen jen 6 znaků.** `SZ_RD_BLOCK` a `SZ_RD_REC` z MTKAN jsou pro
+  ně obě `SZ_RD_` (L80 hlásí „Mult. Def. Global SZ_RD_“), skript proto v překládané kopii přejmenuje `SZ_RD_REC`
+  na `RD_REC_SZ`. V původním MTDAT.COM se kvůli tomu `LD DE,(SZ_RD_BLOCK)` přeložilo na adresu délky věty. MTDAT
+  tu hodnotu (`SIZE_VST_BLOK`) jen uloží a nikde nečte, takže to nevadí.
 - **MTZAP / MTCTE:** zkušební zápis 255 bloků s větou „Toto je prvni zapsany a precteny blok dat pocitacem
   SAPI-1/CPM na magneticke pasce IZOT CM 5300.01“ a TM, MTCTE je přečte. Bíbova první zkouška pásky.
 - **Ukázková páska** `media/rmp-1/sapi01_ukazka.tap`: páska SAPI01 se dvěma soubory, MTZAP (MTZAP.MAC) a MTDATMAN

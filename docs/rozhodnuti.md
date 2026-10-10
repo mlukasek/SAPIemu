@@ -1562,3 +1562,15 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Nová… v konfigurátoru jen u médií, kde nový soubor = prázdné médium** (páska, kazeta RKD-1, kazeta KZD-1;
   `CardParam.min = PF_NEW_MEDIUM`). Diskety potřebují zvolit formát, ty dál zakládá okno Média.
 - **Souborové dialogy:** složka dostane koncový oddělovač (`dialog_location`), soubor nabízený k uložení zůstává.
+
+## 2026-10-10 – opravená kopie MTCOPY
+
+- **MTCOPYO = původní kód MTCOPY + novější knihovna MTKAN** (autor: „udělat novou opravenou verzi“). Chyba
+  v počtu bloků EOF1 není v MTCOPY samotném, ale ve starší MTKAN, se kterou je slinkovaný. Novější MTKAN V060588JB
+  je na téže disketě a má ji i MTDAT. Skript `tools/mtcopy_oprava.py` ji přeloží původním M80 a L80 (`cpmrun`) na
+  3D70h, kde stará knihovna začínala. Kód MTCOPY 0100h–3D6Fh zůstává bajt po bajtu, jen s nadpisem `(OPRAVENY)`.
+  Nepřekládá se zpětně získaný `MTCOPY.MAC`, protože nedává stejné bajty jako MTCOPY.COM. Ruční záplata starší
+  knihovny by zase byla jen napodobenina toho, co J. Bíba v knihovně opravil sám.
+- **Opravená disketa má MTCOPYO místo MTCOPY** (na originálu jsou volné jen 2 KB). Originál zůstává
+  v `a_lad_izo.img` a sestava `rmp1_jb_izot.sapi` ho dál používá. Opravená kopie se vkládá v okně Média, stejně
+  jako `CKM_opraveny.hex` stojí vedle originálu CKM.
