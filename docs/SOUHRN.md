@@ -60,8 +60,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 50 v debug (2026-10-10 noc, přibyly `test_rmp1` ve dvou částech a `test_ar1990`, debug asi 37 s), 47 v release
-    (2026-10-09 večer, `test_rkd1` ve třech částech); release `full` 48 včetně ZEX,
+  - Testy: 50 v debug (2026-10-10 noc, přibyly `test_rmp1` ve dvou částech a `test_ar1990`, debug asi 37 s), 50 v release (2026-10-10 noc, asi 15 s); release `full` 48 včetně ZEX,
     8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
     kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
     Kdy které testy:
