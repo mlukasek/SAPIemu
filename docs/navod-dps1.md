@@ -59,7 +59,9 @@ V+1.2562E+1
 READY
 ```
 
-Znak `$` ukazuje AND-1 jako `¤` (znaková sada MHB 2501).
+Znak `$` ukazuje AND-1 jako `¤` (znaková sada MHB 2501). **Pozor na O a nulu**, na obrazovce vypadají skoro
+stejně: za `IMS#` je písmeno O (output), v `R4D0E` je nula (D0 = bez filtru). S nulou za `IMS#` skončí program
+hlášením `ERROR SN IN LINE 20`.
 
 - `IMS# N` vynuluje sběrnici (IFC).
 - `IMS# O3;"R4D0E"` adresuje voltmetr (adresa 3) jako posluchače a pošle mu `R4D0E`: R4 automatická volba
@@ -166,3 +168,4 @@ Příklad omezení proudu: výstup I 20 V, PROUD 0,1 A, zátěž 100 Ω. Rozsví
 | po `IMS# O` naběhne znovu MIKOS | na sběrnici nikdo neposlouchá (vypnutý voltmetr). Chyba BASIMS: jeho obsluha chyby se zacyklí a přeteče zásobník |
 | odpověď `V+9.9999E+9`, displej `OL` | napětí je nad rozsahem a automatika je vypnutá (R0–R3) |
 | tlačítka voltmetru nereagují | svítí EXT, voltmetr je v dálkovém ovládání |
+| `ERROR SN IN LINE …` u `IMS#` | za `IMS#` je nula místo písmene O (nebo jiné písmeno než N, O, T, I) |
