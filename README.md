@@ -137,7 +137,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   a uživatelé, formátování pevného disku, kopírování, výměna kazet, ochrana proti zápisu).
 - [docs/navod-rmp1.md](docs/navod-rmp1.md): návod k magnetické pásce RMP-1 (mechanika v okně Média, obsah pásky,
   kopírování mezi páskou a disketou programem MTDAT, nová páska a její inicializace, kopie z pásky na pásku
-  programem MTCOPY).
+  programem MTCOPY krok za krokem a jeho opravená kopie MTCOPYO).
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
 - [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045

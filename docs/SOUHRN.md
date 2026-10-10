@@ -38,7 +38,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   a čte bez chyb; zjištěno, že FORMRKD.COM má starší ovladač s hlavičkou jen se stopou). Test RKD-1 rozdělený na
   tři souběžné části. Pak (autor: „udělat podporu disků bez toho, aniž by šly použít, mi přijde divné“) **vlastní
   BIOS-3K pro CM 5400** (D: až G: v CP/M J. Bíby; ne originál, otevřeně označený): `media/rkd-1/cm5400/BIRKD54.MAC`,
-  `tools/rkd5400_bios_src.py` a `tools/rkd5400_bios.py`, disketa `media/rkd-1/jb_cm5400_boot.img`. Lokálně, nepushnuté.
+  `tools/rkd5400_bios_src.py` a `tools/rkd5400_bios.py`, disketa `media/rkd-1/jb_cm5400_boot.img`. Pushnuté 2026-10-10.
 - **Noc 2026-10-10 (autor: „jdi na to … rozhoduj se sám“): magnetická páska RMP-1** s mechanikou IZOT SM 5300:
   karta `src/cards/rmp1.*` (dvě 8255 a 8253, mechanika s rozběhem a doběhem, čtení po zápisu, obraz SIMH `.tap`),
   okno Média s nakreslenou mechanikou (cívky, kontrolky, tlačítka, mapa pásky, blok pod hlavou), panel v konfigurátoru,
@@ -65,8 +65,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     pevnou výšku (neposkakuje), okno obrazovky má po spuštění emulátoru i sestavy fokus. Pushnuté 2026-10-10.
   - pak: chyba počtu bloků v EOF1 je ve starší knihovně MTKAN slinkované v MTCOPY. **Opravená kopie MTCOPYO**
     (původní kód MTCOPY + MTKAN V060588JB z diskety, `tools/mtcopy_oprava.py`, `media/rmp-1/MTCOPYO.COM`
-    a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5).
-    Lokálně, nepushnuté.
+    a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5). Návod
+    `docs/navod-rmp1.md`, kapitola 6: kopie pásky krok za krokem s výpisy z emulátoru, chyba původního MTCOPY
+    a co je v opravě. Pushnuté 2026-10-10.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).

@@ -177,7 +177,9 @@ Další programy z `media\` si nahrajete takto:
   2. `B:DIRMT 0` vypíše ukázkovou pásku SAPI01 (dva soubory);
   3. `B:MTDAT`, funkce 1 zkopíruje soubor z pásky na disketu (páska `SAPI01`, soubor `2`, blok `800`, záznam
      `80`, jméno `MTDATMAN`, cíl `A:MTDAT.MAN`), funkce 2 opačně;
-  4. nová páska: OFF-LINE, Nová páska…, LOAD, ON-LINE, pak MTDAT funkce 3.
+  4. nová páska: OFF-LINE, Nová páska…, LOAD, ON-LINE, pak MTDAT funkce 3;
+  5. kopie z pásky na pásku (jednotka 0 → 1): do B: vložit `media\rmp-1\a_lad_izo_opraveny.img` a spustit
+     opravenou kopii `B:MTCOPYO` (původní MTCOPY zapíše do EOF1 o blok méně), postup krok za krokem v návodu.
 
   Celý návod s výpisy obrazovky: `docs/navod-rmp1.md`.
 - **Plotter z AR 1990** (`plotter_ar1990.sapi`, deska JPR-1 jako řadič Minigrafu, povely Sharp MZ-1P16):
