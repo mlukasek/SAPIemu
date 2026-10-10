@@ -4,6 +4,7 @@
 //   (V+1.2564E+1 for 12.564 V);
 // - autorange down to the 300 mV range, the reply with a negative exponent;
 // - the bus: LAD 3 and TAD 3 with ATN, the reply of the voltmeter ends with EOI;
+// - a state saved in the middle of measuring, loaded into a new machine: the replies go on whole;
 // - without the bench nobody listens: NDAC is released, so /ACK B (the received NDAC) is low and the 8255 takes
 //   the byte at once (/OBF B is reset by the level of /ACK, datasheet 8255A): the shift register never gets to
 //   the ERR check, no DAV, the byte is lost. BASIMS checks the listeners by its program and falls: its error path ERRLI -> KONVY -> OUTDAT (UNL) -> ERRLI never ends, the stack
@@ -132,6 +133,45 @@ static void example(void)
     CHECK(fabs(v - 10.0) < 0.005);
 }
 
+// a state saved while BASIMS measures in a loop, loaded into a new machine: the voltmeter stays remote and no
+// byte of its replies is lost (the DPS-1 and the voltmeter attach to the bench bus without resolving the lines,
+// before: the bus without the drives of the DPS-1 for a moment dropped REN, the 'V' of the next reply was lost)
+static void state_round_trip(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_file(MACHINE, err));
+    if (!start_basims(m)) return;
+    line(m, "10 IMS# N", "10 IMS");
+    line(m, "20 IMS# O3;\"R4D0E\"", "R4D0E");
+    line(m, "30 IMS# T3", "30 IMS");
+    line(m, "40 IMS# I A$", "40 IMS");
+    line(m, "50 PRINT A$", "50 PRINT");
+    line(m, "60 GOTO 20", "60 GOTO");
+    m.type_text("RUN\r");
+    m.run_seconds(1.7);
+    std::vector<uint8_t> st;
+    CHECK(m.save_state(st, "", err));
+    Machine m2;
+    CHECK(m2.load_file(MACHINE, err));
+    m2.run_seconds(0.5);   // the monitor runs, the DPS-1 is not cabled yet
+    CHECK(m2.load_state(st, err));
+    Ims2Bench* b = dynamic_cast<Ims2Bench*>(m2.plant.get());
+    Ims2Bench* b1 = dynamic_cast<Ims2Bench*>(m.plant.get());
+    CHECK(b && b1 && b->ims.ctl_lines == b1->ims.ctl_lines && b->ims.nodes.size() == 2);
+    m2.run_seconds(2.0);
+    std::string s = screen_text(m2);
+    int replies = 0, broken = 0;
+    for (size_t p = s.find("E+1"); p != std::string::npos; p = s.find("E+1", p + 1)) {
+        size_t bol = s.rfind('\n', p);
+        bol = bol == std::string::npos ? 0 : bol + 1;
+        replies++;
+        if (s[bol] != 'V') broken++;
+    }
+    printf("after the state: %d replies, %d broken\n%s\n", replies, broken, s.c_str());
+    CHECK(replies >= 6 && broken == 0);
+}
+
 static void nobody_listens(void)
 {
     std::string t, err;
@@ -219,6 +259,7 @@ int main(void)
     const char* part = getenv("DPS_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
     if (!part || !strcmp(part, "bus")) {
         example();
+        state_round_trip();
         nobody_listens();
     }
     if (!part || !strcmp(part, "kazeta")) kazeta();

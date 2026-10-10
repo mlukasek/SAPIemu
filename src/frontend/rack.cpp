@@ -673,7 +673,7 @@ const PanelItem k_pl_rmp1[] = {
 };
 // DPS-1: one FRB 30 at the top (X2), the IMS-2 cable to the instruments (photo of the board)
 const PanelItem k_pl_dps1[] = {
-    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "IMS-2" },
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 23.85f, 437.8f, "IMS-2" },
     { PI_END, 0, 0, nullptr },
 };
 // DPP-1: two FRB 30, channel 1 (X2) at the top, channel 2 (X3) at the bottom (photo of the board)

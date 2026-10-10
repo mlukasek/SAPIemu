@@ -11,6 +11,15 @@ void Ims2Bus::attach(Ims2Node* n)
     settle(t);
 }
 
+void Ims2Bus::attach_loaded(Ims2Node* n, bool first)
+{
+    for (Ims2Node* x : nodes)
+        if (x == n) return;
+    n->ims = this;
+    if (first) nodes.insert(nodes.begin(), n);
+    else nodes.push_back(n);
+}
+
 void Ims2Bus::detach(Ims2Node* n)
 {
     for (size_t i = 0; i < nodes.size(); i++)

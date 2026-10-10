@@ -49,12 +49,15 @@ sériové kanály. Hodí se při ladění (zastavit těsně před chybou a vrace
 
 Binární soubor: `SAPISTAT`, verze (32 bitů), popis sestavy a soubor sestavy (řetězce). Pak pojmenované bloky
 s délkou: `bus`, `card X<slot> <typ>` po slotech, `keyboard`, `serial <n>`, `plant` (technologie APS-5: teploty pecí,
-poruchy, vstupy, graf). Čísla jsou little endian.
+poruchy, vstupy, graf; měřicí pracoviště IMS-2: zdroj, voltmetr, vodiče sběrnice a její monitor). Čísla jsou little endian.
 
 - Každá karta, čip i klávesnice má jednu funkci `state(StateIO&)` (`src/core/state.h`). Ta proměnné při ukládání
   zapíše a při načítání ve stejném pořadí přečte (`io.v(x)`).
 - Blok, který přečte víc nebo míň, než se zapsalo, se ohlásí chybou a nic dalšího se neposune.
 - Jiná verze formátu se odmítne. Stav je vázaný na verzi emulátoru, ne na skutečný hardware.
+- **Sdílené vodiče** (sběrnice IMS-2 mezi kartou a pracovištěm): karty se načítají před `plant`. Uzly se po
+  načtení připojí bez přepočtu vodičů (`Ims2Bus::attach_loaded`), jinak by se sběrnice na okamžik spočítala jen
+  z části uzlů a přístroje by zareagovaly na falešnou změnu (DPS-1: ztracený první znak odpovědi).
 
 ## Test
 

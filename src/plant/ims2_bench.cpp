@@ -87,7 +87,8 @@ void Ims2Bench::state(StateIO& io)
     bs.state(io);
     ims.state(io);
     m1t.state(io);
-    if (io.loading && started && m1t.ims == nullptr) ims.attach(&m1t);
+    // the voltmeter first, as when running (the DPS-1 attaches in its state, before the plant)
+    if (io.loading && started) ims.attach_loaded(&m1t, true);
 }
 
 void Ims2Bench::describe(json& out)

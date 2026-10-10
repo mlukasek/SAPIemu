@@ -1580,6 +1580,12 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   dobový zdroj s IMS-2 se nenašel, vymyšlený by nebyl věrný. BS 525 se ovládá myší, voltmetr měří jeho výstup.
 - **Sestava ZPS-2 s MIKOSem V4.0F a kazetou:** BASIMS volá podprogramy MIKOSu V4.0F, pod MIKOSem/D V5 (kde je
   BASIMS4.SYS na disketě) by neběžel.
+- **Ukázkové programy na kazetě za BASIMS** (autor: „Šlo by ten program v BASIC uložit na kazetu, aby se mohl
+  nahrát za tím BASICem samotným?“): kazetu nahrál originální MIKOS V4.0F a BASIMS v emulátoru
+  (`tools/dps1_kazeta.py`), ne generátor kazet, aby byla jako ze skutečného stroje. Formát WAV 22050 Hz, 8 bitů
+  (1,3 MB): MP3 rozbilo předěl mezi nahrávkami a druhý soubor se nenačetl.
+- **Konektory na panelech podle fotografií desek** (autor: DPS-1 má jeden FRB 30, DPP-1 dva): DPS-1 FRB nahoře
+  (K3 = X2), DPP-1 X2 nahoře (K3), X3 dole (K2), jako u RMP-1.
 
 ## 2026-10-10 – fokus obrazovky po spuštění
 

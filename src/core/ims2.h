@@ -62,6 +62,9 @@ struct Ims2Bus {
 
     void attach(Ims2Node* n);
     void detach(Ims2Node* n);
+    // loading a state: attach without resolving the lines (they come from the state; resolving them
+    // with only some nodes attached would drop the drives of the others and the instruments would react)
+    void attach_loaded(Ims2Node* n, bool first);
     // a node changed what it drives: resolve the lines, let the nodes react until it is stable
     void settle(uint64_t at);
     // run the timed events of the nodes up to `now`

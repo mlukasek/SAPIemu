@@ -59,6 +59,10 @@ Zdroje:
   stroje. Monitor si pamatuje posledních 256 přenosů (bajty s ATN a EOI, změny IFC a REN), ukládá se do stavu.
 - **Karta** počítá hradla a klopné obvody z netlistu při každém přístupu CPU a při každé změně vodičů. K pracovišti
   se připojí při prvním přístupu na porty (kabel X2). Bez pracoviště jsou vodiče uvolněné (terminace).
+- **Uložený stav:** deska i voltmetr se po načtení připojí ke sběrnici pracoviště bez přepočtu vodičů (ty jsou
+  ve stavu). Dřív se při načtení do nového stroje připojil nejdřív voltmetr sám, sběrnice na okamžik ztratila REN
+  a ATN desky, voltmetr přešel do místního ovládání a první odpověď po načtení přišla bez `V` (nalezeno na snímku
+  pro README, test `test_dps1`).
 - **Jediný předpoklad proti schématu:** LIST/TALK (PC7 D2C) blokuje vlastní NDAC desky, když deska mluví.
   - Schéma (originál Tesly str. 24 i EC1045) vede READ jen do hradla D2B (EOI → STB A) a NDAC = NAND(IBF A, DAV)
     nemá jak vypnout. Deska by tak při vysílání sama držela NDAC a žádný bajt by nebyl potvrzen.

@@ -22,6 +22,10 @@ KZD-1 a zapisovač ARITMA Minigraf 0507. Emulátor má vestavěný MCP server pr
 
 ![BASIC EXP kreslí na zapisovači ARITMA Minigraf 0507 ukázku z dokumentace IQ 151](docs/img/minigraf-ukazka.png)
 
+![Deska DPS-1 a měřicí pracoviště IMS-2: BASIMS z kazety měří ve smyčce voltmetrem Metra M1T 330 napětí zdroje Tesla BS 525, výstup II s přetíženou zátěží omezuje proud](docs/img/dps1-ims2-mereni.png)
+
+![Konfigurátor sestavy: panel desky DPS-1 s konektorem FRB 30 pro kabel IMS-2](docs/img/panel-dps1.png)
+
 ## Stažení
 
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
@@ -66,8 +70,9 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
     a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
     `KRES` kreslí v milimetrech (kružnice, šrafování, text);
   - deska přístrojové sběrnice DPS-1 (IMS-2, IEEE 488) s měřicím pracovištěm: voltmetr Metra M1T 330 a zdroj
-    Tesla BS 525 nakreslené v okně, knoflíky zdroje se točí myší, monitor sběrnice; BASIMS V4.0 (BASIC s `IMS#`)
-    z kazety měří napětí ([docs/desky/DPS-1.md](docs/desky/DPS-1.md), návod [docs/navod-dps1.md](docs/navod-dps1.md));
+    Tesla BS 525 nakreslené v okně, knoflíky zdroje se točí myší, zátěž s omezením proudu, monitor sběrnice;
+    BASIMS V4.0 (BASIC s `IMS#`) z kazety měří napětí, na kazetě jsou za ním ukázkové programy `PRIKLAD`
+    a `SMYCKA` (`LOAD`) ([docs/desky/DPS-1.md](docs/desky/DPS-1.md), návod [docs/navod-dps1.md](docs/navod-dps1.md));
   - plotter z Amatérského radia 1990: deska JPR-1 jako řadič zapisovače Minigraf s programem přepsaným z výpisu
     v AR, povely Sharp MZ-1P16 posílané z okna Minigraf (soubor, řádek povelů, ukázka), tlačítka STOP, TEST,
     READY a přepínače panelu ([docs/desky/AR1990.md](docs/desky/AR1990.md), návod
@@ -107,7 +112,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
   ([docs/software/ECMON.md](docs/software/ECMON.md)).
 - **Konfigurátor sestavy:**
-  - panely karet jako na skutečném stroji, LED podle emulace;
+  - panely karet jako na skutečném stroji, LED podle emulace, konektory podle fotografií desek;
   - sběrnice ARB-1, ARB-1A/Au, ARB-1B, ARB-1C (14 i 8 pozic) a ImBUS9/ImBUS12 Libora Lasoty;
   - propojky, některé i za chodu; karty jde myší přetáhnout do jiného slotu;
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);

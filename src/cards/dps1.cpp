@@ -318,4 +318,9 @@ void Dps1::state(StateIO& io)
     io.v(rer);
     io.v(dio);
     io.v(ctl);
+    // the cable to the bench at once: the plant loads after the cards and its bus must see our drives
+    bool cabled = ims != nullptr;
+    io.v(cabled);
+    if (io.loading && cabled && !ims && bus && bus->plant && bus->plant->ims2())
+        bus->plant->ims2()->attach_loaded(this, false);
 }
