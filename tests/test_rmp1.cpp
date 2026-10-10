@@ -18,7 +18,13 @@
 
 using nlohmann::json;
 
-static const char* TAPE = "work/test/rmp_paska.tap";
+// ctest runs the parts at the same time: each its own files
+static std::string g_part = "all";
+static std::string wf(const char* name)
+{
+    return "work/test/rmp_" + g_part + "_" + name;
+}
+#define TAPE wf("paska.tap")
 
 static void tape_format(void)
 {
@@ -41,12 +47,12 @@ static void tape_format(void)
     CHECK(t.records()[0].bad);
     // SIMH .tap: written and loaded again (the gaps as RMP.MAC writes them)
     t.rows = rows;
-    t.path = data_path("work/test/rmp_format.tap");
+    t.path = data_path(wf("format.tap"));
     t.dirty = true;
     std::string err;
     CHECK(t.save(err));
     MagTape u;
-    CHECK(u.load("work/test/rmp_format.tap", false, err));
+    CHECK(u.load(wf("format.tap"), false, err));
     std::vector<MagTape::Record> q = u.records();
     CHECK(q.size() == 2 && q[0].data == d && !q[0].bad && q[1].mark);
     CHECK(q[0].pos > MagTape::BOT_LEN);   // past the BOT marker
@@ -68,25 +74,25 @@ static bool jb_with_rmp(Machine& m, bool copy = false)
     json cfg = json::parse(t, nullptr, false, true);
     std::vector<uint8_t> img;
     CHECK(file_read_all(data_path("media/sapiman/r1_zrmd4m_271111.img"), img));
-    CHECK(file_write_all(data_path("work/test/rmp_a.img"), img.data(), img.size()));
+    CHECK(file_write_all(data_path(wf("a.img")), img.data(), img.size()));
     CHECK(file_read_all(data_path(copy ? "media/rmp-1/a_lad_izo_opraveny.img" : "media/rmp-1/a_lad_izo.img"), img));
-    CHECK(file_write_all(data_path("work/test/rmp_b.img"), img.data(), img.size()));
+    CHECK(file_write_all(data_path(wf("b.img")), img.data(), img.size()));
     if (copy) {
         CHECK(file_read_all(data_path("media/rmp-1/sapi01_ukazka.tap"), img));
-        CHECK(file_write_all(data_path("work/test/rmp_src.tap"), img.data(), img.size()));
-        file_remove(data_path("work/test/rmp_dst.tap"));
+        CHECK(file_write_all(data_path(wf("src.tap")), img.data(), img.size()));
+        file_remove(data_path(wf("dst.tap")));
     }
     for (json& c : cfg["cards"]) {
         std::string ty = c.value("type", std::string());
         if (ty == "ZRMD-1") c["mode"] = "nosave";
         if (ty == "RPD-1") {
-            c["drive_a"] = { { "image", "work/test/rmp_a.img" } };
-            c["drive_b"] = { { "image", "work/test/rmp_b.img" } };
+            c["drive_a"] = { { "image", wf("a.img") } };
+            c["drive_b"] = { { "image", wf("b.img") } };
             c["working_copy"] = false;
         }
         if (ty == "RMP-1") {
-            c["unit0"] = { { "tape", copy ? "work/test/rmp_src.tap" : TAPE } };
-            if (copy) c["unit1"] = { { "tape", "work/test/rmp_dst.tap" } };
+            c["unit0"] = { { "tape", copy ? wf("src.tap") : TAPE } };
+            if (copy) c["unit1"] = { { "tape", wf("dst.tap") } };
             else c["unit1"] = false;   // one drive, whatever the machine file has
             c["unit2"] = false;
             c["working_copy"] = false;
@@ -152,11 +158,11 @@ static void mtzap(void)
     // a reel changed through the machine (Media window, configurator): the description follows
     std::string err;
     CHECK(m.live_param(r, "unit0.tape"));
-    file_remove(data_path("work/test/rmp_nova.tap"));
-    CHECK(m.set_live_param(r, "unit0.tape", json("work/test/rmp_nova.tap"), err));
+    file_remove(data_path(wf("nova.tap")));
+    CHECK(m.set_live_param(r, "unit0.tape", json(wf("nova.tap")), err));
     CHECK(r->units[0].tape.loaded && r->units[0].tape.rows.empty() && !r->units[0].loaded);   // blank, LOAD needed
     json* cc = m.card_config(r);
-    CHECK(cc && (*cc)["unit0"]["tape"] == "work/test/rmp_nova.tap");
+    CHECK(cc && (*cc)["unit0"]["tape"] == wf("nova.tap"));
     CHECK(m.set_live_param(r, "unit0.tape", json(""), err));
     CHECK(!r->units[0].tape.loaded && (*cc)["unit0"]["tape"] == "");
     CHECK(!m.live_param(r, "unit1.tape"));   // not fitted
@@ -328,8 +334,9 @@ static void mtcopy(void)
 int main(void)
 {
     test_init();
-    tape_format();
     const char* part = getenv("RMP_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
+    if (part) g_part = part;
+    tape_format();
     if (!part || !strcmp(part, "mtzap")) mtzap();
     if (!part || !strcmp(part, "mtdat")) mtdat();
     if (!part || !strcmp(part, "mtcopy")) mtcopy();
