@@ -1022,7 +1022,56 @@ struct RmpMapCache {
     uint64_t time = 0;
     std::vector<RmpMapItem> items;
     std::vector<MagTape::Record> recs;
+    // the labels (JSEP): the name of the tape from VOL1 and its code, the files from HDR1 and HDR2, as
+    // MTDAT, DIRMT and MTCOPY want them
+    std::string volume;
+    char code = 0;               // 'D' EBCDIC, 'A' ASCII, 0 = no VOL1
+    std::vector<std::string> files;
 };
+
+// a field of a label (columns from..to as in the standard, 1-based), in the code of the tape, spaces trimmed
+static std::string label_field(const std::vector<uint8_t>& d, int from, int to, char code)
+{
+    std::string s;
+    for (int i = from - 1; i < to && i < (int)d.size(); i++) s += code == 'A' ? (char)d[(size_t)i] : ebcdic(d[(size_t)i]);
+    size_t e = s.find_last_not_of(' ');
+    return e == std::string::npos ? std::string() : s.substr(0, e + 1);
+}
+
+static void rmp_labels(RmpMapCache& c)
+{
+    c.volume.clear();
+    c.code = 0;
+    c.files.clear();
+    for (size_t k = 0; k < c.recs.size(); k++) {
+        const std::vector<uint8_t>& d = c.recs[k].data;
+        if (c.recs[k].mark || d.size() != 80) continue;
+        char code = 0;
+        if (!memcmp(d.data(), "\xC8\xC4\xD9", 3) || !memcmp(d.data(), "\xE5\xD6\xD3", 3)) code = 'D';   // HDR, VOL
+        else if (!memcmp(d.data(), "HDR", 3) || !memcmp(d.data(), "VOL", 3)) code = 'A';
+        if (!code) continue;
+        std::string id = label_field(d, 1, 4, code);
+        if (id == "VOL1" && c.code == 0) {
+            c.code = code;
+            c.volume = label_field(d, 5, 10, code);
+        } else if (id == "HDR1") {
+            std::string name = label_field(d, 5, 21, code);
+            int seq = atoi(label_field(d, 32, 35, code).c_str());
+            std::string sizes;
+            if (k + 1 < c.recs.size() && c.recs[k + 1].data.size() == 80 &&
+                label_field(c.recs[k + 1].data, 1, 4, code) == "HDR2") {
+                const std::vector<uint8_t>& h2 = c.recs[k + 1].data;
+                char b[64];
+                snprintf(b, sizeof(b), ", %s %d, %s %d", tr("block"), atoi(label_field(h2, 6, 10, code).c_str()),
+                         tr("record"), atoi(label_field(h2, 11, 15, code).c_str()));
+                sizes = b;
+            }
+            char line[128];
+            snprintf(line, sizeof(line), "%d  %s%s", seq, name.c_str(), sizes.c_str());
+            c.files.push_back(line);
+        }
+    }
+}
 static RmpMapCache s_rmp_map[Rmp1::UNITS];
 
 static void rmp_map_update(RmpMapCache& c, const MagTape& t)
@@ -1036,6 +1085,7 @@ static void rmp_map_update(RmpMapCache& c, const MagTape& t)
     c.last = last;
     c.time = now;
     c.recs = t.records();
+    rmp_labels(c);
     c.items.clear();
     for (const MagTape::Record& r : c.recs) {
         int64_t end = r.pos;
@@ -1218,6 +1268,16 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         int data = 0, marks = 0;
         for (const MagTape::Record& rec : c.recs) (rec.mark ? marks : data)++;
         ImGui::TextDisabled("%s: %d %s, %d %s", tr("On the tape"), data, tr("blocks"), marks, tr("tape marks"));
+        // what the commands of MTDAT, DIRMT and MTCOPY need: the name of the tape, the files with their sizes
+        if (c.code) {
+            ImGui::Text("%s %s   %s %c", tr("Tape name (VOL1):"), c.volume.c_str(), tr("code"), c.code);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("%s", tr("The name the programs ask for (MTDAT: Jmeno pasky, MTCOPY: JP)."));
+            for (size_t f = 0; f < c.files.size() && f < 6; f++) ImGui::TextDisabled("  %s", c.files[f].c_str());
+            if (c.files.size() > 6) ImGui::TextDisabled("  %s %d", tr("files more:"), (int)c.files.size() - 6);
+        } else if (!t.rows.empty()) {
+            ImGui::TextDisabled("%s", tr("No VOL1 label (not initialized by MTDAT or MTCOPY)."));
+        }
         // the map: the groups in order, not to scale (the gaps would hide everything)
         float mh = 2.6f * s;
         ImGui::BeginChild("map", ImVec2(-1, mh + ImGui::GetStyle().ScrollbarSize + 0.4f * s), ImGuiChildFlags_Borders,

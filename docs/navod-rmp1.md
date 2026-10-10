@@ -78,7 +78,11 @@ Výměna pásky v okně Média se zapíše do sestavy: konfigurátor (Zobrazení
 a sestavu označí jako neuloženou. Tamtéž jde pásku vybrat nebo založit (**Nová…**) a za chodu se hned vloží.
 V nabídce obrazů jsou i všechny pásky ze složek `work\rmp-1` a `media\rmp-1`.
 
-Pod polohou pásky je **mapa pásky**: fialová návěští (VOL1, HDR1…), modré bloky dat,
+Pod polohou pásky je **jméno pásky** z návěští VOL1 s kódem (D = EBCDIC) a **seznam souborů** z návěští HDR1
+a HDR2: pořadí, jméno, blok a věta. Přesně tyto údaje chtějí MTDAT a řetězce MTCOPY. Páska bez VOL1 (nová,
+neinicializovaná) to napíše.
+
+Pod nimi je **mapa pásky**: fialová návěští (VOL1, HDR1…), modré bloky dat,
 červené značky pásky (TM). Mapa není v měřítku, mezery by všechno schovaly. Žlutá šipka ukazuje hlavu. Úplně dole
 je blok, který naposledy prošel pod hlavou: hexadecimálně a jako text v EBCDIC.
 
