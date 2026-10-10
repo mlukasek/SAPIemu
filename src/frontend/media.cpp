@@ -45,6 +45,16 @@ static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, i
     d->done = true;
 }
 
+std::string dialog_location(const std::string& path)
+{
+    std::string s = path;
+    if (!s.empty() && s.back() != '/' && s.back() != '\\' && dir_exists(s)) s += '/';
+#ifdef _WIN32
+    for (char& c : s) if (c == '/') c = '\\';
+#endif
+    return s;
+}
+
 static void tape_dialog(UiState& ui, int kind, const std::string& card, int drive = 0)
 {
     TapeDialog& d = ui.tape_dlg;
@@ -61,9 +71,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
         where = data_path("work/state");
         make_dirs(where);
     }
-#ifdef _WIN32
-    for (char& c : where) if (c == '/') c = '\\';
-#endif
+    where = dialog_location(where);
     if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 3, where.c_str(), false);
     else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 2, where.c_str(), false);
     else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
@@ -132,6 +140,122 @@ static void state_file(UiState& ui, std::string path, bool save)
     }
 }
 
+// ---------------------------------------------------------------- media and the machine description
+
+// The medium of unit `u` of the card changes ("" = taken out): through the machine, so the description
+// (the configurator) keeps up with the Media window.
+static void media_set(UiState& ui, Card* c, int u, const std::string& image)
+{
+    Machine* m = ui.host->machine();
+    const char* p = c ? c->media_param(u) : nullptr;
+    if (!m || !p) return;
+    std::string err;
+    if (!m->set_live_param(c, p, nlohmann::json(image), err)) LOGE("%s: %s", c->name.c_str(), err.c_str());
+}
+
+// The card has the medium already (a program made into a tape here): the description only.
+static void media_note(UiState& ui, Card* c, int u, const std::string& image)
+{
+    Machine* m = ui.host->machine();
+    const char* p = c ? c->media_param(u) : nullptr;
+    if (m && p) m->note_param(c, p, nlohmann::json(image));
+}
+
+// The image the description names for unit `u`, and when it is a file of media/ used through its working
+// copy, both paths (Restore from the original).
+static std::string media_image(Machine* m, Card* c, int u)
+{
+    const char* p = c ? c->media_param(u) : nullptr;
+    nlohmann::json* cc = m && p ? m->card_config(c) : nullptr;
+    const CardInfo* ci = cc ? card_info(c->type) : nullptr;
+    for (const CardParam* q = ci ? ci->params : nullptr; q && q->path; q++)
+        if (!strcmp(q->path, p)) {
+            nlohmann::json v = card_param_value(*cc, q);
+            return v.is_string() ? v.get<std::string>() : std::string();
+        }
+    return std::string();
+}
+
+static bool media_original(Machine* m, Card* c, int u, std::string& orig, std::string& work)
+{
+    std::string img = media_image(m, c, u);
+    for (char& ch : img) if (ch == '\\') ch = '/';
+    nlohmann::json* cc = m ? m->card_config(c) : nullptr;
+    bool copies = !cc || cc->value("working_copy", true);
+    if (!copies || img.rfind("media/", 0) != 0) return false;
+    orig = data_path(img);
+    work = data_path("work/" + img.substr(6));
+    return file_exists(orig);
+}
+
+static std::string s_restore_card;   // Restore from the original: asked in a modal window
+static int s_restore_unit = -1;
+static bool s_restore_open = false;
+
+// The "..." button after Eject: Eject without saving (the changes still in memory are thrown away),
+// Restore from the original (the working copy in work/ gets the file of media/ again).
+static void media_more(UiState& ui, Card* c, int u, bool has)
+{
+    Machine* m = ui.host->machine();
+    ImGui::SameLine();
+    if (ImGui::Button("...##more")) ImGui::OpenPopup("more");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Eject without saving, restore from the original"));
+    if (!ImGui::BeginPopup("more")) return;
+    if (ImGui::MenuItem(tr("Eject without saving"), nullptr, false, has)) {
+        c->media_discard(u);
+        media_set(ui, c, u, "");
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("What was written on it since it was put in is thrown away (only what is still in memory)."));
+    std::string orig, work;
+    bool can = media_original(m, c, u, orig, work);
+    if (ImGui::MenuItem(tr("Restore from the original..."), nullptr, false, can)) {
+        s_restore_card = c->name;
+        s_restore_unit = u;
+        s_restore_open = true;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", can ? tr("The working copy in work/ is replaced by the original in media/.")
+                                    : tr("Only for media of media/ used through a working copy."));
+    ImGui::EndPopup();
+}
+
+static void media_restore_dialog(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    if (s_restore_open) {
+        ImGui::OpenPopup(tr("Restore from the original"));
+        s_restore_open = false;
+    }
+    if (!ImGui::BeginPopupModal(tr("Restore from the original"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    Card* c = m ? m->find_card(s_restore_card) : nullptr;
+    std::string orig, work;
+    bool can = c && media_original(m, c, s_restore_unit, orig, work);
+    if (can) {
+        ImGui::Text("%s", tr("The working copy"));
+        ImGui::TextDisabled("%s", work.c_str());
+        ImGui::Text("%s", tr("is replaced by the original"));
+        ImGui::TextDisabled("%s", orig.c_str());
+        ImGui::TextUnformatted(tr("All changes made in the working copy are lost."));
+    } else ImGui::TextUnformatted(tr("The medium has no original in media/."));
+    ImGui::BeginDisabled(!can);
+    if (ImGui::Button(tr("Restore"))) {
+        std::string img = media_image(m, c, s_restore_unit);
+        c->media_discard(s_restore_unit);
+        media_set(ui, c, s_restore_unit, "");
+        std::vector<uint8_t> d;
+        bool ok = file_read_all(orig, d) && file_write_all(work, d.data(), d.size());
+        media_set(ui, c, s_restore_unit, img);
+        state_notice(ui, ok, ok ? std::string(tr("Restored from the original")) + ": " + work
+                                : std::string(tr("Cannot write")) + " " + work);
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+}
+
 static void tape_dialog_result(UiState& ui, Machine* m)
 {
     TapeDialog& d = ui.tape_dlg;
@@ -186,7 +310,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
                 return;
             }
         }
-        if (!k->insert(path, err)) LOGE("%s", err.c_str());
+        media_set(ui, r, 0, data_relative(path));
         return;
     }
     if (kind == 12 || kind == 13) {   // a cartridge for a unit of the RKD-1 (a new one: unformatted)
@@ -195,8 +319,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".rkd";
         if (kind == 13) file_remove(path);   // the save dialog asked before replacing it
-        std::string err;
-        if (!r->insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
+        media_set(ui, r, drive, data_relative(path));
         return;
     }
     if (kind == 14 || kind == 15) {   // a reel for a unit of the RMP-1 (a new one: blank tape)
@@ -205,8 +328,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".tap";
         if (kind == 15) file_remove(path);   // the save dialog asked before replacing it
-        std::string err;
-        if (!r->insert(drive, data_relative(path), err)) LOGE("%s", err.c_str());
+        media_set(ui, r, drive, data_relative(path));
         return;
     }
     if (kind == 4 || kind == 5) {   // a floppy for a drive of a disk controller (RPD-1, FDC-1)
@@ -225,7 +347,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
             }
         }
         // a disk from media/ is used through its working copy
-        if (!r->floppy_insert(drive, data_relative(path), false, err)) LOGE("%s", err.c_str());
+        media_set(ui, r, drive, data_relative(path));
         return;
     }
     Dsm1* dsm = dynamic_cast<Dsm1*>(m->find_card(card));
@@ -248,13 +370,14 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         snprintf(ui.tprog_name, sizeof(ui.tprog_name), "%s", tape_default_name(path).c_str());
         return;
     }
-    t->eject();
     if (kind == 1) {
-        if (!t->load(path, err)) LOGE("%s", err.c_str());
+        media_set(ui, dsm, 0, data_relative(path));
     } else {
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".wav";
+        t->eject();
         if (!t->create(path, err)) LOGE("%s", err.c_str());
+        else media_note(ui, dsm, 0, data_relative(path));
     }
 }
 
@@ -286,7 +409,10 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     if (ImGui::Button(tr("New cassette..."))) tape_dialog(ui, 2, dsm->name);
     ImGui::SameLine();
     ImGui::BeginDisabled(!t->loaded());
-    if (ImGui::Button(tr("Eject"))) t->eject();
+    if (ImGui::Button(tr("Eject"))) media_set(ui, dsm, 0, "");
+    ImGui::EndDisabled();
+    media_more(ui, dsm, 0, t->loaded());
+    ImGui::BeginDisabled(!t->loaded());
     ImGui::SameLine();
     if (ImGui::Button(tr("Save as WAV..."))) tape_dialog(ui, 9, dsm->name);
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -417,7 +543,10 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
     if (ImGui::Button(tr("New cassette..."))) tape_dialog(ui, 11, card->name);
     ImGui::SameLine();
     ImGui::BeginDisabled(!has);
-    if (ImGui::Button(tr("Eject"))) k->eject();
+    if (ImGui::Button(tr("Eject"))) media_set(ui, card, 0, "");
+    ImGui::EndDisabled();
+    media_more(ui, card, 0, has);
+    ImGui::BeginDisabled(!has);
     ImGui::SameLine();
     if (ImGui::Button(tr("Turn over"))) k->flip();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -676,6 +805,7 @@ static void tape_program_question(UiState& ui, Machine* m)
                 std::string name = tape_name_clean(p.name);
                 std::string to = kzd_program_path(name.empty() ? tape_default_name(ui.tprog_path) : name);
                 kzd->insert(c, to);
+                media_note(ui, card, 0, data_relative(to));
                 kzd->flush();
                 state_notice(ui, true, info + " -> " + to);
             }
@@ -683,6 +813,7 @@ static void tape_program_question(UiState& ui, Machine* m)
             TapeDeck* t = dsm->tape();
             t->eject();
             ok = t->load_program(ui.tprog_path, p, err);
+            if (ok) media_note(ui, dsm, 0, data_relative(ui.tprog_path));
         }
         if (ok) {
             ui.tprog_path.clear();
@@ -733,7 +864,10 @@ static void draw_floppies(UiState& ui, Card* r)
         if (ImGui::Button(tr("New disk..."))) tape_dialog(ui, 5, r->name, i);
         ImGui::SameLine();
         ImGui::BeginDisabled(!d.present());
-        if (ImGui::Button(tr("Eject"))) r->floppy_eject(i);
+        if (ImGui::Button(tr("Eject"))) media_set(ui, r, i, "");
+        ImGui::EndDisabled();
+        media_more(ui, r, i, d.present());
+        ImGui::BeginDisabled(!d.present());
         ImGui::SameLine();
         ImGui::Checkbox(tr("Write protect"), &d.write_protect);
         ImGui::SameLine();
@@ -823,7 +957,10 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         if (ImGui::Button(tr("New cartridge..."))) tape_dialog(ui, 13, r->name, i);
         ImGui::SameLine();
         ImGui::BeginDisabled(!c.loaded);
-        if (ImGui::Button(tr("Eject"))) r->eject(i);
+        if (ImGui::Button(tr("Eject"))) media_set(ui, r, i, "");
+        ImGui::EndDisabled();
+        media_more(ui, r, i, c.loaded);
+        ImGui::BeginDisabled(!c.loaded);
         ImGui::SameLine();
         ImGui::Checkbox(tr("Write protect"), &c.write_protect);
         ImGui::SameLine();
@@ -1056,10 +1193,13 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     if (ImGui::Button(tr("New tape..."))) tape_dialog(ui, 15, r->name, i);
     ImGui::SameLine();
     ImGui::BeginDisabled(!t.loaded || u.online);
-    if (ImGui::Button(tr("Eject"))) r->eject(i);
+    if (ImGui::Button(tr("Eject"))) media_set(ui, r, i, "");
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && u.online)
         ImGui::SetTooltip("%s", tr("Switch the drive OFF-LINE first."));
+    ImGui::BeginDisabled(u.online);
+    media_more(ui, r, i, t.loaded);
+    ImGui::EndDisabled();
     ImGui::SameLine();
     ImGui::BeginDisabled(u.loaded);
     ImGui::Checkbox(tr("Write ring"), &u.ring);
@@ -1175,6 +1315,7 @@ void draw_media(UiState& ui)
     bin_load_question(ui, ui.host->machine());
     hex_load_question(ui, ui.host->machine());
     tape_program_question(ui, ui.host->machine());
+    media_restore_dialog(ui);
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
     ImGui::SetNextWindowSize(ImVec2(760, 440), ImGuiCond_FirstUseEver);

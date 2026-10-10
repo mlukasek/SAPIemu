@@ -163,6 +163,19 @@ bool Dpp1::io_write(uint8_t port, uint8_t data)
     return true;
 }
 
+bool Dpp1::media_change(int u, const std::string& image, std::string& err)
+{
+    if (u != 0 || !kzd_enabled) {
+        err = "no KZD-1";
+        return false;
+    }
+    if (image.empty()) {
+        kzd.eject();
+        return true;
+    }
+    return kzd.insert(data_path(image), err);
+}
+
 void Dpp1::flush()
 {
     if (kzd_enabled) kzd.flush();

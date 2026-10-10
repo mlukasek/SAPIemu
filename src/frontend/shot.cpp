@@ -101,10 +101,7 @@ void shot_save_as(UiState& ui, DisplayDevice* d, const char* name, float px_aspe
     }
     shot_pixels(ui, d, px_aspect, s.px, s.w, s.h, s.sx, s.sy);   // the picture of now, not of the moment the file is chosen
     static const SDL_DialogFileFilter filter[] = { { "PNG", "png" } };
-    std::string where = shot_auto_path(name);
-#ifdef _WIN32
-    for (char& c : where) if (c == '/') c = '\\';
-#endif
+    std::string where = dialog_location(shot_auto_path(name));   // the name offered in its folder
     SDL_ShowSaveFileDialog(shot_dialog_done, &s, ui.window, filter, 1, where.c_str());
 }
 

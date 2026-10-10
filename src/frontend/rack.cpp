@@ -80,6 +80,37 @@ bool dialog_busy(RackEditor& r)
     return r.dlg_kind != RackEditor::DLG_NONE;
 }
 
+// The suffix of the files of a parameter (".tap"): of its value, its default or its suggestions.
+static std::string param_extension(const CardParam* p, const json& value)
+{
+    std::vector<std::string> names;
+    if (value.is_string()) names.push_back(value.get<std::string>());
+    json d = json::parse(p->def ? p->def : "null", nullptr, false);
+    if (d.is_string()) names.push_back(d.get<std::string>());
+    for (int i = 0; p->options && p->options[i].value; i++) {
+        json o = json::parse(p->options[i].value, nullptr, false);
+        if (o.is_string()) names.push_back(o.get<std::string>());
+    }
+    for (const std::string& n : names) {
+        size_t slash = n.find_last_of("/\\"), dot = n.find_last_of('.');
+        if (dot != std::string::npos && (slash == std::string::npos || dot > slash)) return n.substr(dot);
+    }
+    return std::string();
+}
+
+// The folder a new file of a parameter goes to: that of its value when it is not an original of media/,
+// else that of a suggestion in work/, else work/.
+static std::string param_new_folder(const CardParam* p, const json& value)
+{
+    if (value.is_string() && !value.get<std::string>().empty() && value.get<std::string>().rfind("media/", 0) != 0)
+        return path_dir(value.get<std::string>());
+    for (int i = 0; p->options && p->options[i].value; i++) {
+        json o = json::parse(p->options[i].value, nullptr, false);
+        if (o.is_string() && o.get<std::string>().rfind("work/", 0) == 0) return path_dir(o.get<std::string>());
+    }
+    return "work";
+}
+
 void start_dialog(UiState& ui, int kind, const std::string& location, bool folder = false)
 {
     RackEditor& r = ui.rack;
@@ -90,13 +121,12 @@ void start_dialog(UiState& ui, int kind, const std::string& location, bool folde
         r.dlg_done = false;
         r.dlg_result.clear();
     }
-    std::string loc_full = location.empty() ? data_path("machines") : data_path(location);
-#ifdef _WIN32
-    for (char& c : loc_full) if (c == '/') c = '\\';
-#endif
+    std::string loc_full = dialog_location(location.empty() ? data_path("machines") : data_path(location));
     const char* where = loc_full.c_str();
     if (kind == RackEditor::DLG_SAVE)
         SDL_ShowSaveFileDialog(dialog_done, &r, ui.window, k_machine_filter, 1, where);
+    else if (kind == RackEditor::DLG_PARAM_NEW)
+        SDL_ShowSaveFileDialog(dialog_done, &r, ui.window, nullptr, 0, where);
     else if (kind == RackEditor::DLG_PARAM && folder)
         SDL_ShowOpenFolderDialog(dialog_done, &r, ui.window, where, false);
     else if (kind == RackEditor::DLG_PARAM)
@@ -308,13 +338,21 @@ void handle_dialog(UiState& ui)
             if (saved) do_pending(ui);
             else r.ask_unsaved = true;
         }
-    } else if (kind == RackEditor::DLG_PARAM) {
+    } else if (kind == RackEditor::DLG_PARAM || kind == RackEditor::DLG_PARAM_NEW) {
         json& cards = r.cfg["cards"];
         if (r.dlg_card < 0 || r.dlg_card >= (int)cards.size()) return;
         json& card = cards[(size_t)r.dlg_card];
         const CardInfo* ci = card_info(card.value("type", std::string()));
-        for (const CardParam* p = ci ? ci->params : nullptr; p && p->path; p++)
-            if (r.dlg_param == p->path) card_set_param(card, ci, p, data_relative(path));
+        for (const CardParam* p = ci ? ci->params : nullptr; p && p->path; p++) {
+            if (r.dlg_param != p->path) continue;
+            if (kind == RackEditor::DLG_PARAM_NEW) {   // a blank medium: the card makes it when the file is missing
+                std::string ext = param_extension(p, card_param_value(card, p));
+                size_t slash = path.find_last_of("/\\");
+                if (!ext.empty() && path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ext;
+                file_remove(path);   // the save dialog asked before replacing it
+            }
+            card_set_param(card, ci, p, data_relative(path));
+        }
     }
 }
 
@@ -1486,14 +1524,37 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
         if (file) {
             ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
             bool has_opts = p->options && p->options[0].value;
-            ImGui::BeginDisabled(!has_opts);
+            ImGui::BeginDisabled(!has_opts && p->min != PF_NEW_MEDIUM);   // media: the files there
             if (ImGui::BeginCombo("##s", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft)) {
+                std::vector<std::string> shown;
                 for (int i = 0; has_opts && p->options[i].value; i++) {
                     json o = json::parse(p->options[i].value);
                     char item[300];
                     snprintf(item, sizeof(item), "%s  (%s)", loc(p->options[i].en, p->options[i].cs),
                              scalar(o).c_str());
                     if (ImGui::Selectable(item, cfg_values_equal(o, v))) card_set_param(card, ci, p, o);
+                    if (o.is_string()) shown.push_back(o.get<std::string>());
+                }
+                if (p->min == PF_NEW_MEDIUM) {   // the media that are there: also those made since (New...)
+                    std::vector<std::string> dirs;
+                    for (const std::string& f : shown)
+                        if (!f.empty()) dirs.push_back(path_dir(f));
+                    dirs.push_back(param_new_folder(p, v));
+                    std::string ext = param_extension(p, v);
+                    bool sep = false;
+                    for (size_t d = 0; d < dirs.size() && !ext.empty(); d++) {
+                        if (std::find(dirs.begin(), dirs.begin() + d, dirs[d]) != dirs.begin() + d) continue;
+                        for (const std::string& f : list_files(dirs[d], ext)) {
+                            if (std::find(shown.begin(), shown.end(), f) != shown.end()) continue;
+                            shown.push_back(f);
+                            if (!sep) {
+                                ImGui::Separator();
+                                sep = true;
+                            }
+                            if (ImGui::Selectable(f.c_str(), v.is_string() && v.get<std::string>() == f))
+                                card_set_param(card, ci, p, json(f));
+                        }
+                    }
                 }
                 ImGui::EndCombo();
             }
@@ -1502,7 +1563,24 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
             if (ImGui::Button("...", ImVec2(ImGui::GetFrameHeight(), 0)) && !dialog_busy(r)) {
                 r.dlg_card = card_idx;
                 r.dlg_param = p->path;
-                start_dialog(ui, RackEditor::DLG_PARAM, s.empty() ? std::string() : s, p->kind == PK_DIR);
+                std::string at = s;   // the file chosen now; a medium: else the folder of the new ones
+                if (at.empty() && p->kind == PK_FILE && p->min == PF_NEW_MEDIUM) {
+                    at = param_new_folder(p, v);
+                    make_dirs(data_path(at));
+                }
+                start_dialog(ui, RackEditor::DLG_PARAM, at, p->kind == PK_DIR);
+            }
+            if (p->kind == PK_FILE && p->min == PF_NEW_MEDIUM) {   // a blank tape, cartridge, cassette
+                ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+                if (ImGui::Button(tr("New...")) && !dialog_busy(r)) {
+                    r.dlg_card = card_idx;
+                    r.dlg_param = p->path;
+                    std::string at = param_new_folder(p, v);
+                    make_dirs(data_path(at));
+                    start_dialog(ui, RackEditor::DLG_PARAM_NEW, at);
+                }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("%s", tr("A new file: a blank medium (while running it goes in at once)."));
             }
             ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
             ImGui::TextUnformatted(label_s.c_str());

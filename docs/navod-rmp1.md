@@ -33,6 +33,8 @@ Na jednotce 0 je **ukázková páska SAPI01** (pracovní kopie `work\rmp-1\sapi0
 | B: | disketa J. Bíby s programy pro pásku: MTDAT, DIRMT, MTCOPY, MTZAP, MTCTE, zdroje a návody `MTDAT.MAN`, `MTKAN.MAN` |
 | C: | RAM disk ZRMD-1 |
 
+Jednotka 1 je v sestavě připravená, ale bez pásky. Hodí se pro kopírování z pásky na pásku (kapitola 6).
+
 ## Mechanika v okně Média
 
 Vlevo je nakreslená mechanika. Levá cívka je zásobní, pravá navíjecí (pevná, pásku z ní nejde sundat). Cívky se
@@ -56,9 +58,27 @@ Tlačítka:
 - **REWIND** převine pásku na začátek (jen OFF-LINE).
 - **UNLOAD** převine pásku a vyvlékne ji (jen OFF-LINE). Pak jde páska vysunout.
 
-Vpravo jsou tlačítka **Vložit…**, **Nová páska…** (prázdná páska, nový soubor `.tap`) a **Vysunout** (jen
-OFF-LINE) a zaškrtávátko **Kroužek zápisu**. Bez kroužku jednotka hlásí WPT a nezapíše. Kroužek jde změnit, jen
-když páska není zavedená. Pod polohou pásky je **mapa pásky**: fialová návěští (VOL1, HDR1…), modré bloky dat,
+Vpravo jsou tlačítka:
+- **Vložit…**;
+- **Nová páska…** (prázdná páska, nový soubor `.tap`);
+- **Vysunout** (jen OFF-LINE);
+- **…** s položkami:
+  - **Vysunout bez uložení**: co se na pásku od vložení zapsalo, se zahodí;
+  - **Obnovit z originálu**: pracovní kopie pásky z `media\` se přepíše originálem.
+
+Zaškrtávátko **Kroužek zápisu** povoluje zápis. Bez kroužku jednotka hlásí WPT a nezapíše. Kroužek jde změnit,
+jen když páska není zavedená.
+
+**OFF-LINE neznamená vysunout.** Páska zůstane na mechanice a změny jsou dál jen v paměti. Do souboru se zapíšou
+až při vysunutí, výměně pásky, vypnutí stroje nebo ukončení emulátoru. Kdo si omylem přepíše ukázkovou pásku,
+vrátí ji položkou **Obnovit z originálu**. Ukázkovou pásku chrání před zápisem i odškrtnutý kroužek (před
+LOAD).
+
+Výměna pásky v okně Média se zapíše do sestavy: konfigurátor (Zobrazení → Sestava…) ukáže novou pásku
+a sestavu označí jako neuloženou. Tamtéž jde pásku vybrat nebo založit (**Nová…**) a za chodu se hned vloží.
+V nabídce obrazů jsou i všechny pásky ze složek `work\rmp-1` a `media\rmp-1`.
+
+Pod polohou pásky je **mapa pásky**: fialová návěští (VOL1, HDR1…), modré bloky dat,
 červené značky pásky (TM). Mapa není v měřítku, mezery by všechno schovaly. Žlutá šipka ukazuje hlavu. Úplně dole
 je blok, který naposledy prošel pod hlavou: hexadecimálně a jako text v EBCDIC.
 
@@ -100,6 +120,9 @@ Zadej funkci:
 
 Spustí se `B:MTDAT`. Funkce 5 vypíše pásku stejně jako DIRMT a po výpisu čeká na klávesu. Funkce 4 vrátí do
 CP/M. Podrobný návod J. Bíby je v `B:MTDAT.MAN` (`TYPE B:MTDAT.MAN`).
+
+**MTDAT pracuje jen s jednotkou 0.** Číslo mechaniky má v programu pevně (řetězce pro MTKAN `6.0.D.`
+a `0.0.4.D.`). Jednotky 1 a 2 obsluhuje MTCOPY (kapitoly 5 a 6) a DIRMT.
 
 ## 3. Soubor z pásky na disketu
 
@@ -149,19 +172,54 @@ v okně Média je při tom vidět růst.
 ## 5. Nová páska
 
 1. V okně Média přepněte mechaniku tlačítkem **OFF-LINE**, pak **Nová páska…** a zadejte jméno souboru (třeba
-   `work\rmp-1\paska2.tap`).
+   `paska2`, uloží se do `work\rmp-1\paska2.tap`). Totéž umí konfigurátor tlačítkem **Nová…** u obrazu pásky.
 2. Stiskněte **LOAD** a **ON-LINE**.
-3. `B:MTDAT`, funkce 3:
+3. Páska dostane jméno (návěští VOL1, do 6 znaků):
+   - **jednotka 0:** `B:MTDAT`, funkce 3:
 
-```
-=== INICIALIZACE pasky ===
- Jmeno pasky: SAPI02
-```
+     ```
+     === INICIALIZACE pasky ===
+      Jmeno pasky: SAPI02
+     ```
+   - **jednotka 1 nebo 2:** `B:MTCOPY`, počkat na menu (inicializace řadiče trvá pár sekund), funkce 4.
+     MTCOPY chce řetězec služby INIT knihovny MTKAN `6.CM.KP.JP.` (6 = inicializace, CM = mechanika, KP = kód
+     pásky D = EBCDIC, JP = jméno):
 
-MTDAT zapíše návěští VOL1 se jménem pásky (do 6 znaků) a dvě značky pásky. Pak už jde páska plnit funkcí 2,
-prvním souborem je číslo 1.
+     ```
+     Zadej retezec:6.1.D.SAPI02.
+     ```
 
-## 6. Zkouška pásky: MTZAP a MTCTE
+Zapíše se návěští VOL1 a dvě značky pásky. Pak už jde páska plnit, prvním souborem je číslo 1.
+
+## 6. Kopie z pásky na pásku: MTCOPY
+
+V sestavě je na jednotce 0 ukázková páska SAPI01 a na jednotce 1 nová páska, třeba SAPI02 z kapitoly 5.
+`B:MTCOPY`, funkce **0** (COPY paska => paska). Program se ptá na čtyři řetězce pro MTKAN. První dva popisují
+vstup, druhé dva výstup:
+
+| otázka | formát | soubor 1 (MTZAP) | soubor 2 (MTDATMAN) |
+|---|---|---|---|
+| vstupní páska | `0.CM.TP.KP.JP.` | `0.0.4.D.SAPI01.` | `0.0.4.D.SAPI01.` |
+| vstupní soubor | `1.CM.TS.KS.CS.TP.BS.RS.JS.DV.` | `1.0.4.D.1.R.800.80.MTZAP.` | `1.0.4.D.2.R.800.80.MTDATMAN.` |
+| výstupní páska | `0.CM.TP.KP.JP.` | `0.1.4.D.SAPI02.` | `0.1.4.D.SAPI02.` |
+| výstupní soubor | `1.CM.TS.KS.CS.TP.BS.RS.JS.DV.` | `1.1.4.D.1.W.800.80.MTZAP.88001.` | `1.1.4.D.2.W.800.80.MTDATMAN.88001.` |
+
+- `0.` otevři pásku, `1.` otevři soubor;
+- CM = mechanika, TP a TS = typ (4 = návěští VOL1, HDR1, HDR2), KP a KS = kód (D = EBCDIC);
+- CS = pořadí souboru, TP = přístup (R = čtení, W = zápis);
+- BS a RS = blok a věta (podle DIRMT), JS = jméno souboru, DV = datum vytvoření RRDDD (jen při zápisu).
+
+Výstupní soubor 2 se připíše za soubor 1. Kdyby měl výstup pořadí 1, přepsal by MTZAP a smazal všechno za ním.
+Výsledek ukáže `B:DIRMT 1`.
+
+Kopie má stejná data bajt po bajtu. Návěští se od pásky zapsané programem MTDAT liší dvěma věcmi:
+- **počet bloků v EOF1 je o jeden menší.** MTCOPY nezapočítá poslední, zkrácený blok souboru, takže DIRMT
+  u kopie ukáže v „db“ 000000 a 000004 místo 000001 a 000005;
+- **v HDR2 a EOF2 je ve sloupci 37 `A`** (řídicí znaky ASA), MTDAT tam píše mezeru.
+
+Oboje je vlastnost programu MTCOPY, emulace na to vliv nemá.
+
+## 7. Zkouška pásky: MTZAP a MTCTE
 
 `B:MTZAP` zapíše od začátku pásky (přepíše ji!) 255 bloků s větou „Toto je prvni zapsany a precteny blok dat
 pocitacem SAPI-1/CPM na magneticke pasce IZOT CM 5300.01“ a značku pásky. `B:MTCTE` je přečte a vypíše. Tak
@@ -182,4 +240,6 @@ zápis přeruší (reset uprostřed zápisu) nebo že je obraz pásky poškozen�
 ## Obraz pásky
 
 Páska je soubor ve formátu **SIMH `.tap`** (záznamy s délkou, 0 = značka pásky), stejný jako v emulátorech velkých
-počítačů. Jde ho prohlížet a vyrábět jejich nástroji. Při vysunutí, uložení stavu a ukončení se zapíše.
+počítačů. Jde ho prohlížet a vyrábět jejich nástroji. Zapíše se při vysunutí, výměně, uložení stavu, vypnutí stroje
+a ukončení emulátoru, ne při OFF-LINE. Páska z `media\` se používá přes pracovní kopii ve `work\`. Originál
+zůstává nedotčený a položka **Obnovit z originálu** ho vrátí.

@@ -13,6 +13,7 @@ bool file_write_all(const std::string& utf8_path, const void* data, size_t size)
 // Text file with the line ends of the platform (CRLF on Windows), like a git checkout.
 bool file_write_text(const std::string& utf8_path, const std::string& text);
 bool file_exists(const std::string& utf8_path);
+bool dir_exists(const std::string& utf8_path);
 // host wall clock for the RTCs of the cards; tests fix it (0 = the real clock again)
 time_t host_time_now(void);
 void host_time_fix(time_t t);
@@ -37,6 +38,8 @@ std::string data_relative(const std::string& path);
 // Machine descriptions (*.sapi; older *.jsonc, *.json) under machines/ including subfolders,
 // as data root relative paths, sorted.
 std::vector<std::string> list_machine_files(void);
+// Files of a folder with the suffix (".tap"; case ignored), as data root relative paths, sorted.
+std::vector<std::string> list_files(const std::string& rel_dir, const std::string& ext);
 
 // Path of the file to use for a writable media image. Images under media/ are
 // pristine originals: when `work_copy` is set they are copied to work/ on first

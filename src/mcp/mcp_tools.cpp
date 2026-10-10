@@ -248,6 +248,7 @@ json param_json(const CardParam* p)
         j["min"] = p->min;
         j["max"] = p->max;
     }
+    if (p->kind == PK_FILE && p->min == PF_NEW_MEDIUM) j["new_medium"] = true;   // a new file = a blank medium
     if (p->options && p->options[0].value) {
         json o = json::array();
         for (int i = 0; p->options[i].value; i++)
@@ -997,13 +998,22 @@ json t_kzd1(EmuHost& h, const json& a)
     if (!card) return error_result("no KZD-1 in this machine (DPP-1 parameter kzd1)");
     Kzd1* k = card->kzd1();
     std::string err;
-    if (a.value("eject", false)) k->eject();
+    // the cassette in the machine description too (the configurator follows, as with the Media window)
+    if (a.value("eject", false)) {
+        k->eject();
+        m.note_param(card, "kzd1.cassette", json(""));
+    }
     if (a.contains("new")) {
         std::string p = data_path(arg_str(a, "new", nullptr, true));
         KzdCassette empty;
         if (!empty.save(p, err) || !k->insert(p, err)) return error_result(err);
+        m.note_param(card, "kzd1.cassette", json(data_relative(p)));
     }
-    if (a.contains("insert") && !k->insert(data_path(arg_str(a, "insert", nullptr, true)), err)) return error_result(err);
+    if (a.contains("insert")) {
+        std::string p = data_path(arg_str(a, "insert", nullptr, true));
+        if (!k->insert(p, err)) return error_result(err);
+        m.note_param(card, "kzd1.cassette", json(data_relative(p)));
+    }
     std::string made;
     if (a.contains("program")) {   // a program becomes a new cassette (K_I and K_S as MIKOS/K writes them)
         TapeProgram p;
@@ -1014,8 +1024,10 @@ json t_kzd1(EmuHost& h, const json& a)
         std::string src = data_path(arg_str(a, "program", nullptr, true));
         if (!kzd_from_program(src, p, arg_str(a, "volume", ""), c, made, err)) return error_result(err);
         std::string name = tape_name_clean(p.name);
-        k->insert(c, kzd_program_path(name.empty() ? tape_default_name(src) : name));
+        std::string to = kzd_program_path(name.empty() ? tape_default_name(src) : name);
+        k->insert(c, to);
         k->flush();
+        m.note_param(card, "kzd1.cassette", json(data_relative(to)));
     }
     if (a.value("flip", false)) k->flip();
     if (a.contains("tab_a")) k->set_tab(0, a.value("tab_a", true));
@@ -1230,7 +1242,8 @@ json t_tape_status(EmuHost& h, const json& a)
 
 json t_tape_insert(EmuHost& h, const json& a)
 {
-    Dsm1* d = find_dsm1(need_machine(h), a);
+    Machine& m = need_machine(h);
+    Dsm1* d = find_dsm1(m, a);
     std::string path = arg_str(a, "path", nullptr, true);
     bool create = arg_bool(a, "new", false);
     TapeDeck* t = d->tape();
@@ -1250,17 +1263,20 @@ json t_tape_insert(EmuHost& h, const json& a)
         if (!t->load(path, err)) return error_result(err);
         if (a.contains("write_protect")) t->write_protect = arg_bool(a, "write_protect", true) || t->read_only();
     }
+    m.note_param(d, "tape", json(data_relative(data_path(path))));   // the description follows
     return json_result(tape_json(d));
 }
 
 json t_tape_control(EmuHost& h, const json& a)
 {
-    Dsm1* d = find_dsm1(need_machine(h), a);
+    Machine& m = need_machine(h);
+    Dsm1* d = find_dsm1(m, a);
     TapeDeck* t = d->tape();
     std::string act = arg_str(a, "action", nullptr, true);
     std::string err;
     if (act == "eject") {
         t->eject();
+        m.note_param(d, "tape", json(""));
     } else if (act == "save") {
         if (!t->save(err)) return error_result(err);
     } else if (act == "export") {

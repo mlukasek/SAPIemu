@@ -510,10 +510,21 @@ void Machine::set_card_slots(const std::vector<std::pair<Card*, int>>& to)
     }
 }
 
+// the unit whose removable medium the parameter names, -1 if it names none
+static int media_unit(Card* c, const char* path)
+{
+    for (int u = 0; c && u < 8; u++) {
+        const char* p = c->media_param(u);
+        if (p && !strcmp(p, path)) return u;
+    }
+    return -1;
+}
+
 bool Machine::live_param(Card* c, const char* path)
 {
     DisplayDevice* d = dynamic_cast<DisplayDevice*>(c);
     if (d && d->ink_param() && !strcmp(path, d->ink_param())) return true;
+    if (media_unit(c, path) >= 0) return true;   // a disk, a tape: changed while running as on the machine
     return c && c->live_param(path);
 }
 
@@ -525,15 +536,28 @@ bool Machine::set_live_param(Card* c, const char* path, const nlohmann::json& v,
     if (d && d->ink_param() && !strcmp(path, d->ink_param())) {
         ok = v.is_string() && d->set_ink(v.get<std::string>(), err);
         if (!v.is_string()) err = std::string(path) + " must be a text";
+    } else if (media_unit(c, path) >= 0) {
+        int u = media_unit(c, path);
+        if (v.is_string()) ok = c->media_change(u, v.get<std::string>(), err);
+        else if (v.is_null()) ok = c->media_change(u, std::string(), err);
+        else {
+            ok = false;
+            err = std::string(path) + " must be a file name";
+        }
     } else {
         ok = c->set_live_param(path, v, err);
     }
     if (!ok) return false;
-    nlohmann::json* cc = ::card_config(config, c);
-    const CardInfo* ci = card_info(c->type);
+    note_param(c, path, v);
+    return true;
+}
+
+void Machine::note_param(Card* c, const char* path, const nlohmann::json& v)
+{
+    nlohmann::json* cc = c ? ::card_config(config, c) : nullptr;
+    const CardInfo* ci = c ? card_info(c->type) : nullptr;
     for (const CardParam* p = ci ? ci->params : nullptr; cc && p && p->path; p++)
         if (!strcmp(p->path, path)) card_set_param(*cc, ci, p, v);
-    return true;
 }
 
 Card* Machine::find_card(const std::string& n)

@@ -1546,3 +1546,19 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   z prvního spuštění a obrazovku přepne na přizpůsobení oknu. Volba zoomu (menu i pravé tlačítko) zadokované okno
   sama odtrhne, aby zoom fungoval.
 - **Sestava… je v menu Zobrazení** (autor: je to zapnutí a vypnutí okna, nic jiného nekonfiguruje), ne ve Stroji.
+
+## 2026-10-10 – výměnná média a sestava
+
+- **Výměnná média jsou parametry „platí hned“** (autor: soubor vložený v okně Média se v konfigurátoru neobjevil):
+  karta pojmenuje parametr média jednotky (`Card::media_param`) a umí ho vyměnit (`media_change`), výchozí
+  implementace pokrývá diskety všech řadičů. Okno Média i konfigurátor mění média přes `Machine::set_live_param`,
+  takže popis sestavy drží krok. Výměna média tak sestavu označí jako neuloženou. Tak to na stroji opravdu je
+  (v mechanice je jiné médium), a kdo chce sestavu s původním médiem, změnu zahodí.
+- **Program udělaný v okně Média do kazety** (HEX → kazeta MIKOS, KZD-1) zapíše do sestavy zdrojový soubor
+  (DSM-1: `.hex`, ze kterého se kazeta při zapnutí udělá znovu) nebo vytvořenou kazetu (`work/kzd-1/…`).
+- **Vysunout bez uložení a Obnovit z originálu** (autor si omylem přepsal ukázkovou pásku): `media_discard` zapomene
+  změny v paměti, obnovení přepíše pracovní kopii ve `work/` originálem z `media/` (jen u médií z `media/`
+  s pracovní kopií, s potvrzením). Médium se potom vloží znovu.
+- **Nová… v konfigurátoru jen u médií, kde nový soubor = prázdné médium** (páska, kazeta RKD-1, kazeta KZD-1;
+  `CardParam.min = PF_NEW_MEDIUM`). Diskety potřebují zvolit formát, ty dál zakládá okno Média.
+- **Souborové dialogy:** složka dostane koncový oddělovač (`dialog_location`), soubor nabízený k uložení zůstává.

@@ -102,10 +102,7 @@ static void term_dialog(UiState& ui, int kind)
         d.kind = kind;
         d.done = false;
     }
-    std::string where = d.last_dir.empty() ? data_path(kind == 4 ? "work" : "media") : d.last_dir;
-#ifdef _WIN32
-    for (char& c : where) if (c == '/') c = '\\';
-#endif
+    std::string where = dialog_location(d.last_dir.empty() ? data_path(kind == 4 ? "work" : "media") : d.last_dir);
     if (kind == 4) SDL_ShowSaveFileDialog(term_dialog_done, &d, ui.window, nullptr, 0, where.c_str());
     else SDL_ShowOpenFileDialog(term_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
 }

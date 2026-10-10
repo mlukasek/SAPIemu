@@ -288,6 +288,26 @@ void Rmp1::eject(int i)
     u.next = 0;
 }
 
+const char* Rmp1::media_param(int u)
+{
+    static const char* const k[UNITS] = { "unit0.tape", "unit1.tape", "unit2.tape" };
+    return u >= 0 && u < UNITS && units[u].fitted ? k[u] : nullptr;
+}
+
+bool Rmp1::media_change(int u, const std::string& image, std::string& err)
+{
+    if (image.empty()) {
+        eject(u);
+        return true;
+    }
+    return insert(u, image, err);
+}
+
+void Rmp1::media_discard(int u)
+{
+    if (u >= 0 && u < UNITS) units[u].tape.dirty = false;
+}
+
 void Rmp1::flush()
 {
     if (!battery_files_enabled()) return;   // tests: work/ stays untouched

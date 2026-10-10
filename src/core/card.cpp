@@ -2,8 +2,34 @@
 #include "core/util.h"
 
 #include <ctype.h>
+#include "chips/floppy.h"
 
 using nlohmann::json;
+
+const char* Card::media_param(int u)
+{
+    static const char* const drives[4] = { "drive_a.image", "drive_b.image", "drive_c.image", "drive_d.image" };
+    return u >= 0 && u < 4 && floppy_drive(u) ? drives[u] : nullptr;
+}
+
+bool Card::media_change(int u, const std::string& image, std::string& err)
+{
+    FloppyDrive* d = floppy_drive(u);
+    if (!d) {
+        err = "no such drive";
+        return false;
+    }
+    if (image.empty()) {
+        floppy_eject(u);
+        return true;
+    }
+    return floppy_insert(u, image, d->write_protect, err);   // the tab of the disk stays as it was
+}
+
+void Card::media_discard(int u)
+{
+    if (FloppyDrive* d = floppy_drive(u)) d->dirty = false;
+}
 
 bool cfg_number(const json& cfg, const char* key, long long& out, long long def, std::string& err)
 {

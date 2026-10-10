@@ -179,10 +179,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ImGui::BeginDisabled(s_ar_open);
     if (ImGui::Button(tr("Send file..."))) {
         static const SDL_DialogFileFilter flt[] = { { "Text (TXT, PLT)", "txt;plt" }, { "*", "*" } };
-        std::string where = data_path("media/ar1990");
-#ifdef _WIN32
-        for (char& c : where) if (c == '/') c = '\\';
-#endif
+        std::string where = dialog_location(data_path("media/ar1990"));
         s_ar_open = true;
         SDL_ShowOpenFileDialog(ar_file_done, nullptr, ui.window, flt, 2, where.c_str(), false);
     }

@@ -104,6 +104,8 @@ public:
     bool live_param(Card* c, const char* path);
     bool set_live_param(Card* c, const char* path, const nlohmann::json& v, std::string& err);
     nlohmann::json* card_config(Card* c);   // the entry of the card in `config`, nullptr if none
+    // A value the card has taken over already (a tape made in the Media window): into `config` only.
+    void note_param(Card* c, const char* path, const nlohmann::json& v);
     // The card whose first slot is `from` goes to `to` while running, a card starting at `to` to
     // `from` (a swap). The slots of the bus are equal (conflicts are wired AND in any order),
     // so only the slot numbers change, here and in `config`. The caller checks the layout.

@@ -52,6 +52,7 @@ public:
     void insert(const KzdCassette& c, const std::string& path);   // a made one; written to path by flush()
     void eject(void);              // writes it back when changed
     void flush(void);
+    void discard(void) { dirty = false; rec_active = false; }   // the next eject writes nothing
     bool loaded(void) const { return has_cassette; }
     const std::string& path(void) const { return file; }
     int side = 0;                  // 0 = A, 1 = B (the side facing the head)

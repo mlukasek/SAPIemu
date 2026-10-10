@@ -78,6 +78,10 @@ public:
     void describe(nlohmann::json& out) override;
     int decode_io(uint8_t port, const char** what) override;
     std::string live_status() override;
+    // the reels: unitN.tape (a new one is threaded with LOAD and ON-LINE)
+    const char* media_param(int u) override;
+    bool media_change(int u, const std::string& image, std::string& err) override;
+    void media_discard(int u) override;
 
     // I8255Peripheral (D2B)
     uint8_t pins_b() override;

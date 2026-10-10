@@ -83,6 +83,14 @@ public:
         return false;
     }
     virtual void floppy_eject(int index) {}
+    // Removable media named by a parameter of the card (a disk, a tape, a cartridge): the Media window and
+    // the configurator change them while running through Machine::set_live_param, so the machine
+    // description keeps up. media_param: the parameter of unit `u` ("unit0.tape"), nullptr = no such unit;
+    // media_change: put that image in ("" = take the medium out); media_discard: forget the changes still
+    // in memory, the next eject writes nothing. Default: the floppy drives ("drive_a.image"...).
+    virtual const char* media_param(int u);
+    virtual bool media_change(int u, const std::string& image, std::string& err);
+    virtual void media_discard(int u);
 
     // Save battery-backed / persistent content (RAM disk...). Called on exit and on demand.
     virtual void flush() {}

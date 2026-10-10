@@ -70,6 +70,19 @@ bool Dsm1::configure(const json& cfg, std::string& err)
     return true;
 }
 
+bool Dsm1::media_change(int u, const std::string& image, std::string& err)
+{
+    if (u != 0) {
+        err = "no such recorder";
+        return false;
+    }
+    deck.eject();
+    if (image.empty()) return true;
+    if (!deck.load(image, err)) return false;
+    deck.write_protect = deck.write_protect || deck.read_only();
+    return true;
+}
+
 void Dsm1::reset()
 {
     // /RES clears the modem control register: terminal mode, motor off

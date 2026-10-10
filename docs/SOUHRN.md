@@ -2,7 +2,7 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-09) a co dál
+## Kde jsme skončili (2026-10-10) a co dál
 
 - **Noc 2026-10-09 (autor: „rozhoduj se sám, překvap mě“):** KZD-1 pushnutý, kopírovací program CKM, program rovnou
   na kazetu KZD-1, souhrn otázek na HW (`docs/hw-otazky.md`), zapisovač ARITMA Minigraf 0507 s ovladačem z EPROM
@@ -45,13 +45,22 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sestava `rmp1_jb_izot.sapi` s disketou programů J. Bíby `media/rmp-1/a_lad_izo.img`, ukázková páska
   `media/rmp-1/sapi01_ukazka.tap` (vyrobená programem MTDAT), test `test_rmp1` (formát, MTZAP a MTCTE, MTDAT
   s návěštími JSEP, páska ↔ disketa, DIRMT; ve dvou částech, asi 15 s), `docs/desky/RMP-1.md`, návod
-  `docs/navod-rmp1.md` s obrázkem. Programy MTDAT, DIRMT, MTZAP, MTCTE a MTCOPY běží beze změn. Lokálně, nepushnuté.
+  `docs/navod-rmp1.md` s obrázkem. Programy MTDAT, DIRMT, MTZAP, MTCTE a MTCOPY běží beze změn. Pushnuté 2026-10-10.
 - **Noc 2026-10-10, pokračování: plotter z AR 1990** (autor: „zkus ty Plottery, rozhoduj se sám“): JPR-1 jako
   řadič Minigrafu podle stavebního návodu V. Juliuse OK1IVJ. Program přepsaný ze skenu výpisu v AR
   (`roms/ar1990/PLOTTER.MAC`, `tools/ar1990_rom.py`; přepis v archivu měl přes deset chyb), zařízení
   `src/chips/ar1990.*` na portech JPR-1, panel v okně Minigraf, sestava `plotter_ar1990.sapi`, ukázka
   `media/ar1990/ukazka.txt`, test `test_ar1990` (zkouška per, ukázka, celá znaková sada), `docs/desky/AR1990.md`,
-  návod `docs/navod-ar1990.md`. XY 4130 zůstává (chybí podklady). Lokálně, nepushnuté.
+  návod `docs/navod-ar1990.md`. XY 4130 zůstává (chybí podklady). Pushnuté 2026-10-10.
+- **Den 2026-10-10 (autor zkoušel pásky):**
+  - Zobrazení → **Výchozí rozložení oken**, volba zvětšení odlepí přilepené okno, Sestava… přesunutá do Zobrazení;
+  - **média a sestava:** výměnná média jsou parametry „platí hned“ (`Card::media_param`, `media_change`,
+    `media_discard`), okno Média i MCP (kazety) zapisují výměnu do sestavy, konfigurátor má u pásek a kazet Nová…
+    a v nabídce soubory ze složek obrazů; tlačítko „…“ u média: Vysunout bez uložení, Obnovit z originálu;
+  - souborové dialogy se otevírají ve složce (`dialog_location`);
+  - autor ověřil inicializaci jednotky 1 a kopii páska → páska programem MTCOPY (řetězce MTKAN v návodu
+    `docs/navod-rmp1.md`, kapitoly 5 a 6); MTDAT umí jen jednotku 0; MTCOPY počítá v EOF1 jen plné bloky
+    (`docs/desky/RMP-1.md`). Sestava `rmp1_jb_izot.sapi` má od autora jednotku 1 bez pásky. Pushnuté 2026-10-10.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).
@@ -624,21 +633,24 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 
 ## Na promyšlení (nemodelované věci a vylepšení)
 
-- **Médium vložené v okně Média se neobjeví v sestavě** (podnět autora 2026-10-10 u RMP-1, zatím neopravovat,
-  čeká se na další podněty): Nová páska… nebo Vložit… v okně Média vymění pásku jen v běžícím stroji, konfigurátor
+- ~~**Médium vložené v okně Média se neobjeví v sestavě**~~ hotové 2026-10-10: média platí hned, okno Média
+  zapisuje do sestavy, v konfigurátoru Nová… a soubory ze složek obrazů (`docs/sestavy.md`). Původní podnět
+  (autor, u RMP-1): Nová páska… nebo Vložit… v okně Média vymění pásku jen v běžícím stroji, konfigurátor
   (Zobrazení → Sestava…) dál ukazuje obraz ze sestavy a nový soubor v nabídce není. Týká se všech výměnných médií
   (RMP-1, RKD-1, diskety RPD-1/FDC-1/MFC-1A, KZD-1, kazety DSM-1): okno Média do popisu sestavy nezapisuje.
   Autor chce, aby šla nová páska založit i z konfigurátoru. Návrh k rozhodnutí:
   - výměna v okně Média se propíše do sestavy jako neuložená změna (oranžově, jako jiné změny za chodu);
   - v konfigurátoru u obrazu pásky (i diskety, kazety) tlačítko „Nová…“ vedle „…“;
   - soubory vytvořené za běhu přidat do nabídky obrazů.
-- **Obnovit z originálu / Vysunout bez uložení** (podnět autora 2026-10-10, zatím neopravovat): autor si omylem
+- ~~**Obnovit z originálu / Vysunout bez uložení**~~ hotové 2026-10-10 (tlačítko „…“ u média v okně Média).
+  Podnět: autor si omylem
   inicializoval ukázkovou pásku na jednotce 0. Originál v `media/` zůstal, ale změna se z paměti zapíše do pracovní
   kopie ve `work/` při každém vysunutí, výměně, vypnutí nebo ukončení a z okna ji nejde zahodit. Návrh:
   - u médií s pracovní kopií (páska, kazeta RKD-1, diskety, KZD-1) tlačítko „Obnovit z originálu“, které
     pracovní kopii přepíše souborem z `media/`, s potvrzením;
   - „Vysunout bez uložení“ pro změny jen v paměti (páska, kazeta RKD-1).
-- **Souborové dialogy otevírají nadřazenou složku** (podnět autora 2026-10-10, zatím neopravovat, opravit souhrnně):
+- ~~**Souborové dialogy otevírají nadřazenou složku**~~ hotové 2026-10-10 (`dialog_location`; SDL3 na Windows bere
+  za složku vše do posledního oddělovače, příčina potvrzená ve zdrojáku SDL). Podnět:
   dialog se otevře o složku výš a jméno cílové složky (např. `rmp-1`) je předvyplněné v poli „Název souboru“. Má se
   otevřít přímo v té složce s prázdným jménem. Týká se všech dialogů (`media.cpp`, `rack.cpp`, `plotter.cpp`,
   `shot.cpp`, `terminal.cpp`). Pravděpodobná příčina: `default_location` pro `SDL_Show*FileDialog` je cesta ke

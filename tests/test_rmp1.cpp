@@ -78,6 +78,8 @@ static bool jb_with_rmp(Machine& m)
         }
         if (ty == "RMP-1") {
             c["unit0"] = { { "tape", TAPE } };
+            c["unit1"] = false;   // one drive, whatever the machine file has
+            c["unit2"] = false;
             c["working_copy"] = false;
         }
     }
@@ -138,6 +140,17 @@ static void mtzap(void)
     CHECK(cpm_prompt(m, 120.0));
     std::string s = screen_text(m);
     CHECK(s.find("Toto je prvni zapsany") != std::string::npos);
+    // a reel changed through the machine (Media window, configurator): the description follows
+    std::string err;
+    CHECK(m.live_param(r, "unit0.tape"));
+    file_remove(data_path("work/test/rmp_nova.tap"));
+    CHECK(m.set_live_param(r, "unit0.tape", json("work/test/rmp_nova.tap"), err));
+    CHECK(r->units[0].tape.loaded && r->units[0].tape.rows.empty() && !r->units[0].loaded);   // blank, LOAD needed
+    json* cc = m.card_config(r);
+    CHECK(cc && (*cc)["unit0"]["tape"] == "work/test/rmp_nova.tap");
+    CHECK(m.set_live_param(r, "unit0.tape", json(""), err));
+    CHECK(!r->units[0].tape.loaded && (*cc)["unit0"]["tape"] == "");
+    CHECK(!m.live_param(r, "unit1.tape"));   // not fitted
 }
 
 // MTDAT 2: a file of the floppy onto the tape as file `n`

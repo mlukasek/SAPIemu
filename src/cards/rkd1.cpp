@@ -183,6 +183,27 @@ bool Rkd1::configure(const json& cfg, std::string& err)
     return true;
 }
 
+const char* Rkd1::media_param(int u)
+{
+    static const char* const k[UNITS] = { "unit0.cartridge", "unit1.cartridge", "unit2.cartridge", "unit3.cartridge" };
+    return u >= 0 && u < UNITS && units[u].fitted ? k[u] : nullptr;
+}
+
+bool Rkd1::media_change(int u, const std::string& image, std::string& err)
+{
+    if (image.empty()) {
+        eject(u);
+        return true;
+    }
+    bool wp = u >= 0 && u < UNITS && units[u].disk[CARTRIDGE].write_protect;   // the switch stays as it was
+    return insert(u, image, wp, err);
+}
+
+void Rkd1::media_discard(int u)
+{
+    if (u >= 0 && u < UNITS) units[u].disk[CARTRIDGE].dirty = false;
+}
+
 bool Rkd1::insert(int i, const std::string& image, bool wp, std::string& err)
 {
     if (i < 0 || i >= UNITS || !units[i].fitted) { err = "no such unit"; return false; }

@@ -77,7 +77,17 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   v konfigurátoru jde do stroje.
 - **Výjimka: parametry označené „(platí hned)“** se u běžící sestavy použijí okamžitě, jako přepínač na skutečné
   desce: barva obrazu, režim zápisu RAM disku ZRMD-1/ZRD-1V (`mode`), přepínače S1–S4 ZRMD-1, TURBO a BIOS
-  JPR-1V a věrný režim klávesnice („Klávesnice: věrně jako hardware“, `keyboard.strict`). Uložit je potřeba
+  JPR-1V a věrný režim klávesnice („Klávesnice: věrně jako hardware“, `keyboard.strict`).
+- **Výměnná média platí hned** (od 2026-10-10):
+  - patří sem diskety řadičů RPD-1, FDC-1 a MFC-1A (`drive_x.image`), pásky RMP-1 (`unitN.tape`), kazety RKD-1
+    (`unitN.cartridge`), kazeta KZD-1 (`kzd1.cassette`) a kazeta v magnetofonu DSM-1 (`tape`);
+  - obraz vybraný v konfigurátoru se za chodu hned vloží;
+  - výměna, nové médium i vysunutí v okně Média se zapíšou do sestavy, takže konfigurátor je ukáže a sestavu
+    označí jako neuloženou;
+  - u pásky, kazety RKD-1 a kazety KZD-1 je vedle „…“ tlačítko **Nová…** (nový soubor = prázdné médium) a nabídka
+    obrazů ukazuje i soubory, které leží ve složkách navržených obrazů (třeba `work/rmp-1`);
+  - v okně Média je u každého média tlačítko „…“ s položkami **Vysunout bez uložení** a **Obnovit
+    z originálu** (pracovní kopii ve `work/` přepíše originál z `media/`, s potvrzením). Uložit je potřeba
   jako každou změnu sestavy. Při přepnutí z `rw` se RAM disk nejdřív uloží, po přepnutí na `rw` se uloží jeho
   aktuální obsah.
 - **Nová:** prázdná sestava, nebo kopie šablony či jiné sestavy (uloží se přes „Uložit jako…“).

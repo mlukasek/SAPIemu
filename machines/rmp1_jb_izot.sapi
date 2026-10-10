@@ -11,20 +11,20 @@
         {
             "slot": 1,                      // position X1
             "type": "JPR-1ZI",              // CPU card Z80 (new design)
-            "rom": "roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin",
+            "rom": "roms/jpr-1zi/JPR-1ZI_MON271111_JB_RPD.bin",  // EPROM 2764 - MON 271111 J. Biba (CP/M from an 8" disk, RPD-1)
             "decoder": "2k",                // PROM D3C: memory decoder - ROM 0000-07FF (2 KB)
             "cpu_mhz": 2,                   // JP2/JP3: CPU clock - 2 MHz (position 3)
             "bus_mhz": 2,                   // JP2/JP3: bus clock F2 - 2 MHz (position 2)
-            "keyboard": { "type": "Consul 259.11", "code": "koi8cs" }  // Keyboard (connector X2) - the monitor drives CONSUL 259.11 KOI8 CS2
+            "keyboard": { "type": "Consul 259.11", "code": "koi8cs" }  // Keyboard (connector X2)
         },
         {
             "slot": 2,                      // position X2
             "type": "DMR-1",                // 128 KB RAM and serial port
-            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
             "battery": false,               // JP7: battery backup of the SRAM
+            "ram_config": 1,                // JP3: RAM range - 1: 0000-F7FF (display at F800)
             "uart_base": "10h",             // JP2: UART ports
             "baud": 9600,                   // JP8: baud rate - 9600 Bd
-            "connected": false              // Terminal connected at start (DCD): no, the console is the display
+            "connected": false              // Terminal connected at start (DCD)
         },
         {
             "slot": 3,                      // position X3
@@ -34,7 +34,7 @@
         {
             "slot": 4,                      // position X4
             "type": "ZRMD-1",               // RAM disk 4 MB with RTC
-            "image": "media/zrmd-1/ZRMD-1_prazdny_OFF0.bin",  // Disk image - empty (C: of the CP/M of J. Biba)
+            "image": "media/zrmd-1/ZRMD-1_prazdny_OFF0.bin",  // Disk image - empty, CP/M over all 4 MB (systems of J. Biba 2011)
             "mode": "rw",                   // Mode - read/write, saved
             "rtc": true,                    // RTC 72421
             "rtc_int": "none",              // JP3: RTC interrupt
@@ -43,15 +43,15 @@
         {
             "slot": 5,                      // position X5
             "type": "RPD-1",                // Floppy disk controller (boards A + B)
-            "drive_a": {
-                "cpm": "A",                 // CP/M letter (Media window)
-                "image": "media/sapiman/r1_zrmd4m_271111.img",  // CP/M boot disk J. Biba (MON 271111, C: ZRMD-1)
-                "write_protect": false
+            "drive_a": {                    // Drive 0 (8" SS SD)
+                "image": "media/sapiman/r1_zrmd4m_271111.img",  // Disk image (.img 77 x 26 x 128 B, or ImageDisk .imd of such a disk) - CP/M boot disk J. Biba (MON 271111, C: ZRMD-1)
+                "write_protect": false,     // Write protected
+                "cpm": "A"                  // CP/M letter of the drive (Media window; empty = seen while running)
             },
-            "drive_b": {
-                "cpm": "B",                 // CP/M letter (Media window)
-                "image": "media/rmp-1/a_lad_izo.img",  // J. Biba: magnetic tape programs (MTDAT, DIRMT, MTCOPY, MTZAP, RMP-1)
-                "write_protect": false
+            "drive_b": {                    // Drive 1 (8" SS SD)
+                "image": "media/rmp-1/a_lad_izo.img",  // Disk image (.img 77 x 26 x 128 B, or ImageDisk .imd of such a disk) - J. Biba: magnetic tape programs (MTDAT, DIRMT, MTCOPY, MTZAP, RMP-1)
+                "write_protect": false,     // Write protected
+                "cpm": "B"                  // CP/M letter of the drive (Media window; empty = seen while running)
             },
             "working_copy": true,           // Work on copies in work/
             "step_ms": 8,                   // Drive: step period - 8 ms (Consul 7213)
@@ -62,6 +62,10 @@
             "type": "RMP-1",                // Magnetic tape controller (IZOT SM 5300)
             "unit0": {                      // Unit 0 (IZOT SM 5300)
                 "tape": "media/rmp-1/sapi01_ukazka.tap",  // Tape image (SIMH .tap; a new file = a blank tape) - Sample tape SAPI01 (JSEP labels, EBCDIC; MTDAT)
+                "write_ring": true          // Write enable ring in the reel (without it WPT)
+            },
+            "unit1": {                      // Unit 1 (IZOT SM 5300)
+                "tape": "",                 // Tape image (SIMH .tap; a new file = a blank tape) - no tape
                 "write_ring": true          // Write enable ring in the reel (without it WPT)
             },
             "ready_at_start": true,         // Tapes threaded and on-line at power on (comfort: LOAD and ON-LINE pressed)

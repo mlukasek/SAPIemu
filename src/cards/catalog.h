@@ -25,7 +25,8 @@ enum ParamKind {
     PK_INT,         // integer in [min, max]
     PK_HEX,         // number written as "XXh" (ports, addresses)
     PK_BOOL,
-    PK_FILE,        // file path relative to the data root (ROM, image); options = suggestions
+    PK_FILE,        // file path relative to the data root (ROM, image); options = suggestions;
+                    // min = PF_NEW_MEDIUM: a new file is a blank medium (the configurator offers New...)
     PK_DIR,         // directory path relative to the data root
     PK_TEXT,
     PK_SECTION,     // optional object: present = enabled; its parameters follow with the path as prefix
@@ -37,6 +38,8 @@ struct ParamOption {
     const char* en;
     const char* cs;
 };
+
+enum { PF_NEW_MEDIUM = 1 };   // CardParam.min of a PK_FILE: a new file is a blank medium (tape, cartridge)
 
 struct CardParam {
     const char* path;    // "baud", "serial.tcp.port", "write_enable.0" (array index)

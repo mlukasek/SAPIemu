@@ -91,6 +91,10 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
   nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3, nebo program HEX/BIN, který se převede na kazetu MIKOS či MIKROBASIC; „Uložit jako WAV…“ pro skutečné SAPI) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
+  Výměna média v okně Média se zapíše do sestavy (konfigurátor ji ukáže, sestava je pak neuložená). Tlačítko
+  „…“ u média nabízí **Vysunout bez uložení** a **Obnovit z originálu**: médium z `media\` se používá přes
+  pracovní kopii ve `work\`, která se dá kdykoli vrátit do původního stavu. Změny na páskách, kazetách a
+  disketách se do souboru zapíšou až při vysunutí, výměně, vypnutí nebo ukončení emulátoru.
 - **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,
   FORTH, Pascal/MT+, C, dBase II, WordStar…). Okno Média, Vložit… do B: a pak např. `B:MBAS`. Soupis všech
   disket je v `docs/software/SAPIMAN_diskety.md`.

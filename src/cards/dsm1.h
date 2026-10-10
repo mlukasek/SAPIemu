@@ -35,6 +35,10 @@ public:
     int decode_io(uint8_t port, const char** what) override;
 
     TapeDeck* tape(void) { return &deck; }
+    // the cassette in the recorder: tape
+    const char* media_param(int u) override { return u == 0 ? "tape" : nullptr; }
+    bool media_change(int u, const std::string& image, std::string& err) override;
+    void media_discard(int u) override { if (u == 0) deck.modified = false; }
     bool has_tape(void) const { return !no_tape; }
     uint8_t base_port(void) const { return base; }
     bool motor_on(void) const;

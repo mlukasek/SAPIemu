@@ -76,7 +76,9 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - DSP-1 se dvěma sériovými kanály 8251 (programy XMODEM J. Bíby ověřené oběma směry);
   - deska reálného času RTC-1 (čítač ve dvousekundách podle hodin PC, 8253, přerušení, watchdog);
   - tiskárna Centronics na X3 procesorové karty nebo na DPP-1: soubor s bajty a okno s vytištěným textem;
-  - okno Média: mechaniky podle jednotek řadiče s písmenem v CP/M (ze sestavy, nebo zjištěné za chodu);
+  - okno Média: mechaniky podle jednotek řadiče s písmenem v CP/M (ze sestavy, nebo zjištěné za chodu); výměna
+    média se zapíše do sestavy, média z `media/` se používají přes pracovní kopii, kterou jde vrátit („Obnovit
+    z originálu“), změny v paměti jde zahodit („Vysunout bez uložení“);
   - sériové linky do PC přes TCP nebo COM port, okno terminálu s odesíláním a příjmem souborů (i XMODEM) a schránkou (výběr myší rovnou do schránky).
 - **Měření a regulace: měřicí jednotka APS-5** s původním firmwarem Tesla (regulace osmi pecí adaptivním PSD):
   - desky A/D převodníku ADP-1, měřicího zesilovače DMT-1 a relé DRV-1A, panel HRK-1 s klávesnicí, zámkem
@@ -133,7 +135,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - [docs/navod-rkd1.md](docs/navod-rkd1.md): návod ke kazetovému disku RKD-1 s CP/M Tesla Elstroj (start, shell SH
   a uživatelé, formátování pevného disku, kopírování, výměna kazet, ochrana proti zápisu).
 - [docs/navod-rmp1.md](docs/navod-rmp1.md): návod k magnetické pásce RMP-1 (mechanika v okně Média, obsah pásky,
-  kopírování mezi páskou a disketou programem MTDAT, nová páska).
+  kopírování mezi páskou a disketou programem MTDAT, nová páska a její inicializace, kopie z pásky na pásku
+  programem MTCOPY).
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti).
 - [docs/software/](docs/software/): software pro SAPI (ECMON, CP/M ZPS-3, systémy J. Bíby a EC1045

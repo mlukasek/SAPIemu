@@ -107,7 +107,19 @@ PON (D7A) se nastaví resetem a dokud ho program nezruší bitem RPON, nejdou po
   5 = výpis obsahu. Textové soubory převádí ASCII ↔ EBCDIC, tabulka je 7bitová: horní bit českých písmen v KOI8
   se ztratí (zkoušeno na `MTDAT.MAN`). Návod `MTDAT.MAN`.
 - **DIRMT** V141287: výpis pásky (`B:DIRMT` a číslo jednotky 0–2 nebo `B:DIRMT 0`).
-- **MTCOPY** V041287JB: páska → páska, páska ↔ disketa, inicializace.
+- **MTDAT pracuje jen s jednotkou 0:** řetězce pro MTKAN má pevně (`6.0.D.` inicializace, `0.0.4.D.` otevření
+  pásky).
+- **MTCOPY** V041287JB: páska → páska, páska ↔ disketa, inicializace. Na rozdíl od MTDAT si nechá napsat řetězce
+  služeb MTKAN, takže umí všechny jednotky: inicializace `6.CM.KP.JP.` (třeba `6.1.D.SAPI02.`), otevření pásky
+  `0.CM.TP.KP.JP.` a souboru `1.CM.TS.KS.CS.TP.BS.RS.JS.DV.`. Kopie páska → páska ověřena 2026-10-10 (autor,
+  jednotka 0 → 1, oba soubory ukázkové pásky). Data jsou shodná, návěští se od MTDAT liší dvěma vlastnostmi
+  programu:
+  - EOF1 počítá jen plné bloky, poslední zkrácený blok souboru ne, takže DIRMT u kopie ukáže 000000 a 000004
+    místo 000001 a 000005;
+  - v HDR2 a EOF2 je ve sloupci 37 (řídicí znaky) `A`, MTDAT tam píše mezeru.
+
+  Zdroják MTCOPY je zpětně získaný a cesta zápisu posledního bloku v něm není dohledaná do konce. Emulace na
+  počitadlo v programu vliv nemá.
 - **MTZAP / MTCTE:** zkušební zápis 255 bloků s větou „Toto je prvni zapsany a precteny blok dat pocitacem
   SAPI-1/CPM na magneticke pasce IZOT CM 5300.01“ a TM, MTCTE je přečte. Bíbova první zkouška pásky.
 - **Ukázková páska** `media/rmp-1/sapi01_ukazka.tap`: páska SAPI01 se dvěma soubory, MTZAP (MTZAP.MAC) a MTDATMAN

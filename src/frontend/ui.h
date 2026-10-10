@@ -17,6 +17,11 @@ class McpServer;
 struct ImFont;
 struct SDL_Window;
 
+// Where a native file dialog opens: a folder gets the separator at its end (without it Windows takes the
+// last part for a file name and opens the folder above), the separators of the platform; a file (a name
+// offered for saving) stays a file.
+std::string dialog_location(const std::string& path);
+
 // Cassette dialogs of the Media window (answer from another thread).
 struct TapeDialog {
     std::mutex mtx;
@@ -68,7 +73,7 @@ struct RackEditor {
     bool save_then_continue = false;   // "Save as" dialog for the pending action
 
     // native file dialogs answer from another thread
-    enum { DLG_NONE = 0, DLG_OPEN, DLG_SAVE, DLG_PARAM, DLG_RUN };
+    enum { DLG_NONE = 0, DLG_OPEN, DLG_SAVE, DLG_PARAM, DLG_RUN, DLG_PARAM_NEW };
     std::mutex dlg_mtx;
     int dlg_kind = DLG_NONE;       // pending request
     bool dlg_done = false;

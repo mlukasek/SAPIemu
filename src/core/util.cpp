@@ -114,6 +114,12 @@ bool file_exists(const std::string& utf8_path)
     return fs::exists(u8_to_path(utf8_path), ec);
 }
 
+bool dir_exists(const std::string& utf8_path)
+{
+    std::error_code ec;
+    return fs::is_directory(u8_to_path(utf8_path), ec);
+}
+
 bool file_remove(const std::string& utf8_path)
 {
     std::error_code ec;
@@ -227,6 +233,23 @@ std::vector<std::string> list_machine_files(void)
         std::filesystem::path ext = e.path().extension();
         if (ext != ".sapi" && ext != ".jsonc" && ext != ".json") continue;   // .jsonc/.json: older files
         out.push_back(data_relative(path_to_u8(e.path())));
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+}
+
+std::vector<std::string> list_files(const std::string& rel_dir, const std::string& ext)
+{
+    std::vector<std::string> out;
+    std::error_code ec;
+    for (auto& e : fs::directory_iterator(u8_to_path(data_path(rel_dir)), ec)) {
+        if (!e.is_regular_file(ec)) continue;
+        std::string x = path_to_u8(e.path().extension());
+        if (x.size() != ext.size()) continue;
+        bool same = true;
+        for (size_t i = 0; i < x.size(); i++)
+            if (tolower((unsigned char)x[i]) != tolower((unsigned char)ext[i])) same = false;
+        if (same) out.push_back(data_relative(path_to_u8(e.path())));
     }
     std::sort(out.begin(), out.end());
     return out;

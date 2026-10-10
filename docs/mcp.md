@@ -47,11 +47,11 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | Nástroj | Popis |
 |---|---|
 | `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry |
-| `tape_status`, `tape_insert`, `tape_control` | Magnetofon DSM-1: stav, vložení kazety (WAV/MP3 odkudkoli, nebo nová, nebo program `.hex`/`.bin` převedený na kazetu MIKOS či MIKROBASIC: `format`, `name`, `address`, `entry`), tlačítka přehrát / nahrát / stop / převinout / vysunout / uložit / ochrana, `export` do WAV (`path`) |
+| `tape_status`, `tape_insert`, `tape_control` | Magnetofon DSM-1: stav, vložení kazety (WAV/MP3 odkudkoli, nebo nová, nebo program `.hex`/`.bin` převedený na kazetu MIKOS či MIKROBASIC: `format`, `name`, `address`, `entry`), tlačítka přehrát / nahrát / stop / převinout / vysunout / uložit / ochrana, `export` do WAV (`path`); vložení a vysunutí se zapíše i do popisu sestavy (jako v okně Média) |
 | `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (poslední popis sestavy), `cycle` |
 | `quit` | Ukončí emulátor (`sapiemu-cli --mcp` i GUI): nejdřív stroj vypne (nahrané kazety, kazety KZD-1, SRAM s baterií a RAM disky se uloží), pak program skončí. Odpověď ještě dorazí |
 | `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/` |
-| `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná |
+| `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná; `new_medium` u souborového parametru = nový soubor je prázdné médium (páska, kazeta) |
 | `machine_map` | Mapa portů a paměti z dekodérů karet (PROM, jumpery), po stavech MAP1/MAP2, s kolizemi; pro běžící sestavu, soubor nebo popis |
 | `get_machine_config`, `set_machine_config` | Popis sestavy (běžící nebo ze souboru) s kontrolou rozložení; použití upraveného popisu (vypnout a zapnout), volitelně uložení jako komentovaný soubor `.sapi` |
 | `reset`, `pause`, `resume` | Reset tlačítkem, pauza a běh; `resume` volitelně `speed_percent` (rychlost emulace proti reálnému času, 100 = reálný čas) nebo `max_speed` (co nejrychleji) |
@@ -77,7 +77,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8; u DBS-1A i rámečky a řecká písmena z EPROM „59“) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |
 | `serial_send`, `serial_receive` | Sériový kanál (DMR-1) |
 | `pmd32_images`, `pmd32_mount` | Jednotky PMD32-SD (A–D; v CP/M A = D:, B = E:): obsah SD karty, vložení a vysunutí obrazu |
-| `kzd1` | Kazetopáskový záznamník dat KZD-1 (DPP-1, MIKOS/K): bez argumentů stav (kazeta, strana, poloha v metrech, pohyb, přetížení motorů, řídicí linky). `insert` = kazeta `.kzd` (chybějící se vytvoří prázdná), `new` = nová prázdná kazeta, `eject`, `flip` (otočit), `tab_a` / `tab_b` (zoubky proti zápisu), `flush` (zapsat soubor kazety hned), `program` = soubor `.hex`/`.bin` převedený na novou kazetu `work/kzd-1/JMÉNO.kzd` tak, jak ji zapisuje MIKOS/K (`name`, `volume` = název pásky, `address` u `.bin`, `entry`) |
+| `kzd1` | Kazetopáskový záznamník dat KZD-1 (DPP-1, MIKOS/K): bez argumentů stav (kazeta, strana, poloha v metrech, pohyb, přetížení motorů, řídicí linky). `insert` = kazeta `.kzd` (chybějící se vytvoří prázdná), `new` = nová prázdná kazeta, `eject`, `flip` (otočit), `tab_a` / `tab_b` (zoubky proti zápisu), `flush` (zapsat soubor kazety hned), `program` = soubor `.hex`/`.bin` převedený na novou kazetu `work/kzd-1/JMÉNO.kzd` tak, jak ji zapisuje MIKOS/K (`name`, `volume` = název pásky, `address` u `.bin`, `entry`); kazeta se zapíše i do popisu sestavy |
 | `plotter` | Zapisovač ARITMA Minigraf 0507 (DPP-1): poloha pera na papíře v mm, pero, tahy, rozsah kresby, kroky, kroky na dorazu, ztracené kroky a kroky nad 400/s; `new_sheet` = nový papír, `png` / `svg` = uložit kresbu (`px_per_mm`, výchozí 8; `crop` = jen kresba s okrajem 5 mm) |
 | `printer_output` | Vytištěný text tiskárny (X3 karty JPR nebo DPP-1): poslední řádky, soubor s bajty, počet bajtů; `clear` = nový papír |
 | `serial_set_connected` | Připojení a odpojení terminálu (DCD/CTS/DSR). ECMON a MikroMon podle DCD volí konzoli |
