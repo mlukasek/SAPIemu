@@ -632,6 +632,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
   - výměna v okně Média se propíše do sestavy jako neuložená změna (oranžově, jako jiné změny za chodu);
   - v konfigurátoru u obrazu pásky (i diskety, kazety) tlačítko „Nová…“ vedle „…“;
   - soubory vytvořené za běhu přidat do nabídky obrazů.
+- **Obnovit z originálu / Vysunout bez uložení** (podnět autora 2026-10-10, zatím neopravovat): autor si omylem
+  inicializoval ukázkovou pásku na jednotce 0. Originál v `media/` zůstal, ale změna se z paměti zapíše do pracovní
+  kopie ve `work/` při každém vysunutí, výměně, vypnutí nebo ukončení a z okna ji nejde zahodit. Návrh:
+  - u médií s pracovní kopií (páska, kazeta RKD-1, diskety, KZD-1) tlačítko „Obnovit z originálu“, které
+    pracovní kopii přepíše souborem z `media/`, s potvrzením;
+  - „Vysunout bez uložení“ pro změny jen v paměti (páska, kazeta RKD-1).
 - ~~**AND-1V:** čekací stavy~~ od 2026-10-09 podle schématu (list 4/7, stejný model jako CGA-1V,
   `Bus::window_waits`), měřicí program VRAMBENCH (`media/and-1v`); na skutečné desce zatím neměřené.
 - **JPR-1V:** STSTB bez refreshe (u JPR-1ZI je STSTB jen z /MREQ, což u AND-1Z může při refreshi s I = F8–FF
