@@ -120,7 +120,9 @@ XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); v repu nejsou. |
   - Stisk klávesy během LOAD čtení přeruší.
 - **Programy na disketě:**
   - `BAS5C.SYS` (BASIC EXP V5.0), `TEDIT.SYS`, `TOOL.SYS`;
-  - `BASIMS4.SYS` (BASIC s IMS-2), `KONVERT.SYS` (převod kazeta ↔ disketa);
+  - `BASIMS4.SYS` (BASIC s IMS-2), `KONVERT.SYS` (převod kazeta ↔ disketa). BASIMS4.SYS je bajt po bajtu
+    BASIMS V4.0 pro MIKOS V4.0F (s hlavičkou souboru), pod MIKOSem/D V5 neběží (volá podprogramy V4.0F). Poběží
+    v sestavě `zps/ZPS-2_DPS-1_IMS-2.sapi` (`docs/desky/DPS-1.md`);
   - `COPYSYS.SYS`, `X2.SYS`.
 
 ## MIKOS/K V5.0 (kazetopáskový záznamník dat KZD-1)

@@ -33,6 +33,13 @@ struct I8255 {
     bool b_input_full(void) const { return ibf_b; }
     bool intr_b(void) const { return strobed_in_b() && ibf_b && inte_b; }   // INTR B (PC0)
     bool strobed_in_b(void) const { return (ctrl & 0x06) == 0x06; }
+    // Mode 1, port B output (DPS-1): /ACK B low takes the byte, /OBF B goes high
+    bool strobed_out_b(void) const { return (ctrl & 0x06) == 0x04; }
+    bool b_output_full(void) const { return obf_b; }
+    void ack_b(void) { obf_b = false; }
+    // Levels the chip drives on the port C pins (bit set in `driven`): the outputs of mode 0 and the
+    // handshake outputs of modes 1 and 2 (INTR, IBF, /OBF); the other pins are inputs.
+    uint8_t pc_out(uint8_t& driven) const;
 
     uint8_t control(void) const { return ctrl; }
     bool mode2_a(void) const { return (ctrl & 0x40) != 0; }

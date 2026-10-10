@@ -3,7 +3,7 @@
 {
     "name": "CP/M J. Bíby s kazetovým diskem RKD-1 a bulharskou mechanikou CM 5400 (D: až G:, BIOS ze SAPIemu)",
     "description": "CP/M 2.2 J. Bíby z 8\" diskety A: (RPD-1, MON 271111) s BIOSem-3K pro RKD-1 a bulharskou mechaniku CM 5400. BIOS NENÍ ORIGINÁL: CP/M pro tuto mechaniku se nenašlo, BIOS vznikl v emulátoru z 3K BIOSu J. Bíby (V261211JB), ovladače ZRMD-1 z jeho BIOSu-1K a ovladače RKD.MAC Tesly upraveného na hlavičky sektorů jako ve FORMRKD (media/rkd-1/cm5400/BIRKD54.MAC, tools/rkd5400_bios.py). A: = bootovací disketa (soubory jako r1_zrmd4m_271111), B: = služební disketa J. Bíby s FORMRKD v1.1, C: = RAM disk ZRMD-1, D:, E: = pevný disk (dolní, horní plocha), F:, G: = kazeta, formát SMEP 12 × 512 B, 1224 KB na plochu. Kazeta i pevný disk jsou na začátku nenaformátované: B:FORMRKD, mechanika D až G, F = formátovat, C = kontrolní čtení, O = obojí. docs/desky/RKD-1.md, docs/navod-rkd1.md.",
-    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal
+    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)

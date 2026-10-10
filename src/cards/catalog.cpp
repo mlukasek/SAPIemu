@@ -1724,6 +1724,20 @@ static const ParamOption k_drv1a_load[] = {
     { "\"plant\"", "heaters of the furnaces (APS-5, plant of the machine)", "topení pecí (APS-5, technologie sestavy)" },
     { nullptr, nullptr, nullptr },
 };
+// DPS-1 instrument bus IMS-2 (fixed ports 30h-37h); the cable of X2 goes to the plant "IMS-2" of the machine
+static const ParamOption k_dps1_prom[] = {
+    { "\"roms/dps-1/DPS-1_D3D_74S571.bin\"", "PROM D3D of the manual (codes 00-08h; with ATN 00-06h -> 9-15)",
+      "PROM D3D z návodu (kódy 00-08h; s ATN 00-06h -> 9-15)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dps1[] = {
+    { "prom", PK_FILE, "D3D: PROM 74S571 of the multi-line messages (512 x 4)",
+      "D3D: PROM 74S571 vícevodičových zpráv (512 x 4)", "\"roms/dps-1/DPS-1_D3D_74S571.bin\"", k_dps1_prom, 0, 0 },
+    { "jp1", PK_BOOL, "JP1: IFC from the RESET button (/RTL)", "JP1: IFC od tlačítka RESET (/RTL)", "true", nullptr, 0, 0 },
+    { "jp2", PK_BOOL, "JP2: answer of a parallel poll on DIO1", "JP2: odpověď na paralelní hlášení na DIO1", "false",
+      nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
 static const CardParam k_drv1a[] = {
     { "port", PK_CHOICE, "Jumpers: the port", "Propojky: port", "\"77h\"", k_drv1a_port, 0, 0 },
     { "load", PK_CHOICE, "Contacts S1-S8 switch", "Kontakty S1-S8 spínají", "\"none\"", k_drv1a_load, 0, 0 },
@@ -1927,6 +1941,8 @@ CARD(c_ide1, "IDE-1", "IDE", "IDE disk and PMD32-SD", "IDE disk a PMD32-SD", CC_
 // I/O
 CARD(c_dpp1, "DPP-1", "DPP", "Parallel ports (2x 8255), PMD32-SD", "Paralelní porty (2x 8255), PMD32-SD", CC_IO, 1,
      true, k_dpp1)
+CARD(c_dps1, "DPS-1", "DPS", "Instrument bus IMS-2 (IEEE 488), controller", "Přístrojová sběrnice IMS-2 (IEEE 488), řidič",
+     CC_IO, 1, true, k_dps1)
 CARD(c_mph1v, "MPH-1V", "MPH", "Sound YM3812, timer 82C54, joystick (V)", "Zvuk YM3812, časovač 82C54, joystick (V)",
      CC_IO, 1, true, k_mph1v)
 CARD(c_rtc1, "RTC-1", "RTC", "Real time clock, timers and watchdog", "Reálný čas, čítače a watchdog", CC_IO, 1, true,
@@ -1948,7 +1964,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rkd1, &c_rmp1, &c_rpd1z, &c_mfc1a, &c_fdc1,
-        &c_mph1v, &c_dpp1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_bdk1,
+        &c_mph1v, &c_dpp1, &c_dps1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_bdk1,
     };
     return list;
 }

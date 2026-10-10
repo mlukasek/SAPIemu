@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **235** v 48 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **241** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -201,6 +201,32 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 
 - Kanál 1: děrovač (`PUN:`), nebo tiskárna přes `UL1:`? Zapojení signálů (STROBE, BUSY, ACK) na 1PA/1PC
   (emulace: /OBF → /STROBE, /ACK → PC6, BUSY nezapojený).
+
+
+## [DPS-1 – deska přístrojové sběrnice IMS-2](desky/DPS-1.md) – Nejasnosti (6)
+
+- **Předpoklad LIST/TALK → vlastní NDAC** (viz Emulace): jak je to na skutečné desce zapojené? Schéma Tesly
+  i EC1045 vede READ (PC7 D2C) jen do D2B. Funguje replika EC1045 s BASIMS jako mluvčí (`IMS# O`)?
+
+- **/OBF B a /ACK B:** nuluje MHB8255A /OBF úrovní /ACK (datasheet Intel), nebo hranou? Při úrovni se ERR nenahodí
+  nikdy a zápis bez posluchače zmizí. Jak se deska chová bez přístroje na sběrnici?
+
+- **Bajt 00h s ATN** mezi zápisy B0h a 03h do 37h (viz Emulace): je ho na skutečné sběrnici vidět (logický
+  analyzátor na DAV)?
+
+- **M1T 330:**
+  - odpověď končí CR LF s EOI na LF (odhad podle BM 595 [V1]; BASIC to snese);
+  - tvar odpovědi na Q (emulace: `%+d.ddddE±e`, chyba v %);
+  - přetečení (emulace: `V+9.9999E+9`, displej OL);
+  - doby měření, autokalibrace a rozsahů;
+  - chování REP v dálkovém režimu;
+  - popisky tlačítek podle fotografie (SÍŤ, AUTO, FILTR, START REP/1x, CHYBA);
+  - zda `R4` opravdu jede od nejmenšího rozsahu („přepnutí z minimálního na maximální rozsah“ [V1]), emulace mění
+    rozsah po krocích od posledního.
+
+- **BS 525:** rozmístění ovládacích prvků na panelu (nakreslené podle popisu v návodu, ne podle fotografie).
+
+- **PROM D3D:** obsah z návodu je zjevně jen ukázka. Měl někdo skutečné kódy zpráv (UNL, DCL…)?
 
 
 ## [DSM-1 – sériové rozhraní s kazetou](desky/DSM-1.md) – Nejasnosti (5)

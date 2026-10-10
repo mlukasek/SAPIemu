@@ -11,7 +11,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Rozhodnutí s důvody:** `docs/rozhodnuti.md`. Nové rozhodnutí vždy dopsat tam.
 - **HW poznatky po deskách:** `docs/desky/*.md` (porty, PROM, jumpery, časování, **nejasnosti k ověření na HW**). Mapa portů je v `docs/porty.md`, software v `docs/software/` (SAPI-1.5, ZPS-6: `SAPI-1.5.md`), tiskárna (X3 karet JPR, DPP-1) v `docs/tiskarna.md`.
 - **Návody k obsluze pro uživatele** (krok za krokem, výpisy opsané z emulátoru): `docs/navod-kzd1.md`,
-  `docs/navod-minigraf.md`, `docs/navod-rkd1.md`, `docs/navod-rmp1.md`, `docs/navod-ar1990.md`,
+  `docs/navod-minigraf.md`, `docs/navod-rkd1.md`, `docs/navod-rmp1.md`, `docs/navod-ar1990.md`, `docs/navod-dps1.md`,
   `docs/aps5-ukazka.md`. Po změně chování přístroje je zkontrolovat.
 - **ROM, PROM a média:** `roms/` (dumpy, popis v `roms/README.md`) a `media/` (nedotčené originály obrazů, emulátor pracuje s kopiemi ve `work/`).
 - **Knihovny:** `third_party/` (vendorované, popis v `third_party/README.md`). SDL3 se stahuje přes CMake FetchContent.
@@ -49,7 +49,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `plant/`: technologie mimo počítač (`core/plant.h`, `Bus::plant`): pece a termočlánky APS-5
-    (`docs/desky/APS-5.md`), `aps5_demo` = tlačítko DEMO (obsluha, která ťuká ukázku na panelu);
+    (`docs/desky/APS-5.md`), `aps5_demo` = tlačítko DEMO (obsluha, která ťuká ukázku na panelu); měřicí pracoviště
+    IMS-2 desky DPS-1 (`ims2_bench`, voltmetr `m1t330`, zdroj `bs525`; sběrnice `core/ims2`, `docs/desky/DPS-1.md`);
   - `main.cpp`.
 - **Nástroje** (`tools/`): `build.cmd`, `package.py`, `asm8080.py` (malý assembler 8080), `cpmrun.cpp` (programy
   pro CP/M jako M80/L80 na PC, cíl `cpmrun`; popis v `docs/build.md`), `hw_otazky.py` (z Nejasností vygeneruje

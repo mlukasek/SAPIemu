@@ -424,7 +424,7 @@ std::string comment_for(const Writer& w, const std::string& path, const json& v)
     }
     if (!w.ci) {
         if (path == "windows")
-            return "Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal";
+            return "Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2";
         return std::string();
     }
     if (path == "type") return w.ci->en;

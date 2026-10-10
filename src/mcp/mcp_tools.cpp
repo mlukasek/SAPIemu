@@ -19,6 +19,7 @@
 #include "core/wav.h"
 #include "input/keyboards.h"
 #include "plant/furnaces.h"
+#include "plant/ims2_bench.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -930,6 +931,83 @@ json t_plant(EmuHost& h, const json& a)
     return json_result(j);
 }
 
+json t_ims2(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    Ims2Bench* b = dynamic_cast<Ims2Bench*>(m.plant.get());
+    if (!b) return error_result("this machine has no measuring bench (description \"plant\": { \"type\": \"IMS-2\" })");
+    m.bus.advance_all();
+    uint64_t now = m.bus.now;
+    static const char* uk[2] = { "u1", "u2" };
+    static const char* ik[2] = { "i1", "i2" };
+    static const char* lk[2] = { "load1_ohm", "load2_ohm" };
+    for (int k = 0; k < 2; k++) {
+        if (a.contains(uk[k])) {
+            if (!a[uk[k]].is_number()) throw ToolError{ std::string(uk[k]) + " must be a number (V)" };
+            b->bs.out[k].u_set = a[uk[k]].get<double>();
+        }
+        if (a.contains(ik[k])) {
+            if (!a[ik[k]].is_number()) throw ToolError{ std::string(ik[k]) + " must be a number (A)" };
+            b->bs.out[k].i_lim = a[ik[k]].get<double>();
+        }
+        if (a.contains(lk[k])) {
+            double r = a[lk[k]].is_number() ? a[lk[k]].get<double>() : -1;
+            int found = -1;
+            for (int i = 0; i < BS525_LOAD_COUNT; i++)
+                if (fabs(BS525_LOADS[i] - r) < 0.5) found = i;
+            if (found < 0) throw ToolError{ std::string(lk[k]) + " must be 0 (none), 1000, 220, 100, 47, 22 or 10" };
+            b->bs.out[k].load = found;
+        }
+    }
+    if (a.contains("bs525_power")) b->bs.power = a.value("bs525_power", true);
+    if (a.contains("input")) {
+        std::string in = arg_str(a, "input", "I");
+        if (in == "I") b->input = 0;
+        else if (in == "II") b->input = 1;
+        else if (in == "none") b->input = -1;
+        else throw ToolError{ "input must be I, II or none" };
+    }
+    b->changed();
+    if (a.contains("m1t330_power")) b->set_power_m1t(a.value("m1t330_power", true));
+    if (a.contains("key")) {
+        std::string k = arg_str(a, "key", "");
+        if (k == "auto") b->m1t.key_auto(now);
+        else if (k == "filter") b->m1t.key_filter(now);
+        else if (k == "rep") b->m1t.key_rep(now);
+        else if (k == "1x") b->m1t.key_single(now);
+        else if (k == "error") b->m1t.key_error();
+        else throw ToolError{ "key must be auto, filter, rep, 1x or error" };
+    }
+    if (a.value("clear_log", false)) b->ims.clear_log();
+    json j;
+    b->describe(j);
+    std::vector<Ims2Event> ev;
+    b->ims.log_copy(ev);
+    long long n = arg_num(a, "log", 20);
+    size_t from = ev.size() > (size_t)n ? ev.size() - (size_t)n : 0;
+    json log = json::array();
+    for (size_t i = from; i < ev.size(); i++) {
+        const Ims2Event& e = ev[i];
+        json x;
+        x["t_s"] = round((double)e.t / b->ims.hz * 1e6) / 1e6;
+        if (!e.transfer) {
+            x["lines"] = std::string((e.lines & IMS_IFC) ? "IFC " : "") + ((e.lines & IMS_REN) ? "REN" : "");
+            x["changed"] = std::string((e.byte & IMS_IFC) ? "IFC " : "") + ((e.byte & IMS_REN) ? "REN" : "");
+        } else {
+            x["from"] = e.from;
+            char hx[4];
+            snprintf(hx, sizeof hx, "%02X", e.byte);
+            x["byte"] = hx;
+            if (e.lines & IMS_ATN) x["atn"] = ims2_command_name(e.byte);
+            else if (e.byte >= 32 && e.byte < 127) x["char"] = std::string(1, (char)e.byte);
+            if (e.lines & IMS_EOI) x["eoi"] = true;
+        }
+        log.push_back(x);
+    }
+    j["log"] = log;
+    return json_result(j);
+}
+
 json t_plotter(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1477,6 +1555,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"on":{"type":"boolean"}}})", t_cpu_turbo },
     { "diag_board", "Diagnostic board on K3 of JPR-1S / JPR-1X (parameter k3 = diag): two seven segment displays (left = P2-OUT, right = P1-OUT; segments a..g, dp = bits 0..7) and two buttons, \"+\" on P2-IN0 (JPR-1X: interrupt request R0) and \"-\" on P2-IN7 (R7). Without arguments it reports what the displays show; press = \"+\" or \"-\" holds the button for hold_ms (default 150) while the machine runs, then runs after_ms (default 200).",
       R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
+    { "ims2", "The measuring bench on the IMS-2 bus of DPS-1 (plant \"IMS-2\"): the voltmeter Metra M1T 330 (address, display, unit, range, autorange, filter, repeat, remote = EXT lamp, the last value) and the power supply Tesla BS 525 (outputs I, II: set voltage, current limit, output voltage and current, limiting, load), which output feeds the voltmeter, and the last transfers on the bus (log = how many; ATN commands decoded: LAD/TAD/UNL..., data characters, EOI). Arguments change the bench: u1, u2 (V, 0-30), i1, i2 (current limit, A, 0.05-1.1), load1_ohm, load2_ohm (0 none, 1000, 220, 100, 47, 22, 10), bs525_power, m1t330_power, input (I, II, none), key (auto, filter, rep, 1x, error: the buttons of the voltmeter, local only), clear_log.",
+      R"({"type":"object","properties":{"u1":{"type":"number"},"u2":{"type":"number"},"i1":{"type":"number"},"i2":{"type":"number"},"load1_ohm":{"type":"number"},"load2_ohm":{"type":"number"},"bs525_power":{"type":"boolean"},"m1t330_power":{"type":"boolean"},"input":{"type":"string","enum":["I","II","none"]},"key":{"type":"string","enum":["auto","filter","rep","1x","error"]},"clear_log":{"type":"boolean"},"log":{"type":"integer"}}})", t_ims2 },
     { "plotter", "Plotter ARITMA Minigraf 0507 on DPP-1 port B (driver V.1-MGF: .G=1800 init, .G=1809 test, .G=180F screen copy, .G=1815 system printer; BASIC EXP CALL(6171...)). Without arguments the pen position on the paper (mm: x from its left edge, y up the paper from where it was put in; the paper is an A4 wide strip), the pen, strokes, the extent of the drawing, steps, steps against the stop of the carriage (the origin is set so), lost steps (the code skipped a phase). new_sheet = a clean sheet under the pen, png / svg = save the paper (paths relative to the data root, px_per_mm for PNG, default 8; crop = only the drawing with 5 mm around).",
       R"({"type":"object","properties":{"new_sheet":{"type":"boolean"},"png":{"type":"string"},"svg":{"type":"string"},"px_per_mm":{"type":"integer","default":8},"crop":{"type":"boolean","default":false}}})", t_plotter },
     { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). program = an Intel HEX or binary file (address = its load address, hex) made into a new cassette work/kzd-1/NAME.kzd as MIKOS/K writes it (K_I with tape name volume, then K_S with name; entry = start address for .J): .K_Z, .K_L NAME, .J. Paths relative to the data root.",

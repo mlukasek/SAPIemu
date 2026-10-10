@@ -19,6 +19,7 @@ Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“,
 | 00–3F | DPP-1: 8 portů na základu 00h, 08h … 38h podle přepínačů S1 (+0–3 kanál 1, +4–7 kanál 2; ECMON a CP/M J. Bíby 28–2Fh: 28–2Bh `PUN:` nebo tiskárna (mód 1), PMD32-SD na 2C–2Fh; MIKOS/K 30–33h: KZD-1 na kanálu 1, 30h řízení, 31h stav, 33h = 8Bh, `docs/desky/KZD-1.md`; Minigraf 0507 na 31h
 (port B, 33h = 99h), `docs/desky/Minigraf.md`; `docs/desky/DPP-1.md`) |
 | 30–37 | DPP-1/7 |
+| 30–37 | DPS-1 (pevně): 8255 D2C 30–33h řízení IMS-2 (PA, PB vstup, PC výstup, 33h = 92h), 8255 D1C 34–37h data IMS-2 (34h vstup, 35h výstup, 36h stav, 37h = B0h posluchač / 94h mluvčí); `docs/desky/DPS-1.md` |
 | 38–3B | BWP-1 |
 | 3C–3F | RPD-1B |
 | 40–44 | RMD-1/1 |

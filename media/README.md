@@ -222,6 +222,12 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 | `a_lad_izo_opraveny.img` | `a_lad_izo.img`, na které je `MTCOPYO.COM` místo `MTCOPY.COM` (na originálu jsou volné jen 2 KB). Vyrábí ji tentýž skript. |
 | `sapi01_ukazka.tap` | Ukázková páska SAPI01 (SIMH `.tap`): VOL1, soubor 1 MTZAP (`MTZAP.MAC`) a soubor 2 MTDATMAN (`MTDAT.MAN`), blok 800, záznam 80, návěští JSEP, EBCDIC. Zapsal ji program MTDAT v emulátoru (`RMP_MAKE=… test_rmp1`). |
 
+## `dps-1/` – BASIMS pro desku DPS-1 (přístrojová sběrnice IMS-2)
+
+| Soubor | Obsah |
+|---|---|
+| `BASIMS.hex` | BASIMS V4.0: BASIC EX V4.0 (varianta B) s příkazem `IMS#` pro DPS-1, 4400h–635Fh, start 4400h. Jen pro Monitor V4.x a MIKOS V4.0F (sestava `zps/ZPS-2_DPS-1_IMS-2.sapi`, v magnetofonu jako kazeta MIKOS „BASIMS“: `.K_L BASIMS`, `.J`; nebo do paměti a `G4400`). Z `..\SAPI.CZ\sapi\data\basims_hex.php`, kontrolní součty záznamů sedí. `BASIMS4.SYS` na disketě MIKOS/D V5 je tentýž program s hlavičkou souboru. Návod `docs/navod-dps1.md`. |
+
 ## `ar1990/` – povely pro plotter z AR 1990
 
 | Soubor | Obsah |

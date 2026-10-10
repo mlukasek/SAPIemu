@@ -3,7 +3,7 @@
 {
     "name": "CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (JPR-1Z, CM 5403)",
     "description": "Systém Tesla Elstroj & JaMeSoft 1987 pro kazetový disk CM 5403 (Zbrojovka Brno) s řadičem RKD-1: JPR-1Z s boot EPROM ROMES (přeložená ze zdrojáků 87-02-10, kód na 0000h), RAM-1Z 62 KB, AND-1Z, klávesnice Consul 259.11, RPD-1 (E:, F:, služební diskety J. Bíby) a RKD-1 (A:, B: kazeta, C:, D: pevný disk; 2x2x203x24x256). Systémová kazeta je vyrobená originálními programy FORMTRKD a ES (CBIOS 87-02-13), po startu se spustí shell SH se STARTSYS.SUB (číslo uživatele). Pevný disk je nový a nenaformátovaný: FORMTRKD, volba 2 (C:) a 3 (D:). docs/desky/RKD-1.md.",
-    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal
+    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },

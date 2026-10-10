@@ -1,6 +1,7 @@
 #pragma once
 // The technological process outside the computer that its I/O cards measure and control (the
-// furnaces of the APS-5 unit, docs/desky/APS-5.md). A machine has at most one, built from the
+// furnaces of the APS-5 unit, docs/desky/APS-5.md; the measuring bench on the IMS-2 bus of DPS-1,
+// docs/desky/DPS-1.md). A machine has at most one, built from the
 // "plant" object of its description (plant/plant.cpp); the cards reach it through Bus::plant.
 // Time is the bus time (CPU cycles), as for the cards.
 #include <math.h>
@@ -10,6 +11,7 @@
 
 class StateIO;
 struct Bus;
+struct Ims2Bus;
 
 class Plant {
 public:
@@ -31,6 +33,8 @@ public:
     // Logic outputs LO of group 1 (0) / 2 (1), bit n = channel n + 1.
     virtual void logic_out(int group, uint8_t value) {}
     virtual void reset_process(void) {}   // back to the ambient temperature (the window)
+    // The IMS-2 instrument bus of the measuring bench (plant "IMS-2"), nullptr for other plants.
+    virtual Ims2Bus* ims2() { return nullptr; }
     virtual void state(StateIO& io) {}
     virtual void describe(nlohmann::json& out) {}
 

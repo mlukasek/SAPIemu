@@ -18,6 +18,7 @@ struct UiSnapshot {
     bool diag = false;       // show the Diagnostic board window
     bool aps5 = false;       // show the APS-5 window
     bool plotter = false;    // show the Minigraf window
+    bool ims2 = false;       // show the IMS-2 measuring bench window
     bool aps5_demo = false;  // and start its DEMO
     int drag_from = 0, drag_to = 0;   // drag the card in slot drag_from to drag_to in the configurator
     bool drag_drop = false;           // and drop it (else the picture shows it still dragged)

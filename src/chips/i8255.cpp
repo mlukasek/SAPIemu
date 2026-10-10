@@ -64,6 +64,51 @@ uint8_t I8255::pc_value(void)
     return v;
 }
 
+uint8_t I8255::pc_out(uint8_t& driven) const
+{
+    uint8_t v = 0;
+    driven = 0;
+    if (mode2_a()) {
+        // PC7 /OBF, PC5 IBF, PC3 INTRA out; PC6 /ACK, PC4 /STB in
+        v |= obf_a ? 0 : 0x80;
+        v |= ibf_a ? 0x20 : 0;
+        v |= intr_a() ? 0x08 : 0;
+        driven |= 0xA8;
+    } else if (mode1_a()) {
+        if (ctrl & 0x10) {   // input: PC5 IBF, PC3 INTR out, PC4 /STB in; PC6, PC7 per D3
+            v |= ibf_a ? 0x20 : 0;
+            driven |= 0x20;
+            if (!(ctrl & 0x08)) { v |= out_c & 0xC0; driven |= 0xC0; }
+        } else {             // output: PC7 /OBF, PC3 INTR out, PC6 /ACK in; PC4, PC5 per D3
+            v |= obf_a ? 0 : 0x80;
+            driven |= 0x80;
+            if (!(ctrl & 0x08)) { v |= out_c & 0x30; driven |= 0x30; }
+        }
+        v |= intr_a() ? 0x08 : 0;
+        driven |= 0x08;
+    } else if (!(ctrl & 0x08)) {
+        v |= out_c & 0xF0;
+        driven |= 0xF0;
+    }
+    if (strobed_in_b()) {        // PC1 IBF B, PC0 INTR B out, PC2 /STB B in
+        v |= ibf_b ? 0x02 : 0;
+        v |= intr_b() ? 0x01 : 0;
+        driven |= 0x03;
+    } else if (ctrl & 0x04) {    // PC1 /OBF B, PC0 INTR B out, PC2 /ACK B in
+        v |= obf_b ? 0 : 0x02;
+        v |= (inte_b && !obf_b) ? 0x01 : 0;
+        driven |= 0x03;
+    } else if (!(ctrl & 0x01)) {
+        v |= out_c & 0x07;
+        driven |= 0x07;
+    }
+    if (!(driven & 0x08) && !(ctrl & 0x01)) {   // PC3 not INTR A: lower half, per D0
+        v |= out_c & 0x08;
+        driven |= 0x08;
+    }
+    return v;
+}
+
 uint8_t I8255::read(int reg)
 {
     switch (reg & 3) {

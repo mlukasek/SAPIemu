@@ -98,6 +98,8 @@ struct UiState {
     uint64_t plotter_gen = 0;      // machine generation the plotter window opened itself for
     bool show_diag = false;        // the diagnostic board on K3 (JPR-1S, JPR-1X)
     bool show_aps5 = false;        // APS-5: the front panel and the furnaces
+    bool show_ims2 = false;        // the measuring bench on the IMS-2 bus of DPS-1
+    uint64_t ims2_gen = 0;         // machine generation the bench window opened itself for
     uint64_t aps5_gen = 0;         // machine generation the APS-5 window opened itself for
     int aps5_span = 1;             // plot: 0 = 10 min, 1 = 1 h, 2 = 4 h
     float aps5_outage_s = 60.0f;   // length of an outage from the window
@@ -221,6 +223,7 @@ void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
 void draw_printer(UiState& ui);
 void draw_plotter(UiState& ui);
+void draw_ims2(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);
 // File -> Load program (Intel HEX): native dialog, then a confirmation with the addresses.

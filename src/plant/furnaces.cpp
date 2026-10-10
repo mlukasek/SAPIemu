@@ -1,5 +1,6 @@
 #include "plant/furnaces.h"
 #include "plant/thermocouple.h"
+#include "plant/ims2_bench.h"
 #include "core/bus.h"
 #include "core/card.h"
 #include "core/state.h"
@@ -233,7 +234,15 @@ void FurnacePlant::state(StateIO& io)
 Plant* plant_create(const json& cfg, std::string& err)
 {
     std::string type = cfg.value("type", std::string("APS-5"));
-    if (type != "APS-5") { err = "unknown plant type '" + type + "' (APS-5)"; return nullptr; }
+    if (type == "IMS-2") {
+        Ims2Bench* b = new Ims2Bench();
+        if (!b->configure(cfg, err)) {
+            delete b;
+            return nullptr;
+        }
+        return b;
+    }
+    if (type != "APS-5") { err = "unknown plant type '" + type + "' (APS-5, IMS-2)"; return nullptr; }
     FurnacePlant* p = new FurnacePlant();
     if (!p->configure(cfg, err)) {
         delete p;

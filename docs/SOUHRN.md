@@ -73,6 +73,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5). Návod
     `docs/navod-rmp1.md`, kapitola 6: kopie pásky krok za krokem s výpisy z emulátoru, chyba původního MTCOPY
     a co je v opravě. Pushnuté 2026-10-10.
+- **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
+  deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
+  NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem
+  Metra M1T 330 (`m1t330.*`) a zdrojem Tesla BS 525 (`bs525.*`, autor vybral), okno Měřicí pracoviště
+  (`src/frontend/ims2.cpp`: kreslený voltmetr a zdroj, knoflíky, zátěž, vodiče, monitor sběrnice), nástroj MCP
+  `ims2`, sestava `machines/zps/ZPS-2_DPS-1_IMS-2.sapi` (kazeta `media/dps-1/BASIMS.hex`, PROM
+  `roms/dps-1/DPS-1_D3D_74S571.bin`), test `test_dps1`, `docs/desky/DPS-1.md`, návod `docs/navod-dps1.md` s obrázkem.
+  BASIMS V4.0 běží beze změn a příklad z návodu změří napětí. Nálezy: bez posluchače BASIMS spadne (rekurze
+  ERRLI ↔ KONVY), ERR desky se s 8255 nenahodí, bajt 00h s ATN při přepnutí na posluchače. Lokálně, nepushnuté.
 - **2026-10-10: zasekávání FXS4 u L. Lasoty, jeho zjištění** (autor předal e-maily). Příčiny jsou dvě a sčítají se:
   JPR-1Z/1V dávají STSTB i při INTA, takže přerušení s PC v okně grafické karty (≥ C000h) nastaví RDY, které se
   už neuvolní. A RESET se vzorkuje jen s /M1, proto zaseknutý stroj nezresetuje. Libor chystá záplatu (od /IORQ

@@ -249,6 +249,16 @@ jednotky (`unit0`–`unit2`: `tape`, `write_ring`), `ready_at_start` (pohodlí: 
 klávesnice: Minigraf 0507 na P0-OUT, tlačítka, přepínače (`paper` roll/a4, `color`, `code` ascii/mz800, `cr_lf`,
 `lf_cr`) a kabel od řídicího počítače. Ten nahrazuje okno Minigraf. `docs/desky/AR1990.md`, `docs/navod-ar1990.md`.
 
+**DPS-1 a měřicí pracoviště IMS-2** (`machines/zps/ZPS-2_DPS-1_IMS-2.sapi`, 2026-10-10): ZPS-2 s MIKOSem V4.0F
+a deskou přístrojové sběrnice DPS-1 (porty 30h–37h, propojky `jp1` IFC od RESET, `jp2` paralelní hlášení, `prom`
+PROM D3D). V magnetofonu kazeta s BASIMS V4.0 (`media/dps-1/BASIMS.hex`). Oddíl `"plant"` typu `IMS-2` je měřicí
+pracoviště na kabelu X2: voltmetr Metra M1T 330 a zdroj Tesla BS 525.
+- `"plant": { "type": "IMS-2", "m1t330": { "address": 3 }, "bs525": { "u1": 12.564, "i1": 0.5, "u2": 5, "i2": 0.5 },
+  "input": "I" }`: adresa voltmetru (přepínače vzadu, 0–30), napětí a omezení proudu výstupů zdroje, výstup na
+  svorkách voltmetru (I, II, none).
+- Konfigurátor oddíl nezobrazuje (je mimo sběrnici), upravuje se v souboru a za chodu v okně Měřicí pracoviště IMS-2.
+`docs/desky/DPS-1.md`, `docs/navod-dps1.md`.
+
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
 - Na X2/X3 JPR-1 je panel HRK-1, zapsaný jako klávesnice `HRK-1`.
@@ -286,8 +296,9 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 - **Okna nahoře po spuštění** (`windows`, v konfigurátoru řádek zaškrtávátek „Okna nahoře po spuštění“): okna,
   která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad okno Sestava. Klávesnice
   zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač Minigraf), `aps5` (panel APS-5), `diag`
-  (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál). Okno v doku dostane vybranou
-  záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `rmp1_jb_izot`,
+  (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2). Okno v doku dostane vybranou
+  záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `zps/ZPS-2_DPS-1_IMS-2`
+  měřicí pracoviště, `rmp1_jb_izot`,
   `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky).
 - **Sběrnice:**
 

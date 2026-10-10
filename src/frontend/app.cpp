@@ -146,7 +146,7 @@ nlohmann::json settings_json(App& app)
     j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
                      { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
                      { "printer", ui.show_printer }, { "configuration", ui.show_rack }, { "diag", ui.show_diag },
-                     { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter } };
+                     { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter }, { "ims2", ui.show_ims2 } };
     j["screen"] = { { "integer_scale", app.integer_scale },
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
     j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
@@ -201,6 +201,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(w, "diag", ui.show_diag);
     get_opt(w, "aps5", ui.show_aps5);
     get_opt(w, "minigraf", ui.show_plotter);
+    get_opt(w, "ims2", ui.show_ims2);
     get_opt(w, "configuration", ui.show_rack);
     const nlohmann::json& s = j.value("screen", nlohmann::json::object());
     get_opt(s, "integer_scale", app.integer_scale);
@@ -548,6 +549,7 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
 static const MachineWindow k_machine_windows[] = {
     { "media", "Media", "Media", "Média" },
     { "minigraf", "Minigraf", "Plotter Minigraf", "Zapisovač Minigraf" },
+    { "ims2", "IMS-2 measuring bench", "IMS-2 measuring bench", "Měřicí pracoviště IMS-2" },
     { "aps5", "APS-5: panel and furnaces", "APS-5: panel and furnaces", "APS-5: panel a pece" },
     { "diag", "Diagnostic board (K3)", "Diagnostic board (K3)", "Deska diagnostiky (K3)" },
     { "printer", "Printer", "Printer", "Tiskárna" },
@@ -559,6 +561,7 @@ static bool* machine_window_flag(UiState& ui, const char* key)
 {
     if (!strcmp(key, "media")) return &ui.show_media;
     if (!strcmp(key, "minigraf")) return &ui.show_plotter;
+    if (!strcmp(key, "ims2")) return &ui.show_ims2;
     if (!strcmp(key, "aps5")) return &ui.show_aps5;
     if (!strcmp(key, "diag")) return &ui.show_diag;
     if (!strcmp(key, "printer")) return &ui.show_printer;
@@ -892,6 +895,7 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer);
         ImGui::MenuItem(tr("Plotter Minigraf"), nullptr, &app.ui.show_plotter);
+        ImGui::MenuItem(tr("IMS-2 measuring bench"), nullptr, &app.ui.show_ims2);
         ImGui::MenuItem(tr("Diagnostic board (K3)"), nullptr, &app.ui.show_diag, m && m->cpu && m->cpu->k3_diag());
         ImGui::MenuItem(tr("APS-5: panel and furnaces"), nullptr, &app.ui.show_aps5, m && m->plant);
         ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
@@ -1305,6 +1309,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
+        app.ui.show_ims2 = snap->ims2;
         app.ui.show_diag = snap->diag;
         app.ui.show_aps5 = snap->aps5 || snap->aps5_demo;
         app.ui.aps5_demo_autostart = snap->aps5_demo;
@@ -1395,6 +1400,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_media(app.ui);
         draw_printer(app.ui);
         draw_plotter(app.ui);
+        draw_ims2(app.ui);
         draw_diag(app.ui);
         draw_aps5(app.ui);
         draw_rack(app.ui);

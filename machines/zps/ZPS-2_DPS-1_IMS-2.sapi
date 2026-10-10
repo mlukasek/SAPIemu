@@ -1,0 +1,69 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-2 MIKOS V4.0F s DPS-1 a měřicím pracovištěm IMS-2 (voltmetr M1T 330, zdroj BS 525)",
+    "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou přístrojové sběrnice DPS-1 (porty 30h-37h). Kabel IMS-2 z X2 vede k číslicovému voltmetru Metra M1T 330 (adresa 3), na jeho svorkách H a L je výstup I laboratorního zdroje Tesla BS 525. V magnetofonu je kazeta s BASIMS V4.0 (BASIC EX V4.0 s příkazy IMS# pro DPS-1): .K_L BASIMS, pak .J. Příklad z návodu: 10 IMS# N, 20 IMS# O3;\"R4D0E\", 30 IMS# T3, 40 IMS# I A$, 50 PRINT A$. Okno Měřicí pracoviště ukazuje přístroje a sběrnici. docs/desky/DPS-1.md, docs/navod-dps1.md.",
+    "windows": [ "ims2" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (ZPS-1: EPROMs on REM-1)
+            "eprom_type": "2708",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2708 (1 KB)
+            "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "ANK-1", "software": "mikos" }  // Keyboard (connector X2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "roms/mikos/MIKOS_V4.0F_ANK-1.bin",  // EPROMs (from socket 1) - Monitor V4.0F + MIKOS 4.0F (ANK-1)
+            "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
+            "ram_block": "none",            // Jumper R: RAM block - not connected
+            "ram_kb": 0                     // RAM fitted (KB, 2 per 4x 2114)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RAM-1",                // Dynamic RAM up to 48 KB
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": true,                     // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": false                     // S2
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false                   // Jumper 49-50: INT1 at the end of the frame
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "tape": "media/dps-1/BASIMS.hex",  // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
+            "tape_write_protect": true      // Cassette write protected
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "DPS-1",                // Instrument bus IMS-2 (IEEE 488), controller
+            "prom": "roms/dps-1/DPS-1_D3D_74S571.bin",  // D3D: PROM 74S571 of the multi-line messages (512 x 4) - PROM D3D of the manual (codes 00-08h; with ATN 00-06h -> 9-15)
+            "jp1": true,                    // JP1: IFC from the RESET button (/RTL)
+            "jp2": false                    // JP2: answer of a parallel poll on DIO1
+        }
+    ],
+    "plant": {
+        "type": "IMS-2",
+        "bs525": { "i1": 0.5, "i2": 0.5, "u1": 12.564, "u2": 5.0 },
+        "input": "I",
+        "m1t330": { "address": 3 }
+    }
+}

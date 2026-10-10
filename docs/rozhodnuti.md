@@ -1563,6 +1563,24 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   `CardParam.min = PF_NEW_MEDIUM`). Diskety potřebují zvolit formát, ty dál zakládá okno Média.
 - **Souborové dialogy:** složka dostane koncový oddělovač (`dialog_location`), soubor nabízený k uložení zůstává.
 
+## 2026-10-10 – DPS-1 a měřicí pracoviště IMS-2
+
+- **Pracoviště je „technologie mimo počítač“** (`plant` typu `IMS-2`) jako pece APS-5: sběrnice s přístroji
+  nepatří do skříně SAPI, karta DPS-1 se k ní dostane přes `Bus::plant` (kabel X2). Sestava má nejvýš jedno
+  pracoviště.
+- **Sběrnice po vodičích**, ne po zprávách: DPS-1 i přístroje jsou uzly, které budí své vodiče (wired-OR),
+  handshake DAV, NRFD, NDAC běží jako na kabelu s časy. Software tak vidí stejné stavy jako na železe, včetně
+  podivností desky (bajt 00h s ATN, chyba BASIMS bez posluchače).
+- **Deska podle schématu (netlist repliky EC1045 ověřený proti skenu Tesly), s jedinou výjimkou podle návodu:**
+  vlastní NDAC desky blokuje LIST/TALK (PC7 D2C). Čistě podle schématu by deska při vysílání držela NDAC sama
+  a BASIMS by se zasekl (ověřeno). Návod i BASIMS říkají, že PC7 vlastní NDAC blokuje. Nejasnost k ověření.
+- **Voltmetr Metra M1T 330:** jediný dobový přístroj s IMS-2, ke kterému máme příkazy (skripta VUT) i příklad
+  s odpovědí (návod BASIMS). Vzhled podle fotografií. Odhady (CR LF s EOI, Q, přetečení, časy) jsou v Nejasnostech.
+- **Zdroj Tesla BS 525 bez sběrnice** (autor vybral z nabídky: BS 525 / BK 127 / vymyšlený programovatelný zdroj):
+  dobový zdroj s IMS-2 se nenašel, vymyšlený by nebyl věrný. BS 525 se ovládá myší, voltmetr měří jeho výstup.
+- **Sestava ZPS-2 s MIKOSem V4.0F a kazetou:** BASIMS volá podprogramy MIKOSu V4.0F, pod MIKOSem/D V5 (kde je
+  BASIMS4.SYS na disketě) by neběžel.
+
 ## 2026-10-10 – fokus obrazovky po spuštění
 
 - **Obrazovka dostane klávesnici, ale nepřekryje ostatní okna.** Fokus v ImGui okno zároveň vytáhne dopředu.

@@ -43,6 +43,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `rkd1_jb_cm5400.sapi` | CP/M J. Bíby s RKD-1 a bulharskou mechanikou CM 5400 (BIOS pro D: až G: vznikl v emulátoru) | `B:FORMRKD`, mechanika `F`, `O`, `A` naformátuje a zkontroluje kazetu (12 × 512 B), pak `DIR F:`, `B:PIP F:=B:*.COM` |
 | `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |
 | `plotter_ar1990.sapi` | plotter z AR 1990: JPR-1 s programem z přílohy AR řídí Minigraf 0507 (okno Minigraf) | READY (po zapnutí pípá), pak Ukázka nebo TEST; povely do řádku, např. `\x02`, `D400,0` |
+| `zps/ZPS-2_DPS-1_IMS-2.sapi` | ZPS-2 s deskou DPS-1: přístrojová sběrnice IMS-2, voltmetr Metra M1T 330 a zdroj Tesla BS 525 (okno Měřicí pracoviště) | `.K_L BASIMS`, PLAY, `Y`, `.J`; pak `IMS# O3;"R4D0E"`, `IMS# T3`, `IMS# I A$` v programu |
 | `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
 | `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
 | `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
@@ -189,6 +190,15 @@ Další programy z `media\` si nahrajete takto:
   4. vlastní povely do řádku: `\x02` grafický režim, `I` počátek, `D400,0` čára, `P` text, `\x01` zpět na text.
 
   Celý návod: `docs/navod-ar1990.md`.
+
+- **Měřicí pracoviště IMS-2** (`zps/ZPS-2_DPS-1_IMS-2.sapi`, deska DPS-1, BASIMS V4.0):
+  1. nad ostatní okna se otevře Měřicí pracoviště: voltmetr M1T 330 měří výstup I zdroje BS 525;
+  2. BASIMS z kazety: `.K_L`, jméno `BASIMS`, v okně Média PLAY, `Y`, pak `.J` (nebo Soubor → Nahrát program
+     do paměti → `media\dps-1\BASIMS.hex` a `G4400`);
+  3. program `10 IMS# N`, `20 IMS# O3;"R4D0E"`, `30 IMS# T3`, `40 IMS# I A$`, `50 PRINT A$` vypíše `V+1.256…E+1`;
+  4. knoflíky zdroje se točí myší, monitor sběrnice ukazuje adresování a texty.
+
+  Celý návod: `docs/navod-dps1.md`.
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát
