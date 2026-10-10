@@ -1660,6 +1660,35 @@ void draw_bus_props(RackEditor& r)
                                     "RAM, videopaměti a palety mají po zapnutí náhodný obsah jako skutečné obvody. "
                                     "Vypnuto: nuly (u textových displejů mezery), takže fungují i programy, které "
                                     "spoléhají na vymazanou paměť."));
+    // windows the machine opens and puts on top at its start (the check boxes wrap to the next line)
+    float right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    ImGui::TextUnformatted(loc("Windows on top at the start:", "Okna nahoře po spuštění:"));
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", loc("They open and come on top of the other windows when the machine starts "
+                                    "(the plotter with READY, the tape drives...). The keyboard stays with the screen.",
+                                    "Po spuštění sestavy se otevřou a dají nad ostatní okna (plotter s READY, "
+                                    "mechaniky pásek...). Klávesnice zůstane obrazovce."));
+    const json* wl = r.cfg.contains("windows") && r.cfg["windows"].is_array() ? &r.cfg["windows"] : nullptr;
+    json chosen = json::array();
+    bool changed = false;
+    int nw = 0;
+    const MachineWindow* mws = machine_windows(&nw);
+    for (int i = 0; i < nw; i++) {
+        const MachineWindow& mw = mws[i];
+        bool on = false;
+        if (wl)
+            for (const json& k : *wl)
+                if (k.is_string() && k.get<std::string>() == mw.key) on = true;
+        const char* label = loc(mw.en, mw.cs);
+        float w = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize(label).x;
+        if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + w <= right) ImGui::SameLine();
+        if (ImGui::Checkbox(label, &on)) changed = true;
+        if (on) chosen.push_back(mw.key);
+    }
+    if (changed) {
+        if (chosen.empty()) r.cfg.erase("windows");
+        else r.cfg["windows"] = chosen;
+    }
     if (!r.cfg.contains("bus") || !r.cfg["bus"].is_object()) r.cfg["bus"] = { { "type", "ARB-1C-8" } };
     json& bus = r.cfg["bus"];
     std::string bt = bus.value("type", std::string("ARB-1C-8"));

@@ -65,7 +65,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     pevnou výšku (neposkakuje), okno obrazovky má po spuštění emulátoru i sestavy fokus. Pushnuté 2026-10-10.
   - pak (autor: sestava `plotter_ar1990.sapi` „jen drnčí a nenaběhne“): fokus obrazovky vytáhl okno obrazovky
     nad okno Minigraf a zakryl tlačítko READY, plotter tak dál pípal. Obrazovka teď dostane klávesnici a okna
-    nad ní zůstanou vepředu (`focus_screen_window`). Lokálně, nepushnuté.
+    nad ní zůstanou vepředu (`focus_screen_window`). Pak **okna nahoře po spuštění** podle sestavy (klíč
+    `windows`, zaškrtávátka v konfigurátoru; AR 1990 Minigraf, APS-5 panel, RMP-1 a RKD-1 Média).
+    Lokálně, nepushnuté.
   - pak: chyba počtu bloků v EOF1 je ve starší knihovně MTKAN slinkované v MTCOPY. **Opravená kopie MTCOPYO**
     (původní kód MTCOPY + MTKAN V060588JB z diskety, `tools/mtcopy_oprava.py`, `media/rmp-1/MTCOPYO.COM`
     a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5). Návod

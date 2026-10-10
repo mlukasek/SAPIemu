@@ -422,7 +422,11 @@ std::string comment_for(const Writer& w, const std::string& path, const json& v)
         if (path == "jp3") return "JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)";
         return std::string();
     }
-    if (!w.ci) return std::string();
+    if (!w.ci) {
+        if (path == "windows")
+            return "Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal";
+        return std::string();
+    }
     if (path == "type") return w.ci->en;
     if (path == "slot") return "position X" + scalar(v);
     const CardParam* p = find_param(w.ci, path);
@@ -467,7 +471,7 @@ std::vector<std::string> key_order(const Writer& w, const std::string& path, con
         if (obj.contains(k) && std::find(keys.begin(), keys.end(), k) == keys.end()) keys.push_back(k);
     };
     if (path.empty() && !w.ci && !w.bus) {
-        add("name"); add("description"); add("bus"); add("cards");
+        add("name"); add("description"); add("windows"); add("bus"); add("cards");
     } else if (w.bus) {
         add("type"); add("slots"); add("jp3");
     } else if (path.empty()) {

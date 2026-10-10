@@ -3,6 +3,7 @@
 {
     "name": "CP/M J. Bíby s magnetickou páskou RMP-1 a IZOT SM 5300",
     "description": "CP/M 2.2 J. Bíby z 8\" diskety A: (RPD-1, MON 271111) a řadič magnetické pásky RMP-1 s mechanikou IZOT SM 5300 (9 stop, 800 bpi, 12,5 palce/s). B: = disketa J. Bíby s programy pro pásku (MTDAT, DIRMT, MTCOPY, MTZAP, MTCTE, zdroje, návody MTDAT.MAN a MTKAN.MAN). Na jednotce 0 je ukázková páska SAPI01 se dvěma soubory (návěští JSEP, kód EBCDIC). Výpis pásky: B:DIRMT, jednotka 0; kopie mezi páskou a disketou: B:MTDAT. docs/desky/RMP-1.md, docs/navod-rmp1.md.",
+    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)

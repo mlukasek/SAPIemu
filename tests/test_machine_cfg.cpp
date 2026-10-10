@@ -83,6 +83,19 @@ static void test_round_trip(void)
     CHECK(n >= 3);
 }
 
+// "windows" (opened on top at the start, frontend) is written after the description, with its comment
+static void test_windows(void)
+{
+    json cfg = json::parse("{\"cards\": [], \"bus\": {\"type\": \"ARB-1\"}, \"windows\": [\"minigraf\", \"media\"], "
+                           "\"name\": \"x\", \"description\": \"y\"}");
+    std::string out = machine_cfg_to_jsonc(cfg);
+    size_t d = out.find("\"description\""), w = out.find("\"windows\": [ \"minigraf\", \"media\" ],"),
+           b = out.find("\"bus\"");
+    CHECK(d != std::string::npos && w != std::string::npos && b != std::string::npos && d < w && w < b);
+    CHECK(out.find("// Windows opened on top at the start", w) < b);
+    CHECK(json::parse(out, nullptr, false, true) == cfg);
+}
+
 static void test_edit(void)
 {
     const CardInfo* z = card_info("ZRMD-1");
@@ -318,6 +331,7 @@ int main(int argc, char** argv)
     test_catalog();
     test_defaults_load();
     test_round_trip();
+    test_windows();
     test_edit();
     test_placeholders();
     test_battery();

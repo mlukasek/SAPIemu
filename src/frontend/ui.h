@@ -233,6 +233,15 @@ void state_save_dialog(UiState& ui);
 void state_load_dialog(UiState& ui);
 void state_quick(UiState& ui, bool save);
 void draw_rack(UiState& ui);
+// Windows a machine description opens and puts on top at its start ("windows": ["minigraf"]): the key in the
+// machine file, the window title (tr_id), the label in the configurator. Keyboard input stays with the screen.
+struct MachineWindow {
+    const char* key;
+    const char* title;
+    const char* en;
+    const char* cs;
+};
+const MachineWindow* machine_windows(int* count);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);
 // File -> Open machine: start a machine file; asks first when the configurator holds

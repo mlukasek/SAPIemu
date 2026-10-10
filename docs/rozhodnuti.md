@@ -1569,6 +1569,11 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   U sestavy plotteru z AR 1990 (bez zobrazovací karty) tak prázdné okno obrazovky zakrylo okno Minigraf
   s tlačítkem READY a plotter jen pípal (autor: „jen drnčí a nenaběhne“). Okna, která byla nad obrazovkou
   (otevřená se sestavou: Minigraf, Média…), se po fokusu vrátí dopředu.
+- **Důležitá okna určuje sestava** (autor: „u některých sestav byly důležitá okna nahoře“, Minigraf zůstal za
+  oknem Sestava). Klíč `windows` v sestavě, třeba `["minigraf"]`, a zaškrtávátka v konfigurátoru. Po spuštění se
+  okna otevřou, dají nahoru (v doku vybraná záložka) a klávesnice zůstane obrazovce. Autor zvolil seznam
+  v sestavě místo automatiky podle karet: sestava ví, co je pro ni hlavní (Média u pásky, plotter bez
+  obrazovky). Okna Minigraf a APS-5 se dál otevírají samy podle karet, jen bez dání nahoru.
 
 ## 2026-10-10 – opravená kopie MTCOPY
 

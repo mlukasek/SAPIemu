@@ -67,6 +67,7 @@ struct App {
     // frames in which the screen window takes the focus back: after the start of the program and of a machine
     // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
     int focus_screen = 3;
+    std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
     int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
@@ -544,13 +545,60 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
     zs.size = s;
 }
 
-// The keyboard to the screen window after a machine starts, the windows that were in front of it stay in front
-// (focusing raises a window: the screen would cover the Minigraf window with READY or the Media window).
-static void focus_screen_window(void)
+static const MachineWindow k_machine_windows[] = {
+    { "media", "Media", "Media", "Média" },
+    { "minigraf", "Minigraf", "Plotter Minigraf", "Zapisovač Minigraf" },
+    { "aps5", "APS-5: panel and furnaces", "APS-5: panel and furnaces", "APS-5: panel a pece" },
+    { "diag", "Diagnostic board (K3)", "Diagnostic board (K3)", "Deska diagnostiky (K3)" },
+    { "printer", "Printer", "Printer", "Tiskárna" },
+    { "terminal", "Serial terminal", "Serial terminal", "Sériový terminál" },
+};
+static const int k_machine_window_count = (int)(sizeof(k_machine_windows) / sizeof(k_machine_windows[0]));
+
+static bool* machine_window_flag(UiState& ui, const char* key)
+{
+    if (!strcmp(key, "media")) return &ui.show_media;
+    if (!strcmp(key, "minigraf")) return &ui.show_plotter;
+    if (!strcmp(key, "aps5")) return &ui.show_aps5;
+    if (!strcmp(key, "diag")) return &ui.show_diag;
+    if (!strcmp(key, "printer")) return &ui.show_printer;
+    if (!strcmp(key, "terminal")) return &ui.show_terminal;
+    return nullptr;
+}
+
+// A machine started: the windows of its "windows" open (they come on top with the screen focus).
+static void open_machine_windows(App& app)
+{
+    app.top_windows.clear();
+    Machine* m = app.host.machine();
+    if (!m || !m->config.contains("windows") || !m->config["windows"].is_array()) return;
+    for (const nlohmann::json& k : m->config["windows"]) {
+        if (!k.is_string()) continue;
+        std::string key = k.get<std::string>();
+        for (int i = 0; i < k_machine_window_count; i++) {
+            if (key != k_machine_windows[i].key) continue;
+            *machine_window_flag(app.ui, k_machine_windows[i].key) = true;
+            app.top_windows.push_back(k_machine_windows[i].title);
+        }
+    }
+}
+
+// The keyboard to the screen window after a machine starts. Focusing raises a window, so the windows that were
+// in front of the screen stay in front (the screen would cover the Minigraf window with READY or the Media
+// window), and the windows of the machine (top_windows) come on top, in a dock their tab is selected.
+static void focus_screen_window(App& app)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
     if (!screen) return;
+    ImVector<ImGuiWindow*> top;
+    for (const char* t : app.top_windows) {
+        ImGuiWindow* w = ImGui::FindWindowByName(tr_id(t));
+        if (w && (w->Active || w->WasActive) && w->RootWindowDockTree != screen->RootWindowDockTree) {
+            ImGui::FocusWindow(w);
+            top.push_back(w->RootWindowDockTree);
+        }
+    }
     int at = g.Windows.index_from_ptr(g.Windows.find(screen->RootWindowDockTree));
     ImVector<ImGuiWindow*> front;   // back to front, as g.Windows
     for (int i = at + 1; i < g.Windows.Size; i++) {
@@ -562,6 +610,7 @@ static void focus_screen_window(void)
     }
     ImGui::FocusWindow(screen);
     for (ImGuiWindow* w : front) ImGui::BringWindowToDisplayFront(w);
+    for (ImGuiWindow* w : top) ImGui::BringWindowToDisplayFront(w);
 }
 
 // View -> Default window layout: every window undocked, at the place and size it gets at its first use
@@ -1130,6 +1179,12 @@ void draw_error(App& app)
 
 } // namespace
 
+const MachineWindow* machine_windows(int* count)
+{
+    *count = k_machine_window_count;
+    return k_machine_windows;
+}
+
 int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snap, const std::string& settings_file)
 {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
@@ -1285,6 +1340,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator
             app.title_gen = app.host.machine_generation();
             set_title(app);
+            open_machine_windows(app);
             app.focus_screen = 3;
         }
         if (app.ui.quit || app.host.quit_requested) app.quit = true;
@@ -1346,7 +1402,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_error(app);
         if (app.focus_screen > 0) {   // after the windows that opened with the machine
             app.focus_screen--;
-            if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window();
+            if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window(app);
         }
         ImGui::Render();
 

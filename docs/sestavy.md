@@ -268,6 +268,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 {
     "name": "…",                      // název v titulku a v menu
     "description": "…",               // volitelný popis
+    "windows": [ "minigraf" ],        // volitelné: okna nahoře po spuštění
     "power_on_memory": "random",      // volitelné: náhodný obsah pamětí po zapnutí (výchozí "zero")
     "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
     "cards": [
@@ -282,6 +283,12 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   výchozí nuluje (textové displeje plní mezerami), s `"random"` je naplní náhodně (při každém zapnutí jinak).
   Hodí se na programy, které spoléhají na vymazanou paměť (podnět z portu Prince of Persia). Paměti se
   zálohou z baterie (DMR-1, CRM-1) a RAM disky mají dál obsah ze souboru.
+- **Okna nahoře po spuštění** (`windows`, v konfigurátoru řádek zaškrtávátek „Okna nahoře po spuštění“): okna,
+  která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad okno Sestava. Klávesnice
+  zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač Minigraf), `aps5` (panel APS-5), `diag`
+  (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál). Okno v doku dostane vybranou
+  záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `rmp1_jb_izot`,
+  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky).
 - **Sběrnice:**
 
   | Typ | Pozic | JP3 |

@@ -16,7 +16,7 @@ obrázky nakreslil emulátor. Jak je plotter zapojený a co je odhad, popisuje `
 
 1. Soubor → Otevřít sestavu → `plotter_ar1990.sapi`. Sestava je jen deska JPR-1, obrazovka zůstane prázdná.
 2. Otevře se okno **Minigraf** s panelem plotteru: kontrolky PWR, RDY, BUFF, tlačítka STOP, TEST, READY a
-   přepínače.
+   přepínače. Sestava ho má v „Oknech nahoře po spuštění“, takže je nad ostatními okny, i nad oknem Sestava.
 3. Plotter po zapnutí **pípá a čeká**. Stiskněte **READY**: vozík najede na levý doraz (Minigraf nemá koncové
    spínače, chvíli drnčí o doraz) a popojede o 10 mm. To je počátek. Kontrolka BUFF svítí, buffer je prázdný.
 
