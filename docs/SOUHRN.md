@@ -61,6 +61,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - autor ověřil inicializaci jednotky 1 a kopii páska → páska programem MTCOPY (řetězce MTKAN v návodu
     `docs/navod-rmp1.md`, kapitoly 5 a 6); MTDAT umí jen jednotku 0; MTCOPY počítá v EOF1 jen plné bloky
     (`docs/desky/RMP-1.md`). Sestava `rmp1_jb_izot.sapi` má od autora jednotku 1 bez pásky. Pushnuté 2026-10-10.
+  - pak: okno Média ukazuje jméno pásky z VOL1 a soubory z HDR1/HDR2 (pro řetězce MTCOPY), jednotka pásky má
+    pevnou výšku (neposkakuje), okno obrazovky má po spuštění emulátoru i sestavy fokus. Pushnuté 2026-10-10.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).
