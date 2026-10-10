@@ -24,8 +24,6 @@ KZD-1 a zapisovač ARITMA Minigraf 0507. Emulátor má vestavěný MCP server pr
 
 ![Deska DPS-1 a měřicí pracoviště IMS-2: BASIMS z kazety měří ve smyčce voltmetrem Metra M1T 330 napětí zdroje Tesla BS 525, výstup II s přetíženou zátěží omezuje proud](docs/img/dps1-ims2-mereni.png)
 
-![Konfigurátor sestavy: panel desky DPS-1 s konektorem FRB 30 pro kabel IMS-2](docs/img/panel-dps1.png)
-
 ## Stažení
 
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,

@@ -87,7 +87,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `SMYCKA` (nahraná skriptem `tools/dps1_kazeta.py` v emulátoru, WAV 22050 Hz 8 bitů, MP3 rozbije předěl), část
   `kazeta` testu `test_dps1`, návod (nahrání a uložení vlastního programu: `.G4403`, ne `.B`, ten u BASIMS
   smaže program). Konfigurátor: konektory na panelu DPS-1 (FRB 30 „IMS-2“) a DPP-1 (dva FRB 30, K3 a K2).
-  Snímky do README (`docs/img/dps1-ims2-mereni.png`, `panel-dps1.png`, `panel-dpp1.png`). Při nich nalezená chyba
+  Snímky: README `docs/img/dps1-ims2-mereni.png`, panely `panel-dps1.png` a `panel-dpp1.png` jen v `docs/sestavy.md`
+  a návodu (z README autor panel zatím vyndal, třeba se bude hodit). Při nich nalezená chyba
   uloženého stavu: po načtení do nového stroje se voltmetr připojil ke sběrnici dřív než deska, REN na okamžik
   zmizel a první odpověď přišla bez `V`. Oprava `Ims2Bus::attach_loaded`, test v `test_dps1`. Pushnuto 2026-10-10.
 - **2026-10-10: zasekávání FXS4 u L. Lasoty, jeho zjištění** (autor předal e-maily). Příčiny jsou dvě a sčítají se:
