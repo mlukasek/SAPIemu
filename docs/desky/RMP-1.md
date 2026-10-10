@@ -118,8 +118,14 @@ PON (D7A) se nastaví resetem a dokud ho program nezruší bitem RPON, nejdou po
     místo 000001 a 000005;
   - v HDR2 a EOF2 je ve sloupci 37 (řídicí znaky) `A`, MTDAT tam píše mezeru.
 
-  Zdroják MTCOPY je zpětně získaný a cesta zápisu posledního bloku v něm není dohledaná do konce. Emulace na
-  počitadlo v programu vliv nemá.
+  **Je to chyba MTCOPY, přesněji starší knihovny MTKAN, se kterou je slinkovaný.** MTKAN.MAC na disketě je verze
+  V060588JB (6. 5. 1988). Při uzavření souboru zapíše poslední, zkrácený blok a připočte ho (`pripocti posledni
+  blok`). MTDAT.COM (V070588JB) má v kódu dvě zvýšení počitadla bloků: plný blok a poslední blok při uzavření.
+  MTCOPY.COM (V041287JB, prosinec 1987) má jen jedno, poslední blok tedy zapíše, ale nezapočítá. Data na pásce jsou
+  celá, MTKAN počet v EOF1 při čtení nekontroluje, takže MTDAT i DIRMT kopii přečtou. Systém velkého počítače
+  (OS EC podle vzoru IBM OS) počet bloků v návěští při čtení kontroluje, tam by nesouhlas nejspíš vadil.
+  Ověřeno ve strojovém kódu obou programů (`LD HL,(cnt) / INC HL / LD (cnt),HL`), zdroják MTCOPY je zpětně
+  získaný. Sloupec 37 v HDR2 (`A`) je nejspíš také rozdíl verzí knihovny, pro čtení nevadí.
 - **MTZAP / MTCTE:** zkušební zápis 255 bloků s větou „Toto je prvni zapsany a precteny blok dat pocitacem
   SAPI-1/CPM na magneticke pasce IZOT CM 5300.01“ a TM, MTCTE je přečte. Bíbova první zkouška pásky.
 - **Ukázková páska** `media/rmp-1/sapi01_ukazka.tap`: páska SAPI01 se dvěma soubory, MTZAP (MTZAP.MAC) a MTDATMAN

@@ -221,7 +221,10 @@ Kopie má stejná data bajt po bajtu. Návěští se od pásky zapsané programe
   u kopie ukáže v „db“ 000000 a 000004 místo 000001 a 000005;
 - **v HDR2 a EOF2 je ve sloupci 37 `A`** (řídicí znaky ASA), MTDAT tam píše mezeru.
 
-Oboje je vlastnost programu MTCOPY, emulace na to vliv nemá.
+Je to chyba programu MTCOPY, emulace na to vliv nemá. MTCOPY je slinkovaný se starší verzí knihovny MTKAN, která
+poslední blok souboru zapíše, ale nezapočítá. Novější MTDAT ji už má opravenou. Data jsou celá a MTDAT i DIRMT
+kopii přečtou. Velký počítač, který počet bloků v EOF1 kontroluje, by ale nejspíš ohlásil nesouhlas. Pro výměnu
+dat s ním je bezpečnější soubory kopírovat přes disketu programem MTDAT (jen jednotka 0).
 
 ## 7. Zkouška pásky: MTZAP a MTCTE
 
