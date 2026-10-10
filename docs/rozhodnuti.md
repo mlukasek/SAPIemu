@@ -1586,3 +1586,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Opravená disketa má MTCOPYO místo MTCOPY** (na originálu jsou volné jen 2 KB). Originál zůstává
   v `a_lad_izo.img` a sestava `rmp1_jb_izot.sapi` ho dál používá. Opravená kopie se vkládá v okně Média, stejně
   jako `CKM_opraveny.hex` stojí vedle originálu CKM.
+
+## 2026-10-10 – zasekávání FXS4 (zjištění L. Lasoty)
+
+- **Chyby JPR-1Z/1V se zatím neemulují** (autor vybral zápis do dokumentace a zkoušku v emulátoru, ne emulaci):
+  výběr grafické karty při INTA (STSTB i od /IORQ, RDY se neuvolní) a RESET jen s /M1. Program, který zabloudí
+  nad BFFFh s povoleným přerušením, tak v SAPIemu běží dál, na železe se zasekne. Kdyby se emulace dělala, pak
+  přepínatelně podle revize (originál / Liborova záplata IC15), až bude záplata známá.

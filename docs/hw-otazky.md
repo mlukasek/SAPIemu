@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **231** v 47 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **235** v 48 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -59,16 +59,11 @@ Otevřených bodů: **231** v 47 sekcích. Desky jsou první, pak ostatní téma
    z EPROM.
 
 
-## [AND-1V – alfanumerický displej s výstupem VGA (Libor Lasota, podle AND-1Z)](desky/AND-1V.md) – Nejasnosti k ověření (2)
+## [AND-1V – alfanumerický displej s výstupem VGA (Libor Lasota, podle AND-1Z)](desky/AND-1V.md) – Nejasnosti k ověření (1)
 
 - **Čekací stavy na skutečné desce:** spustit VRAMBENCH (`media/and-1v/vrambench.hex`, v CP/M `SAVE 6
   VRAMBENCH.COM`, pak `VRAMBENCH`) s TURBO zapnutým i vypnutým a porovnat s emulací: 4 MHz 23,99 / 22,41,
   2 MHz 22,97 / 21,76 T na bajt (paměť → AND-1V / AND-1V → paměť). Zpoždění v modelu jsou převzatá z CGA-1V.
-
-- **STSTB při refreshi:** pokud JPR-1V dá STSTB i v cyklu refreshe a registr I ukazuje do F8–FF, nastaví
-  IC7A RDY bez žádosti /MR, /MW. Podle schématu ho pak uvolní jen dokončený přístup do karty, IN/OUT nebo
-  /RES, a protože CPU s RDY dole stojí, zůstal by stát. Stane se to na skutečné sestavě (třeba s I = F8h),
-  nebo JPR-1V při refreshi STSTB nedává? Emulace STSTB při refreshi nedává.
 
 
 ## [AND-1Z / AND-1Z-89 – alfanumerický displej](desky/AND-1Z-89.md) – Nejasnosti (ověřit na HW) (4)
@@ -140,12 +135,16 @@ Otevřených bodů: **231** v 47 sekcích. Desky jsou první, pak ostatní téma
 7. Kdo napsal hru „auto“?
 
 
-## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (3)
+## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (4)
 
 - `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
   to omylem, nebo k jiné desce?
 
 - Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
+
+- **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
+  nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz
+  `JPR-1V.md`. Emulace výběr karty při INTA nedělá. Ověřit po Liborově záplatě IC15 na JPR-1V.
 
 - Samostatný dokument „Programování karty“ (datasheet str. 7 na něj odkazuje) zatím nemáme.
 
@@ -186,11 +185,14 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Má autor DGD-1 nebo fotku obrazovky s grafikou pro porovnání (poměr stran, polarita)?
 
 
-## [DGD-1V – grafický displej 320×240 s výstupem VGA (Libor Lasota)](desky/DGD-1V.md) – Nejasnosti (2)
+## [DGD-1V – grafický displej 320×240 s výstupem VGA (Libor Lasota)](desky/DGD-1V.md) – Nejasnosti (3)
 
 - Přesný počet čekacích taktů (synchronizace IC4A/B).
 
 - Výchozí adresa C000h jako DGD-1 (autor), sestava stejně.
+
+- **INTA s PC v okně karty** (L. Lasota 2026-10-10): stejně jako u CGA-1V a AND-1V by STSTB při INTA
+  nastavil RDY bez žádosti CPU a sběrnice by stála, viz `JPR-1V.md`. Ověřit i na DGD-1V.
 
 
 ## [DPP-1 – deska paralelních portů](desky/DPP-1.md) – Nejasnosti k ověření na HW (2)
@@ -312,6 +314,17 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 8. `TEST AND1/AND1A/AND1B` je v 2.1 prázdný (`ret`). Asi záměr.
 
 
+## [JPR-1V – procesorová deska Z80 (Libor Lasota, upgrade JPR-1Z)](desky/JPR-1V.md) – Nejasnosti k ověření (2)
+
+- **Záplata STSTB při INTA** (L. Lasota, 2026-10-10): přesné zapojení (přeškrab, IC15 piny 3–4) a které karty
+  STSTB při I/O potřebují. Podle [S4] je STSTB z /IORQ oprava pro mapování, po záplatě se to musí ověřit
+  s RAM-1V (registr MAP 63h), DSM-1V a ostatními.
+
+- **FXS4 a přepisované definice znaků:** na Liborově sestavě se po čase přepisuje font FXS4 a nakonec se program
+  zasekne. Podle Libora se v 1.0.1 přerušení přijalo s PC > BFFFh. V SAPIemu PC při INTA nad 904Fh nebylo
+  (9. 10.). Zkouška fontu: viz `docs/SOUHRN.md` (2026-10-10).
+
+
 ## [JPR-1X – procesorová deska 80C85 (Libor Lasota, rev 1.0, 2025)](desky/JPR-1X.md) – Nejasnosti k ověření (HW / autor) (8)
 
 3. Rezistor na zadní straně: podle článku na 8bity.cz pull-up 4k7 na D3, protože některé Mitsubishi 8085 při čtení
@@ -335,9 +348,13 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 10. Procesor 8085: příznaky V a K, DSUB/ARHL a časování přijetí RST 7.5/TRAP (`docs/8085.md`, Nejasnosti).
 
 
-## [JPR-1Z – procesorová deska Z80 pro ZPS-4](desky/JPR-1Z.md) – Nejasnosti (2)
+## [JPR-1Z – procesorová deska Z80 pro ZPS-4](desky/JPR-1Z.md) – Nejasnosti (3)
 
 - Originální boot EPROM ZPS-4 (Tesla IMA) a systémová disketa.
+
+- **STSTB při INTA a RESET jen s /M1** (L. Lasota 2026-10-10 píše o JPR-1Z/1V): dává JPR-1Z STSTB i od /IORQ
+  jako JPR-1V a je RESET synchronizovaný s /M1? Záplata pro refresh na JPR-1Z podle Libora je. Popis v
+  `JPR-1V.md`.
 
 - Která ROM ELIS patří k disketě ELIS (v3.00 má C262.3, disketa hlásí C259.11)?
 

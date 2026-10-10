@@ -73,6 +73,20 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5). Návod
     `docs/navod-rmp1.md`, kapitola 6: kopie pásky krok za krokem s výpisy z emulátoru, chyba původního MTCOPY
     a co je v opravě. Pushnuté 2026-10-10.
+- **2026-10-10: zasekávání FXS4 u L. Lasoty, jeho zjištění** (autor předal e-maily). Příčiny jsou dvě a sčítají se:
+  JPR-1Z/1V dávají STSTB i při INTA, takže přerušení s PC v okně grafické karty (≥ C000h) nastaví RDY, které se
+  už neuvolní. A RESET se vzorkuje jen s /M1, proto zaseknutý stroj nezresetuje. Libor chystá záplatu (od /IORQ
+  STSTB negenerovat, IC15). Zapsáno v `docs/desky/JPR-1V.md`, Nejasnosti CGA-1V, AND-1V (otázka STSTB při
+  refreshi vyřešená: záplata na deskách), DGD-1V, JPR-1Z, `docs/hw-otazky.md`. Emulace to zatím nedělá (autor:
+  zatím jen zápis a zkouška).
+  - **Zkouška fontu v SAPIemu:** Libor vidí, že se po čase přepisují definice znaků. V SAPIemu na jeho sestavě
+    (`libor.sapi` z 9. 10.: JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, DGD-1V, CGA-1V, MPH-1V) běžel FXS4 3 × 60 min
+    emulovaného času s náhodnými klávesami a znaky na sériové lince: 1.0.1 s I = C3h při 4 i 2 MHz, vydaná 1.0.2
+    při 4 MHz. Font (0E19h–1118h, znaky 20h–7Fh) zůstal pokaždé beze změny. Z obrazu programu 0100h–9F34h se
+    mění jen asi 215 bajtů proměnných (117Bh–1264h, 4E59h–4F0Dh, 527Ch–529Ah, 8926h, 8E2Ch–8E35h, 8F82h–8F96h,
+    9064h–90C6h). Program sám font nepřepisuje, poškození vzniká na železe. Výpis paměti ze zaseknutého stroje
+    porovnaný s HEXem by ukázal, co dalšího se poškodilo (mimo uvedené rozsahy je každá změna chyba). Skript
+    `fxs_font.py` je jen v scratchpadu sezení.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).

@@ -157,4 +157,7 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
   dává 1,27 T (při 4 MHz i u čtení sedí). Nemá JPR-1V při 2 MHz jinou střídu taktu, nebo není /WR vůči
   sestupné hraně T2 zpožděné víc? Pomohl by osciloskop na /WR, QA a RDY při `LDIR` do karty.
 - Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
+- **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
+  nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz
+  `JPR-1V.md`. Emulace výběr karty při INTA nedělá. Ověřit po Liborově záplatě IC15 na JPR-1V.
 - Samostatný dokument „Programování karty“ (datasheet str. 7 na něj odkazuje) zatím nemáme.

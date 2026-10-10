@@ -57,10 +57,19 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - [S4]: s rychlejším oscilátorem stabilně sběrnice 5 MHz a CPU 10 MHz (osc/4, osc/2).
 - **STSTB:** impuls na začátku každého cyklu paměti i I/O (včetně INTA), **kromě refreshe**. U JPR-1ZI je STSTB
   jen z /MREQ. [S4] to popisuje jako opravu generování STSTB pro mapování.
+  - **STSTB při INTA zablokuje sběrnici** (L. Lasota 2026-10-10, ověřeno pokusem): při potvrzení přerušení je na
+    sběrnici PC. Když je v okně grafické karty (třeba ≥ C000h u CGA-1V, DGD-1V), karta na STSTB stáhne RDY,
+    ale /MR ani /MW nepřijde, takže RDY už neuvolní a CPU stojí v čekacích taktech navždy. Stačí, aby přerušení
+    přišlo, když program běží nad BFFFh, nebo když je v PC chvíli nesmyslná adresa ze zásobníku.
+  - **Záplata** podle Libora jako u refreshe: od /IORQ STSTB negenerovat (jeden přeškrab a propojení pinů 3–4
+    IC15). Zbývá ověřit kompatibilitu s ostatními kartami.
 - **RDY a DGD-1:** „nelze použít DGD-1 jako prostou RAM – zůstane viset RDY při BOOT“ [S2]. DGD-1 začne čekání
   na STSTB s adresou, ale při čtení ROM 0000–07FF nedostane /MR.
 - **Reset:** tlačítko je ošetřené proti zákmitům, synchronizované s /M1 a zkrácené monostabilním obvodem
   („zkrácený RESET pro součinnost s DRAM“), sečtené s power-on resetem MCP100.
+  - **Důsledek** (L. Lasota 2026-10-10): tlačítko se vzorkuje jen během /M1. Když CPU stojí v čekacích taktech
+    (zablokované RDY, viz STSTB při INTA), M1 nepřijde a RESET nezabere, pomůže jen vypnutí. Platí pro JPR-1Z
+    i JPR-1V.
 - /REF = /RFSH OR /MREQ jako JPR-1ZI.
 
 ## Software (EEPROM 28C64)
@@ -81,7 +90,19 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - sběrnice 2 MHz, CPU 2/4 MHz podle TURBO (přepínatelné za chodu), oscilátor jako parametr.
 - Parametry: `rom` (8 KB) nebo `bank0`/`bank1`, `bios` (osazená/rozpojená), `turbo`, `osc_hz`.
 - TURBO desky JPR-1V je jen takt CPU. Rychlost celé emulace je zvlášť (F8, menu Stroj → Rychlost emulace).
+- **Zatím se neemuluje:** výběr karty při INTA (zablokované RDY) a RESET jen s /M1. Program, který s povoleným
+  přerušením zabloudí nad BFFFh, v emulátoru běží dál, na železe se zasekne. Kdyby se to emulovalo, pak
+  přepínatelně (originál / Liborova záplata IC15).
 
 ## Otázky pro autora
 
 Jsou souhrnně v `docs/SOUHRN.md` (bod 21).
+
+## Nejasnosti k ověření
+
+- **Záplata STSTB při INTA** (L. Lasota, 2026-10-10): přesné zapojení (přeškrab, IC15 piny 3–4) a které karty
+  STSTB při I/O potřebují. Podle [S4] je STSTB z /IORQ oprava pro mapování, po záplatě se to musí ověřit
+  s RAM-1V (registr MAP 63h), DSM-1V a ostatními.
+- **FXS4 a přepisované definice znaků:** na Liborově sestavě se po čase přepisuje font FXS4 a nakonec se program
+  zasekne. Podle Libora se v 1.0.1 přerušení přijalo s PC > BFFFh. V SAPIemu PC při INTA nad 904Fh nebylo
+  (9. 10.). Zkouška fontu: viz `docs/SOUHRN.md` (2026-10-10).

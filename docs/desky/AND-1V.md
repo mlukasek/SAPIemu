@@ -97,7 +97,9 @@ Zdroje:
 - **Čekací stavy na skutečné desce:** spustit VRAMBENCH (`media/and-1v/vrambench.hex`, v CP/M `SAVE 6
   VRAMBENCH.COM`, pak `VRAMBENCH`) s TURBO zapnutým i vypnutým a porovnat s emulací: 4 MHz 23,99 / 22,41,
   2 MHz 22,97 / 21,76 T na bajt (paměť → AND-1V / AND-1V → paměť). Zpoždění v modelu jsou převzatá z CGA-1V.
-- **STSTB při refreshi:** pokud JPR-1V dá STSTB i v cyklu refreshe a registr I ukazuje do F8–FF, nastaví
+- **Vyřešeno 2026-10-10 (L. Lasota): STSTB při refreshi** JPR-1Z a JPR-1V nedávají díky záplatě na deskách.
+  Obdobný problém s INTA (PC v okně karty) popisuje `JPR-1V.md` (STSTB). Původní otázka: pokud JPR-1V dá STSTB
+  i v cyklu refreshe a registr I ukazuje do F8–FF, nastaví
   IC7A RDY bez žádosti /MR, /MW. Podle schématu ho pak uvolní jen dokončený přístup do karty, IN/OUT nebo
   /RES, a protože CPU s RDY dole stojí, zůstal by stát. Stane se to na skutečné sestavě (třeba s I = F8h),
   nebo JPR-1V při refreshi STSTB nedává? Emulace STSTB při refreshi nedává.

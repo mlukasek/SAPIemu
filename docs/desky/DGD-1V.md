@@ -51,3 +51,5 @@ Okno GUI „DGD-1V“, snímek přes MCP `screenshot display=DGD-1V` a `sapiemu-
 
 - Přesný počet čekacích taktů (synchronizace IC4A/B).
 - Výchozí adresa C000h jako DGD-1 (autor), sestava stejně.
+- **INTA s PC v okně karty** (L. Lasota 2026-10-10): stejně jako u CGA-1V a AND-1V by STSTB při INTA
+  nastavil RDY bez žádosti CPU a sběrnice by stála, viz `JPR-1V.md`. Ověřit i na DGD-1V.
