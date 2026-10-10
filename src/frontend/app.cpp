@@ -14,6 +14,7 @@
 
 #include <SDL3/SDL.h>
 #include "imgui.h"
+#include "imgui_internal.h"   // the default window layout: docking and window flags
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
@@ -61,6 +62,8 @@ struct App {
     int tex_w = 0, tex_h = 0;
     std::vector<uint32_t> pixels;
     ZoomState screen_zs;          // of the console screen
+    ImGuiID dockspace_id = 0;     // the dock space over the main window
+    bool reset_layout = false;    // View -> Default window layout: done before the next frame's windows
     int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
@@ -532,9 +535,38 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
     float pad = 2.0f * (k_display_pad + k_zoom_margin);   // a small border around the picture
     ImVec2 s(d->screen_width() * display_px_aspect(app, d) * k / fb + pad,
              d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
+    ImGui::SetNextWindowDockID(0, ImGuiCond_Always);   // a docked window takes the size of its dock: undock it
     ImGui::SetNextWindowSize(s);
     zs.fixed = k;
     zs.size = s;
+}
+
+// View -> Default window layout: every window undocked, at the place and size it gets at its first use
+// (the windows that give none go to the top left), not collapsed; the screen fits its window again.
+static void reset_window_layout(App& app)
+{
+    ImGuiContext& g = *GImGui;
+    if (app.dockspace_id) ImGui::DockBuilderRemoveNodeDockedWindows(app.dockspace_id, true);
+    ImGuiViewport* vp = ImGui::GetMainViewport();
+    for (ImGuiWindow* w : g.Windows) {
+        if (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
+                        ImGuiWindowFlags_NoTitleBar))
+            continue;   // the menu bar, the dock space host, popups
+        if (w->DockNodeAsHost) continue;
+        if (w->DockId) ImGui::SetWindowDock(w, 0, ImGuiCond_Always);
+        ImGui::SetWindowCollapsed(w, false);
+        ImGui::SetWindowPos(w, ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 10.0f));
+        // after them (they clear it): the next Begin takes the first use place and size again
+        w->SetWindowPosAllowFlags |= ImGuiCond_FirstUseEver;
+        w->SetWindowSizeAllowFlags |= ImGuiCond_FirstUseEver;
+        w->SetWindowCollapsedAllowFlags |= ImGuiCond_FirstUseEver;
+    }
+    app.screen_zs.fixed = 0;
+    app.screen_zs.request = 0;
+    for (GfxView& v : app.gfx) {
+        v.zs.fixed = 0;
+        v.zs.request = 0;
+    }
 }
 
 // After Begin: resizing the window by hand (or docking it) goes back to fitting.
@@ -724,7 +756,6 @@ void draw_menu(App& app)
                 rack_set_live_param(app.ui, m->cpu, "bios", bank1 ? "fitted" : "open");
         }
         ImGui::Separator();
-        ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
         KeyboardDevice* kb = m ? m->keyboard() : nullptr;
         if (ImGui::BeginMenu(tr("Keyboard"), m != nullptr)) {
             for (const KeyboardPreset& p : keyboard_presets()) {
@@ -784,6 +815,7 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("View"))) {
+        ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer);
@@ -806,6 +838,11 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
+        ImGui::Separator();
+        if (ImGui::MenuItem(tr("Default window layout"))) app.reset_layout = true;
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", tr("Undocks all windows (a window dragged to an edge sticks there) and puts them "
+                                       "back at their first places and sizes."));
         ImGui::Separator();
         if (ImGui::BeginMenu("Jazyk / Language")) {   // in both languages: findable in either
             UiLanguage cur = i18n_language();
@@ -1261,7 +1298,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         // loses focus (debugger, configurator...); the SAPI keyboard and the serial
         // terminal need it all the time, otherwise no characters arrive.
         if (!SDL_TextInputActive(app.window)) SDL_StartTextInput(app.window);
-        ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+        if (app.reset_layout) {   // before the dock space and the windows of this frame
+            reset_window_layout(app);
+            app.reset_layout = false;
+        }
+        app.dockspace_id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
         draw_menu(app);
         draw_screen(app);
         draw_graphic_screens(app);
@@ -1285,6 +1326,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         SDL_SetRenderDrawColor(app.renderer, 24, 24, 24, 255);
         SDL_RenderClear(app.renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.renderer);
+        if (snap && snap_frames == 3) {   // the menu items, after the windows have their places
+            if (snap->reset_layout) app.reset_layout = true;
+            if (snap->zoom) app.screen_zs.request = snap->zoom;
+        }
         if (snap && ++snap_frames == 2) {
             // follow_machine() has run: open the requested description, select the slot
             if (!snap->open.empty()) rack_open_in_editor(app.ui, snap->open);

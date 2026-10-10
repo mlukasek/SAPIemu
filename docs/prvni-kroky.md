@@ -77,12 +77,16 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
     program v BASICu;
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
-- **Sestava a karty:** Stroj → Konfigurace. Panely karet jako na skutečném počítači, propojky karet, mapa portů
+- **Sestava a karty:** Zobrazení → Sestava…. Panely karet jako na skutečném počítači, propojky karet, mapa portů
   a paměti. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí). Některé propojky platí hned („platí hned“), ostatní změny se
   projeví až tlačítkem „Restartovat s touto sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo
   nahoře v hlavním okně).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV,
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows).
+- **Okno přilepené ke kraji:** okno přetažené ke kraji hlavního okna se přilepí (zadokuje) a jeho velikost pak
+  určuje přilepená plocha. Odlepí se tažením **za název** v záložce titulku, volbou zvětšení (100–400 %) nebo
+  **Zobrazení → Výchozí rozložení oken**, které vrátí všechna okna na výchozí místa a velikosti. S podrženým
+  Shiftem se okno při tažení nepřilepí.
 - **Média:** mechaniky jsou očíslované podle řadiče (0–3) a za číslem je jejich písmeno v CP/M (ze sestavy,
   nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3, nebo program HEX/BIN, který se převede na kazetu MIKOS či MIKROBASIC; „Uložit jako WAV…“ pro skutečné SAPI) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji

@@ -1538,3 +1538,11 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   je jako na kabelu, takže plotter přijímá tempem programu (buffer 256 znaků).
 - **Celý test** (tlačítko): TEST podržený při resetu JPR-1, protože v GUI nejde stihnout stisk při zapnutí. Reset
   vynuluje výstupy, motory skočí do fáze 0 a pár kroků se ztratí. Je to věrné, a tak to zůstává.
+
+## 2026-10-10 – rozložení oken
+
+- **Zobrazení → Výchozí rozložení oken** (autor: „může na to narazit kdokoli“): okno přetažené ke kraji se
+  zadokuje (ImGui docking) a pak ho řídí dok, ne zoom. Položka odlepí všechna okna, vrátí je na místa a velikosti
+  z prvního spuštění a obrazovku přepne na přizpůsobení oknu. Volba zoomu (menu i pravé tlačítko) zadokované okno
+  sama odtrhne, aby zoom fungoval.
+- **Sestava… je v menu Zobrazení** (autor: je to zapnutí a vypnutí okna, nic jiného nekonfiguruje), ne ve Stroji.

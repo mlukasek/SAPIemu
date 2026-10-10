@@ -545,7 +545,7 @@ sestava, okno, otevřená okna, zobrazení, terminál, rychlost. Opravené pády
 klávesnice) a ztráta psaní po použití textového pole ImGui. F8 přepíná rychlost emulace 100/200/400 %/max
 (2026-10-04, dřív TURBO 2 / 4 MHz / max).
 
-**Hotové: konfigurátor sestavy (Stroj → Sestava…), návod `docs/sestavy.md`.**
+**Hotové: konfigurátor sestavy (Zobrazení → Sestava…, do 2026-10-10 v menu Stroj), návod `docs/sestavy.md`.**
 - Čelní pohled na rám (X1 vpravo, panely SPN a ZDR). Kliknutím na slot se karta vloží, vymění nebo nastaví
   (jumpery, ROM, obrazy).
 - Katalog karet (`src/cards/catalog.cpp`) zná i karty, které zatím nejsou emulované. Ty jsou šedé a na sběrnici

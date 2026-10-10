@@ -32,6 +32,8 @@ struct UiSnapshot {
     std::vector<std::string> set;   // "SLOT:KEY=VALUE": a change in the configurator, not applied
                                     // (VALUE as JSON, else a string)
     int w = 0, h = 0;        // window size in points (0 = the default)
+    int zoom = 0;            // the zoom of the screen chosen from the menu (100, 200...; 0 = none)
+    bool reset_layout = false;   // View -> Default window layout
 };
 
 // Runs the SDL3/ImGui frontend; returns the process exit code. An empty

@@ -4,7 +4,7 @@ Sestava je popis počítače: sběrnice, karty ve slotech a jejich jumpery. Je u
 (JSON s komentáři). Emulátor sestavy hledá ve složce `machines/` vedle sebe (i v podsložkách), ale soubor může
 ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigurátoru.
 
-## Konfigurátor (Stroj → Sestava…)
+## Konfigurátor (Zobrazení → Sestava…)
 
 - **Čelní pohled na rám:** sloty X1…Xn zprava doleva, vpravo panely SPN a ZDR.
   - Panely jsou kreslené podle tiskových podkladů hliníkových štítků z rámu Libora Lasoty
@@ -304,6 +304,7 @@ vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otev�
 se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou),
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
 `--ui-copy` zkopíruje snímek do schránky (Zobrazení → Kopírovat snímek; přepíše schránku),
+`--ui-zoom 200` zvolí zoom obrazovky jako z menu, `--ui-reset-layout` Zobrazení → Výchozí rozložení oken,
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
 v něm vybere od řádku 0, hranice 7 po řádek 4, hranici 12),

@@ -52,6 +52,7 @@ static void print_help(void)
            "                     --ui-drag FROM:TO[:drop]: drag a card in the configurator (and drop it),\n"
            "                     --ui-screen-menu: the right click menu of the screen, --ui-shot: a screenshot (Ctrl+F5),\n"
            "                     --ui-copy: the screenshot to the clipboard (View -> Copy screenshot),\n"
+           "                     --ui-zoom PCT: the screen zoom from the menu, --ui-reset-layout: View -> Default window layout,\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
            "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied)\n"
@@ -210,6 +211,8 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-open" && i + 1 < argc) snap.open = argv[++i];
         else if (a == "--ui-map") { snap.map = true; snap.rack = true; }
         else if (a == "--ui-media") snap.media = true;
+        else if (a == "--ui-zoom" && i + 1 < argc) snap.zoom = atoi(argv[++i].c_str());
+        else if (a == "--ui-reset-layout") snap.reset_layout = true;
         else if (a == "--ui-set" && i + 1 < argc) snap.set.push_back(argv[++i]);
         else if (a == "--ui-printer") snap.printer = true;
         else if (a == "--ui-diag") snap.diag = true;
