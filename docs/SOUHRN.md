@@ -395,7 +395,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
            `FORMRKD.COM` na `a_sluzebni CPM.8sd`; návod `rkd-1.php`, sken `SAPIMAN\Scany dokumentací\RKD1.pdf`;
         3. **DSE-1** (simulátor a programátor EPROM 2716/2732, F0–F4h): programy pro MONITOR V4 (`SAPI_EPROM\ZPS-2\V4\
            DSE-1_1000H_programator.BIN`), CP/M `DSE.COM` (`PERINA\dse.8sd`) a `SIMPROG` (`SAPI15\SimProg_opr`);
-        4. **DPS-1** (sběrnice IMS-2 / IEEE-488, 30–37h): BASIMS4.SYS je už v `media/rpd-1/MIKOS_D_V5.0_system.img`,
+        4. ~~**DPS-1**~~ (hotové 2026-10-10, `docs/desky/DPS-1.md`) (sběrnice IMS-2 / IEEE-488, 30–37h): BASIMS4.SYS je už v `media/rpd-1/MIKOS_D_V5.0_system.img`,
            chtělo by to virtuální přístroj (voltmetr M1T330 z návodu);
         5. **RMP-1** (řadič magnetické pásky IZOT): sada pro CP/M (DIRMT, MTCOPY, MTDAT…) na `a_lad_izo.8sd`;
         6. BWP-1 + DTO-1 (tester obvodů autora sapi.cz, 38–3Bh) s programem IOT se zdrojáky.
@@ -409,7 +409,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         2. ~~RKD-1~~ hotové 2026-10-09: karta, sestava `rkd1_tesla_cpm.sapi`, systémová kazeta z originálních
            programů Tesla Elstroj (`docs/desky/RKD-1.md`);
         3. DSE-1 (simulátor a programátor EPROM);
-        4. DPS-1 (IMS-2) s virtuálním voltmetrem, BASIMS4 už máme;
+        4. ~~DPS-1 (IMS-2) s virtuálním voltmetrem~~ hotové 2026-10-10: voltmetr M1T 330, zdroj BS 525, kazeta s BASIMS;
         5. ~~souhrnný seznam otázek k ověření na HW (bod a)~~ hotové, `docs/hw-otazky.md`;
         6. další várka otázek pro EC1045 (bod b);
         7. ~~alfa 0.4.0 pro kamarády~~ připravená 2026-10-09 (`out/package/SAPIemu-0.4.0-alpha-win64.zip`).
