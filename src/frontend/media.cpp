@@ -1256,6 +1256,12 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("The ring in the reel allows writing, without it WPT. Changed only with the tape unthreaded."));
+    // below the buttons a fixed height, loaded or not, the block at the head shown or not: the unit below
+    // stays where it is while the tape moves
+    float L = ImGui::GetTextLineHeightWithSpacing(), sp = ImGui::GetStyle().ItemSpacing.y;
+    float files_h = 3 * L, blk_h = 5 * L, map_h = 2.6f * s + ImGui::GetStyle().ScrollbarSize + 0.4f * s;
+    float body_h = 3 * L + 0.5f * s + sp + files_h + sp + map_h + sp + blk_h + 2 * sp;
+    ImGui::BeginChild("body", ImVec2(0, body_h), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
     if (t.loaded) {
         const char* mot = u.rewinding ? tr("rewinding") : u.dir > 0 ? (u.writing ? tr("forward, writing") : tr("forward"))
                         : u.dir < 0 ? tr("reverse") : tr("stop");
@@ -1269,18 +1275,19 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         for (const MagTape::Record& rec : c.recs) (rec.mark ? marks : data)++;
         ImGui::TextDisabled("%s: %d %s, %d %s", tr("On the tape"), data, tr("blocks"), marks, tr("tape marks"));
         // what the commands of MTDAT, DIRMT and MTCOPY need: the name of the tape, the files with their sizes
+        ImGui::BeginChild("files", ImVec2(-1, files_h), ImGuiChildFlags_None);   // more files: it scrolls
         if (c.code) {
             ImGui::Text("%s %s   %s %c", tr("Tape name (VOL1):"), c.volume.c_str(), tr("code"), c.code);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("%s", tr("The name the programs ask for (MTDAT: Jmeno pasky, MTCOPY: JP)."));
-            for (size_t f = 0; f < c.files.size() && f < 6; f++) ImGui::TextDisabled("  %s", c.files[f].c_str());
-            if (c.files.size() > 6) ImGui::TextDisabled("  %s %d", tr("files more:"), (int)c.files.size() - 6);
+            for (const std::string& f : c.files) ImGui::TextDisabled("  %s", f.c_str());
         } else if (!t.rows.empty()) {
             ImGui::TextDisabled("%s", tr("No VOL1 label (not initialized by MTDAT or MTCOPY)."));
         }
+        ImGui::EndChild();
         // the map: the groups in order, not to scale (the gaps would hide everything)
         float mh = 2.6f * s;
-        ImGui::BeginChild("map", ImVec2(-1, mh + ImGui::GetStyle().ScrollbarSize + 0.4f * s), ImGuiChildFlags_Borders,
+        ImGui::BeginChild("map", ImVec2(-1, map_h), ImGuiChildFlags_Borders,
                           ImGuiWindowFlags_HorizontalScrollbar);
         ImDrawList* md = ImGui::GetWindowDrawList();
         ImVec2 m0 = ImGui::GetCursorScreenPos();
@@ -1331,7 +1338,8 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         ImGui::Dummy(ImVec2(x - m0.x + 0.5f * s, mh));
         ImGui::EndChild();
 
-        // the block last passed under the read head (as the controller reads it)
+        // the block last passed under the read head (as the controller reads it), in its own fixed lines
+        ImGui::BeginChild("blk", ImVec2(-1, blk_h), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
         const MagTape::Record* last = nullptr;
         int idx = 0;
         for (size_t k = 0; k < c.recs.size(); k++)
@@ -1350,13 +1358,15 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
                     n += snprintf(line + n, sizeof(line) - n, " %02X", last->data[off + k]);
                 ImGui::TextUnformatted(line);
             }
-            char txt[161];
+            char txt[81];   // one line of text, what does not fit is cut off
             size_t k;
-            for (k = 0; k < 160 && k < last->data.size(); k++) txt[k] = ebcdic(last->data[k]);
+            for (k = 0; k < 80 && k < last->data.size(); k++) txt[k] = ebcdic(last->data[k]);
             txt[k] = 0;
-            ImGui::TextWrapped("%s", txt);
+            ImGui::TextUnformatted(txt);
         } else if (last) ImGui::TextDisabled("%s %d: %s", tr("Block at the head"), idx, tr("tape mark"));
+        ImGui::EndChild();
     }
+    ImGui::EndChild();
     ImGui::EndGroup();
     ImGui::PopID();
 }

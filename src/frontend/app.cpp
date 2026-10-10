@@ -64,6 +64,9 @@ struct App {
     ZoomState screen_zs;          // of the console screen
     ImGuiID dockspace_id = 0;     // the dock space over the main window
     bool reset_layout = false;    // View -> Default window layout: done before the next frame's windows
+    // frames in which the screen window takes the focus back: after the start of the program and of a machine
+    // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
+    int focus_screen = 3;
     int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
@@ -1262,6 +1265,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator
             app.title_gen = app.host.machine_generation();
             set_title(app);
+            app.focus_screen = 3;
         }
         if (app.ui.quit || app.host.quit_requested) app.quit = true;
         uint64_t now = SDL_GetTicksNS();
@@ -1320,6 +1324,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_rack(app.ui);
         draw_log(app);
         draw_error(app);
+        if (app.focus_screen > 0) {   // after the windows that opened with the machine
+            app.focus_screen--;
+            if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) ImGui::SetWindowFocus("###screen");
+        }
         ImGui::Render();
 
         SDL_SetRenderScale(app.renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
