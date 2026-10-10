@@ -624,6 +624,14 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 
 ## Na promyšlení (nemodelované věci a vylepšení)
 
+- **Médium vložené v okně Média se neobjeví v sestavě** (podnět autora 2026-10-10 u RMP-1, zatím neopravovat,
+  čeká se na další podněty): Nová páska… nebo Vložit… v okně Média vymění pásku jen v běžícím stroji, konfigurátor
+  (Zobrazení → Sestava…) dál ukazuje obraz ze sestavy a nový soubor v nabídce není. Týká se všech výměnných médií
+  (RMP-1, RKD-1, diskety RPD-1/FDC-1/MFC-1A, KZD-1, kazety DSM-1): okno Média do popisu sestavy nezapisuje.
+  Autor chce, aby šla nová páska založit i z konfigurátoru. Návrh k rozhodnutí:
+  - výměna v okně Média se propíše do sestavy jako neuložená změna (oranžově, jako jiné změny za chodu);
+  - v konfigurátoru u obrazu pásky (i diskety, kazety) tlačítko „Nová…“ vedle „…“;
+  - soubory vytvořené za běhu přidat do nabídky obrazů.
 - ~~**AND-1V:** čekací stavy~~ od 2026-10-09 podle schématu (list 4/7, stejný model jako CGA-1V,
   `Bus::window_waits`), měřicí program VRAMBENCH (`media/and-1v`); na skutečné desce zatím neměřené.
 - **JPR-1V:** STSTB bez refreshe (u JPR-1ZI je STSTB jen z /MREQ, což u AND-1Z může při refreshi s I = F8–FF
