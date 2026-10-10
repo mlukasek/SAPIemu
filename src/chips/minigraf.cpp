@@ -52,6 +52,11 @@ void Minigraf::lines_now(void)
     // and the buffers of the DPP-1 (set to output) pass high levels
     uint8_t v = 0xFF;
     if (ppi && !(ppi->control() & 0x02)) v = ppi->out_b;
+    set_lines(v);
+}
+
+void Minigraf::set_lines(uint8_t v)
+{
     if (known && v == last) return;
     double t = now_s();
     if (!known) {   // the motors take this phase, nothing moves

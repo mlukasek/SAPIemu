@@ -75,6 +75,7 @@ public:
     uint8_t peek(uint16_t addr) override;
     void poke_local(uint16_t addr, uint8_t value) override;
     KeyboardDevice* keyboard() override { return kbd.get(); }
+    Minigraf* minigraf() override { return kbd ? kbd->minigraf() : nullptr; }   // the plotter of AR 1990
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
     int cpu_isa() const override { return model_x ? ISA_8085 : ISA_8080; }

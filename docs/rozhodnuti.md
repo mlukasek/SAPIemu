@@ -1515,3 +1515,26 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Panel mechaniky v okně Média je kreslený:** skutečný panel SM 5300 neznáme. Kontrolky odpovídají stavovým
   signálům rozhraní (port C5h), tlačítka běžným ovládacím prvkům páskových jednotek. MTDAT tomu, čemu emulátor
   říká ON-LINE, říká „DISTANC“.
+
+## 2026-10-10 – plotter z AR 1990
+
+- **Proč AR 1990 a ne XY 4130** (autor: „zkus ty Plottery, rozhoduj se sám“): plotter z AR 1990 má kompletní
+  podklady (schéma, tabulku portů, celý výpis programu a manuál povelů) a kreslí Minigrafem, který už emulátor
+  má. U XY 4130 chybí plocha, dorazy, polarity i jakákoli skutečná kresba ze SAPI na porovnání, zůstává
+  v zásobníku (`docs/desky/XY4130.md`).
+- **Program přepsaný z výpisu v AR, ne z přepisu v archivu:** přepis v `SAPI_DOKU` je „s mírnými
+  zjednodušeními“ a má přes deset funkčních chyb (chybějící RET, JMP, XCHG, POP, záměny registrů a portů, čísla).
+  Výpis v AR byl přepsán stránku po stránce a porovnán s archivním přepisem. Každý rozdíl je ověřený ve
+  zvětšeném výřezu skenu. V repu je výpis tak, jak je vytištěný (`roms/ar1990/PLOTTER.MAC`). Adresy JPR-1
+  dosazuje skript z komentářů výpisu, tištěný text se nemění.
+- **Ruční oprava FAST ve skenu se nepoužívá:** v emulátoru je tištěná verze, oprava je zapsaná v
+  `docs/desky/AR1990.md`.
+- **Zařízení jako „klávesnice“ JPR-1** (KeyboardDevice, stejně jako panel HRK-1 u APS-5): plotter visí na K2 a K3,
+  potřebuje všechny tři porty dovnitř i ven a reproduktor. Minigraf dostává bajt P0-OUT přímo
+  (`Minigraf::set_lines`), JPR-1 ho vydá přes `minigraf()`, takže okno Minigraf, export i MCP `plotter` fungují
+  beze změny.
+- **Po zapnutí plotter pípá a čeká na READY** (počáteční inicializace podle článku). Emulátor to nepřeskakuje.
+- **Řídicí počítač je fronta bajtů** v okně Minigraf (soubor, ukázka, řádek povelů s `\xNN`). Handshake RDP/RDA
+  je jako na kabelu, takže plotter přijímá tempem programu (buffer 256 znaků).
+- **Celý test** (tlačítko): TEST podržený při resetu JPR-1, protože v GUI nejde stihnout stisk při zapnutí. Reset
+  vynuluje výstupy, motory skočí do fáze 0 a pár kroků se ztratí. Je to věrné, a tak to zůstává.

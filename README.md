@@ -64,6 +64,10 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
     a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
     `KRES` kreslí v milimetrech (kružnice, šrafování, text);
+  - plotter z Amatérského radia 1990: deska JPR-1 jako řadič zapisovače Minigraf s programem přepsaným z výpisu
+    v AR, povely Sharp MZ-1P16 posílané z okna Minigraf (soubor, řádek povelů, ukázka), tlačítka STOP, TEST,
+    READY a přepínače panelu ([docs/desky/AR1990.md](docs/desky/AR1990.md), návod
+    [docs/navod-ar1990.md](docs/navod-ar1990.md));
   - kazetopáskový záznamník dat KZD-1 s MIKOSem/K V5.0: model mechaniky a dvou stop, kazety `.kzd` s oběma
     stranami a zoubky proti zápisu, kreslená kazeta s cívkami v okně Média, kopírovací program CKM magnetofon ↔
     KZD-1 v originále i v opravené kopii (`media/mikos/CKM_opraveny.hex`, originál po čtení z KZD-1 nastaví
@@ -124,6 +128,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   i monitoru, adresář, kopírování z magnetofonu a zpět programem CKM, i jeho opravenou kopií).
 - [docs/navod-minigraf.md](docs/navod-minigraf.md): návod k zapisovači Minigraf 0507 (ovladač z EPROM, kreslení
   z BASICu přes `CALL`, příkaz `KRES` v milimetrech, s příklady).
+- [docs/navod-ar1990.md](docs/navod-ar1990.md): návod k plotteru z AR 1990 (zapnutí, test, ukázka, povely
+  grafického a textového režimu, přepínače).
 - [docs/navod-rkd1.md](docs/navod-rkd1.md): návod ke kazetovému disku RKD-1 s CP/M Tesla Elstroj (start, shell SH
   a uživatelé, formátování pevného disku, kopírování, výměna kazet, ochrana proti zápisu).
 - [docs/navod-rmp1.md](docs/navod-rmp1.md): návod k magnetické pásce RMP-1 (mechanika v okně Média, obsah pásky,

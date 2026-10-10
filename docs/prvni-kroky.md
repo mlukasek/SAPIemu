@@ -42,6 +42,7 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
 | `rkd1_jb_cm5400.sapi` | CP/M J. Bíby s RKD-1 a bulharskou mechanikou CM 5400 (BIOS pro D: až G: vznikl v emulátoru) | `B:FORMRKD`, mechanika `F`, `O`, `A` naformátuje a zkontroluje kazetu (12 × 512 B), pak `DIR F:`, `B:PIP F:=B:*.COM` |
 | `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |
+| `plotter_ar1990.sapi` | plotter z AR 1990: JPR-1 s programem z přílohy AR řídí Minigraf 0507 (okno Minigraf) | READY (po zapnutí pípá), pak Ukázka nebo TEST; povely do řádku, např. `\x02`, `D400,0` |
 | `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
 | `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
 | `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
@@ -171,6 +172,13 @@ Další programy z `media\` si nahrajete takto:
   4. nová páska: OFF-LINE, Nová páska…, LOAD, ON-LINE, pak MTDAT funkce 3.
 
   Celý návod s výpisy obrazovky: `docs/navod-rmp1.md`.
+- **Plotter z AR 1990** (`plotter_ar1990.sapi`, deska JPR-1 jako řadič Minigrafu, povely Sharp MZ-1P16):
+  1. po zapnutí plotter pípá: tlačítko READY v okně Minigraf, vozík najede na počátek;
+  2. TEST napíše a podtrhne „*** MZ-821 ***“, Celý test nakreslí znakovou sadu;
+  3. Ukázka pošle `media/ar1990/ukazka.txt` (rámeček, osy, sinusovky, hvězda, texty, textový režim);
+  4. vlastní povely do řádku: `\x02` grafický režim, `I` počátek, `D400,0` čára, `P` text, `\x01` zpět na text.
+
+  Celý návod: `docs/navod-ar1990.md`.
 
 **APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
 - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát

@@ -1,0 +1,22 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "Plotter z AR 1990 (JPR-1 řídí Minigraf 0507)",
+    "description": "Souřadnicový zapisovač řízený mikroprocesorem podle Amatérského radia 1990 (V. Julius OK1IVJ): samotná deska JPR-1 s programem z přílohy AR v EPROM (0000-0F72) a RAM 2114 na 2000h je řadič plotteru Minigraf 0507 na P0-OUT. Povely tiskárny-plotteru SHARP MZ-1P16 přicházejí z řídicího počítače (v emulátoru: okno Minigraf, Poslat soubor nebo text). Tlačítka STOP, TEST, READY a přepínače panelu jsou v okně Minigraf. Ukázky: media/ar1990/. docs/desky/AR1990.md, docs/navod-ar1990.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "roms/ar1990/PLOTTER_AR1990.bin",  // EPROM sockets D4E-D7E (from 0000) - the program of the plotter (AR 1990)
+            "eprom_type": "2716",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2716 (2 KB)
+            "ram": true,                    // RAM 1 KB at 2000 (2x 2114)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7 (the plotter: P1-IN7 is data)
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "AR 1990", "paper": "roll", "color": false, "code": "ascii" }  // Keyboard (connector X2): the plotter on K2 and K3
+        }
+    ]
+}

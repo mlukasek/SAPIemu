@@ -391,6 +391,8 @@ static const ParamOption k_jpr1_roms[] = {
     { "\"roms/mikrobasic/MIKROBASIC_AR1983_1k.bin\"", "MIKROBASIC AR/B 1983 (1 KB RAM on JPR-1)",
       "MIKROBASIC AR/B 1983 (1 KB RAM na JPR-1)" },
     { "\"roms/mikrobasic/MIKROBASIC_2.4_ZPS-1.bin\"", "MIKROBASIC 2.4", "MIKROBASIC 2.4" },
+    { "\"roms/ar1990/PLOTTER_AR1990.bin\"", "Plotter of AR 1990 (V. Julius; 2x 2716, RAM needed)",
+      "Plotter z AR 1990 (V. Julius; 2x 2716, potřebuje RAM)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_jpr1[] = {

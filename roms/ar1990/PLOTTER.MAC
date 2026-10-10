@@ -1,0 +1,1832 @@
+;*****************************************************
+;*                                                   *
+;*  Program pro rizeni plotteru z ridici jednotky    *
+;*       pres standartni rozhrani Centronics         *
+;*                                                   *
+;*  Julius Roman  Sokolovska 123  Plzen 323 16       *
+;*                                                   *
+;*****************************************************
+
+.8080				;soubor instrukci I8080
+.RADIX 16			;implicitni ciselna soustava
+
+SYKORA	EQU	1000		;zacatek dalsich 4 kbyte
+NEWP	EQU	8000		;zde zacina vlastni program
+				;JPR-1 EQU 0
+RAM	EQU	0B000		;pocatecni adresa promennych
+				;JPR-1 EQU 2000
+RDSI1	EQU	8E		;vstup ridicich signalu
+				;JPR-1 EQU 2C00
+RDSI	EQU	90		;vstup ridicich signalu
+				;JPR-1 EQU 2400
+RDSO	EQU	8C		;vystup ridicich signalu
+				;JPR-1 EQU 2800
+DSHI	EQU	8D		;vstup dat
+				;JPR-1 EQU 2800
+MOTR	EQU	90		;vystup na krokove motory
+				;JPR-1 EQU 2400
+
+	.PHASE	NEWP
+	DI			;zakaz preruseni
+	LXI	SP,STACK	;a nastav stack
+	MVI	A,4		;pocatecni nastaveni
+	STA	RDSO		;vystupniho portu
+	XRA	A		;znuluj
+	STA	KLM		;bit reproduktoru
+	STA	PPORG		;funkci dorazu pro ORG
+	STA	KR025		;krok- 0.125 mm
+	LDA	RDSI		;otestuj tlacitko
+	ANI	10		;TEST, je-li stisknuto
+	CZ	TEST		;proved celkovy test
+	CALL	MUS1		;piskej
+	CALL	GENINI		;inicializace generatoru
+
+RS1:	XRA	A		;znuluj
+	STA	KLM		;bit reproduktoru
+	STA	UKRA		;ukazatel radek
+	STA	UKZR		; - " -  znaku na radce
+	STA	KR025		;jednoduchy krok 0.125 mm
+	STA	RDSO		;ridici signaly
+	STA	SPD		;rychlost
+	STA	PPORG		;funkci dorazu pro ORG
+	INR	A		;barva=1
+	STA	COLR
+	MVI	A,3F		;pocet radek na stranku
+	STA	PRST
+	CALL	BUFINI		;inicializace bufferu
+	LXI	B,0
+	LXI	D,0		;parametry pro ORG
+	CALL	PORG		;nastav pocatek sour. syst.
+	CALL	CH408		;80 znaku na radek
+	LXI	H,0		;skutecna X=0
+	SHLD	SKUTX
+	MVI	A,1
+	STA	REZI		;textovy rezim
+	STA	ASCD		;rezim ASCII
+	STA	PPORG		;funkce dorazu pro havarii
+
+RIBL:	CALL	BUFE		;cyklus pro vycitani prikazu
+	LXI	D,RIBL		;navratova adresa pro pprog.
+	PUSH	D		;do stacku
+	LDA	REZI
+	CPI	2		;podle druhu rezimu vyber tab.
+	LXI	H,TBFG		;graficky-graficka tabulka
+	JZ	RIBG		;a vyber
+	MOV	A,C		;rezim textovy
+	CPI	1D		;je-li kod 1DH
+	JZ	RIB1		;vyber adresu
+	ANI	0F0		;je-li vetsi nez 0FH ->
+	JNZ	PRINT		;tisknutelny znak - vytiskni
+
+RIB1:	LDA	RDSI		;ridici znak
+	ANI	80
+	CZ	PREVOD		;preved podle prepinace
+	LXI	H,TBFT		;textova tabulka
+
+RIBG:	CALL	PROHL		;vyber podprogram z tabulky
+	PCHL			;a skoc na nej
+
+PROHL:	MOV	A,M		;v C je povel, v HL adresa tab.
+	CMP	C		;vybere adresu
+	JZ	PROHU		;nasel prikaz
+	CPI	0FF		;konec tabulky
+	JZ	PROHK
+	INX	H		;HL=HL+3 ->
+	INX	H		;dalsi pozice
+	INX	H
+	JMP	PROHL		;dalsi prikaz v tabulce
+
+PROHU:	INX	H		;vybere z tabulky adresu
+	MOV	E,M		;do E
+	INX	H
+	MOV	D,M		;dalsi pulku do D
+	XCHG			;a vymen s HL
+	RET			;navrat
+
+PROHK:	POP	H		;povel jsem nenasel
+	POP	H		;zrus navratovou adresu
+	JMP	RIBL		;dalsi povel
+
+HAVAR:	LXI	SP,STACK	;zjistil jsem doraz
+	CALL	MUS2		;a hlasim havarii
+	JMP	RS1		;restartuj system
+
+TBFG:	DB	48		;tabulka funkci
+	DW	HOME		;v grafickem rezimu
+	DB	54
+	DW	SETS
+	DB	45
+	DW	CGRAMS
+	DB	47
+	DW	CGRAMW
+	DB	43
+	DW	COLOR
+	DB	4A
+	DW	RLINE
+	DB	52
+	DW	RMOVE
+	DB	4C
+	DW	LTYPE
+	DB	44
+	DW	DRAW
+	DB	49
+	DW	HSET
+	DB	4D
+	DW	PMOVE
+	DB	58
+	DW	AXIS
+	DB	53
+	DW	SCALE
+	DB	51
+	DW	ANGLE
+	DB	50
+	DW	GPRINT
+	DB	1
+	DW	TEXTR
+	DB	46
+	DW	FAST
+	DB	5A
+	DW	SSIZE
+	DB	59
+	DW	DOT
+	DB	57
+	DW	RDOT
+	DB	42
+	DW	DIAC
+	DB	0FF
+	DW	PROHK
+
+TBFT:	DB	2		;funkce v textovem rezimu
+	DW	GRAFR
+	DB	5
+	DW	CGRAMW
+	DB	0D
+	DW	PCR
+	DB	0A
+	DW	PLF
+	DB	8
+	DW	BASP
+	DB	3
+	DW	LINUP
+	DB	4
+	DW	PTEST
+	DB	9
+	DW	DEVET
+	DB	0B
+	DW	CH26
+	DB	7
+	DW	CH408
+	DB	1
+	DW	TEXTT
+	DB	0C
+	DW	STRAN
+	DB	1D
+	DW	CHCOL
+	DB	0FF
+	DW	PROHK
+
+BUFINI:	XRA	A		;inicializace bufferu
+	LXI	H,CW		;znuluj 1. ukazovatko
+	MOV	M,A
+	INX	H
+	MOV	M,A		;pote i druhe
+	STA	CK
+	STA	BUFINT
+	RET
+
+BUFE:	PUSH	PSW		;pprog. pro rizeni prijmu
+	PUSH	D		;dat a prace s bufferem
+	PUSH	H
+	LDA	RDSI		;test tl. STOP
+	ANI	8
+	CZ	MUS3		;stisknuto-pozdrz praci
+	LDA	RDSI		;test tl. TEST
+	ANI	10
+	CZ	PTEST		;stisknuto-proved test
+	LDA	RDSI1		;test tl. SYKORA
+	ANI	1
+	JZ	SYKORA		;stisknuto-skoc na jeho adr.
+	CALL	BUFO		;ulozeni znaku z portu
+	LDA	BUFINT		;znak cten z buff.
+	ORA	A		;nebo z pomocne promenne
+	JNZ	NEZB		;-z promenne
+	CALL	BFI		;-z bufferu
+	PUSH	PSW		;uschovej
+	LDA	KR025
+	ORI	40
+	STA	RDSO		;rozsvit diodu READY
+	POP	PSW
+	JZ	BUFE+3		;buff. prazdny - LED sviti
+	LDA	KR025
+	STA	RDSO		;neni, zhasni ji
+BUFZ:	POP	H
+	POP	D
+	POP	PSW
+	RET			;obnov reg. a vrat se
+
+NEZB:	XRA	A		;znak neni z bufferu
+	STA	BUFINT		;priste uz bude
+	LDA	PRECH		;nacti jej do C
+	MOV	C,A
+	JMP	BUFZ		;a vrat se
+
+BUFO:	LDA	RDSI		;jsou pripravena data ?
+	ANI	40
+	RZ			;ne, vrat se
+	LDA	DSHI		;ano, cti je do C
+	MOV	C,A
+	CALL	BFO		;pokus se je ulozit do buff.
+	RZ			;nejde to - je plny
+	LDA	KR025
+	ORI	4
+	STA	RDSO		;potvrd prijem data
+SEST:	LDA	RDSI		;cekej na shozeni RDP
+	ANI	40
+	JNZ	SEST
+	LDA	KR025
+	STA	RDSO		;nastav znovu pripravenost
+	MVI	B,83
+BUFW:	DCR	B		;chvili pockej
+	RZ			;nejdou, vratime se
+	LDA	RDSI		;a testuj prijdou-li
+	ANI	40		;dalsi data
+	JNZ	BUFO		;prisli
+	JMP	BUFW		;cekej dale
+
+BFI:	LXI	H,CK		;vlastni cteni z bufferu
+	MOV	A,M
+	RAR
+	XRA	M
+	ANI	1
+	LXI	H,BUFF-2
+	MOV	A,M
+	MOV	E,A
+	INX	H
+	JNZ	BFI2
+	CMP	M
+	RZ
+BFI2:	MVI	D,0
+	XCHG
+	INX	H
+	DAD	D
+	MOV	C,M
+	XCHG
+	DCX	H
+	INR	M
+	RNZ
+	LXI	H,CK
+	MOV	A,M
+	RAR
+	RAR
+	CMC
+	RAL
+	RAL
+	JMP	BF03
+
+BFO:	LXI	H,CK		;vlastni zapis do bufferu
+	MOV	A,M
+	RAR
+	XRA	M
+	ANI	1
+	LXI	H,BUFF-2
+	MOV	A,M
+	INX	H
+	JZ	BF02
+	CMP	M
+	RZ
+BF02:	MVI	D,0
+	MOV	E,M
+	XCHG
+	INX	H
+	DAD	D
+	MOV	M,C
+	XCHG
+	INR	M
+	RNZ
+	LXI	H,CK
+	MOV	A,M
+	RAR
+	CMC
+	RAL
+BF03:	MOV	M,A
+	INR	A
+	RET
+
+PARAM:	CALL	IGNO		;precteni ciselnych param.
+	MOV	A,C		;z bufferu
+	CPI	2D		;test na zaporna cisla
+	MVI	A,0		;kladne
+	JNZ	KL1
+	MVI	A,1		;zaporne
+KLAD:	STA	PRZ		;nastav priznak pro pozdejsi
+	LXI	H,0		;invertovani
+	CALL	EX0		;vlastni cteni
+	JNC	COMP		;zinvertovani podle znamenka
+	MOV	A,C		;uloz posledni znak znovu
+	STA	PRECH		;do bufferu
+	MVI	A,1
+	STA	BUFINT
+
+COMP:	LDA	PRZ		;je-li tato prom. nastavena
+	CPI	1		;na 1 neprovadi invertaci HL
+	RNZ
+	MOV	A,L		;nejprve L
+	CMA
+	MOV	L,A
+	MOV	A,H		;pote i H
+	CMA
+	MOV	H,A
+	INX	H		;HL=HL+1
+	RET			;zinvertovane HL
+
+KL1:	MVI	A,1		;neni-li 1. nemezerovy znak
+	STA	BUFINT		;"-" uloz jej zpet do buff.
+	MOV	A,C
+	STA	PRECH
+	JMP	KLAD		;cislo je kladne
+
+EX0:	CALL	BUFE		;vlastni cteni vstup HL=0
+	MOV	A,C		;vystup cislo v HL
+	CPI	3A
+	CMC
+	RC			;znak mimo rozsah vrat se
+EX1:	MOV	B,A
+	CALL	NIBBLE
+	RC
+	DAD	H		;zvys HL o dalsi cislo
+	PUSH	H
+	DAD	H
+	DAD	H
+	POP	D
+	DAD	D
+	MOV	E,A
+	MVI	D,0
+	DAD	D
+	JMP	EX0
+
+NIBBLE:	SUI	30		;testuj prislusnost
+	RC			;do mnoziny
+	ADI	30-47		;hexadecimalnich znaku
+	RC			;nepatri tam
+	ADI	6
+	JP	NI0
+	ADI	7
+	RC			;nepatri tam
+NI0:	ADI	0A
+	ORA	A
+	RET
+
+IGNO:	CALL	BUFE		;ignoruj mezery
+	MVI	A,20
+	CMP	C
+	JZ	IGNO
+	RET
+
+HSET:	LHLD	SKUTX		;funkce HSET
+	XCHG
+	LHLD	STPX		;nastav novy skut. pocatek
+	DAD	D
+	SHLD	SKUTX
+	JMP	NULXY		;a nuluj okamzite X a Y
+
+HOME:	LXI	B,0		;funkce HOME
+	LXI	D,0
+	JMP	MOVA		;presun na 0,0
+
+COLOR:	CALL	PARAM		;funkce COLOR
+	INR	L
+	MOV	A,L
+COL1:	STA	CKLO
+	STA	COLR
+	LDA	RDSI
+	ANI	4
+	RNZ			;barva je zakazana, vrat se
+	LXI	H,0B0		;neni, inicializuj zvukovy
+	SHLD	KLOPA		;generator
+	LXI	H,800		;podle cisla barvy
+	SHLD	KLOPB
+	MVI	A,15
+	STA	KMIT
+	JMP	MUSIC		;hlas barvu
+
+;Umoznuje nadefinovat vlastni znak
+
+CGRAMS:	CALL	PARAM
+	MOV	A,L		;cislo generatoru
+	ORA	A
+	JNZ	CGRA
+	INR	A
+CGRA:	ANI	0F		;uvazuje pouze 15 generatoru
+	LXI	H,CGR-22	;adresa generatoru
+	LXI	D,22		;maximalni delka
+	CALL	NASOB		;vypocit vyslednou adr.
+	PUSH	H		;uschovej ji
+	MVI	E,1F		;pocet znaku v generatoru
+	INX	H		;vyhrad byte pro delku
+	XRA	A		;uvodni byte nastav
+	MOV	M,A		;na nulu
+	INX	H		;dalsi pozice
+	CALL	BUFE		;oddelovac pryc
+CGRS1:	CALL	BUFE		;znak z bufferu
+	MOV	A,C
+	MOV	M,A		;do generatoru
+	INX	H		;dalsi pozice (vytisteno INX HL)
+	DCR	E		;sniz zbyvajici pocet
+	JZ	CGRSK		;znaku, je-li 0 ukonci to
+	ANI	80		;je-li 7. bit nastaven
+	JZ	CGRS1		;konec tvoreni znaku
+	MVI	A,20		;vypocti delku
+	SUB	E
+	POP	H		;a uloz ji
+	MOV	M,A
+	RET
+
+CGRSK:	ORI	80		;vycerpana povolena delka
+	DCX	H		;nastav 7. bit na jednicku (vytisteno DCX HL)
+	MOV	M,A		;uloz to
+	MVI	A,21		;nastav maximalni
+	POP	H		;delku
+	MOV	M,A
+	RET			;navrat
+
+;Vytisknuti preddefinovaneho znaku
+
+CGRAMW:	CALL	PARAM		;cislo generatoru
+	MOV	A,L
+	ORA	A
+	JNZ	CGRC
+	INR	A
+CGRC:	ANI	0F		;uvazuje pouze 15 generatoru
+	LXI	H,CGR-22	;adresa generatoru
+	LXI	D,22
+	CALL	NASOB		;vypocti adresu
+	MOV	A,M		;testuj delku
+	ORA	A
+	RZ			;vrat se je-li 0
+	MOV	E,A
+	INX	H
+	JMP	WRITE		;jdi tisknout
+
+GENINI:	LXI	H,CGR		;inicializuje generator
+	LXI	D,1FF		;v delce 1/2 kbyte
+GENIN1:	XRA	A
+	MOV	M,A
+	INX	H
+	DCX	D
+	MOV	A,E
+	ORA	D
+	JNZ	GENIN1		;pokracuj
+	RET			;hotovo
+
+PMOVE:	CALL	SXY		;funkce PMOVE
+	JMP	MOVA
+
+DOT:	CALL	SXY		;funkce POINT
+	JMP	POINTA
+
+RDOT:	CALL	SXY		;funkce RPOINT
+	JMP	POINTR
+
+SSIZE:	CALL	PARAM		;funkce SIZE
+	SHLD	SIXX		;XX
+	CALL	BUFE
+	CALL	PARAM
+	SHLD	SIXY		;XY
+	CALL	BUFE
+	CALL	PARAM
+	SHLD	SIYX		;YX
+	CALL	BUFE
+	CALL	PARAM
+	SHLD	SIYY		;YY
+	RET
+
+DRAW:	CALL	RYCH		;funkce DRAW
+	CALL	SXY
+	CALL	VECTA
+	JMP	RYCHN
+
+LTYPE:	CALL	PARAM		;funkce LTYPE
+	MOV	A,L
+	RLC
+	RLC			;parametr nasob 4
+	STA	TPLI		;uloz jej
+	STA	AKLI
+	STA	RTLI
+	MVI	A,80
+	STA	PSLI
+	STA	STWP		;inicializuj promenne
+	RET			;pro typ cary
+
+SETS:	CALL	PARAM		;funkce SPEED
+	MOV	A,L
+	STA	SPD		;uloz rychlost
+	JMP	RYCHN
+
+RYCH:	LDA	RTLI		;prepocte rychlost
+	CPI	0		;na skutecnou
+	JZ	RYCHN		;podle delky kroku
+	STA	TPLI		;a typu cary
+	LDA	STWP
+	STA	PSLI
+	MVI	B,18
+	CALL	SPEDA
+	RET
+
+RYCHN:	MVI	B,0B		;nastav rychlost
+	CALL	SPEDA		;pro presuny
+	XRA	A
+	STA	TPLI
+	LDA	PSLI
+	STA	STWP
+	MVI	A,80
+	STA	PSLI
+	RET
+
+SPEDA:	LDA	SPD
+	ADD	B
+	STA	SPED
+	RET
+
+RMOVE:	CALL	SXY		;funkce RMOVE
+	JMP	MOVR
+
+RLINE:	CALL	RYCH		;funkce RLINE
+	CALL	SXY
+	CALL	VECTR
+	JMP	RYCHN
+
+SXY:	CALL	PARAM		;nacte z bufferu
+	PUSH	H		;souradnice X a Y
+	CALL	BUFE
+	CALL	PARAM
+	MOV	B,H		;do BC
+	MOV	C,L
+	POP	D		;a DE
+	RET
+
+AXIS:	CALL	BUFE		;funkce AXIS
+	MOV	A,C
+	CPI	31		;osa do smeru
+	JZ	AXISX		;X
+	CALL	AXIA		;parametry osy
+DILY:	LXI	B,0
+	LXI	D,0FFFC
+	CALL	VECTR		;dilek
+	LXI	B,0
+	LXI	D,8
+	CALL	VECTR
+	LXI	D,0FFFC
+	LXI	B,0
+	CALL	VECTR
+	LXI	D,0
+	LHLD	PITCH
+	MOV	B,H
+	MOV	C,L
+	CALL	VECTR		;na dalsi pozici
+	LDA	REPE		;sniz pocet opakovani
+	DCR	A
+	JZ	AXYK		;konec osy
+	STA	REPE		;jeste ne
+	JMP	DILY
+AXISX:	CALL	AXIA		;parametry osy
+DILX:	LXI	B,0FFFC		;dilek
+	LXI	D,0
+	CALL	VECTR
+	LXI	B,8
+	LXI	D,0
+	CALL	VECTR
+	LXI	B,0FFFC
+	LXI	D,0
+	CALL	VECTR
+	LXI	B,0
+	LHLD	PITCH
+	XCHG
+	CALL	VECTR		;na dalsi pozici
+	LDA	REPE		;sniz pocet opakovani
+	DCR	A
+	JZ	AXXK		;konec osy
+	STA	REPE		;jeste ne
+	JMP	DILX
+
+AXIA:	CALL	BUFE		;nacte parametry osy
+	CALL	PARAM
+	SHLD	PITCH		;roztec
+	CALL	BUFE
+	CALL	PARAM
+	MOV	A,L
+	STA	REPE		;pocet dilku
+	RET
+
+AXXK:	LXI	D,0		;posledni dilek
+	LXI	B,0FFFC
+	CALL	VECTR
+	LXI	D,0
+	LXI	B,8
+	CALL	VECTR
+	LXI	D,0
+	LXI	B,0FFFC
+	JMP	VECTR
+AXYK:	LXI	B,0
+	LXI	D,0FFFC
+	CALL	VECTR
+	LXI	B,0
+	LXI	D,8
+	CALL	VECTR
+	LXI	B,0
+	LXI	D,0FFFC
+	JMP	VECTR
+
+GPRINT:	CALL	BUFE		;funkce GPRINT
+	MOV	A,C
+	CPI	0D		;je-li CR znamena to konec
+	RZ			;retezce
+	LDA	RDSI
+	ANI	80
+	CZ	PREVOD		;prevede znak podle prep.
+	MOV	A,C
+	ANI	80
+	MOV	A,C		;je-li stalem vetsi nez 127
+	JNZ	GTEC		;vytisken tecku
+	CALL	PCHR		;vytiskni znak
+	JMP	GPRINT		;znovu
+GTEC:	MVI	A,2E		;tecka
+	CALL	PCHR		;vytiskni
+	JMP	GPRINT		;znovu
+
+NASOB:	DAD	D		;A krat pricte DE k HL
+	DCR	A
+	JNZ	NASOB
+	RET
+
+ANGLE:	CALL	PARAM		;funkce ANGLE
+	MOV	A,L		;uhel do A
+	CPI	0
+	JZ	VODP		;vodorovne vpravo
+	CPI	1
+	JZ	DOL		;svisle dolu
+	CPI	2
+	JZ	VODL		;vodorovne vlevo
+	CPI	3
+	JZ	NAH		;svisle nahoru
+	RET			;neznam
+VODP:	CALL	VISI
+	SHLD	SIXX		;XX,YY = velikost
+	SHLD	SIYY
+	LXI	H,0
+	SHLD	SIXY
+	SHLD	SIYX		;XY,YX = 0
+	RET
+DOL:	CALL	VISI
+	SHLD	SIYX		;YX = velikost
+	MVI	A,1
+	STA	PRZ
+	CALL	COMP
+	SHLD	SIXY		;XY = -velikost
+	LXI	H,0
+	SHLD	SIXX
+	SHLD	SIYY		;XX,YY = 0
+	RET
+NAH:	CALL	VISI
+	SHLD	SIXY		;XY = velikost
+	MVI	A,1
+	STA	PRZ
+	CALL	COMP
+	SHLD	SIYX		;YX = -velikost
+	LXI	H,0
+	SHLD	SIXX
+	SHLD	SIYY		;XX,YY = 0
+	RET
+VODL:
+	CALL	VISI
+	MVI	A,1
+	STA	PRZ
+	CALL	COMP
+	SHLD	SIXX
+	SHLD	SIYY		;XX,YY = -velikost
+	LXI	H,0
+	SHLD	SIYX
+	SHLD	SIXY		;XY,YX = 0
+	RET
+VISI:	LDA	SIZE		;podle SIZE vypocte
+	INR	A		;do HL skutecnou velikost
+	MVI	H,0
+	MOV	L,A
+	RET
+
+DIAC:	CALL	PARAM		;nastavi nebo zrusi
+	MOV	A,L		;diakriticky rezim
+	STA	ASCD
+	RET
+SCALE:	CALL	PARAM		;nastavi velikost znaku
+	MOV	A,L
+	STA	SIZE
+	MVI	A,0		;a uhel tisku 0
+	JMP	ANGLE+4
+PTEST:	LDA	REZI		;neni-li nastaven textovy
+	CPI	1		;rezim nastav ho
+	CNZ	TEXTR
+	CALL	CR
+	CALL	LF
+	CALL	CH26
+	LXI	H,TSTTB		;vytiskni text
+	MVI	A,0E		;podle tabulky
+TSTT:	PUSH	PSW
+	PUSH	H
+	MOV	C,M
+	CALL	PRINT
+	POP	H
+	INX	H
+	POP	PSW
+	DCR	A
+	JNZ	TSTT
+	CALL	CR
+	CALL	LF
+	CALL	MONOP
+	MVI	A,4
+PTES2:	PUSH	PSW		;a podtrhni ho
+	LXI	B,0
+	LXI	D,1EF
+	CALL	VECTR
+	LXI	B,0FFFE
+	LXI	D,0FE11
+	CALL	MOVR
+	POP	PSW
+	DCR	A
+	JNZ	PTES2
+	CALL	LF
+	JMP	TEXTT
+GRAFR:	MVI	L,1		;velikost znaku 1
+	CALL	SCALE+3
+	MVI	L,0		;typ cary 0
+	CALL	LTYPE+3
+	MVI	A,2		;graficky rezim
+	STA	REZI
+	CALL	MONOP		;presun na zacatek
+	LHLD	STPX		;inicializuj
+	SHLD	SKUTX		;souradnice
+	CALL	NULXY
+	RET
+
+TEXTT:	CALL	CH408
+	JMP	CR
+
+TEXTR:	MVI	L,0		;typ cary 0
+	CALL	LTYPE+3
+	MVI	A,1		;textovy rezim
+	STA	REZI
+	STA	ASCD		;ASCII rezim
+	LHLD	SKUTX
+	XCHG
+	LHLD	STPX
+	DAD	D
+	SHLD	STPX		;vypocti skutecnou X
+	LXI	H,0
+	SHLD	NOPX
+	SHLD	SIXY
+	SHLD	SIYX		;parametry pro znak
+	CALL	CH408		;80 znaku na radek
+	XRA	A
+	STA	UKRA
+	STA	UKZR		;znuluj ukazatele
+	CALL	FAST+4		;jednoduchy krok
+	RET
+DEVET:	CALL	BUFE		;prisel kod $09
+	MOV	A,C		;cti dalsi znak
+	CPI	9
+	JZ	DEV1		;je to opet $09
+	STA	PRECH		;neni - vrat jej
+	MVI	A,1		;do bufferu
+	STA	BUFINT
+	RET			;a zpet
+DEV1:	CALL	BUFE		;dalsi znak
+	MOV	A,C
+	CPI	9
+	JZ	CH80		;zase $09
+	CPI	0B
+	JZ	CH408		;tentokrat $0B
+	STA	PRECH		;ani jeden z nich
+	MVI	A,1		;vrat to do bufferu
+	STA	BUFINT
+	CALL	PARAM		;cti cislo
+	MOV	A,L
+	STA	PRST		;nastav pocet r. na stranku
+	CALL	BUFE		;oddelovac pryc
+	JMP	STRAN		;nastav novou stranu
+CH80:	CALL	CR		;udelej CR
+	LXI	H,2		;nastav velikost znaku
+	SHLD	SIXX
+	SHLD	SIYY
+	MVI	A,78		;a pocet znaku
+	STA	PZRA
+	RET
+CH408:	CALL	CR		;udelej CR
+	LXI	H,3		;nastav velikost
+	SHLD	SIXX
+	SHLD	SIYY
+	MVI	A,50		;a pocet znaku
+	STA	PZRA
+	RET
+CH26:	CALL	CR		;udelej CR
+	LXI	H,6		;nastav velikost znaku
+	SHLD	SIXX
+	SHLD	SIYY
+	MVI	A,28		;a pocet znaku
+	STA	PZRA
+	RET
+PRINT:	LDA	RDSI		;podle prepinace znak
+	ANI	80
+	CZ	PREVOD		;preved
+	MOV	A,C		;neprevadej
+	ANI	80		;je-li s 8. bitem
+	MOV	A,C
+	JNZ	PTECK		;tiskni tecku
+	JMP	PRNI		;neni- tiskni jej
+PTECK:	MVI	A,2E		;kod tecky
+	JMP	PRNI		;vytisknout
+NOVR:	PUSH	B		;schovej si BC
+	CALL	CR		;udelej CR
+	CALL	LF		;jeste LF
+	POP	B		;obnov BC
+	RET			;a zpet
+PRNI:	CALL	PCHR		;jdi tisknout
+	LDA	UKZR		;pocet znaku
+	INR	A		;zvys o jendu
+	MOV	B,A
+	LDA	PZRA		;porovnej s maximalnim
+	CMP	B
+	JZ	NOVR		;stejne, udelej novou radku
+	MOV	A,B
+	STA	UKZR		;uloz to zpet
+	RET
+PREVOD:	LXI	H,TABPR		;adresa prevodni tabulky
+	MOV	A,M		;kod z tab. do A
+	CMP	C		;porovnej s prevadenym
+	JZ	VYMEN		;hura - je to on
+	CPI	0		;neni uz konec tabulky ?
+	RZ			;je - navrat
+	INX	H		;neni - dalsi polozka
+	INX	H
+	JMP	PREVOD+3	;a znovu
+VYMEN:	INX	H		;nasledujici pozice
+	MOV	C,M		;presun
+	RET			;a vrat se
+
+STRAN:	XRA	A		;znuluj
+	STA	UKZR		;ukazatel znaku
+	STA	UKRA		;ukazatel radek
+	LDA	RDSI1		;testuj typ papiru
+	ANI	20
+	JZ	STRR		;-> role
+	CALL	MUS2		;A4 = piskej
+	LHLD	STPX		;vypocti vzdalenost
+	MVI	A,1		;od okraje
+	STA	PRZ
+	CALL	COMP		;a nasob -1
+	XCHG
+	LXI	B,190		;konstanta Y pro novy zac.
+	CALL	MOVR		;presun
+	JMP	NULXY		;nuluj souradnice
+STRR:	CALL	MONOP		;presun na pozici dalsiho t.
+	LXI	D,0
+	LXI	B,0FF10		;konstanta pro vynechani
+STRR1:	CALL	MOVR		;mista
+	CALL	CR		;udelej CR
+	CALL	LF		;jeste LF
+	XRA	A		;znuluj ukazatel radek
+	STA	UKRA
+	RET			;navrat
+MUS1:	LXI	H,64		;inicializace zvukoveho
+	SHLD	KLOPA		;generatoru na standartni
+	LXI	H,1		;hodnotu pro 3 typy piskani
+	SHLD	KLOPB
+	MVI	A,1
+	STA	CKLO
+	MVI	A,30
+	STA	KMIT
+	JMP	MUSIC
+MUS2:	LXI	H,0FA
+	SHLD	KLOPA
+	SHLD	KLOPB
+	MVI	A,1
+	STA	CKLO
+	MVI	A,30
+	STA	KMIT
+	JMP	MUSIC
+MUS3:	LXI	H,1F4
+	SHLD	KLOPB
+	SHLD	KLOPA
+	MVI	A,1
+	STA	CKLO
+	MVI	A,70
+	STA	KMIT
+	JMP	MUSIC
+MUSIC:	LDA	CKLO		;vlastni generovani zvuku
+	STA	CKLO1
+	LHLD	KLOPA
+	SHLD	KLOP1
+MUSY:	CALL	BEEP		;jedno pisknuti
+	LHLD	KLOP1
+	DCX	H
+	MOV	A,L
+	ORA	H
+	SHLD	KLOP1
+	JNZ	MUSY		;odpiskano ? -> ne
+	LDA	CKLO1		;ano
+	DCR	A
+	STA	CKLO1
+	JNZ	MUPRO
+	LHLD	KLOPB
+	SHLD	KLOP2
+MUSN:	LDA	KMIT		;budeme chvili potichu
+	CALL	WAITA
+	CALL	TLAC		;testuj tlacitko
+	LHLD	KLOP2
+	DCX	H
+	MOV	A,L
+	ORA	H
+	JZ	MUSIC
+	SHLD	KLOP2
+	JMP	MUSN
+MUPRO:	MVI	B,68		;pauza
+	CALL	P50
+	JMP	MUSIC+6
+TLAC:	LDA	RDSI		;je-li stisk tl.
+	ANI	20
+	RNZ			;ne
+STISK:	LDA	RDSI		;ano -> cekej
+	ANI	20		;na jeho pusteni
+	JZ	STISK
+	POP	H
+	LDA	KR025
+	ANI	7F
+	STA	RDSO		;a zhasni diodu
+	RET
+BEEP:	LDA	KLM		;podle frekvence zmeni
+	XRI	20		;stav reproduktoru
+	STA	KLM
+	ORI	80		;+ rozsvicena dioda
+	MOV	B,A
+	LDA	KR025
+	ORA	B
+	STA	RDSO
+	LDA	KMIT
+	CALL	WAITA
+	JMP	TLAC		;a jeste otestuje tlacitko
+WAITA:	DCR	A		;smycka
+	RZ
+	JMP	WAITA
+CR:	XRA	A		;znuluj
+	STA	UKZR		;pocet znaku
+	LXI	H,0
+	SHLD	NOPX		;tisk bude od kraje
+	RET
+LF:	LDA	UKRA		;provede LF
+	INR	A
+	STA	UKRA
+	LXI	H,PRST
+	CMP	M		;test na pocet radek
+	JZ	STRAN		;maximalni -> strankuj
+	CALL	VYPY		;vypocti Y
+	MVI	A,1
+	STA	PRZ
+	CALL	COMP
+	XCHG
+	LHLD	NOPY
+	DAD	D
+	SHLD	NOPY		;tisk bude o radku niz
+	RET
+CHCOL:	LDA	COLR		;nastavi nasledujici barvu
+	INR	A
+	CPI	5
+	JNZ	COL1
+	MVI	A,1		;byla-li 4 nastavi znovu 1
+	JMP	COL1
+MONOP:	LHLD	NOPX		;presun na poz. pristiho znaku
+	XCHG
+	LHLD	NOPY
+	MOV	B,H
+	MOV	C,L
+	JMP	MOVA
+BASP:	LDA	UKZR		;provede zpetny krok
+	DCR	A
+	INR	A
+	RZ			;vrat se jsi-li na zac. radky
+	DCR	A
+	STA	UKZR
+	CALL	VYPX
+	MVI	A,1
+	STA	PRZ
+	CALL	COMP
+	XCHG
+	LHLD	NOPX
+	DAD	D
+	SHLD	NOPX		;X nastav na predchozi znak
+	RET
+VYPX:	LHLD	SIXX		;vypocte X podle
+	MOV	A,L		;sirky znaku
+	MVI	A,6
+	XCHG
+	LXI	H,0
+	JMP	NASOB
+LINUP:	LDA	UKRA		;provede posun o radek zpet
+	DCR	A
+	INR	A
+	RZ			;zac. stranky - vrat se
+	DCR	A
+	STA	UKRA
+	CALL	VYPY
+	XCHG
+	LHLD	NOPY
+	DAD	D
+	SHLD	NOPY		;Y nastav o radek zpet
+	RET
+VYPY:	LHLD	SIYY		;vypocte Y podle
+	MOV	A,L		;vysky radky
+	ANI	0FE
+	RRC
+	MOV	E,A
+	MVI	D,0
+	DAD	D
+	XCHG
+	LXI	H,0
+	MVI	A,8
+	CALL	NASOB
+	RET
+PCR:	CALL	CR		;podle prep. udela CR
+	LDA	RDSI1		;nebo CR + LF
+	ANI	80
+	RNZ
+	JMP	LF
+PLF:	CALL	LF		;podle prep. udela LF
+	LDA	RDSI1		;nebo LF + CR
+	ANI	40
+	RNZ
+	JMP	CR
+FAST:	CALL	PARAM		;nastav krok
+	MOV	A,L
+	ANI	1
+	RLC
+	RLC
+	RLC
+	RLC
+	STA	KR025
+	ANI	10
+	JNZ	F025
+	MVI	A,0		;uprav rychlost
+	JMP	SETS+4		;pro 0.125 mm
+F025:	MVI	A,10		;pro 0.25 mm
+	JMP	SETS+4
+
+				;prevod SHARP -> ASCII
+TABPR:	DB	0D7,10,0FC,17,5E,18
+	DB	0F,0C,0E,8,0C,7
+	DB	0C6,19,5F,1A,0AE,1B
+	DB	0FB,1C,0FF,1E,0CF,1F
+	DB	8B,5E,93,60,0A1,61
+	DB	9A,62,9F,63,9C,64
+	DB	92,65,0AA,66,97,67
+	DB	98,68,0A6,69,0AF,6A
+	DB	0A9,6B,0B8,6C,0B3,6D
+	DB	0B0,6E,0B7,6F,9E,70
+	DB	0A0,71,9D,72,0A4,73
+	DB	96,74,0A5,75,0AB,76
+	DB	0A3,77,9B,78,0BD,79
+	DB	0A2,7A,0BE,7B,80,7D
+	DB	94,7E,0
+				;tabulka tisku pro test
+TSTTB:	DB	2A,2A,2A,20,4D,5A
+	DB	2D,38,32,31,20,2A
+	DB	2A,2A
+
+MOVA:	CALL	PNUP		;zvedni pero
+	JMP	ABSO		;presun na X,Y
+VECTA:	CALL	PNDW		;spust pero
+	JMP	ABSO		;presun na X,Y
+POINTA:	CALL	PNUP		;zvedni pero
+	CALL	ABSO		;presun na X,Y
+	JMP	PNPT		;udelej bod
+MOVR:	CALL	PNUP		;zvedni pero
+	JMP	RELA		;relativni presun
+VECTR:	CALL	PNDW		;spust pero
+	JMP	RELA		;relativni presun
+POINTR:	CALL	PNUP		;zvedni pero
+	CALL	RELA		;relativni presun
+	JMP	PNPT		;udelej bod
+
+PNPT:	CALL	PNDW		;spust pero
+	JMP	PNUP		;zvedni pero = bod
+SPEED:	ADI	8		;nastav rychlost
+	STA	SPED
+	RET
+TEST:	JMP	VTEST
+PORG:	MVI	A,14		;nastav si rychlost
+	STA	SPED
+	STA	P185
+	PUSH	D		;schovej zadane X,Y
+	PUSH	B
+	MVI	A,1
+	STA	SPEN		;pero je dole
+	LXI	B,8
+	MOV	D,B
+	MOV	E,C
+	CALL	MOVR		;par kroku doprava nahoru
+	MVI	A,0B		;uprav rychlost
+	STA	SPED
+	LXI	H,6A4		;maximalni X
+	SHLD	STPX
+	LXI	H,0FE70		;Y po zalozeni papiru
+	SHLD	STPY
+	POP	B
+	PUSH	B		;obnov Y - presun na zadane Y
+	LXI	D,0		;okamzite a na 0 do X
+	CALL	MOVA
+	POP	B		;obnov Y
+	PUSH	B
+	LXI	D,50		;kousek doprava
+	CALL	MOVA
+	XRA	A
+	STA	STPX
+	STA	TPLI
+	CALL	NULXY		;znuluj souradnice
+	POP	B
+	POP	D
+	CALL	MOVA		;presun na zadane X,Y
+KTST:	MVI	A,0A
+	STA	P185
+	LXI	H,3		;standartni velikost znaku
+	SHLD	SIXX
+	SHLD	SIYY
+	MVI	L,0
+	SHLD	SIXY
+	SHLD	SIYX
+	SHLD	ASCD		;rezim
+	MVI	A,80
+	STA	NARW		;mezera
+	STA	PSLI		;stav pera
+	RET
+RELA:	LHLD	STPX		;k X pricti relativni DX
+	DAD	D		;= nova X
+	XCHG
+	LHLD	STPY		;totez s Y
+	DAD	B
+	MOV	B,H
+	MOV	C,L		;a muzes udelat abs. presun
+ABSO:	LHLD	STPX		;DE = zadana Xz
+	XCHG			;HL = skutecna X
+	SHLD	STPX		;DE <=> HL ; X <=> Xz
+	SHLD	NOPX		;a uloz na novou poz. tisku
+	CALL	SMR		;zjisti smer posuvu pro X
+	PUSH	H		;schovej rozdil X a Xz
+	PUSH	B		;schovej Yz
+	MOV	C,A		;C = smer posunu
+	POP	D		;DE = predesle BC tj. zadana Yz
+	LHLD	STPY		;HL = skutecna Y
+	XCHG			;DE <=> HL ; Y <=> Yz
+	SHLD	STPY
+	SHLD	NOPY		;uloz
+	CALL	SMR		;a zjisti smer pro Y
+	RLC
+	RLC
+	RLC
+	RLC			;do vyssich 4 bitu v A
+	MOV	B,A
+	ORA	C		;sloz s C
+	STA	DIRE		;<= smer do Y a do X
+	POP	D		;obnov rozdil X a Xz
+	RZ			;jsou-li oba posuny 0 vrat se
+	MOV	A,L
+	SUB	E
+	MOV	A,H
+	SBB	D		;test, ktery posun je vetsi
+	MOV	A,C		;A = smer posunu X
+	JC	DALX		;skoc protoze (Yz-Y)<(Xz-X)
+	XCHG			;DE <=> HL ; (Xz-X) <=> (Yz-Y)
+	MOV	A,B		;A = smer do Y
+DALX:	STA	DIR1		;uloz smer
+	SHLD	DIFF		;a uloz taky rozdil
+	LXI	H,14		;male pozastaveni
+	CALL	FMOT1
+	MVI	A,29
+	STA	ACCE		;rozbehova rychlost
+	MOV	B,D		;BC = rozdil
+	MOV	C,E
+	XRA	A
+	SUB	E
+	MOV	L,A
+	MVI	A,0
+	SBB	D
+	MOV	H,A		;HL = DE * -1
+	XRA	A
+	MOV	A,D
+	RAR
+	MOV	D,A
+	MOV	A,E
+	RAR
+	MOV	E,A		;DE = DE / 2
+ABS1:	PUSH	H		;schovej HL a DE
+	PUSH	D
+	XCHG			;DE <=> HL
+	MOV	H,B
+	MOV	L,C		;HL = BC
+	DAD	H
+	DCX	H		;HL = HL * 2 - 1
+	DAD	D		;HL = HL + DE
+	LXI	H,ACCE
+	JNC	ABS2		;je-li HL >= 0 skoc
+	LDA	P185
+	CMP	M
+	JZ	ABS2
+	DCR	M
+ABS2:	MVI	A,28
+	SUB	M
+	SUB	C
+	MVI	A,0
+	SBB	B
+	JC	ABS3
+	INR	M
+ABS3:	LHLD	DIFF
+	POP	D
+	DAD	D
+	XCHG
+	POP	H
+	PUSH	H
+	DAD	D
+	LDA	DIR1
+	JNC	ABS4
+	XCHG
+	LDA	DIRE
+ABS4:	PUSH	D
+	CALL	ELEM
+	DCX	B
+	MOV	A,B
+	ORA	C
+	POP	D
+	POP	H
+	JNZ	ABS1
+	RET
+SMR:	MOV	A,L		;vrati A = 0 pro skut. = zadane
+				;      A = 1 pro skut. < zadane
+				;      A = F pro skut. > zadane
+	SUB	E
+	MOV	L,A		;L = L - E
+	MOV	A,H
+	SBB	D
+	MOV	H,A		;H = H - D - predchozi znam.
+	DAD	H		;HL = HL * 2
+	JNC	SMVL		;-> je-li HL kladne
+	XRA	A		;zaporne - preved na kladne
+	SUB	L
+	MOV	L,A
+	MVI	A,0
+	SBB	H
+	MOV	H,A		;HL = -1 * HL
+	MVI	A,0F		;priznak a navrat
+	RET
+SMVL:	MOV	A,H
+	ORA	L
+	RZ			;je-li HL = 0 vrat se
+	MVI	A,1
+	RET			;jinak priznak a navrat
+WRITE:	XRA	A
+	STA	COUNZ
+WRIT1:	MOV	A,E
+	ORA	A		;je-li delka nulova
+	RZ			;vrat se
+	LDA	COUNZ		;neni-li 1. znak
+	ORA	A
+	JNZ	WRIT3		;skoc
+	MOV	A,M		;je to prvni znak
+	ORA	A		;testuj je-li 0
+	JZ	WRIT2		;je - tak skoc
+	MOV	A,M		;neni, jdi jej vytisknout
+	CALL	PCHR
+	JMP	WRCON
+WRIT2:	INR	A
+	STA	COUNZ
+	CALL	BS08
+WRIT3:	MOV	A,M
+	CALL	PCHR4
+	MOV	A,M
+	ORA	A
+	JP	WRCON
+	XRA	A
+	STA	COUNZ
+	CALL	PCHR3
+WRCON:	INX	H		;dalsi pozice znaku
+	DCR	E		;zbyvajici pocet
+	JMP	WRIT1		;a znovu
+BS08:	PUSH	H		;neni-li nastaven bs
+	LXI	H,BS		;na nulu nedela nic
+	XRA	A
+	CMP	M
+	MOV	M,A
+	JNZ	BSNA
+	LHLD	NOPX		;jinak nastavi tisk znaku
+	SHLD	PREX		;na novou pozici
+	LHLD	NOPY
+	SHLD	PREY
+BSNA:	POP	H
+	RET
+PCHR:	PUSH	H
+	LXI	H,BS
+	CPI	8
+	JNZ	NOBS
+	MOV	M,A		;ma-li kod $08
+	POP	H		;pouze jej uloz
+	RET			;a return
+NOBS:	ANI	7F		;pouze 7 bitu
+	MOV	C,A
+	CALL	BS08		;vyhodnot byl-li kod $08
+	LDA	ASCD
+	ORA	A
+	JNZ	NODIA		;skoc pri ASCII rezimu
+	MOV	A,C
+	CPI	7B
+	JC	NODIA		;skoc neni-li to diakr. znak
+	ADI	5		;zvys na diakr. znamenka
+	MOV	C,A
+	INR	M
+NODIA:	MOV	A,C		;znak do A
+	CPI	10		;je-li mensi nez 10
+	JC	PCHR2		;skoc
+	ANI	0F8		;ne - znuluj 3 nejnizsi bity
+	RAR			;vydel 2
+	RAR			;     4
+	ADI	0FC		;odecti 3
+	ADI	LOW ATB1	;+ nizsi byte adresy tab.
+	MOV	L,A		;do L
+	MVI	A,0
+	ACI	HIGH ATB1
+	MOV	H,A		;do H vyssi byte tabulky
+	MOV	A,M
+	INX	H
+	MOV	H,M
+	MOV	L,A		;do HL adresu generatoru
+	MOV	A,C
+	ANI	7		;pouze 3 nejnizsi bity
+	MOV	C,A
+	JZ	VYZN		;jsou-li 0 skoc
+SKZN:	MOV	A,M		;nejsou
+	ORA	A
+	INX	H
+	JP	SKZN		;testuj nejvyssi bit
+	DCR	C
+	JNZ	SKZN		;adresu na znak podle nich
+VYZN:	MVI	A,8		;znak v CG vybran
+	CALL	PCHR4
+PCHR1:	MOV	A,M
+	CALL	PCHR4
+	MOV	A,M
+	INX	H
+	ORA	A
+	JP	PCHR1
+PCHR2:	POP	H
+PCHR3:	PUSH	H
+	LDA	NARW
+	RLC
+	RAL
+	ADI	0F6
+	CMA
+	MVI	C,0
+	CALL	PCHR5
+	POP	H
+	RET
+PCHR4:	MOV	C,A
+	ANI	7
+PCHR5:	PUSH	H
+	PUSH	D
+	PUSH	PSW
+	LHLD	SIXX
+	XCHG
+	LHLD	PREX
+	CALL	PCHR8
+	XCHG
+	MOV	A,C
+	ANI	38
+	RAR
+	RAR
+	RAR
+	RAR
+	LXI	H,BS
+	ADD	M
+	MOV	B,A
+	LHLD	SIYX
+	XCHG
+	CALL	PCHR8
+	POP	PSW
+	PUSH	H
+	LHLD	SIXY
+	XCHG
+	LHLD	PREY
+	CALL	PCHR8
+	MOV	A,B
+	XCHG
+	LHLD	SIYY
+	XCHG
+	CALL	PCHR8
+	PUSH	H
+	MOV	A,C
+	ANI	40
+	JZ	PCHR6
+	LHLD	NOPX
+	XCHG
+	LHLD	NOPY
+	MOV	B,H
+	MOV	C,L
+	LDA	SPEN
+	ORA	A
+	CZ	MOVA
+	POP	B
+	POP	D
+	CALL	VECTA
+	JMP	PCHR7
+PCHR6:	CALL	PNUP
+	POP	H
+	SHLD	NOPY
+	POP	H
+	SHLD	NOPX
+PCHR7:	POP	D
+	POP	H
+	RET
+PCHR8:	INR	E
+	DCR	E
+	RZ
+	PUSH	H
+	LXI	H,0
+PCHR9:	DCR	A
+	JM	PCHR0
+	DAD	D
+	JMP	PCHR9
+PCHR0:	POP	D
+	DAD	D
+	RET
+				;proved krok s motory
+ELEM:	CALL	DRZ		;zjisti jsi-li na dorazu
+	LHLD	SMOT		;okamzity stav motoru
+	MOV	H,A
+	ADD	L		;pricti krok k motoru
+	ANI	0F		;spodni bity motoru
+	MOV	E,A		;do E
+	MOV	A,H		;druhy motor
+	ANI	0F0		;vyssi bity
+	ADD	L		;pricti krok
+	ANI	0F0		;opet pouze vyssi bity
+	ORA	E		;sloz s E
+	STA	SMOT		;uloz to na stav motoru
+	XRA	A
+	MOV	H,A
+	LDA	ACCE
+	RAR
+	MOV	L,A		;HL = rychlost snizena na 1/2
+	JMP	NASTM
+PNUP:	LDA	SPEN		;zvedni pero
+	DCR	A
+	RNZ			;je-li zvednuto vrat se
+	JMP	NASTP
+PNDW:	LDA	SPEN		;spust pero
+	DCR	A
+	RZ			;je-li uz dole vrat se
+	MVI	A,1
+NASTP:	STA	SPEN		;uloz to na stav pera
+	LXI	H,1F4		;pauza pro pero
+NASTM:	PUSH	H
+	LHLD	SPEN
+	MOV	A,H
+	ANI	0E
+	ORA	L
+	MOV	L,A
+	MOV	A,H
+	ANI	0E0
+	RRC
+	ORA	L
+	RRC
+	CALL	PRELI
+	POP	H
+FMOT1:	LDA	SPED
+FMOT2:	DCR	A
+	JNZ	FMOT2
+	DCX	H
+	MOV	A,H
+	ORA	L
+	JNZ	FMOT1
+	RET
+
+PRELI:	PUSH	B		;kresli prerusovanou linku
+	PUSH	PSW		;je-li povolena
+	ANI	80		;mas-li pouze presouvat
+	JZ	LINR		;neprerusuj
+	LDA	TPLI		;neprerusuj take
+	ORA	A		;kdyz je typ cary
+	JZ	LINR		;nastaven na plnou
+	LDA	AKLI		;sniz pocet zbyvajicich kroku
+	DCR	A		;s okamzitym stavem pera
+	JZ	LINZ		;je-li 0 musis jej zmenit
+	STA	AKLI		;uloz a neprerusuj
+LINR:	POP	PSW		;vystupni slovo pro motory
+	MOV	B,A
+	LDA	PSLI		;nastav pero
+	ORI	7F
+	ANA	B		;podle aktualniho stavu
+	STA	MOTR		;posli to na motory
+	POP	B
+	RET
+LINZ:	LDA	PSLI		;cti stav pera
+	ORI	7F		;ostatni do jednicky
+	MOV	B,A
+	POP	PSW		;obnov vystupni slovo
+	ANA	B		;orizni podle pera
+	STA	MOTR		;posli to na motory
+	CALL	P50MS		;pockej na zmenu polohy pera
+	LDA	PSLI		;zinvertuj stav pera
+	XRI	80
+	STA	PSLI		;a uloz jej
+	LDA	TPLI		;obnov aktualni
+	STA	AKLI		;typ cary
+	POP	B
+	RET
+
+P50MS:	MVI	B,19		;zpozdeni 50 ms
+P50:	MVI	C,0F4
+P50A:	DCR	C		;vnitrni smycka
+	JNZ	P50A
+	DCR	B		;hlavni smycka
+	JNZ	P50
+	RET
+
+DRZ:	MOV	L,A
+	ANI	0F		;neni-li posun ve smeru X
+	JZ	DRZN		;doraz netestuj
+	CPI	1
+	LDA	RDSI
+	JZ	DRZR		;posun doprava, zkus pravu
+	ANI	1
+	JNZ	DRZN		;1. doraz neni, zkus druhy
+DRZY:	MOV	A,L		;zjistil jsem doraz
+	ANI	0F0		;zakazuji posun ve smeru X
+	PUSH	PSW
+	LDA	PPORG		;je-li PPORG=1
+	ORA	A
+	JNZ	HAVAR		;vyhlas havarii
+	POP	PSW		;jinak se vrat do programu
+	RET			;ktery te zavolal
+DRZR:	ANI	2		;jeste druhy doraz
+	JZ	DRZY		;stisknut
+DRZN:	MOV	A,L		;doraz jsem nezjistil
+	RET			;vracim
+
+NULXY:	LXI	H,0		;okamzita poloha
+	SHLD	STPX		;pera je nastavena
+	SHLD	STPY		;jako zakladni (0,0)
+	SHLD	NOPX
+	SHLD	NOPY
+	RET
+
+;tento pprog. provede celkovy test tiskarny
+;vyzaduje papir zalozeny na funkci ORG
+
+VTEST:	LXI	D,186
+	LXI	B,0FFB0
+	CALL	PORG		;proved ORG na pozici X,Y
+	MVI	A,0A
+	STA	SIXX
+	STA	SIYY		;velikost znaku
+	ADD	A
+	STA	P185
+	XRA	A
+	STA	NARW		;mezera
+	INR	A
+	STA	ASCD		;ASCII rezim
+	MVI	H,10
+TCON:	MOV	A,H		;smycka pro tisk cele tab.
+	CALL	PCHR
+	INR	H
+	MOV	A,H
+	ANI	7
+	JNZ	TCON		;dalsi znak
+	PUSH	H		;byla uz radka
+	MOV	H,D
+	MOV	L,E
+	SHLD	NOPX
+	LHLD	NOPY		;posun na dalsi
+	LXI	B,0FF80		;radek
+	DAD	B
+	SHLD	NOPY
+	POP	H
+	MOV	A,H
+	ORA	A
+	JP	TCON
+	JMP	KTST
+ATB1:	DW	TB1		;odkazy do jednotlivych
+ATB2:	DW	TB2		;tabulek generatoru
+ATB3:	DW	TB3		;znaku
+ATB4:	DW	TB4
+ATB5:	DW	TB5
+ATB6:	DW	TB6
+ATB7:	DW	TB7
+ATB8:	DW	TB8
+ATB9:	DW	TB9
+ATB10:	DW	TB10
+ATB11:	DW	TB11
+ATB12:	DW	TB12
+ATB13:	DW	TB13
+ATB14:	DW	TB14
+ATB15:	DW	TB15
+
+;vlastni generator znaku
+
+TB1:	DB	38,7C,74,70,78,80
+	DB	8,78,7C,4C,48,32,52
+	DB	1B,52,59,80,08,78,7C
+	DB	4C,48,12,72,2B,72,69
+	DB	80,8,78,7C,4C,48,21
+	DB	63,2A,63,5A,80,8,78
+	DB	7C,4C,48,21,63,2A,61
+	DB	5A,80,8,78,7C,4C,48
+	DB	11,71,33,53,23,61,80
+	DB	8,78,7C,4C,48,1B,52
+	DB	59,69,72,6B,80,3A,4A
+	DB	60,24,4A,80
+TB2:	DB	0A,7A,60,24,7A,80
+	DB	20,64,52,32,64,80,24
+	DB	60,52,32,60,80,0,49
+	DB	79,7B,74,6B,69,6B,64
+	DB	5C,54,4B,4A,51,80,0C
+	DB	4B,59,58,48,49,79,7B
+	DB	74,2A,68,80,80,8,51
+	DB	69,28,6C,2A,4A,4B,54
+	DB	80,8,50,54,4C,48,80
+TB3:	DB	80,3A,5A,0A,0CA,31,7A,32
+	DB	0FB,39,49,0B,7B,2C,68,18
+	DB	0DC,10,53,5C,63,61,68,71
+	DB	74,3A,0CA,7C,39,70,69,72
+	DB	79,1B,52,4B,54,0DB,0C,68
+	DB	70,79,7A,73,6B,50,49,4A
+	DB	0DC,3B,0F2
+TB4:	DB	3B,69,59,0CB,39,6B,5B,0C9
+	DB	11,73,24,60,31,0D3,20,64
+	DB	32,0D2,12,0C1,20,0E4,0A,0CA
+	DB	0FC
+TB5:	DB	7C,34,54,4B,49,50,70,79
+	DB	7B,0F4,29,7B,0CB,30,79,7B
+	DB	74,6C,48,0CC,30,79,7B,74
+	DB	6C,63,5C,54,48,49,0D0,0B
+	DB	7B,58,0DC,10,49,4B,54,5C
+	DB	63,60,78,0FC,34,7B,79,70
+	DB	50,49,4B,54,5C,63,61,0D8
+	DB	7C,0F8
+TB6:	DB	9,50,58,61,63,6C,74,7B
+	DB	79,70,68,61,63,5C,54,4B
+	DB	0C9,10,49,4B,54,74,7B,79
+	DB	70,68,61,63,0EC,1A,5A,2A
+	DB	0EA,1,52,22,0E2,33,61,0D3
+	DB	28,6C,18,0DC,31,63,0D1,30
+	DB	79,7B,74,6C,5A,52,0A,0CA
+TB7:	DB	68,71,73,6C,54,4B,4A,51
+	DB	61,6A,63,0CB,7A,4C,21,0E3
+	DB	78,7B,74,6C,63,60,63,5C
+	DB	54,4B,0C8,34,7B,79,70,50
+	DB	49,4B,0D4,78,7B,74,54,4B
+	DB	0C8,3C,78,48,4C,20,0E2,78
+	DB	7C,20,0E2,34,7B,79,70,50
+	DB	49,4B,54,5C,0DA
+TB8:	DB	78,3C,4C,20,0E4,9,4B,4A
+	DB	7A,79,0FB,10,49,4B,54,0FC
+	DB	78,3C,60,0CC,38,48,0CC,78
+	DB	62,7C,0CC,78,4C,0FC,9,50
+	DB	70,79,7B,74,54,4B,0C9
+TB9:	DB	78,7B,74,6C,63,0E0,9,50
+	DB	70,79,7B,74,54,4B,49,1A
+	DB	0CC,78,7B,74,6C,63,60,0CC
+	DB	10,49,4B,54,5C,63,61,68
+	DB	70,79,7B,0F4,38,7C,3A,0CA
+	DB	38,50,49,4B,54,0FC,38,4A
+	DB	0FC,38,49,6A,4B,0FC
+TB10:	DB	7C,38,0CC,38,62,7C,22,0CA
+	DB	38,7C,48,0CC,3B,79,49,0CB
+	DB	38,0CC,39,7B,4B,0C9,31,7A
+	DB	0F3,0,0C4
+TB11:	DB	39,0F2,29,6B,64,54,4B,49
+	DB	50,59,5B,54,0CC,78,28,6B
+	DB	64,54,4B,0C8,2C,69,60,50
+	DB	49,0CC,3C,4C,49,50,60,69
+	DB	0EC,18,5C,64,6B,69,60,50
+	DB	49,0CC,0A,72,7B,7C,21,0E3
+	DB	0,43,4C,6C,69,60,58,51
+	DB	0D4
+TB12:	DB	78,28,6B,64,0CC,9,4B,4A
+	DB	6A,69,3A,0FA,1,42,4B,6B
+	DB	6A,3B,0FB,78,2C,58,0CC,9
+	DB	4B,4A,7A,0F9,68,60,69,62
+	DB	4A,22,6B,64,0CC,68,60,69
+	DB	6B,64,0CC,09,50,60,69,6B
+	DB	64,54,4B,0C9
+TB13:	DB	0,68,6B,64,5C,53,0D0,4
+	DB	6C,69,60,58,51,0D4,9,69
+	DB	61,6A,6B,0E4,4B,54,5B,59
+	DB	60,69,0EC,0C,4B,52,7A,29
+	DB	0EB,28,50,49,4B,54,0EC,28
+	DB	4A,0EC,28,49,62,4B,0EC
+TB14:	DB	6C,28,0CC,0,43,4C,6C,28
+	DB	58,51,0D4,28,6C,48,0CC,0B
+	DB	52,5A,61,6A,72,0FB,0A,0FA
+	DB	9,52,5A,63,6A,72,0F9,20
+	DB	69,5B,0E4,39,7B,6B,69,79,80
+TB15:	DB	32,0FB,2A,71,7A,73,0EA,39
+	DB	72,0FB,31,7A,0F3,39,79,3B
+	DB	0FB
+	.DEPHASE
+
+
+	.PHASE	RAM		;blok promennych
+
+P160:	DS	2
+SIXX:	DS	2		;velikost pisma XX
+SIXY:	DS	2		;velikost pisma XY
+SIYX:	DS	2		;velikost pisma YX
+SIYY:	DS	2		;velikost pisma YY
+
+STPX:	DS	2		;okamzita poloha pera X
+STPY:	DS	2		;okamzita poloha pera Y
+NOPX:	DS	2		;poloha pristiho tisku zn. X
+NOPY:	DS	2		;poloha pristiho tisku zn. Y
+
+NARW:	DS	1		;druh mezer mezi znaky
+ASCD:	DS	1		;rezim diakriticky/ASCII
+
+BS:	DS	1
+COUNZ:	DS	1		;citac znaku pri f. WRITE
+
+SPEN:	DS	1		;okamzity stav pera
+SMOT:	DS	1		;stav krokovych motorku
+
+PREX:	DS	2		;sour. predchoziho tisku X
+PREY:	DS	2		;--------- " ------------ Y
+
+SPED:	DS	1		;aktualni rychlost posuvu
+
+ACCE:	DS	1		;zrychlovani pri rozbehu
+DIRE:	DS	1		;smer do os Y a X
+DIR1:	DS	1
+DIFF:	DS	2		;rozdil sour. zadane a skut.
+P182:	DS	1
+P183:	DS	1
+P184:	DS	1
+P185:	DS	2
+
+AKLI:	DS	1
+PSLI:	DS	1
+TPLI:	DS	1
+
+REZI:	DS	1		;rezim textovy/graficky
+
+COLR:	DS	1		;aktualni barva
+
+SPD:	DS	1
+RTLI:	DS	1
+
+SKUTX:	DS	2		;poloha 0 od poc. papiru v X
+
+PPORG:	DS	1		;druh funkce dorazu
+VOLB:	DS	1
+				;promenne pro rizeni zvuk.
+				;      generatoru
+KMIT:	DS	1		;kmitocet piskani
+KLOP1:	DS	2		;      pomocne
+CKLO1:	DS	1		;      promenne
+KLOP2:	DS	2		;      pro generator
+KLOPA:	DS	2		;delka pauzy mezi pisk.
+KLOPB:	DS	2		;delka pauzy mezi cykly
+CKLO:	DS	1		;pocet pisknuti
+KLM:	DS	1		;stav reproduktorku
+
+SIZE:	DS	1		;velikost znaku pro GPRINT
+
+UKRA:	DS	1		;ukazatel radek
+UKZR:	DS	1		;ukazatel znaku
+
+STWP:	DS	1
+PUYE:	DS	1
+PUXX:	DS	2
+PRST:	DS	1		;pocet radek na stranku
+PZRA:	DS	1		;pocet znaku na radek
+
+PLNB:	DS	1
+POMB:	DS	1
+
+PITCH:	DS	2		;roztec dilku na ose
+REPE:	DS	1		;pocet dilku na ose
+
+PRECH:	DS	1		;cist z bufferu nebo z BUFINT
+BUFINT:	DS	1		;pomocne prodlouzeni bufferu
+KR025:	DS	1		;krok 0.125 nebo 0.25
+PRZ:	DS	1
+
+CK:	DB	0		;pomocne promenne pro rizeni
+CW:	DB	0		;ukazovatka bufferu
+ZW:	DB	0
+BUFF:	DS	0FF		;vlastni buffer 1/4 kbyte
+	DS	1
+CGR:	DS	1FF
+	DS	30		;prostor pro stack
+STACK:
+	END	0

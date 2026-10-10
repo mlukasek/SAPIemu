@@ -234,6 +234,11 @@ RMP-1 s mechanikou IZOT SM 5300 na jednotce 0 a ukázkovou páskou `media/rmp-1/
 jednotky (`unit0`–`unit2`: `tape`, `write_ring`), `ready_at_start` (pohodlí: páska zavedená a ON-LINE po zapnutí).
 `docs/desky/RMP-1.md`, `docs/navod-rmp1.md`.
 
+**Plotter z AR 1990** (`machines/plotter_ar1990.sapi`, 2026-10-10): samotná JPR-1 (EPROM 2× 2716 s programem
+`roms/ar1990/PLOTTER_AR1990.bin`, RAM 2114, propojka INT rozpojená). Na K2 a K3 je zařízení `AR 1990`, zapsané jako
+klávesnice: Minigraf 0507 na P0-OUT, tlačítka, přepínače (`paper` roll/a4, `color`, `code` ascii/mz800, `cr_lf`,
+`lf_cr`) a kabel od řídicího počítače. Ten nahrazuje okno Minigraf. `docs/desky/AR1990.md`, `docs/navod-ar1990.md`.
+
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
 - Na X2/X3 JPR-1 je panel HRK-1, zapsaný jako klávesnice `HRK-1`.

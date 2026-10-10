@@ -3,6 +3,7 @@
 #include "input/consul.h"
 #include "input/ekl1.h"
 #include "cards/hrk1.h"
+#include "chips/ar1990.h"
 
 using nlohmann::json;
 
@@ -71,7 +72,23 @@ KeyboardDevice* keyboard_from_config(const json& cfg, uint32_t cpu_hz, std::stri
         return a;
     }
     if (type == "HRK-1") return new Hrk1(cpu_hz);   // the front panel of APS-5 with its cables on X2 and X3
-    err = "unknown keyboard type '" + type + "' (EKL-1, Consul 262.3, Consul 259.11, ANK-1, ANK-1M2, HRK-1)";
+    if (type == "AR 1990") {   // the plotter of AR 1990 on K2 and K3: its switches
+        Ar1990Plotter* p = new Ar1990Plotter(cpu_hz);
+        std::string paper = cfg.value("paper", std::string("roll"));
+        if (paper != "roll" && paper != "a4") {
+            err = "AR 1990 paper must be roll or a4";
+            delete p;
+            return nullptr;
+        }
+        p->a4 = paper == "a4";
+        p->color = cfg.value("color", false);
+        p->ascii = cfg.value("code", std::string("ascii")) != "mz800";
+        p->cr_only = !cfg.value("cr_lf", false);
+        p->lf_only = !cfg.value("lf_cr", false);
+        p->set_beeper(cfg.value("beeper", true));
+        return p;
+    }
+    err = "unknown keyboard type '" + type + "' (EKL-1, Consul 262.3, Consul 259.11, ANK-1, ANK-1M2, HRK-1, AR 1990)";
     return nullptr;
 }
 
@@ -87,6 +104,7 @@ const std::vector<KeyboardPreset>& keyboard_presets(void)
         { "ANK-1 (MIKOS)", R"({"type":"ANK-1","software":"mikos"})" },
         { "ANK-1M2", R"({"type":"ANK-1M2"})" },   // joyport: joystick unless set
         { "HRK-1 (APS-5)", R"({"type":"HRK-1"})" },
+        { "Plotter AR 1990", R"({"type":"AR 1990"})" },
     };
     return presets;
 }

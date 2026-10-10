@@ -85,6 +85,8 @@ public:
     void set_beeper(bool on) { beeper.kind = on ? beeper_kind() : Beeper::NONE; }
     // A joystick connector on the keyboard (ANK-1M2): what is plugged in (input/joyport.h JoyDevice),
     // -1 = the keyboard has none. set_joyport() returns false then.
+    // A plotter behind the ports (the plotter of AR 1990 drives a Minigraf from P0-OUT)
+    virtual Minigraf* minigraf() { return nullptr; }
     virtual int joyport() const { return -1; }
     virtual bool set_joyport(int dev) { return false; }
     Bus* bus = nullptr;   // set by the CPU card: the beeper sounds on its bus

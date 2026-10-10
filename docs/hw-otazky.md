@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **226** v 46 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **231** v 47 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -103,6 +103,22 @@ Otevřených bodů: **226** v 46 sekcích. Desky jsou první, pak ostatní téma
 - Doba převodu C 520 D (emulace 20 ms), bity 5 a 6 stavu ADP-1 (emulace 0), stav ADP-1 po /RES.
 
 - Zesílení DMT-1 v emulaci odpovídá tabulce firmwaru (100, 199, 498, 1000). Skutečná deska se nastavuje trimrem RP3.
+
+
+## [Plotter z AR 1990 – souřadnicový zapisovač řízený JPR-1](desky/AR1990.md) – Nejasnosti (5)
+
+- **Manuál a program se rozcházejí:** manuál uvádí zrušení zmenšeného tisku 09H 09H **08H**, program porovnává
+  s **0BH** (komentář „tentokrat $0B“). Emulace dělá to, co program. Přepis v archivu má 08H.
+
+- **Doraz:** DRZ při pohybu vpravo testuje bit 1 (podle Tab. 1 levý doraz) a vlevo bit 0 (pravý). Buď je tabulka,
+  nebo program obráceně. S Minigrafem (bez spínačů) se to neprojeví.
+
+- **LED BUFF a READY:** komentář v BUFE říká „rozsviť diodu READY“ u bitu D6, Tab. 1 a manuál mají D6 = BUFF
+  (svítí trvale = prázdný buffer) a D7 = READY. Emulace se drží tabulky a manuálu.
+
+- Polarita RDP a RDA na straně počítače se volí přepínači. V emulaci je jen úroveň, kterou vidí program.
+
+- Ruční oprava FAST ve skenu: kdo ji dopsal a jestli se dostala do nějaké EPROM.
 
 
 ## [BGP-1S – grafika kompatibilní s PMD-85 (Libor Lasota)](desky/BGP-1S.md) – 9. Nejasnosti (7)

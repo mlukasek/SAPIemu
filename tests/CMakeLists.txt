@@ -41,6 +41,7 @@ sapi_test(test_dsp1)
 sapi_test(test_aps5)
 sapi_test(test_kzd1)
 sapi_test(test_minigraf)
+sapi_test(test_ar1990)
 # RKD-1 in three parts that run in parallel: the system cartridge from media/ (shell, formats, SYSGEN), the
 # CM 5400 with FORMRKD, the making of the system cartridge from the Tesla disk (needs ../SAPI_DOKU)
 sapi_test(test_rkd1)

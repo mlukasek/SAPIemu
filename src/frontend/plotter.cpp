@@ -1,11 +1,15 @@
 // Window "Minigraf": the sheet of the plotter ARITMA Minigraf 0507 (DPP-1), the drawing as it grows,
-// the carriage on its rail with the pen, and the sheet saved as PNG or SVG (work/minigraf).
+// the carriage on its rail with the pen, and the sheet saved as PNG or SVG (work/minigraf). The plotter of
+// AR 1990 (a JPR-1 driving a Minigraf) has its panel and the cable from the host computer here too.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 
 #include <stdio.h>
+#include <mutex>
+#include <vector>
 #include <SDL3/SDL.h>
 #include "imgui.h"
+#include "chips/ar1990.h"
 #include "chips/minigraf.h"
 #include "core/host.h"
 #include "core/machine.h"
@@ -87,6 +91,131 @@ static void draw_sheet(Minigraf* g)
     ImGui::Dummy(avail);
 }
 
+// ---------------------------------------------------------------- the plotter of AR 1990
+
+// a file for the plotter of AR 1990 (the dialog answers from another thread)
+static std::mutex s_ar_mtx;
+static std::string s_ar_file;
+static bool s_ar_open = false;
+
+static void SDLCALL ar_file_done(void*, const char* const* files, int)
+{
+    std::lock_guard<std::mutex> lk(s_ar_mtx);
+    s_ar_file = (files && files[0]) ? files[0] : "";
+    s_ar_open = false;
+}
+
+static void ar_lamp(const char* name, bool on, ImU32 col)
+{
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    float u = ImGui::GetFontSize();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImVec2 c(p.x + 0.45f * u, p.y + 0.55f * u);
+    dl->AddCircleFilled(c, 0.38f * u, on ? col : IM_COL32(70, 70, 70, 255), 16);
+    dl->AddCircle(c, 0.38f * u, IM_COL32(30, 30, 30, 255), 16, 1.0f);
+    ImGui::Dummy(ImVec2(1.0f * u, 1.1f * u));
+    ImGui::SameLine(0, 0.2f * u);
+    ImGui::TextUnformatted(name);
+}
+
+// The front panel and the back switches of the plotter, the cable from the host computer.
+static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
+{
+    static char line[256] = "";
+    {
+        std::string file;
+        {
+            std::lock_guard<std::mutex> lk(s_ar_mtx);
+            file.swap(s_ar_file);
+        }
+        if (!file.empty()) {
+            std::vector<uint8_t> d;
+            if (file_read_all(file, d)) {
+                p->send(d.data(), d.size());
+                plot_notice(ui, true, std::string(tr("Sent to the plotter")) + ": " + file);
+            } else plot_notice(ui, false, std::string(tr("Cannot read")) + " " + file);
+        }
+    }
+    ImGui::SeparatorText(tr("Plotter of AR 1990 (JPR-1, commands of Sharp MZ-1P16)"));
+    ar_lamp("PWR", true, IM_COL32(240, 60, 50, 255));
+    ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
+    ar_lamp("RDY", p->led_ready(), IM_COL32(80, 220, 90, 255));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Lit: the plotter waits for the READY button."));
+    ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
+    ar_lamp("BUFF", p->led_buff(), IM_COL32(240, 200, 60, 255));
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Lit all the time: the buffer is empty."));
+    ImGui::SameLine(0, 1.5f * ImGui::GetFontSize());
+    if (ImGui::Button("STOP")) p->press(Ar1990Plotter::BTN_STOP);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Stops the plotter; it beeps and waits for READY."));
+    ImGui::SameLine();
+    if (ImGui::Button("TEST")) p->press(Ar1990Plotter::BTN_TEST);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("The test of the pens (as code 04H). Held at power on: the whole character set."));
+    ImGui::SameLine();
+    if (ImGui::Button("READY")) p->press(Ar1990Plotter::BTN_READY);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Goes on after a beep: after power on, STOP, a pen change or a stop."));
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Whole test"))) {   // TEST held while the JPR-1 starts
+        p->press(Ar1990Plotter::BTN_TEST);
+        m->reset();
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Reset with TEST held: the whole character set (then READY)."));
+    bool mz = !p->ascii, roll = !p->a4, crlf = !p->cr_only, lfcr = !p->lf_only;
+    ImGui::Checkbox("COLOR", &p->color);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Colour commands stop the plotter and beep for a pen change."));
+    ImGui::SameLine();
+    if (ImGui::Checkbox("MZ800", &mz)) p->ascii = !mz;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Codes of the Sharp MZ-800 converted to ASCII (switch ASCII/MZ800)."));
+    ImGui::SameLine();
+    if (ImGui::Checkbox(tr("Roll"), &roll)) p->a4 = !roll;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("A4/ROLE: a new page skips a few lines (roll) or goes to a new sheet (A4)."));
+    ImGui::SameLine();
+    if (ImGui::Checkbox("CR+LF", &crlf)) p->cr_only = !crlf;
+    ImGui::SameLine();
+    if (ImGui::Checkbox("LF+CR", &lfcr)) p->lf_only = !lfcr;
+    // the host: a file or a line of commands
+    ImGui::BeginDisabled(s_ar_open);
+    if (ImGui::Button(tr("Send file..."))) {
+        static const SDL_DialogFileFilter flt[] = { { "Text (TXT, PLT)", "txt;plt" }, { "*", "*" } };
+        std::string where = data_path("media/ar1990");
+#ifdef _WIN32
+        for (char& c : where) if (c == '/') c = '\\';
+#endif
+        s_ar_open = true;
+        SDL_ShowOpenFileDialog(ar_file_done, nullptr, ui.window, flt, 2, where.c_str(), false);
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Demo"))) {
+        std::vector<uint8_t> d;
+        if (file_read_all(data_path("media/ar1990/ukazka.txt"), d)) p->send(d.data(), d.size());
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Sends media/ar1990/ukazka.txt (graphics and text mode)."));
+    ImGui::SetNextItemWidth(-8.0f * ImGui::GetFontSize());
+    bool go = ImGui::InputTextWithHint("##arline", tr("commands, e.g. D400,0"), line, sizeof(line),
+                                       ImGuiInputTextFlags_EnterReturnsTrue);
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Send")) || go) {
+        std::string s;   // \xNN = a control code
+        for (const char* c = line; *c; c++) {
+            unsigned v;
+            if (c[0] == '\\' && (c[1] == 'x' || c[1] == 'X') && sscanf(c + 2, "%2x", &v) == 1 && c[2] && c[3]) {
+                s += (char)v;
+                c += 3;
+            } else s += *c;
+        }
+        s += '\r';   // the end of the parameters
+        p->send((const uint8_t*)s.data(), s.size());
+        line[0] = 0;
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Sends the line and CR. Codes: 02H graphics mode (type \\x02), 01H text mode."));
+    ImGui::TextDisabled("%s %zu B, %s %llu B", tr("waiting"), p->pending(), tr("taken"), (unsigned long long)p->sent);
+    ImGui::Separator();
+}
+
 void draw_plotter(UiState& ui)
 {
     Machine* m = ui.host->machine();
@@ -113,6 +242,7 @@ void draw_plotter(UiState& ui)
         ImGui::End();
         return;
     }
+    if (Ar1990Plotter* ar = m->cpu ? dynamic_cast<Ar1990Plotter*>(m->cpu->keyboard()) : nullptr) draw_ar1990(ui, m, ar);
     if (ImGui::Button(tr("New sheet"))) g->new_sheet();
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Clean paper is put in under the pen (the drawing is cleared)."));

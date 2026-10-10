@@ -220,6 +220,12 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 | `a_lad_izo.img` | 8" disketa J. Bíby s programy pro pásku: MTDAT, DIRMT, MTCOPY, MTZAP, MTCTE, MTKAN, ovladač `RMP.REL`, zdroje a návody `MTDAT.MAN`, `MTKAN.MAN`. Kopie `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_lad_izo.8sd` (stejná je i v kopii z FTP). |
 | `sapi01_ukazka.tap` | Ukázková páska SAPI01 (SIMH `.tap`): VOL1, soubor 1 MTZAP (`MTZAP.MAC`) a soubor 2 MTDATMAN (`MTDAT.MAN`), blok 800, záznam 80, návěští JSEP, EBCDIC. Zapsal ji program MTDAT v emulátoru (`RMP_MAKE=… test_rmp1`). |
 
+## `ar1990/` – povely pro plotter z AR 1990
+
+| Soubor | Obsah |
+|---|---|
+| `ukazka.txt` | Ukázka povelů Sharp MZ-1P16 (sestava `plotter_ar1990.sapi`, tlačítko Ukázka v okně Minigraf): grafický režim, rámeček 170 × 120 mm, osy, sinusovka, tlumená sinusovka přerušovanou čarou, hvězda, texty ve dvou velikostech a svisle, pak textový režim ve třech velikostech. Souřadnice v krocích 0,125 mm, parametry končí CR. |
+
 ## `mph-1v/` – programy pro zvukovou kartu MPH-1V (Intel HEX, CP/M `.COM` od 0100h)
 
 Zdroj: `..\SAPI-karty\MPH-1V\` (Libor Lasota), do repa se souhlasem autora. Hudba (VGM v `SPLAY\*.hex`, RAD

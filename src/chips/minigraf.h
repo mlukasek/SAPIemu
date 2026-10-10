@@ -35,6 +35,7 @@ public:
     // I8255Peripheral
     void outputs_changed(int port, uint8_t value) override;
     void lines_now(void);          // port B as the 8255 drives it now (input = the lines float high)
+    void set_lines(uint8_t v);     // the cable driven directly (the plotter of AR 1990: P0-OUT of JPR-1)
 
     void power_on(void);           // the carriage somewhere left, new paper
     void new_sheet(void);          // clean paper put in under the pen (y = 0 there, x stays)

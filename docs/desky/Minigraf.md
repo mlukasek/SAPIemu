@@ -21,8 +21,8 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
     a znaková sada.
 - PMD 85: `..\SAPI.CZ\sapi\prislusenstvi\doku\0507_pmd85.php` (pracovní plocha 187,5 × 262,5 mm).
 - Ostatní zapisovače u SAPI: XY 4130 v `docs/desky/XY4130.md` (zatím neemulovaný). Plotter z AR 1990 (V. Julius
-  OK1IVJ, `..\SAPI_DOKU\PLOTTER_JPR_PRILOHA_AR_1990\`) je zapisovač s JPR-1 jako řadičem (povely SHARP MZ-1P16), ne
-  periferie SAPI.
+  OK1IVJ) je zapisovač s JPR-1 jako řadičem (povely SHARP MZ-1P16), který kreslí právě Minigrafem: emulovaný od
+  2026-10-10, `docs/desky/AR1990.md` (stejný model mechaniky, kabel z P0-OUT desky JPR-1, `Minigraf::set_lines`).
 
 ## Zapojení (leták a stránka SAPI)
 

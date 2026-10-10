@@ -46,6 +46,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `media/rmp-1/sapi01_ukazka.tap` (vyrobená programem MTDAT), test `test_rmp1` (formát, MTZAP a MTCTE, MTDAT
   s návěštími JSEP, páska ↔ disketa, DIRMT; ve dvou částech, asi 15 s), `docs/desky/RMP-1.md`, návod
   `docs/navod-rmp1.md` s obrázkem. Programy MTDAT, DIRMT, MTZAP, MTCTE a MTCOPY běží beze změn. Lokálně, nepushnuté.
+- **Noc 2026-10-10, pokračování: plotter z AR 1990** (autor: „zkus ty Plottery, rozhoduj se sám“): JPR-1 jako
+  řadič Minigrafu podle stavebního návodu V. Juliuse OK1IVJ. Program přepsaný ze skenu výpisu v AR
+  (`roms/ar1990/PLOTTER.MAC`, `tools/ar1990_rom.py`; přepis v archivu měl přes deset chyb), zařízení
+  `src/chips/ar1990.*` na portech JPR-1, panel v okně Minigraf, sestava `plotter_ar1990.sapi`, ukázka
+  `media/ar1990/ukazka.txt`, test `test_ar1990` (zkouška per, ukázka, celá znaková sada), `docs/desky/AR1990.md`,
+  návod `docs/navod-ar1990.md`. XY 4130 zůstává (chybí podklady). Lokálně, nepushnuté.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).
@@ -54,7 +60,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 49 v debug (2026-10-10 noc, přibyl `test_rmp1` ve dvou částech, debug asi 33 s), 47 v release
+  - Testy: 50 v debug (2026-10-10 noc, přibyly `test_rmp1` ve dvou částech a `test_ar1990`, debug asi 37 s), 47 v release
     (2026-10-09 večer, `test_rkd1` ve třech částech); release `full` 48 včetně ZEX,
     8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
     kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
@@ -122,7 +128,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - BASIC EXP V5.0/G+SZ s příkazem `KRES` (kreslení v mm: kružnice, šrafování, text, natočení) s porty vrácenými
     na 31h/33h (`media/mikos/BASIC_EXP_V5.0G_SZ.hex`), ukázka `media/mikos/KRES_DEMO.bas`.
   - Dál se nabízí: XY 4130 (podklady a zjištění v `docs/desky/XY4130.md`: krok 0,1 mm z konstant `KRES`, ovladač
-    v `MIKOS5.BIN` 1800h na JPR-1 X3, dva různé kabely) a plotter z AR 1990 (JPR-1 jako řadič zapisovače). Poznámky průzkumu jsou mimo git
+    v `MIKOS5.BIN` 1800h na JPR-1 X3, dva různé kabely). Plotter z AR 1990 je hotový 2026-10-10
+    (`docs/desky/AR1990.md`). Poznámky průzkumu jsou mimo git
     v pracovní složce sezení 2026-10-09; hlavní fakta jsou v `docs/desky/Minigraf.md`.
 - **KZD-1** (2026-10-09, přání autora, `docs/desky/KZD-1.md`): kazetopáskový záznamník dat na DPP-1 X2 s MIKOSem/K
   V5.0 (originální EPROM 6. 4. 88), sestava `zps/ZPS-2_MIKOS_K.sapi`, test `test_kzd1`.
@@ -339,8 +346,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         (stránky `z-1xx`, Chemoprojekt). DMR-1A je nejspíš naše DMR-1. Vedlejší nález: programy pro plottery na DPP-1
         (Aritma Minigraf 0507/0517, XY4130, plotter z AR 1990). Výpisy a extrakty v pracovní složce průzkumu (mimo git).
      f) **Zásobník nápadů (2026-10-09, autor: „všechno jsou dobré nápady, vrátíme se k nim“):**
-        1. ~~model plotteru na DPP-1~~ hotové 2026-10-09: Minigraf 0507 (`docs/desky/Minigraf.md`); zbývá XY 4130
-           (ovladač za MIKOSem V5 v `_ROM\MIKOS v5\MIKOS5.BIN` 1800h) a AR 1990;
+        1. ~~model plotteru na DPP-1~~ hotové 2026-10-09: Minigraf 0507 (`docs/desky/Minigraf.md`), 2026-10-10
+           plotter z AR 1990 (`docs/desky/AR1990.md`); zbývá XY 4130 (ovladač za MIKOSem V5 v
+           `_ROM\MIKOS v5\MIKOS5.BIN` 1800h, chybí plocha, polarity a kresba na porovnání);
         2. ~~RKD-1~~ hotové 2026-10-09: karta, sestava `rkd1_tesla_cpm.sapi`, systémová kazeta z originálních
            programů Tesla Elstroj (`docs/desky/RKD-1.md`);
         3. DSE-1 (simulátor a programátor EPROM);
