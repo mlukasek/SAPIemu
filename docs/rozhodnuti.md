@@ -1592,4 +1592,11 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Chyby JPR-1Z/1V se zatím neemulují** (autor vybral zápis do dokumentace a zkoušku v emulátoru, ne emulaci):
   výběr grafické karty při INTA (STSTB i od /IORQ, RDY se neuvolní) a RESET jen s /M1. Program, který zabloudí
   nad BFFFh s povoleným přerušením, tak v SAPIemu běží dál, na železe se zasekne. Kdyby se emulace dělala, pak
-  přepínatelně podle revize (originál / Liborova záplata IC15), až bude záplata známá.
+  přepínatelně podle revize (originál / Liborova záplata IC15).
+- **Nejdřív příčina poškození paměti, pak emulace** (autor: „nemá smysl implementovat Liborovi opravy, když to
+  v emulátoru netuhne“). Zásek je až poslední článek: na železe se nejdřív přepisuje paměť (font, možná zásobník
+  nebo kód), program pak skočí nad BFFFh a teprve přerušení zablokuje RDY. V emulátoru se paměť nepřepisuje,
+  takže by INTA a RESET s /M1 nic nezměnily. Postup: výpis paměti ze železa (po RESETu, dokud ještě zabere),
+  z adres a hodnot poškozených bajtů odvodit mechanismus (třeba zápis do CGA, který dopadne i do RAM se ztraceným
+  A14/A15, nebo adresa posunutá o bit; emulátor umí porovnat se zápisy programu), ten nasimulovat jako vadu
+  a teprve pak doplnit INTA, RESET s /M1 a záplatu.

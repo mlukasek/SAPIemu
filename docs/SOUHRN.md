@@ -87,6 +87,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     9064h–90C6h). Program sám font nepřepisuje, poškození vzniká na železe. Výpis paměti ze zaseknutého stroje
     porovnaný s HEXem by ukázal, co dalšího se poškodilo (mimo uvedené rozsahy je každá změna chyba). Skript
     `fxs_font.py` je jen v scratchpadu sezení.
+  - **Autor Liborovi odepsal** (2026-10-10): výsledek zkoušky a prosba o výpis paměti 0100h–9F34h po RESETu,
+    když je font přepsaný a stroj ještě nestojí. Navrhl zkusit JPR-1Z nebo JPR-1ZI místo JPR-1V a sběrnici
+    ImBUS9 (sází na přechodové děje na sběrnici). **Čeká se na výpis**, z něj odvodit mechanismus poškození.
+    Emulace INTA, RESET s /M1 a záplaty až potom (`docs/rozhodnuti.md`). Autor testuje na svém železe večer
+    nebo 11. 10.
 - **2026-10-10:** RAM disky s hrami autora v `media/zrmd-1` (Bad Apple!!, Prince of Persia, záloha se všemi hrami),
   sestavy `sapi1v_BadApple.sapi` a `sapi1v_PoP.sapi`, volby u ZRD-1V; obrazy s PoP jen v repu, ne v balíčku alfy
   (`tools/package.py`, `REPO_ONLY`).

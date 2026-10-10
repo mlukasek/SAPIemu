@@ -91,7 +91,8 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
 - Parametry: `rom` (8 KB) nebo `bank0`/`bank1`, `bios` (osazená/rozpojená), `turbo`, `osc_hz`.
 - TURBO desky JPR-1V je jen takt CPU. Rychlost celé emulace je zvlášť (F8, menu Stroj → Rychlost emulace).
 - **Zatím se neemuluje:** výběr karty při INTA (zablokované RDY) a RESET jen s /M1. Program, který s povoleným
-  přerušením zabloudí nad BFFFh, v emulátoru běží dál, na železe se zasekne. Kdyby se to emulovalo, pak
+  přerušením zabloudí nad BFFFh, v emulátoru běží dál, na železe se zasekne. Má to smysl až se známou příčinou
+  poškození paměti, která program nad BFFFh pošle (`docs/rozhodnuti.md`, 2026-10-10). Kdyby se to emulovalo, pak
   přepínatelně (originál / Liborova záplata IC15).
 
 ## Otázky pro autora
