@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **241** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **244** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -229,9 +229,13 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - **PROM D3D:** obsah z návodu je zjevně jen ukázka. Měl někdo skutečné kódy zpráv (UNL, DCL…)?
 
 
-## [DSM-1 – sériové rozhraní s kazetou](desky/DSM-1.md) – Nejasnosti (5)
+## [DSM-1 – sériové rozhraní s kazetou](desky/DSM-1.md) – Nejasnosti (6)
 
 - Pořadí bitů délky slova (b3–2) v registru řízení UART. OCR uvádí „10“ = 6 bitů.
+
+- **Reset UARTu (MR):** DSM-1V ho drží do prvního čtení paměti na sběrnici (/MR), změřeno 2026-10-11
+  (`docs/zmeny-podle-hw.md`). Má podobné prodloužení MR i původní DSM-1 a DMR-1 (MHB1012)? Ve schématech
+  zkontrolovat, emulace je zatím bez něj.
 
 - Stav po resetu: dokumentace uvádí „DR=1“, což je pravděpodobně chyba OCR.
 
@@ -241,6 +245,15 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 
 - Kazeta z programu přehraná z PC do skutečné DSM-1: stačí obdélník z WAV, jaké jsou minimální mezery pro
   skutečný magnetofon (`docs/software/kazeta.md`, kapitola 5)?
+
+
+## [DSM-1V – dva sériové kanály (Libor Lasota, podle DSM-1, bez kazety)](desky/DSM-1V.md) – Nejasnosti (2)
+
+- **TBRE hned po dvou zápisech dat za sebou** (měřicí pracoviště 2026-10-11): deska čte stav 7Fh (TBRE = 1),
+  emulátor 3Fh, oba znaky přitom dorazí. Nejspíš prodloužení /IOW (IC28) zapíše znak o chvíli později. Změřit
+  /IOW proti TxD a stavu TBRE (`docs/zmeny-podle-hw.md`, Podezření k dořešení).
+
+- Bit 5 portu +0 („START“) a čtení portu +3 (FFh?) zatím neměřeno.
 
 
 ## [DSP-1 – deska dvou sériových kanálů](desky/DSP-1.md) – Nejasnosti k ověření na HW (3)

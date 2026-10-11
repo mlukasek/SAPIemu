@@ -1563,6 +1563,15 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   `CardParam.min = PF_NEW_MEDIUM`). Diskety potřebují zvolit formát, ty dál zakládá okno Média.
 - **Souborové dialogy:** složka dostane koncový oddělovač (`dialog_location`), soubor nabízený k uložení zůstává.
 
+## 2026-10-11 – změny podle měření na skutečném HW
+
+- **Nejdřív návrh, pak implementace** (autor: „podezřelé věci prosím bezhlavě neimplementuj, ale nejdřív to spolu
+  probereme“). Každá změna i potvrzení beze změny se zapisuje do `docs/zmeny-podle-hw.md` s doklady a programem,
+  kterým jde měření zopakovat (`tools/hwbench/`). Měří se na 125 MS/s, podezřelé hrany i analogově.
+- **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
+  prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
+  Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+
 ## 2026-10-10 – DPS-1 a měřicí pracoviště IMS-2
 
 - **Pracoviště je „technologie mimo počítač“** (`plant` typu `IMS-2`) jako pece APS-5: sběrnice s přístroji

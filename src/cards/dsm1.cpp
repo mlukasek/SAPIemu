@@ -89,6 +89,7 @@ void Dsm1::reset()
     modem_ctrl = 0;
     uart.set_baud(bus->cpu_hz, baud);
     uart.reset(bus->now);
+    mr_held = no_tape;   // DSM-1V: /RES sets the MR latch
     tape_time = bus->now;
     tx_chars.clear();
 }
@@ -118,6 +119,11 @@ void Dsm1::advance(uint64_t now)
         while (tx_chars.size() > 4) tx_chars.erase(tx_chars.begin());
     } else {
         tx_chars.clear();
+        if (mr_held) {   // the receiver is held in reset: what comes is lost
+            uint8_t b;
+            while (serial && serial->from_host(b)) {}
+            return;
+        }
         uart.advance(now, serial.get(), !rts_flow || (modem_ctrl & 0x01));
     }
 }
@@ -266,8 +272,13 @@ bool Dsm1::io_write(uint8_t port, uint8_t data)
         tape_run(bus->now);   // notes a motor start
         break;
     case 1: uart.write_control(data); break;
-    case 2: uart.write_data(data); break;
-    case 3: uart.reset(bus->now); break;
+    case 2:
+        if (!mr_held) uart.write_data(data);   // DSM-1V in MR: the character is lost
+        break;
+    case 3:
+        uart.reset(bus->now);
+        mr_held = no_tape;   // DSM-1V: held until the next /MR
+        break;
     }
     return true;
 }
@@ -362,6 +373,12 @@ bool Dsm1v::io_write(uint8_t port, uint8_t data)
 {
     for (int i = 0; i < 2; i++)
         if (enabled[i] && ch[i].io_write(port, data)) return true;
+    return false;
+}
+
+bool Dsm1v::mem_read(uint16_t addr, uint8_t& data)
+{
+    for (Dsm1& c : ch) c.bus_mem_read();
     return false;
 }
 

@@ -42,6 +42,8 @@ public:
     bool has_tape(void) const { return !no_tape; }
     uint8_t base_port(void) const { return base; }
     bool motor_on(void) const;
+    // DSM-1V: a memory read on the bus (/MR) ends the UART reset
+    void bus_mem_read(void) { mr_held = false; }
 
 private:
     bool cassette(void) const { return !no_tape && (modem_ctrl & 0x10) != 0; }
@@ -57,6 +59,11 @@ private:
     bool connected_default = true, cts_default = true;
     bool rts_flow = false;
     uint8_t modem_ctrl = 0;
+    // DSM-1V: MR of the UART is a latch (74LS10) set by /RES and by a write to base+3 and cleared by the
+    // next /MR on the bus (the JPR-1V does not give /MR for its ROM), measured on the real board 2026-10-11.
+    // While set, data writes and received characters are lost and the status reads 7Fh. Not in the saved
+    // state (it lasts until the first RAM read); a loaded state has it released.
+    bool mr_held = false;
     Mhb1012 uart;
     std::unique_ptr<SerialChannel> serial;
 
@@ -82,6 +89,8 @@ public:
     void advance(uint64_t now) override;
     bool io_read(uint8_t port, uint8_t& data) override;
     bool io_write(uint8_t port, uint8_t data) override;
+    // not a memory card: a read on the bus only ends the MR of both UARTs (/IMR)
+    bool mem_read(uint16_t addr, uint8_t& data) override;
     int irq_lines() override;
     SerialChannel* serial_channel(int index) override;
     void flush() override;

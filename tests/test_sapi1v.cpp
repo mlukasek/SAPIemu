@@ -642,9 +642,45 @@ static void cga_beam(void)
     m.bus.io_write(0x63, 0x00);
 }
 
+// DSM-1V: MR of the UART is held from the reset write (base+3) until a memory read on the bus (/MR); the
+// JPR-1V gives no /MR for its own ROM (measured on the real board 2026-10-11, work/hwtest/mr.asm, the line
+// carried "CD"): 'A' right after the init and 'B' after a ROM read are lost, 'C' after a RAM read is sent.
+static void dsm1v_mr(void)
+{
+    static const uint8_t prog[] = {
+        0xF3,                    // di
+        0xD3, 0x13,              // out (13h),a   UART reset: MR held
+        0xAF, 0xD3, 0x10,        // xor a / out (10h),a
+        0x3E, 0x0D, 0xD3, 0x11,  // ld a,0Dh / out (11h),a   8N1
+        0x3E, 0x41, 0xD3, 0x12,  // 'A' (lost)
+        0x3A, 0x40, 0x00,        // ld a,(0040h)   ROM: no /MR
+        0x3E, 0x42, 0xD3, 0x12,  // 'B' (lost)
+        0x3A, 0x00, 0x80,        // ld a,(8000h)   RAM: /MR ends MR
+        0x3E, 0x43, 0xD3, 0x12,  // 'C'
+        0xDB, 0x11, 0xE6, 0x40, 0x28, 0xFA,   // wait for TBRE
+        0x3E, 0x44, 0xD3, 0x12,  // 'D'
+        0x18, 0xFE,              // jr $
+    };
+    std::vector<uint8_t> rom(8192, 0xFF);
+    for (size_t b = 0; b < rom.size(); b += 2048) memcpy(&rom[b], prog, sizeof(prog));   // both banks
+    std::string err, path = data_path("work/test/dsm1v_mr.bin");
+    CHECK(file_write_all(path, rom.data(), rom.size()));
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "JPR-1V") c["rom"] = "work/test/dsm1v_mr.bin";
+    Machine m;
+    CHECK(m.load_json(cfg, err));
+    m.run_seconds(0.05);
+    std::string got;
+    m.serials[0]->host_receive(got, 1 << 16);
+    printf("DSM-1V MR: \"%s\"\n", got.c_str());
+    CHECK(got == "CD");
+}
+
 int main(void)
 {
     test_init();
+    dsm1v_mr();
     cga_beam();
     power_on_random();
     ecmon_variant();

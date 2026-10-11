@@ -60,6 +60,9 @@ Zdroje:
 ## Nejasnosti
 
 - Pořadí bitů délky slova (b3–2) v registru řízení UART. OCR uvádí „10“ = 6 bitů.
+- **Reset UARTu (MR):** DSM-1V ho drží do prvního čtení paměti na sběrnici (/MR), změřeno 2026-10-11
+  (`docs/zmeny-podle-hw.md`). Má podobné prodloužení MR i původní DSM-1 a DMR-1 (MHB1012)? Ve schématech
+  zkontrolovat, emulace je zatím bez něj.
 - Stav po resetu: dokumentace uvádí „DR=1“, což je pravděpodobně chyba OCR.
 - Jak přesně skutečný obvod rozhoduje bity a jak se chová na začátku úseku (emulace: fázový dekodér, viz výše).
 - Co dělá výstup do magnetofonu, když je KAZ = 0 (emulace: klidový tón).

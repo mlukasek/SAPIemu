@@ -73,6 +73,14 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a disketa `a_lad_izo_opraveny.img`), test `test_rmp1_mtcopy` (kopie páska → páska, EOF1 1 a 5). Návod
     `docs/navod-rmp1.md`, kapitola 6: kopie pásky krok za krokem s výpisy z emulátoru, chyba původního MTCOPY
     a co je v opravě. Pushnuté 2026-10-10.
+- **2026-10-11 (autor: „Hodina ověřování hardware přišla“): měřicí pracoviště na skutečné sestavě V.** PicoROM
+  v JPR-1V (nahrávání ROM, reset přes /RTL, komunikační kanál přes `pypicorom` s opravou knihovny `picolink`,
+  která zahazovala pakety), DSM-1V kanál A na COM13, Saleae Logic Pro 16 přes Automation API na 125 MS/s,
+  zapojení ověřené programem. Programy a skripty `tools/hwbench/`, výsledky a pravidla
+  **`docs/zmeny-podle-hw.md`** (autor: změny podle HW nejdřív navrhnout a probrat). První změna: DSM-1V drží
+  reset UARTu do prvního čtení paměti na sběrnici (schéma IC27 + čtyři měření), test v `test_sapi1v`. Podezření
+  TBRE po dvou zápisech zatím jen v Nejasnostech. Další plán: JPR-1V STSTB, AND-1V a CGA-1V čekání, ZRMD-1 po
+  resetu, MPH-1V, nakonec zamrzání FXS4 (`docs/zmeny-podle-hw.md`).
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem

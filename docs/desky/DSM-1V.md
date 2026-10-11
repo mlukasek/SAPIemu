@@ -50,9 +50,24 @@ Zdroje:
   - tabulka `Baud DSM1V.xlsx`. Libor s HD-6402B a rychlejším oscilátorem dosáhl 921,6 kBd.
 - **Rev 1.1:** prodloužení /IOW nuluje /MR, prodloužení MR přes 74LS10.
 
+- **Reset UARTu (MR)** (schéma, změřeno na desce 2026-10-11, `docs/zmeny-podle-hw.md`): MR drží klopný obvod
+  z 74LS10 (IC27, u kanálu B s IC28). Nastaví ho /RES nebo zápis na +3, uvolní ho až **čtení paměti na sběrnici**
+  (/MR přes 74LS244 jako /IMR). JPR-1V při čtení vlastní ROM /MR nedává, takže program běžící jen z ROM musí po
+  nastavení UARTu jednou přečíst RAM. Jinak zápisy dat i přijaté znaky mizí a stav čte 7Fh (TBRE = 1, program
+  nečeká). Emulace to dělá od 2026-10-11.
+
 ## Autorova deska (fotka)
 
 - Nejspíš A = 10h, B = 14h, k ověření.
+- Na měřicím pracovišti (2026-10-11) je na kanálu A (10h) linka 9600 Bd (převodník MOXA, COM13). Po resetu čte
+  stav 7Fh, modem 10h (CTS, DSR, DCD aktivní, RXD = 1).
+
+## Nejasnosti
+
+- **TBRE hned po dvou zápisech dat za sebou** (měřicí pracoviště 2026-10-11): deska čte stav 7Fh (TBRE = 1),
+  emulátor 3Fh, oba znaky přitom dorazí. Nejspíš prodloužení /IOW (IC28) zapíše znak o chvíli později. Změřit
+  /IOW proti TxD a stavu TBRE (`docs/zmeny-podle-hw.md`, Podezření k dořešení).
+- Bit 5 portu +0 („START“) a čtení portu +3 (FFh?) zatím neměřeno.
 
 ## Plán emulace
 

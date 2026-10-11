@@ -36,7 +36,8 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - **A11 EEPROM = /BIOS:** propojka „BIOS“ na zem s pull-upem 4k7. Propojka osazená = banka 0 (EEPROM
     0000–07FF), rozpojená = banka 1 (0800–0FFF). Jen propojka, žádný port. [S4]: „8kB využívá pouze dvě banky
     2kB … přepínatelnými pomocí JUMPERu“, propojku lze vyvést na tlačítko na panelu.
-  - Při čtení ROM je /MR potlačené, **zápisy jdou vždy na sběrnici** (jako JPR-1ZI). MAP1/MAP2 na BOOT ROM
+  - Při čtení ROM je /MR potlačené (změřeno na desce 2026-10-11, `docs/zmeny-podle-hw.md`), **zápisy jdou vždy
+    na sběrnici** (jako JPR-1ZI). MAP1/MAP2 na BOOT ROM
     nepůsobí [S4]. /WE EEPROM je odpojené, za provozu se nedá přepsat.
   - **BOOT klopný obvod** IC24B: RESET ho nastaví (červená LED), libovolný `OUT (00h)` ho shodí. Jako JPR-1ZI.
 - **I/O:** IC9 74LS138 (A7, A6, A5, G2A = A4, G2B = A3) a IC7 (A = A2, B = A1, C = A0, obrácené pořadí). Port 00
