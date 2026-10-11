@@ -1,4 +1,5 @@
 #include "chips/mhb1012.h"
+#include <math.h>
 #include "core/state.h"
 #include "core/devices.h"
 
@@ -35,10 +36,16 @@ void Mhb1012::write_control(uint8_t cw)
     even_parity = (cw & 0x10) != 0;
 }
 
-void Mhb1012::write_data(uint8_t d)
+void Mhb1012::write_data(uint8_t d, uint64_t now)
 {
     thr = d;
     tbre = false;
+    thr_at = 0;
+    if (clock_grid) {   // the next edge of the 16x clock after the write
+        double clk = cycles_per_bit / 16.0;
+        double edge = (floor((double)now / clk) + 1.0) * clk;
+        thr_at = (uint64_t)ceil(edge);
+    }
 }
 
 void Mhb1012::rx_inject(uint8_t data, bool framing_error, bool parity_error)
@@ -64,12 +71,21 @@ void Mhb1012::advance(uint64_t now, SerialChannel* ch, bool rx_allowed)
         uint8_t mask = (uint8_t)((1u << word_bits) - 1);
         if (ch) ch->to_host(tsr & mask);
     }
-    if (!tsr_busy && !tbre) {
+    if (!tsr_busy && !tbre && now >= thr_at) {
+        // clock_grid: the character starts on its clock edge (or when the previous one ended), not at the
+        // moment advance() happens to be called
+        uint64_t start = now;
+        if (clock_grid) start = thr_at > tx_done_at ? thr_at : tx_done_at;
         tsr = thr;
         tbre = true;
         tsr_busy = true;
-        if (tx_log) tx_log->push_back(TxChar{ now, thr });
-        tx_done_at = now + (uint64_t)char_cycles();
+        if (tx_log) tx_log->push_back(TxChar{ start, thr });
+        tx_done_at = start + (uint64_t)char_cycles();
+        if (now >= tx_done_at) {   // advance() came late: the character is out already
+            tsr_busy = false;
+            uint8_t mask = (uint8_t)((1u << word_bits) - 1);
+            if (ch) ch->to_host(tsr & mask);
+        }
     }
     // receiver: a character taken from the host is on the line for one character
     // time (start bit .. stop bits) before DR is set

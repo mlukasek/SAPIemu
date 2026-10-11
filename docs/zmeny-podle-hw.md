@@ -45,20 +45,7 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Netýká se:** původní DSM-1 a DMR-1 (MHB1012) zůstávají beze změny, jejich schéma se na to ještě neprošlo
   (Nejasnosti v `docs/desky/DSM-1.md`).
 
-## Ověřeno beze změny
-
-- **JPR-1V nedává /MR při čtení ROM** (0000h–07FFh): při kontrole zapojení byl /MR jen u čtení RAM a AND-1V.
-  Emulátor to tak dělá (`docs/desky/JPR-1V.md`).
-- **Port 63h → MAP1, MAP2:** OUT 40h → MAP1, 80h → MAP2, C0h → oba, 00h → nic, aktivní v H. Shoduje se
-  s nastavením RAM-1V v sestavě (bit 6 → MAP1, bit 7 → MAP2). Na 63h ale odpovídá i ZRMD-1, kdo čáry budí, se
-  z tohoto měření nedá rozlišit (otázka JP2 u ZRMD-1 zůstává).
-- **AND-1V čeká při čtení videopaměti:** 16 čtení F800h, 16 impulzů RDY (délky se zatím nevyhodnocovaly).
-- **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
-  dává totéž.
-
-## Návrhy čekající na schválení
-
-### DSM-1V: UART převezme znak do vysílacího registru až na hraně taktu 16× rychlosti
+### 2026-10-11 – DSM-1V: UART převezme znak do vysílacího registru až na hraně taktu 16×
 
 - **Měření** (`tbre.asm`, `tbre_run.py`, 2026-10-11, 9600 Bd, takt 16× = 153,6 kHz, perioda 6,51 µs):
   1. jeden zápis dat (/IOW 0,62 µs): start bit 0,9 µs po začátku zápisu, stav potom 7Fh;
@@ -71,10 +58,27 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   od sebe) prošlo, protože hrana mezi zápisy náhodou byla. Prodloužení /IOW to nevysvětluje (zápis trvá 0,62 µs).
 - **Emulátor dnes:** znak převezme hned, druhý čeká ve vyrovnávacím registru (TBRE = 0 asi 1 ms) a odejdou oba
   (stejná ROM: „55 55 55“ proti „55 55“ na desce).
-- **Návrh:** v modelu UARTu převzetí do vysílacího registru na hraně taktu 16× (mřížka od zapnutí, fázi skutečné
-  desky neznáme), start bit od té hrany. Zápis rychleji než jedna perioda taktu (6,5 µs při 9600 Bd, 0,54 µs při
-  115200 Bd) pak přepíše předchozí znak jako na desce. Zatím jen DSM-1V (6402). MHB1012 na DSM-1 a DMR-1 je
-  nejspíš stejný (odvozený od AY-5-1013), ale neměřený.
+- **Změna (autor schválil):** `Mhb1012::clock_grid` (zapnuté jen u DSM-1V): zápis dat si spočítá nejbližší hranu
+  taktu 16× (mřížka od času 0, fázi skutečné desky neznáme), převzetí a start bit jsou na té hraně nebo na konci
+  předchozího znaku. Zápis rychleji než jedna perioda taktu (6,5 µs při 9600 Bd, 0,54 µs při 115200 Bd) přepíše
+  předchozí znak jako na desce. Čas hrany se neukládá do stavu (nejvýš jedna perioda).
+- **Test:** `test_sapi1v` (`uart_clock_grid`): dva zápisy v jedné periodě pošlou jen druhý znak, start na hraně,
+  znak zapsaný během vysílání čeká; bez mřížky odejdou oba. ROM `tbre.asm` v emulátoru pošle dva nebo tři znaky
+  podle toho, kam padne hrana mezi zápisy 11 taktů od sebe (perioda 26 taktů), stejně jako by to na desce
+  záviselo na fázi děliče.
+- **Netýká se:** MHB1012 na DSM-1 a DMR-1 je nejspíš stejný (odvozený od AY-5-1013), ale neměřený, zůstává beze
+  změny (Nejasnosti `docs/desky/DSM-1.md`). Autor ho zkusí změřit na skutečné DSM-1.
+
+## Ověřeno beze změny
+
+- **JPR-1V nedává /MR při čtení ROM** (0000h–07FFh): při kontrole zapojení byl /MR jen u čtení RAM a AND-1V.
+  Emulátor to tak dělá (`docs/desky/JPR-1V.md`).
+- **Port 63h → MAP1, MAP2:** OUT 40h → MAP1, 80h → MAP2, C0h → oba, 00h → nic, aktivní v H. Shoduje se
+  s nastavením RAM-1V v sestavě (bit 6 → MAP1, bit 7 → MAP2). Na 63h ale odpovídá i ZRMD-1, kdo čáry budí, se
+  z tohoto měření nedá rozlišit (otázka JP2 u ZRMD-1 zůstává).
+- **AND-1V čeká při čtení videopaměti:** 16 čtení F800h, 16 impulzů RDY (délky se zatím nevyhodnocovaly).
+- **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
+  dává totéž.
 
 ## Podezření k dořešení
 

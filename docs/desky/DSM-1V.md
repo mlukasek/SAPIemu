@@ -64,9 +64,8 @@ Zdroje:
 
 ## Nejasnosti
 
-- **Převzetí znaku do vysílacího registru až na hraně taktu 16×** (změřeno 2026-10-11): dva zápisy rychleji než
-  jedna perioda taktu pošlou jen jeden znak a TBRE zůstane 1. Emulátor zatím posílá oba, návrh změny čeká na
-  schválení (`docs/zmeny-podle-hw.md`).
+- ~~Převzetí znaku do vysílacího registru~~: až na hraně taktu 16× (změřeno a emulováno 2026-10-11,
+  `docs/zmeny-podle-hw.md`): dva zápisy rychleji než jedna perioda taktu pošlou jen druhý znak.
 - ~~Čtení portu +3~~: **FFh** (změřeno 2026-10-11). Bit 5 portu +0 („START“) zatím neměřen.
 - Modem (+0) podle stavu linky: s otevřeným COM13 (MOXA drží DTR, RTS) 10h, se zavřeným F0h.
 

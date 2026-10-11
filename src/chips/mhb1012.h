@@ -24,7 +24,12 @@ struct Mhb1012 {
     void set_baud(uint32_t cpu_hz, uint32_t baud);
     void reset(uint64_t now);
     void write_control(uint8_t cw);   // DSM-1/DMR-1 bit layout
-    void write_data(uint8_t d);
+    // `now`: the bus time of the write, used with clock_grid
+    void write_data(uint8_t d, uint64_t now = 0);
+    // The holding register goes to the shift register on the next edge of the 16x clock, not at once
+    // (6402 on the DSM-1V, measured 2026-10-11, docs/zmeny-podle-hw.md): two writes within one clock period
+    // send only the second character. The grid runs from bus time 0 (the phase of a real board is unknown).
+    bool clock_grid = false;
     uint8_t read_data(void);
     // Move characters between the UART and the host channel up to `now`.
     void advance(uint64_t now, SerialChannel* ch, bool rx_allowed = true);
@@ -51,6 +56,9 @@ private:
     uint8_t tsr = 0;          // transmit shift register
     bool tsr_busy = false;
     uint64_t tx_done_at = 0;
+    // clock_grid: the edge the holding register is taken on. Not in the saved state (a few us at most);
+    // after loading it is 0, the character goes at the next advance.
+    uint64_t thr_at = 0;
     uint64_t rx_ready_at = 0; // end of the last character on the receive line
     bool rx_busy = false;     // a character is being received
     uint8_t rx_shift = 0;

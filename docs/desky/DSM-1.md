@@ -63,6 +63,8 @@ Zdroje:
 - **Reset UARTu (MR):** DSM-1V ho drží do prvního čtení paměti na sběrnici (/MR), změřeno 2026-10-11
   (`docs/zmeny-podle-hw.md`). Má podobné prodloužení MR i původní DSM-1 a DMR-1 (MHB1012)? Ve schématech
   zkontrolovat, emulace je zatím bez něj.
+- **Převzetí znaku do vysílacího registru:** 6402 na DSM-1V ho dělá až na hraně taktu 16× (změřeno 2026-10-11).
+  MHB1012 (AY-5-1013) nejspíš stejně, změřit na skutečné DSM-1 (autor: TTL signály jen na čipu UART).
 - Stav po resetu: dokumentace uvádí „DR=1“, což je pravděpodobně chyba OCR.
 - Jak přesně skutečný obvod rozhoduje bity a jak se chová na začátku úseku (emulace: fázový dekodér, viz výše).
 - Co dělá výstup do magnetofonu, když je KAZ = 0 (emulace: klidový tón).

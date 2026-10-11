@@ -16,6 +16,7 @@ static const uint32_t k_bauds[] = { 50, 75, 110, 150, 300, 600, 1200, 2400, 4800
 Dsm1::Dsm1(const char* type) : Card(type)
 {
     no_tape = type == std::string("DSM-1V");
+    uart.clock_grid = no_tape;   // 6402: the character goes on the edge of the 16x clock (measured)
     uart.tx_log = &tx_chars;
 }
 
@@ -273,7 +274,7 @@ bool Dsm1::io_write(uint8_t port, uint8_t data)
         break;
     case 1: uart.write_control(data); break;
     case 2:
-        if (!mr_held) uart.write_data(data);   // DSM-1V in MR: the character is lost
+        if (!mr_held) uart.write_data(data, bus->now);   // DSM-1V in MR: the character is lost
         break;
     case 3:
         uart.reset(bus->now);

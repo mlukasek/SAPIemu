@@ -7,6 +7,7 @@
 #include <string.h>
 #include <algorithm>
 #include "cards/zrmd1.h"
+#include "chips/mhb1012.h"
 #include "core/bus.h"
 #include "core/headless.h"
 #include "core/log.h"
@@ -677,9 +678,49 @@ static void dsm1v_mr(void)
     CHECK(got == "CD");
 }
 
+// The 6402 of the DSM-1V takes the holding register on the next edge of the 16x clock (measured 2026-10-11,
+// tools/hwbench/tbre.asm): two writes within one clock period send only the second character; a write while
+// a character is in the shift register waits (TBRE 0) and starts when that one ends.
+static void uart_clock_grid(void)
+{
+    std::vector<Mhb1012::TxChar> log;
+    Mhb1012 u;
+    u.tx_log = &log;
+    u.clock_grid = true;
+    u.set_baud(4000000, 9600);   // 16x clock: 26.04 cycles
+    u.reset(0);
+    u.write_data('A', 100);      // the edge is at 105
+    u.advance(103, nullptr);
+    CHECK(!u.tbre);              // not taken yet
+    u.write_data('B', 104);      // overwrites A
+    u.advance(110, nullptr);
+    CHECK(u.tbre);
+    CHECK_EQ((int)log.size(), 1);
+    CHECK(log.size() == 1 && log[0].data == 'B' && log[0].start == 105);
+    u.write_data('C', 120);      // B is still going out: C waits
+    u.advance(200, nullptr);
+    CHECK(!u.tbre);
+    u.advance(5000, nullptr);
+    CHECK(u.tbre);
+    CHECK_EQ((int)log.size(), 2);
+    if (log.size() == 2) CHECK(log[1].data == 'C' && log[1].start == 105 + (uint64_t)(4000000.0 / 9600 * 10));
+    // without the grid (MHB1012 cards): taken at once, both characters go
+    std::vector<Mhb1012::TxChar> log2;
+    Mhb1012 v;
+    v.tx_log = &log2;
+    v.set_baud(4000000, 9600);
+    v.reset(0);
+    v.write_data('A', 100);
+    v.advance(103, nullptr);
+    v.write_data('B', 104);
+    v.advance(20000, nullptr);
+    CHECK_EQ((int)log2.size(), 2);
+}
+
 int main(void)
 {
     test_init();
+    uart_clock_grid();
     dsm1v_mr();
     cga_beam();
     power_on_random();
