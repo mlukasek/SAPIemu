@@ -1574,6 +1574,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **Zamrzání FXS4 se emuluje** (autor schválil po měření na desce): JPR-1V dává STSTB i při INTA, karta s oknem
   (CGA-1V, AND-1V, DGD-1V) pak drží RDY napořád a RESET nezabere, jako na železe. Kdo to nechce, vypne kartě
   čekací stavy (`wait_states`), což je zřetelná odchylka od desky. Do uloženého stavu se zaseknutí nedává.
+- **Emulátor podle stroje bez měřicí karty** (autor schválil): karta, přes kterou je analyzátor připojený,
+  zatíží sběrnici a čtení z CGA-1V při 4 MHz posune z 22,52 na 22,76 T na bajt (čtení leží na hraně okna).
+  Žádost při čtení je proto 63 ns (měření časovačem bez analyzátoru), ne 72 ns ze sond. Jiné karty v rámu
+  posunou čtení podobně, emulátor drží sestavu autora.
 - **Prázdná sběrnice na JPR-1V vrací poslední bajt** (autor schválil, potvrdil i chováním CP/M bez IDE-1).
   Emulace je věrná i s důsledkem, že ECMON na sestavách V volbami 0–2 bez řadiče visí; návody a testy proto
   volí 3. Ostatní procesorové karty zůstávají u FFh, dokud se nezměří.

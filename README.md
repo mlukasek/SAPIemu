@@ -44,7 +44,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
   (Bt476; kreslí se po řádcích s paprskem, takže přepnutí stránky nebo palety uprostřed snímku trhá obraz jako na
-  monitoru; čekací stavy podle schématu, ověřené měřicím programem ZRDBENCH na skutečném SAPI-1 V) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845, znakový
+  monitoru; čekací stavy podle schématu, zpoždění změřená sondami a programem ZRDBENCH na skutečném SAPI-1 V) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845, znakový
   generátor z dumpu EPROM od EC1045).
 - **Komunikace a disky:**
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3, program HEX/BIN se převede na kazetu MIKOS nebo
@@ -158,6 +158,10 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - [docs/desky/Minigraf.md](docs/desky/Minigraf.md): zapisovač ARITMA Minigraf 0507 a jeho ovladač.
 - [docs/hw-otazky.md](docs/hw-otazky.md): všechny otevřené otázky k ověření na skutečném HW (generuje
   `tools/hw_otazky.py`).
+- [docs/zmeny-podle-hw.md](docs/zmeny-podle-hw.md): změny emulátoru podle měření na skutečném SAPI-1 V
+  (pracoviště s PicoROM a logickým analyzátorem, programy v `tools/hwbench/`): UART DSM-1V, čekání CGA-1V
+  a AND-1V, prázdná sběrnice JPR-1V, YM3812 na MPH-1V, zamrzání při přerušení v okně videokarty a co měření
+  potvrdilo beze změny.
 - [docs/stav.md](docs/stav.md): ukládání stavu. [docs/mcp.md](docs/mcp.md): MCP server.
   [docs/build.md](docs/build.md): sestavení a tipy pro vývoj.
 - [docs/SOUHRN.md](docs/SOUHRN.md): stav projektu, plán, otázky k ověření na skutečném hardwaru.
