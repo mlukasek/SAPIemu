@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **243** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **242** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -128,12 +128,10 @@ Otevřených bodů: **243** v 49 sekcích. Desky jsou první, pak ostatní téma
 7. Kdo napsal hru „auto“?
 
 
-## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (4)
+## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (3)
 
 - `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
   to omylem, nebo k jiné desce?
-
-- Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
 
 - **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
   nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz

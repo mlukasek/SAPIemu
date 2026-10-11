@@ -158,7 +158,10 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
   to omylem, nebo k jiné desce?
 - ~~Přesné číslo čekacích taktů při 2 a 4 MHz, zápis při 2 MHz (1,57 proti 1,27)~~: vyřešeno 2026-10-11
   změřenými zpožděními (sondy na QA a /CPU, viz Časování). Zápis při 2 MHz teď sedí bez zvláštního ladění.
-- Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
+- ~~Kde přesně začíná VBI vůči STATUS~~: změřeno 2026-10-11 (`tools/hwbench/vbi.asm`, `docs/zmeny-podle-hw.md`):
+  STATUS D7 naskočí 50 řádků před sestupnou hranou VSYNC (VSYNC záporný, 2 řádky, 59,940 Hz, 525 řádků). Obraz
+  je ve VGA časování uprostřed (řádky 40–439), VBI začíná řádkem 440 = řádek 400 karty; do dalšího obrazu zbývá
+  125 řádků, jako v emulaci.
 - **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
   nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz
   `JPR-1V.md`. Emulace výběr karty při INTA nedělá. Ověřit po Liborově záplatě IC15 na JPR-1V.

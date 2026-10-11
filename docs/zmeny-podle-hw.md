@@ -168,6 +168,10 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   Čtení z CGA-1V je okrajové, o okně rozhoduje pár ns.
 - **Čekání AND-1V při 2 MHz** (TURBO vypnuté): LDIR 256 B do karty 5873, z karty 5562 taktů, emulátor totéž;
   samostatné přístupy −1 / 0. Při 4 i 2 MHz tedy model AND-1V sedí.
+- **VBI CGA-1V proti VSYNC** (`vbi.asm`, `vbi_run.py`, D14 na VSYNC, VGA vývod 14): VSYNC 59,940 Hz, 525 řádků
+  po 31,778 µs, záporný impuls 2 řádky. STATUS D7 (VBI) naskočí 49,6–49,8 řádku (plus nejvýš 0,24 řádku latence
+  čtecí smyčky), tedy 50 řádků před VSYNC: obraz 400 řádků je uprostřed (VGA řádky 40–439), VBI na začátku
+  řádku 440. Od VBI do dalšího obrazu 125 řádků, emulátor stejně (VBI na řádku 400, snímek 525).
 - **Port 63h → MAP1, MAP2:** OUT 40h → MAP1, 80h → MAP2, C0h → oba, 00h → nic, aktivní v H. Shoduje se
   s nastavením RAM-1V v sestavě (bit 6 → MAP1, bit 7 → MAP2). Na 63h ale odpovídá i ZRMD-1, kdo čáry budí, se
   z tohoto měření nedá rozlišit (otázka JP2 u ZRMD-1 zůstává).
