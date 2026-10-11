@@ -177,3 +177,12 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 
 ## Podezření k dořešení
 
+- **Co čte INTA, když vektor nikdo nedává** (`intavec*.asm`, IM 2 s tabulkou, kde každý bajt vede na vlastní
+  obsluhu; JPR-1V, 4 MHz): přerušení od DSM-1V po smyčce NOP 00h, `LD A,(9876h)` (5Ah) 5Ah, `LD (9876h),A`
+  (A5h) A5h, `INC BC` 03h: poslední bajt na sběrnici, jako u ostatních prázdných čtení. Za instrukcí s delší
+  vnitřní částí bajt odplyne k FFh: `JR $` (5 vnitřních taktů) FFh, `ADD HL,BC` (7) FDh, FFh, F9h. Přerušení
+  z YM3812 přišlo hned po `EI` a dalo B7h (`OR A`, další instrukce). Nevysvětlené: smyčka `LD A,I` dává vždy D6h
+  (posunutí `JR` na jejím konci), jako by se přerušení po `LD A,I` nepřijímalo. Emulátor vrací při INTA FFh.
+  Bajt zřejmě drží kapacita sběrnice asi 0,5 µs a během 1–2 µs se rozplyne, je to analogové a závisí na kartách.
+  Přesnější odpověď dá jen záznam datové sběrnice analyzátorem (D0–D7). Do té doby beze změny.
+
