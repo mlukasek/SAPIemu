@@ -82,7 +82,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   Pak DSM-1V převzetí znaku na hraně taktu 16×, STSTB na JPR-1V (i ROM, I/O, INTA; ne refresh), AND-1V při 4
   i 2 MHz sedí na 0–2 takty, CGA-1V dostala zpoždění změřená sondami na oknu karty (QA, /CPU): emulátor sedí při
   4 i 2 MHz, vyřešena i stará Nejasnost zápisu při 2 MHz. ZRDBENCH přenesený do ROM potvrdil přesnost metody;
-  čtení z CGA 8. 10. (22,44) bylo jiné kvůli jiné sestavě. ZRMD-1: /RES nuluje jen latch 63h. JPR-1V: čtení,
+  čtení z CGA při 4 MHz je okrajové: s kartou analyzátoru 22,76, bez ní 22,52 (emulátor podle stroje bez ní),
+  8. 10. s jiným pořadím karet 22,44. ZRMD-1: /RES nuluje jen latch 63h. JPR-1V: čtení,
   na které nikdo neodpoví, vrací poslední bajt datové sběrnice (IN A,(58h) → 58h, CP/M bez IDE-1 „XYXY“);
   emulováno, ECMON na sestavách V proto jen volba 3 (návody upravené). MPH-1V: YM3812 až 35,8 µs po resetu,
   stav s dolními bity 0 (emulováno). VBI CGA-1V 50 řádků před VSYNC (emulátor sedí). INTA bez vektoru čte poslední

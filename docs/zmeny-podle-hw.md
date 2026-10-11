@@ -18,6 +18,12 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   D10 MAP1, D11 MAP2, D12 CLK (Z80 vývod 6), D13 /M1 (Z80 vývod 27), D14 /CPU a D15 QA karty CGA-1V (IC7
   vývody 9 a 11; D14 je později na VSYNC).
   Podezřelé hrany se kontrolují i analogově.
+- **Analyzátor ovlivní čtení z CGA-1V při 4 MHz** (2026-10-11): s kartou, přes kterou je analyzátor připojený
+  ke sběrnici, dává smyčka ZRDBENCH CGA → paměť 22,757 T na bajt, bez ní 22,513 a 22,523 (dvakrát, i bez sond
+  D12–D15 na IC7). Zápis do CGA-1V (23,61) a obě hodnoty při 2 MHz (22,75 / 21,27) se nezmění. Čtení leží při
+  4 MHz na hraně okna, pár ns zátěže sběrnice ho posune, stejně tak jiné karty nebo jejich pořadí. Měření čekání
+  s analyzátorem proto u čtení CGA-1V při 4 MHz neodpovídá stroji bez něj; bez karty analyzátoru se měří jen
+  časovačem (`zrdtimer_manual.py`, RESET autor zmáčkne ručně, protože /RTL vede ta karta).
 - **Kanál PicoROM občas přidá falešné bajty** (na začátku relace `FBh 50h`, jednou `FEh FEh` a `FFh` mezi dvěma
   znaky; program takové adresy nečte). Data se proto posílají s rámcem (`*` a šestnáctkové číslice), PC ostatní
   bajty zahodí. Původ zatím nevíme.
@@ -82,14 +88,22 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   po hraně CLK (model měl 40); RDY (1,65 V) stoupne 200–216 ns po přidělující hraně QA; Z80 udělá takt navíc,
   když RDY stoupne méně než 10 ns před svou sestupnou hranou (předstih /WAIT a pomalá hrana RDY, 140 ns).
 - **Smyčky ZRDBENCH na desce** (`zrdtimer.asm`, 82C54 i analyzátor shodně): 4 MHz paměť → CGA 23,608, CGA →
-  paměť 22,757; 2 MHz 22,757 a 21,272 T na bajt (bez čekání 21,176).
+  paměť 22,757; 2 MHz 22,757 a 21,272 T na bajt (bez čekání 21,176). **Bez karty analyzátoru** (`zrdtimer_manual.py`)
+  4 MHz 23,607–23,609 a **22,513–22,523**, 2 MHz 22,750–22,752 a 21,272–21,273.
 - **Změna (autor schválil):** CGA-1V žádost 72 ns při čtení, 64 ns při zápisu, uvolnění 55 ns. Emulátor proti
   desce: 2 MHz LDIR 256 B 0 / 0 taktů, samostatné přístupy +1 / +2; 4 MHz 256 B +2 / 0, 12 KB +6 / +108 (0,04 %);
   smyčky ZRDBENCH 4 MHz 23,627 / 22,765. Starý model měl při 4 MHz čtení −4504 taktů na 12 KB a při 2 MHz zápis
   −84 na 256 B (stará Nejasnost 1,57 proti 1,27 je tím vyřešená, bez zvláštního ladění).
-- **Rozdíl proti 8. 10.:** ZRDBENCH tehdy dal čtení při 4 MHz 22,44. Sestava byla jiná: ZRD-1V místo ZRMD-1,
-  jiné pořadí karet (autor kvůli kartě s připojením analyzátoru posunul RAM-1V, CGA-1V a MPH-1V). Čtení je
-  okrajové (rozhoduje pár ns kolem hrany QA), zápis i 2 MHz se tehdy i dnes shodují.
+- **Úprava podle měření bez analyzátoru (autor schválil):** žádost při čtení **63 ns** místo 72, ať emulátor
+  odpovídá stroji bez měřicí karty. V modelu dává smyčka čtení při 4 MHz pro 60 / 62 / 63 / 64 / 65 / 66–88 ns
+  22,39 / 22,44 / 22,50 / 22,53 / 22,63 / 22,76 T na bajt, při 2 MHz v celém rozsahu 21,27, zápis se nemění.
+  Emulátor teď: ZRDBENCH 4 MHz 23,61 / 22,50, 2 MHz 22,76 / 21,27; proti záznamům s analyzátorem (`cga1v.asm`,
+  `cga1v_long.asm`) zápisy a samostatné přístupy ±10 taktů, čtení 256 B −67, 12 KB −3115 taktů (−0,25 T na bajt,
+  to je vliv analyzátoru).
+- **Rozdíl proti 8. 10.:** ZRDBENCH tehdy dal čtení při 4 MHz 22,44 (v modelu 62 ns). Sestava byla jiná: ZRD-1V
+  místo ZRMD-1, jiné pořadí karet (autor kvůli kartě s připojením analyzátoru posunul RAM-1V, CGA-1V a MPH-1V).
+  Čtení je okrajové (rozhoduje pár ns kolem hrany QA), zápis i 2 MHz se tehdy i dnes shodují. Jiné karty v rámu
+  ho tedy snadno posunou v rozmezí asi 22,4–22,8 T na bajt.
 - **Testy:** `test_sapi1v` (`cga_waits`, `zrdbench`) hlídají dnešní hodnoty s tolerancí ±0,1 T.
 
 ### 2026-10-11 – ZRMD-1: /RES nuluje jen latch 63h (A16–A21)
@@ -187,7 +201,8 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   z RAM jako pod CP/M, ve stejném běhu analyzátor): časovač a analyzátor se shodují na tisícinu (paměť → paměť
   21,176, paměť → CGA 23,608, CGA → paměť 22,757; CPU podle kalibrace 3,9999 MHz). Metoda je tedy přesná,
   rozdíl proti 8. 10. (22,44) je na straně sestavy: tehdy byla v něčem jiná (karty, jejich pořadí, teplota).
-  Čtení z CGA-1V je okrajové, o okně rozhoduje pár ns.
+  Čtení z CGA-1V je okrajové, o okně rozhoduje pár ns; i samotný analyzátor ho posune (bez něj 22,52, viz
+  Měřicí pracoviště).
 - **Čekání AND-1V při 2 MHz** (TURBO vypnuté): LDIR 256 B do karty 5873, z karty 5562 taktů, emulátor totéž;
   samostatné přístupy −1 / 0. Při 4 i 2 MHz tedy model AND-1V sedí.
 - **VBI CGA-1V proti VSYNC** (`vbi.asm`, `vbi_run.py`, D14 na VSYNC, VGA vývod 14): VSYNC 59,940 Hz, 525 řádků

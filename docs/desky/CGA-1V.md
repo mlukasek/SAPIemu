@@ -85,8 +85,8 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 - **Emulace (od 2026-10-09, zpoždění od 2026-10-11):** přesně tento sled. /WAIT se vzorkuje na sestupné hraně
   T2 a každého Tw, čekání je v celých taktech CPU (i při 2 MHz na JPR-1V). Zpoždění jsou **změřená sondami na
   QA a /CPU (IC7) na desce autora** (`docs/zmeny-podle-hw.md`): /MR přijde 40–48 ns po sestupné hraně CLK, /MW
-  32–40 ns, IC7B žádost vezme jen 24–32 ns před hranou QA, takže žádost platí **72 ns (čtení) a 64 ns (zápis)**
-  po hraně CLK; RDY stoupne 200–216 ns po přidělující hraně QA (okno 159 ns + 55 ns včetně předstihu /WAIT
+  32–40 ns, IC7B žádost vezme jen 24–32 ns před hranou QA, takže žádost platí **63 ns (čtení) a 64 ns (zápis)**
+  po hraně CLK (čtení se sondami 72 ns, ale karta analyzátoru ho zpozdí, emulace bere stroj bez ní); RDY stoupne 200–216 ns po přidělující hraně QA (okno 159 ns + 55 ns včetně předstihu /WAIT
   u Z80). Dřív 40 / 50 ns podle ZRDBENCH, čtení při 4 MHz pak čekalo o 0,36 T méně a zápis při 2 MHz o 0,3 T.
 - **Měření** smyčkami ZRDBENCH (`media/zrd-1v/ZRDBENCH.ASM`), 2026-10-11 v ROM na měřicím pracovišti
   (`tools/hwbench/zrdtimer.asm`: časovač 82C54 i analyzátor dávají totéž na tisícinu). Takty na bajt `LDIR`,
@@ -94,12 +94,14 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
   | | železo 4 MHz | emulace 4 MHz | železo 2 MHz | emulace 2 MHz | emulace do 2026-10-10 |
   |---|---|---|---|---|---|
-  | paměť → CGA-1V | 23,608 | 23,627 | 22,757 | 22,757 | 23,564 / 22,44 |
-  | CGA-1V → paměť | 22,757 | 22,765 | 21,272 | 21,272 | 22,408 / 21,27 |
+  | paměť → CGA-1V | 23,608 | 23,61 | 22,750 | 22,76 | 23,564 / 22,44 |
+  | CGA-1V → paměť | 22,518 * | 22,50 | 21,273 | 21,27 | 22,408 / 21,27 |
+
+  \* Bez karty analyzátoru (22,513 a 22,523); s ní 22,757. Ostatní hodnoty jsou s ní i bez ní stejné.
 
   Kratší a delší bloky (`cga1v.asm`, `cga1v_long.asm`) sedí na ±2 takty, 12 KB čtení na 0,04 %. ZRDBENCH
   8. 10. naměřil při 4 MHz čtení 22,44 se ZRD-1V místo ZRMD-1 a jiným pořadím karet: čtení je okrajové (o okně
-  rozhoduje pár ns kolem QA), jiné zatížení sběrnice ho posune. Test `test_sapi1v` hlídá `LDIR` (`cga_waits`)
+  rozhoduje pár ns kolem QA), jiné zatížení sběrnice ho posune, i karta analyzátoru (`docs/zmeny-podle-hw.md`). Test `test_sapi1v` hlídá `LDIR` (`cga_waits`)
   i ZRDBENCH pod CP/M (`zrdbench`, tabulka v `docs/desky/ZRMD-1.md`).
 - Řádek má 400 bodů MCLK (320 viditelných), 31,78 µs. Snímek má 525 řádků (400 viditelných), 16,68 ms (59,94 Hz).
 

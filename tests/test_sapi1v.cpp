@@ -446,8 +446,8 @@ static void cga_vbi(void)
 }
 
 // CGA-1V wait states: LDIR into and from the card, T-states per byte on the author's SAPI-1 V (2026-10-11,
-// the ZRDBENCH loops timed by the 82C54 and by the analyzer, tools/hwbench/zrdtimer.asm: 4 MHz 23.608 / 22.757,
-// 2 MHz 22.757 / 21.272; memory to memory 21.176; docs/zmeny-podle-hw.md).
+// the ZRDBENCH loops timed by the 82C54, tools/hwbench/zrdtimer.asm, without the analyzer card in the rack:
+// 4 MHz 23.609 / 22.52, 2 MHz 22.75 / 21.273; memory to memory 21.176; docs/zmeny-podle-hw.md).
 // card_hi: the high byte of the card memory, len_hi: of the block length, map: the RAM-1V MAP register
 static double card_ldir(bool turbo, bool write, uint8_t card_hi, uint8_t len_hi, uint8_t map, const char* card)
 {
@@ -488,7 +488,7 @@ static void cga_waits(void)
     double w4 = cga_ldir(true, true), r4 = cga_ldir(true, false);
     double w2 = cga_ldir(false, true), r2 = cga_ldir(false, false);
     CHECK(fabs(w4 - 2.43) < 0.1);
-    CHECK(fabs(r4 - 1.58) < 0.1);
+    CHECK(fabs(r4 - 1.34) < 0.1);
     CHECK(fabs(w2 - 1.58) < 0.1);
     CHECK(fabs(r2 - 0.10) < 0.1);
 }
@@ -558,10 +558,11 @@ static void zrdbench(bool turbo)
         { "OTIR memory -> RAM disk", 21.22, 21.22, 0.1 },
         { "loop LD A,(HL) / INC HL", 26.12, 26.12, 0.1 },
         { "loop IN A,(C) from 60h", 25.08, 25.08, 0.1 },
-        // the CGA-1V rows as measured 2026-10-11 (ZRDBENCH 2026-10-08 had 22.44 from the card at 4 MHz with
-        // ZRD-1V and another card order: the read is on the edge of the window, docs/zmeny-podle-hw.md)
-        { "LDIR memory -> CGA-1V", 23.61, 22.76, 0.1 },
-        { "LDIR CGA-1V -> memory", 22.76, 21.27, 0.1 },
+        // the CGA-1V rows as measured 2026-10-11 without the analyzer card (22.76 from the card at 4 MHz with
+        // it, 22.44 on 2026-10-08 with another card order: the read is on the edge of the window, a few ns of
+        // bus load move it, docs/zmeny-podle-hw.md)
+        { "LDIR memory -> CGA-1V", 23.61, 22.75, 0.1 },
+        { "LDIR CGA-1V -> memory", 22.52, 21.27, 0.1 },
     };
     double mhz = bench_value(s, "CPU clock:");
     CHECK(fabs(mhz - (turbo ? 4.00 : 1.99)) < 0.015);

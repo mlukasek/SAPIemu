@@ -80,10 +80,11 @@ bool Cga1v::selected(uint16_t a, int map) const
 // /RD falls with /MREQ at the falling edge of T1, /WR only at the falling edge of T2, so a write gets its
 // window a clock later. The delays are measured on the author's SAPI-1 V with probes on QA and /CPU
 // (IC7, 2026-10-11, docs/zmeny-podle-hw.md): /MR comes 40-48 ns after the falling CLK edge, /MW 32-40 ns, and
-// IC7B takes the request only 24-32 ns before the QA edge, so the request counts 72 ns (read) and 64 ns
-// (write) after the edge; RDY rises 200-216 ns after the granting QA edge, and the Z80 needs it about 10 ns
-// before its sampling edge.
-static const double REQ_READ_NS = 72.0;    // the Z80 edge to the request taken by IC7B, read
+// IC7B takes the request only 24-32 ns before the QA edge, so the request counts 64 ns (write) after the
+// edge; RDY rises 200-216 ns after the granting QA edge, and the Z80 needs it about 10 ns before its sampling
+// edge. The read is on the edge of a window at 4 MHz, a few ns of bus load move it: with the analyzer card in
+// the rack the ZRDBENCH read loop gives 22.76 T per byte (72 ns), without it 22.52 (63 ns, used here).
+static const double REQ_READ_NS = 63.0;    // the Z80 edge to the request taken by IC7B, read
 static const double REQ_WRITE_NS = 64.0;   // the same, write
 static const double REL_NS = 55.0;         // the end of the window to /WAIT high at the Z80 (with its set-up)
 
