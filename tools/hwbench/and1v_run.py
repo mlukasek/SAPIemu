@@ -17,7 +17,7 @@ c = B.load(OUT) if '--load' in sys.argv else B.capture(ROM, OUT, after=0.2 if 'l
 BYTES = 0x3000 if 'long' in os.path.basename(ROM) else 256
 
 clk = [t for t, v in c.edges[B.CLK] if v == 0]   # falling edges of the CPU clock
-iow = B.lows(c, B.IOW)
+iow = [p for p in B.lows(c, B.IOW) if p[0] > 0]   # after the reset only (the capture holds 2 ms before)
 if CARD == 'CGA-1V':
     iow = iow[1:]   # the first write is OUT 63h,C0h (the window on), not a marker
 

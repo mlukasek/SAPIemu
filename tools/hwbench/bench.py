@@ -26,9 +26,11 @@ def picorom(*args):
         raise RuntimeError('picorom %s: %s' % (args, r.stdout + r.stderr))
 
 
-def capture(rom, out, after=0.06, send=None, rate=125_000_000, analog=None, analog_rate=50_000_000):
+def capture(rom, out, after=0.06, send=None, rate=125_000_000, analog=None, analog_rate=50_000_000,
+            channels=None):
     """Runs `rom` from a reset and records `after` seconds. send: bytes written to COM13 every 3 ms meanwhile.
     analog: channels also recorded in analog (the same probes), exported to analog.csv (load_analog).
+    channels: the digital channels to record (default all 16; fewer for long captures).
     Returns Capture with .edges[k] = [(t, level)], .init[k], t = 0 at the falling /RES, .serial = received."""
     out = os.path.abspath(out)   # Logic 2 resolves relative paths against its own folder
     os.makedirs(out, exist_ok=True)
@@ -48,7 +50,8 @@ def capture(rom, out, after=0.06, send=None, rate=125_000_000, analog=None, anal
     try:
         with automation.Manager.connect(port=10430) as m:
             dev = m.get_devices()[0]
-            dcfg = automation.LogicDeviceConfiguration(enabled_digital_channels=list(range(16)),
+            chans = list(channels) if channels else list(range(16))
+            dcfg = automation.LogicDeviceConfiguration(enabled_digital_channels=chans,
                                                        digital_sample_rate=rate, digital_threshold_volts=3.3,
                                                        enabled_analog_channels=list(analog or []),
                                                        analog_sample_rate=analog_rate if analog else None)
@@ -65,7 +68,7 @@ def capture(rom, out, after=0.06, send=None, rate=125_000_000, analog=None, anal
                 picorom('reset', DEVICE, 'z')
                 cap.wait()
                 guard.cancel()
-                cap.export_raw_data_csv(directory=out, digital_channels=list(range(16)),
+                cap.export_raw_data_csv(directory=out, digital_channels=chans,
                                         analog_channels=list(analog) if analog else None)
                 cap.save_capture(filepath=os.path.join(out, 'capture.sal'))
     finally:
@@ -73,7 +76,7 @@ def capture(rom, out, after=0.06, send=None, rate=125_000_000, analog=None, anal
         stop.set()
         th.join()
         port.close()
-    c = load(out)
+    c = load(out, channels)
     c.serial = bytes(rx)
     return c
 
@@ -82,24 +85,28 @@ class Capture:
     pass
 
 
-def load(out):
-    """The transitions of a saved capture (digital.csv), times from the falling /RES."""
+def load(out, channels=None):
+    """The transitions of a saved capture (digital.csv), times from the falling /RES. channels: the recorded
+    channels in the order of the columns (default all 16); missing ones stay empty."""
     f = open(os.path.join(out, 'digital.csv'))
     r = csv.reader(f)
-    next(r)
+    head = next(r)
+    chans = list(channels) if channels else [int(h.split()[1]) for h in head[1:]]
     first = next(r)
     t_first = float(first[0])
     level = [int(x) for x in first[1:]]
     c = Capture()
-    c.init = list(level)
+    c.init = [1] * 16
+    for i, k in enumerate(chans):
+        c.init[k] = level[i]
     c.edges = [[] for _ in range(16)]
     for row in r:
         t = float(row[0])
-        for k in range(16):
-            v = row[k + 1]
-            if v != str(level[k]):
-                level[k] = int(v)
-                c.edges[k].append((t, level[k]))
+        for i, k in enumerate(chans):
+            v = row[i + 1]
+            if v != str(level[i]):
+                level[i] = int(v)
+                c.edges[k].append((t, level[i]))
     t0 = next((t for t, v in c.edges[RES] if v == 0), t_first)
     c.t0 = t0                    # capture time of the falling /RES (for load_analog)
     c.edges = [[(t - t0, v) for t, v in e] for e in c.edges]

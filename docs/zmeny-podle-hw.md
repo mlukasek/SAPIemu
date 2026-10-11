@@ -99,16 +99,22 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 ## Podezření k dořešení
 
 - **Čtení z CGA-1V při 4 MHz: emulátor čeká méně** (`cga1v_long.asm`, LDIR 12 KB z karty): deska 277 490 taktů
-  (22,58 T na bajt, 1,58 čekacího taktu), emulátor 272 984 (22,22 T, 1,22). Dva běhy desky se liší o 1 takt na
-  256 B. Rozbor po přístupech (délka /MR = skutečná čekání proti RDY):
-  1. Z80 udělá takt navíc, když RDY (práh analyzátoru 1,65 V) stoupne méně než 10 ns před sestupnou hranou CLK
-     (předstih /WAIT a pomalá hrana); od 10 ns výš nikdy. U čtení z CGA to je 11 % přístupů (+0,107 T na bajt),
-     u AND-1V a zápisů do CGA se to vyskytuje také, ale málo. Model předstih nemá.
-  2. Zbytek (asi 0,25 T na bajt): RDY u čtení drží déle, než dává model; rozsah /MR → uvolnění RDY sedí (deska
-     232–560 ns, model 249–567 ns), liší se rozložení. Měření ZRDBENCH z 8. 10. (22,44 T, na které je model
-     nastavený) mělo nepřesný základ (paměť → paměť 21,18 místo 21,00).
-  Návrh dalšího postupu: připojit okno CPU karty (QA nebo MCLK CGA-1V) na D15 a porovnat žádost, okno a
-  uvolnění přístup po přístupu s modelem; teprve pak navrhnout úpravu (předstih /WAIT, případně časování
-  žádosti při čtení). Při 2 MHz (TURBO vypnuté) změřit totéž, dřív tam nesedělo zapisování (1,57 proti 1,27).
-
-- Příjem (DR, přetečení) na DSM-1V zatím neměřen.
+  (22,58 T na bajt), emulátor 272 984 (22,22 T). Smyčky přesně jako ZRDBENCH (`zrdlike.asm`, 256× LDIR 256 B):
+  deska dnes zápis **23,627**, čtení **22,758** T na bajt, emulátor 23,564 a 22,408. Konfigurace CGA (06h nebo
+  00h) nemá vliv. ZRDBENCH 8. 10. naměřil na desce 23,61 a **22,44**: zápis sedí, čtení je dnes o 0,32 T pomalejší.
+- **Okno CPU karty změřeno sondami** (`cga_window.py`, D15 = QA, IC7 vývod 11, D14 = Q IC7B „/CPU“, vývod 9;
+  VSYNC zatím odpojený): QA 3,1469 MHz (25,175 MHz / 8), okno od náběžné hrany QA do sestupné (159 ns). Na každý
+  přístup dvě hrany /CPU. Řetěz:
+  - /MW 32–40 ns po sestupné hraně CLK (T2), /MR 40–48 ns po sestupné hraně CLK (T1);
+  - přístup chytí nejbližší náběžnou hranu QA, jen když strobe přijde aspoň 24 ns (zápis) a 24–32 ns (čtení)
+    před ní: žádost tedy vzniká asi **64 ns (zápis) a 72 ns (čtení) po hraně CLK**, model počítá s 40 ns;
+  - RDY (práh 1,65 V) stoupne 200–216 ns po přidělující hraně QA (model 159 + 50 = 209 ns);
+  - Z80 udělá takt navíc, když RDY stoupne méně než 10 ns před sestupnou hranou CLK (předstih /WAIT, pomalá
+    hrana RDY), i u AND-1V.
+- **Pokus (nezapsaný do emulátoru):** CGA-1V se žádostí 72 ns při čtení, 64 ns při zápisu a uvolněním 55 ns dává
+  12 KB zápis +10 taktů, čtení +107 (z 277 490), 256 B 0 a +3, samostatné přístupy ±2, smyčky ZRDBENCH **23,627
+  a 22,765** (deska 23,627 a 22,758). Uvolnění 50–60 ns výsledek skoro nemění.
+- **Návrh:** u CGA-1V oddělit žádost pro čtení a zápis (72 a 64 ns) a uvolnění 55 ns, testy přepsat na dnešní
+  přesné hodnoty. AND-1V nechat (sedí, okno AND-1V nemáme sondou). Otevřené: proč ZRDBENCH 8. 10. dal čtení
+  22,44 (jiné karty na sběrnici, ZRD-1V místo ZRMD-1, teplota?). Čtení je okrajové: rozhoduje pár ns kolem hrany
+  QA. Ověřit spuštěním ZRDBENCH pod CP/M na dnešní sestavě a při 2 MHz (TURBO vypnuté).
