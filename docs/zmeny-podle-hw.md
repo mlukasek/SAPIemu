@@ -17,6 +17,9 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   16 kanálech. Zapojení: D0 /RES, D1 RDY, D2 /IOR, D3 /IOW, D4 TxD A, D5 RxD A, D6 /MR, D7 /MW, D8 STSTB, D9 /INT0,
   D10 MAP1, D11 MAP2, D12 CLK (Z80 vývod 6), D13 /M1 (Z80 vývod 27), D14 VSYNC CGA-1V (zatím nezapojeno).
   Podezřelé hrany se kontrolují i analogově.
+- **Kanál PicoROM občas přidá falešné bajty** (na začátku relace `FBh 50h`, jednou `FEh FEh` a `FFh` mezi dvěma
+  znaky; program takové adresy nečte). Data se proto posílají s rámcem (`*` a šestnáctkové číslice), PC ostatní
+  bajty zahodí. Původ zatím nevíme.
 - Programy a skripty: `tools/hwbench/` (popis v `tools/hwbench/README.md`), výstupy ve `work/hwbench/`.
 - **Kontrola zapojení** (`wire.asm`, `wire_check.py`, 2026-10-11): všech 16 kanálů ukazuje přesně to, co program
   dělá (počty impulzů /IOW, /IOR, /MR, /MW, čekání RDY, MAP1/MAP2, text na TxD, příjem na RxD a /INT0,
@@ -117,4 +120,9 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Návrh:** u CGA-1V oddělit žádost pro čtení a zápis (72 a 64 ns) a uvolnění 55 ns, testy přepsat na dnešní
   přesné hodnoty. AND-1V nechat (sedí, okno AND-1V nemáme sondou). Otevřené: proč ZRDBENCH 8. 10. dal čtení
   22,44 (jiné karty na sběrnici, ZRD-1V místo ZRMD-1, teplota?). Čtení je okrajové: rozhoduje pár ns kolem hrany
-  QA. Ověřit spuštěním ZRDBENCH pod CP/M na dnešní sestavě a při 2 MHz (TURBO vypnuté).
+  QA. Ověřit při 2 MHz (TURBO vypnuté).
+- **Měření ZRDBENCH ověřeno** (`zrdtimer.asm`, `zrdtimer_run.py`: jeho smyčky i výpočet z 82C54 v ROM, testy
+  z RAM jako pod CP/M, ve stejném běhu analyzátor): časovač a analyzátor se shodují na tisícinu (paměť → paměť
+  21,176, paměť → CGA 23,608, CGA → paměť 22,757; CPU podle kalibrace 3,9999 MHz). Metoda je tedy přesná,
+  rozdíl proti 8. 10. (22,44) je na straně sestavy: tehdy byla v něčem jiná (karty, jejich pořadí, teplota).
+  Čtení z CGA-1V je okrajové, o okně rozhoduje pár ns.
