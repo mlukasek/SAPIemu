@@ -156,5 +156,24 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+## Návrhy čekající na schválení
+
+### MPH-1V: YM3812 bere zápisy až asi 36 µs po resetu
+
+- **Měření** (`ymrst.asm`, `ymrst_run.py`, 4 MHz): po prodlevě od konce /RES zapíše časovač T1 = FFh a spustí
+  ho, za 1 ms přečte stav. První zápis 12,8 / 24,0 / 30,8 µs po konci /RES: příznak T1 se nenastaví (stav 00h,
+  zápisy ztracené); 37,3 / 40,5 / 43,8 µs a dál: nastaví se (C0h). Práh leží mezi 31 a 37 µs po konci /RES (impuls
+  /RES 6,2 µs), schéma: /RST drží 74LS164 8 taktů 14,31818 MHz / 64 = 35,8 µs.
+- **Emulátor dnes:** YM bere zápisy hned.
+- **Návrh:** YM3812 na MPH-1V ignoruje zápisy 35,8 µs po /RES (8 taktů 223,7 kHz).
+
+### MPH-1V: stav YM3812 má dolní bity 0
+
+- **Měření** (`ymstat.asm`): 32 čtení stavu před spuštěním časovače 00h, po přetečení T1 C0h, dolní bity vždy
+  00000 (`INIR`). Jednotlivé `IN A,(56h)` dvakrát z 11 dalo C4h (bit 2): zákmit? Prázdná sběrnice by dala
+  u `IN A,(56h)` 10110, YM tedy dolní bity budí.
+- **Emulátor dnes:** dolní bity 110 („jako skutečný YM3812, detekce AdLib“).
+- **Návrh:** dolní bity 0. Občasný bit 2 zapsat jako podezření, neemulovat.
+
 ## Podezření k dořešení
 
