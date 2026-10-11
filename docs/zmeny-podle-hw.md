@@ -194,6 +194,10 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   po 31,778 µs, záporný impuls 2 řádky. STATUS D7 (VBI) naskočí 49,6–49,8 řádku (plus nejvýš 0,24 řádku latence
   čtecí smyčky), tedy 50 řádků před VSYNC: obraz 400 řádků je uprostřed (VGA řádky 40–439), VBI na začátku
   řádku 440. Od VBI do dalšího obrazu 125 řádků, emulátor stejně (VBI na řádku 400, snímek 525).
+- **ZRD-1V rev 1.1** (autor kartu dal místo ZRMD-1; `zrmd.asm`, `zrdrd.asm`, jen čtení): **/RES adresu nemaže**
+  (po resetu čtení z 03:41:10 jako před ním), čtení 61h, 62h a 63h vrátí **FFh** a FFh zapíše do registru adresy
+  (pak 03:41:FF, 03:FF:10 a 3F:41:10), 64h a 6Fh nedekódované (prázdná sběrnice: číslo portu). Přesně jako
+  v emulátoru podle schématu.
 - **Port 63h → MAP1, MAP2:** OUT 40h → MAP1, 80h → MAP2, C0h → oba, 00h → nic, aktivní v H. Shoduje se
   s nastavením RAM-1V v sestavě (bit 6 → MAP1, bit 7 → MAP2). Na 63h ale odpovídá i ZRMD-1, kdo čáry budí, se
   z tohoto měření nedá rozlišit (otázka JP2 u ZRMD-1 zůstává).

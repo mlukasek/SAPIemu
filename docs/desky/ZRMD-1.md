@@ -131,9 +131,10 @@ Zdroje:
   STDBY.
 - **Schéma** `..\SAPI-karty\ZRD-1V\ZRD-1V.pdf` (rev 1.1, doplnil autor):
   - **/RES nic nenuluje.** Čítače 74LS193 mají CLR na zemi, registry 374 nulování nemají, /RES jen vypne
-    dekodér. Emulátor proto u ZRD-1V adresu po resetu ponechá.
-  - Číst jde jen 60h. Čtení 61h–63h je dekódované, ale vnitřní sběrnici nic nebudí: vrací nedefinovanou
-    hodnotu a navíc ji zapíše do registru adresy (vedlejší účinek). Emulace to nedělá.
+    dekodér. Emulátor proto u ZRD-1V adresu po resetu ponechá. **Ověřeno na desce autora 2026-10-11.**
+  - Číst jde jen 60h. Čtení 61h–63h je dekódované, ale vnitřní sběrnici nic nebudí: vrací FFh a FFh navíc
+    zapíše do registru adresy (vedlejší účinek). **Ověřeno na desce autora 2026-10-11** (rev 1.1), emulace to tak
+    dělá (`docs/zmeny-podle-hw.md`).
   - Čítač se zvyšuje po každém přístupu na 60h a přetéká FF→00 bez přenosu do 62h. MA22/MA23 nejsou (max.
     4 MB).
   - MAX808L blokuje přístup jen při podpětí, propojka S2 STDBY je jen napájení.
