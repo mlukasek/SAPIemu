@@ -81,6 +81,14 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   poslední krok měření (zamrzání FXS4).
 - **AND-1V při IN/OUT s A8–A15 = F8h nečeká** (OUT (C) a IN (C) s B = F8h, 4× každé: žádný impuls RDY), jak
   plyne ze schématu (IC7A nuluje /IOR, /IOW) a jak to emulátor dělá.
+- **Čekání AND-1V při 4 MHz** (`and1v.asm`, `and1v_run.py`, takty CLK mezi značkami, 2026-10-11): LDIR 256 B do
+  karty 6134 taktů (emulátor 6136), z karty 5730 (5731), 16 samostatných zápisů 1385 (1386), čtení 1360 (1360).
+  Čekací takty zápisu 2–3, čtení 1–2. Model AND-1V (převzatý z CGA-1V) při 4 MHz sedí.
+- **Zápisy do CGA-1V při 4 MHz** (`cga1v.asm`, `cga1v_long.asm`): LDIR 12 KB do karty 288 097 taktů, emulátor
+  287 319 (−0,27 %), samostatné zápisy na takt přesně. Čekací takty 2–3, průměr 2,44 na bajt.
+- **RDY je otevřený kolektor přes diodu s pull-upem:** náběžná hrana 10–90 % asi 140 ns, úrovně 0,3 V a 4,8 V
+  (analogově, `rdy_analog.py`). Krátké „impulzy“ RDY v digitálním záznamu (8 ns) jsou jen šum při pomalém
+  průchodu prahem, analogově je hrana plynulá.
 - **Port 63h → MAP1, MAP2:** OUT 40h → MAP1, 80h → MAP2, C0h → oba, 00h → nic, aktivní v H. Shoduje se
   s nastavením RAM-1V v sestavě (bit 6 → MAP1, bit 7 → MAP2). Na 63h ale odpovídá i ZRMD-1, kdo čáry budí, se
   z tohoto měření nedá rozlišit (otázka JP2 u ZRMD-1 zůstává).
@@ -89,5 +97,18 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   dává totéž.
 
 ## Podezření k dořešení
+
+- **Čtení z CGA-1V při 4 MHz: emulátor čeká méně** (`cga1v_long.asm`, LDIR 12 KB z karty): deska 277 490 taktů
+  (22,58 T na bajt, 1,58 čekacího taktu), emulátor 272 984 (22,22 T, 1,22). Dva běhy desky se liší o 1 takt na
+  256 B. Rozbor po přístupech (délka /MR = skutečná čekání proti RDY):
+  1. Z80 udělá takt navíc, když RDY (práh analyzátoru 1,65 V) stoupne méně než 10 ns před sestupnou hranou CLK
+     (předstih /WAIT a pomalá hrana); od 10 ns výš nikdy. U čtení z CGA to je 11 % přístupů (+0,107 T na bajt),
+     u AND-1V a zápisů do CGA se to vyskytuje také, ale málo. Model předstih nemá.
+  2. Zbytek (asi 0,25 T na bajt): RDY u čtení drží déle, než dává model; rozsah /MR → uvolnění RDY sedí (deska
+     232–560 ns, model 249–567 ns), liší se rozložení. Měření ZRDBENCH z 8. 10. (22,44 T, na které je model
+     nastavený) mělo nepřesný základ (paměť → paměť 21,18 místo 21,00).
+  Návrh dalšího postupu: připojit okno CPU karty (QA nebo MCLK CGA-1V) na D15 a porovnat žádost, okno a
+  uvolnění přístup po přístupu s modelem; teprve pak navrhnout úpravu (předstih /WAIT, případně časování
+  žádosti při čtení). Při 2 MHz (TURBO vypnuté) změřit totéž, dřív tam nesedělo zapisování (1,57 proti 1,27).
 
 - Příjem (DR, přetečení) na DSM-1V zatím neměřen.

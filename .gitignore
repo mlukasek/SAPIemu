@@ -10,3 +10,4 @@ work/
 
 # ImGui window layout
 imgui.ini
+__pycache__/

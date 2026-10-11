@@ -16,6 +16,11 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 | `mr.asm` | reset UARTu (MR) do prvního /MR: linka má přenést jen „CD“ |
 | `wire.asm` | kontrola zapojení analyzátoru: známý vzor na každém kanálu |
 | `pico.asm`, `pico_out.asm` | komunikační kanál PicoROM (ozvěna, tok SAPI → PC) |
+| `tbre.asm` + `tbre_run.py` | TBRE po zápisech, porty +3 a +0, hodnoty kanálem PicoROM |
+| `ststb.asm` + `ststb_run.py` | STSTB JPR-1V u paměti, I/O a INTA, čekání AND-1V při I/O F8h |
+| `and1v.asm`, `cga1v.asm`, `cga1v_long.asm` + `and1v_run.py` | čekací takty AND-1V a CGA-1V, deska proti emulátoru |
+| `rdy_analog.py` | RDY analogově (tvar hrany) při čtení z CGA-1V |
+| `bench.py` | společné: záznam všech 16 kanálů spuštěný /RES, načtení CSV, analog |
 | `hw_run.py ROM OUT [s]` | záznam, nahrání ROM do PicoROM, reset, příjem z COM13, souhrn /IOR a TxD |
 | `wire_check.py [ROM] [OUT]` | záznam všech 16 kanálů spuštěný /RES, vyhodnocení po kanálech |
 | `decode_ior.py CSV` | dekóduje hodnoty z `diag.asm` |

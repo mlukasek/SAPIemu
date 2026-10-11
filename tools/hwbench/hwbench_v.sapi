@@ -1,7 +1,9 @@
-// HW bench test machine: JPR-1V with a test ROM (as the PicoROM serves it), RAM-1V as on Martin's board,
-// DSM-1V with both channels at 9600 Bd. emu_run.py puts the tested ROM to work/hwbench/rom_8k.bin.
+// HW bench machine: the author's real SAPI-1 V on the bench (docs/zmeny-podle-hw.md): JPR-1V with the test ROM
+// as the PicoROM serves it (emu_run.py puts it to work/hwbench/rom_8k.bin), RAM-1V, AND-1V (F800, MAP1 = L),
+// CGA-1V, DSM-1V (A 10h 9600 Bd as on the bench, B 14h), ZRMD-1 (nosave: test runs do not touch the disk copy),
+// MPH-1V. Slots as in sapi1v.sapi; the real order may differ (no effect on these tests).
 {
-    "name": "HW test V (JPR-1V test ROM, RAM-1V, DSM-1V 10h/14h 9600 Bd)",
+    "name": "HW bench V (JPR-1V test ROM, RAM-1V, AND-1V, CGA-1V, DSM-1V, ZRMD-1, MPH-1V)",
     "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
     "cards": [
         {
@@ -21,11 +23,18 @@
             "hole2_base": "F800h", "hole2_map1": "l",
             "map_port": "63h", "map1_enable": true, "map1_bit": 6, "map2_enable": true, "map2_bit": 7
         },
+        { "slot": 3, "type": "AND-1V", "base": "F800h", "map": "map1_l", "color": "amber",
+          "font": "roms/and-1v/font_and1v22_1024.bin" },
         {
             "slot": 4,
             "type": "DSM-1V",
             "a": { "enabled": true, "base": "10h", "baud": 9600, "connected": true },
             "b": { "enabled": true, "base": "14h", "baud": 9600, "connected": true }
-        }
+        },
+        { "slot": 5, "type": "ZRMD-1", "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin", "mode": "nosave",
+          "write_enable": [true, true, true, true], "rtc": true, "rtc_int": "none", "map_jp2": false },
+        { "slot": 7, "type": "CGA-1V", "base": "C000h", "map1": "h", "map2": "h", "wait_states": true,
+          "frame_blend": true },
+        { "slot": 8, "type": "MPH-1V", "base": "50h", "k4": "joystick", "k2": "mouse_atari" }
     ]
 }

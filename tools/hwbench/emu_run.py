@@ -1,6 +1,6 @@
 """Runs a test ROM in SAPIemu the way the PicoROM serves it on the real board (2 KB repeated over the 28C64 of the
 JPR-1V) in hwbench_v.sapi, and prints what came on the serial channel (the ROM goes to work/hwbench/rom_8k.bin).
-python emu_run.py ROM.bin [seconds] [channel: 0 = A 10h, 1 = B 14h] [--hex]"""
+python emu_run.py ROM.bin [seconds] [channel: 0 = A 10h, 1 = B 14h] [--hex] [--iolog: the I/O log instead]"""
 import json
 import os
 import subprocess
@@ -60,9 +60,17 @@ try:
             break
         except Exception:
             time.sleep(0.2)
-    tool('pause')
+    tool('pause')                       # the cli runs from its start: begin again from a reset
+    tool('serial_receive', channel=CHANNEL)
+    tool('io_log', enable='--iolog' in sys.argv, clear=True)
+    tool('reset')
     tool('run_for', ms=int(SECONDS * 1000))
-    print(tool('serial_receive', channel=CHANNEL, hex=HEX))
+    if '--regs' in sys.argv:
+        print(tool('get_registers'))
+    if '--iolog' in sys.argv:
+        print(tool('io_log', count=5000))
+    else:
+        print(tool('serial_receive', channel=CHANNEL, hex=HEX))
 finally:
     try:
         tool('quit')
