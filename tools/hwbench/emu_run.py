@@ -71,6 +71,9 @@ try:
     tool('io_log', enable='--iolog' in sys.argv, clear=True)
     tool('reset')
     tool('run_for', ms=int(SECONDS * 1000))
+    if '--mem9000' in sys.argv:   # 16 bytes of results a test ROM left at 9000h
+        t = tool('read_memory', address='9000', length=16, format='hex')
+        print('MEM9000 ' + ''.join(ch for ch in t if ch in '0123456789abcdefABCDEF'))
     if '--regs' in sys.argv:
         print(tool('get_registers'))
     if '--iolog' in sys.argv:

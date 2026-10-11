@@ -126,5 +126,29 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+## Návrhy čekající na schválení
+
+### ZRMD-1: /RES nuluje jen latch 63h (A16–A21)
+
+- **Měření** (`zrmd.asm`, `zrmd_run.py`, 2026-10-11, dvakrát se stejným výsledkem): fáze A přečte po
+  4 bajtech z 8 adres (každý z registrů 61h, 62h, 63h nula nebo 10h / 41h / 03h; obsah disku sedí s obrazem
+  v `media/zrmd-1`), nastaví adresu 03:41:10 bez čtení; po druhém resetu čte fáze B z 60h bez nastavení adresy
+  a dostane data z **00:41:10**: A16–A21 vynulované, A8–A15 a čítače A0–A7 zůstaly. Na disk se nezapisovalo.
+- **Emulátor dnes:** reset nuluje všechny tři (předpoklad v Nejasnostech).
+- **Návrh:** u ZRMD-1 při /RES nulovat jen latch 63h (s ním i MAP1/MAP2 přes JP2), 61h a 62h nechat.
+
+### JPR-1V: čtení, na které nikdo neodpoví, vrací poslední bajt na datové sběrnici CPU
+
+- **Měření** (`openbus.asm`, `openbus_run.py`, hodnoty kanálem PicoROM): IN A,(9Ah) / (A0h) / (C5h) → 9Ah, A0h,
+  C5h (operand); IN A,(C) → 78h, IN B,(C) → 40h (druhý bajt instrukce); LD A,(C000h) a (C123h) v díře RAM-1V
+  (MAP1 = H, MAP2 = L) → C0h, C1h (horní bajt adresy); LD A,(HL) → 7Eh (kód instrukce); IN A,(9Ah) hned po čtení
+  5Ah z RAM → 9Ah. Čtení nedekódovaných 61h–64h, 6Fh u ZRMD-1 totéž (číslo portu). Platí i pro bajty z ROM na
+  JPR-1V, která jde mimo sběrnici: hodnota drží na datových vodičích procesoru.
+- **Emulátor dnes:** FFh.
+- **Návrh:** u JPR-1V si pamatovat poslední bajt datové sběrnice (výběr instrukce, čtení i zápis) a vrátit ho,
+  když na čtení paměti nebo I/O nikdo neodpoví. Ostatní procesorové karty beze změny (Nejasnost). Dopad na
+  programy, které hledají karty podle FFh (MikroMon kontroluje DCD na 10h, 14h, 18h: prázdný 18h vrátí 18h, tedy
+  DCD aktivní), prověřit testy před zapnutím.
+
 ## Podezření k dořešení
 
