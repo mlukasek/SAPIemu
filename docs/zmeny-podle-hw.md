@@ -73,6 +73,14 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 
 - **JPR-1V nedává /MR při čtení ROM** (0000h–07FFh): při kontrole zapojení byl /MR jen u čtení RAM a AND-1V.
   Emulátor to tak dělá (`docs/desky/JPR-1V.md`).
+- **STSTB na JPR-1V** (`ststb.asm`, `ststb_run.py`, 2026-10-11, deska autora bez Liborovy záplaty): kladný
+  impuls 88–96 ns na začátku **každého paměťového cyklu včetně čtení ROM**, **každého I/O cyklu** a **při INTA**,
+  **ne při refreshi** (8× NOP: 9 výběrů instrukce + 1 operand = 10 STSTB; 4× IN (n): 14 = 10 paměťových + 4 I/O).
+  Při INTA (/M1 1000 ns místo 500 ns) přijde STSTB 0,66 µs po začátku /M1. Emulátor STSTB bez refreshe
+  předpokládá; výběr karty při INTA (zablokování RDY s PC v okně grafické karty) zatím nemodeluje, to je
+  poslední krok měření (zamrzání FXS4).
+- **AND-1V při IN/OUT s A8–A15 = F8h nečeká** (OUT (C) a IN (C) s B = F8h, 4× každé: žádný impuls RDY), jak
+  plyne ze schématu (IC7A nuluje /IOR, /IOW) a jak to emulátor dělá.
 - **Port 63h → MAP1, MAP2:** OUT 40h → MAP1, 80h → MAP2, C0h → oba, 00h → nic, aktivní v H. Shoduje se
   s nastavením RAM-1V v sestavě (bit 6 → MAP1, bit 7 → MAP2). Na 63h ale odpovídá i ZRMD-1, kdo čáry budí, se
   z tohoto měření nedá rozlišit (otázka JP2 u ZRMD-1 zůstává).

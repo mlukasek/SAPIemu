@@ -56,7 +56,8 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - **CPU 2 MHz nebo 4 MHz** podle vstupu TURBO (pin 3 třípinové lišty, pull-up 4k7): rozpojeno = 2 MHz,
     na zem = 4 MHz. Přepnutí je za chodu synchronní a bez zákmitů, software ho nevidí.
   - [S4]: s rychlejším oscilátorem stabilně sběrnice 5 MHz a CPU 10 MHz (osc/4, osc/2).
-- **STSTB:** impuls na začátku každého cyklu paměti i I/O (včetně INTA), **kromě refreshe**. U JPR-1ZI je STSTB
+- **STSTB:** impuls na začátku každého cyklu paměti i I/O (včetně INTA), **kromě refreshe** (změřeno na desce
+  autora 2026-10-11: 88–96 ns, i u čtení ROM, při INTA 0,66 µs po začátku /M1; `docs/zmeny-podle-hw.md`). U JPR-1ZI je STSTB
   jen z /MREQ. [S4] to popisuje jako opravu generování STSTB pro mapování.
   - **STSTB při INTA zablokuje sběrnici** (L. Lasota 2026-10-10, ověřeno pokusem): při potvrzení přerušení je na
     sběrnici PC. Když je v okně grafické karty (třeba ≥ C000h u CGA-1V, DGD-1V), karta na STSTB stáhne RDY,

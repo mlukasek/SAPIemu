@@ -829,7 +829,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Oscilátor 8 MHz? Jede něco rychleji (10/5 MHz)?
     - Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1 (port a bit RAM-1V), nebo vždy F800
       s MAP1OFF?
-    - Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká? Visí DGD-1 při BOOT opravdu?
+    - ~~Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká?~~ Nečeká (změřeno 2026-10-11,
+      `docs/zmeny-podle-hw.md`). Visí DGD-1 při BOOT opravdu?
     - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
