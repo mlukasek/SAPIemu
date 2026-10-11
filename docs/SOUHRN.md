@@ -79,8 +79,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zapojení ověřené programem. Programy a skripty `tools/hwbench/`, výsledky a pravidla
   **`docs/zmeny-podle-hw.md`** (autor: změny podle HW nejdřív navrhnout a probrat). První změna: DSM-1V drží
   reset UARTu do prvního čtení paměti na sběrnici (schéma IC27 + čtyři měření), test v `test_sapi1v`. Podezření
-  TBRE po dvou zápisech zatím jen v Nejasnostech. Další plán: JPR-1V STSTB, AND-1V a CGA-1V čekání, ZRMD-1 po
-  resetu, MPH-1V, nakonec zamrzání FXS4 (`docs/zmeny-podle-hw.md`).
+  Pak DSM-1V převzetí znaku na hraně taktu 16×, STSTB na JPR-1V (i ROM, I/O, INTA; ne refresh), AND-1V při 4
+  i 2 MHz sedí na 0–2 takty, CGA-1V dostala zpoždění změřená sondami na oknu karty (QA, /CPU): emulátor sedí při
+  4 i 2 MHz, vyřešena i stará Nejasnost zápisu při 2 MHz. ZRDBENCH přenesený do ROM potvrdil přesnost metody;
+  čtení z CGA 8. 10. (22,44) bylo jiné kvůli jiné sestavě. Zbývá: ZRMD-1 po resetu, MPH-1V, VBI CGA-1V,
+  zamrzání FXS4.
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem

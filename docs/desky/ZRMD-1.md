@@ -207,16 +207,18 @@ nebo průchod smyčkou; skutečné SAPI-1 V autora s ZRD-1V rev 1.1, 2026-10-08)
 | `OTIR` paměť → ZRD-1V | 21,22 | 21,21 | 21,22 | 21,22 | 21,22 |
 | smyčka `LD A,(HL)` / `INC HL` | 26,12 | 26,12 | 26,12 | 26,12 | 26,13 |
 | smyčka `IN A,(C)` z 60h | 25,08 | 25,08 | 25,08 | 25,08 | 25,09 |
-| `LDIR` paměť → CGA-1V | 23,61 | 23,54 | 22,75 | 22,44 | 21,18 |
-| `LDIR` CGA-1V → paměť | 22,44 | 22,38 | 21,27 | 21,27 | 21,18 |
+| `LDIR` paměť → CGA-1V | 23,61 | 23,63 | 22,76 | 22,76 | 21,18 |
+| `LDIR` CGA-1V → paměť | 22,76 * | 22,76 | 21,27 | 21,27 | 21,18 |
+
+\* Řádky CGA-1V podle měření 2026-10-11 (stejné smyčky v ROM, 82C54 i analyzátor, sestava se ZRMD-1).
+ZRDBENCH 8. 10. naměřil čtení při 4 MHz 22,44 se ZRD-1V a jiným pořadím karet, viz `docs/desky/CGA-1V.md`.
 
 - RAM-1V a ZRD-1V jsou i při 4 MHz bez čekání, emulace sedí na setinu.
 - Takt: emulátor běží přesně 4,000 a 2,000 MHz. ZRDBENCH výsledek usekne na setiny podle fáze časovače,
   proto ukáže 3,99 nebo 4,00 a 1,99. Údaj 1,99 MHz na železe tedy nemusí znamenat pomalejší krystal.
-- CGA-1V: čekací stavy podle schématu, rozbor v `docs/desky/CGA-1V.md`. Zbývá zápis při 2 MHz (o 0,3 T méně
-  než železo), je v Nejasnostech CGA-1V.
-- Hlídá to `test_sapi1v` (`zrdbench`): ZRDBENCH pod CP/M při 4 i 2 MHz, tolerance ±0,1 T (zápis do CGA-1V při
-  2 MHz ±0,4 T).
+- CGA-1V: čekací stavy podle schématu se zpožděními změřenými sondami (2026-10-11), rozbor
+  v `docs/desky/CGA-1V.md`.
+- Hlídá to `test_sapi1v` (`zrdbench`): ZRDBENCH pod CP/M při 4 i 2 MHz, tolerance ±0,1 T.
 
 ### Nejasnosti rev 2.1
 

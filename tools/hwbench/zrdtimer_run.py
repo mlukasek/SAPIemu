@@ -36,16 +36,16 @@ with automation.Manager.connect(port=10430) as m:
                                                digital_threshold_volts=3.3)
     ccfg = automation.CaptureConfiguration(capture_mode=automation.DigitalTriggerCaptureMode(
         trigger_type=automation.DigitalTriggerType.FALLING, trigger_channel_index=B.RES,
-        after_trigger_seconds=2.0, trim_data_seconds=2.002))
+        after_trigger_seconds=4.0, trim_data_seconds=4.002))
     with m.start_capture(device_id=dev.device_id, device_configuration=dcfg, capture_configuration=ccfg) as cap:
-        guard = threading.Timer(15.0, cap.stop)
+        guard = threading.Timer(20.0, cap.stop)
         guard.start()
         time.sleep(1.0)
         p.set_parameter('reset', 'low')
         time.sleep(0.3)
         p.set_parameter('reset', 'z')
         p.start_comms(0x400)
-        end = time.time() + 6
+        end = time.time() + 8
         while len(digits(vals)) < 16:
             if time.time() > end:
                 break
@@ -69,7 +69,9 @@ marks = [s for s, e in iow]
 # the CGA tests and at the end
 print('/IOW after the reset: %d (expected 22)' % len(marks))
 seq = [marks[i] for i in (5, 6, 9, 10, 14, 15, 18, 19)]
-clocks = [(seq[2 * i + 1] - seq[2 * i]) * 4e6 for i in range(4)]
+f_cpu = (1703931 + 4) / (seq[1] - seq[0])   # the calibration loop and the end marker up to its write, in T
+print('CPU clock from the analyzer (the calibration window): %.4f MHz' % (f_cpu / 1e6))
+clocks = [(seq[2 * i + 1] - seq[2 * i]) * f_cpu for i in range(4)]
 names = ['calibration 26 T x 65536', 'LDIR memory -> memory', 'LDIR memory -> CGA-1V', 'LDIR CGA-1V -> memory']
 print('82C54 counts: %s' % cnt)
 print('%-26s %10s %12s %12s' % ('', 'timer T/unit', 'analyzer T', 'analyzer T/unit'))

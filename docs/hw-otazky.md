@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **244** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **243** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -57,13 +57,6 @@ Otevřených bodů: **244** v 50 sekcích. Desky jsou první, pak ostatní téma
 
 9. Žádná propojka 20/24 řádků ani volba MHB 2502 (na rozdíl od AND-1/AND-1A): pevně 24 řádků, font jen
    z EPROM.
-
-
-## [AND-1V – alfanumerický displej s výstupem VGA (Libor Lasota, podle AND-1Z)](desky/AND-1V.md) – Nejasnosti k ověření (1)
-
-- **Čekací stavy na skutečné desce:** spustit VRAMBENCH (`media/and-1v/vrambench.hex`, v CP/M `SAVE 6
-  VRAMBENCH.COM`, pak `VRAMBENCH`) s TURBO zapnutým i vypnutým a porovnat s emulací: 4 MHz 23,99 / 22,41,
-  2 MHz 22,97 / 21,76 T na bajt (paměť → AND-1V / AND-1V → paměť). Zpoždění v modelu jsou převzatá z CGA-1V.
 
 
 ## [AND-1Z / AND-1Z-89 – alfanumerický displej](desky/AND-1Z-89.md) – Nejasnosti (ověřit na HW) (4)

@@ -94,9 +94,11 @@ Zdroje:
 
 ## Nejasnosti k ověření
 
-- **Čekací stavy na skutečné desce:** spustit VRAMBENCH (`media/and-1v/vrambench.hex`, v CP/M `SAVE 6
-  VRAMBENCH.COM`, pak `VRAMBENCH`) s TURBO zapnutým i vypnutým a porovnat s emulací: 4 MHz 23,99 / 22,41,
-  2 MHz 22,97 / 21,76 T na bajt (paměť → AND-1V / AND-1V → paměť). Zpoždění v modelu jsou převzatá z CGA-1V.
+- ~~**Čekací stavy na skutečné desce**~~: změřeno 2026-10-11 na měřicím pracovišti (`tools/hwbench/and1v.asm`,
+  LDIR 256 B do karty a z karty, samostatné přístupy, takty CLK mezi značkami): při 4 i 2 MHz sedí emulace
+  na 0–2 takty (4 MHz 6134 / 5730, 2 MHz 5873 / 5562). Zpoždění převzatá z CGA-1V (40 / 50 ns) tu platí;
+  v okně AND-1V se uvolnění RDY vůči CLK rozkládá rovnoměrně, proto přesné hodnoty nevadí
+  (`docs/zmeny-podle-hw.md`).
 - **Vyřešeno 2026-10-10 (L. Lasota): STSTB při refreshi** JPR-1Z a JPR-1V nedávají díky záplatě na deskách.
   Obdobný problém s INTA (PC v okně karty) popisuje `JPR-1V.md` (STSTB). Původní otázka: pokud JPR-1V dá STSTB
   i v cyklu refreshe a registr I ukazuje do F8–FF, nastaví

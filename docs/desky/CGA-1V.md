@@ -82,21 +82,25 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
   - IC7A okno ukončí hranou /QA o půl periody později, náběžná hrana /CPU vynuluje IC9B a RDY se uvolní.
 - **Zápis čeká déle než čtení:** Z80 dává /RD (s /MREQ) na sestupné hraně T1, ale /WR až na sestupné hraně T2,
   kdy už poprvé vzorkuje /WAIT. Zápis tak dostane okno o takt později.
-- **Emulace (od 2026-10-09):** přesně tento sled. /WAIT se vzorkuje na sestupné hraně T2 a každého Tw, čekání je
-  v celých taktech CPU (i při 2 MHz na JPR-1V). Zpoždění hran, hradel a předstihů je dohromady 90 ns (40 ns
-  k žádosti, 50 ns k uvolnění), nastavené podle měření na skutečné SAPI-1 V.
-- **Měření** programem ZRDBENCH z portu Prince of Persia (`media/zrd-1v/ZRDBENCH.ASM`, převzatý z
-  `..\SAPI-Prince-of-Persia\sapi\zrdbench.asm`, 2026-10-08). Takty na bajt `LDIR`, bez čekání 21,18:
+- **Emulace (od 2026-10-09, zpoždění od 2026-10-11):** přesně tento sled. /WAIT se vzorkuje na sestupné hraně
+  T2 a každého Tw, čekání je v celých taktech CPU (i při 2 MHz na JPR-1V). Zpoždění jsou **změřená sondami na
+  QA a /CPU (IC7) na desce autora** (`docs/zmeny-podle-hw.md`): /MR přijde 40–48 ns po sestupné hraně CLK, /MW
+  32–40 ns, IC7B žádost vezme jen 24–32 ns před hranou QA, takže žádost platí **72 ns (čtení) a 64 ns (zápis)**
+  po hraně CLK; RDY stoupne 200–216 ns po přidělující hraně QA (okno 159 ns + 55 ns včetně předstihu /WAIT
+  u Z80). Dřív 40 / 50 ns podle ZRDBENCH, čtení při 4 MHz pak čekalo o 0,36 T méně a zápis při 2 MHz o 0,3 T.
+- **Měření** smyčkami ZRDBENCH (`media/zrd-1v/ZRDBENCH.ASM`), 2026-10-11 v ROM na měřicím pracovišti
+  (`tools/hwbench/zrdtimer.asm`: časovač 82C54 i analyzátor dávají totéž na tisícinu). Takty na bajt `LDIR`,
+  bez čekání 21,176:
 
-  | | železo 4 MHz | emulace 4 MHz | železo 2 MHz | emulace 2 MHz | emulace do 0.4.0 |
+  | | železo 4 MHz | emulace 4 MHz | železo 2 MHz | emulace 2 MHz | emulace do 2026-10-10 |
   |---|---|---|---|---|---|
-  | paměť → CGA-1V | 23,61 | 23,54 | 22,75 | 22,44 | 21,27 |
-  | CGA-1V → paměť | 22,44 | 22,38 | 21,27 | 21,27 | 21,27 |
+  | paměť → CGA-1V | 23,608 | 23,627 | 22,757 | 22,757 | 23,564 / 22,44 |
+  | CGA-1V → paměť | 22,757 | 22,765 | 21,272 | 21,272 | 22,408 / 21,27 |
 
-  Výsledek je hodně citlivý na přesný poměr taktu CPU a okna (`LDIR` trvá 21 T a fáze vůči oknu se posouvá
-  deterministicky), proto se model neladil na setiny. Test `test_sapi1v` hlídá všechny čtyři hodnoty dvakrát:
-  vlastní `LDIR` (`cga_waits`) a skutečný ZRDBENCH pod CP/M (`zrdbench`, i ostatní řádky měření, celá tabulka
-  v `docs/desky/ZRMD-1.md`).
+  Kratší a delší bloky (`cga1v.asm`, `cga1v_long.asm`) sedí na ±2 takty, 12 KB čtení na 0,04 %. ZRDBENCH
+  8. 10. naměřil při 4 MHz čtení 22,44 se ZRD-1V místo ZRMD-1 a jiným pořadím karet: čtení je okrajové (o okně
+  rozhoduje pár ns kolem QA), jiné zatížení sběrnice ho posune. Test `test_sapi1v` hlídá `LDIR` (`cga_waits`)
+  i ZRDBENCH pod CP/M (`zrdbench`, tabulka v `docs/desky/ZRMD-1.md`).
 - Řádek má 400 bodů MCLK (320 viditelných), 31,78 µs. Snímek má 525 řádků (400 viditelných), 16,68 ms (59,94 Hz).
 
 ## Emulace – poznámky
@@ -152,10 +156,8 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 - `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
   to omylem, nebo k jiné desce?
-- ~~Přesné číslo čekacích taktů (synchronizace IC7A/B, IC9B) při 2 a 4 MHz.~~ Vyřešeno 2026-10-09 měřením
-  ZRDBENCH (viz Časování). Zbývá: zápis do karty při 2 MHz čeká na železe 1,57 T na bajt, model podle schématu
-  dává 1,27 T (při 4 MHz i u čtení sedí). Nemá JPR-1V při 2 MHz jinou střídu taktu, nebo není /WR vůči
-  sestupné hraně T2 zpožděné víc? Pomohl by osciloskop na /WR, QA a RDY při `LDIR` do karty.
+- ~~Přesné číslo čekacích taktů při 2 a 4 MHz, zápis při 2 MHz (1,57 proti 1,27)~~: vyřešeno 2026-10-11
+  změřenými zpožděními (sondy na QA a /CPU, viz Časování). Zápis při 2 MHz teď sedí bez zvláštního ladění.
 - Kde přesně začíná VBI vůči STATUS (řádek 400 = začátek zatemnění, podle IC39B).
 - **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
   nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz

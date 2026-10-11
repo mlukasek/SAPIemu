@@ -78,16 +78,19 @@ bool Cga1v::selected(uint16_t a, int map) const
 // edge of QA, the start of a CPU window (every 4 MCLK, 318 ns); IC7A ends the window with /QA half a period
 // later and the rising /CPU clears IC9B. The Z80 samples /WAIT at the falling edge of T2 and of every Tw.
 // /RD falls with /MREQ at the falling edge of T1, /WR only at the falling edge of T2, so a write gets its
-// window a clock later. REQ_NS + REL_NS (strobe delays, gates, set-up of the flip-flops and of /WAIT) is
-// fitted to ZRDBENCH on a real SAPI-1 V (PoP port, 2026-10-08): LDIR into the card 2.43 T per byte more at
-// 4 MHz, 1.57 T at 2 MHz, from the card 1.26 T and 0.09 T (docs/desky/CGA-1V.md).
-static const double REQ_NS = 40.0;   // the Z80 edge to the D input of IC7B
-static const double REL_NS = 50.0;   // the end of the window to /WAIT high at the Z80
+// window a clock later. The delays are measured on the author's SAPI-1 V with probes on QA and /CPU
+// (IC7, 2026-10-11, docs/zmeny-podle-hw.md): /MR comes 40-48 ns after the falling CLK edge, /MW 32-40 ns, and
+// IC7B takes the request only 24-32 ns before the QA edge, so the request counts 72 ns (read) and 64 ns
+// (write) after the edge; RDY rises 200-216 ns after the granting QA edge, and the Z80 needs it about 10 ns
+// before its sampling edge.
+static const double REQ_READ_NS = 72.0;    // the Z80 edge to the request taken by IC7B, read
+static const double REQ_WRITE_NS = 64.0;   // the same, write
+static const double REL_NS = 55.0;         // the end of the window to /WAIT high at the Z80 (with its set-up)
 
 int Cga1v::wait_states(bool write) const
 {
     if (!waits) return 0;
-    return bus->window_waits(write, SLOT_NS, SLOT_NS / 2, REQ_NS, REL_NS);   // window from the QA edge
+    return bus->window_waits(write, SLOT_NS, SLOT_NS / 2, write ? REQ_WRITE_NS : REQ_READ_NS, REL_NS);
 }
 
 void Cga1v::update_vbi(void)
