@@ -38,6 +38,25 @@ static void ym(Machine& m, uint8_t reg, uint8_t v)
     m.bus.io_write(P + 7, v);
 }
 
+// After /IRES the 74LS164 holds /RST of the YM3812 8 clocks of 14.31818 MHz / 64 longer (35.8 us): writes
+// before that are lost (measured on the author's board 2026-10-11: lost at 31 us, taken at 37 us after /RES)
+static void ym_reset_delay(void)
+{
+    Machine m;
+    if (!load(m)) return;
+    m.run_seconds(0.05);
+    for (int late = 0; late < 2; late++) {
+        m.reset();
+        m.run_cycles(late ? 160 : 100);   // 25 us or 40 us at 4 MHz
+        ym(m, 0x02, 0xFF);
+        ym(m, 0x04, 0x01);
+        m.run_seconds(0.001);
+        uint8_t st = m.bus.io_read(P + 6);
+        printf("YM writes %s after /RES: status %02X\n", late ? "40 us" : "25 us", st);
+        CHECK_EQ(st, late ? 0xC0 : 0x00);
+    }
+}
+
 // 82C54: CLK2 = 55930.4 Hz, mode 2 with 56 -> 998.8 Hz on OUT2, each rising edge sets F2
 // (the way RAT PLAYER and y1stdemo time their music, MPH-test bit layout)
 static void timers(void)
@@ -126,8 +145,8 @@ static void adlib_detect(void)
     m.run_seconds(0.0002);
     uint8_t s2 = m.bus.io_read(P + 6);
     printf("YM status %02X %02X\n", s1, s2);
-    CHECK_EQ(s1 & 0xE0, 0x00);
-    CHECK_EQ(s2 & 0xE0, 0xC0);
+    CHECK_EQ(s1, 0x00);   // the low bits 0 as on the author's board (2026-10-11)
+    CHECK_EQ(s2, 0xC0);
     // the IRQ through IEN D0, read in STATUS D0 (SPLAY waits for it)
     CHECK(m.bus.io_read(P + 3) & 0x01);
     CHECK((m.bus.irq_lines() & IRQ_INT0) == 0);
@@ -404,6 +423,7 @@ int main(void)
     test_init();
     timers();
     adlib_detect();
+    ym_reset_delay();
     tone();
     controllers();
     splay();

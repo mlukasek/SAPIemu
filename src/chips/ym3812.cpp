@@ -49,7 +49,7 @@ void Ym3812::write_data(uint8_t v)
 
 uint8_t Ym3812::status(void) const
 {
-    return (uint8_t)(st | 0x06);   // the low bits read as 110 on a YM3812
+    return st;   // the low bits read 0 on the YM3812 of MPH-1V (00h, C0h; measured 2026-10-11)
 }
 
 void Ym3812::timers_step(void)

@@ -453,8 +453,8 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 
 ## [MPH-1V – zvuková a joysticková karta (Libor Lasota)](desky/MPH-1V.md) – Nejasnosti (2)
 
-- /RST YM3812 se po /IRES uvolní o 8 taktů 224 kHz později (asi 36 µs). Emulace to nezdržuje. Program, který by
-  hned po resetu zapisoval do YM, by se na desce choval jinak (zatím žádný takový neznáme).
+- Stav YM3812 jednou za čas čte bit 2 = 1 (C4h ve 2 z 11 jednotlivých čtení `IN A,(56h)`, nikdy při `INIR`).
+  Zákmit na D2? Emulace ho nedělá.
 
 - Směr os myši (která strana je „+“) jsme neověřili na skutečné myši s programem. Zatím žádný program pro SAPI
   myš nepoužívá, MPH-test jen ukazuje bity.

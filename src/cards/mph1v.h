@@ -62,6 +62,8 @@ private:
     void update_mouse_flag(void);
 
     uint8_t base = 0x50;
+    // the end of /RST of the YM3812 after /IRES (bus time); not in the saved state (36 us after a reset)
+    uint64_t ym_rst_until = 0;
     I8253 pit;
     Ym3812 ym;
     uint8_t ien = 0;              // IEN register

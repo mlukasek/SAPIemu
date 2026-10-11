@@ -21,7 +21,8 @@ v `media/mph-1v/`, hudba v repu není.
   CLK1 = OUT0 (kaskáda). Proti 8253 má příkaz read-back (řídicí slovo s SC = 11, stavový bajt s OUT, NULL
   COUNT a naprogramovaným režimem). Emulace ho umí.
 - Oscilátor QG1 14,31818 MHz (propojka S2 QG1EN), děliče 74LS393: /4 pro YM, /256 pro 82C54, /64 pro 74LS164.
-- /RST YM3812 drží 74LS164 ještě 8 taktů po /IRES (asi 36 µs). Emulace resetuje YM přímo.
+- /RST YM3812 drží 74LS164 ještě 8 taktů po /IRES (35,8 µs): zápisy do YM v té době se ztratí (změřeno na desce
+  autora 2026-10-11: ztracené 31 µs po konci /RES, přijaté od 37 µs; emulováno, `docs/zmeny-podle-hw.md`).
 - Výstup: Sallen-Key dolní propust (R4 = R5 = 2k2, C9 = 6n8, C10 = 3n3: 15,3 kHz, Q 0,72), oddělení C8 10 µF
   s R3 47k (horní propust 0,34 Hz). Mono na oba kanály jacku K3. Emulace oba filtry počítá.
 - Konektory (štítek i schéma): K4 OVL (joystick), K3 ZVUK (jack 3,5 mm), K2 MYŠ. K4 a K2 jsou zapojené stejně
@@ -59,8 +60,8 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
 - **/INT0** = (F2 a IEN.D7) nebo (F1 a IEN.D6) nebo (YM a IEN.D0), 74LS38 s otevřeným kolektorem.
 - **JOY/MOUSE:** aktivní v 0, pull-upy 4k7. D7 a D6 jsou jen na pull-upech (čtou 1). Pro myš mají D3–D0
   význam YA, YB, XB, XA (kvadratura, MPH-test: „Joystick B / Myš“ na dolním konektoru).
-- Časovače YM3812: T1 po 80 µs (288 taktů), T2 po 320 µs. Stav: D7 IRQ, D6 T1, D5 T2, dolní bity 110
-  (jako skutečný YM3812, detekce AdLib).
+- Časovače YM3812: T1 po 80 µs (288 taktů), T2 po 320 µs. Stav: D7 IRQ, D6 T1, D5 T2, **dolní bity 0** (změřeno
+  na desce autora 2026-10-11: 00h, po přetečení T1 C0h; dřív emulace 110 podle údajů o AdLib).
 - WSE (registr 01h bit 5): bez něj hraje každý operátor sinus. Jádro OPL3 to v režimu OPL2 nedělá, řeší to
   obal `Ym3812`.
 
@@ -105,7 +106,8 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
 - ~~Rozložení bitů STATUS/IEN/IACK, zdroj F1, IACK D2/D1, STATUS D2/D1, JOY D7/D6, oscilátor~~: vyřešeno
   schématem hotové desky (`..\SAPI-karty\MPH-1V\Eagle`, 6. 9. 2025). Starší PNG z 10. 8. a PDF z 24. 8. byly rozpracované
   verze.
-- /RST YM3812 se po /IRES uvolní o 8 taktů 224 kHz později (asi 36 µs). Emulace to nezdržuje. Program, který by
-  hned po resetu zapisoval do YM, by se na desce choval jinak (zatím žádný takový neznáme).
+- ~~/RST YM3812 po /IRES~~: změřeno a emulováno 2026-10-11 (35,8 µs).
+- Stav YM3812 jednou za čas čte bit 2 = 1 (C4h ve 2 z 11 jednotlivých čtení `IN A,(56h)`, nikdy při `INIR`).
+  Zákmit na D2? Emulace ho nedělá.
 - Směr os myši (která strana je „+“) jsme neověřili na skutečné myši s programem. Zatím žádný program pro SAPI
   myš nepoužívá, MPH-test jen ukazuje bity.

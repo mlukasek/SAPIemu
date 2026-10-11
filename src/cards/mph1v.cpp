@@ -55,7 +55,8 @@ bool Mph1v::configure(const json& cfg, std::string& err)
 void Mph1v::reset()
 {
     // /IRES clears IEN (gates low, interrupts off) and resets the YM3812 (74LS164: /RST
-    // stays low 8 clocks of 224 kHz longer). The 8253 and the latches keep their state.
+    // stays low 8 clocks of 14.31818 MHz / 64 longer, 35.8 us: writes before that are lost, measured
+    // on the author's board 2026-10-11, docs/zmeny-podle-hw.md). The 8253 and the latches keep their state.
     Outs before = outs();
     ien = 0;
     set_gates();
@@ -64,6 +65,7 @@ void Mph1v::reset()
     if (bus) {
         last = bus->now;
         bus->audio_rate = SAMPLE_HZ;
+        ym_rst_until = bus->now + (uint64_t)(8.0 * 64.0 / 14318180.0 * bus->cpu_hz);
     }
 }
 
@@ -215,10 +217,10 @@ bool Mph1v::io_write(uint8_t port, uint8_t data)
         if (data & 0x40) f1 = false;
         break;
     case 6:
-        ym.write_addr(data);
+        if (bus->now >= ym_rst_until) ym.write_addr(data);   // the YM still in /RST takes nothing
         break;
     case 7:
-        ym.write_data(data);
+        if (bus->now >= ym_rst_until) ym.write_data(data);
         break;
     }
     pit_edges(before);
