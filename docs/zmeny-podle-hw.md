@@ -141,6 +141,28 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Změna (autor schválil):** `Ym3812::status` bez dolních bitů. Občasný bit 2 jen v Nejasnostech MPH-1V.
 - **Test:** `test_mph1v` (`adlib_detect`: přesně 00h a C0h).
 
+### 2026-10-11 – JPR-1V + CGA-1V / AND-1V: přerušení s PC v okně karty zablokuje sběrnici (zamrzání FXS4)
+
+- **Měření** (`freeze.asm`, `freeze_run.py`, 4 MHz, deska autora bez Liborovy záplaty IC15): smyčka `JR $`
+  ve videopaměti CGA-1V na C100h (MAP1 = MAP2 = H), IM 1, přerušení od přijímače DSM-1V. Od výběru `JR`:
+  /INT0 klesne v +0,54 µs; INTA začíná v +3,55 µs a **/M1 už se nezvedne**; STSTB v +4,16 µs (adresa = PC
+  v okně CGA); **RDY klesne v +4,26 µs a zůstane v L**, /MR, /MW, /IOR ani okno /CPU už nepřijdou; CLK běží.
+  Obsluha na 38h neproběhla (na lince nic).
+- **AND-1V stejně** (`freeze_and.asm`: smyčka ve videopaměti na F900h, MAP1 = L): /INT0 v 12,3896 ms, INTA
+  (/M1 trvale v L) v 12,3902 ms, STSTB a **RDY trvale v L** v 12,3909 ms, žádné /MR ani /IOR. Čekání AND-1V ruší
+  jen /MR, /MW, /IOR, /IOW a /RES; INTA nedá nic z toho.
+- **RESET:** `picorom reset low/z` (/RTL) během zaseknutí nevyvolal žádný impulz /RES (1,5 s záznamu: žádný
+  /M1, RDY trvale v L), u CGA-1V i AND-1V. Reset je synchronizovaný s /M1. Pomůže jen vypnutí (autor po každém
+  pokusu vypnul a zapnul).
+- **Emulátor do změny:** obsluhu provedl („NOFREEZE“), výběr karty při INTA nedělal, reset fungoval vždy.
+- **Změna (autor schválil):** `Card::inta_holds_rdy` (CGA-1V, AND-1V a DGD-1V se zapnutými čekacími stavy, adresa
+  v okně podle MAP). JPR-1V při INTA (`ststb_inta`) zjistí, jestli některá karta RDY zablokuje; pak CPU zůstane
+  v cyklu INTA (`hung`, čas i ostatní karty běží), log to vysvětlí. `CpuCard::reset_blocked`: `Machine::reset`
+  (tlačítko, GUI, MCP) pak nic neudělá, pomůže vypnout a zapnout. Mimo uložený stav. JPR-1Z (Libor: stejně)
+  a Liborova záplata IC15 zatím ne.
+- **Test:** `test_sapi1v` (`fxs4_freeze`: s čekáním CGA-1V zamrzne a RESET nepomůže, bez čekání obsluha proběhne);
+  `emu_freeze.py`: `freeze` i `freeze_and` v emulátoru zamrznou jako na desce.
+
 ## Ověřeno beze změny
 
 - **JPR-1V nedává /MR při čtení ROM** (0000h–07FFh): při kontrole zapojení byl /MR jen u čtení RAM a AND-1V.
@@ -178,28 +200,6 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **AND-1V čeká při čtení videopaměti:** 16 čtení F800h, 16 impulzů RDY (délky se zatím nevyhodnocovaly).
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
-
-## Návrhy čekající na schválení
-
-### JPR-1V + CGA-1V / AND-1V: přerušení s PC v okně karty zablokuje sběrnici (zamrzání FXS4), RESET nepomůže
-
-- **Měření** (`freeze.asm`, `freeze_run.py`, 4 MHz, deska autora bez Liborovy záplaty IC15): smyčka `JR $`
-  ve videopaměti CGA-1V na C100h (MAP1 = MAP2 = H), IM 1, přerušení od přijímače DSM-1V. Od výběru `JR`:
-  /INT0 klesne v +0,54 µs; INTA začíná v +3,55 µs a **/M1 už se nezvedne**; STSTB v +4,16 µs (adresa = PC
-  v okně CGA); **RDY klesne v +4,26 µs a zůstane v L**, /MR, /MW, /IOR ani okno /CPU už nepřijdou; CLK běží.
-  Obsluha na 38h neproběhla (na lince nic).
-- **AND-1V stejně** (`freeze_and.asm`: smyčka ve videopaměti na F900h, MAP1 = L): /INT0 v 12,3896 ms, INTA
-  (/M1 trvale v L) v 12,3902 ms, STSTB a **RDY trvale v L** v 12,3909 ms, žádné /MR ani /IOR. Čekání AND-1V ruší
-  jen /MR, /MW, /IOR, /IOW a /RES; INTA nedá nic z toho.
-- **RESET:** `picorom reset low/z` (/RTL) během zaseknutí nevyvolal žádný impulz /RES (1,5 s záznamu: žádný
-  /M1, RDY trvale v L), u CGA-1V i AND-1V. Reset je synchronizovaný s /M1. Pomůže jen vypnutí (autor po každém
-  pokusu vypnul a zapnul).
-- **Emulátor dnes:** obsluhu provede („NOFREEZE“), výběr karty při INTA nedělá, reset funguje vždy.
-- **Návrh:** u JPR-1V (a JPR-1Z, kde to Libor popisuje) dávat při INTA kartám STSTB s adresou PC; karta s oknem,
-  která čekání ukončuje jen s /MR nebo /MW (CGA-1V a AND-1V změřeno, DGD-1V, BGP-1S a další podle schémat),
-  sběrnici zablokuje. Reset tlačítkem, /RTL i z GUI pak nezabere jako na desce (do logu vysvětlení),
-  pomůže vypnutí. Takhle by FXS4 zamrzal i v emulátoru. Volitelný přepínač pro Liborovu záplatu IC15 (STSTB jen
-  od /MREQ), až bude její zapojení jasné.
 
 ## Podezření k dořešení
 

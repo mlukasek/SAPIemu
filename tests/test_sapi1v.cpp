@@ -190,6 +190,57 @@ static void zrmd1_reset(void)
     CHECK(memcmp(want, got, 4) == 0);
 }
 
+// The FXS4 freeze (L. Lasota 2026-10-10, measured on the author's board 2026-10-11, tools/hwbench/freeze.asm):
+// an interrupt taken while the PC is in the CGA-1V window; STSTB at INTA makes the card hold RDY low for good,
+// RESET has no effect. With the card's wait states off nothing happens.
+static bool freeze_run(bool waits)
+{
+    static const uint8_t prog[] = {
+        0xF3,                          // di
+        0x31, 0x00, 0xBF,              // ld sp,0BF00h
+        0x3E, 0xC0, 0xD3, 0x63,        // MAP1 = MAP2 = H: the CGA-1V at C000
+        0x3E, 0x18, 0x32, 0x00, 0xC1,  // JR $ at C100h
+        0x3E, 0xFE, 0x32, 0x01, 0xC1,
+        0xED, 0x56,                    // im 1
+        0x3E, 0x80, 0xD3, 0x10,        // DSM-1V channel A: receive interrupt on
+        0xFB,                          // ei
+        0xC3, 0x00, 0xC1,              // jp 0C100h
+    };
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "CGA-1V") c["wait_states"] = waits;
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    m.run_seconds(0.2);
+    for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    r.pc = 0x8000;
+    m.cpu->set_regs(r);
+    m.run_seconds(0.01);
+    m.serials[0]->host_send((const uint8_t*)"Z", 1);
+    m.run_seconds(0.05);
+    m.cpu->get_regs(r);
+    bool hung = m.cpu->reset_blocked();
+    printf("CGA-1V wait states %s: PC %04X, %s\n", waits ? "on" : "off", r.pc, hung ? "hangs in INTA" : "runs");
+    if (hung) {
+        CHECK(r.pc == 0xC100 || r.pc == 0xC101);
+        m.reset();                          // RESET waits for /M1: nothing happens
+        m.run_seconds(0.05);
+        CpuRegs r2;
+        m.cpu->get_regs(r2);
+        CHECK(m.cpu->reset_blocked() && r2.pc == r.pc);
+    }
+    return hung;
+}
+
+static void fxs4_freeze(void)
+{
+    CHECK(freeze_run(true));
+    CHECK(!freeze_run(false));
+}
+
 static void cpm(void)
 {
     Machine m;
@@ -796,6 +847,7 @@ int main(void)
     dsm1v_mr();
     open_bus();
     zrmd1_reset();
+    fxs4_freeze();
     cga_beam();
     power_on_random();
     ecmon_variant();

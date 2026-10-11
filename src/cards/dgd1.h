@@ -54,6 +54,9 @@ public:
 private:
     bool selected(uint16_t addr, int map) const;
     int wait_states(void) const;
+    // DGD-1V: the wait ends in the CPU slot with /MR or /MW, I/O cycles and /RES clear it (as AND-1V and
+    // CGA-1V); the original DGD-1 is not known well enough (Nejasnosti)
+    bool inta_holds_rdy(uint16_t a) override { return vga && waits && selected(a, bus->map); }
 
     const bool vga;             // DGD-1V
     uint16_t base = 0xC000;     // SP1-2 (DGD-1V: S2 /A15 /A14)

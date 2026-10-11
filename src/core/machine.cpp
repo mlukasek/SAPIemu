@@ -216,6 +216,10 @@ bool Machine::load_json(const json& cfg, std::string& err)
 
 void Machine::reset(void)
 {
+    if (cpu && cpu->reset_blocked()) {   // JPR-1V hanging in INTA: RESET waits for /M1, which never comes
+        LOGW("RESET has no effect: the CPU waits in an INTA cycle with RDY held low; switch the machine off and on");
+        return;
+    }
     bus.reset_last = UINT64_MAX;   // the RESET button: a new reset, not a held one
     bus.reset();
     bus.break_request = false;

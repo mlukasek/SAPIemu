@@ -142,6 +142,8 @@ public:
     virtual uint32_t clock_hz() const = 0;       // the time base of the bus (cycles per second)
     // A TURBO switch on the CPU card that changes the CPU clock while running (JPR-1V).
     virtual bool has_cpu_turbo() const { return false; }
+    // RESET cannot reach the machine now (JPR-1V hanging in an INTA cycle: its RESET waits for /M1)
+    virtual bool reset_blocked() const { return false; }
     virtual bool cpu_turbo() const { return false; }
     virtual void set_cpu_turbo(bool on) {}
     virtual uint32_t cpu_display_hz() const { return clock_hz(); }   // the actual CPU clock

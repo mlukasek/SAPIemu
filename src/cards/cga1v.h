@@ -62,6 +62,7 @@ public:
 private:
     bool selected(uint16_t addr, int map) const;
     int wait_states(bool write) const;
+    bool inta_holds_rdy(uint16_t a) override { return waits && selected(a, bus->map); }
     void update_vbi(void);
     void dac_write(int rs, uint8_t data);
     void palette_argb(uint32_t* rgb) const;

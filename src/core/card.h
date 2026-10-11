@@ -55,6 +55,10 @@ public:
     virtual bool mem_peek(uint16_t addr, uint8_t& data) { return false; }
     // Interrupt acknowledge (/INTA); a card driving the vector returns true.
     virtual bool inta(uint8_t& data) { return false; }
+    // STSTB in an INTA cycle with `addr` (the PC) on the address bus (JPR-1V): true when the card's wait logic
+    // starts on it (STSTB with its select) and ends only with /MR or /MW, so RDY stays low for ever (measured
+    // with CGA-1V and AND-1V 2026-10-11, docs/zmeny-podle-hw.md: the FXS4 freeze).
+    virtual bool inta_holds_rdy(uint16_t addr) { return false; }
 
     // Current level of the interrupt request lines driven by this card (IrqLine mask).
     virtual int irq_lines() { return 0; }

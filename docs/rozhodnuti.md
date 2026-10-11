@@ -1571,6 +1571,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
   prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
   Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+- **Zamrzání FXS4 se emuluje** (autor schválil po měření na desce): JPR-1V dává STSTB i při INTA, karta s oknem
+  (CGA-1V, AND-1V, DGD-1V) pak drží RDY napořád a RESET nezabere, jako na železe. Kdo to nechce, vypne kartě
+  čekací stavy (`wait_states`), což je zřetelná odchylka od desky. Do uloženého stavu se zaseknutí nedává.
 - **Prázdná sběrnice na JPR-1V vrací poslední bajt** (autor schválil, potvrdil i chováním CP/M bez IDE-1).
   Emulace je věrná i s důsledkem, že ECMON na sestavách V volbami 0–2 bez řadiče visí; návody a testy proto
   volí 3. Ostatní procesorové karty zůstávají u FFh, dokud se nezměří.

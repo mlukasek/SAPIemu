@@ -81,6 +81,7 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
         turbo_switch = true;
         turbo_on = turbo;
         open_bus_hold = true;
+        ststb_inta = true;
         eprom_off = bios == "fitted" ? 0x000u : 0x800u;
         eprom_mask = 0x7FF;
     }
@@ -251,6 +252,7 @@ int Jpr1zi::run(int cycles)
         bus->now++;
         done++;
         if (bus->now >= next_sync) sync();
+        if (hung) continue;   // in the INTA cycle with RDY held low: the clock runs, the CPU waits
         if (bus->hold) {   // a DMA controller had the bus: the CPU waited
             bus->now += bus->hold;
             done += (int)bus->hold;
@@ -306,6 +308,18 @@ int Jpr1zi::run(int cycles)
             uint8_t port = (uint8_t)Z80_GET_ADDR(pins);
             if (pins & Z80_M1) {
                 // interrupt acknowledge
+                if (ststb_inta) {
+                    uint16_t a = Z80_GET_ADDR(pins);   // the PC on the address bus, STSTB with it
+                    for (Card* c : bus->cards)
+                        if (c->inta_holds_rdy(a)) {
+                            hung = true;
+                            LOGW("%s: interrupt taken with the PC %04Xh in the window of %s: STSTB at INTA, the card "
+                                 "holds RDY low for good (the FXS4 freeze, docs/desky/JPR-1V.md). RESET has no effect, "
+                                 "switch the machine off and on", type.c_str(), a, c->name.c_str());
+                            break;
+                        }
+                    if (hung) continue;
+                }
                 if (open_bus_hold) bus->open_value = dbus;
                 uint8_t v = bus->inta();
                 bus->int_ack(z80.pc, z80.im, z80.i, v);

@@ -48,6 +48,7 @@ public:
 private:
     bool selected(uint16_t addr, int map) const;
     int wait_states(bool write) const;
+    bool inta_holds_rdy(uint16_t a) override { return waits && selected(a, bus->map); }
 
     uint8_t vram[2048];
     std::vector<uint8_t> font;     // 32 KB (27C256)

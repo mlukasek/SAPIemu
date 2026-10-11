@@ -92,10 +92,11 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
   - sběrnice 2 MHz, CPU 2/4 MHz podle TURBO (přepínatelné za chodu), oscilátor jako parametr.
 - Parametry: `rom` (8 KB) nebo `bank0`/`bank1`, `bios` (osazená/rozpojená), `turbo`, `osc_hz`.
 - TURBO desky JPR-1V je jen takt CPU. Rychlost celé emulace je zvlášť (F8, menu Stroj → Rychlost emulace).
-- **Zatím se neemuluje:** výběr karty při INTA (zablokované RDY) a RESET jen s /M1. Program, který s povoleným
-  přerušením zabloudí nad BFFFh, v emulátoru běží dál, na železe se zasekne. Má to smysl až se známou příčinou
-  poškození paměti, která program nad BFFFh pošle (`docs/rozhodnuti.md`, 2026-10-10). Kdyby se to emulovalo, pak
-  přepínatelně (originál / Liborova záplata IC15).
+- **Emulováno od 2026-10-11** (změřeno na desce autora, `docs/zmeny-podle-hw.md`): přerušení přijaté s PC v okně
+  CGA-1V, AND-1V nebo DGD-1V (se zapnutými čekacími stavy karty) zastaví CPU v cyklu INTA napořád; v logu je
+  vysvětlení. RESET (tlačítko, Reset v GUI, MCP) nezabere, protože čeká na /M1; pomůže vypnout a zapnout.
+  Program, který s povoleným přerušením zabloudí nad BFFFh, teď v emulátoru zamrzne jako na železe. Liborova
+  záplata IC15 (STSTB jen od /MREQ) zatím jako volba není, čeká se na její přesné zapojení.
 
 ## Otázky pro autora
 

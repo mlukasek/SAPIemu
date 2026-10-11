@@ -84,7 +84,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   4 i 2 MHz, vyřešena i stará Nejasnost zápisu při 2 MHz. ZRDBENCH přenesený do ROM potvrdil přesnost metody;
   čtení z CGA 8. 10. (22,44) bylo jiné kvůli jiné sestavě. ZRMD-1: /RES nuluje jen latch 63h. JPR-1V: čtení,
   na které nikdo neodpoví, vrací poslední bajt datové sběrnice (IN A,(58h) → 58h, CP/M bez IDE-1 „XYXY“);
-  emulováno, ECMON na sestavách V proto jen volba 3 (návody upravené). Zbývá: MPH-1V, VBI CGA-1V, zamrzání FXS4.
+  emulováno, ECMON na sestavách V proto jen volba 3 (návody upravené). MPH-1V: YM3812 až 35,8 µs po resetu,
+  stav s dolními bity 0 (emulováno). VBI CGA-1V 50 řádků před VSYNC (emulátor sedí). INTA bez vektoru čte poslední
+  bajt sběrnice, ten se za 1–2 µs rozplyne (podezření, na analyzátoru zkusit datovou sběrnici). **Zamrzání FXS4
+  potvrzené na desce** (CGA-1V i AND-1V, RESET nezabere) **a emulované**. Dál: FXS4 v emulátoru (zamrzne?
+  odkud poškození fontu?), JPR-1Z, BGP-1S a AND-1Z-89 podle schémat, původní DSM-1 a DMR-1.
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem

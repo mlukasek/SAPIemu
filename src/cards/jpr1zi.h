@@ -40,6 +40,7 @@ public:
     bool has_cpu_turbo() const override { return turbo_switch; }
     bool cpu_turbo() const override { return turbo_on; }
     void set_cpu_turbo(bool on) override { turbo_on = on; }
+    bool reset_blocked() const override { return hung; }
     // JPR-1V: the TURBO switch and the BIOS jumper (EEPROM bank) work while running, as when
     // they are wired to the buttons of the ZDR panel.
     bool live_param(const char* path) const override;
@@ -76,6 +77,11 @@ private:
     // the author's board 2026-10-11. Not in the saved state (one byte, the next cycle sets it again).
     bool open_bus_hold = false;
     uint8_t dbus = 0xFF;
+    // JPR-1V: STSTB also in the INTA cycle; a card holding RDY then stops the CPU in the INTA cycle for good, and
+    // RESET (synchronised with /M1) cannot come (measured 2026-10-11). Only switching off helps. Not in the saved
+    // state: a loaded state runs on.
+    bool ststb_inta = false;
+    bool hung = false;
     unsigned eprom_mask = 0x1FFF;
     std::vector<uint8_t> d3c;     // memory decoder PROM
     std::vector<uint8_t> d6b;     // I/O decoder PROM

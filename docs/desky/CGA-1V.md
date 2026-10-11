@@ -164,5 +164,6 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
   125 řádků, jako v emulaci.
 - **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
   nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz
-  `JPR-1V.md`. Emulace výběr karty při INTA nedělá. Ověřit po Liborově záplatě IC15 na JPR-1V.
+  `JPR-1V.md`. **Změřeno na desce autora 2026-10-11 a emulováno** (`docs/zmeny-podle-hw.md`). Zbývá ověřit po
+  Liborově záplatě IC15 na JPR-1V.
 - Samostatný dokument „Programování karty“ (datasheet str. 7 na něj odkazuje) zatím nemáme.
