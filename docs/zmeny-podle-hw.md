@@ -56,8 +56,26 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+## Návrhy čekající na schválení
+
+### DSM-1V: UART převezme znak do vysílacího registru až na hraně taktu 16× rychlosti
+
+- **Měření** (`tbre.asm`, `tbre_run.py`, 2026-10-11, 9600 Bd, takt 16× = 153,6 kHz, perioda 6,51 µs):
+  1. jeden zápis dat (/IOW 0,62 µs): start bit 0,9 µs po začátku zápisu, stav potom 7Fh;
+  2. dva zápisy 2,7 µs po sobě: **na lince jen jeden znak**, start bit 6,4 µs po prvním zápisu, stav celých
+     336 µs po zápisech 7Fh (TBRE = 1, žádný znak nečeká);
+  3. začátky obou odeslaných znaků jsou od sebe 3,1835 ms = **přesně 489 period taktu 16×**: vysílání začíná
+     vždy na hraně taktu.
+- **Výklad:** zápis naplní vyrovnávací registr (TBRE = 0), do vysílacího registru se znak přesune až na nejbližší
+  hraně taktu 16×. Druhý zápis před touto hranou první znak přepíše. Dřívější „XY“ (`diag2.asm`, zápisy 4,5 µs
+  od sebe) prošlo, protože hrana mezi zápisy náhodou byla. Prodloužení /IOW to nevysvětluje (zápis trvá 0,62 µs).
+- **Emulátor dnes:** znak převezme hned, druhý čeká ve vyrovnávacím registru (TBRE = 0 asi 1 ms) a odejdou oba
+  (stejná ROM: „55 55 55“ proti „55 55“ na desce).
+- **Návrh:** v modelu UARTu převzetí do vysílacího registru na hraně taktu 16× (mřížka od zapnutí, fázi skutečné
+  desky neznáme), start bit od té hrany. Zápis rychleji než jedna perioda taktu (6,5 µs při 9600 Bd, 0,54 µs při
+  115200 Bd) pak přepíše předchozí znak jako na desce. Zatím jen DSM-1V (6402). MHB1012 na DSM-1 a DMR-1 je
+  nejspíš stejný (odvozený od AY-5-1013), ale neměřený.
+
 ## Podezření k dořešení
 
-- **TBRE hned po dvou zápisech dat za sebou:** deska čte 7Fh (TBRE = 1), emulátor 3Fh. Oba znaky přitom dorazí.
-  Možná příčina: prodloužení /IOW (IC28) zapíše znak až o chvíli později. Změřit /IOW proti TxD a stavu TBRE,
-  dokud se to nepotvrdí, emulátor zůstává beze změny.
+- Příjem (DR, přetečení) na DSM-1V zatím neměřen.

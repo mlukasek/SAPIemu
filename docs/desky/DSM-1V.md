@@ -64,10 +64,11 @@ Zdroje:
 
 ## Nejasnosti
 
-- **TBRE hned po dvou zápisech dat za sebou** (měřicí pracoviště 2026-10-11): deska čte stav 7Fh (TBRE = 1),
-  emulátor 3Fh, oba znaky přitom dorazí. Nejspíš prodloužení /IOW (IC28) zapíše znak o chvíli později. Změřit
-  /IOW proti TxD a stavu TBRE (`docs/zmeny-podle-hw.md`, Podezření k dořešení).
-- Bit 5 portu +0 („START“) a čtení portu +3 (FFh?) zatím neměřeno.
+- **Převzetí znaku do vysílacího registru až na hraně taktu 16×** (změřeno 2026-10-11): dva zápisy rychleji než
+  jedna perioda taktu pošlou jen jeden znak a TBRE zůstane 1. Emulátor zatím posílá oba, návrh změny čeká na
+  schválení (`docs/zmeny-podle-hw.md`).
+- ~~Čtení portu +3~~: **FFh** (změřeno 2026-10-11). Bit 5 portu +0 („START“) zatím neměřen.
+- Modem (+0) podle stavu linky: s otevřeným COM13 (MOXA drží DTR, RTS) 10h, se zavřeným F0h.
 
 ## Plán emulace
 
