@@ -35,10 +35,10 @@ Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po
 | `cpm_zrmd_dpp1.sapi` | `cpm_zrmd` s deskou DPP-1 a PMD32-SD | po startu `1`, pak `DIR D:`, `DIR E:` |
 | `cpm_zrmd_rtc_dsp.sapi` | navíc deska reálného času RTC-1 a sériová DSP-1 (programy J. Bíby) | po startu `1`, `E:RTCZ` hodiny RTC-1 (ESC konec), `RTC421` hodiny ZRMD-1, `DOPCP soubor` pošle soubor XMODEMem do okna terminálu „DSP-1 X2 #48“ |
 | `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35`: 3,5") | „dlouhé“ CP/M J. Bíby: A:, B: 8" (RPD-1), C: ZRMD-1, D:, E: 5,25" HD (FDC-1) | naběhne CP/M, zkuste `DIR B:`, `STAT D:` |
-| `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `1` = CP/M z RAM disku A:, `3` = i s IDE diskem B:, C: |
-| `sapi1v_BadApple.sapi` | sestava V s demem Bad Apple!! na RAM disku | `1`, pak `BADAPPLE` |
-| `sapi1v_PoP.sapi` | sestava V s Prince of Persia na RAM disku (jen v repu, ne v balíčku) | `1`, pak `POP` |
-| `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `1` = CP/M z RAM disku |
+| `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `3` = CP/M z RAM disku A: a IDE disk B:, C: (volby 0–2 čekají na řadič disket, který sestava nemá, jako skutečná deska) |
+| `sapi1v_BadApple.sapi` | sestava V s demem Bad Apple!! na RAM disku | `3`, pak `BADAPPLE` |
+| `sapi1v_PoP.sapi` | sestava V s Prince of Persia na RAM disku (jen v repu, ne v balíčku) | `3`, pak `POP` |
+| `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `3` = CP/M z RAM disku (disky B:, C: bez IDE-1 nefungují) |
 | `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
 | `rkd1_jb_cm5400.sapi` | CP/M J. Bíby s RKD-1 a bulharskou mechanikou CM 5400 (BIOS pro D: až G: vznikl v emulátoru) | `B:FORMRKD`, mechanika `F`, `O`, `A` naformátuje a zkontroluje kazetu (12 × 512 B), pak `DIR F:`, `B:PIP F:=B:*.COM` |
 | `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |

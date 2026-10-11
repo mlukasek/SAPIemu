@@ -1571,6 +1571,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
   prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
   Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+- **Prázdná sběrnice na JPR-1V vrací poslední bajt** (autor schválil, potvrdil i chováním CP/M bez IDE-1).
+  Emulace je věrná i s důsledkem, že ECMON na sestavách V volbami 0–2 bez řadiče visí; návody a testy proto
+  volí 3. Ostatní procesorové karty zůstávají u FFh, dokud se nezměří.
 
 ## 2026-10-10 – DPS-1 a měřicí pracoviště IMS-2
 

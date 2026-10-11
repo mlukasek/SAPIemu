@@ -122,6 +122,74 @@ static void zrd_lock(Machine& m, Card* zrd)
     CHECK(d.value("address", std::string()).substr(4) == want);
 }
 
+// JPR-1V: a read no card answers returns the last byte of the CPU data bus (measured on the author's board
+// 2026-10-11, tools/hwbench/openbus.asm: IN A,(9Ah) 9Ah, IN A,(C) 78h, LD A,(C123h) in the RAM-1V hole C1h,
+// LD A,(HL) there 7Eh). CP/M on IDE-1 without the card names the disk "XYXY..." (ports 58h, 59h).
+static void open_bus(void)
+{
+    static const uint8_t prog[] = {
+        0xF3,                    // di
+        0xDB, 0x9A,              // in a,(9Ah)
+        0x32, 0x00, 0x90,        // ld (9000h),a
+        0x01, 0x9A, 0x5A,        // ld bc,5A9Ah
+        0xED, 0x78,              // in a,(c)
+        0x32, 0x01, 0x90,        // ld (9001h),a
+        0x3E, 0x40, 0xD3, 0x63,  // MAP1 = H, MAP2 = L: the 16 KB hole at C000, no CGA-1V
+        0x3A, 0x23, 0xC1,        // ld a,(0C123h)
+        0x32, 0x02, 0x90,        // ld (9002h),a
+        0x21, 0xF0, 0xD0,        // ld hl,0D0F0h
+        0x7E,                    // ld a,(hl)
+        0x32, 0x03, 0x90,        // ld (9003h),a
+        0xAF, 0xD3, 0x63,        // MAP off
+        0x76,                    // halt
+    };
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    m.run_seconds(0.2);
+    for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    r.pc = 0x8000;
+    m.cpu->set_regs(r);
+    for (int i = 0; i < 1000; i++) {
+        m.run_cycles(50);
+        m.cpu->get_regs(r);
+        if (r.halted) break;
+    }
+    CHECK(r.halted);
+    CHECK_EQ(m.bus.mem_peek(0x9000), 0x9A);
+    CHECK_EQ(m.bus.mem_peek(0x9001), 0x78);
+    CHECK_EQ(m.bus.mem_peek(0x9002), 0xC1);
+    CHECK_EQ(m.bus.mem_peek(0x9003), 0x7E);
+}
+
+// ZRMD-1: /RES clears only the latch of port 63h (A16-A21); the counters (61h) and 62h keep the address
+// (measured on the author's board 2026-10-11, tools/hwbench/zrmd.asm).
+static void zrmd1_reset(void)
+{
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "ZRD-1V") {
+            c = json{ { "slot", c["slot"] }, { "type", "ZRMD-1" }, { "image", c["image"] }, { "mode", "nosave" } };
+        }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    m.run_seconds(0.1);
+    uint8_t want[4], got[4];
+    m.bus.io_write(0x61, 0x10);
+    m.bus.io_write(0x62, 0x41);
+    m.bus.io_write(0x63, 0x00);
+    for (uint8_t& b : want) b = m.bus.io_read(0x60);   // the data at 00:41:10
+    m.bus.io_write(0x61, 0x10);
+    m.bus.io_write(0x62, 0x41);
+    m.bus.io_write(0x63, 0x03);
+    m.reset();
+    for (uint8_t& b : got) b = m.bus.io_read(0x60);
+    CHECK(memcmp(want, got, 4) == 0);
+}
+
 static void cpm(void)
 {
     Machine m;
@@ -130,7 +198,7 @@ static void cpm(void)
     CHECK(run_until_text(m, "JPR-1Z 62K MON CZ", 3.0));
     CHECK(run_until_text(m, "Zadej 0-3", 3.0));
     m.run_seconds(0.3);
-    m.type_text("1");
+    m.type_text("3");   // HDD (IDE-1): without the RPD-1 the variant 1 waits for it for ever (open bus, JPR-1V)
     CHECK(run_until_text(m, "\nA>", 10.0));
     m.run_seconds(0.3);
     // ZRD-1V rev 2.1 panel LEDs: ZAM (red) = the write lock, open; DSK (green) = access, dark now
@@ -284,7 +352,7 @@ static void cga_pictures(void)
     CHECK(m.load_json(machine_cfg(), err));
     CHECK(run_until_text(m, "Zadej 0-3", 3.0));
     m.run_seconds(0.3);
-    m.type_text("1");
+    m.type_text("3");   // HDD (IDE-1): without the RPD-1 the variant 1 waits for it for ever (open bus, JPR-1V)
     CHECK(run_until_text(m, "\nA>", 10.0));
     m.run_seconds(0.3);
     // EGA: 4 pixels with a common attribute, 32 colours
@@ -408,7 +476,7 @@ static void cpm_program(Machine& m, json cfg, bool turbo, const char* hex, int p
     CHECK(m.set_live_param(m.cpu, "turbo", turbo, err));
     CHECK(run_until_text(m, "Zadej 0-3", 6.0));
     m.run_seconds(0.3);
-    m.type_text("1");
+    m.type_text("3");   // HDD (IDE-1): without the RPD-1 the variant 1 waits for it for ever (open bus, JPR-1V)
     CHECK(run_until_text(m, "\nA>", 20.0));
     m.run_seconds(0.3);
     CHECK(file_read_text(data_path(hex), text));
@@ -547,12 +615,12 @@ static void ecmon_variant(void)
     CHECK(m.load_json(machine_cfg(), err));
     CHECK(run_until_text(m, "Zadej 0-3", 3.0));
     m.run_seconds(0.3);
-    m.type_text("1");
+    m.type_text("3");   // HDD (IDE-1): without the RPD-1 the variant 1 waits for it for ever (open bus, JPR-1V)
     CHECK(run_until_text(m, "\nA>", 10.0));
-    CHECK_EQ(m.bus.mem_peek(0x003B), 1);
+    CHECK_EQ(m.bus.mem_peek(0x003B), 3);
     m.reset();
     CHECK(!log_has("boots variant"));
-    CHECK(run_until_text(m, "\nA>", 10.0));   // variant 1 again, no menu
+    CHECK(run_until_text(m, "\nA>", 10.0));   // variant 3 again, no menu
     m.bus.mem_write(0x003B, 7);
     m.reset();
     CHECK(log_has("boots variant 7 from 003Bh"));
@@ -583,7 +651,7 @@ static void power_on_random(void)
     m.bus.io_write(0x63, 0x00);
     CHECK(run_until_text(m, "Zadej 0-3", 3.0));
     m.run_seconds(0.3);
-    m.type_text("1");
+    m.type_text("3");   // HDD (IDE-1): without the RPD-1 the variant 1 waits for it for ever (open bus, JPR-1V)
     CHECK(run_until_text(m, "\nA>", 10.0));
     cfg["power_on_memory"] = "noise";
     Machine bad;
@@ -726,6 +794,8 @@ int main(void)
     test_init();
     uart_clock_grid();
     dsm1v_mr();
+    open_bus();
+    zrmd1_reset();
     cga_beam();
     power_on_random();
     ecmon_variant();

@@ -72,6 +72,10 @@ private:
     bool turbo_switch = false;    // JPR-1V: time base osc/2; without TURBO the CPU ticks every other unit
     bool turbo_on = false;
     bool half_phase = false;
+    // JPR-1V: an undriven data bus reads as its last byte (instruction fetch, read, write, INTA), measured on
+    // the author's board 2026-10-11. Not in the saved state (one byte, the next cycle sets it again).
+    bool open_bus_hold = false;
+    uint8_t dbus = 0xFF;
     unsigned eprom_mask = 0x1FFF;
     std::vector<uint8_t> d3c;     // memory decoder PROM
     std::vector<uint8_t> d6b;     // I/O decoder PROM

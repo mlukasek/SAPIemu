@@ -80,6 +80,7 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
         cpu_hz = (uint32_t)(osc / 2);   // time base; TURBO (switchable while running) selects osc/2 or osc/4
         turbo_switch = true;
         turbo_on = turbo;
+        open_bus_hold = true;
         eprom_off = bios == "fitted" ? 0x000u : 0x800u;
         eprom_mask = 0x7FF;
     }
@@ -268,7 +269,11 @@ int Jpr1zi::run(int cycles)
                 bus->wait = 0;
                 uint8_t d;
                 if (rom_selected(addr)) d = eprom[eprom_off + (addr & eprom_mask)];
-                else d = bus->mem_read(addr);
+                else {
+                    if (open_bus_hold) bus->open_value = dbus;
+                    d = bus->mem_read(addr);
+                }
+                dbus = d;
                 Z80_SET_DATA(pins, d);
                 stall += whole_clocks(bus->wait, bus->cpu_step);
                 if ((pins & Z80_M1) && !z80.prefix_active) {
@@ -289,7 +294,8 @@ int Jpr1zi::run(int cycles)
                 }
             } else if (pins & Z80_WR) {
                 bus->wait = 0;
-                bus->mem_write(addr, Z80_GET_DATA(pins));
+                dbus = Z80_GET_DATA(pins);
+                bus->mem_write(addr, dbus);
                 stall += whole_clocks(bus->wait, bus->cpu_step);
             }
             if (bus->break_request) {   // memory watchpoint
@@ -300,15 +306,20 @@ int Jpr1zi::run(int cycles)
             uint8_t port = (uint8_t)Z80_GET_ADDR(pins);
             if (pins & Z80_M1) {
                 // interrupt acknowledge
+                if (open_bus_hold) bus->open_value = dbus;
                 uint8_t v = bus->inta();
                 bus->int_ack(z80.pc, z80.im, z80.i, v);
+                dbus = v;
                 Z80_SET_DATA(pins, v);
             } else if (pins & Z80_RD) {
                 // on-card ports are served through io_read() like any other card
+                if (open_bus_hold) bus->open_value = dbus;
                 uint8_t d = bus->io_read(port);
+                dbus = d;
                 Z80_SET_DATA(pins, d);
             } else if (pins & Z80_WR) {
-                bus->io_write(port, Z80_GET_DATA(pins));
+                dbus = Z80_GET_DATA(pins);
+                bus->io_write(port, dbus);
             }
             if (bus->break_request) {   // I/O watchpoint
                 stop_hit = true;

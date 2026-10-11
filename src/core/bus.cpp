@@ -62,7 +62,7 @@ void Bus::set_mem_watch(uint16_t addr, int flags)
 
 uint8_t Bus::mem_read(uint16_t addr)
 {
-    uint8_t result = OPEN_BUS;
+    uint8_t result = open_value;
     Card* driver = nullptr;
     for (Card* c : cards) {
         uint8_t d;
@@ -85,7 +85,7 @@ void Bus::mem_write(uint16_t addr, uint8_t data)
 
 uint8_t Bus::io_read(uint8_t port)
 {
-    uint8_t result = OPEN_BUS;
+    uint8_t result = open_value;
     Card* driver = nullptr;
     for (Card* c : cards) {
         uint8_t d;

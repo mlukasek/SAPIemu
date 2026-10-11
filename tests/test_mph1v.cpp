@@ -312,7 +312,7 @@ static bool cpm_boot(Machine& m)
     if (!load(m)) return false;
     CHECK(run_until_text(m, "Zadej 0-3", 3.0));
     m.run_seconds(0.3);
-    m.type_text("1");
+    m.type_text("3");   // HDD (IDE-1): without the RPD-1 the variant 1 waits for it for ever (open bus, JPR-1V)
     CHECK(run_until_text(m, "\nA>", 10.0));
     m.run_seconds(0.3);
     return true;

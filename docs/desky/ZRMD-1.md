@@ -99,7 +99,8 @@ Zdroje:
 
 ## Nejasnosti
 
-- Nulují /RES adresní čítače a latch portu 63h? Emulátor předpokládá, že ano.
+- ~~Nulují /RES adresní čítače a latch portu 63h?~~ Změřeno 2026-10-11 (`docs/zmeny-podle-hw.md`): /RES nuluje
+  **jen latch 63h** (A16–A21 a bity MAP), čítače 61h a latch 62h adresu drží. Emulováno.
 - Které bity portu 63h vedou přes JP2 na MAP1 a MAP2: emulátor předpokládá b6 → MAP1, b7 → MAP2.
 - Zamykání ZRD-1V z MikroMonu (viz výše).
 

@@ -101,6 +101,11 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
 
 Jsou souhrnně v `docs/SOUHRN.md` (bod 21).
 
+- **Čtení prázdné sběrnice** (změřeno 2026-10-11, `docs/zmeny-podle-hw.md`): když na čtení paměti nebo I/O
+  nikdo neodpoví, dostane CPU poslední bajt své datové sběrnice: `IN A,(n)` → n, `IN A,(C)` → 78h,
+  `LD A,(nn)` → horní bajt nn, `LD A,(HL)` → 7Eh. Platí i po výběru instrukce z ROM na kartě. Emulováno
+  (`Bus::open_value`); varianty ECMONu bez svého řadiče pak čekají donekonečna, viz `docs/software/ECMON.md`.
+
 ## Nejasnosti k ověření
 
 - **Záplata STSTB při INTA** (L. Lasota, 2026-10-10): přesné zapojení (přeškrab, IC15 piny 3–4) a které karty

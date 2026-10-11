@@ -53,6 +53,11 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
     podle kódu ECMONu (`CHECK EQU $+2` je u každé verze jinde, u IDE-1 na F792h) a když je na 003Bh víc než 3,
     zapíše do logu varování (`get_log`, okno Log). Pomůže stisknout klávesu 0–3 hned po resetu, nebo vypnout
     a zapnout. Návrh pro ECMON: kontrolovat 003Bh ≤ 3, jinak ukázat menu.
+- **Volba bez řadiče visí** (sestavy s JPR-1V, od 2026-10-11): čtení portu, na který nikdo neodpoví, vrací na
+  JPR-1V poslední bajt datové sběrnice, u `IN A,(n)` číslo portu (změřeno, `docs/zmeny-podle-hw.md`). BIOS
+  varianty 0–2 pak čeká na stav řadiče FDC, RPD-1 nebo MFC-1A, který v sestavě není (smyčka `IN A,(3Ch)` nebo
+  `IN A,(0Ch)`), jako na skutečné desce. Na sestavách V se proto volí **3** (HDD). Bez IDE-1 dává varianta 3
+  disky se jménem „XYXY…“ (porty 58h, 59h = „X“, „Y“, autor). Karty s JPR-1ZI vrací dál FFh.
 - **Baterie DMR-1:** autor ji na svých strojích nemá, sestavy v `machines/` proto mají u DMR-1 `"battery": false`
   (od 2026-10-05) a menu se ukáže po každém zapnutí. S baterií (výchozí hodnota parametru, soubor
   `work/dmr-1/sram.bin` sdílený sestavami jako jedna fyzická karta, `docs/desky/DMR-1.md`) podpis i volba

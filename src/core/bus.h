@@ -124,6 +124,9 @@ struct Bus {
     std::string int_warned;             // display cards already reported
 
     Bus();
+    // What a read returns when no card drives the data bus. FFh, unless the CPU card keeps the last byte of
+    // its data bus there (JPR-1V, measured: IN A,(58h) without a card gives 58h; docs/zmeny-podle-hw.md).
+    uint8_t open_value = 0xFF;
     uint8_t mem_read(uint16_t addr);
     void mem_write(uint16_t addr, uint8_t data);
     uint8_t io_read(uint8_t port);

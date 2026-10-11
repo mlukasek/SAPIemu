@@ -108,5 +108,8 @@ Zdroje: `..\SAPI-karty\JPR-1V\DESCRIPTION`, `schema\*.png`.
 
 ## Nejasnosti
 
+- **Čtení prázdné sběrnice:** JPR-1V vrací poslední bajt datové sběrnice CPU (změřeno 2026-10-11). Jak je to
+  u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.
+
 - Nedohledaný účel sítí „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI.
 - Hodiny sběrnice v režimu TURBO u JPR-1V.

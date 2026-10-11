@@ -390,7 +390,10 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Která ROM ELIS patří k disketě ELIS (v3.00 má C262.3, disketa hlásí C259.11)?
 
 
-## [JPR-1ZI – procesorová deska se Z80](desky/JPR-1ZI.md) – Nejasnosti (2)
+## [JPR-1ZI – procesorová deska se Z80](desky/JPR-1ZI.md) – Nejasnosti (3)
+
+- **Čtení prázdné sběrnice:** JPR-1V vrací poslední bajt datové sběrnice CPU (změřeno 2026-10-11). Jak je to
+  u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.
 
 - Nedohledaný účel sítí „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI.
 
@@ -601,9 +604,7 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
 - Byl ovladač v `MIKOS5.BIN` někdy použitý (sapi.cz píše „nezkoušen“)? Proč je v EPROM za MIKOSem V5?
 
 
-## [ZRMD-1 / ZRD-1V – zálohovaný RAM disk](desky/ZRMD-1.md) – Nejasnosti (3)
-
-- Nulují /RES adresní čítače a latch portu 63h? Emulátor předpokládá, že ano.
+## [ZRMD-1 / ZRD-1V – zálohovaný RAM disk](desky/ZRMD-1.md) – Nejasnosti (2)
 
 - Které bity portu 63h vedou přes JP2 na MAP1 a MAP2: emulátor předpokládá b6 → MAP1, b7 → MAP2.
 

@@ -82,8 +82,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   Pak DSM-1V převzetí znaku na hraně taktu 16×, STSTB na JPR-1V (i ROM, I/O, INTA; ne refresh), AND-1V při 4
   i 2 MHz sedí na 0–2 takty, CGA-1V dostala zpoždění změřená sondami na oknu karty (QA, /CPU): emulátor sedí při
   4 i 2 MHz, vyřešena i stará Nejasnost zápisu při 2 MHz. ZRDBENCH přenesený do ROM potvrdil přesnost metody;
-  čtení z CGA 8. 10. (22,44) bylo jiné kvůli jiné sestavě. Zbývá: ZRMD-1 po resetu, MPH-1V, VBI CGA-1V,
-  zamrzání FXS4.
+  čtení z CGA 8. 10. (22,44) bylo jiné kvůli jiné sestavě. ZRMD-1: /RES nuluje jen latch 63h. JPR-1V: čtení,
+  na které nikdo neodpoví, vrací poslední bajt datové sběrnice (IN A,(58h) → 58h, CP/M bez IDE-1 „XYXY“);
+  emulováno, ECMON na sestavách V proto jen volba 3 (návody upravené). Zbývá: MPH-1V, VBI CGA-1V, zamrzání FXS4.
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem
