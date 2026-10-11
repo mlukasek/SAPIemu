@@ -181,19 +181,23 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 
 ## Návrhy čekající na schválení
 
-### JPR-1V + CGA-1V: přerušení s PC v okně karty zablokuje sběrnici (zamrzání FXS4), RESET nepomůže
+### JPR-1V + CGA-1V / AND-1V: přerušení s PC v okně karty zablokuje sběrnici (zamrzání FXS4), RESET nepomůže
 
 - **Měření** (`freeze.asm`, `freeze_run.py`, 4 MHz, deska autora bez Liborovy záplaty IC15): smyčka `JR $`
   ve videopaměti CGA-1V na C100h (MAP1 = MAP2 = H), IM 1, přerušení od přijímače DSM-1V. Od výběru `JR`:
   /INT0 klesne v +0,54 µs; INTA začíná v +3,55 µs a **/M1 už se nezvedne**; STSTB v +4,16 µs (adresa = PC
   v okně CGA); **RDY klesne v +4,26 µs a zůstane v L**, /MR, /MW, /IOR ani okno /CPU už nepřijdou; CLK běží.
   Obsluha na 38h neproběhla (na lince nic).
+- **AND-1V stejně** (`freeze_and.asm`: smyčka ve videopaměti na F900h, MAP1 = L): /INT0 v 12,3896 ms, INTA
+  (/M1 trvale v L) v 12,3902 ms, STSTB a **RDY trvale v L** v 12,3909 ms, žádné /MR ani /IOR. Čekání AND-1V ruší
+  jen /MR, /MW, /IOR, /IOW a /RES; INTA nedá nic z toho.
 - **RESET:** `picorom reset low/z` (/RTL) během zaseknutí nevyvolal žádný impulz /RES (1,5 s záznamu: žádný
-  /M1, RDY trvale v L). Reset je synchronizovaný s /M1. Pomůže jen vypnutí (autor vypnul a zapnul).
+  /M1, RDY trvale v L), u CGA-1V i AND-1V. Reset je synchronizovaný s /M1. Pomůže jen vypnutí (autor po každém
+  pokusu vypnul a zapnul).
 - **Emulátor dnes:** obsluhu provede („NOFREEZE“), výběr karty při INTA nedělá, reset funguje vždy.
 - **Návrh:** u JPR-1V (a JPR-1Z, kde to Libor popisuje) dávat při INTA kartám STSTB s adresou PC; karta s oknem,
-  která čekání ukončuje jen s /MR nebo /MW (CGA-1V změřeno, AND-1V se měří, DGD-1V, BGP-1S a další podle
-  schémat), sběrnici zablokuje. Reset tlačítkem, /RTL i z GUI pak nezabere jako na desce (do logu vysvětlení),
+  která čekání ukončuje jen s /MR nebo /MW (CGA-1V a AND-1V změřeno, DGD-1V, BGP-1S a další podle schémat),
+  sběrnici zablokuje. Reset tlačítkem, /RTL i z GUI pak nezabere jako na desce (do logu vysvětlení),
   pomůže vypnutí. Takhle by FXS4 zamrzal i v emulátoru. Volitelný přepínač pro Liborovu záplatu IC15 (STSTB jen
   od /MREQ), až bude její zapojení jasné.
 
