@@ -11,7 +11,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Rozhodnutí s důvody:** `docs/rozhodnuti.md`. Nové rozhodnutí vždy dopsat tam.
 - **Změny podle měření na skutečném HW:** `docs/zmeny-podle-hw.md` (pracoviště s PicoROM a Logic Pro 16, doklady,
   potvrzení beze změny, podezření). Změnu podle HW nejdřív navrhnout a probrat s autorem. Programy a skripty
-  měření jsou v `tools/hwbench/`.
+  měření jsou v `tools/hwbench/`. Otevřené otázky na HW podle důležitosti: `docs/hw-otazky-priorita.md`.
 - **HW poznatky po deskách:** `docs/desky/*.md` (porty, PROM, jumpery, časování, **nejasnosti k ověření na HW**). Mapa portů je v `docs/porty.md`, software v `docs/software/` (SAPI-1.5, ZPS-6: `SAPI-1.5.md`), tiskárna (X3 karet JPR, DPP-1) v `docs/tiskarna.md`.
 - **Návody k obsluze pro uživatele** (krok za krokem, výpisy opsané z emulátoru): `docs/navod-kzd1.md`,
   `docs/navod-minigraf.md`, `docs/navod-rkd1.md`, `docs/navod-rmp1.md`, `docs/navod-ar1990.md`, `docs/navod-dps1.md`,

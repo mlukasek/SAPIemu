@@ -97,7 +97,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `LD A,I` / `LD A,R`**: emulováno, parametr `z80` u JPR-1V/1ZI/1Z (CMOS/NMOS). AND-1B rev 1.4 sedí s emulátorem
   (INT1, skládání sloupců, font, atributy, blikání). AND-1Z/89: 20 řádků, řádek 109 znaků, **čekání do konce okna
   CPU** (3 takty na bajt při 4 MHz, emulováno podle sond na QA a WAIT). Dál: BGP-1S, IDE-1, pak JPR-1ZI a JPR-1X
-  (karty u autora). DMR-1 později: autor hledá přechodku z FRB na D-Sub.
+  (karty u autora). Otázky na HW roztříděné podle důležitosti: `docs/hw-otazky-priorita.md` (nic neblokuje
+  vydání). DMR-1 později: autor hledá přechodku z FRB na D-Sub.
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem

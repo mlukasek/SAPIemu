@@ -157,7 +157,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - [docs/desky/KZD-1.md](docs/desky/KZD-1.md): kazetopáskový záznamník dat KZD-1 a MIKOS/K.
 - [docs/desky/Minigraf.md](docs/desky/Minigraf.md): zapisovač ARITMA Minigraf 0507 a jeho ovladač.
 - [docs/hw-otazky.md](docs/hw-otazky.md): všechny otevřené otázky k ověření na skutečném HW (generuje
-  `tools/hw_otazky.py`).
+  `tools/hw_otazky.py`), roztříděné podle důležitosti v [docs/hw-otazky-priorita.md](docs/hw-otazky-priorita.md).
 - [docs/zmeny-podle-hw.md](docs/zmeny-podle-hw.md): změny emulátoru podle měření na skutečném SAPI-1 V
   (pracoviště s PicoROM a logickým analyzátorem, programy v `tools/hwbench/`): UART DSM-1V, čekání CGA-1V
   a AND-1V, prázdná sběrnice JPR-1V, YM3812 na MPH-1V, zamrzání při přerušení v okně videokarty a co měření
