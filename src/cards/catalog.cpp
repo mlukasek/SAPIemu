@@ -286,8 +286,10 @@ const ParamOption k_and1v_color[] = {
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_and1v_fonts[] = {
-    { "\"roms/and-1v/font_and1v22_1024.bin\"", "10x24 type 1", "10x24 typ 1" },
-    { "\"roms/and-1v/newfont_and1v22_1024.bin\"", "10x24 type 2", "10x24 typ 2" },
+    { "\"roms/and-1v/font_and1v22_1024.bin\"", "10x24 type 1 (font_and1v22, on the author's board)",
+      "10x24 typ 1 (font_and1v22, na desce autora)" },
+    { "\"roms/and-1v/newfont_and1v22_1024.bin\"", "10x24 type 2 (newfont_and1v22: A rounded, 0 without a slash)",
+      "10x24 typ 2 (newfont_and1v22: zaoblené A, 0 bez přeškrtnutí)" },
     { nullptr, nullptr, nullptr },
 };
 static const CardParam k_and1v[] = {
