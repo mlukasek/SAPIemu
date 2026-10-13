@@ -37,9 +37,9 @@ Skupiny:
 7. **DGD-1V**, pokud se najde ([DGD-1V.md](desky/DGD-1V.md)): čekací takty a zamrzání při INTA (emulováno podle
    schématu jako CGA-1V).
 8. **AND-1V** ([AND-1V.md](desky/AND-1V.md), SOUHRN bod 21): čekací takty a zamrzání při INTA jsou změřené
-   (2026-10-11), zbývá jen revize desky a vypálený font (stačí se podívat) a zapojení lišty TURBO.
-9. **Desky V, odpovědi pohledem** (SOUHRN body 21, 22): revize RAM-1V (1.1, nebo 1.2), propojky DSM-1V, Timekeeper
-   v patici C, oscilátor JPR-1V.
+   (2026-10-11), deska je rev 2.3. Zbývá vypálený font (typ 1, nebo typ 2): fotka obrazovky se všemi znaky.
+9. **Desky V, odpovědi pohledem** (SOUHRN bod 22): revize RAM-1V (1.1, nebo 1.2), propojky DSM-1V, Timekeeper
+   v patici C.
 
 ## B – může změnit chování, potřebuje jiné desky nebo lidi
 

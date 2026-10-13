@@ -8,7 +8,10 @@ Karta `AND-1V` (`src/cards/and1v.*`), rev 2.3:
 - **Výchozí jako autorova deska** (fotka `..\SAPI-karty\AND-1V\mAND-1V rev. 2.3.jpg`, autor): F800, **MAP1 = L** (kvůli
   budoucí CGA-1V). Barvu si každý nastaví podle sebe (autor), výchozí je bílá, sestava V má jantarovou
   (autor). Font vypálený
-  v desce autor neví, výchozí je typ 1.
+  v desce autor neví, výchozí je typ 1. Deska autora je **rev 2.3** (potvrzeno 2026-10-13). Autor si pamatuje font
+  z `..\SAPI-karty\AND-1V\FontROM`, ten je ale pro rev 1.x (8 KB, = `roms/and-1v/FontAND1V_rev1.bin`); na rev 2.3
+  s jiným adresováním by se zobrazil rozházeně, takže ve skutečnosti bude typ 1 nebo typ 2. Rozhodne fotka
+  obrazovky se všemi znaky (testovací ROM na pracovišti).
 
 Zdroje:
 - [S5] https://www.pmd85.cz/?page_id=1924 (rev 2.x);

@@ -843,11 +843,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 21. **Desky V – JPR-1V a AND-1V** (rozbor `docs/desky/JPR-1V.md`, `AND-1V.md`):
     - Který obraz EEPROM máš v JPR-1V a ve které bance (propojka BIOS osazená/rozpojená) je ECMON IDE-1 a
       MikroBIOS 3.0? Šel by dump 28C64?
-    - Kterou revizi AND-1V má sestava V (fotky ukazují v1.1 i v2.3) a který font je vypálený (10×24 typ 1/typ 2,
-      u rev 1.1 kterou sadu volí S1 9-10)?
-    - Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`? Zdroje ne, jako u MikroMonu?
-    - Lišta TURBO: tlačítko mezi piny 1 a 3 (pin 2 = LED)? Podle schématu dává 4 MHz pin 3 na zemi.
-    - Oscilátor 8 MHz? Jede něco rychleji (10/5 MHz)?
+    - ~~Kterou revizi AND-1V má sestava V?~~ **Rev 2.3** (autor 2026-10-13). Který font je vypálený (10×24 typ 1
+      nebo typ 2 z `..\SAPI-karty\AND-1Vev2.3ont_and1v22`)? Autor si pamatuje `FontROM`, ten je ale pro
+      rev 1.x (8 KB, jiné adresování, = `roms/and-1v/FontAND1V_rev1.bin`). Rozhodne fotka obrazovky se všemi znaky.
+    - ~~Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`?~~ Ano, binárky (viz odpovědi výše).
+    - ~~Lišta TURBO~~: autor přepíná TURBO tlačítkem na panelu ZDR, v emulátoru stejně.
+    - ~~Oscilátor 8 MHz?~~ Ano: CPU 4,000 MHz při TURBO, sběrnice 2,000 MHz (změřeno 2026-10-13).
     - Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1 (port a bit RAM-1V), nebo vždy F800
       s MAP1OFF?
     - ~~Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká?~~ Nečeká (změřeno 2026-10-11,
