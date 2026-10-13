@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **241** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **240** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -32,15 +32,17 @@ Otevřených bodů: **241** v 49 sekcích. Desky jsou první, pak ostatní téma
 - „EB00H–EFFFH“ v návodu DGD-1 je nejspíš chyba OCR místo E800H.
 
 
-## [AND-1B – náhrada AND-1 / AND-1A s výstupem VGA (Libor Lasota)](desky/AND-1B.md) – 9. Nejasnosti (9)
+## [AND-1B – náhrada AND-1 / AND-1A s výstupem VGA (Libor Lasota)](desky/AND-1B.md) – 9. Nejasnosti (8)
 
 1. **Font ve skutečných deskách:** je vypálený `FontAND1B11.bmp.bin` (kompilátor „rev. 1.1“, deska rev 1.4)? Na
    webu jsou „Fonty“ bez odkazu. Fotky obrazovky [B7] se s fontem shodují (`¤` na 24h, podtržení, široké znaky).
+   Autorova deska rev 1.4 má EPROM, kterou si autor vypálil sám z `FontAND1B11` (2026-10-13), fotka obrazovky
+   s fontem sedí. Jak je to u desek od Libora, zůstává otevřené.
 
-2. **Střída blikání 75 : 25** (A13 = 0 jen 8 z 32 snímků) je odvozená ze zapojení. Ověřit na HW (oko).
-
-3. **Skládání sloupců 32–63:** AND-1B podle Libora „100% kompatibilní včetně mapování videoram“. Shoduje se se
-   skutečnou AND-1 (D4C)? Pak opravit i předpoklad v `And1::vram_index` (liší se jen neviditelné zrcadlení).
+3. **Skládání sloupců 32–63:** na AND-1B ověřeno 2026-10-13 (`and1b.asm`, fotka obrazovky proti emulátoru):
+   sloupce 40–47 i 56–63 zrcadlí 32–39 a řádky 24–31, sloupce 16–23 jsou sloupce 32–39 řádků 16–23, přesně podle
+   vzorce v kap. 4. Otevřené zůstává, jestli se tak skládá i skutečná AND-1 (D4C), pak opravit i předpoklad
+   v `And1::vram_index` (liší se jen neviditelné zrcadlení).
 
 4. Polohu obrazu (okraje 40 bodů VGA) mám jen spočtenou z pipeline, mohou se lišit o pár bodů. Na monitoru se stejně
    automaticky upraví.
@@ -51,7 +53,9 @@ Otevřených bodů: **241** v 49 sekcích. Desky jsou první, pak ostatní téma
 6. Výchozí barva sestavy: autorova deska je GRN, AND-1V má v emulátoru výchozí bílou. Rozhodne autor.
 
 7. INT1 50Hz režim dává nepravidelné intervaly (4× 16,6 ms + 1× 33,3 ms). Programy počítající čas (MIKROBASIC,
-   hodiny) to vidí jako 50 Hz v průměru. Potvrdit, že Libor nic jiného nezamýšlel.
+   hodiny) to vidí jako 50 Hz v průměru. **Změřeno na autorově desce 2026-10-13** (`and1b_int.py`): impulz 317,0 µs,
+   intervaly 4× 16,641 ms a 1× 33,283 ms, přesně jako schéma a emulátor. Zbývá potvrdit, že Libor nic jiného
+   nezamýšlel.
 
 8. BOM uvádí BAT42, schéma BAT41 (bez vlivu).
 

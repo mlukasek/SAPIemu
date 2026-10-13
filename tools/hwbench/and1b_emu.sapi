@@ -1,0 +1,39 @@
+// HW bench machine with the AND-1B (F800h, INT1 50 Hz) in place of the AND-1V, for and1b.asm. From hwbench_v.sapi: the author's real SAPI-1 V on the bench (docs/zmeny-podle-hw.md): JPR-1V with the test ROM
+// as the PicoROM serves it (emu_run.py puts it to work/hwbench/rom_8k.bin), RAM-1V, AND-1V (F800, MAP1 = L),
+// CGA-1V, DSM-1V (A 10h 9600 Bd as on the bench, B 14h), ZRMD-1 (nosave: test runs do not touch the disk copy),
+// MPH-1V. Slots as in sapi1v.sapi; the real order may differ (no effect on these tests).
+{
+    "name": "HW bench V with AND-1B (JPR-1V test ROM, RAM-1V, AND-1B, CGA-1V, DSM-1V, ZRMD-1, MPH-1V)",
+    "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
+    "cards": [
+        {
+            "slot": 1,
+            "type": "JPR-1V",
+            "rom": "work/hwbench/rom_8k.bin",
+            "bios": "open",
+            "turbo": true,
+            "osc_hz": 8000000,
+            "keyboard": { "type": "Consul 262.3", "latch_mod": false }
+        },
+        {
+            "slot": 2,
+            "type": "RAM-1V",
+            "sram_a": true, "sram_b": true, "sram_c": "none", "c_select": "never",
+            "hole16_base": "C000h", "hole16_map1": "h", "hole16_map2": "ignore",
+            "hole2_base": "F800h", "hole2_map1": "l",
+            "map_port": "63h", "map1_enable": true, "map1_bit": 6, "map2_enable": true, "map2_bit": 7
+        },
+        { "slot": 3, "type": "AND-1B", "base": "F800h", "int1": "50hz" },
+        {
+            "slot": 4,
+            "type": "DSM-1V",
+            "a": { "enabled": true, "base": "10h", "baud": 9600, "connected": true },
+            "b": { "enabled": true, "base": "14h", "baud": 9600, "connected": true }
+        },
+        { "slot": 5, "type": "ZRMD-1", "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin", "mode": "nosave",
+          "write_enable": [true, true, true, true], "rtc": true, "rtc_int": "none", "map_jp2": false },
+        { "slot": 7, "type": "CGA-1V", "base": "C000h", "map1": "h", "map2": "h", "wait_states": true,
+          "frame_blend": true },
+        { "slot": 8, "type": "MPH-1V", "base": "50h", "k4": "joystick", "k2": "mouse_atari" }
+    ]
+}

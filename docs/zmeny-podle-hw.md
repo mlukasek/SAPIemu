@@ -259,6 +259,11 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+- **AND-1B rev 1.4 místo AND-1V** (F800h, INT1 50 Hz; `and1b.asm`, `and1b_int.py`, emulátor `and1b_emu.sapi`,
+  2026-10-13): INT1 impulzy 317,0 µs, intervaly 4× 16,641 ms a 1× 33,283 ms (5 z 6 snímků). Fotka obrazovky se
+  shoduje se snímkem emulátoru: skládání sloupců 32–63 (40–47 a 56–63 zrcadlí 32–39, neviditelné řádky 24–31 jsou
+  sloupce 32–39), font `FontAND1B11`, atributy (blikání, blikající podtržení, dvojitá šířka). Blikání asi
+  19× za 10 s, svítí déle než zhasíná (32 snímků, 3 : 1).
 - **INTA bez karty, která dává vektor, čte bajt na datové sběrnici** (`intavec*.asm` 2026-10-11 podle hlášení CPU;
   2026-10-13 i datová sběrnice na analyzátoru, `intabus.py`): Z80 čte při INTA to, co na sběrnici právě je, tedy
   poslední přenesený bajt, dokud se nerozplyne. Po `INC BC` (2 vnitřní takty) drží 03h, po `JR $` FEh (tentokrát

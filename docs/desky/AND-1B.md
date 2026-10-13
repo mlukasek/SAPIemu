@@ -322,9 +322,15 @@ else          idx = (24 + (row & 7)) * 32 + (row >> 3) * 8 + (col & 7);
 
 1. **Font ve skutečných deskách:** je vypálený `FontAND1B11.bmp.bin` (kompilátor „rev. 1.1“, deska rev 1.4)? Na
    webu jsou „Fonty“ bez odkazu. Fotky obrazovky [B7] se s fontem shodují (`¤` na 24h, podtržení, široké znaky).
-2. **Střída blikání 75 : 25** (A13 = 0 jen 8 z 32 snímků) je odvozená ze zapojení. Ověřit na HW (oko).
-3. **Skládání sloupců 32–63:** AND-1B podle Libora „100% kompatibilní včetně mapování videoram“. Shoduje se se
-   skutečnou AND-1 (D4C)? Pak opravit i předpoklad v `And1::vram_index` (liší se jen neviditelné zrcadlení).
+   Autorova deska rev 1.4 má EPROM, kterou si autor vypálil sám z `FontAND1B11` (2026-10-13), fotka obrazovky
+   s fontem sedí. Jak je to u desek od Libora, zůstává otevřené.
+2. ~~**Střída blikání 75 : 25**~~ Ověřeno na autorově desce 2026-10-13 (`tools/hwbench/and1b.asm`): blikající znak
+   svítí déle, než je zhasnutý, za 10 s asi 19 bliknutí (perioda 32 snímků = 0,53 s), jako emulátor. Blikající
+   podtržení (atribut 10) se ukazuje jen ve svítící fázi, jako ve fontu.
+3. **Skládání sloupců 32–63:** na AND-1B ověřeno 2026-10-13 (`and1b.asm`, fotka obrazovky proti emulátoru):
+   sloupce 40–47 i 56–63 zrcadlí 32–39 a řádky 24–31, sloupce 16–23 jsou sloupce 32–39 řádků 16–23, přesně podle
+   vzorce v kap. 4. Otevřené zůstává, jestli se tak skládá i skutečná AND-1 (D4C), pak opravit i předpoklad
+   v `And1::vram_index` (liší se jen neviditelné zrcadlení).
 4. Polohu obrazu (okraje 40 bodů VGA) mám jen spočtenou z pipeline, mohou se lišit o pár bodů. Na monitoru se stejně
    automaticky upraví.
 5. S3 (TS oscilátoru): na fotce rev 1.4 nepropojená (H/L). Pro emulaci nemá význam (L by oscilátor vypnula).
@@ -332,7 +338,9 @@ else          idx = (24 + (row & 7)) * 32 + (row >> 3) * 8 + (col & 7);
    starší než 1.4 s jinými propojkami (adresa, INT1, barva), zeptat se Libora.
 6. Výchozí barva sestavy: autorova deska je GRN, AND-1V má v emulátoru výchozí bílou. Rozhodne autor.
 7. INT1 50Hz režim dává nepravidelné intervaly (4× 16,6 ms + 1× 33,3 ms). Programy počítající čas (MIKROBASIC,
-   hodiny) to vidí jako 50 Hz v průměru. Potvrdit, že Libor nic jiného nezamýšlel.
+   hodiny) to vidí jako 50 Hz v průměru. **Změřeno na autorově desce 2026-10-13** (`and1b_int.py`): impulz 317,0 µs,
+   intervaly 4× 16,641 ms a 1× 33,283 ms, přesně jako schéma a emulátor. Zbývá potvrdit, že Libor nic jiného
+   nezamýšlel.
 8. BOM uvádí BAT42, schéma BAT41 (bez vlivu).
 9. Žádná propojka 20/24 řádků ani volba MHB 2502 (na rozdíl od AND-1/AND-1A): pevně 24 řádků, font jen
    z EPROM.
