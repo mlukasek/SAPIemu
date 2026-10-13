@@ -259,22 +259,19 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+- **INTA bez karty, která dává vektor, čte bajt na datové sběrnici** (`intavec*.asm` 2026-10-11 podle hlášení CPU;
+  2026-10-13 i datová sběrnice na analyzátoru, `intabus.py`): Z80 čte při INTA to, co na sběrnici právě je, tedy
+  poslední přenesený bajt, dokud se nerozplyne. Po `INC BC` (2 vnitřní takty) drží 03h, po `JR $` FEh (tentokrát
+  celé 2 µs, 11. 10. CPU dostalo FFh), po `ADD HL,BC` (7) se 09h rozplyne: 0,8–1,2 µs po posledním čtení začnou bity
+  stoupat (49h, 59h, D9h, F9h, FDh) a za dalších 0,4 µs je FFh. CPU pokaždé hlásilo přesně bajt, který byl na
+  sběrnici. Smyčka `LD A,I` dávala D6h proto, že CMOS Z80 přijme přerušení až po `JR` na konci bloku (viz Změny).
+  **Emulátor dál vrací při INTA FFh (autor 2026-10-13):** průběh je analogový, mění se s bity a kartami a program,
+  který v IM 2 čte vektor bez karty, která ho dává, je chybný.
+
 ## Návrhy čekající na schválení
 
-### JPR-1V: bajt při INTA bez vektoru
-
-- **Měření:** viz „Podezření k dořešení“ (poslední bajt na sběrnici, za 1–2 µs FFh podle bitů a karet).
-- **Návrh:** emulátor nechat na FFh. Přesný průběh je analogový a mění se s kartami (11. 10. dal `JR $` FFh,
-  dnes FEh); program, který čte vektor IM 2 bez karty, která ho dává, je chybný. Kdyby bylo potřeba, šlo by
-  přidat model „poslední bajt, pokud od posledního přenosu uplynuly nejvýš asi 2 takty, jinak FFh“.
+Žádné.
 
 ## Podezření k dořešení
 
-- **Co čte INTA, když vektor nikdo nedává** (`intavec*.asm` 2026-10-11 podle hlášení CPU; 2026-10-13 i datová
-  sběrnice na analyzátoru, `intabus.py`): Z80 čte při INTA to, co je právě na datové sběrnici, a to je poslední
-  přenesený bajt, dokud se nerozplyne. Po `INC BC` (2 vnitřní takty) drží 03h, po `JR $` FEh (tentokrát celé 2 µs,
-  11. 10. CPU dostalo FFh), po `ADD HL,BC` (7) se 09h rozplyne: 0,8–1,2 µs po posledním čtení začnou bity stoupat
-  (49h, 59h, D9h, F9h, FDh) a za dalších 0,4 µs je FFh. CPU pokaždé hlásilo přesně bajt, který byl na sběrnici. Jde
-  o analogový jev, záleží na bitech a kartách. Emulátor vrací při INTA FFh (návrh níže: zatím nechat).
-- **Proč smyčka `LD A,I` dávala vždy D6h:** vyřešeno, viz návrh „CMOS Z80: po `LD A,I` a `LD A,R` se přerušení
-  nepřijímá“. Přerušení se přijme až po `JR` na konci bloku a D6h je jeho posunutí.
+- Zatím nic otevřeného.

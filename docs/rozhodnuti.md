@@ -1571,6 +1571,9 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
   prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
   Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+- **INTA bez vektoru dává v emulátoru FFh** (autor 2026-10-13): na desce JPR-1V Z80 přečte bajt, který je zrovna na
+  datové sběrnici, a ten se za 1–2 µs rozplyne k FFh podle bitů a karet (`docs/zmeny-podle-hw.md`). Analogový jev
+  se neemuluje, správný program v IM 2 vektor od karty dostane.
 - **CMOS, nebo NMOS Z80 je parametr procesorové karty** (`z80`, autor 2026-10-13): JPR-1V má výchozí CMOS (na
   autorově desce Z84C0020PEG), JPR-1ZI a JPR-1Z NMOS. CMOS nepřijme přerušení hned po `LD A,I` / `LD A,R`
   (změřeno). Úprava je v jádru `third_party/chips/z80.h` (příznak `cmos` ve výplni struktury, takže uložené stavy

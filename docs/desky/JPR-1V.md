@@ -4,6 +4,8 @@ Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/t
 Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
 - parametry `rom` (8 KB), `bios` (`fitted` = banka 0, `open` = banka 1), `turbo`, `osc_hz`, `z80` (`cmos`
   výchozí, `nmos`);
+- **INTA bez karty s vektorem:** deska čte bajt na datové sběrnici (poslední přenesený, za 1–2 µs se rozplyne
+  k FFh), emulátor vrací FFh (rozhodnutí autora 2026-10-13, `docs/zmeny-podle-hw.md`).
 - **Z80 je CMOS** (autorova deska: Zilog Z84C0020PEG): hned po `LD A,I` a `LD A,R` nepřijme přerušení, až po další
   instrukci (změřeno 2026-10-13, `docs/zmeny-podle-hw.md`). Parametr `z80` to přepne pro desku s NMOS čipem;
 - výchozí obraz `roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin`: banka 0 MikroBIOS 3.0, banka 1 ECMON IDE-1
