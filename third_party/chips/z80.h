@@ -363,6 +363,7 @@ typedef struct {
     uint16_t af2, bc2, de2, hl2; // shadow register bank
     uint8_t im;
     bool iff1, iff2;
+    bool cmos;          // SAPIemu: CMOS Z80 (Z84C00), no interrupt right after LD A,I / LD A,R (fits the padding)
 } z80_t;
 
 // initialize a new Z80 instance and return initial pin mask
@@ -2351,7 +2352,7 @@ uint64_t z80_tick(z80_t* cpu, uint64_t pins) {
         case 1279: _goto(1280); // LD (nn),DE (11)
         case 1280: _fetch(); // LD (nn),DE (12)
         case 1281: pins=_z80_fetch(cpu,pins);cpu->iff1=cpu->iff2;goto step_to; // RETI (6)
-        case 1282: cpu->a=cpu->i;cpu->f=_z80_sziff2_flags(cpu, cpu->i);_fetch(); // LD A,I (1)
+        case 1282: cpu->a=cpu->i;cpu->f=_z80_sziff2_flags(cpu, cpu->i);if(cpu->cmos){bool i1=cpu->iff1;cpu->iff1=false;pins=_z80_fetch(cpu,pins);cpu->iff1=i1;goto step_to;}_fetch(); // LD A,I (1), SAPIemu: CMOS
         case 1283: _goto(1284); // IN E,(C) (1)
         case 1284: _wait();_ioread(cpu->bc);_goto(1285); // IN E,(C) (2)
         case 1285: cpu->dlatch=_gd();cpu->wz=cpu->bc+1;_goto(1286); // IN E,(C) (3)
@@ -2380,7 +2381,7 @@ uint64_t z80_tick(z80_t* cpu, uint64_t pins) {
         case 1308: cpu->d=_gd();_goto(1309); // LD DE,(nn) (11)
         case 1309: _fetch(); // LD DE,(nn) (12)
         case 1310: pins=_z80_fetch(cpu,pins);cpu->iff1=cpu->iff2;goto step_to; // RETI (6)
-        case 1311: cpu->a=cpu->r;cpu->f=_z80_sziff2_flags(cpu, cpu->r);_fetch(); // LD A,R (1)
+        case 1311: cpu->a=cpu->r;cpu->f=_z80_sziff2_flags(cpu, cpu->r);if(cpu->cmos){bool i1=cpu->iff1;cpu->iff1=false;pins=_z80_fetch(cpu,pins);cpu->iff1=i1;goto step_to;}_fetch(); // LD A,R (1), SAPIemu: CMOS
         case 1312: _goto(1313); // IN H,(C) (1)
         case 1313: _wait();_ioread(cpu->bc);_goto(1314); // IN H,(C) (2)
         case 1314: cpu->dlatch=_gd();cpu->wz=cpu->bc+1;_goto(1315); // IN H,(C) (3)

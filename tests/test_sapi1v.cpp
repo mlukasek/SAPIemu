@@ -235,6 +235,67 @@ static bool freeze_run(bool waits)
     return hung;
 }
 
+// The CMOS Z80 of JPR-1V (Z84C0020PEG) takes no interrupt right after LD A,I / LD A,R (measured 2026-10-13,
+// tools/hwbench/intblock.asm, docs/zmeny-podle-hw.md): in a block of 40 LD A,I the interrupt waits for the JR at
+// its end. With "z80": "nmos" it comes inside the block. Returns how many of `n` interrupts came inside.
+static int ld_a_i_inside(const char* z80, int n)
+{
+    static const uint8_t prog[] = {
+        0xF3,                          // 8000 di
+        0x31, 0x00, 0xBF,              // 8001 ld sp,0BF00h
+        0x3E, 0x81, 0xED, 0x47,        // 8004 ld a,81h / ld i,a: IM 2 table at 81xxh
+        0xED, 0x5E,                    // 8008 im 2
+        0xDB, 0x12,                    // 800A in a,(12h): drop a byte waiting
+        0x3E, 0x80, 0xD3, 0x10,        // 800C DSM-1V channel A: receive interrupt on
+        0xFB,                          // 8010 ei
+    };                                 // 8011: 40x LD A,I, then JR 8011h
+    static const uint8_t handler[] = {
+        0xE3,                          // 8300 ex (sp),hl
+        0x22, 0x00, 0x84,              // 8301 ld (8400h),hl: the return address
+        0xE3,                          // 8304 ex (sp),hl
+        0xF5, 0xDB, 0x12, 0xF1,        // 8305 push af / in a,(12h) / pop af
+        0xFB, 0xC9,                    // 8309 ei / ret
+    };
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "JPR-1V") c["z80"] = z80;
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    m.run_seconds(0.2);
+    uint16_t a = 0x8000;
+    for (size_t i = 0; i < sizeof(prog); i++) m.poke(a++, prog[i]);
+    for (int i = 0; i < 40; i++) { m.poke(a++, 0xED); m.poke(a++, 0x57); }
+    m.poke(a, 0x18);
+    m.poke((uint16_t)(a + 1), (uint8_t)(0x8011 - (a + 2)));
+    m.poke(0x81FF, 0x00);   // the emulated bus gives FFh at INTA: the vector at 81FFh/8200h = 8300h
+    m.poke(0x8200, 0x83);
+    for (size_t i = 0; i < sizeof(handler); i++) m.poke((uint16_t)(0x8300 + i), handler[i]);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    r.pc = 0x8000;
+    m.cpu->set_regs(r);
+    m.run_seconds(0.002);
+    int inside = 0;
+    for (int k = 0; k < n; k++) {
+        m.poke(0x8400, 0x00);
+        m.poke(0x8401, 0x00);
+        m.serials[0]->host_send((const uint8_t*)"Z", 1);
+        m.run_seconds(0.003 + 0.0007 * k);   // the byte comes at another point of the loop each time
+        uint16_t ret = (uint16_t)(m.peek(0x8400) | (m.peek(0x8401) << 8));
+        CHECK(ret >= 0x8011 && ret <= a);
+        if (ret != 0x8011) inside++;
+    }
+    printf("Z80 %s: %d of %d interrupts taken inside the LD A,I block\n", z80, inside, n);
+    return inside;
+}
+
+static void z80_cmos(void)
+{
+    CHECK_EQ(ld_a_i_inside("cmos", 8), 0);
+    CHECK(ld_a_i_inside("nmos", 8) >= 4);
+}
+
 static void fxs4_freeze(void)
 {
     CHECK(freeze_run(true));
@@ -849,6 +910,7 @@ int main(void)
     open_bus();
     zrmd1_reset();
     fxs4_freeze();
+    z80_cmos();
     cga_beam();
     power_on_random();
     ecmon_variant();

@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **239** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **241** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -380,9 +380,11 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 10. Procesor 8085: příznaky V a K, DSUB/ARHL a časování přijetí RST 7.5/TRAP (`docs/8085.md`, Nejasnosti).
 
 
-## [JPR-1Z – procesorová deska Z80 pro ZPS-4](desky/JPR-1Z.md) – Nejasnosti (3)
+## [JPR-1Z – procesorová deska Z80 pro ZPS-4](desky/JPR-1Z.md) – Nejasnosti (4)
 
 - Originální boot EPROM ZPS-4 (Tesla IMA) a systémová disketa.
+
+- **Čip Z80: NMOS, nebo CMOS?** Parametr `z80` (výchozí `nmos`, v ZPS-4 nejspíš NMOS U880 nebo Z80A). Viz JPR-1V.
 
 - **STSTB při INTA a RESET jen s /M1** (L. Lasota 2026-10-10 píše o JPR-1Z/1V): dává JPR-1Z STSTB i od /IORQ
   jako JPR-1V a je RESET synchronizovaný s /M1? Záplata pro refresh na JPR-1Z podle Libora je. Popis v
@@ -391,7 +393,11 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Která ROM ELIS patří k disketě ELIS (v3.00 má C262.3, disketa hlásí C259.11)?
 
 
-## [JPR-1ZI – procesorová deska se Z80](desky/JPR-1ZI.md) – Nejasnosti (2)
+## [JPR-1ZI – procesorová deska se Z80](desky/JPR-1ZI.md) – Nejasnosti (3)
+
+- **Čip Z80: NMOS, nebo CMOS?** Parametr `z80` (výchozí `nmos`). CMOS Z84C00 nepřijme přerušení hned po
+  `LD A,I` / `LD A,R` (změřeno na JPR-1V 2026-10-13). Ověřit na autorově JPR-1ZI (`tools/hwbench/intblock.asm`)
+  a podle nápisu na čipu.
 
 - **Čtení prázdné sběrnice:** JPR-1V vrací poslední bajt datové sběrnice CPU (změřeno 2026-10-11). Jak je to
   u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.

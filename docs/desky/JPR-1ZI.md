@@ -108,6 +108,10 @@ Zdroje: `..\SAPI-karty\JPR-1V\DESCRIPTION`, `schema\*.png`.
 
 ## Nejasnosti
 
+- **Čip Z80: NMOS, nebo CMOS?** Parametr `z80` (výchozí `nmos`). CMOS Z84C00 nepřijme přerušení hned po
+  `LD A,I` / `LD A,R` (změřeno na JPR-1V 2026-10-13). Ověřit na autorově JPR-1ZI (`tools/hwbench/intblock.asm`)
+  a podle nápisu na čipu.
+
 - **Čtení prázdné sběrnice:** JPR-1V vrací poslední bajt datové sběrnice CPU (změřeno 2026-10-11). Jak je to
   u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.
 

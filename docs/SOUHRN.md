@@ -90,6 +90,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   bajt sběrnice, ten se za 1–2 µs rozplyne (podezření, na analyzátoru zkusit datovou sběrnici). **Zamrzání FXS4
   potvrzené na desce** (CGA-1V i AND-1V, RESET nezabere) **a emulované**. Dál: FXS4 v emulátoru (zamrzne?
   odkud poškození fontu?), JPR-1Z, BGP-1S a AND-1Z-89 podle schémat, původní DSM-1 a DMR-1.
+- **2026-10-13 (pracoviště HW, karty JPR-1V, DKS-1 s analyzátorem, CGA-1V, AND-1V, DSM-1V, ZRD-1V, RAM-1V, MPH-1V):**
+  zapojení ověřené, Φ2 sběrnice vždy 2 MHz, boot ROM neodpovídá na I/O, stav YM3812 ustáleně 00h/C0h (C4h jen kolem
+  resetu YM), past PicoROM (I/O s A10 = 1). Datová sběrnice na analyzátoru: INTA čte bajt, který je na sběrnici
+  (rozplyne se za 1–2 µs, emulátor dál FFh, návrh čeká). **CMOS Z80 (Z84C0020PEG) nepřijme přerušení hned po
+  `LD A,I` / `LD A,R`**: emulováno, parametr `z80` u JPR-1V/1ZI/1Z (CMOS/NMOS). Dál: DMR-1, AND-1B, AND-1Z-89,
+  BGP-1S, IDE-1, pak JPR-1ZI a JPR-1X (karty u autora).
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem

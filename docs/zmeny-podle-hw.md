@@ -183,6 +183,25 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Test:** `test_sapi1v` (`fxs4_freeze`: s čekáním CGA-1V zamrzne a RESET nepomůže, bez čekání obsluha proběhne);
   `emu_freeze.py`: `freeze` i `freeze_and` v emulátoru zamrznou jako na desce.
 
+### 2026-10-13 – JPR-1V: po `LD A,I` a `LD A,R` Z80 přerušení nepřijme (jako po `EI`)
+
+- **Měření** (`intblock.asm`, `intblock2.asm`, `intblock_run.py`, 2026-10-13, 4 MHz, IM 1, přerušení z přijímače
+  DSM-1V): smyčky po 40 stejných instrukcích, analyzátor měří dobu od /INT0 do INTA (8 přerušení na smyčku).
+  NOP, `INC BC`, `LD I,A`, `NEG`, `IM 1`, `LD A,(IX+0)`: 1–5 µs (občas 10–15 µs, když běžela předchozí obsluha).
+  **`LD A,I` a `LD A,R`: až 86 µs**, tedy až do konce bloku (40 × 9 T = 90 µs). Dvojice `LD A,I` + `NOP` a `LD A,R`
+  + `NOP`: 1–4 µs. Řetěz `EI` (kontrola metody, podle dokumentace Z80 blokuje): až 41 µs, celý blok.
+- **Výklad:** Z80 na JPR-1V přerušení hned po `LD A,I` a `LD A,R` nepřijme, po další instrukci už ano. Odpovídá to
+  opravě známé chyby NMOS Z80 v CMOS Z84C00 (u NMOS se při přerušení během `LD A,I/R` přečte P/V = 0, i když jsou
+  přerušení povolená). Vysvětluje to i D6h ze smyčky `LD A,I` (`intavec_gap`).
+- **Emulátor do změny:** jádro `third_party/chips/z80.h` blokovalo přerušení jen po `EI`, po `LD A,I/R` ho přijalo.
+- **Změna (autor schválil, CMOS na JPR-1V, NMOS na ostatních, konfigurovatelné):** příznak `cmos` v jádru Z80
+  (přerušení /INT po `LD A,I` a `LD A,R` se odloží o jednu instrukci stejným způsobem, jakým jádro dělá `EI`; NMI
+  beze změny, neměřeno). Parametr procesorové karty `z80` (`cmos` / `nmos`): JPR-1V výchozí `cmos` (autorova deska
+  Zilog Z84C0020PEG), JPR-1ZI a JPR-1Z `nmos`. Úprava vendorovaného jádra je v `third_party/README.md`; pole sedí do
+  výplně struktury, uložené stavy platí dál.
+- **Test:** `test_sapi1v` (`z80_cmos`: blok 40× `LD A,I` s přerušeními z DSM-1V, CMOS 0 z 8 uvnitř bloku, NMOS
+  8 z 8); ZEX v `release full` prošel.
+
 ## Ověřeno beze změny
 
 - **Boot ROM JPR-1V neodpovídá na I/O čtení** (`iorom.asm`, `iorom_run.py`, 2026-10-13): /CE EEPROM vybírá jen
@@ -241,22 +260,6 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   dává totéž.
 
 ## Návrhy čekající na schválení
-
-### JPR-1V: po `LD A,I` a `LD A,R` Z80 přerušení nepřijme (jako po `EI`)
-
-- **Měření** (`intblock.asm`, `intblock2.asm`, `intblock_run.py`, 2026-10-13, 4 MHz, IM 1, přerušení z přijímače
-  DSM-1V): smyčky po 40 stejných instrukcích, analyzátor měří dobu od /INT0 do INTA (8 přerušení na smyčku).
-  NOP, `INC BC`, `LD I,A`, `NEG`, `IM 1`, `LD A,(IX+0)`: 1–5 µs (občas 10–15 µs, když běžela předchozí obsluha).
-  **`LD A,I` a `LD A,R`: až 86 µs**, tedy až do konce bloku (40 × 9 T = 90 µs). Dvojice `LD A,I` + `NOP` a `LD A,R`
-  + `NOP`: 1–4 µs. Řetěz `EI` (kontrola metody, podle dokumentace Z80 blokuje): až 41 µs, celý blok.
-- **Výklad:** Z80 na JPR-1V přerušení hned po `LD A,I` a `LD A,R` nepřijme, po další instrukci už ano. Odpovídá to
-  opravě známé chyby NMOS Z80 v CMOS Z84C00 (u NMOS se při přerušení během `LD A,I/R` přečte P/V = 0, i když jsou
-  přerušení povolená). Vysvětluje to i D6h ze smyčky `LD A,I` (`intavec_gap`).
-- **Emulátor dnes:** jádro `third_party/chips/z80.h` blokuje přerušení jen po `EI`, po `LD A,I/R` ho přijme.
-- **Návrh:** v jádru Z80 volba „CMOS“ (přerušení /INT po `LD A,I` a `LD A,R` se odloží o jednu instrukci, stejně
-  jako jádro dělá `EI`; NMI beze změny, to jsme neměřili). U JPR-1V zapnutá: na autorově desce je **Zilog
-  Z84C0020PEG** (CMOS, 20 MHz, autor 2026-10-13); u desek s NMOS Z80 (U880, Z80A) vypnutá. Úprava vendorovaného `z80.h` zapsaná
-  v `third_party/README.md`, test v `test_sapi1v`, pak celé ZEX (`release full`).
 
 ### JPR-1V: bajt při INTA bez vektoru
 

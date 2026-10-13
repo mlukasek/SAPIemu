@@ -82,6 +82,9 @@ private:
     // state: a loaded state runs on.
     bool ststb_inta = false;
     bool hung = false;
+    // the Z80 chip: CMOS (Z84C00) takes no interrupt right after LD A,I / LD A,R, measured on the author's JPR-1V
+    // (Z84C0020PEG, docs/zmeny-podle-hw.md); NMOS does. Set again after every z80_reset (it clears the struct).
+    bool z80_cmos = false;
     unsigned eprom_mask = 0x1FFF;
     std::vector<uint8_t> d3c;     // memory decoder PROM
     std::vector<uint8_t> d6b;     // I/O decoder PROM

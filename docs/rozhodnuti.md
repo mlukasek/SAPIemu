@@ -1571,6 +1571,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
   prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
   Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+- **CMOS, nebo NMOS Z80 je parametr procesorové karty** (`z80`, autor 2026-10-13): JPR-1V má výchozí CMOS (na
+  autorově desce Z84C0020PEG), JPR-1ZI a JPR-1Z NMOS. CMOS nepřijme přerušení hned po `LD A,I` / `LD A,R`
+  (změřeno). Úprava je v jádru `third_party/chips/z80.h` (příznak `cmos` ve výplni struktury, takže uložené stavy
+  platí dál; karta ho po každém resetu a načtení stavu nastaví z konfigurace). NMI se neměří, beze změny.
 - **Zamrzání FXS4 se emuluje** (autor schválil po měření na desce): JPR-1V dává STSTB i při INTA, karta s oknem
   (CGA-1V, AND-1V, DGD-1V) pak drží RDY napořád a RESET nezabere, jako na železe. Kdo to nechce, vypne kartě
   čekací stavy (`wait_states`), což je zřetelná odchylka od desky. Do uloženého stavu se zaseknutí nedává.

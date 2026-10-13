@@ -2,7 +2,10 @@
 
 Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/test_sapi1v.cpp`.
 Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
-- parametry `rom` (8 KB), `bios` (`fitted` = banka 0, `open` = banka 1), `turbo`, `osc_hz`;
+- parametry `rom` (8 KB), `bios` (`fitted` = banka 0, `open` = banka 1), `turbo`, `osc_hz`, `z80` (`cmos`
+  výchozí, `nmos`);
+- **Z80 je CMOS** (autorova deska: Zilog Z84C0020PEG): hned po `LD A,I` a `LD A,R` nepřijme přerušení, až po další
+  instrukci (změřeno 2026-10-13, `docs/zmeny-podle-hw.md`). Parametr `z80` to přepne pro desku s NMOS čipem;
 - výchozí obraz `roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin`: banka 0 MikroBIOS 3.0, banka 1 ECMON IDE-1
   (autorovo rozhodnutí);
 - na autorově desce (fotka `H:\SAPI-1\LiborLasota\JPR-1V\Foto\mJPR1V.jpg`) je propojka BIOS osazená a TURBO

@@ -68,6 +68,16 @@ static const ParamOption k_prn_charset[] = {
     { "printer.busy_us", PK_INT, "Printer: BUSY after each byte (us; 0 = at once, a deviation)",                       \
       "Tiskárna: BUSY po každém bajtu (µs; 0 = hned, odchylka)", "100", nullptr, 0, 1000000 },
 
+static const ParamOption k_z80_type[] = {
+    { "\"nmos\"", "NMOS (Z80A, U880...): an interrupt is taken after LD A,I / LD A,R",
+      "NMOS (Z80A, U880...): přerušení se přijme i po LD A,I / LD A,R" },
+    { "\"cmos\"", "CMOS (Z84C00): no interrupt right after LD A,I / LD A,R (as after EI)",
+      "CMOS (Z84C00): hned po LD A,I / LD A,R se přerušení nepřijme (jako po EI)" },
+    { nullptr, nullptr, nullptr },
+};
+#define Z80_TYPE_PARAM(def)                                                                                            \
+    { "z80", PK_CHOICE, "Z80 chip: NMOS or CMOS", "Čip Z80: NMOS, nebo CMOS", def, k_z80_type, 0, 0 },
+
 static const CardParam k_jpr1zi[] = {
     { "rom", PK_FILE, "EPROM 2764", "EPROM 2764", "\"\"", k_jpr_roms, 0, 0 },
     { "decoder", PK_CHOICE, "PROM D3C: memory decoder", "PROM D3C: dekodér paměti", "\"2k\"", k_d3c, 0, 0 },
@@ -76,6 +86,7 @@ static const CardParam k_jpr1zi[] = {
     { "cpu_mhz", PK_CHOICE, "JP2/JP3: CPU clock", "JP2/JP3: takt CPU", "2", k_cpu_mhz, 0, 0 },
     { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
     { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
+    Z80_TYPE_PARAM("\"nmos\"")
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
@@ -111,6 +122,7 @@ static const CardParam k_jpr1z[] = {
     { "cpu_mhz", PK_CHOICE, "JP2/JP3: CPU clock", "JP2/JP3: takt CPU", "2", k_cpu_mhz, 0, 0 },
     { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
     { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
+    Z80_TYPE_PARAM("\"nmos\"")
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
@@ -145,6 +157,7 @@ static const CardParam k_jpr1v[] = {
       "false", nullptr, 0, 0 },
     { "osc_hz", PK_INT, "Oscillator (Hz, bus = /4, CPU = /4 or /2)", "Oscilátor (Hz, sběrnice = /4, CPU = /4 nebo /2)",
       "8000000", nullptr, 1000000, 40000000 },
+    Z80_TYPE_PARAM("\"cmos\"")
     { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },

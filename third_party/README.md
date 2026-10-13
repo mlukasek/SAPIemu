@@ -2,7 +2,7 @@
 
 | Složka | Knihovna | Verze | Licence | Zdroj |
 |---|---|---|---|---|
-| `chips/` | floooh/chips `z80.h` | master @ 9e88298 (2026-10) | zlib | https://github.com/floooh/chips |
+| `chips/` | floooh/chips `z80.h`, **upravené**: příznak `cmos` (CMOS Z84C00 nepřijme přerušení hned po `LD A,I` a `LD A,R`, změřeno na JPR-1V, `docs/zmeny-podle-hw.md`; pole sedí do výplně struktury) | master @ 9e88298 (2026-10) | zlib | https://github.com/floooh/chips |
 | `i8080/` | superzazu/8080 (Intel 8080 core), **upravené**: režim 8085 (takty, RIM/SIM, TRAP a RST x.5, nedokumentované instrukce, příznaky V a K; `docs/8085.md`) | master @ 274ffd7 (2020-10-14) | MIT | https://github.com/superzazu/8080 |
 | `minimp3/` | lieff/minimp3 (MP3 dekodér pro kazety) | master @ ea99364 (2026-07-27) | CC0 | https://github.com/lieff/minimp3 |
 | `imgui/` | Dear ImGui (core + SDL3/SDLRenderer3 backend) | v1.92.9b-docking | MIT | https://github.com/ocornut/imgui |

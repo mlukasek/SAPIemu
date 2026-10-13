@@ -86,6 +86,12 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
         eprom_mask = 0x7FF;
     }
 
+    std::string z80_type;
+    if (!cfg_string(cfg, "z80", z80_type, v ? "cmos" : "nmos", err)) return false;
+    if (z80_type != "nmos" && z80_type != "cmos") { err = "z80 must be nmos or cmos"; return false; }
+    z80_cmos = z80_type == "cmos";
+    z80.cmos = z80_cmos;
+
     bool z = type == "JPR-1Z";
     std::string rom, decoder, d6b_file;
     if (!cfg_string(cfg, "rom", rom, v ? "roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin" : "", err)) return false;
@@ -140,6 +146,7 @@ void Jpr1zi::reset()
 {
     // /RES: BOOT flip-flop set, 3212 outputs cleared, CPU reset
     pins = z80_reset(&z80);
+    z80.cmos = z80_cmos;
     boot = true;
     stall = 0;
     memset(port_out, 0, sizeof(port_out));
@@ -392,6 +399,7 @@ void Jpr1zi::state(StateIO& io)
     io.v(size);
     if (io.loading && size != sizeof(z80)) { io.fail("Z80 core of another build"); return; }
     io.raw(&z80, sizeof(z80));
+    z80.cmos = z80_cmos;   // from the configuration, not from the state (older states have padding there)
     io.v(pins);
     io.e(stall);
     io.v(next_sync);
