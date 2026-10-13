@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **240** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -63,13 +63,9 @@ Otevřených bodů: **240** v 49 sekcích. Desky jsou první, pak ostatní téma
    z EPROM.
 
 
-## [AND-1Z / AND-1Z-89 – alfanumerický displej](desky/AND-1Z-89.md) – Nejasnosti (ověřit na HW) (4)
+## [AND-1Z / AND-1Z-89 – alfanumerický displej](desky/AND-1Z-89.md) – Nejasnosti (ověřit na HW) (2)
 
 - AND-1Z: vstup A6 DA1 je vyřešený, nastavuje ho přepínač S1 (viz výše).
-
-- 20 nebo 24 řádků: PROM a manuál říkají 20, dokumentace CP/M 24 („poslední znak na FDFFh“).
-
-- Délka řádku 107 nebo 108 znaků.
 
 - Zapojení neoznačených vstupů DD4 A7 a DA1 A6.
 
@@ -671,7 +667,8 @@ Rozhodne všechna místa označená [S] a [?]:
 
 ## [SAPIemu – souhrn a předávka](SOUHRN.md) – Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově) (41)
 
-1. **AND-1Z-89:** 20 nebo 24 řádků? (PROM a manuál říkají 20.) Délka řádku 107 nebo 108 znaků.
+1. **AND-1Z-89:** ~~20 nebo 24 řádků? Délka řádku 107 nebo 108 znaků.~~ 20 řádků, 109 znaků (změřeno 2026-10-13,
+   `docs/desky/AND-1Z-89.md`).
 
 2. **DMR-1:** skutečné nastavení JP8 (baud rate) na autorově sestavě. Stav modemových bitů při odpojeném terminálu.
 

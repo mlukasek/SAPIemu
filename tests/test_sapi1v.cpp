@@ -510,11 +510,13 @@ static void cga_vbi(void)
 // the ZRDBENCH loops timed by the 82C54, tools/hwbench/zrdtimer.asm, without the analyzer card in the rack:
 // 4 MHz 23.609 / 22.52, 2 MHz 22.75 / 21.273; memory to memory 21.176; docs/zmeny-podle-hw.md).
 // card_hi: the high byte of the card memory, len_hi: of the block length, map: the RAM-1V MAP register
-static double card_ldir(bool turbo, bool write, uint8_t card_hi, uint8_t len_hi, uint8_t map, const char* card)
+// cfg: another machine (default the V machine of the test)
+static double card_ldir(bool turbo, bool write, uint8_t card_hi, uint8_t len_hi, uint8_t map, const char* card,
+                        const json* cfg = nullptr)
 {
     Machine m;
     std::string err;
-    CHECK(m.load_json(machine_cfg(), err));
+    CHECK(m.load_json(cfg ? *cfg : machine_cfg(), err));
     CHECK(m.set_live_param(m.cpu, "turbo", turbo, err));
     m.run_seconds(0.2);
     m.bus.io_write(0x63, map);
@@ -558,6 +560,26 @@ static void cga_waits(void)
 // author's card 2026-10-11 (tools/hwbench/and1v.asm, 256 B LDIR into / from the card, 4 MHz 6134 / 5730,
 // 2 MHz 5873 / 5562 CPU clocks between the markers): the model gives the same within 2 clocks.
 static void vrambench(bool turbo, double w_and, double r_and);
+
+// AND-1Z/89 in place of the AND-1V (F800h): a window of 300 ns every 600.2 ns, the wait lasts to its end. Measured
+// on the author's card 2026-10-13 (tools/hwbench/and1v.asm, and1z_window.py with probes on QA and WAIT; waits per
+// byte of a 256 B LDIR): 4 MHz 2.96 into / 2.97 from the card, 2 MHz 1.83 / 1.00 (docs/zmeny-podle-hw.md).
+static void and1z_waits(void)
+{
+    json cfg = machine_cfg();
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "AND-1V") c = json{ { "slot", c["slot"] }, { "type", "AND-1Z-89" } };
+    double w4 = card_ldir(true, true, 0xF8, 0x08, 0x00, "AND-1Z-89", &cfg);
+    double r4 = card_ldir(true, false, 0xF8, 0x08, 0x00, "AND-1Z-89", &cfg);
+    double w2 = card_ldir(false, true, 0xF8, 0x08, 0x00, "AND-1Z-89", &cfg);
+    double r2 = card_ldir(false, false, 0xF8, 0x08, 0x00, "AND-1Z-89", &cfg);
+    // 2 KB here (the emulator gives 3.05 / 3.05 / 1.84 / 1.06 with the loop overhead); the 256 B loops of and1v.asm
+    // match the board to 8 clocks of about 6000 (and1v_run.py --machine=and1z_emu.sapi)
+    CHECK(fabs(w4 - 2.96) < 0.15);
+    CHECK(fabs(r4 - 2.97) < 0.15);
+    CHECK(fabs(w2 - 1.83) < 0.15);
+    CHECK(fabs(r2 - 1.00) < 0.15);
+}
 
 static void and1v_waits(void)
 {
@@ -917,6 +939,7 @@ int main(void)
     int_log_im2();
     cga_waits();
     and1v_waits();
+    and1z_waits();
     zrdbench(true);
     zrdbench(false);
     zrdtest(true);

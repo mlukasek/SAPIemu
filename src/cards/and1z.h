@@ -34,7 +34,7 @@ public:
 
 private:
     bool select(uint16_t addr, int map, unsigned& offset) const;
-    int wait_states(void) const;
+    int wait_states(bool write) const;
 
     std::vector<uint8_t> chargen;   // 4 KB, 16 bytes per code, line L=11 on top
     std::vector<uint8_t> prom_d1;   // address decoder

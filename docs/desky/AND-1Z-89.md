@@ -51,27 +51,37 @@ Pro 3800h a 3C00h je potřeba jiná PROM D1 a jiná EPROM. **Jejich dumpy nemám
 ## Časování
 
 - **Bodový takt:** krystal 10 MHz, 1 px = 100 ns.
-- **Znakový takt:** Johnsonův čítač ÷6, tedy 600 ns na znak. První polovina (300 ns, QA=H) patří CPU, druhá displeji.
+- **Znakový takt:** Johnsonův čítač ÷6 (DC2), tedy 600 ns na znak. První polovina (300 ns, QA=H) patří CPU, druhá
+  displeji. Autorova deska: QA 1,6660 MHz, 600,2 ns (změřeno 2026-10-13).
 
 Horizontální PROM DD4/D24 (`PROM_DD4-D24.hex`):
 - Vstupy: A0=H4, A1=H2, A2=H32, A3=H16, A4=H8, A5=H1, A6=H64, A7≈/VS.
 - Výstupy: O1=/HB, O2=RCH, O3=TV sync, O4=AZJ sync.
 - Viditelné jsou znaky 2..65 (zpoždění pipeline 2 znaky). TV HS je na znacích 81–88.
-- RCH je na 107, řádek tedy trvá 64,2 µs (107 × 0,6 µs). **Nejasnost:** může to být 108 znaků.
+- RCH je na 107, ale **řádek trvá 109 znaků**: na autorově desce 65,43 µs (změřeno 2026-10-13 na kompozitním videu,
+  `tools/hwbench/and1z_sync.py`), tedy 109 × 0,6 µs. Nulování čítače po RCH zjevně trvá ještě dva znaky.
 
 Vertikální PROM DE6/D35 (74S571, `PROM_DE6_D35.hex`):
 - Vstupy: A0=L8, A1=V4, A2=V8, A3=V1, A4=V2, A5=V16, A6=L4, A7=L2, A8=L1.
 - Výstupy: O1=/VS_AZJ, O2=RCV, O3=/VB, O4=/VS.
-- Snímek má 26 řádků × 12 linek = 312 linek, bez prokládání, asi 20,0 ms (manuál uvádí 20,5 ms).
+- Snímek má 26 řádků × 12 linek = 312 linek, bez prokládání, **20,41 ms** (změřeno; manuál uvádí 20,5 ms).
 - Viditelné jsou řádky 0–19. TV VS je v řádku 22, linky L=9..8.
 
 OCR tabulky na sapi.cz se od hex souborů místy liší. Platí hex.
 
 ## Přístup CPU
 
-- **Wait stavy:** STSTB spolu s /SEL nastaví klopný obvod WAIT, který stáhne RDY. Čeká se do dalšího okna pro CPU.
-- **Emulace:** při přístupu do VRAM vložit tolik wait stavů, aby přístup padl do CPU okna znakového taktu (600 ns cyklus). Prakticky jde o 0–1 wait stav při 2 MHz.
-- **Vedlejší efekt u 8080:** IN/OUT na porty F8–FF by také spustily čekání, protože číslo portu je i na A8–A15. Při 8080 se tedy může objevit nanejvýš 1 wait stav.
+- **Wait stavy** (netlist schématu): STSTB spolu s /SEL nastaví klopný obvod WAIT DD1A, který přes 7406 stáhne RDY.
+  Žádost /READ = /SEL ∨ /MR nebo /WRITE = /SEL ∨ /MW (DB3) převezme DC1B při náběžné hraně QA (začátek okna CPU),
+  sestupná hrana QA (konec okna) přes DC1A a DC1B WAIT shodí. **Čeká se tedy do konce okna**, ne jen do jeho začátku.
+  I/O cyklus (/IOR, /IOW) a /RES WAIT nulují, **IN/OUT na F8–FF nečekají** (dřívější předpoklad pro 8080 neplatí).
+- **Změřeno na desce autora 2026-10-13** (sondy na QA a WAIT, `docs/zmeny-podle-hw.md`): /MW 24–32 ns po hraně CLK,
+  /MR 40–48 ns; žádost musí přijít asi 24 ns před náběžnou hranou QA; WAIT spadne 24–32 ns po konci okna, RDY dalších
+  16–32 ns. LDIR 256 B čeká při 4 MHz 2,96 / 2,97 taktu na bajt (do karty / z karty), při 2 MHz 1,83 / 1,00.
+- **Emulace:** `Bus::window_waits` jako CGA-1V: okno 300 ns každých 600,2 ns, žádost 52 ns (zápis) a 68 ns (čtení)
+  po hraně CLK, uvolnění 56 ns po konci okna. Smyčky `and1v.asm` sedí na desku na 8 taktů z asi 6000 při 4 i 2 MHz.
+  Takt 600,2 ns (změřený) zároveň brání tomu, aby se okno v emulaci zamklo na takt CPU (krystaly 10 MHz a 8 MHz jsou
+  nezávislé).
 - **Bez přerušení:** konektor X1 nemá pin INT. To je v rozporu s tvrzením manuálu.
 
 ## Výstupy
@@ -98,6 +108,7 @@ Kompozitní video na X2 pin 30. Barvu obrazu dává monitor, v emulátoru parame
 
 - AND-1Z: vstup A6 DA1 je vyřešený, nastavuje ho přepínač S1 (viz výše).
 
-- 20 nebo 24 řádků: PROM a manuál říkají 20, dokumentace CP/M 24 („poslední znak na FDFFh“).
-- Délka řádku 107 nebo 108 znaků.
+- ~~20 nebo 24 řádků~~: **20** (fotka obrazovky na desce autora 2026-10-13, `tools/hwbench/and1z.asm`, 64 sloupců,
+  jako emulátor). Dokumentace CP/M s 24 řádky („poslední znak na FDFFh“) počítá i s neviditelnými řádky 20–23.
+- ~~Délka řádku 107 nebo 108 znaků~~: **109 znaků**, 65,43 µs (změřeno 2026-10-13).
 - Zapojení neoznačených vstupů DD4 A7 a DA1 A6.

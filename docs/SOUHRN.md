@@ -94,8 +94,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zapojení ověřené, Φ2 sběrnice vždy 2 MHz, boot ROM neodpovídá na I/O, stav YM3812 ustáleně 00h/C0h (C4h jen kolem
   resetu YM), past PicoROM (I/O s A10 = 1). Datová sběrnice na analyzátoru: INTA čte bajt, který je na sběrnici
   (rozplyne se za 1–2 µs; emulátor dál FFh, autor). **CMOS Z80 (Z84C0020PEG) nepřijme přerušení hned po
-  `LD A,I` / `LD A,R`**: emulováno, parametr `z80` u JPR-1V/1ZI/1Z (CMOS/NMOS). Dál: DMR-1, AND-1B, AND-1Z-89,
-  BGP-1S, IDE-1, pak JPR-1ZI a JPR-1X (karty u autora). DMR-1 později: autor hledá přechodku z FRB na D-Sub.
+  `LD A,I` / `LD A,R`**: emulováno, parametr `z80` u JPR-1V/1ZI/1Z (CMOS/NMOS). AND-1B rev 1.4 sedí s emulátorem
+  (INT1, skládání sloupců, font, atributy, blikání). AND-1Z/89: 20 řádků, řádek 109 znaků, **čekání do konce okna
+  CPU** (3 takty na bajt při 4 MHz, emulováno podle sond na QA a WAIT). Dál: BGP-1S, IDE-1, pak JPR-1ZI a JPR-1X
+  (karty u autora). DMR-1 později: autor hledá přechodku z FRB na D-Sub.
 - **2026-10-10 (autor: „Pojď na to DPS-1, může to být zábavné s nějakou hezkou vizualizací přístroje a zdroje“):
   deska DPS-1 a měřicí pracoviště IMS-2.** Karta `src/cards/dps1.*` podle netlistu (výjimka: LIST/TALK blokuje vlastní
   NDAC, podle návodu), sběrnice `src/core/ims2.*`, pracoviště `plant` typu `IMS-2` (`src/plant/ims2_bench.*`) s voltmetrem
@@ -755,7 +757,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 
 ## Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově)
 
-1. **AND-1Z-89:** 20 nebo 24 řádků? (PROM a manuál říkají 20.) Délka řádku 107 nebo 108 znaků.
+1. **AND-1Z-89:** ~~20 nebo 24 řádků? Délka řádku 107 nebo 108 znaků.~~ 20 řádků, 109 znaků (změřeno 2026-10-13,
+   `docs/desky/AND-1Z-89.md`).
 2. **DMR-1:** skutečné nastavení JP8 (baud rate) na autorově sestavě. Stav modemových bitů při odpojeném terminálu.
 3. **Volná sběrnice:** ~~čte se opravdu FFh?~~ Na JPR-1V ne: vrací poslední bajt datové sběrnice CPU
    (změřeno a emulováno 2026-10-11, `docs/zmeny-podle-hw.md`). JPR-1ZI, JPR-1Z a JPR-1 jsou otevřené

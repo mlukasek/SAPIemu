@@ -8,10 +8,22 @@
 
 using nlohmann::json;
 
-// Character clock 600 ns (10 MHz / 6); the first half belongs to the CPU,
-// the second half to the display refresh.
-static const double CHAR_NS = 600.0;
+// Character clock 600 ns (10 MHz / 6, Johnson counter DC2); QA high (the first half) is the CPU window, the second
+// half belongs to the display refresh. The author's card runs at 600.2 ns (QA 1.6660 MHz, line 65.427 us = 109
+// characters): taken as measured, which also keeps the window from locking to the CPU clock as a round 600 ns would
+// (the 10 MHz and the 8 MHz crystals are independent: on the board an LDIR drifts through the phases).
+static const double CHAR_NS = 600.2;
 static const double CPU_WINDOW_NS = 300.0;
+// RDY (netlist of the schematic): STSTB with /SEL sets the WAIT flip-flop DD1A (RDY low through the 7406). DC1B takes
+// the request /READ = /SEL + /MR or /WRITE = /SEL + /MW at the rising edge of QA, the falling edge of QA (end of the
+// window) clears WAIT through DC1A/DC1B; an I/O cycle or /RES clears it too (IN/OUT do not wait). Measured on the
+// author's board with probes on QA and WAIT (2026-10-13, docs/zmeny-podle-hw.md): /MW comes 24-32 ns after the CPU
+// clock edge, /MR 40-48 ns, and the request must be there about 24 ns before the QA edge, so it counts 52 ns (write)
+// and 68 ns (read) after the edge; WAIT falls 24-32 ns after the end of the window and RDY 16-32 ns later, with the
+// /WAIT set-up of the Z80 that is 56 ns.
+static const double REQ_READ_NS = 68.0;
+static const double REQ_WRITE_NS = 52.0;
+static const double REL_NS = 56.0;
 
 And1z::And1z() : Card("AND-1Z-89")
 {
@@ -45,16 +57,10 @@ bool And1z::select(uint16_t a, int map, unsigned& offset) const
     return true;
 }
 
-int And1z::wait_states(void) const
+int And1z::wait_states(bool write) const
 {
     if (!waits) return 0;
-    // Wait until the next CPU window of the character clock.
-    double ns_per_cycle = 1e9 / (double)bus->cpu_hz;
-    double t = (double)bus->now * ns_per_cycle;
-    double phase = t - CHAR_NS * (double)(uint64_t)(t / CHAR_NS);
-    if (phase < CPU_WINDOW_NS) return 0;
-    double wait_ns = CHAR_NS - phase;
-    return (int)(wait_ns / ns_per_cycle) + 1;
+    return bus->window_waits(write, CHAR_NS, CPU_WINDOW_NS, write ? REQ_WRITE_NS : REQ_READ_NS, REL_NS);
 }
 
 int And1z::decode_mem(uint16_t addr, int map, const char** what)
@@ -70,7 +76,7 @@ bool And1z::mem_read(uint16_t addr, uint8_t& data)
     unsigned off;
     if (!select(addr, bus->map, off)) return false;
     data = vram[off];
-    bus->wait += wait_states();
+    bus->wait += wait_states(false);
     return true;
 }
 
@@ -79,7 +85,7 @@ bool And1z::mem_write(uint16_t addr, uint8_t data)
     unsigned off;
     if (!select(addr, bus->map, off)) return false;
     vram[off] = data;
-    bus->wait += wait_states();
+    bus->wait += wait_states(true);
     return true;
 }
 
