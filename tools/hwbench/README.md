@@ -45,8 +45,9 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 Pravidla:
 
 - Reset přes PicoROM: `low`, 0,3 s, `z`. Nikdy nenechat `low`.
-- I/O s horním bajtem adresy 04h–07h (A u `IN A,(n)`, B u `IN r,(C)`, `INI`, `INIR`) PicoROM bere jako čtení
-  komunikačního okna a při rychlém sledu se zasekne: horní bajt držet mimo 04h–07h.
+- PicoROM sleduje jen A0–A10: I/O s A10 = 1 (bit 2 horního bajtu: A u `IN A,(n)`/`OUT (n),A`, B u `IN r,(C)`,
+  `OUT (C),r`, `INI`, `INIR`) bere jako přístup do komunikačního okna a při rychlém sledu se zasekne. U I/O držet
+  A10 = 0 (např. `LD BC,0856h` + `OUT (C),A`, `INI` s B = F3h–F0h).
 - Kanál PicoROM: SAPI smí posílat jen omezené množství nebo na žádost a PC musí vše dočíst před `end_comms`,
   jinak se firmware PicoROM zasekne a pomůže jen odpojit USB.
 - DSM-1V: po nastavení UARTu jednou přečíst RAM, jinak zůstane v resetu.

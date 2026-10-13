@@ -26,11 +26,13 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   časovačem (`zrdtimer_manual.py`, RESET autor zmáčkne ručně, protože /RTL vede ta karta).
 - **Kanál PicoROM občas přidá falešné bajty** (na začátku relace `FBh 50h`, jednou `FEh FEh` a `FFh` mezi dvěma
   znaky; program takové adresy nečte). Data se proto posílají s rámcem (`*` a šestnáctkové číslice), PC ostatní
-  bajty zahodí. Původ zatím nevíme.
-- **Past kanálu PicoROM:** PicoROM sleduje jen adresu v okně ROM, ne druh cyklu. `IN A,(n)` (horní bajt = A),
-  `IN r,(C)`, `INI`, `INIR` (horní bajt = B) s horním bajtem 04h–07h je pro něj čtení komunikačního okna
-  0400h–07FFh: 07xxh pošle bajt, 06xxh vezme vstup. Při rychlém sledu takových čtení se firmware zasekne
-  („USB send timeout“, pomůže odpojit USB). Testovací ROM proto drží horní bajt I/O mimo 04h–07h (2026-10-13).
+  bajty zahodí. Původ: viz další bod.
+- **Past kanálu PicoROM:** PicoROM sleduje jen A0–A10 (2 KB), ne /CE ani druh cyklu. Každé I/O s A10 = 1
+  (bit 2 horního bajtu: A u `IN A,(n)` a `OUT (n),A`, B u `IN r,(C)`, `OUT (C),r`, `INI`, `INIR`…) je pro něj
+  přístup do komunikačního okna 0400h–07FFh: 07xxh pošle bajt, 06xxh vezme vstup. Tak vznikají i zbloudilé
+  bajty (2026-10-13: `OUT (57h),A` s A = FFh poslal 57h, `INI` s B = FFh a F7h poslal 56h). Rychlý sled takových
+  přístupů firmware zasekne („USB send timeout“, pomůže odpojit USB). Testovací ROM proto drží u I/O A10 = 0
+  (B = 08h, F3h–F0h; A = F0h); s tím `ymstat2` prošel 49 152 čteními bez jediného zbloudilého bajtu.
 - Programy a skripty: `tools/hwbench/` (popis v `tools/hwbench/README.md`), výstupy ve `work/hwbench/`.
 - **Kontrola zapojení** (`wire.asm`, `wire_check.py`, 2026-10-11): všech 16 kanálů ukazuje přesně to, co program
   dělá (počty impulzů /IOW, /IOR, /MR, /MW, čekání RDY, MAP1/MAP2, text na TxD, příjem na RxD a /INT0,
