@@ -1,7 +1,7 @@
 """Runs a test ROM in SAPIemu the way the PicoROM serves it on the real board (2 KB repeated over the 28C64 of the
 JPR-1V) in hwbench_v.sapi, and prints what came on the serial channel (the ROM goes to work/hwbench/rom_8k.bin).
 python emu_run.py ROM.bin [seconds] [channel: 0 = A 10h, 1 = B 14h] [--hex] [--iolog: the I/O log instead]
-[--regs] [--slow: TURBO off, CPU 2 MHz]"""
+[--regs] [--slow: TURBO off, CPU 2 MHz] [--machine=FILE: instead of hwbench_v.sapi]"""
 import json
 import os
 import subprocess
@@ -51,10 +51,14 @@ data = open(ROM, 'rb').read()
 os.makedirs(WORK, exist_ok=True)
 open(os.path.join(WORK, 'rom_8k.bin'), 'wb').write((data * (8192 // len(data)))[:8192])
 machine = os.path.join(HERE, 'hwbench_v.sapi')
+for a in sys.argv[1:]:
+    if a.startswith('--machine='):   # another bench machine (e.g. and1z_emu.sapi: another card in the rack)
+        machine = os.path.abspath(a[len('--machine='):])
 if '--slow' in sys.argv:   # TURBO off: CPU 2 MHz
+    base = machine
     machine = os.path.join(WORK, 'hwbench_v_2mhz.sapi')
     open(machine, 'w', encoding='utf-8').write(
-        open(os.path.join(HERE, 'hwbench_v.sapi'), encoding='utf-8').read().replace('"turbo": true', '"turbo": false'))
+        open(base, encoding='utf-8').read().replace('"turbo": true', '"turbo": false'))
 proc = subprocess.Popen([os.path.join(ROOT, 'out', 'build', 'windows-debug', 'sapiemu-cli.exe'), '--machine',
                          machine, '--mcp', '--mcp-port', str(PORT)], cwd=ROOT,
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

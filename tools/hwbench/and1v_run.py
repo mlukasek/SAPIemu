@@ -1,6 +1,6 @@
 """HW bench: and1v.asm / cga1v.asm on the real board and in SAPIemu: CPU clocks per window (between the OUT (F7h) markers)
 and the RDY low time of each access (in CPU clocks) on the board.
-python and1v_run.py [and1v.bin|cga1v.bin] [OUTDIR] [--load] [--noemu]"""
+python and1v_run.py [and1v.bin|cga1v.bin] [OUTDIR] [--load] [--noemu] [--machine=FILE (for the emulator)]"""
 import os
 import re
 import subprocess
@@ -50,6 +50,7 @@ if '--noemu' not in sys.argv:
     slow = period > 0.4e-6   # the board runs at 2 MHz
     unit = 2 if slow else 1   # the emulator I/O log counts 4 MHz cycles
     r = subprocess.run([sys.executable, os.path.join(here, 'emu_run.py'), ROM, '0.4', '0', '--iolog']
+                       + [a for a in sys.argv[1:] if a.startswith('--machine=')]
                        + (['--slow'] if slow else []),
                        capture_output=True, text=True, timeout=300)
     cyc = [int(m.group(1)) for m in re.finditer(r'^\s*(\d+) PC=\w+ OUT F7', r.stdout, re.M)]

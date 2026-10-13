@@ -275,7 +275,40 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 
 ## Návrhy čekající na schválení
 
-Žádné.
+### AND-1Z/89: čekání do konce okna CPU, ne jen do jeho začátku
+
+- **Zapojení** (netlist z `..\SAPI-karty\AND-1Z-89\Eagle\AND-1Z-89.sch`): STSTB s /SEL nastaví klopný obvod WAIT
+  (DD1A, přes 7406 stáhne RDY). Žádost /READ = /SEL ∨ /MR, /WRITE = /SEL ∨ /MW (DB3) převezme DC1B při náběžné hraně
+  QA (Johnsonův čítač DC2, 10 MHz / 6, QA vysoko = okno CPU 300 ns), při sestupné hraně QA DC1A přednastaví DC1B
+  a ten hodinami shodí WAIT. I/O cyklus (/IOR, /IOW) a /RES WAIT nulují, IN/OUT tedy nečekají.
+- **Měření** (`and1v.asm`, `and1v_run.py --machine=and1z_emu.sapi`, `and1z_window.py`, sondy D14 = QA (DC2/2),
+  D15 = WAIT (DD1/5), 2026-10-13, deska autora, CGA-1V vyjmutá): QA 1,666 MHz, střída 50 %. /MW 24–32 ns po sestupné
+  hraně CLK (T2), /MR 40–48 ns (T1); okno se vezme, když žádost přijde aspoň asi 24 ns před náběžnou hranou QA (při
+  24 ns napůl), jinak až další. WAIT spadne 24–32 ns po sestupné hraně QA, RDY 16–32 ns po něm; RDY 8 ns před
+  sestupnou hranou CLK už takt nepřidá. Čekací takty na přístup (počet hran CLK při RDY dole):
+
+  | | 4 MHz deska | 4 MHz emulátor | 2 MHz deska | 2 MHz emulátor |
+  |---|---|---|---|---|
+  | LDIR 256 B zápis | 2,96 | 0,6 | 1,83 | 0 |
+  | LDIR 256 B čtení | 2,97 | 0,6 | 1,00 | 0 |
+  | 16 zápisů / 16 čtení | 3,4 / 1,5–2,1 | 0 | 1,6 / 0,94 | 0 |
+
+  (Jednotlivé přístupy mají pravidelný krok, takže zachytí jen několik fází znakového taktu; průměr se mezi běhy
+  liší.) LDIR při 4 MHz se zamkne: 24 taktů = 6 µs = 10 znaků, každý bajt čeká 3 takty.
+- **Emulátor dnes:** `And1z::wait_states` čeká jen do začátku nejbližšího okna (0–1 takt), na desce se čeká do jeho
+  konce.
+- **Návrh:** `bus->window_waits(write, 600, 300, write ? 52 : 68, 56)`, tedy stejný model jako CGA-1V se změřenými
+  zpožděními: žádost 52 ns (zápis) a 68 ns (čtení) po hraně CLK, uvolnění 56 ns po konci okna. Test `cga_waits`
+  obdobou pro AND-1Z (LDIR 256 B při 4 a 2 MHz proti desce) a porovnání `and1v_run.py` deska / emulátor.
+
+### AND-1Z/89: délka řádku 109 znaků (jen dokumentace)
+
+- **Měření** (`and1z_sync.py`, kompozitní video X2/30 analogově na sondě D13): řádek **65,43 µs** = 109 znaků po
+  0,6 µs (PROM DD4 má RCH na 107, popis počítal 107 nebo 108), snímek 312 řádků = **20,41 ms** (manuál 20,5 ms),
+  synchronizační impulz 4,6 µs, VS asi jeden řádek. Na fotce obrazovky (`and1z.asm`) je **20 řádků** a 64 sloupců,
+  přesně jako v emulátoru.
+- **Návrh:** opravit popis v `docs/desky/AND-1Z-89.md` a Nejasnosti (20 řádků, 109 znaků); emulátor řádek nemodeluje,
+  beze změny.
 
 ## Podezření k dořešení
 

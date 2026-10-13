@@ -34,6 +34,7 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 | `intabus.py` | datová sběrnice kolem INTA při testu `intavec_gap` (co CPU přečte jako vektor) |
 | `intblock.asm`, `intblock2.asm` + `intblock_run.py` | po kterých instrukcích Z80 nepřijme přerušení (doba /INT0 → INTA) |
 | `and1b.asm` + `and1b_int.py`, `and1b_emu.sapi` | AND-1B místo AND-1V: obraz (skládání sloupců, atributy) pro fotku a emulátor, INT1 na D9 |
+| `and1z.asm`, `and1z_emu.sapi`, `and1z_sync.py`, `and1z_window.py` | AND-1Z/89 místo AND-1V: obraz (řádky, sloupce), délka řádku z kompozitního videa (D13 analogově), okno CPU (D14 = QA, D15 = WAIT) |
 | `busclk.py` | takt sběrnice Φ2 (D13 přes DKS-1) proti CLK CPU, frekvence, střída, zpoždění hran |
 | `intavec*.asm` | bajt čtený v INTA bez karty s vektorem (IM 2; přerušení z DSM-1V, z 82C54, mezera před INTA) |
 | `vbi.asm` + `vbi_run.py` | VBI karty CGA-1V proti VSYNC (D14 na VSYNC) |
@@ -42,7 +43,7 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 | `hw_run.py ROM OUT [s]` | záznam, nahrání ROM do PicoROM, reset, příjem z COM13, souhrn /IOR a TxD |
 | `wire_check.py [ROM] [OUT]` | záznam všech 16 kanálů spuštěný /RES, vyhodnocení po kanálech |
 | `decode_ior.py CSV` | dekóduje hodnoty z `diag.asm` |
-| `emu_run.py ROM [s] [kanál] [--hex]` | stejná ROM v SAPIemu (`hwbench_v.sapi`), výpis sériového kanálu |
+| `emu_run.py ROM [s] [kanál] [--hex] [--machine=FILE]` | stejná ROM v SAPIemu (`hwbench_v.sapi` nebo jiná sestava pracoviště), výpis sériového kanálu |
 | `pico_run.py`, `pico_out.py` | zkouška kanálu PicoROM oběma směry |
 | `logic_stop.py` | zastaví záznamy, které v Logic 2 zůstaly viset |
 
