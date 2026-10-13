@@ -30,6 +30,9 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 | `ymrst.asm` + `ymrst_run.py`, `ymstat.asm` | YM3812 na MPH-1V: kdy po /RES bere zápisy, stav před a po časovači |
 | `ymstat2.asm` + `ymstat2_run.py` | histogramy stavu YM3812 (jednotlivá čtení a bloky INI, před a po časovači) |
 | `iorom.asm` + `iorom_run.py` | odpovídá boot ROM JPR-1V na I/O čtení s horním bajtem adresy 00h–03h? (ne) |
+| `databus.asm` + `databus_check.py` | kontrola sond datové sběrnice (od 2026-10-13: D3, D4, D5, D10, D11, D13, D14, D15 = D0–D7) |
+| `intabus.py` | datová sběrnice kolem INTA při testu `intavec_gap` (co CPU přečte jako vektor) |
+| `intblock.asm`, `intblock2.asm` + `intblock_run.py` | po kterých instrukcích Z80 nepřijme přerušení (doba /INT0 → INTA) |
 | `busclk.py` | takt sběrnice Φ2 (D13 přes DKS-1) proti CLK CPU, frekvence, střída, zpoždění hran |
 | `intavec*.asm` | bajt čtený v INTA bez karty s vektorem (IM 2; přerušení z DSM-1V, z 82C54, mezera před INTA) |
 | `vbi.asm` + `vbi_run.py` | VBI karty CGA-1V proti VSYNC (D14 na VSYNC) |

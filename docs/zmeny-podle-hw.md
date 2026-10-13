@@ -240,14 +240,38 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+## Návrhy čekající na schválení
+
+### JPR-1V: po `LD A,I` a `LD A,R` Z80 přerušení nepřijme (jako po `EI`)
+
+- **Měření** (`intblock.asm`, `intblock2.asm`, `intblock_run.py`, 2026-10-13, 4 MHz, IM 1, přerušení z přijímače
+  DSM-1V): smyčky po 40 stejných instrukcích, analyzátor měří dobu od /INT0 do INTA (8 přerušení na smyčku).
+  NOP, `INC BC`, `LD I,A`, `NEG`, `IM 1`, `LD A,(IX+0)`: 1–5 µs (občas 10–15 µs, když běžela předchozí obsluha).
+  **`LD A,I` a `LD A,R`: až 86 µs**, tedy až do konce bloku (40 × 9 T = 90 µs). Dvojice `LD A,I` + `NOP` a `LD A,R`
+  + `NOP`: 1–4 µs. Řetěz `EI` (kontrola metody, podle dokumentace Z80 blokuje): až 41 µs, celý blok.
+- **Výklad:** Z80 na JPR-1V přerušení hned po `LD A,I` a `LD A,R` nepřijme, po další instrukci už ano. Odpovídá to
+  opravě známé chyby NMOS Z80 v CMOS Z84C00 (u NMOS se při přerušení během `LD A,I/R` přečte P/V = 0, i když jsou
+  přerušení povolená). Vysvětluje to i D6h ze smyčky `LD A,I` (`intavec_gap`).
+- **Emulátor dnes:** jádro `third_party/chips/z80.h` blokuje přerušení jen po `EI`, po `LD A,I/R` ho přijme.
+- **Návrh:** v jádru Z80 volba „CMOS“ (přerušení /INT po `LD A,I` a `LD A,R` se odloží o jednu instrukci, stejně
+  jako jádro dělá `EI`; NMI beze změny, to jsme neměřili). U JPR-1V zapnutá, pokud je na desce CMOS Z80 (typ čipu
+  potvrdí autor); u desek s NMOS Z80 (U880, Z80A) vypnutá. Úprava vendorovaného `z80.h` zapsaná
+  v `third_party/README.md`, test v `test_sapi1v`, pak celé ZEX (`release full`).
+
+### JPR-1V: bajt při INTA bez vektoru
+
+- **Měření:** viz „Podezření k dořešení“ (poslední bajt na sběrnici, za 1–2 µs FFh podle bitů a karet).
+- **Návrh:** emulátor nechat na FFh. Přesný průběh je analogový a mění se s kartami (11. 10. dal `JR $` FFh,
+  dnes FEh); program, který čte vektor IM 2 bez karty, která ho dává, je chybný. Kdyby bylo potřeba, šlo by
+  přidat model „poslední bajt, pokud od posledního přenosu uplynuly nejvýš asi 2 takty, jinak FFh“.
+
 ## Podezření k dořešení
 
-- **Co čte INTA, když vektor nikdo nedává** (`intavec*.asm`, IM 2 s tabulkou, kde každý bajt vede na vlastní
-  obsluhu; JPR-1V, 4 MHz): přerušení od DSM-1V po smyčce NOP 00h, `LD A,(9876h)` (5Ah) 5Ah, `LD (9876h),A`
-  (A5h) A5h, `INC BC` 03h: poslední bajt na sběrnici, jako u ostatních prázdných čtení. Za instrukcí s delší
-  vnitřní částí bajt odplyne k FFh: `JR $` (5 vnitřních taktů) FFh, `ADD HL,BC` (7) FDh, FFh, F9h. Přerušení
-  z YM3812 přišlo hned po `EI` a dalo B7h (`OR A`, další instrukce). Nevysvětlené: smyčka `LD A,I` dává vždy D6h
-  (posunutí `JR` na jejím konci), jako by se přerušení po `LD A,I` nepřijímalo. Emulátor vrací při INTA FFh.
-  Bajt zřejmě drží kapacita sběrnice asi 0,5 µs a během 1–2 µs se rozplyne, je to analogové a závisí na kartách.
-  Přesnější odpověď dá jen záznam datové sběrnice analyzátorem (D0–D7). Do té doby beze změny.
-
+- **Co čte INTA, když vektor nikdo nedává** (`intavec*.asm` 2026-10-11 podle hlášení CPU; 2026-10-13 i datová
+  sběrnice na analyzátoru, `intabus.py`): Z80 čte při INTA to, co je právě na datové sběrnici, a to je poslední
+  přenesený bajt, dokud se nerozplyne. Po `INC BC` (2 vnitřní takty) drží 03h, po `JR $` FEh (tentokrát celé 2 µs,
+  11. 10. CPU dostalo FFh), po `ADD HL,BC` (7) se 09h rozplyne: 0,8–1,2 µs po posledním čtení začnou bity stoupat
+  (49h, 59h, D9h, F9h, FDh) a za dalších 0,4 µs je FFh. CPU pokaždé hlásilo přesně bajt, který byl na sběrnici. Jde
+  o analogový jev, záleží na bitech a kartách. Emulátor vrací při INTA FFh (návrh níže: zatím nechat).
+- **Proč smyčka `LD A,I` dávala vždy D6h:** vyřešeno, viz návrh „CMOS Z80: po `LD A,I` a `LD A,R` se přerušení
+  nepřijímá“. Přerušení se přijme až po `JR` na konci bloku a D6h je jeho posunutí.
