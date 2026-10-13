@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **237** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -32,7 +32,7 @@ Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní téma
 - „EB00H–EFFFH“ v návodu DGD-1 je nejspíš chyba OCR místo E800H.
 
 
-## [AND-1B – náhrada AND-1 / AND-1A s výstupem VGA (Libor Lasota)](desky/AND-1B.md) – 9. Nejasnosti (8)
+## [AND-1B – náhrada AND-1 / AND-1A s výstupem VGA (Libor Lasota)](desky/AND-1B.md) – 9. Nejasnosti (7)
 
 1. **Font ve skutečných deskách:** je vypálený `FontAND1B11.bmp.bin` (kompilátor „rev. 1.1“, deska rev 1.4)? Na
    webu jsou „Fonty“ bez odkazu. Fotky obrazovky [B7] se s fontem shodují (`¤` na 24h, podtržení, široké znaky).
@@ -49,8 +49,6 @@ Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní téma
 
 5. S3 (TS oscilátoru): na fotce rev 1.4 nepropojená (H/L). Pro emulaci nemá význam (L by oscilátor vypnula).
    starší než 1.4 s jinými propojkami (adresa, INT1, barva), zeptat se Libora.
-
-6. Výchozí barva sestavy: autorova deska je GRN, AND-1V má v emulátoru výchozí bílou. Rozhodne autor.
 
 7. INT1 50Hz režim dává nepravidelné intervaly (4× 16,6 ms + 1× 33,3 ms). Programy počítající čas (MIKROBASIC,
    hodiny) to vidí jako 50 Hz v průměru. **Změřeno na autorově desce 2026-10-13** (`and1b_int.py`): impulz 317,0 µs,
@@ -759,7 +757,7 @@ Rozhodne všechna místa označená [S] a [?]:
 - **JPR-1V:** 28C64 nemá, programuje si ho dynamicky (PicoROM). Rozhodnutí: **banka 0 = MikroBIOS 3.0,
   banka 1 = ECMON IDE-1**.
 
-- **AND-1V:** rev 2.3, font neví. U něj je nastavená na **MAP1 = L** kvůli CGA-1V (deska přijde později).
+- **AND-1V:** rev 2.3, font neví (2026-10-13 z fotky: typ 1). U něj je nastavená na **MAP1 = L** kvůli CGA-1V.
 
 - **RAM-1V:** rev 1.1, patice C prázdná. RTC Timekeeperu emulovat **volitelně** (parametr).
 
@@ -779,11 +777,12 @@ Rozhodne všechna místa označená [S] a [?]:
     - ~~Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`?~~ Ano, binárky (viz odpovědi výše).
     - ~~Lišta TURBO~~: autor přepíná TURBO tlačítkem na panelu ZDR, v emulátoru stejně.
     - ~~Oscilátor 8 MHz?~~ Ano: CPU 4,000 MHz při TURBO, sběrnice 2,000 MHz (změřeno 2026-10-13).
-    - Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1 (port a bit RAM-1V), nebo vždy F800
-      s MAP1OFF?
+    - ~~Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1, nebo vždy F800 s MAP1OFF?~~ Mapování
+      nepoužívají (autor, odpovědi výše); AND-1V je na F800 s MAP1 = L kvůli CGA-1V.
     - ~~Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká?~~ Nečeká (změřeno 2026-10-11,
       `docs/zmeny-podle-hw.md`). Visí DGD-1 při BOOT opravdu?
-    - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
+    - Rev 1.1 (autor ji nemá, jeho deska je rev 2.3): která polovina fontu (A12 = 0/1) je standardní?
+      Zeptat se Libora.
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
     - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). ~~Nuluje /RES čítače a

@@ -59,7 +59,7 @@ Seřazeno podle toho, jak viditelný by rozdíl byl.
   magnetofonu ([kazeta.md](software/kazeta.md)).
 - **Ostatní karty:** DSP-1 (bity SA2, 75154 bez kabelu), RTC-1 (PA v módu 1, kabel /INT), CRM-1 (délka WAIT, SA1),
   DPP-1 (kanál 1, tiskárna), RAM-1Z, ZRD-1V rev 2.1 (okno 74LS123, AIN), JPR-1S (propojky, /RTL), AND-1B starší
-  revize, AND-1Z neoznačené vstupy DD4 A7 a DA1 A6.
+  revize, AND-1Z neoznačené vstupy DD4 A7 a DA1 A6, AND-1V rev 1.1 (polovina fontu; autor má rev 2.3).
 - **Přístroje:** APS-5 (/PFAIL, kódy kláves HRK-1B, ADP-1), DPS-1 a IMS-2 (NDAC, /OBF, bajt 00h s ATN, odpovědi
   M1T 330), plotter AR 1990 (doraz, LED, kód zrušení zmenšení), Minigraf (rychlost, pero po zapnutí), XY 4130,
   tiskárna (kolík 16 X3, hrana /STROBE).

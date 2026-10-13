@@ -336,7 +336,7 @@ else          idx = (24 + (row & 7)) * 32 + (row >> 3) * 8 + (col & 7);
 5. S3 (TS oscilátoru): na fotce rev 1.4 nepropojená (H/L). Pro emulaci nemá význam (L by oscilátor vypnula).
 5a. **Starší revize desky** (prototyp 2023, fotka MIKROBASICu): schéma ani BOM nemáme. Jestli jsou v oběhu desky
    starší než 1.4 s jinými propojkami (adresa, INT1, barva), zeptat se Libora.
-6. Výchozí barva sestavy: autorova deska je GRN, AND-1V má v emulátoru výchozí bílou. Rozhodne autor.
+6. ~~Výchozí barva sestavy~~: AND-1B má v emulátoru výchozí zelenou jako autorova deska (parametr `color`).
 7. INT1 50Hz režim dává nepravidelné intervaly (4× 16,6 ms + 1× 33,3 ms). Programy počítající čas (MIKROBASIC,
    hodiny) to vidí jako 50 Hz v průměru. **Změřeno na autorově desce 2026-10-13** (`and1b_int.py`): impulz 317,0 µs,
    intervaly 4× 16,641 ms a 1× 33,283 ms, přesně jako schéma a emulátor. Zbývá potvrdit, že Libor nic jiného

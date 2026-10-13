@@ -754,7 +754,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
   hláška v logu při resetu ECMONu s `(003Bh) > 3`, MCP `quit`. Takt „1.99 MHz“ z jejich měření ukáže i emulátor
   při přesných 2,000 MHz (zaokrouhlení měřicího programu), to rozdíl není.
 - ~~Karty s oknem CPU a půl taktu čekání při 2 MHz~~ JPR-1V od 2026-10-09 převádí čekání karet na celé takty
-  CPU podle vzorkování /WAIT (`whole_clocks`). Samotné čekací stavy AND-1V nejsou modelované (viz výše).
+  CPU podle vzorkování /WAIT (`whole_clocks`). Čekací stavy AND-1V jsou od 2026-10-09 modelované podle schématu
+  a 2026-10-11 ověřené na desce.
 
 ## Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově)
 
@@ -833,7 +834,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
   `..\SAPI-karty\ZRD-1V` **PDF schématu**.
 - **JPR-1V:** 28C64 nemá, programuje si ho dynamicky (PicoROM). Rozhodnutí: **banka 0 = MikroBIOS 3.0,
   banka 1 = ECMON IDE-1**.
-- **AND-1V:** rev 2.3, font neví. U něj je nastavená na **MAP1 = L** kvůli CGA-1V (deska přijde později).
+- **AND-1V:** rev 2.3, font neví (2026-10-13 z fotky: typ 1). U něj je nastavená na **MAP1 = L** kvůli CGA-1V.
 - **RAM-1V:** rev 1.1, patice C prázdná. RTC Timekeeperu emulovat **volitelně** (parametr).
 - **DSM-1V:** kanály na **10h a 14h, oba 115200 Bd**.
 - **ECMON ani CP/M mapování nepoužívají.**
@@ -848,11 +849,12 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - ~~Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`?~~ Ano, binárky (viz odpovědi výše).
     - ~~Lišta TURBO~~: autor přepíná TURBO tlačítkem na panelu ZDR, v emulátoru stejně.
     - ~~Oscilátor 8 MHz?~~ Ano: CPU 4,000 MHz při TURBO, sběrnice 2,000 MHz (změřeno 2026-10-13).
-    - Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1 (port a bit RAM-1V), nebo vždy F800
-      s MAP1OFF?
+    - ~~Používá ECMON nebo CP/M na deskách V AND-1V mapovanou přes MAP1, nebo vždy F800 s MAP1OFF?~~ Mapování
+      nepoužívají (autor, odpovědi výše); AND-1V je na F800 s MAP1 = L kvůli CGA-1V.
     - ~~Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká?~~ Nečeká (změřeno 2026-10-11,
       `docs/zmeny-podle-hw.md`). Visí DGD-1 při BOOT opravdu?
-    - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
+    - Rev 1.1 (autor ji nemá, jeho deska je rev 2.3): která polovina fontu (A12 = 0/1) je standardní?
+      Zeptat se Libora.
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
     - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). ~~Nuluje /RES čítače a
