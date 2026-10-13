@@ -113,4 +113,5 @@ Zdroje: `..\SAPI-karty\JPR-1V\DESCRIPTION`, `schema\*.png`.
 
 - Nedohledaný účel sítí „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI.
 - ~~Hodiny sběrnice v režimu TURBO u JPR-1V.~~ Změřeno 2026-10-13 (`busclk.py`, Φ2 na DKS-1): při TURBO CPU
-  4,000 MHz a Φ2 na sběrnici 2,000 MHz se střídou 50 %, obě hrany Φ2 0–8 ns po sestupné hraně CLK CPU.
+  4,000 MHz a Φ2 na sběrnici 2,000 MHz se střídou 50 %, obě hrany Φ2 0–8 ns po sestupné hraně CLK CPU; bez TURBO
+  CPU i Φ2 2,000 MHz, Φ2 jde 8 ns za CLK CPU. Sběrnice má tedy vždy 2 MHz, jak píše schéma.

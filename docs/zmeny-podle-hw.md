@@ -196,7 +196,8 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   z 74LS164); jednou 38h (`iorom`). Emulátor vrací i za resetu 00h; nikdo stav YM v prvních 36 µs nečte, beze
   změny.
 - **Takt sběrnice Φ2 na JPR-1V** (`busclk.py`, sonda na DKS-1, 2026-10-13): při TURBO CPU 4,000 MHz a Φ2
-  2,000 MHz, střída 50 %, obě hrany 0–8 ns po sestupné hraně CLK CPU (Johnsonův čítač, jak píše schéma).
+  2,000 MHz, střída 50 %, obě hrany 0–8 ns po sestupné hraně CLK CPU (Johnsonův čítač, jak píše schéma); bez TURBO
+  CPU i Φ2 2,000 MHz, Φ2 8 ns za CLK CPU. Emulátor sběrnici na 2 MHz bere stejně.
 
 - **JPR-1V nedává /MR při čtení ROM** (0000h–07FFh): při kontrole zapojení byl /MR jen u čtení RAM a AND-1V.
   Emulátor to tak dělá (`docs/desky/JPR-1V.md`).
