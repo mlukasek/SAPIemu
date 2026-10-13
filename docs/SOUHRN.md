@@ -844,7 +844,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Který obraz EEPROM máš v JPR-1V a ve které bance (propojka BIOS osazená/rozpojená) je ECMON IDE-1 a
       MikroBIOS 3.0? Šel by dump 28C64?
     - ~~Kterou revizi AND-1V má sestava V?~~ **Rev 2.3** (autor 2026-10-13). Který font je vypálený (10×24 typ 1
-      nebo typ 2 z `..\SAPI-karty\AND-1Vev2.3ont_and1v22`)? Autor si pamatuje `FontROM`, ten je ale pro
+      nebo typ 2 z `..\SAPI-karty\AND-1V\rev2.3\font_and1v22`)? Autor si pamatuje `FontROM`, ten je ale pro
       rev 1.x (8 KB, jiné adresování, = `roms/and-1v/FontAND1V_rev1.bin`). Rozhodne fotka obrazovky se všemi znaky.
     - ~~Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`?~~ Ano, binárky (viz odpovědi výše).
     - ~~Lišta TURBO~~: autor přepíná TURBO tlačítkem na panelu ZDR, v emulátoru stejně.
