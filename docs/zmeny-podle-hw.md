@@ -27,6 +27,10 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Kanál PicoROM občas přidá falešné bajty** (na začátku relace `FBh 50h`, jednou `FEh FEh` a `FFh` mezi dvěma
   znaky; program takové adresy nečte). Data se proto posílají s rámcem (`*` a šestnáctkové číslice), PC ostatní
   bajty zahodí. Původ zatím nevíme.
+- **Past kanálu PicoROM:** PicoROM sleduje jen adresu v okně ROM, ne druh cyklu. `IN A,(n)` (horní bajt = A),
+  `IN r,(C)`, `INI`, `INIR` (horní bajt = B) s horním bajtem 04h–07h je pro něj čtení komunikačního okna
+  0400h–07FFh: 07xxh pošle bajt, 06xxh vezme vstup. Při rychlém sledu takových čtení se firmware zasekne
+  („USB send timeout“, pomůže odpojit USB). Testovací ROM proto drží horní bajt I/O mimo 04h–07h (2026-10-13).
 - Programy a skripty: `tools/hwbench/` (popis v `tools/hwbench/README.md`), výstupy ve `work/hwbench/`.
 - **Kontrola zapojení** (`wire.asm`, `wire_check.py`, 2026-10-11): všech 16 kanálů ukazuje přesně to, co program
   dělá (počty impulzů /IOW, /IOR, /MR, /MW, čekání RDY, MAP1/MAP2, text na TxD, příjem na RxD a /INT0,
@@ -178,6 +182,19 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   `emu_freeze.py`: `freeze` i `freeze_and` v emulátoru zamrznou jako na desce.
 
 ## Ověřeno beze změny
+
+- **Boot ROM JPR-1V neodpovídá na I/O čtení** (`iorom.asm`, `iorom_run.py`, 2026-10-13): /CE EEPROM vybírá jen
+  adresa (IC12), ale `IN A,(C)` i `IN A,(n)` s horním bajtem 00h–03h (okno ROM) čtou totéž jako s 08h, 10h, 80h,
+  FFh: port 56h (YM3812) 00h, port 9Ah (nikdo) poslední bajt na sběrnici (78h, 9Ah). Na sběrnici se ROM při I/O
+  nedostane, emulátor se tak chová.
+- **Stav YM3812 na MPH-1V v ustáleném stavu** (`ymstat2.asm`, `ymstat2_run.py`, 2026-10-13): 16 384 jednotlivých
+  `IN A,(56h)` s náhodnými mezerami při stojícím časovači 100 % 00h, po přetečení T1 100 % C0h, 16 384 čtení
+  bloky INI také 100 % C0h. Občasné C4h z 11. 10. (`ymrst`) se nezopakovalo. **Za resetu YM** (`ymres.asm`,
+  `ymres_run.py`, čtení po 4–10 µs od RESET, třikrát) čte stav 10h až do 22–35 µs, pak 00h (konec /RST
+  z 74LS164); jednou 38h (`iorom`). Emulátor vrací i za resetu 00h; nikdo stav YM v prvních 36 µs nečte, beze
+  změny.
+- **Takt sběrnice Φ2 na JPR-1V** (`busclk.py`, sonda na DKS-1, 2026-10-13): při TURBO CPU 4,000 MHz a Φ2
+  2,000 MHz, střída 50 %, obě hrany 0–8 ns po sestupné hraně CLK CPU (Johnsonův čítač, jak píše schéma).
 
 - **JPR-1V nedává /MR při čtení ROM** (0000h–07FFh): při kontrole zapojení byl /MR jen u čtení RAM a AND-1V.
   Emulátor to tak dělá (`docs/desky/JPR-1V.md`).

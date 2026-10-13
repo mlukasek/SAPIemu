@@ -101,7 +101,8 @@ Zdroje:
 
 - ~~Nulují /RES adresní čítače a latch portu 63h?~~ Změřeno 2026-10-11 (`docs/zmeny-podle-hw.md`): /RES nuluje
   **jen latch 63h** (A16–A21 a bity MAP), čítače 61h a latch 62h adresu drží. Emulováno.
-- Které bity portu 63h vedou přes JP2 na MAP1 a MAP2: emulátor předpokládá b6 → MAP1, b7 → MAP2.
+- ~~Které bity portu 63h vedou přes JP2 na MAP1 a MAP2?~~ Změřeno 2026-10-11 (kontrola zapojení analyzátoru,
+  `wire.asm`): b6 → MAP1, b7 → MAP2, jak emulátor předpokládal.
 - Zamykání ZRD-1V z MikroMonu (viz výše).
 
 ## ZRD-1V – doplnění z rozboru 2026-10-04
@@ -229,4 +230,5 @@ z CGA-1V je okrajové a zátěž sběrnice ho posune, viz `docs/desky/CGA-1V.md`
 - Okno 74LS123: schéma píše 20 ms, vzorec 0,37–0,45 · R · C dává 25–31 ms. Emulace: 20 ms.
 - AIN přes 24 MΩ: kolik ukazuje skutečná deska proti napětí baterie (vstupní proud MAX187)? Emulace: přesně
   `battery_mv`.
-- Čte se volná vnitřní sběrnice (61h–63h) opravdu jako FFh?
+- Čte se volná vnitřní sběrnice (61h–63h) opravdu jako FFh? Na rev 1.1 ano (změřeno 2026-10-11, `zrdrd.asm`,
+  čtení zároveň nahraje FFh do registru adresy, jak emulátor dělá). Na rev 2.1 neověřeno.

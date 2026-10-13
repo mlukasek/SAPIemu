@@ -107,7 +107,12 @@ MPH-test 0.99 i s tím, jak je používají SPLAY, RAT PLAYER a y1stdemo.
   schématem hotové desky (`..\SAPI-karty\MPH-1V\Eagle`, 6. 9. 2025). Starší PNG z 10. 8. a PDF z 24. 8. byly rozpracované
   verze.
 - ~~/RST YM3812 po /IRES~~: změřeno a emulováno 2026-10-11 (35,8 µs).
-- Stav YM3812 jednou za čas čte bit 2 = 1 (C4h ve 2 z 11 jednotlivých čtení `IN A,(56h)`, nikdy při `INIR`).
-  Zákmit na D2? Emulace ho nedělá.
+- ~~Stav YM3812 jednou za čas čte bit 2 = 1~~ (C4h ve 2 z 11 čtení v `ymrst`, kde zápisy padaly na konec resetu
+  YM). Vyřešeno 2026-10-13 (`ymstat2.asm`, `ymres.asm`, `docs/zmeny-podle-hw.md`): v ustáleném stavu 0 ze 49 152
+  čtení (jednotlivá i bloky, 00h i C0h); nenulové dolní bity jen za resetu YM (prvních asi 30 µs po RESET čte
+  10h, jednou 38h). Emulace beze změny.
+- ~~Kam vede IRQ obvodu YM3812?~~ Na sběrnici nikam (autor podle schématu 2026-10-13): /IRQ3812 jde invertovaný
+  přes IC19 na D0 registru /STATUS a přes IC10D, hradlovaný D0 přes IC11, na /INT, který na sběrnici zapojený
+  není.
 - Směr os myši (která strana je „+“) jsme neověřili na skutečné myši s programem. Zatím žádný program pro SAPI
   myš nepoužívá, MPH-test jen ukazuje bity.

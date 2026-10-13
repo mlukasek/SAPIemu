@@ -112,4 +112,5 @@ Zdroje: `..\SAPI-karty\JPR-1V\DESCRIPTION`, `schema\*.png`.
   u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.
 
 - Nedohledaný účel sítí „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI.
-- Hodiny sběrnice v režimu TURBO u JPR-1V.
+- ~~Hodiny sběrnice v režimu TURBO u JPR-1V.~~ Změřeno 2026-10-13 (`busclk.py`, Φ2 na DKS-1): při TURBO CPU
+  4,000 MHz a Φ2 na sběrnici 2,000 MHz se střídou 50 %, obě hrany Φ2 0–8 ns po sestupné hraně CLK CPU.

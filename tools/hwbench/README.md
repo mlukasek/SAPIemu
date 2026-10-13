@@ -28,6 +28,9 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 | `zrdrd.asm` + `zrdrd_run.py` | ZRD-1V rev 1.1: co vrací čtení 61h–63h a kam se pak posune adresa |
 | `openbus.asm` + `openbus_run.py` | čtení, na které nikdo neodpoví (poslední bajt datové sběrnice) |
 | `ymrst.asm` + `ymrst_run.py`, `ymstat.asm` | YM3812 na MPH-1V: kdy po /RES bere zápisy, stav před a po časovači |
+| `ymstat2.asm` + `ymstat2_run.py` | histogramy stavu YM3812 (jednotlivá čtení a bloky INI, před a po časovači) |
+| `iorom.asm` + `iorom_run.py` | odpovídá boot ROM JPR-1V na I/O čtení s horním bajtem adresy 00h–03h? (ne) |
+| `busclk.py` | takt sběrnice Φ2 (D13 přes DKS-1) proti CLK CPU, frekvence, střída, zpoždění hran |
 | `intavec*.asm` | bajt čtený v INTA bez karty s vektorem (IM 2; přerušení z DSM-1V, z 82C54, mezera před INTA) |
 | `vbi.asm` + `vbi_run.py` | VBI karty CGA-1V proti VSYNC (D14 na VSYNC) |
 | `freeze.asm`, `freeze_and.asm` + `freeze_run.py`, `emu_freeze.py` | zamrzání FXS4: přerušení s PC v okně CGA-1V / AND-1V, na desce a v emulátoru |
@@ -42,6 +45,8 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 Pravidla:
 
 - Reset přes PicoROM: `low`, 0,3 s, `z`. Nikdy nenechat `low`.
+- I/O s horním bajtem adresy 04h–07h (A u `IN A,(n)`, B u `IN r,(C)`, `INI`, `INIR`) PicoROM bere jako čtení
+  komunikačního okna a při rychlém sledu se zasekne: horní bajt držet mimo 04h–07h.
 - Kanál PicoROM: SAPI smí posílat jen omezené množství nebo na žádost a PC musí vše dočíst před `end_comms`,
   jinak se firmware PicoROM zasekne a pomůže jen odpojit USB.
 - DSM-1V: po nastavení UARTu jednou přečíst RAM, jinak zůstane v resetu.

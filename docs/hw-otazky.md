@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **242** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **239** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -391,14 +391,12 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Která ROM ELIS patří k disketě ELIS (v3.00 má C262.3, disketa hlásí C259.11)?
 
 
-## [JPR-1ZI – procesorová deska se Z80](desky/JPR-1ZI.md) – Nejasnosti (3)
+## [JPR-1ZI – procesorová deska se Z80](desky/JPR-1ZI.md) – Nejasnosti (2)
 
 - **Čtení prázdné sběrnice:** JPR-1V vrací poslední bajt datové sběrnice CPU (změřeno 2026-10-11). Jak je to
   u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.
 
 - Nedohledaný účel sítí „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI.
-
-- Hodiny sběrnice v režimu TURBO u JPR-1V.
 
 
 ## [Klávesnice (konektor X2 na JPR-1ZI)](desky/klavesnice.md) – Nejasnosti ANK-1M2 (2)
@@ -452,10 +450,7 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - Přepínače DPP-1 pro Minigraf: stránka píše „2PB“, kabel je na X2 (1PB).
 
 
-## [MPH-1V – zvuková a joysticková karta (Libor Lasota)](desky/MPH-1V.md) – Nejasnosti (2)
-
-- Stav YM3812 jednou za čas čte bit 2 = 1 (C4h ve 2 z 11 jednotlivých čtení `IN A,(56h)`, nikdy při `INIR`).
-  Zákmit na D2? Emulace ho nedělá.
+## [MPH-1V – zvuková a joysticková karta (Libor Lasota)](desky/MPH-1V.md) – Nejasnosti (1)
 
 - Směr os myši (která strana je „+“) jsme neověřili na skutečné myši s programem. Zatím žádný program pro SAPI
   myš nepoužívá, MPH-test jen ukazuje bity.
@@ -605,9 +600,7 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
 - Byl ovladač v `MIKOS5.BIN` někdy použitý (sapi.cz píše „nezkoušen“)? Proč je v EPROM za MIKOSem V5?
 
 
-## [ZRMD-1 / ZRD-1V – zálohovaný RAM disk](desky/ZRMD-1.md) – Nejasnosti (2)
-
-- Které bity portu 63h vedou přes JP2 na MAP1 a MAP2: emulátor předpokládá b6 → MAP1, b7 → MAP2.
+## [ZRMD-1 / ZRD-1V – zálohovaný RAM disk](desky/ZRMD-1.md) – Nejasnosti (1)
 
 - Zamykání ZRD-1V z MikroMonu (viz výše).
 
@@ -621,7 +614,8 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
 - AIN přes 24 MΩ: kolik ukazuje skutečná deska proti napětí baterie (vstupní proud MAX187)? Emulace: přesně
   `battery_mv`.
 
-- Čte se volná vnitřní sběrnice (61h–63h) opravdu jako FFh?
+- Čte se volná vnitřní sběrnice (61h–63h) opravdu jako FFh? Na rev 1.1 ano (změřeno 2026-10-11, `zrdrd.asm`,
+  čtení zároveň nahraje FFh do registru adresy, jak emulátor dělá). Na rev 2.1 neověřeno.
 
 
 ## [Procesor Intel 8085 v emulátoru (režim 8085 jádra `third_party/i8080`)](8085.md) – 7. Nejasnosti k ověření na HW (8085 v SAPI) (10)
@@ -671,7 +665,9 @@ Rozhodne všechna místa označená [S] a [?]:
 
 2. **DMR-1:** skutečné nastavení JP8 (baud rate) na autorově sestavě. Stav modemových bitů při odpojeném terminálu.
 
-3. **Volná sběrnice:** čte se opravdu FFh?
+3. **Volná sběrnice:** ~~čte se opravdu FFh?~~ Na JPR-1V ne: vrací poslední bajt datové sběrnice CPU
+   (změřeno a emulováno 2026-10-11, `docs/zmeny-podle-hw.md`). JPR-1ZI, JPR-1Z a JPR-1 jsou otevřené
+   (`docs/desky/JPR-1ZI.md`).
 
 4. **Consul 262.3:** polarita, délka strobe; má vaše JPR-1Z/ZI úpravu se 7474? (Kódy už jsou z manuálu.)
 
@@ -679,8 +675,8 @@ Rozhodne všechna místa označená [S] a [?]:
    pasivní (sleduje D6, MIKROBASIC ho přepíná), nebo s oscilátorem?
 
 6. **ZRMD-1:** ~~rozsahy S1–S4~~ (vyřešeno z GAL). ~~Jak MikroMon „zamyká“ ZRD-1V?~~ (rev 2.1: zápis na 60h
-   déle než 20 ms po 62h, `docs/desky/ZRMD-1.md`). Nuluje /RES adresní čítače?
-   Které bity 63h jdou na MAP1/MAP2?
+   déle než 20 ms po 62h, `docs/desky/ZRMD-1.md`). ~~Nuluje /RES adresní čítače?~~ Jen latch 63h.
+   ~~Které bity 63h jdou na MAP1/MAP2?~~ b6 a b7 (obojí změřeno 2026-10-11, `docs/zmeny-podle-hw.md`).
 
 7. **MikroMon 1.3:** posílá opravdu „sw i01“ a skenuje jen kanály 10, 14 a 18h?
 
@@ -783,14 +779,15 @@ Rozhodne všechna místa označená [S] a [?]:
     - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
-    - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). Nuluje /RES čítače a
-      registry adresy? Jsou 61h–63h opravdu nečitelné? Má hlídání MAX808 nějaký vliv viditelný pro software?
-    - ZRD-1V: kterou revizi máš (fotka 1.1)? ~~Zámek zápisu a MikroMon~~: vyřešeno schématem rev 2.1, otevřené
+    - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). ~~Nuluje /RES čítače a
+      registry adresy? Jsou 61h–63h opravdu nečitelné?~~ Rev 1.1: /RES adresu drží, 61h–63h čtou FFh a FFh
+      nahrají do registru (změřeno 2026-10-11). Má hlídání MAX808 nějaký vliv viditelný pro software?
+    - ZRD-1V: ~~kterou revizi máš (fotka 1.1)?~~ Rev 1.1 (autor). ~~Zámek zápisu a MikroMon~~: vyřešeno schématem rev 2.1, otevřené
       body jsou v `docs/desky/ZRMD-1.md` („Nejasnosti rev 2.1“).
     - RAM-1V: revize 1.1, nebo 1.2? Emulovat podle schématu 1.1 (1.2 nemá MAP2 u díry 16 KB)?
     - RAM-1V, patice C: je prázdná. Jaký Timekeeper se tam dává (M48T35/DS1644?) a emulovat jeho RTC?
     - DSM-1V: propojky na tvé desce (adresy A = 10h, B = 14h?, rychlosti obou kanálů).
-    - DSM-1V b5 („START“): nemá funkci? Čte +3 FFh?
+    - DSM-1V b5 („START“): nemá funkci? ~~Čte +3 FFh?~~ Ano, FFh (změřeno 2026-10-11).
     - DGD-1/BGP-1S „paralelně s RAM-1V“: obě karty odpovídají na stejné adresy. BGP-1S se od 2026-10-06 hlásí jen
       pro zápis (nečte), takže kolize není; DGD-1 to dál potřebuje.
 
@@ -802,8 +799,8 @@ Rozhodne všechna místa označená [S] a [?]:
 25. **Bzučák** (`docs/desky/klavesnice.md`):
     - Mají Consul 262.3 a 259.11 bzučák na X2 pin 14 (P0-OUT1)? Emulace předpokládá stejný jako EKL-1.
     - Jaký tón má bzučák EKL-1 (SG1 F/CM12P)? Emulace: 2,4 kHz.
-    - Pípne skutečný SAPI po resetu? Podle zapojení ano (3212 se nuluje, P0-OUT1 = 0, 25–50 ms do zápisu
-      monitoru).
+    - ~~Pípne skutečný SAPI po resetu?~~ Ano: s testovacími ROM, které `OUT 01h` nezapíšou, EKL-1 na pracovišti
+      po resetu piská pořád (autor ji proto odpojil, 2026-10-11). Emulace to dělá stejně.
 
 26. **FDC-1** (`docs/desky/FDC-1.md`):
     - Polarita D0 (DD/SD) přepínačů SA2 při čtení 0EH a k čemu je dvoupólový přepínač SA1 (u EC1045 nahrazený

@@ -751,13 +751,15 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 
 1. **AND-1Z-89:** 20 nebo 24 řádků? (PROM a manuál říkají 20.) Délka řádku 107 nebo 108 znaků.
 2. **DMR-1:** skutečné nastavení JP8 (baud rate) na autorově sestavě. Stav modemových bitů při odpojeném terminálu.
-3. **Volná sběrnice:** čte se opravdu FFh?
+3. **Volná sběrnice:** ~~čte se opravdu FFh?~~ Na JPR-1V ne: vrací poslední bajt datové sběrnice CPU
+   (změřeno a emulováno 2026-10-11, `docs/zmeny-podle-hw.md`). JPR-1ZI, JPR-1Z a JPR-1 jsou otevřené
+   (`docs/desky/JPR-1ZI.md`).
 4. **Consul 262.3:** polarita, délka strobe; má vaše JPR-1Z/ZI úpravu se 7474? (Kódy už jsou z manuálu.)
 5. **ANK-1:** bity LED a bzučáku na P0-OUT (emulace podle MIKOS: D7 ERR, D6 bzučák, D5 SHIFT). Je piezo
    pasivní (sleduje D6, MIKROBASIC ho přepíná), nebo s oscilátorem?
 6. **ZRMD-1:** ~~rozsahy S1–S4~~ (vyřešeno z GAL). ~~Jak MikroMon „zamyká“ ZRD-1V?~~ (rev 2.1: zápis na 60h
-   déle než 20 ms po 62h, `docs/desky/ZRMD-1.md`). Nuluje /RES adresní čítače?
-   Které bity 63h jdou na MAP1/MAP2?
+   déle než 20 ms po 62h, `docs/desky/ZRMD-1.md`). ~~Nuluje /RES adresní čítače?~~ Jen latch 63h.
+   ~~Které bity 63h jdou na MAP1/MAP2?~~ b6 a b7 (obojí změřeno 2026-10-11, `docs/zmeny-podle-hw.md`).
 7. **MikroMon 1.3:** posílá opravdu „sw i01“ a skenuje jen kanály 10, 14 a 18h?
 8. **IDE-1:** stav IDE signálů po resetu, když je PC 8255 nastavený jako vstup.
 9. **MikroMon bez USYNC:** ztrácí ozvěna na UART znaky i na skutečném HW? Emulace: po startu přijde „Z4kn 3“.
@@ -843,14 +845,15 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     - Rev 1.1: která polovina fontu (A12 = 0/1) je standardní?
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
-    - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). Nuluje /RES čítače a
-      registry adresy? Jsou 61h–63h opravdu nečitelné? Má hlídání MAX808 nějaký vliv viditelný pro software?
-    - ZRD-1V: kterou revizi máš (fotka 1.1)? ~~Zámek zápisu a MikroMon~~: vyřešeno schématem rev 2.1, otevřené
+    - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). ~~Nuluje /RES čítače a
+      registry adresy? Jsou 61h–63h opravdu nečitelné?~~ Rev 1.1: /RES adresu drží, 61h–63h čtou FFh a FFh
+      nahrají do registru (změřeno 2026-10-11). Má hlídání MAX808 nějaký vliv viditelný pro software?
+    - ZRD-1V: ~~kterou revizi máš (fotka 1.1)?~~ Rev 1.1 (autor). ~~Zámek zápisu a MikroMon~~: vyřešeno schématem rev 2.1, otevřené
       body jsou v `docs/desky/ZRMD-1.md` („Nejasnosti rev 2.1“).
     - RAM-1V: revize 1.1, nebo 1.2? Emulovat podle schématu 1.1 (1.2 nemá MAP2 u díry 16 KB)?
     - RAM-1V, patice C: je prázdná. Jaký Timekeeper se tam dává (M48T35/DS1644?) a emulovat jeho RTC?
     - DSM-1V: propojky na tvé desce (adresy A = 10h, B = 14h?, rychlosti obou kanálů).
-    - DSM-1V b5 („START“): nemá funkci? Čte +3 FFh?
+    - DSM-1V b5 („START“): nemá funkci? ~~Čte +3 FFh?~~ Ano, FFh (změřeno 2026-10-11).
     - DGD-1/BGP-1S „paralelně s RAM-1V“: obě karty odpovídají na stejné adresy. BGP-1S se od 2026-10-06 hlásí jen
       pro zápis (nečte), takže kolize není; DGD-1 to dál potřebuje.
 
@@ -864,8 +867,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 25. **Bzučák** (`docs/desky/klavesnice.md`):
     - Mají Consul 262.3 a 259.11 bzučák na X2 pin 14 (P0-OUT1)? Emulace předpokládá stejný jako EKL-1.
     - Jaký tón má bzučák EKL-1 (SG1 F/CM12P)? Emulace: 2,4 kHz.
-    - Pípne skutečný SAPI po resetu? Podle zapojení ano (3212 se nuluje, P0-OUT1 = 0, 25–50 ms do zápisu
-      monitoru).
+    - ~~Pípne skutečný SAPI po resetu?~~ Ano: s testovacími ROM, které `OUT 01h` nezapíšou, EKL-1 na pracovišti
+      po resetu piská pořád (autor ji proto odpojil, 2026-10-11). Emulace to dělá stejně.
 
 26. **FDC-1** (`docs/desky/FDC-1.md`):
     - Polarita D0 (DD/SD) přepínačů SA2 při čtení 0EH a k čemu je dvoupólový přepínač SA1 (u EC1045 nahrazený
