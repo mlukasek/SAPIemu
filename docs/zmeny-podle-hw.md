@@ -254,8 +254,8 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   přerušení povolená). Vysvětluje to i D6h ze smyčky `LD A,I` (`intavec_gap`).
 - **Emulátor dnes:** jádro `third_party/chips/z80.h` blokuje přerušení jen po `EI`, po `LD A,I/R` ho přijme.
 - **Návrh:** v jádru Z80 volba „CMOS“ (přerušení /INT po `LD A,I` a `LD A,R` se odloží o jednu instrukci, stejně
-  jako jádro dělá `EI`; NMI beze změny, to jsme neměřili). U JPR-1V zapnutá, pokud je na desce CMOS Z80 (typ čipu
-  potvrdí autor); u desek s NMOS Z80 (U880, Z80A) vypnutá. Úprava vendorovaného `z80.h` zapsaná
+  jako jádro dělá `EI`; NMI beze změny, to jsme neměřili). U JPR-1V zapnutá: na autorově desce je **Zilog
+  Z84C0020PEG** (CMOS, 20 MHz, autor 2026-10-13); u desek s NMOS Z80 (U880, Z80A) vypnutá. Úprava vendorovaného `z80.h` zapsaná
   v `third_party/README.md`, test v `test_sapi1v`, pak celé ZEX (`release full`).
 
 ### JPR-1V: bajt při INTA bez vektoru
