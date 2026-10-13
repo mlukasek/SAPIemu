@@ -36,8 +36,7 @@ Skupiny:
    a EKL-1.
 7. **DGD-1V**, pokud se najde ([DGD-1V.md](desky/DGD-1V.md)): čekací takty a zamrzání při INTA (emulováno podle
    schématu jako CGA-1V).
-8. **AND-1V** ([AND-1V.md](desky/AND-1V.md), SOUHRN bod 21): čekací takty a zamrzání při INTA jsou změřené
-   (2026-10-11), deska je rev 2.3. Zbývá vypálený font (typ 1, nebo typ 2): fotka obrazovky se všemi znaky.
+8. ~~**AND-1V**~~: hotovo (čekací takty a zamrzání při INTA 2026-10-11, rev 2.3 s fontem typ 1 2026-10-13).
 9. **Desky V, odpovědi pohledem** (SOUHRN bod 22): revize RAM-1V (1.1, nebo 1.2), propojky DSM-1V, Timekeeper
    v patici C.
 
@@ -88,4 +87,4 @@ Tyto body se mohou vyřešit kdykoli, nebo nikdy:
 Změny i potvrzení beze změny jsou v `docs/zmeny-podle-hw.md`: DSM-1V (reset UARTu, takt 16×), CGA-1V a AND-1Z/89
 (čekací takty), AND-1V (čekání), JPR-1V (prázdná sběrnice, STSTB, zamrzání FXS4, CMOS Z80, takt sběrnice, INTA),
 ZRMD-1 a ZRD-1V (reset, čtení 61h–63h, bity MAP), MPH-1V (YM3812 po resetu, stav), CGA-1V (VBI), AND-1B (INT1,
-skládání sloupců, blikání), AND-1Z/89 (20 řádků, 109 znaků).
+skládání sloupců, blikání), AND-1Z/89 (20 řádků, 109 znaků, čekání), AND-1V (rev 2.3, font typ 1).

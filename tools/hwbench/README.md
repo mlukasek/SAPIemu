@@ -35,6 +35,7 @@ Potřeba: pasmo (`..\Tools\pasmo-0.5.3`), Python s balíčky `pyserial`, `logic2
 | `intblock.asm`, `intblock2.asm` + `intblock_run.py` | po kterých instrukcích Z80 nepřijme přerušení (doba /INT0 → INTA) |
 | `and1b.asm` + `and1b_int.py`, `and1b_emu.sapi` | AND-1B místo AND-1V: obraz (skládání sloupců, atributy) pro fotku a emulátor, INT1 na D9 |
 | `and1z.asm`, `and1z_emu.sapi`, `and1z_sync.py`, `and1z_window.py` | AND-1Z/89 místo AND-1V: obraz (řádky, sloupce), délka řádku z kompozitního videa (D13 analogově), okno CPU (D14 = QA, D15 = WAIT) |
+| `and1vfont.asm` | všech 256 znaků AND-1V pro fotku (font typ 1, nebo typ 2) |
 | `busclk.py` | takt sběrnice Φ2 (D13 přes DKS-1) proti CLK CPU, frekvence, střída, zpoždění hran |
 | `intavec*.asm` | bajt čtený v INTA bez karty s vektorem (IM 2; přerušení z DSM-1V, z 82C54, mezera před INTA) |
 | `vbi.asm` + `vbi_run.py` | VBI karty CGA-1V proti VSYNC (D14 na VSYNC) |

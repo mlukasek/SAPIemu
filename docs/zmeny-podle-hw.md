@@ -296,6 +296,9 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
 - **Časování CPU:** zpožďovací smyčka 65 536 × 24 taktů trvá 393,5 ms jako při 4,000 MHz bez čekání; emulátor
   dává totéž.
 
+- **Font AND-1V rev 2.3** (`and1vfont.asm`, fotka všech 256 znaků proti emulátoru s oběma fonty, 2026-10-13): na
+  autorově desce je typ 1 (`font_and1v22_1024.bin`), výchozí font emulátoru. Typ 2 (`newfont_…`) se liší ve 139
+  znacích, na fotce rozhodlo A (špička), T (patka), 0 (přeškrtnutá) a d (ocásek).
 - **AND-1B rev 1.4 místo AND-1V** (F800h, INT1 50 Hz; `and1b.asm`, `and1b_int.py`, emulátor `and1b_emu.sapi`,
   2026-10-13): INT1 impulzy 317,0 µs, intervaly 4× 16,641 ms a 1× 33,283 ms (5 z 6 snímků). Fotka obrazovky se
   shoduje se snímkem emulátoru: skládání sloupců 32–63 (40–47 a 56–63 zrcadlí 32–39, neviditelné řádky 24–31 jsou

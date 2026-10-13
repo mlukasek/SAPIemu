@@ -774,9 +774,8 @@ Rozhodne všechna místa označená [S] a [?]:
 21. **Desky V – JPR-1V a AND-1V** (rozbor `docs/desky/JPR-1V.md`, `AND-1V.md`):
     - Který obraz EEPROM máš v JPR-1V a ve které bance (propojka BIOS osazená/rozpojená) je ECMON IDE-1 a
       MikroBIOS 3.0? Šel by dump 28C64?
-    - ~~Kterou revizi AND-1V má sestava V?~~ **Rev 2.3** (autor 2026-10-13). Který font je vypálený (10×24 typ 1
-      nebo typ 2 z `..\SAPI-karty\AND-1V\rev2.3\font_and1v22`)? Autor si pamatuje `FontROM`, ten je ale pro
-      rev 1.x (8 KB, jiné adresování, = `roms/and-1v/FontAND1V_rev1.bin`). Rozhodne fotka obrazovky se všemi znaky.
+    - ~~Kterou revizi AND-1V má sestava V a který font je vypálený?~~ **Rev 2.3, font typ 1**
+      (`font_and1v22_1024.bin`, jako výchozí v emulátoru; ověřeno fotkou 2026-10-13, `docs/desky/AND-1V.md`).
     - ~~Smí MikroBIOS 3.0 (HEX) a fonty AND-1V do `roms/`?~~ Ano, binárky (viz odpovědi výše).
     - ~~Lišta TURBO~~: autor přepíná TURBO tlačítkem na panelu ZDR, v emulátoru stejně.
     - ~~Oscilátor 8 MHz?~~ Ano: CPU 4,000 MHz při TURBO, sběrnice 2,000 MHz (změřeno 2026-10-13).
