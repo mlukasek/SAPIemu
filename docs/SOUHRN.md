@@ -15,7 +15,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   Popisy sestav `sapi1v_BadApple` a `sapi1v_PoP` opravené na volbu 3. Autor při zkoušce našel zamrznutí Bad Apple
   hned po startu: kontrola zamrzání FXS4 brala v INTA adresu předchozího cyklu (zápis do videopaměti CGA-1V) místo
   PC, opraveno, test `freeze_vram_write`, Bad Apple i PoP běží; balíček přebalený. Jen pro kamarády (soukromě),
-  tag a veřejný release ne.
+  tag a veřejný release ne. Pak (autor): konfigurátor při prvním spuštění za obrazovkou, plotter AR 1990 mimo menu
+  Klávesnice, parametry `open_bus` a `ststb`, JPR-1ZI a JPR-1Z s posledním bajtem sběrnice (předběžně), nový nástroj
+  `tools/check_machines.py`: 59 sestav a porty a dema (Bad Apple celé, FXS4 všech 26 skladeb se zvukem, PoP,
+  Bomberman, Flappy na CGA-1V i DGD-1V) prošly. Zip od té doby nepřebalený (autor: až řekne).
 
 - **Noc 2026-10-09 (autor: „rozhoduj se sám, překvap mě“):** KZD-1 pushnutý, kopírovací program CKM, program rovnou
   na kazetu KZD-1, souhrn otázek na HW (`docs/hw-otazky.md`), zapisovač ARITMA Minigraf 0507 s ovladačem z EPROM

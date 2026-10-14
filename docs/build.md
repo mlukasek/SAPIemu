@@ -30,6 +30,16 @@ Testy běží paralelně (8 najednou, `execution.jobs` v `CMakePresets.json`). �
 | před pushem, po změně časování nebo výkonu | navíc `tools\build.cmd release test` | asi 10 s + překlad |
 | změna jader CPU (`src/cpu`, `third_party/i8080`, `z80.h`), před vydáním zipu | `tools\build.cmd release full` | asi 3 min |
 | změna kódu závislého na platformě (`#ifdef _WIN32`, soubory, sériová linka, CMake, nové knihovny), před vydáním | Linux ve WSL (níže) | asi 1 min + překlad |
+| před vydáním zipu (po `release test`) | `python tools\check_machines.py --games` | asi 5 min |
+
+**Kontrola všech sestav** (`tools/check_machines.py`, od 2026-10-14): v každé sestavě z `machines/` spustí něco
+konkrétního (`DIR` na různé disky, `PRINT 6*7` v MIKROBASICu, `D0 7` v MIKOSu, přihlášení v shellu RKD-1, `DIRMT`
+pásky RMP-1, `.K_I` a `.K_D` na KZD-1, Manic Miner na BGP-1S…) a zkontroluje text obrazovky, snímek grafiky nebo
+sériovou linku a varování v logu. `--games` přidá porty a dema sestavy V: Bad Apple!! celé až do návratu do CP/M,
+všech 26 skladeb FXS4 s kontrolou zvuku, Prince of Persia, Bomberman, Flappy na CGA-1V a DGD-1V. Pracuje nad čistou
+kopií dat z gitu (`roms`, `media`, `machines` a IDE disk z `work/ide`) v `out/check/<čas>/`, takže `work/` (pracovní
+kopie, baterie) zůstane netknuté; výstupy a snímky jsou tamtéž. Používá release `sapiemu-cli` (aktuální sestavení!),
+`--debug` debug. Nová sestava potřebuje svůj scénář v tabulce `MACHINES`, jinak ji nástroj ohlásí.
 
 Dotčené testy podle oblasti: deska nebo sestava → testy, které ji načítají (`grep machines/… tests/*.cpp`); diskové
 řadiče → `fdc_ecmon|floppy_imd|sapi_sys|drive_letters|rpd1|zps3|zps4`; GUI texty → `i18n`; MCP → `mcp`; stav → `state`.
