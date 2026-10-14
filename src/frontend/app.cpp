@@ -69,6 +69,7 @@ struct App {
     int focus_screen = 3;
     bool rack_behind = false;   // the first start: the machine configuration opens behind the screen window
     bool rack_placed = false;
+    bool rack_in_ini = false;   // imgui.ini has a place for the configuration (then it is used)
     std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
     int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
@@ -1229,6 +1230,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     // new user sees there is one (author, 0.5.0)
     bool first_start = !app.settings_path.empty() && !file_exists(app.settings_path);
     ini_rename_windows(app.ini_path);
+    if (!app.ini_path.empty()) {   // the layout knows the configuration: its place is kept at a first start too
+        std::string ini;
+        app.rack_in_ini = file_read_text(app.ini_path, ini) && ini.find("###rack]") != std::string::npos;
+    }
     if (!app.settings_path.empty()) {
         std::string text;
         if (file_read_text(app.settings_path, text)) {
@@ -1423,7 +1428,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             ImGuiWindow* rack = ImGui::FindWindowByName("###rack");
             ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
             if (rack && screen && rack->WasActive && rack->RootWindowDockTree != screen->RootWindowDockTree) {
-                if (!app.rack_placed) {   // its own place, not one from an older imgui.ini: at the right, at the top
+                if (!app.rack_placed && !app.rack_in_ini) {   // no place in imgui.ini: at the right, at the top
                     ImGuiViewport* vp = ImGui::GetMainViewport();
                     float u = ImGui::GetFontSize();
                     ImVec2 size(vp->WorkSize.x * 0.92f < 62.0f * u ? vp->WorkSize.x * 0.92f : 62.0f * u,
