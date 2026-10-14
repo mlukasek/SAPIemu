@@ -67,6 +67,7 @@ struct App {
     // frames in which the screen window takes the focus back: after the start of the program and of a machine
     // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
     int focus_screen = 3;
+    bool rack_behind = false;   // the first start: the machine configuration opens behind the screen window
     std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
     int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
@@ -1223,6 +1224,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
+    // no settings yet: the first start of a fresh copy shows the machine configuration (behind the screen), so a
+    // new user sees there is one (author, 0.5.0)
+    bool first_start = !app.settings_path.empty() && !file_exists(app.settings_path);
     ini_rename_windows(app.ini_path);
     if (!app.settings_path.empty()) {
         std::string text;
@@ -1283,6 +1287,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
     settings_apply(app, settings);
+    if (first_start) {
+        app.ui.show_rack = true;
+        app.rack_behind = true;
+    }
     std::string first = machine_file;
     if (first.empty()) {
         std::string last;
@@ -1305,7 +1313,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     app.settings_saved = settings;
     int snap_frames = 0;
     if (snap) {
-        app.ui.show_rack = snap->rack || !snap->open.empty();
+        app.ui.show_rack = snap->rack || !snap->open.empty() || first_start;   // --settings NEW: as a first start
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
@@ -1409,6 +1417,14 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (app.focus_screen > 0) {   // after the windows that opened with the machine
             app.focus_screen--;
             if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window(app);
+        }
+        if (app.rack_behind) {   // the first start: the configuration behind the screen, the keyboard stays there
+            ImGuiWindow* rack = ImGui::FindWindowByName("###rack");
+            ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
+            if (rack && screen && rack->WasActive && rack->RootWindowDockTree != screen->RootWindowDockTree) {
+                ImGui::BringWindowToDisplayBehind(rack->RootWindowDockTree, screen->RootWindowDockTree);
+                if (app.focus_screen == 0) app.rack_behind = false;
+            }
         }
         ImGui::Render();
 

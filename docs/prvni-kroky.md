@@ -15,7 +15,8 @@ Potřebujete Windows 10 nebo 11, 64 bit.
 
 ## Sestavy
 
-Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po prvním spuštění běží MikroMon.
+Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po prvním spuštění běží MikroMon a za oknem
+obrazovky je otevřený **konfigurátor sestavy** (karty v rámu, propojky, mapa portů; jinak Zobrazení → Sestava…).
 
 | Sestava | Co v ní je | Jak začít |
 |---|---|---|
