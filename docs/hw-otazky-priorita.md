@@ -71,7 +71,7 @@ Seřazeno podle toho, jak viditelný by rozdíl byl.
 
 Tyto body se mohou vyřešit kdykoli, nebo nikdy:
 
-- původ a verze souborů: `RADICROM.bin` u CGA-1V, poslední `.sch` BGP-1S, popisek 143 ns, kdo napsal hru „auto“,
+- původ a verze souborů: poslední `.sch` BGP-1S, popisek 143 ns, kdo napsal hru „auto“,
   ruční oprava FAST v plotteru AR 1990, verze ovladače ve FORMRKD, zdroje OFFSHDD.COM a BIOSu 2015, test TSX 10,
   kdo dělal testy MFC_TEST_CPM;
 - dokumentace a tisky: OCR „EB00H“ u DGD-1, BAT41/BAT42, IC4 74HCT04/14 u JPR-1S, prázdný `TEST AND1` v BIOSu 2.1,

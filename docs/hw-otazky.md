@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **237** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -126,10 +126,7 @@ Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní téma
 7. Kdo napsal hru „auto“?
 
 
-## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (3)
-
-- `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
-  to omylem, nebo k jiné desce?
+## [CGA-1V – barevná grafika 320×200 s výstupem VGA (Libor Lasota)](desky/CGA-1V.md) – Nejasnosti k ověření (2)
 
 - **INTA s PC v okně karty** (L. Lasota 2026-10-10, ověřeno pokusem): STSTB z JPR-1V při INTA s adresou v okně
   nastaví IC9B a RDY se už neuvolní (žádné /READ ani /WRITE). RESET to nevyřeší (JPR-1V ho vzorkuje s /M1), viz
@@ -803,7 +800,8 @@ Rozhodne všechna místa označená [S] a [?]:
       pro zápis (nečte), takže kolize není; DGD-1 to dál potřebuje.
 
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
-    - `..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
+    - ~~`..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?~~ Ano, je od Sharpu, autor ho smazal
+      (2026-10-14).
     - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 

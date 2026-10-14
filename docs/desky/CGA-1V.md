@@ -156,8 +156,8 @@ Bajt videoram → vstupy RAMDAC P7..P0 (list 2: posuvné registry IC15, IC16 74L
 
 ## Nejasnosti k ověření
 
-- `..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje (deska nemá PROM). Je
-  to omylem, nebo k jiné desce?
+- ~~`..\SAPI-karty\CGA-1V\RADICROM.bin` (2 KB, sestupná tabulka FF FE FD…) se k CGA-1V nevztahuje.~~ Vyřešeno
+  2026-10-14: soubor patří k Sharpu, do složky se dostal omylem a autor ho smazal.
 - ~~Přesné číslo čekacích taktů při 2 a 4 MHz, zápis při 2 MHz (1,57 proti 1,27)~~: vyřešeno 2026-10-11
   změřenými zpožděními (sondy na QA a /CPU, viz Časování). Zápis při 2 MHz teď sedí bez zvláštního ladění.
 - ~~Kde přesně začíná VBI vůči STATUS~~: změřeno 2026-10-11 (`tools/hwbench/vbi.asm`, `docs/zmeny-podle-hw.md`):

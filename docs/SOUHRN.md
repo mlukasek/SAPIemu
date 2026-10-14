@@ -888,7 +888,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       pro zápis (nečte), takže kolize není; DGD-1 to dál potřebuje.
 
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
-    - `..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?
+    - ~~`..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?~~ Ano, je od Sharpu, autor ho smazal
+      (2026-10-14).
     - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
