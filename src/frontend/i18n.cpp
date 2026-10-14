@@ -442,6 +442,8 @@ static const Translation k_table[] = {
     { "printer", "tiskárna" },
     { "New sheet", "Nový papír" },
     { "Plotter of AR 1990 (JPR-1, commands of Sharp MZ-1P16)", "Plotter z AR 1990 (JPR-1, povely Sharp MZ-1P16)" },
+    { "The plotter of AR 1990 is on the keyboard connector (configurator).",
+      "Na konektoru klávesnice je plotter z AR 1990 (konfigurátor)." },
     { "Lit: the plotter waits for the READY button.", "Svítí: plotter čeká na tlačítko READY." },
     { "Lit all the time: the buffer is empty.", "Svítí trvale: buffer je prázdný." },
     { "Stops the plotter; it beeps and waits for READY.", "Zastaví plotter, ten pípá a čeká na READY." },

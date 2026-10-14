@@ -19,6 +19,7 @@ KeyboardDevice* keyboard_from_config(const nlohmann::json& cfg, uint32_t cpu_hz,
 struct KeyboardPreset {
     const char* name;
     const char* config;   // JSON
+    bool keyboard = true; // false: another device on the keyboard connector (not in Machine -> Keyboard)
 };
 const std::vector<KeyboardPreset>& keyboard_presets(void);
 KeyboardDevice* keyboard_from_preset(const std::string& name, uint32_t cpu_hz, std::string& err);

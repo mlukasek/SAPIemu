@@ -104,7 +104,7 @@ const std::vector<KeyboardPreset>& keyboard_presets(void)
         { "ANK-1 (MIKOS)", R"({"type":"ANK-1","software":"mikos"})" },
         { "ANK-1M2", R"({"type":"ANK-1M2"})" },   // joyport: joystick unless set
         { "HRK-1 (APS-5)", R"({"type":"HRK-1"})" },
-        { "Plotter AR 1990", R"({"type":"AR 1990"})" },
+        { "Plotter AR 1990", R"({"type":"AR 1990"})", false },   // the plotter on K2 and K3, not a keyboard
     };
     return presets;
 }

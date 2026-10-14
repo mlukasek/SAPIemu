@@ -836,7 +836,10 @@ void draw_menu(App& app)
         ImGui::Separator();
         KeyboardDevice* kb = m ? m->keyboard() : nullptr;
         if (ImGui::BeginMenu(tr("Keyboard"), m != nullptr)) {
+            bool plotter = kb && !strcmp(kb->type_name(), "AR 1990");   // the plotter of AR 1990 on the connector
+            if (plotter) ImGui::TextDisabled("%s", tr("The plotter of AR 1990 is on the keyboard connector (configurator)."));
             for (const KeyboardPreset& p : keyboard_presets()) {
+                if (!p.keyboard || plotter) continue;
                 bool sel = kb && strcmp(kb->type_name(), p.name) == 0;
                 if (ImGui::MenuItem(p.name, nullptr, sel) && !sel) {
                     std::string err;
