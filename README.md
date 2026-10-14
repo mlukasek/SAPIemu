@@ -3,14 +3,19 @@
 **Emulátor počítače Tesla SAPI-1**: Z80, 8080 a 8085, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1
 až ZPS-4 a SAPI-1.5 (ZPS-6) po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
 PROM dumpů). K počítači patří i přístroje: měřicí jednotka APS-5 s regulací pecí, kazetopáskový záznamník dat
-KZD-1 a zapisovač ARITMA Minigraf 0507. Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
+KZD-1, kazetový disk RKD-1, magnetická páska RMP-1, přístrojová sběrnice IMS-2 s voltmetrem a zdrojem, zapisovač
+ARITMA Minigraf 0507 a plotter z Amatérského radia 1990. Chování desek V se ověřuje měřením na skutečném SAPI-1 V
+(logický analyzátor), odchylky od desky jdou v konfigurátoru vypnout. Emulátor má vestavěný MCP server pro vývoj
+softwaru pro SAPI s Claude.
 
 > *English: an emulator of the Czechoslovak Tesla SAPI-1 modular computer (Z80/8080/8085, ARB-1 bus) for Windows.
 > Cards are configured like the real boards (jumpers, address decoders from PROM dumps). Original ZPS-1 to ZPS-4
 > machines with MIKROBASIC, MIKOS and CP/M, the new boards of Libor Lasota ("V" boards with VGA, colour graphics
 > and YM3812 sound, JPR-1S/JPR-1X, PMD-85 style graphics BGP-1S), the APS-5 furnace control unit, the KZD-1
-> cassette data recorder and the ARITMA Minigraf 0507 plotter, cassette tapes made from programs, save
-> states, a debugger and a built-in MCP server. Alpha version, the documentation is in Czech.*
+> cassette data recorder, the RKD-1 cartridge disk, the RMP-1 magnetic tape, the IMS-2 instrument bus with a
+> voltmeter and a power supply, the ARITMA Minigraf 0507 plotter, cassette tapes made from programs, save states,
+> a debugger and a built-in MCP server. The V boards are checked against a real SAPI-1 V with a logic analyzer.
+> Alpha version, the documentation is in Czech.*
 
 ![Sestava V: CP/M na AND-1V a obrázek na barevné grafice CGA-1V](docs/img/sapi1v-cpm-cga.png)
 
@@ -157,6 +162,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - [docs/desky/Minigraf.md](docs/desky/Minigraf.md): zapisovač ARITMA Minigraf 0507 a jeho ovladač.
 - [docs/hw-otazky.md](docs/hw-otazky.md): všechny otevřené otázky k ověření na skutečném HW (generuje
   `tools/hw_otazky.py`), roztříděné podle důležitosti v [docs/hw-otazky-priorita.md](docs/hw-otazky-priorita.md).
+- [docs/hw-otazky-priorita.md](docs/hw-otazky-priorita.md): otevřené otázky na HW podle důležitosti.
 - [docs/zmeny-podle-hw.md](docs/zmeny-podle-hw.md): změny emulátoru podle měření na skutečném SAPI-1 V
   (pracoviště s PicoROM a logickým analyzátorem, programy v `tools/hwbench/`): UART DSM-1V, čekání CGA-1V
   a AND-1V, prázdná sběrnice JPR-1V, YM3812 na MPH-1V, zamrzání při přerušení v okně videokarty a co měření

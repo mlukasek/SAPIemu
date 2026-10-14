@@ -84,7 +84,10 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
   v konfigurátoru jde do stroje.
 - **Výjimka: parametry označené „(platí hned)“** se u běžící sestavy použijí okamžitě, jako přepínač na skutečné
   desce: barva obrazu, režim zápisu RAM disku ZRMD-1/ZRD-1V (`mode`), přepínače S1–S4 ZRMD-1, TURBO a BIOS
-  JPR-1V a věrný režim klávesnice („Klávesnice: věrně jako hardware“, `keyboard.strict`).
+  JPR-1V, co vrací prázdná sběrnice (`open_bus` u JPR-1V, JPR-1ZI, JPR-1Z), STSTB JPR-1V (`ststb`, zamrzání při
+  INTA, nebo záplata IC15) a věrný režim klávesnice („Klávesnice: věrně jako hardware“, `keyboard.strict`).
+- **První spuštění** (ještě bez `sapiemu-settings.json`) otevře konfigurátor za oknem obrazovky. Poloha z `imgui.ini`
+  má přednost, jinak stojí vpravo nahoře (od 2026-10-14).
 - **Výměnná média platí hned** (od 2026-10-10):
   - patří sem diskety řadičů RPD-1, FDC-1 a MFC-1A (`drive_x.image`), pásky RMP-1 (`unitN.tape`), kazety RKD-1
     (`unitN.cartridge`), kazeta KZD-1 (`kzd1.cassette`) a kazeta v magnetofonu DSM-1 (`tape`);

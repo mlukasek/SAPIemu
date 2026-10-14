@@ -18,7 +18,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   tag a veřejný release ne. Pak (autor): konfigurátor při prvním spuštění za obrazovkou, plotter AR 1990 mimo menu
   Klávesnice, parametry `open_bus` a `ststb`, JPR-1ZI a JPR-1Z s posledním bajtem sběrnice (předběžně), nový nástroj
   `tools/check_machines.py`: 59 sestav a porty a dema (Bad Apple celé, FXS4 všech 26 skladeb se zvukem, PoP,
-  Bomberman, Flappy na CGA-1V i DGD-1V) prošly. Zip od té doby nepřebalený (autor: až řekne).
+  Bomberman, Flappy na CGA-1V i DGD-1V) prošly; `sapiemu-cli --joystick` (Flappy na DGD-1V se ovládá joystickem).
+  Zip přebalený po aktualizaci dokumentace (autor 2026-10-14).
 
 - **Noc 2026-10-09 (autor: „rozhoduj se sám, překvap mě“):** KZD-1 pushnutý, kopírovací program CKM, program rovnou
   na kazetu KZD-1, souhrn otázek na HW (`docs/hw-otazky.md`), zapisovač ARITMA Minigraf 0507 s ovladačem z EPROM
