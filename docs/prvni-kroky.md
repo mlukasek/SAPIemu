@@ -120,7 +120,8 @@ obrazovky je otevřený **konfigurátor sestavy** (karty v rámu, propojky, mapa
 - SPLAY s HELLFIRE.VGM (`SPLAY HELLFIRE.VGM`);
 - RAT PLAYER se skladbami RAD (`RAT SMJOOP.RAD`, VOIDRAST, VOIDTERR, ADLIB2, BLUEAD);
 - MPH-TEST, Y1STDEMO, SNDDEMON, ZRDTEST;
-- hra Flappy `FLAPDGD` pro sestavu `sapi1v_DGD_Flapy.sapi` (grafika DGD-1V).
+- hra Flappy `FLAPDGD` pro sestavu `sapi1v_DGD_Flapy.sapi` (grafika DGD-1V, `C:FLAPDGD` po volbě 3); ovládá se
+  joystickem: Ctrl+F8 joystick z klávesnice, mezerník = fire (úvod, výběr scény, hra).
 
 Další programy z `media\` si nahrajete takto:
 
