@@ -79,7 +79,7 @@ static void ecmon(bool dpp)
     Machine m;
     std::string err;
     CHECK(m.load_json(machine(jo, dout), err));
-    m.type_text("1");   // ECMON variant 1 (RPD8, no floppy controller needed)
+    m.type_text("3");   // A: ZRMD-1, B,C: HDD: without IDE-1 the disks read XYXY (open bus), 1 (RPD8) waits for the RPD-1 for ever
     CHECK(run_until_text(m, "PMD32-SD OK", 30.0));
     CHECK(run_until_text(m, "\nA>", 10.0));
     m.run_seconds(0.3);

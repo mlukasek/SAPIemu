@@ -112,7 +112,7 @@ static Machine* cpm_machine(void)
     Machine* m = new Machine();
     CHECK(m->load_json(cfg, err));
     CHECK(run_until_text(*m, "Zadej 0-3", 3.0));
-    m->type_text("1");
+    m->type_text("3");   // A: ZRMD-1, B,C: HDD: without IDE-1 the disks read XYXY (open bus), 1 (RPD8) waits for the RPD-1 for ever
     CHECK(run_until_text(*m, "A>", 15.0));
     return m;
 }

@@ -77,6 +77,21 @@ static const ParamOption k_z80_type[] = {
 };
 #define Z80_TYPE_PARAM(def)                                                                                            \
     { "z80", PK_CHOICE, "Z80 chip: NMOS or CMOS", "Čip Z80: NMOS, nebo CMOS", def, k_z80_type, 0, 0 },
+static const ParamOption k_open_bus[] = {
+    { "\"last\"", "the last byte of the data bus (as the board)", "poslední bajt datové sběrnice (jako deska)" },
+    { "\"ff\"", "FFh (a deviation from the board)", "FFh (odchylka od desky)" },
+    { nullptr, nullptr, nullptr },
+};
+#define OPEN_BUS_PARAM                                                                                                 \
+    { "open_bus", PK_CHOICE, "A read nobody answers gives", "Čtení, na které nikdo neodpoví, vrací", "\"last\"",      \
+      k_open_bus, 0, 0 },
+static const ParamOption k_ststb[] = {
+    { "\"mreq_iorq\"", "from /MREQ and /IORQ, as the board (an interrupt with the PC in a video card window freezes)",
+      "z /MREQ i /IORQ, jako deska (přerušení s PC v okně videokarty zamrzne)" },
+    { "\"mreq\"", "from /MREQ only (patch IC15 of L. Lasota: no STSTB at INTA, no freeze)",
+      "jen z /MREQ (záplata IC15 L. Lasoty: bez STSTB při INTA, nezamrzá)" },
+    { nullptr, nullptr, nullptr },
+};
 
 static const CardParam k_jpr1zi[] = {
     { "rom", PK_FILE, "EPROM 2764", "EPROM 2764", "\"\"", k_jpr_roms, 0, 0 },
@@ -87,6 +102,7 @@ static const CardParam k_jpr1zi[] = {
     { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
     { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
     Z80_TYPE_PARAM("\"nmos\"")
+    OPEN_BUS_PARAM
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
@@ -123,6 +139,7 @@ static const CardParam k_jpr1z[] = {
     { "bus_mhz", PK_CHOICE, "JP2/JP3: bus clock F2", "JP2/JP3: takt sběrnice F2", "2", k_bus_mhz, 0, 0 },
     { "crystal_hz", PK_INT, "Crystal (Hz)", "Krystal (Hz)", "16000000", nullptr, 1000000, 40000000 },
     Z80_TYPE_PARAM("\"nmos\"")
+    OPEN_BUS_PARAM
     { "keyboard", PK_KEYBOARD, "Keyboard (connector X2)", "Klávesnice (konektor X2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },
@@ -158,6 +175,8 @@ static const CardParam k_jpr1v[] = {
     { "osc_hz", PK_INT, "Oscillator (Hz, bus = /4, CPU = /4 or /2)", "Oscilátor (Hz, sběrnice = /4, CPU = /4 nebo /2)",
       "8000000", nullptr, 1000000, 40000000 },
     Z80_TYPE_PARAM("\"cmos\"")
+    OPEN_BUS_PARAM
+    { "ststb", PK_CHOICE, "STSTB", "STSTB", "\"mreq_iorq\"", k_ststb, 0, 0 },
     { "keyboard", PK_KEYBOARD, "Keyboard (connector K2)", "Klávesnice (konektor K2)", "null", nullptr, 0, 0 },
     { "keyboard.strict", PK_BOOL, "Keyboard: true to the hardware (keys may be lost)",
       "Klávesnice: věrně jako hardware (klávesy se mohou ztratit)", "false", nullptr, 0, 0 },

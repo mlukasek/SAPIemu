@@ -4,6 +4,10 @@ Stav: **emulovaná** (2026-10-04), sestava `machines/sapi1v.sapi`, test `tests/t
 Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
 - parametry `rom` (8 KB), `bios` (`fitted` = banka 0, `open` = banka 1), `turbo`, `osc_hz`, `z80` (`cmos`
   výchozí, `nmos`);
+- **Parametry podle desky, dají se vypnout** (od 2026-10-14, autor): `open_bus` = `last` (poslední bajt datové
+  sběrnice, výchozí) nebo `ff` (odchylka); `ststb` = `mreq_iorq` (STSTB z /MREQ i /IORQ jako deska, přerušení s PC
+  v okně videokarty zamrzne, výchozí) nebo `mreq` (Liborova záplata IC15: bez STSTB při INTA, nezamrzá, čekání
+  karet zůstane). Oba platí hned i za chodu; karta, která už RDY drží, ho drží dál (vypnout a zapnout).
 - **INTA bez karty s vektorem:** deska čte bajt na datové sběrnici (poslední přenesený, za 1–2 µs se rozplyne
   k FFh), emulátor vrací FFh (rozhodnutí autora 2026-10-13, `docs/zmeny-podle-hw.md`).
 - **Z80 je CMOS** (autorova deska: Zilog Z84C0020PEG): hned po `LD A,I` a `LD A,R` nepřijme přerušení, až po další

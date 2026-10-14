@@ -53,6 +53,8 @@ Originální boot EPROM Tesla IMA pro ZPS-4 se nenašla.
 ## Nejasnosti
 
 - Originální boot EPROM ZPS-4 (Tesla IMA) a systémová disketa.
+- **Prázdná sběrnice:** od 2026-10-14 poslední bajt datové sběrnice jako JPR-1V, předběžně podle paměti autora
+  (parametr `open_bus`, `ff` = dřívější chování). Změřit.
 - **Čip Z80: NMOS, nebo CMOS?** Parametr `z80` (výchozí `nmos`, v ZPS-4 nejspíš NMOS U880 nebo Z80A). Viz JPR-1V.
 - **STSTB při INTA a RESET jen s /M1** (L. Lasota 2026-10-10 píše o JPR-1Z/1V): dává JPR-1Z STSTB i od /IORQ
   jako JPR-1V a je RESET synchronizovaný s /M1? Záplata pro refresh na JPR-1Z podle Libora je. Popis v

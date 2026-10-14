@@ -125,7 +125,9 @@ static void zrd_lock(Machine& m, Card* zrd)
 // JPR-1V: a read no card answers returns the last byte of the CPU data bus (measured on the author's board
 // 2026-10-11, tools/hwbench/openbus.asm: IN A,(9Ah) 9Ah, IN A,(C) 78h, LD A,(C123h) in the RAM-1V hole C1h,
 // LD A,(HL) there 7Eh). CP/M on IDE-1 without the card names the disk "XYXY..." (ports 58h, 59h).
-static void open_bus(void)
+// open_bus: the JPR-1V parameter (null = the default, the last byte of the bus as on the board); live: switched
+// while running instead of in the configuration
+static void open_bus_run(const char* mode, bool live, uint8_t out[4])
 {
     static const uint8_t prog[] = {
         0xF3,                    // di
@@ -143,10 +145,15 @@ static void open_bus(void)
         0xAF, 0xD3, 0x63,        // MAP off
         0x76,                    // halt
     };
+    json cfg = machine_cfg();
+    if (mode && !live)
+        for (json& c : cfg["cards"])
+            if (c.value("type", std::string()) == "JPR-1V") c["open_bus"] = mode;
     Machine m;
     std::string err;
-    CHECK(m.load_json(machine_cfg(), err));
+    CHECK(m.load_json(cfg, err));
     m.run_seconds(0.2);
+    if (mode && live) CHECK(m.set_live_param(m.cpu, "open_bus", mode, err));
     for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
     CpuRegs r;
     m.cpu->get_regs(r);
@@ -158,10 +165,21 @@ static void open_bus(void)
         if (r.halted) break;
     }
     CHECK(r.halted);
-    CHECK_EQ(m.bus.mem_peek(0x9000), 0x9A);
-    CHECK_EQ(m.bus.mem_peek(0x9001), 0x78);
-    CHECK_EQ(m.bus.mem_peek(0x9002), 0xC1);
-    CHECK_EQ(m.bus.mem_peek(0x9003), 0x7E);
+    for (int i = 0; i < 4; i++) out[i] = m.bus.mem_peek((uint16_t)(0x9000 + i));
+}
+
+static void open_bus(void)
+{
+    uint8_t v[4];
+    open_bus_run(nullptr, false, v);   // as the board
+    CHECK_EQ(v[0], 0x9A);
+    CHECK_EQ(v[1], 0x78);
+    CHECK_EQ(v[2], 0xC1);
+    CHECK_EQ(v[3], 0x7E);
+    open_bus_run("ff", false, v);      // the deviation: FFh
+    for (int i = 0; i < 4; i++) CHECK_EQ(v[i], 0xFF);
+    open_bus_run("ff", true, v);       // switched while running
+    for (int i = 0; i < 4; i++) CHECK_EQ(v[i], 0xFF);
 }
 
 // ZRMD-1: /RES clears only the latch of port 63h (A16-A21); the counters (61h) and 62h keep the address
@@ -193,7 +211,8 @@ static void zrmd1_reset(void)
 // The FXS4 freeze (L. Lasota 2026-10-10, measured on the author's board 2026-10-11, tools/hwbench/freeze.asm):
 // an interrupt taken while the PC is in the CGA-1V window; STSTB at INTA makes the card hold RDY low for good,
 // RESET has no effect. With the card's wait states off nothing happens.
-static bool freeze_run(bool waits)
+// ststb: the JPR-1V parameter (null = the default, STSTB from /MREQ and /IORQ as the board)
+static bool freeze_run(bool waits, const char* ststb = nullptr)
 {
     static const uint8_t prog[] = {
         0xF3,                          // di
@@ -209,6 +228,9 @@ static bool freeze_run(bool waits)
     json cfg = machine_cfg();
     for (json& c : cfg["cards"])
         if (c.value("type", std::string()) == "CGA-1V") c["wait_states"] = waits;
+    if (ststb)
+        for (json& c : cfg["cards"])
+            if (c.value("type", std::string()) == "JPR-1V") c["ststb"] = ststb;
     Machine m;
     std::string err;
     CHECK(m.load_json(cfg, err));
@@ -334,6 +356,7 @@ static void fxs4_freeze(void)
 {
     CHECK(freeze_run(true));
     CHECK(!freeze_run(false));
+    CHECK(!freeze_run(true, "mreq"));   // patch IC15: no STSTB at INTA, the waits of the card stay
 }
 
 static void cpm(void)

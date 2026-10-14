@@ -57,7 +57,10 @@ podporuje PMD32-SD přes IDE-1 (porty 5C–5Fh), první přes DPP-1 (28–2Fh).
   JPR-1V poslední bajt datové sběrnice, u `IN A,(n)` číslo portu (změřeno, `docs/zmeny-podle-hw.md`). BIOS
   varianty 0–2 pak čeká na stav řadiče FDC, RPD-1 nebo MFC-1A, který v sestavě není (smyčka `IN A,(3Ch)` nebo
   `IN A,(0Ch)`), jako na skutečné desce. Na sestavách V se proto volí **3** (HDD). Bez IDE-1 dává varianta 3
-  disky se jménem „XYXY…“ (porty 58h, 59h = „X“, „Y“, autor). Karty s JPR-1ZI vrací dál FFh.
+  disky se jménem „XYXY…“ (porty 58h, 59h = „X“, „Y“, autor). **Od 2026-10-14 totéž na JPR-1ZI a JPR-1Z**
+  (předběžně podle paměti autora, že neexistující IDE ukazovalo disky XYXY; změřit): sestavy `cpm_zrmd`,
+  `cpm_zrmd_dpp1`, `cpm_zrmd_rtc_dsp` se startují volbou 3, ECMON vypíše `INIT HDD YXYXYX…`. Parametr procesorové
+  karty „Čtení, na které nikdo neodpoví, vrací“ = FFh vrátí starý stav (pak jde i volba 1 bez RPD-1).
 - **Baterie DMR-1:** autor ji na svých strojích nemá, sestavy v `machines/` proto mají u DMR-1 `"battery": false`
   (od 2026-10-05) a menu se ukáže po každém zapnutí. S baterií (výchozí hodnota parametru, soubor
   `work/dmr-1/sram.bin` sdílený sestavami jako jedna fyzická karta, `docs/desky/DMR-1.md`) podpis i volba

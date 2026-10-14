@@ -1571,6 +1571,11 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
   prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
   Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+- **Chování desek podle HW jde vypnout** (autor 2026-10-14): parametry procesorové karty `open_bus` (JPR-1V,
+  JPR-1ZI, JPR-1Z: poslední bajt, nebo FFh) a `ststb` (JPR-1V: jako deska se zamrzáním, nebo záplata IC15).
+  Výchozí je vždy chování desky. JPR-1ZI a JPR-1Z vrací poslední bajt **předběžně** podle autorovy paměti (disky
+  XYXY bez IDE), otázka zůstává v Nejasnostech k měření. Sestavy CP/M s ECMONem bez řadiče disket proto startují
+  volbou 3 (návody, testy).
 - **AND-1Z/89 čeká do konce okna CPU se změřeným znakovým taktem 600,2 ns** (autor schválil 2026-10-13): stejný
   model jako CGA-1V. Takt je změřený na autorově desce, ne kulatých 600 ns: s nimi se okno v emulaci zamklo na takt
   CPU (600 a 500 ns jsou soudělné) a LDIR při 2 MHz čekal o 291 taktů déle než deska, kde jsou krystaly 10 MHz

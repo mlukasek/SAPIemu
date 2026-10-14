@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **237** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **238** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -378,9 +378,12 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 10. Procesor 8085: příznaky V a K, DSUB/ARHL a časování přijetí RST 7.5/TRAP (`docs/8085.md`, Nejasnosti).
 
 
-## [JPR-1Z – procesorová deska Z80 pro ZPS-4](desky/JPR-1Z.md) – Nejasnosti (4)
+## [JPR-1Z – procesorová deska Z80 pro ZPS-4](desky/JPR-1Z.md) – Nejasnosti (5)
 
 - Originální boot EPROM ZPS-4 (Tesla IMA) a systémová disketa.
+
+- **Prázdná sběrnice:** od 2026-10-14 poslední bajt datové sběrnice jako JPR-1V, předběžně podle paměti autora
+  (parametr `open_bus`, `ff` = dřívější chování). Změřit.
 
 - **Čip Z80: NMOS, nebo CMOS?** Parametr `z80` (výchozí `nmos`, v ZPS-4 nejspíš NMOS U880 nebo Z80A). Viz JPR-1V.
 
@@ -398,7 +401,9 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
   a podle nápisu na čipu.
 
 - **Čtení prázdné sběrnice:** JPR-1V vrací poslední bajt datové sběrnice CPU (změřeno 2026-10-11). Jak je to
-  u JPR-1ZI, JPR-1Z a JPR-1 (8080)? Emulace u nich zatím vrací FFh.
+  u JPR-1ZI, JPR-1Z a JPR-1 (8080)? **Od 2026-10-14 emuluje JPR-1ZI i JPR-1Z poslední bajt předběžně** (autor si
+  pamatuje, že neexistující IDE ukazovalo disky XYXY), parametr `open_bus` (`last` výchozí, `ff`). Změřit na
+  skutečné JPR-1ZI (`tools/hwbench/openbus.asm`). JPR-1 (8080) dál FFh.
 
 - Nedohledaný účel sítí „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI.
 

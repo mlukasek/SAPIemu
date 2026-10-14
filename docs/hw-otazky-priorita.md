@@ -19,7 +19,8 @@ Skupiny:
 ## A – ověřit na pracovišti (pořadí podle užitku)
 
 1. **JPR-1ZI** ([JPR-1ZI.md](desky/JPR-1ZI.md), [JPR-1Z.md](desky/JPR-1Z.md)): co vrací prázdná sběrnice (JPR-1V
-   vrací poslední bajt, a to změnilo start ECMONu na sestavách V; ZI má zatím FFh), STSTB při INTA (zamrzání FXS4),
+   vrací poslední bajt, a to změnilo start ECMONu na sestavách V; ZI a Z od 2026-10-14 předběžně také, podle
+   paměti autora, ověřit), STSTB při INTA (zamrzání FXS4),
    RESET jen s /M1, čip Z80 NMOS/CMOS (`intblock.asm`). Týká se všech sestav s JPR-1ZI a CP/M.
 2. **JPR-1X, procesor 8085** ([JPR-1X.md](desky/JPR-1X.md), [8085.md](8085.md)): příznaky V a K, nedokumentované
    instrukce, RIM, časování RST 7.5/TRAP, rezistor na D3 a prázdná sběrnice (MikroMon podle ní zjišťuje paměť),

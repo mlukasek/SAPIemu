@@ -31,7 +31,8 @@ Jpr1zi::~Jpr1zi() {}
 
 bool Jpr1zi::live_param(const char* path) const
 {
-    return (turbo_switch && (!strcmp(path, "turbo") || !strcmp(path, "bios"))) || CpuCard::live_param(path);
+    return (turbo_switch && (!strcmp(path, "turbo") || !strcmp(path, "bios") || !strcmp(path, "ststb"))) ||
+           !strcmp(path, "open_bus") || CpuCard::live_param(path);
 }
 
 bool Jpr1zi::set_live_param(const char* path, const json& v, std::string& err)
@@ -45,6 +46,19 @@ bool Jpr1zi::set_live_param(const char* path, const json& v, std::string& err)
         std::string b = v.is_string() ? v.get<std::string>() : std::string();
         if (b != "fitted" && b != "open") { err = "bios must be fitted (bank 0) or open (bank 1)"; return false; }
         eprom_off = b == "fitted" ? 0x000u : 0x800u;
+        return true;
+    }
+    if (turbo_switch && !strcmp(path, "ststb")) {   // a card already holding RDY stays so: power off and on
+        std::string st = v.is_string() ? v.get<std::string>() : std::string();
+        if (st != "mreq_iorq" && st != "mreq") { err = "ststb must be mreq_iorq or mreq"; return false; }
+        ststb_inta = st == "mreq_iorq";
+        return true;
+    }
+    if (!strcmp(path, "open_bus")) {
+        std::string ob = v.is_string() ? v.get<std::string>() : std::string();
+        if (ob != "last" && ob != "ff") { err = "open_bus must be last or ff"; return false; }
+        open_bus_hold = ob == "last";
+        if (!open_bus_hold) bus->open_value = 0xFF;
         return true;
     }
     return CpuCard::set_live_param(path, v, err);
@@ -80,11 +94,21 @@ bool Jpr1zi::configure(const json& cfg, std::string& err)
         cpu_hz = (uint32_t)(osc / 2);   // time base; TURBO (switchable while running) selects osc/2 or osc/4
         turbo_switch = true;
         turbo_on = turbo;
-        open_bus_hold = true;
-        ststb_inta = true;
+        std::string st;   // STSTB from /MREQ and /IORQ (the board: an INTA in a card window freezes), or /MREQ only
+        if (!cfg_string(cfg, "ststb", st, "mreq_iorq", err)) return false;
+        if (st != "mreq_iorq" && st != "mreq") { err = "ststb must be mreq_iorq (as the board) or mreq (patch IC15)"; return false; }
+        ststb_inta = st == "mreq_iorq";
         eprom_off = bios == "fitted" ? 0x000u : 0x800u;
         eprom_mask = 0x7FF;
     }
+
+    // an undriven read: the last byte of the data bus (measured on JPR-1V; JPR-1ZI and JPR-1Z the same by the
+    // memory of the author, to be measured), or FFh
+    std::string ob;
+    if (!cfg_string(cfg, "open_bus", ob, "last", err)) return false;
+    if (ob != "last" && ob != "ff") { err = "open_bus must be last (the last byte of the bus) or ff"; return false; }
+    open_bus_hold = ob == "last";
+    if (!open_bus_hold && bus) bus->open_value = 0xFF;
 
     std::string z80_type;
     if (!cfg_string(cfg, "z80", z80_type, v ? "cmos" : "nmos", err)) return false;
