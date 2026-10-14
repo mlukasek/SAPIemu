@@ -80,7 +80,8 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
 Výsledek 2026-10-06: všech 37 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX),
-`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-09 před 0.4.0: 44 testů (distribuce se ve WSL jmenuje `Ubuntu`,
+`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-14 před 0.5.0: 53 testů (předtím 2026-10-09 před 0.4.0: 44; čisté
+sestavení našlo dvě varování v kódu DPS-1, opravená; distribuce se ve WSL jmenuje `Ubuntu`,
 `wsl -d Ubuntu`, klon aktualizuje `git pull /mnt/e/SAPI_GIT/SAPIemu main`). Čisté sestavení (`cmake --build --preset linux-debug --clean-first`) je bez varování
 GCC ve vlastním kódu (varování v `third_party/` a `_deps/` se neřeší).
 Testy `test_cassette` a `test_mikos` je hledají v `../SAPI_DOKU`, pak ve starém archivu na `H:`, jinak tu část

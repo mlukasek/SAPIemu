@@ -1571,6 +1571,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **DSM-1V MR do prvního /MR:** emulováno podle schématu a měření. Do uloženého stavu se nedává: trvá jen do
   prvního čtení RAM a nové pole by znečitelnilo uložené stavy sestav V (stav má jen jednu verzi formátu).
   Původní DSM-1 a DMR-1 bez změny, dokud se neprojdou jejich schémata.
+- **AND-1Z/89 čeká do konce okna CPU se změřeným znakovým taktem 600,2 ns** (autor schválil 2026-10-13): stejný
+  model jako CGA-1V. Takt je změřený na autorově desce, ne kulatých 600 ns: s nimi se okno v emulaci zamklo na takt
+  CPU (600 a 500 ns jsou soudělné) a LDIR při 2 MHz čekal o 291 taktů déle než deska, kde jsou krystaly 10 MHz
+  a 8 MHz nezávislé.
 - **INTA bez vektoru dává v emulátoru FFh** (autor 2026-10-13): na desce JPR-1V Z80 přečte bajt, který je zrovna na
   datové sběrnici, a ten se za 1–2 µs rozplyne k FFh podle bitů a karet (`docs/zmeny-podle-hw.md`). Analogový jev
   se neemuluje, správný program v IM 2 vektor od karty dostane.

@@ -2,7 +2,18 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-10) a co dál
+## Kde jsme skončili (2026-10-14) a co dál
+
+- **Alfa 0.5.0-alpha (připravená 2026-10-14, autor: „jdem na alpha 0.5.0“):**
+  `out/package/SAPIemu-0.5.0-alpha-win64.zip` (420 souborů, 27,9 MB, s IDE diskem `work/ide` jako minule, bez PoP),
+  poznámky `docs/release-notes/v0.5.0-alpha.md` (RKD-1, RMP-1, DPS-1 a IMS-2, plotter AR 1990, Bad Apple!!,
+  změny podle měření na skutečném SAPI-1 V a změny chování sestav V: ECMON jen volbou 3, zamrzání FXS4).
+  Testy: debug 53, release 53, release `full` 57 (ZEX, 8080EXM, 8085EXM), Linux ve WSL 53 (čisté sestavení GCC bez
+  varování ve vlastním kódu, opravená dvě varování v kódu DPS-1). Z rozbaleného zipu naběhne MikroMon, `sapi1v`
+  a `sapi1v_BadApple` (volba 3, `A>`), `rkd1_tesla_cpm` (MicroShell), `rmp1_jb_izot` (`A>`),
+  `zps/ZPS-2_DPS-1_IMS-2` (MIKOS), `zps/ZPS-6` (`A>`), `plotter_ar1990`. 58 sestav (`sapi1v_PoP` jen v repu).
+  Popisy sestav `sapi1v_BadApple` a `sapi1v_PoP` opravené na volbu 3. Jen pro kamarády (soukromě), tag a veřejný
+  release ne.
 
 - **Noc 2026-10-09 (autor: „rozhoduj se sám, překvap mě“):** KZD-1 pushnutý, kopírovací program CKM, program rovnou
   na kazetu KZD-1, souhrn otázek na HW (`docs/hw-otazky.md`), zapisovač ARITMA Minigraf 0507 s ovladačem z EPROM
@@ -144,7 +155,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (`media/and-1v`) a otázka na HW v Nejasnostech AND-1V.
 - **Stav:**
   - Všechno je commitnuté na `main` a pushnuté na `origin/main` (repo je neveřejné), push jen na vyžádání.
-  - Testy: 50 v debug (2026-10-10 noc, přibyly `test_rmp1` ve dvou částech a `test_ar1990`, debug asi 37 s), 50 v release (2026-10-10 noc, asi 15 s); release `full` 48 včetně ZEX,
+  - Testy (2026-10-14, alfa 0.5.0): 53 v debug (asi 42 s), 53 v release (asi 16 s), release `full` 57 včetně ZEX,
+    Linux ve WSL 53. Dřív: 50 v debug (2026-10-10 noc, přibyly `test_rmp1` ve dvou částech a `test_ar1990`, debug asi 37 s), 50 v release (2026-10-10 noc, asi 15 s); release `full` 48 včetně ZEX,
     8080EXM a 8085EXM, Linux ve WSL 44 (2026-10-09 před 0.4.0, čisté sestavení GCC 13 bez varování ve vlastním
     kódu; varování `-Wformat-truncation` odhalilo useknutou hlavičku SVG Minigrafu, opraveno). Vše prochází.
     Kdy které testy:
