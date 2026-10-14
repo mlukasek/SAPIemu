@@ -144,6 +144,28 @@ static int run_actions(Machine& m, const std::vector<std::string>& actions, std:
         } else if (a == "--serial-send" && has_arg) {
             std::string s = unescape_text(actions[++i]);
             if (!m.serials.empty()) m.serials[0]->host_send((const uint8_t*)s.data(), s.size());
+        } else if (a == "--joystick" && has_arg) {   // [PORT:]up,fire1,... held; "-" = released
+            std::string spec = actions[++i];
+            int port = 0;
+            if (spec.size() > 1 && (spec[0] == '0' || spec[0] == '1') && spec[1] == ':') {
+                port = spec[0] - '0';
+                spec = spec.substr(2);
+            }
+            static const char* names[8] = { "down", "up", "right", "left", "fire1", "fire2", "button3", "button4" };
+            uint8_t st = 0;
+            size_t p = 0;
+            while (spec != "-" && p < spec.size()) {
+                size_t q = spec.find(',', p);
+                std::string n = spec.substr(p, q == std::string::npos ? std::string::npos : q - p);
+                int bit = -1;
+                for (int k = 0; k < 8; k++)
+                    if (n == names[k]) bit = k;
+                if (bit < 0) { fprintf(stderr, "unknown joystick input '%s'\n", n.c_str()); return 1; }
+                st |= (uint8_t)(1 << bit);
+                if (q == std::string::npos) break;
+                p = q + 1;
+            }
+            m.bus.joystick[port] = st;
         } else if (a == "--print-serial") {
             std::string s;
             if (!m.serials.empty()) m.serials[0]->host_receive(s, 1 << 20);

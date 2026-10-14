@@ -168,6 +168,8 @@ sapiemu-cli --machine machines/sapi1v.sapi --wait-text "Zadej 0-3" --type 3 --wa
 ```
 
 `--audio-wav` nahrává zvuk zvukové karty (MPH-1V) od svého místa v akcích do konce (WAV mono, 49716 Hz).
+`--joystick` drží joystick (konektor K4 MPH-1V nebo ANK-1M2): `--joystick fire1 --run-ms 300 --joystick -`
+zmáčkne a pustí fire, směry `down,up,right,left`, druhý joystick `1:` na začátku (`1:left,fire1`).
 Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší kopie sestavy s ZRD-1V `"mode": "nosave"`.
 
 Úplný seznam akcí vypíše `sapiemu-cli --help`.

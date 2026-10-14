@@ -7,7 +7,7 @@ It works on a clean copy of the data as a fresh package has it (git archive of r
 disk work/ide/sapi_hdd.img when present) in out/check/<time>/, so the working copies and the battery files of work/
 stay untouched. The sapiemu-cli of the release build is used (else the debug one).
 
-python tools/check_machines.py [--games] [--debug] [name-filter]"""
+python tools/check_machines.py [--games | --games-only] [--debug] [name-filter]"""
 import glob
 import math
 import os
@@ -289,12 +289,18 @@ def check_games(cli, sb):
         fails.append('no sound: %s' % ex)
     report('FXS4', fails)
 
-    # the games: out of the title with Enter and space, the picture changes, no warnings
-    for name, machine, disp, cmd in (('POP', allgames, 'CGA-1V', 'POP'), ('BOMBER', allgames, 'CGA-1V', 'BOMBER'),
-                                     ('FLAPPY', allgames, 'CGA-1V', 'FLAPPY'), ('FLAPDGD', flapdgd, 'DGD-1V', 'C:FLAPDGD')):
+    # the games: out of the title with Enter and space (Flappy on DGD-1V: the fire of the joystick), the picture
+    # changes, no warnings
+    keys = t('\\r') + run(1000) + t(' ') + run(4000)
+    fire = (['--joystick', 'fire1'] + run(300) + ['--joystick', '-'] + run(1500) +   # the title: SELECT SCENE
+            ['--joystick', 'fire1'] + run(300) + ['--joystick', '-'] + run(2900))    # scene 1
+    for name, machine, disp, cmd, start in (('POP', allgames, 'CGA-1V', 'POP', keys),
+                                            ('BOMBER', allgames, 'CGA-1V', 'BOMBER', keys),
+                                            ('FLAPPY', allgames, 'CGA-1V', 'FLAPPY', keys),
+                                            ('FLAPDGD', flapdgd, 'DGD-1V', 'C:FLAPDGD', fire)):
         pngs = [os.path.join(out_dir, '%s_%02d.png' % (name.lower(), s)) for s in (5, 15, 30, 60)]
         acts = (ecmon('3') + t(cmd + '\\r') + run(5000) + ['--display', disp, '--screenshot', pngs[0]] + run(5000) +
-                t('\\r') + run(1000) + t(' ') + run(4000) + ['--display', disp, '--screenshot', pngs[1]] + run(15000) +
+                start + ['--display', disp, '--screenshot', pngs[1]] + run(15000) +
                 ['--display', disp, '--screenshot', pngs[2]] + run(30000) + ['--display', disp, '--screenshot', pngs[3]])
         out = cli_run(cli, sb, machine, acts, os.path.join(out_dir, name.lower() + '.txt'))
         fails, text = problems(out)
@@ -315,9 +321,11 @@ def main():
     print('cli: ' + cli)
     sb = make_sandbox(debug)
     print('data: ' + sb)
-    ok, bad = check_machines(cli, sb, args[0] if args else '')
-    print('machines: OK %d, FAIL %d' % (ok, bad))
-    if '--games' in sys.argv:
+    ok = bad = 0
+    if '--games-only' not in sys.argv:
+        ok, bad = check_machines(cli, sb, args[0] if args else '')
+        print('machines: OK %d, FAIL %d' % (ok, bad))
+    if '--games' in sys.argv or '--games-only' in sys.argv:
         gok, gbad = check_games(cli, sb)
         print('games and demos: OK %d, FAIL %d' % (gok, gbad))
         bad += gbad

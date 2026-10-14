@@ -68,6 +68,7 @@ static void print_help(void)
            "  --print-screen     print the screen text\n"
            "  --serial-send TEXT send to the first serial channel\n"
            "  --print-serial     print data received on the first serial channel\n"
+           "  --joystick SPEC    joystick held: [PORT:]down,up,right,left,fire1,fire2 (\"-\" = released)\n"
            "  --break ADDR       set an execution breakpoint (hex)\n"
            "  --print-regs       print CPU registers\n"
            "  --load-hex FILE    load an Intel HEX file into memory\n"
@@ -91,8 +92,8 @@ static void print_help(void)
 static bool action_has_arg(const std::string& a)
 {
     return a == "--run-ms" || a == "--type" || a == "--keyboard" || a == "--wait-text" || a == "--timeout-ms" ||
-           a == "--serial-send" || a == "--break" || a == "--screenshot" || a == "--display" || a == "--load-hex" ||
-           a == "--audio-wav" || a == "--save-state" || a == "--load-state" || a == "--tape" || a == "--tape-export" ||
+           a == "--serial-send" || a == "--joystick" || a == "--break" || a == "--screenshot" || a == "--display" ||
+           a == "--load-hex" || a == "--audio-wav" || a == "--save-state" || a == "--load-state" || a == "--tape" || a == "--tape-export" ||
            a == "--tape-format" || a == "--tape-name" || a == "--tape-addr" || a == "--tape-entry";
 }
 

@@ -124,7 +124,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **Windows 11, sestaví se i na Linuxu** (ověřeno ve WSL, `docs/build.md`).
 - **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
-  `--save-state` …).
+  `--joystick`, `--save-state` …).
 - **MCP server** (`http://127.0.0.1:8580/mcp`): Claude Code může emulátor ovládat, psát a ladit programy
   a nakonec ho i ukončit (`quit`, média se uloží) ([docs/mcp.md](docs/mcp.md)).
 
