@@ -318,7 +318,7 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
     BsTerms t;
     for (int k = 0; k < 2; k++) {
         Bs525Output& out = bs.out[k];
-        float x0 = f0.x + fw * (k == 0 ? 0.03f : 0.56f), x1 = x0 + fw * 0.41f;
+        float x0 = f0.x + fw * (k == 0 ? 0.03f : 0.56f);
         ImGui::PushID(k);
         text_center(dl, ImVec2(x0 + fw * 0.14f, f0.y + fh * 0.17f), IM_COL32(20, 20, 20, 255), k == 0 ? "I" : "II", 1.0f);
         meter(dl, ImVec2(x0 + fw * 0.03f, f0.y + fh * 0.22f), ImVec2(x0 + fw * 0.25f, f0.y + fh * 0.56f), out, bs.power);

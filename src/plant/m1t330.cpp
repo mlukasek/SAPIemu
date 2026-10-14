@@ -366,7 +366,7 @@ std::string M1t330::format_reply(void) const
 std::string M1t330::display(void) const
 {
     if (!power) return "";
-    char s[16];
+    char s[24];   // the sign and num[16] (GCC: -Wformat-truncation)
     if (show_error) {
         snprintf(s, sizeof s, "%6.4f", error_pct() > 9.9999 ? 9.9999 : error_pct());
         return s;
