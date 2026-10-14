@@ -68,6 +68,7 @@ struct App {
     // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
     int focus_screen = 3;
     bool rack_behind = false;   // the first start: the machine configuration opens behind the screen window
+    bool rack_placed = false;
     std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
     int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
@@ -1422,6 +1423,19 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             ImGuiWindow* rack = ImGui::FindWindowByName("###rack");
             ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
             if (rack && screen && rack->WasActive && rack->RootWindowDockTree != screen->RootWindowDockTree) {
+                if (!app.rack_placed) {   // its own place, not one from an older imgui.ini: at the right, at the top
+                    ImGuiViewport* vp = ImGui::GetMainViewport();
+                    float u = ImGui::GetFontSize();
+                    ImVec2 size(vp->WorkSize.x * 0.92f < 62.0f * u ? vp->WorkSize.x * 0.92f : 62.0f * u,
+                                vp->WorkSize.y * 0.9f);
+                    if (!rack->DockId) {
+                        ImGui::SetWindowSize(rack, size, ImGuiCond_Always);
+                        ImGui::SetWindowPos(rack, ImVec2(vp->WorkPos.x + vp->WorkSize.x - size.x - 0.5f * u,
+                                                         vp->WorkPos.y + 0.5f * u), ImGuiCond_Always);
+                        ImGui::SetWindowCollapsed(rack, false, ImGuiCond_Always);
+                    }
+                    app.rack_placed = true;
+                }
                 ImGui::BringWindowToDisplayBehind(rack->RootWindowDockTree, screen->RootWindowDockTree);
                 if (app.focus_screen == 0) app.rack_behind = false;
             }
