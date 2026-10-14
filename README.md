@@ -29,8 +29,7 @@ KZD-1 a zapisovač ARITMA Minigraf 0507. Emulátor má vestavěný MCP server pr
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
 spustit `sapiemu.exe`, nic se neinstaluje. Jak začít: [docs/prvni-kroky.md](docs/prvni-kroky.md).
 
-Jde o **alfa verzi** (poslední je 0.4.0-alpha, novinky v
-[docs/release-notes/v0.4.0-alpha.md](docs/release-notes/v0.4.0-alpha.md), co přibylo od té doby, je v
+Jde o **alfa verzi** (poslední je 0.5.0-alpha, novinky v
 [docs/release-notes/v0.5.0-alpha.md](docs/release-notes/v0.5.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
 Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 

@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "SAPI-1 V: Prince of Persia (port pro CGA-1V a MPH-1V, RAM disk ZRD-1V)",
-    "description": "Sestava V jako sapi1v.sapi (JPR-1V TURBO 4 MHz, RAM-1V, AND-1V, DSM-1V, ZRD-1V rev 1.1, IDE-1, CGA-1V, MPH-1V), jen s jiným obsahem RAM disku. Po startu ECMONu volba 1 (CP/M z RAM disku), pak POP. RAM disk media/zrmd-1/pop-ramdisk.bin: POP.COM, POP.DAT (data hry, 3,3 MB), POP.SAV, ZRDBENCH.COM. Port hry Prince of Persia (Jordan Mechner, Apple II) z repa SAPI-Prince-of-Persia; jen v repu, do balíčku alfy se nedává.",
+    "description": "Sestava V jako sapi1v.sapi (JPR-1V TURBO 4 MHz, RAM-1V, AND-1V, DSM-1V, ZRD-1V rev 1.1, IDE-1, CGA-1V, MPH-1V), jen s jiným obsahem RAM disku. Po startu ECMONu volba 3 (CP/M z RAM disku A:, volby 0–2 čekají na řadič, který v sestavě není), pak POP. RAM disk media/zrmd-1/pop-ramdisk.bin: POP.COM, POP.DAT (data hry, 3,3 MB), POP.SAV, ZRDBENCH.COM. Port hry Prince of Persia (Jordan Mechner, Apple II) z repa SAPI-Prince-of-Persia; jen v repu, do balíčku alfy se nedává.",
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
