@@ -180,7 +180,11 @@ implementuje. Podezření bez potvrzení se do emulátoru nedávají, zapisují 
   v cyklu INTA (`hung`, čas i ostatní karty běží), log to vysvětlí. `CpuCard::reset_blocked`: `Machine::reset`
   (tlačítko, GUI, MCP) pak nic neudělá, pomůže vypnout a zapnout. Mimo uložený stav. JPR-1Z (Libor: stejně)
   a Liborova záplata IC15 zatím ne.
-- **Test:** `test_sapi1v` (`fxs4_freeze`: s čekáním CGA-1V zamrzne a RESET nepomůže, bez čekání obsluha proběhne);
+- **Oprava 2026-10-14:** adresa v cyklu INTA je PC. Jádro Z80 v něm nechává na pinech adresu předchozího cyklu,
+  takže zápis do videopaměti CGA-1V těsně před přerušením vypadal jako PC v okně karty a demo Bad Apple!! hned po
+  startu zamrzlo (hlášení autora při zkoušce alfy 0.5.0). Na skutečném Z80 je při INTA na sběrnici PC.
+- **Test:** `test_sapi1v` (`fxs4_freeze`: s čekáním CGA-1V zamrzne a RESET nepomůže, bez čekání obsluha proběhne;
+  `freeze_vram_write`: přerušení během zápisů do okna CGA-1V z kódu v RAM nezamrzne);
   `emu_freeze.py`: `freeze` i `freeze_and` v emulátoru zamrznou jako na desce.
 
 ### 2026-10-13 – JPR-1V: po `LD A,I` a `LD A,R` Z80 přerušení nepřijme (jako po `EI`)

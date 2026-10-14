@@ -316,7 +316,9 @@ int Jpr1zi::run(int cycles)
             if (pins & Z80_M1) {
                 // interrupt acknowledge
                 if (ststb_inta) {
-                    uint16_t a = Z80_GET_ADDR(pins);   // the PC on the address bus, STSTB with it
+                    // the real Z80 has the PC on the address bus in the INTA cycle; the core leaves the address of
+                    // the previous cycle there (a write into the video RAM would look like a PC in the window)
+                    uint16_t a = z80.pc;
                     for (Card* c : bus->cards)
                         if (c->inta_holds_rdy(a)) {
                             hung = true;

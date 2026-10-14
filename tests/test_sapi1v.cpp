@@ -296,6 +296,40 @@ static void z80_cmos(void)
     CHECK(ld_a_i_inside("nmos", 8) >= 4);
 }
 
+// The code in RAM writing into the CGA-1V window when the interrupt comes must not freeze: in the INTA cycle the
+// address bus carries the PC, not the address of the last write (the Z80 core leaves that on its pins; the
+// demo Bad Apple!! froze on it in 0.5.0 before the release, 2026-10-14).
+static void freeze_vram_write(void)
+{
+    static const uint8_t prog[] = {
+        0xF3,                          // 8000 di
+        0x31, 0x00, 0xBF,              // 8001 ld sp,0BF00h
+        0x3E, 0xC0, 0xD3, 0x63,        // 8004 MAP1 = MAP2 = H: the CGA-1V at C000
+        0xED, 0x56,                    // 8008 im 1
+        0x3E, 0x80, 0xD3, 0x10,        // 800A DSM-1V channel A: receive interrupt on
+        0xFB,                          // 800E ei
+        0x32, 0xE7, 0xC5,              // 800F ld (0C5E7h),a
+        0x18, 0xFB,                    // 8012 jr 800Fh
+    };
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine_cfg(), err));
+    m.run_seconds(0.2);
+    for (size_t i = 0; i < sizeof(prog); i++) m.poke((uint16_t)(0x8000 + i), prog[i]);
+    CpuRegs r;
+    m.cpu->get_regs(r);
+    r.pc = 0x8000;
+    m.cpu->set_regs(r);
+    m.run_seconds(0.01);
+    m.serials[0]->host_send((const uint8_t*)"Z", 1);
+    m.run_seconds(0.05);
+    m.cpu->get_regs(r);
+    printf("interrupt during writes into the CGA-1V window: PC %04X, %s\n", r.pc,
+           m.cpu->reset_blocked() ? "hangs in INTA (wrong)" : "runs");
+    CHECK(!m.cpu->reset_blocked());
+    m.bus.io_write(0x63, 0x00);
+}
+
 static void fxs4_freeze(void)
 {
     CHECK(freeze_run(true));
@@ -932,6 +966,7 @@ int main(void)
     open_bus();
     zrmd1_reset();
     fxs4_freeze();
+    freeze_vram_write();
     z80_cmos();
     cga_beam();
     power_on_random();

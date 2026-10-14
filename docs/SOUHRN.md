@@ -12,8 +12,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   varování ve vlastním kódu, opravená dvě varování v kódu DPS-1). Z rozbaleného zipu naběhne MikroMon, `sapi1v`
   a `sapi1v_BadApple` (volba 3, `A>`), `rkd1_tesla_cpm` (MicroShell), `rmp1_jb_izot` (`A>`),
   `zps/ZPS-2_DPS-1_IMS-2` (MIKOS), `zps/ZPS-6` (`A>`), `plotter_ar1990`. 58 sestav (`sapi1v_PoP` jen v repu).
-  Popisy sestav `sapi1v_BadApple` a `sapi1v_PoP` opravené na volbu 3. Jen pro kamarády (soukromě), tag a veřejný
-  release ne.
+  Popisy sestav `sapi1v_BadApple` a `sapi1v_PoP` opravené na volbu 3. Autor při zkoušce našel zamrznutí Bad Apple
+  hned po startu: kontrola zamrzání FXS4 brala v INTA adresu předchozího cyklu (zápis do videopaměti CGA-1V) místo
+  PC, opraveno, test `freeze_vram_write`, Bad Apple i PoP běží; balíček přebalený. Jen pro kamarády (soukromě),
+  tag a veřejný release ne.
 
 - **Noc 2026-10-09 (autor: „rozhoduj se sám, překvap mě“):** KZD-1 pushnutý, kopírovací program CKM, program rovnou
   na kazetu KZD-1, souhrn otázek na HW (`docs/hw-otazky.md`), zapisovač ARITMA Minigraf 0507 s ovladačem z EPROM
