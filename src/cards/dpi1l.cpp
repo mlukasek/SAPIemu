@@ -25,8 +25,9 @@ static const uint8_t WIFI_CONNECTED = 3;                     // WIFISTATUS (MZPi
 static const uint8_t FLASH_MB = 4;                           // INFO byte 2 (RP2350 board of DPI-1L)
 
 // NET (common/netgame.c)
-enum { S_NOLINK, S_READY, S_IN_ROOM, S_RUNNING, S_DESYNC, S_DROPPED, S_SPECTATOR };
-enum { E_BUILD = 6, E_ROOM = 7, E_NOROOM = 8, E_NOLINK = 9, E_PARAM = 10, E_FULL = 11 };
+static const uint8_t S_NOLINK = 0, S_READY = 1, S_IN_ROOM = 2, S_RUNNING = 3, S_DESYNC = 4, S_DROPPED = 5,
+                     S_SPECTATOR = 6;
+static const uint8_t E_ROOM = 7, E_NOROOM = 8, E_NOLINK = 9, E_PARAM = 10, E_FULL = 11;   // 6 = build (from the relay)
 static const int WINDOW = 128;
 static const int MSGQ = 4;
 
