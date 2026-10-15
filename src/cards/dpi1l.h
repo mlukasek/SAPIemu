@@ -72,6 +72,7 @@ private:
     bool send_line(const char* l);
     void leave(void);
     void net_reset(void);                 // RESET 00h, /RES: leave the room (netgame_reset)
+    void cancel_pending(void);            // a new command while CREATE/JOIN waits
     void window_reset(uint16_t from);
     void store_input(uint16_t frame, uint8_t s, const uint8_t* d, uint8_t n);
     uint16_t full_mask(void);

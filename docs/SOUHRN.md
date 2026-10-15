@@ -10,8 +10,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   firmware v0.2 bajt po bajtu. Test `test_dpi1l` s falešnou relay (TCP i WebSocket) a ručně přes MCP s `net_peer.py`
   proti `relay.py` (TCP i WebSocket) a produkční `ws://api.mzpico.com/net`: stejné bajty jako záznamy ze skutečné
   karty. Sestava `sapi1v_BomberNet.sapi` (ARB-1C, DPI-1L v X9). Verze **0.6.0-alpha** pro repo SAPI-BomberNet,
-  které spouští jen release (`..\SAPIemu-release`). Otázky autorovi k rozdílům zadání a firmwaru jsou
-  v `docs/desky/DPI-1L.md` (stav po /RES, zrušené CREATE, kód JOIN delší než 7 znaků). Testy: debug 54, release 54,
+  které spouští jen release (`..\SAPIemu-release`). Rozdíly zadání a firmwaru (stav po /RES, zrušené
+  CREATE, kód JOIN delší než 7 znaků) se opravily ve firmwaru (`b72a8d0`) i v emulátoru podle zadání §9. Testy: debug 54, release 54,
   Linux ve WSL 54 (GCC bez varování ve vlastním kódu), `check_machines.py --games` 60 sestav a 6 her a dem.
   Při zkoušce se našlo, že na Windows se druhé `sapiemu-cli --mcp` navěsí na obsazený port bez chyby a požadavky
   dostává to první (cizí session). Opraveno (autor: „oprav ten SO_EXCLUSIVEADDRUSE“): MCP i TCP server sériové

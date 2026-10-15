@@ -70,7 +70,7 @@ má SAPIemu samo (rozhodnutí Martina 2026-10-16).
 - **CREATE a JOIN běží na pozadí:**
   - stav má bajt 0 = 40h, dokud relay neodpoví (`room`, `error`), nebo dokud nevyprší limit 10 s;
   - limit se měří časem PC, ne takty emulace, protože relay běží v reálném čase;
-  - nový příkaz během čekání čekání zruší (jako firmware).
+  - nový příkaz během čekání čekání zruší a zavře spojení, /RES čekání ukončí (stav 00h bez chyby).
 - **Spojení:**
   - každé CREATE a JOIN otevře nové spojení s relay ve vlastním vlákně;
   - řádky od relay čekají ve frontě bez omezení délky a karta je zpracuje při nejbližším přístupu Z80 na své porty;
@@ -95,7 +95,8 @@ má SAPIemu samo (rozhodnutí Martina 2026-10-16).
   - JOIN jako divák a jako hráč, chyby relay 6 a 7, limit → chyba 9, nedostupnou relay;
   - ztrátu spojení ve hře (stav 5, chyba 9), `desync`, `dropped`;
   - LEAVE, RESET 00h, /RES a načtení stavu: vždy `leave` před koncem spojení;
-  - zrušení CREATE novým příkazem.
+  - zrušení CREATE novým příkazem (i s `room`, který Z80 ještě nepřečetl), /RES během CREATE, kód JOIN delší než
+    7 znaků.
 - **Ručně 2026-10-16:** `sapiemu-cli --mcp` s kartou ovládanou přes `io_write`/`io_read` jako konzolí DPI a
   `tools/net_peer.py` z repa firmwaru jako druhý hráč. Všechny tři cesty daly stejné bajty jako záznam §6 (jiný byl
   jen kód místnosti a seed):
@@ -103,19 +104,16 @@ má SAPIemu samo (rozhodnutí Martina 2026-10-16).
   - `relay.py` přes WebSocket;
   - produkční `ws://api.mzpico.com/net`.
 
-## Rozdíly a otázky k firmwaru (2026-10-16)
+## Otázky k firmwaru a odpovědi (2026-10-16)
 
-Emulátor se ve všech bodech chová jako firmware v0.2. Zadání to místy popisuje jinak:
+První verze emulátoru se řídila firmwarem v0.2 i tam, kde se lišil od zadání. Autor rozdíly probral se session
+firmwaru. Body 1–3 byly odchylky firmwaru, firmware je opravený (`b72a8d0`, ověřeno na kartě) a emulátor se chová
+podle zadání (`..\SAPI_DPI-firmware\docs\sapiemu_dpi.md` §9):
 
-1. **/RES nechá stav Repository API, jak byl.** Firmware při resetu SAPI zavolá jen `netgame_reset()`: opustí
-   místnost, ale fázi, poslední příkaz a chybu nemění. Když reset přijde během CREATE/JOIN, stav dál hlásí 40h, dokud
-   program nezapíše nový příkaz. Zadání říká jen „/RES opustí místnost“. Programy po startu příkaz vždy zapíšou, vadit
-   to nemá.
-2. **Zrušené CREATE/JOIN místnost přesto otevře.** Nový příkaz během čekání zahodí jen výsledek. Spojení zůstane, a
-   když pak `room` přijde, karta je v místnosti (STATUS ukáže IN_ROOM) a limit 10 s už neběží. Zadání: „pozdější
-   odpověď relay se zahodí“.
-3. **JOIN s kódem delším než 7 znaků projde.** Firmware čte nejvýš 7 znaků a zbytek zahodí, chyba 10 je jen pro
-   prázdný kód a jiné znaky než písmena a číslice. Zadání: „1–7 znaků, jinak chyba 10“.
-4. **Ostatní příkazy Repository API dají ERROR 1**, i ty, které skutečná karta umí bez SD karty: RTC 60–63h (hodiny
-   RP2350) a BOOT 07h (reset SAPI přes /RTL). Soubory nad složkou PC jsou v zadání volitelná druhá část (§7), zatím
-   nejsou.
+1. **/RES během CREATE/JOIN** opustí místnost a stav opustí IN_PROGRESS: fáze DONE bez chyby, stav `00 A1 00 00`.
+   Ostatní stav Repository API (poslední příkaz, chyba) zůstává.
+2. **Zrušené CREATE/JOIN** (nový příkaz během čekání) zavře spojení. Pozdější `room` kartu do místnosti nedá. Platí
+   to i pro `room`, který už přišel, ale Z80 si ho nepřečetl, protože mezitím zadal jiný příkaz.
+3. **JOIN s kódem delším než 7 znaků** dá chybu 10 (`"ABCDEFGH"` → `80 A2 0A 00`).
+4. **RTC 60–63h a BOOT 07h** zůstávají ERROR 1. BomberNet je nepotřebuje, RTC patří k volitelné části se soubory
+   (§7) a BOOT by znamenal reset stroje.

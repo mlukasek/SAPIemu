@@ -507,18 +507,41 @@ static void test_link(FakeRelay& r)
     CHECK(r.closed());
     REC(m, "A0", "02 A0 08 00 | 01 FF 00 00 00 00 00 00");
 
-    // a new command while CREATE waits: the result is not wanted any more (the room is still entered, as the
-    // firmware does)
+    // /RES while CREATE waits: the status leaves IN_PROGRESS (00, no error), the link is closed (firmware b72a8d0)
+    m.bus.io_write(B, c[0]);
+    for (size_t i = 1; i < c.size(); i++) m.bus.io_write(B + 1, c[i]);
+    CHECK(r.accept_client());
+    LINE(r, CREATE_LINE);
+    REC0(m, "03", "40 A1 00 00");
+    m.reset();
+    CHECK(r.closed());
+    REC(m, "03", "00 A1 00 00");
+    REC(m, "A0", "02 A0 08 00 | 01 FF 00 00 00 00 00 00");
+
+    // a new command while CREATE waits: the result is not wanted any more and the link is closed, a 'room'
+    // that comes later does not put the card in a room (firmware b72a8d0)
     m.bus.io_write(B, c[0]);
     for (size_t i = 1; i < c.size(); i++) m.bus.io_write(B + 1, c[i]);
     CHECK(r.accept_client());
     LINE(r, CREATE_LINE);
     REC(m, "05", "02 05 0C 00 | 44 50 49 2D 31 4C 20 76 30 2E 32 0D");
+    CHECK(r.closed());
+    REC(m, "A0", "02 A0 08 00 | 01 FF 00 00 00 00 00 00");
+
+    // the same when the 'room' came but the Z80 did not read the status before the new command
+    m.bus.io_write(B, c[0]);
+    for (size_t i = 1; i < c.size(); i++) m.bus.io_write(B + 1, c[i]);
+    CHECK(r.accept_client());
+    LINE(r, CREATE_LINE);
     r.send("{\"op\":\"room\",\"code\":\"ABCD\",\"slot\":0,\"slots\":2,\"bytes\":2,\"settings\":\"0102\"}");
-    REC(m, "03", "00 05 00 00");
-    REC(m, "A0", "02 A0 08 00 | 02 00 01 00 00 00 00 00");
+    REC(m, "A0", "02 A0 08 00 | 01 FF 00 00 00 00 00 00");
+    CHECK(r.closed());
+
+    // JOIN with a code over 7 characters: PARAM
+    REC(m, "A2 4E 42 01 00" + text("ABCDEFGH"), "80 A2 0A 00");
 
     // a saved state can not hold the link: after loading, as after RESET (the room is left)
+    enter_room(m, r);
     std::vector<uint8_t> st;
     CHECK(m.save_state(st, "", err));
     CHECK(m.load_state(st, err));

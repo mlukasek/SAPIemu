@@ -189,8 +189,8 @@ void Dpi1l::relay(const std::string& host, uint16_t port, bool websocket)
     relay_ws = websocket;
 }
 
-// /RES of SAPI: the firmware leaves the NET room (firmware/main.c, dpi_bus_sapi_running falls); the Repository
-// API state stays as it was (the next command sets it)
+// /RES of SAPI: the firmware leaves the NET room (firmware/main.c, dpi_bus_sapi_running falls) and a waiting
+// CREATE/JOIN ends (status 00, no error); the rest of the Repository API state stays as it was
 void Dpi1l::reset()
 {
     poll();
@@ -229,7 +229,7 @@ void Dpi1l::command(uint8_t c)
 {
     sts_pos = 0;
     if (c == 0x03) return;              // STSR: only rewinds the status pointer
-    if (phase == PH_PROGRESS) pend_cmd = 0;   // a new command drops the pending CREATE/JOIN (as the Unicard)
+    if (phase == PH_PROGRESS) cancel_pending();   // a new command drops the pending CREATE/JOIN (as the Unicard)
     cmd = c;
     err = false;
     err_code = 0;
@@ -375,6 +375,7 @@ bool Dpi1l::io_read(uint8_t port, uint8_t& d)
 bool Dpi1l::io_write(uint8_t port, uint8_t d)
 {
     if (port != base && port != (uint8_t)(base + 1)) return false;
+    if (port == base && d != 0x03 && phase == PH_PROGRESS) cancel_pending();   // before a waiting 'room' is taken
     poll();
     if (port == base) command(d);
     else data_out(d);
@@ -465,6 +466,16 @@ void Dpi1l::net_reset(void)
     pend_cmd = 0;
     leave();
     last_error = 0;
+    complete(0, nullptr, 0);            // a reset during CREATE/JOIN: the status leaves IN_PROGRESS (b72a8d0)
+}
+
+// The Z80 gave up waiting for CREATE/JOIN: its link is closed, a 'room' that comes later (or came and was not
+// taken yet) must not put the card in a room nobody asked for (firmware b72a8d0)
+void Dpi1l::cancel_pending(void)
+{
+    if (!pend_cmd) return;
+    pend_cmd = 0;
+    leave();
 }
 
 void Dpi1l::poll(void)
@@ -606,9 +617,9 @@ void Dpi1l::run_net(void)
         unsigned game = p[0] | p[1] << 8, build = p[2] | p[3] << 8;
         char c[8];
         size_t n = 0;
-        for (const uint8_t* s = p + 4; *s && n < 7; s++) {
-            if (!((*s >= 'A' && *s <= 'Z') || (*s >= 'a' && *s <= 'z') || (*s >= '0' && *s <= '9'))) {
-                n = 99;                 // only letters and digits (as the Unicard)
+        for (const uint8_t* s = p + 4; *s; s++) {
+            if (n == 7 || !((*s >= 'A' && *s <= 'Z') || (*s >= 'a' && *s <= 'z') || (*s >= '0' && *s <= '9'))) {
+                n = 99;                 // 1-7 letters and digits (as the Unicard)
                 break;
             }
             c[n++] = (char)((*s >= 'a' && *s <= 'z') ? *s - 32 : *s);

@@ -1666,9 +1666,10 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   nepřidávej“). Karty, které DPI emuluje na sběrnici (DPP-1, IDE-1, RAM disk), SAPIemu má samo. Soubory nad složkou
   PC (příkazy 20–56h, zadání §7) jsou volitelná druhá část, zatím nejsou. Zadání je v
   `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`, popis v `docs/desky/DPI-1L.md`.
-- **Vzor je firmware DPI v0.2, ne zadání**, kde se liší: jeden program má běžet stejně v emulátoru i na kartě.
-  Rozdíly (stav Repository API po /RES, zrušené CREATE místnost přesto otevře, kód JOIN delší než 7 znaků) jsou
-  v `docs/desky/DPI-1L.md` a šly autorovi jako otázky.
+- **Vzor je ověřený firmware DPI:** jeden program má běžet stejně v emulátoru i na kartě. Kde se firmware v0.2 lišil
+  od zadání (stav po /RES, zrušené CREATE místnost přesto otevřelo, kód JOIN delší než 7 znaků), šly rozdíly
+  autorovi jako otázky. Autor je probral se session firmwaru: firmware se opravil podle zadání (`b72a8d0`) a emulátor
+  s ním (`docs/desky/DPI-1L.md`, zadání §9).
 - **Síť ve vlastním vlákně, emulace jednovláknová.** Vlákno spojení řádky od relay jen řadí do fronty bez omezení
   délky, karta je zpracuje při nejbližším přístupu Z80 na své porty. Z80 jiný rozdíl nepozná a nemůže se ztratit
   řádek (chyba MZPico s frontou 10 řádků). Vlákno si drží vlastní odkaz na spojení, nikdo na něj nečeká, takže
