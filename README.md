@@ -34,8 +34,8 @@ softwaru pro SAPI s Claude.
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
 spustit `sapiemu.exe`, nic se neinstaluje. Jak začít: [docs/prvni-kroky.md](docs/prvni-kroky.md).
 
-Jde o **alfa verzi** (poslední je 0.5.0-alpha, novinky v
-[docs/release-notes/v0.5.0-alpha.md](docs/release-notes/v0.5.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
+Jde o **alfa verzi** (poslední je 0.6.0-alpha, novinky v
+[docs/release-notes/v0.6.0-alpha.md](docs/release-notes/v0.6.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
 Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 ## Co umí
@@ -100,6 +100,9 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
     krokem [docs/aps5-ukazka.md](docs/aps5-ukazka.md)).
 - **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
   Joystick z gamepadu nebo z klávesnice, myš PC.
+- **Síťové hry:** karta DPI-1L, z níž je emulovaná jen síťová část (Repository API na B0h/B1h s příkazy NET
+  A0h–A9h). Hraje se přes relay `ws://api.mzpico.com/net` v jedné místnosti s MZ-800, ZX Spectrem, CPC a PC
+  (BomberNet, sestava `sapi1v_BomberNet.sapi`, [docs/desky/DPI-1L.md](docs/desky/DPI-1L.md)).
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
   joysticku (joystick z šipek a mezerníku nebo gamepadu, myš). Matice ANK-1 drží klávesu, dokud ji držíš na PC
   (bez fronty a autorepeatu), a má režim pro hry (Ctrl+F7: klávesy podle polohy, Shift = SHIFT). Text ze schránky

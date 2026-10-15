@@ -9,6 +9,7 @@
 #include "cards/dgd1.h"
 #include "cards/dmr1.h"
 #include "cards/dsm1.h"
+#include "cards/dpi1l.h"
 #include "cards/dpp1.h"
 #include "cards/dps1.h"
 #include "cards/ide1.h"
@@ -83,6 +84,7 @@ Card* card_create(const std::string& type)
     if (type == "RSW-1") return new Rsw1();
     if (type == "DBS-1A" || type == "DBS-1") return new Dbs1a();
     if (type == "MPH-1V") return new Mph1v();
+    if (type == "DPI-1L") return new Dpi1l();
     if (type == "AND-1Z-89" || type == "AND-1Z") {
         And1z* c = new And1z();
         c->type = type;

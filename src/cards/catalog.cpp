@@ -1797,6 +1797,23 @@ static const CardParam k_rtc1[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// DPI-1L (Martin Lukasek): only the Repository API with the NET commands (docs/desky/DPI-1L.md)
+static const ParamOption k_dpi1l_transport[] = {
+    { "\"ws\"", "WebSocket (ws://host:port/net, api.mzpico.com, relay.py 8765)",
+      "WebSocket (ws://host:port/net, api.mzpico.com, relay.py 8765)" },
+    { "\"tcp\"", "TCP with JSON lines (relay.py 8766)", "TCP s řádky JSON (relay.py 8766)" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dpi1l[] = {
+    { "base", PK_HEX, "Repository API ports (DPI.INI)", "Porty Repository API (DPI.INI)", "\"B0h\"", nullptr, 0, 0xFE },
+    { "net.transport", PK_CHOICE, "NET: connection to the game relay", "NET: spojení s relay pro hry", "\"ws\"",
+      k_dpi1l_transport, 0, 0 },
+    { "net.host", PK_TEXT, "NET: relay address", "NET: adresa relay", "\"api.mzpico.com\"", nullptr, 0, 0 },
+    { "net.port", PK_INT, "NET: relay port (80; relay.py 8765 ws, 8766 tcp)",
+      "NET: port relay (80; relay.py 8765 ws, 8766 tcp)", "80", nullptr, 1, 65535 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 static const ParamOption k_dsp1_high[] = {
     { "0", "0xh (SA2 closed A7, A6, A5, A4)", "0xh (SA2 sepnuté A7, A6, A5, A4)" },
     { "1", "1xh (SA2 closed A7, A6, A5)", "1xh (SA2 sepnuté A7, A6, A5)" },
@@ -1987,6 +2004,8 @@ CARD(c_dmt1, "DMT-1", "DMT", "Measuring amplifier, 8 thermocouple inputs", "Mě�
      CC_IO, 1, true, k_dmt1)
 CARD(c_drv1a, "DRV-1A", "DRV", "Relay outputs (8 reed relays)", "Reléové výstupy (8 jazýčkových relé)", CC_IO, 1, true,
      k_drv1a)
+CARD(c_dpi1l, "DPI-1L", "DPI", "Repository API and NET (network games through a relay)",
+     "Repository API a NET (síťové hry přes relay)", CC_IO, 1, true, k_dpi1l)
 CARD(c_bdk1, "BDK-1", "BDK", "Prototyping board (empty, no function)", "Bastldeska (prázdná, bez funkce)", CC_OTHER, 1,
      true, nullptr)
 
@@ -1998,7 +2017,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rkd1, &c_rmp1, &c_rpd1z, &c_mfc1a, &c_fdc1,
-        &c_mph1v, &c_dpp1, &c_dps1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_bdk1,
+        &c_mph1v, &c_dpp1, &c_dps1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_dpi1l, &c_bdk1,
     };
     return list;
 }

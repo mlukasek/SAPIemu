@@ -1,0 +1,118 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "SAPI-1 V s DPI-1L pro BomberNet (JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V, MPH-1V, DPI-1L; ECMON + CP/M)",
+    "description": "Sestava SAPI-1 V (sapi1v.sapi) navíc s kartou DPI-1L pro síťovou hru BomberNet. Z DPI-1L je emulovaná jen síťová část: Repository API na B0h/B1h s příkazy NET A0h–A9h, spojení s relay ws://api.mzpico.com/net (docs/desky/DPI-1L.md). Ostatní karty jsou stejné jako v sapi1v.sapi. Všech devět karet se nevejde na ARB-1C-8, sběrnice je proto ARB-1C se 14 pozicemi. Síťový BomberNet pro SAPI vzniká v repu SAPI-BomberNet; hra kartu pozná podle REVD a INFO.",
+    "bus": {
+        "type": "ARB-1C",                   // ARB-1C (extended, 8282 drivers, 14 positions)
+        "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1V",               // CPU card Z80 (V)
+            "rom": "roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin",  // EEPROM 28C64 (two 2 KB banks) - bank 0 MikroBIOS 3.0, bank 1 ECMON IDE-1
+            "bios": "open",                 // Jumper BIOS: EEPROM bank - open: bank 1 (EEPROM 0800-0FFF)
+            "turbo": true,                  // TURBO: CPU 4 MHz (else 2 MHz), bus always 2 MHz
+            "osc_hz": 8000000,              // Oscillator (Hz, bus = /4, CPU = /4 or /2)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": false }  // Keyboard (connector K2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "RAM-1V",               // Configurable SRAM 64 KB with MAP (V)
+            "sram_a": true,                 // SRAM A (0000-7FFF)
+            "sram_b": true,                 // SRAM B (8000-FFFF)
+            "sram_c": "none",               // Socket C (instead of A) - empty
+            "c_select": "never",            // S4 CONF: chip C when
+            "hole16_base": "C000h",         // S5 /A14 /A15: 16 KB hole at
+            "hole16_map1": "h",             // S5 MAP1MODE - only when MAP = H
+            "hole16_map2": "ignore",        // S5 MAP2MODE - MAP ignored
+            "hole2_base": "F800h",          // S6 /A11-/A15: 2 KB hole at
+            "hole2_map1": "l",              // S6 MAP1MODE - only when MAP = L
+            "map_port": "63h",              // S3: MAP register port
+            "map1_enable": true,            // S1 EN: drive MAP1 (pin 21)
+            "map1_bit": 6,                  // S1 B1/B2/B4: MAP1 data bit
+            "map2_enable": true,            // S2 EN: drive MAP2 (pin 22)
+            "map2_bit": 7                   // S2 B1/B2/B4: MAP2 data bit
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "AND-1V",               // VGA display 64x20 (V)
+            "base": "F800h",                // S2 /A11-/A15: VRAM base (2 KB steps)
+            "map": "map1_l",                // S2 MAP1OFF, H/L - both open: MAP1 = L
+            "color": "amber",               // S1: ink colour
+            "font": "roms/and-1v/font_and1v22_1024.bin"  // Character generator 27C256 - 10x24 type 1
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "DSM-1V",               // Two serial channels (V)
+            "a": {                          // Channel A (K3)
+                "enabled": true,            // S3 5-6: channel enabled
+                "base": "10h",              // S3 1-2, 3-4: ports
+                "baud": 115200,             // S2: baud rate - 115200 (N = FEh)
+                "connected": false          // Terminal connected (DCD)
+            },
+            "b": {                          // Channel B (K2)
+                "enabled": true,            // S3 11-12: channel enabled
+                "base": "14h",              // S3 7-8, 9-10: ports
+                "baud": 115200,             // S1: baud rate - 115200 (N = FEh)
+                "connected": false          // Terminal connected (DCD)
+            }
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "ZRD-1V",               // RAM disk 4 MB (V)
+            "revision": "1.1",              // Board revision - rev 1.1 (no lock, no LEDs)
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
+            "mode": "rw"                    // Mode - read/write, saved
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "IDE-1",                // IDE disk and PMD32-SD
+            "ide_base": "58h",              // JP1-JP3, JP5: IDE ports
+            "pmd_base": "5Ch",              // PMD32-SD ports
+            "ide": {                        // IDE disk
+                "image": "work/ide/sapi_hdd.img",  // Disk image (.img)
+                "create_mb": 128,           // Create if missing (MB, 0 = no)
+                "readonly": false           // Read only
+            },
+            "pmd32sd": {                    // PMD32-SD floppy emulator
+                "sd_card": "media/pmd32sd",  // SD card (directory)
+                "drives": [
+                    "VZOR_2M.2MB",          // Drive A (CP/M D:)
+                    "a_sluzebni CPM.8sd",   // Drive B (CP/M E:)
+                    null,                   // Drive C
+                    null                    // Drive D
+                ],
+                "card_locked": false,       // SD card write protected
+                "startup_ms": 0             // Start-up delay (ms, real 3000)
+            }
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "CGA-1V",               // Colour graphics 320x200, VGA (V)
+            "base": "C000h",                // S1 /A15 /A14: base (16 KB) - C000h (/A15 and /A14 open)
+            "map1": "h",                    // S1 M1EN M1LO: MAP1 - EN fitted: MAP = H
+            "map2": "h",                    // S1 M2EN M2LO: MAP2 - EN fitted: MAP = H
+            "wait_states": true,            // Wait states (CPU waits for its slot of the video)
+            "frame_blend": true             // Blend the last two frames (page flipping every frame, like the eye)
+        },
+        {
+            "slot": 8,                      // position X8
+            "type": "MPH-1V",               // Sound YM3812, timer 82C54, joystick (V)
+            "base": "50h",                  // S1: port base (8 ports)
+            "k4": "joystick",               // K4 (OVL): plugged in - joystick (Atari)
+            "k2": "mouse_atari"             // K2 (MYŠ): plugged in - mouse Atari ST
+        },
+        {
+            "slot": 9,                      // position X9
+            "type": "DPI-1L",               // Repository API and NET (network games through a relay)
+            "base": "B0h",                  // Repository API ports (DPI.INI)
+            "net": {
+                "transport": "ws",          // NET: connection to the game relay - WebSocket
+                "host": "api.mzpico.com",   // NET: relay address
+                "port": 80                  // NET: relay port
+            }
+        }
+    ]
+}

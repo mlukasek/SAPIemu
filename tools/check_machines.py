@@ -61,6 +61,7 @@ MACHINES = {
     'cpm_zrmd_dpp1': (ecmon('3') + cpm_dir('D:'), ['.']),
     'cpm_zrmd_rtc_dsp': (ecmon('3') + cpm_dir('E:'), ['RTCZ']),
     'sapi1v': (ecmon('3') + cpm_dir('B:'), ['.']),
+    'sapi1v_BomberNet': (ecmon('3') + cpm_dir('B:'), ['.']),
     'libor_doma': (ecmon('3') + cpm_dir(), ['.COM']),
     'sapi1v_BadApple': (ecmon('3') + t('BADAPPLE\\r') + run(15000), ['shot:CGA-1V']),
     'sapi1v_PoP': (ecmon('3') + t('POP\\r') + run(15000), ['shot:CGA-1V']),

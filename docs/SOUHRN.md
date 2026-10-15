@@ -2,7 +2,16 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-14) a co dál
+## Kde jsme skončili (2026-10-16) a co dál
+
+- **DPI-1L, síťová část (2026-10-16, zadání `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`):** karta `DPI-1L` jen
+  s Repository API na B0h/B1h a NET A0h–A9h pro síťový BomberNet (`src/cards/dpi1l.*`, spojení `src/core/relay.*`,
+  `docs/desky/DPI-1L.md`). Emulace karet, kterou dělá skutečná DPI, ani soubory nad složkou PC v ní nejsou. Vzorem je
+  firmware v0.2 bajt po bajtu. Test `test_dpi1l` s falešnou relay (TCP i WebSocket) a ručně přes MCP s `net_peer.py`
+  proti `relay.py` (TCP i WebSocket) a produkční `ws://api.mzpico.com/net`: stejné bajty jako záznamy ze skutečné
+  karty. Sestava `sapi1v_BomberNet.sapi` (ARB-1C, DPI-1L v X9). Verze **0.6.0-alpha** pro repo SAPI-BomberNet,
+  které spouští jen release (`..\SAPIemu-release`). Otázky autorovi k rozdílům zadání a firmwaru jsou
+  v `docs/desky/DPI-1L.md` (stav po /RES, zrušené CREATE, kód JOIN delší než 7 znaků).
 
 - **Alfa 0.5.0-alpha (připravená 2026-10-14, autor: „jdem na alpha 0.5.0“):**
   `out/package/SAPIemu-0.5.0-alpha-win64.zip` (420 souborů, 27,9 MB, s IDE diskem `work/ide` jako minule, bez PoP),

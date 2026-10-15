@@ -1659,3 +1659,23 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   z adres a hodnot poškozených bajtů odvodit mechanismus (třeba zápis do CGA, který dopadne i do RAM se ztraceným
   A14/A15, nebo adresa posunutá o bit; emulátor umí porovnat se zápisy programu), ten nasimulovat jako vadu
   a teprve pak doplnit INTA, RESET s /M1 a záplatu.
+
+## 2026-10-16 – DPI-1L jen se síťovou částí
+
+- **Z DPI-1L jen Repository API a NET** (autor: „jen její síťovou část … Emulaci karet, kterou dělá skutečná DPI,
+  nepřidávej“). Karty, které DPI emuluje na sběrnici (DPP-1, IDE-1, RAM disk), SAPIemu má samo. Soubory nad složkou
+  PC (příkazy 20–56h, zadání §7) jsou volitelná druhá část, zatím nejsou. Zadání je v
+  `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`, popis v `docs/desky/DPI-1L.md`.
+- **Vzor je firmware DPI v0.2, ne zadání**, kde se liší: jeden program má běžet stejně v emulátoru i na kartě.
+  Rozdíly (stav Repository API po /RES, zrušené CREATE místnost přesto otevře, kód JOIN delší než 7 znaků) jsou
+  v `docs/desky/DPI-1L.md` a šly autorovi jako otázky.
+- **Síť ve vlastním vlákně, emulace jednovláknová.** Vlákno spojení řádky od relay jen řadí do fronty bez omezení
+  délky, karta je zpracuje při nejbližším přístupu Z80 na své porty. Z80 jiný rozdíl nepozná a nemůže se ztratit
+  řádek (chyba MZPico s frontou 10 řádků). Vlákno si drží vlastní odkaz na spojení, nikdo na něj nečeká, takže
+  zavření spojení nebrzdí emulaci.
+- **WebSocket vlastní, jako ve firmwaru**, ne z `httplib`: pár desítek řádků a stejné chování (Host bez portu,
+  ping → pong, bez ověření Accept). Limit 10 s pro CREATE a JOIN se měří časem PC, relay běží v reálném čase.
+- **Sestava `sapi1v_BomberNet.sapi` na ARB-1C (14 pozic)**, ne vyndáním karty ze `sapi1v`: devět karet se na ARB-1C-8
+  nevejde a všechny programy sestavy V tak běží beze změny.
+- **Release 0.6.0-alpha pro SAPI-BomberNet:** ostatní projekty smějí spouštět jen release SAPIemu
+  (`..\SAPIemu-release`), ne vývojový strom.

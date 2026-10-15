@@ -231,6 +231,10 @@ vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při
 v repu, ne v balíčku alfy) a `sapi1v_BadApple.sapi` (demo Bad Apple!!, `ba-ramdisk.bin`). Sestava je stejná jako V,
 ZRD-1V rev 1.1; po startu volba 3, pak `POP` nebo `BADAPPLE`. Obraz se všemi hrami (PoP, FXS4, Flappy, Bomberman,
 BKP) jde u ZRD-1V vybrat v konfigurátoru.
+**Síťová hra na sestavě V** (`machines/sapi1v_BomberNet.sapi`, 2026-10-16): sestava V a navíc karta DPI-1L v X9, z níž je
+emulovaná jen síťová část (Repository API na B0h/B1h, NET A0–A9h přes relay `ws://api.mzpico.com/net`,
+`docs/desky/DPI-1L.md`). Devět karet se nevejde na ARB-1C-8, sběrnice je ARB-1C se 14 pozicemi. Hra BomberNet pro SAPI
+vzniká v repu SAPI-BomberNet.
 **Libor doma** (`machines/libor_doma.sapi`, 2026-10-08): sestava Libora Lasoty na sběrnici ImBUS12 s jeho deskami V
 (JPR-1V, RAM-1V, AND-1V, DSM-1V 10h, ZRD-1V 60h, DGD-1V, CGA-1V, MPH-1V 50h, bez IDE-1). Displeje se střídají podle MAP:
 MAP1 = L AND-1V na F800h (díra 2 KB v RAM-1V), MAP1 = H grafika na C000h (díra 16 KB), MAP2 = L DGD-1V, MAP2 = H
