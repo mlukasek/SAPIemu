@@ -13,6 +13,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   které spouští jen release (`..\SAPIemu-release`). Otázky autorovi k rozdílům zadání a firmwaru jsou
   v `docs/desky/DPI-1L.md` (stav po /RES, zrušené CREATE, kód JOIN delší než 7 znaků). Testy: debug 54, release 54,
   Linux ve WSL 54 (GCC bez varování ve vlastním kódu), `check_machines.py --games` 60 sestav a 6 her a dem.
+  Při zkoušce se našlo, že na Windows se druhé `sapiemu-cli --mcp` navěsí na obsazený port bez chyby a požadavky
+  dostává to první (cizí session). Opraveno (autor: „oprav ten SO_EXCLUSIVEADDRUSE“): MCP i TCP server sériové
+  linky obsazený port odmítnou. Zip přebalený a rozbalený do `..\SAPIemu-release` (autor), `work/`, `imgui.ini`
+  a nastavení tam zůstaly.
 
 - **Alfa 0.5.0-alpha (připravená 2026-10-14, autor: „jdem na alpha 0.5.0“):**
   `out/package/SAPIemu-0.5.0-alpha-win64.zip` (420 souborů, 27,9 MB, s IDE diskem `work/ide` jako minule, bez PoP),
