@@ -137,7 +137,12 @@ private:
         sock_t s = socket(v6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (s == SOCK_INVALID) return SOCK_INVALID;
         int yes = 1;
+#ifdef _WIN32
+        // a port in use must fail: with SO_REUSEADDR Windows lets a second process bind it too
+        setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char*)&yes, sizeof(yes));
+#else
         setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
+#endif
         sockaddr_storage ss;
         memset(&ss, 0, sizeof(ss));
         socklen_t len;

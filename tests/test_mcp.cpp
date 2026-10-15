@@ -216,6 +216,24 @@ int main(void)
     CHECK(r["isError"] == false);
     CHECK(host.quit_requested && !host.powered());
 
+    // a port another server holds is refused, not shared (Windows lets SO_REUSEADDR bind it twice: another
+    // session's emulator got the requests of a second cli on the same port, 2026-10-16)
+    {
+        McpServer a(host), b(host);
+        std::string err;
+        int port = 0;
+        for (int p = 8650; p < 8700 && !port; p++)
+            if (a.start(p, err)) port = p;
+        CHECK(port != 0);
+        if (port) {
+            CHECK(!b.start(port, err));
+            CHECK(err.find("port in use") != std::string::npos);
+        }
+        a.stop();
+        if (port) CHECK(b.start(port, err));   // free again
+        b.stop();
+    }
+
     quit = true;
     emu.join();
     return TEST_RESULT();

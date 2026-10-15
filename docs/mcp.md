@@ -10,6 +10,10 @@ na klávesnici, číst obrazovku, nahrávat programy, krokovat a nastavovat brea
   - `--mcp-port N` nastaví jiný port, `--no-mcp` server vypne.
 - **Bez okna:** `sapiemu-cli --mcp [--machine ...] [--mcp-port N]`. Emuluje v reálném čase a obsluhuje MCP,
   dokud se nestiskne Ctrl+C.
+- **Obsazený port:** když port drží jiný emulátor (jiná session, jiné cli), server se nespustí a v logu je
+  „cannot listen … (port in use?)“. Do 0.5.0 se na Windows druhý proces na port navěsil bez chyby a požadavky dál
+  dostával ten první (SO_REUSEADDR, 2026-10-16 tak jedna session ovládala stroj jiné). Teď je port výhradní
+  (SO_EXCLUSIVEADDRUSE), stejně jako TCP server sériové linky.
 - **Bezpečnost:** server poslouchá jen na `127.0.0.1` a přijme jen požadavek, který splní tři podmínky:
   - hlavička `Host` je `127.0.0.1`, `localhost` nebo `[::1]` (ochrana proti DNS rebindingu);
   - `Origin`, pokud je uvedený, je přesně jeden z těchto počítačů na libovolném portu, takže cizí webové

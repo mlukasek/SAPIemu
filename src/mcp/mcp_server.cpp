@@ -162,6 +162,17 @@ bool McpServer::start(int port, std::string& err)
     svr->Delete("/mcp", [](const httplib::Request&, httplib::Response& res) {
         res.status = 405;
     });
+    // A port held by another emulator (another session, another cli) must fail with "port in use", not be shared:
+    // httplib sets SO_REUSEADDR (Windows: a second process binds the port too and the first keeps getting the
+    // requests) or SO_REUSEPORT (Linux: the requests are shared out).
+    svr->set_socket_options([](socket_t s) {
+        int one = 1;
+#ifdef _WIN32
+        setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char*)&one, sizeof(one));
+#else
+        setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char*)&one, sizeof(one));
+#endif
+    });
     if (!svr->bind_to_port("127.0.0.1", port)) {
         err = "cannot listen on 127.0.0.1:" + std::to_string(port) + " (port in use?)";
         svr.reset();

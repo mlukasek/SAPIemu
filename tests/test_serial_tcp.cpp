@@ -110,6 +110,12 @@ static void session(bool telnet)
     int port = tcp_bridge_port(m->bridges[0].get());
     CHECK(port > 0);
     CHECK(!m->serials[0]->connected);           // no client yet: DCD inactive
+    {   // the port is taken: a second server is refused, not bound twice (SO_REUSEADDR on Windows)
+        std::string err;
+        SerialBridge* b2 = tcp_bridge_start(m->serials[0], "127.0.0.1", port, false, TCP_RAW, err);
+        CHECK(b2 == nullptr);
+        if (b2) { b2->stop(); delete b2; }
+    }
 
     sock_t s = connect_to(port, telnet);   // telnet session via IPv6 ::1 (like "telnet localhost")
     CHECK(s != (sock_t)-1);
