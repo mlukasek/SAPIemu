@@ -39,8 +39,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
     png, log, `xmodem` (vysílač a přijímač pro okno terminálu), `tapegen` (kazeta MIKOS a MIKROBASIC
-    z programu, `docs/software/kazeta.md`), `relay` (spojení s relay pro síťové hry, vlastní vlákno, TCP řádky
-    i WebSocket; karta DPI-1L, `docs/desky/DPI-1L.md`), `state` (ukládání stavu, `docs/stav.md`:
+    z programu, `docs/software/kazeta.md`), `relay` (spojení s relay pro síťové hry, TCP řádky
+    i WebSocket, a spojení TCP a DNS Repository API, každé ve vlastním vlákně; karta DPI-1L, její SD karta nad
+    složkou PC je `cards/dpi1l_fs`, `docs/desky/DPI-1L.md`), `state` (ukládání stavu, `docs/stav.md`:
     **každá karta musí mít `state()`**);
   - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`, upravené o režim 8085 pro JPR-1X,
     `docs/8085.md`);

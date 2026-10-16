@@ -12,6 +12,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   Podle záznamů ze skutečné karty (`..\SAPI_DPI-firmware\docs\sapiemu_dpi_repo.md`) dorovnané: velikost karty
   (`sd.sectors`, SanDisk 32 GB), pořadí položek, krátká jména FatFs (CP437) a opravy firmwaru `f3e583b` (RESET zavře
   TCP, DNS bez staré IP, chyba odmítnutých parametrů zůstane). Test `test_dpi1l_files` jde podle záznamů A–G.
+  **Alfa 0.6.0 přebalená s celou DPI-1L** (autor: „přebal release alpha 0.6.0 pošlu to kamarádům“): testy debug 55,
+  release 55, Linux ve WSL 55, `check_machines.py --games` 60 sestav a 6 her a dem; zip rozbalený do
+  `..\SAPIemu-release`.
 - **DPI-1L, síťová část (2026-10-16, zadání `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`):** karta `DPI-1L` jen
   s Repository API na B0h/B1h a NET A0h–A9h pro síťový BomberNet (`src/cards/dpi1l.*`, spojení `src/core/relay.*`,
   `docs/desky/DPI-1L.md`). Emulace karet, kterou dělá skutečná DPI, ani soubory nad složkou PC v ní nejsou. Vzorem je
