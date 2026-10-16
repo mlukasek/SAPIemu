@@ -57,6 +57,7 @@ private:
     void run_net(DpiSdResult& res, bool& pending);   // NET A0h-A9h (repo_netgame_execute)
     void run_params(void);                // SEEK, RTC with their parameters
     void run_tcp(DpiSdResult& res);       // TCP and DNS 80h-89h (common/net.c)
+    void tcp_reset(void);                 // RESET 00h: close the connection, forget the DNS answer
     void file_putc(uint8_t v);
     void rtc_get(struct tm& t);
     void rtc_set(const struct tm& t);

@@ -1693,8 +1693,13 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   `sd.flush_on_exit` (výchozí vypnutá) zapíše stránku při vypnutí emulátoru.
 - **Uložený stav drží otevřený soubor** i s nezapsanou stránkou a CWD (autor souhlasil). Dřív se karta po načtení
   chovala jako po RESET; síťové spojení se uložit nedá dál, místnost se opustí.
-- **Velikost karty parametrem** `sd.size_mb`, výchozí 32 MB (autorova SanDisk). Skutečný disk PC by dal nesmyslné
-  GETFREE. Plná karta vrátí FR_DENIED jako `flush_page` ve firmwaru.
+- **Velikost karty parametrem** `sd.sectors` (sektory jako GETFREE), výchozí autorova SanDisk 32 GB (62 309 376,
+  podle záznamů firmwaru; původně `sd.size_mb` 32 podle „32 MB“). Skutečný disk PC by dal nesmyslné GETFREE. Plná
+  karta vrátí FR_DENIED jako `flush_page` ve firmwaru.
+- **Podle záznamů ze skutečné karty** (`sapiemu_dpi_repo.md`, 2026-10-16): pořadí položek jako na FAT (pořadí
+  vytvoření, emulátor si pamatuje, co vytvořil, a na Windows posune čas vytvoření), krátká jména přesně podle FatFs
+  s kódovou stránkou 437, a opravy firmwaru `f3e583b` (RESET zavře TCP, DNSREQ vynuluje IP, chyba odmítnutých
+  parametrů zůstane).
 - **`/DPI/DPI.INI` se založí a GETCONFIG/SETCONFIG s ním pracují, emulátor se jím neřídí** (autor souhlasil): relay
   a port jsou parametry karty. SECRET.INI a starý `/DPI.INI` skryté jako na kartě.
 - **BOOT jako /RTL 100 ms, RTC podle hodin PC s posunem, SDCARD bez USB = chyba 5** (autor souhlasil s BOOT; zbytek

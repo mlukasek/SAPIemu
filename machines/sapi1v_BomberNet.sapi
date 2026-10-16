@@ -115,7 +115,7 @@
             },
             "sd": {
                 "folder": "work/dpi-1l/sdcard",  // SD card: folder of the PC (its root /)
-                "size_mb": 32,              // SD card: size (MB, GETFREE and a full card)
+                "sectors": 62309376,        // SD card: size in sectors of 512 B as GETFREE gives it (SanDisk 32 GB)
                 "flush_on_exit": false      // SD card: write the open file's page at switching off (a deviation)
             }
         }

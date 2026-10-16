@@ -614,13 +614,12 @@ static void test_tcp(FakeRelay& r)
     REC(m, "86 04 00", "02 86 06 00 | 04 00 57 4F 52 4C");       // TCPRECV max 4
     REC(m, "86 2C 01", "02 86 04 00 | 02 00 44 21");             // max 300: what is there
     REC(m, "86 10 00", "02 86 02 00 | 00 00");
-    std::vector<uint8_t> c = hex("85 FD 00");                    // 253 bytes: BAD_PARAM after the length
-    m.bus.io_write(B, c[0]);
+    std::vector<uint8_t> c = hex("85 FD 80");                    // 253 bytes: BAD_PARAM after the length,
+    m.bus.io_write(B, c[0]);                                     // the data after it keep that error (f3e583b)
     m.bus.io_write(B + 1, c[1]);
     m.bus.io_write(B + 1, c[2]);
+    for (int i = 0; i < 253; i++) m.bus.io_write(B + 1, 0x41);
     REC(m, "03", "80 85 02 00");
-    REC(m, "00", "00 00 00 00");                                 // RESET does not close TCP
-    REC(m, "80", "02 80 0A 00 | 01 02 00 00 " + ip_port(r.port));
     r.drop();                                                    // the other side closes
     st = wait_out(m, 0x80, 1, 4);
     CHECK(st == hex("02 80 0A 00 | 00 04 00 00 " + ip_port(r.port)));
@@ -640,6 +639,17 @@ static void test_tcp(FakeRelay& r)
     st = wait_out(m, 0x80, 1, 3);
     CHECK(st.size() == 14 && st[4] == 0 && st[5] == 3);
 
+    // RESET closes the connection (f3e583b), address and port stay
+    snprintf(cmd, sizeof(cmd), "82 %02X %02X", r.port & 0xFF, r.port >> 8);
+    REC(m, cmd, "00 82 00 00");
+    REC(m, "83", "00 83 00 00");
+    CHECK(r.accept_client());
+    st = wait_out(m, 0x80, 1, 2);
+    CHECK(st == hex("02 80 0A 00 | 01 02 00 00 " + ip_port(r.port)));
+    REC(m, "00", "00 00 00 00");
+    REC(m, "80", "02 80 0A 00 | 00 00 00 00 " + ip_port(r.port));
+    CHECK(r.closed());
+
     // DNS
     REC(m, "89", "02 89 05 00 | 00 00 00 00 00");
     REC(m, "88 31 32 37 2E 30 2E 30 2E 31 00", "00 88 00 00");  // a number: at once
@@ -649,9 +659,13 @@ static void test_tcp(FakeRelay& r)
     CHECK(st == hex("02 89 05 00 | 02 7F 00 00 01"));
     REC(m, "88 6E 65 6E 69 2E 69 6E 76 61 6C 69 64 00", "00 88 00 00");   // neni.invalid
     st = wait_out(m, 0x89, 0, 3, 8000);
-    CHECK(st.size() == 9 && st[4] == 3);
+    CHECK(st == hex("02 89 05 00 | 03 00 00 00 00"));            // no old IP (f3e583b)
+    REC(m, "88 6C 6F 63 61 6C 68 6F 73 74 00", "00 88 00 00");
+    st = wait_out(m, 0x89, 0, 2, 6000);
     REC(m, "88 00", "00 88 00 00");                              // no name
     REC(m, "89", "02 89 05 00 | 04 7F 00 00 01");
+    REC(m, "00", "00 00 00 00");                                 // RESET forgets the answer
+    REC(m, "89", "02 89 05 00 | 00 00 00 00 00");
 }
 
 int main(void)

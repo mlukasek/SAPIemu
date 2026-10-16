@@ -9,6 +9,12 @@
 #include <chrono>
 #include <filesystem>
 #include <set>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <fcntl.h>
+#include <sys/stat.h>
+#endif
 
 namespace fs = std::filesystem;
 
@@ -229,52 +235,174 @@ static bool valid_name(const std::string& n)
     return true;
 }
 
-// Short name 8.3 as FatFs makes it (an approximation: CP437 letters with marks become '_' here, the ~n numbers
-// follow the order of the listing, not of the creation). has_alt = false: the name is a plain upper case 8.3 name,
-// FatFs has no other form of it (altname empty).
+// ---- short names 8.3 as FatFs R0.15 makes them (ff.c create_name, gen_numname; FF_CODE_PAGE 437 of the DPI) ----
+
+// CP437 to Unicode (ffunicode.c uc437)
+static const uint16_t uc437[128] = {
+    0x00C7, 0x00FC, 0x00E9, 0x00E2, 0x00E4, 0x00E0, 0x00E5, 0x00E7, 0x00EA, 0x00EB, 0x00E8, 0x00EF, 0x00EE, 0x00EC, 0x00C4, 0x00C5,
+    0x00C9, 0x00E6, 0x00C6, 0x00F4, 0x00F6, 0x00F2, 0x00FB, 0x00F9, 0x00FF, 0x00D6, 0x00DC, 0x00A2, 0x00A3, 0x00A5, 0x20A7, 0x0192,
+    0x00E1, 0x00ED, 0x00F3, 0x00FA, 0x00F1, 0x00D1, 0x00AA, 0x00BA, 0x00BF, 0x2310, 0x00AC, 0x00BD, 0x00BC, 0x00A1, 0x00AB, 0x00BB,
+    0x2591, 0x2592, 0x2593, 0x2502, 0x2524, 0x2561, 0x2562, 0x2556, 0x2555, 0x2563, 0x2551, 0x2557, 0x255D, 0x255C, 0x255B, 0x2510,
+    0x2514, 0x2534, 0x252C, 0x251C, 0x2500, 0x253C, 0x255E, 0x255F, 0x255A, 0x2554, 0x2569, 0x2566, 0x2560, 0x2550, 0x256C, 0x2567,
+    0x2568, 0x2564, 0x2565, 0x2559, 0x2558, 0x2552, 0x2553, 0x256B, 0x256A, 0x2518, 0x250C, 0x2588, 0x2584, 0x258C, 0x2590, 0x2580,
+    0x03B1, 0x00DF, 0x0393, 0x03C0, 0x03A3, 0x03C3, 0x00B5, 0x03C4, 0x03A6, 0x0398, 0x03A9, 0x03B4, 0x221E, 0x03C6, 0x03B5, 0x2229,
+    0x2261, 0x00B1, 0x2265, 0x2264, 0x2320, 0x2321, 0x00F7, 0x2248, 0x00B0, 0x2219, 0x00B7, 0x221A, 0x207F, 0x00B2, 0x25A0, 0x00A0,
+};
+
+// extended characters of CP437 to upper case (ff.c TBL_CT437, 80h-FFh)
+static const uint8_t ct437[128] = {
+    0x80, 0x9A, 0x45, 0x41, 0x8E, 0x41, 0x8F, 0x80, 0x45, 0x45, 0x45, 0x49, 0x49, 0x49, 0x8E, 0x8F,
+    0x90, 0x92, 0x92, 0x4F, 0x99, 0x4F, 0x55, 0x55, 0x59, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9F,
+    0x41, 0x49, 0x4F, 0x55, 0xA5, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF,
+    0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7, 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF,
+    0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
+    0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF,
+    0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEF,
+    0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
+};
+
+static uint8_t uni2oem437(uint32_t c)
+{
+    if (c < 0x80) return (uint8_t)c;
+    for (int i = 0; i < 128; i++)
+        if (uc437[i] == c) return (uint8_t)(0x80 + i);
+    return 0;
+}
+
+// The short name of a long name (11 bytes of the directory entry, body padded with spaces). lossy: FatFs makes a
+// numbered name (~n); lfn: FatFs keeps the long name in LFN entries; lower: ASCII small letters in an 8.3 name (the
+// NT case flags: no LFN, but FatFs shows the short name as altname then).
+static void sfn_of(const std::u32string& u, uint8_t fn[11], bool& lossy, bool& lfn, bool& lower)
+{
+    memset(fn, ' ', 11);
+    lossy = lfn = lower = false;
+    size_t di = u.size();
+    size_t si = 0;
+    while (si < u.size() && u[si] == ' ') si++;
+    if (si > 0 || (si < u.size() && u[si] == '.')) lossy = lfn = true;
+    while (di > 0 && u[di - 1] != '.') di--;   // last dot (di <= si: no extension), as a position after it
+    size_t i = 0, ni = 8;
+    unsigned b = 0;
+    for (;;) {
+        if (si >= u.size()) break;
+        uint32_t wc = u[si++];
+        if (wc == ' ' || (wc == '.' && si != di)) {
+            lossy = lfn = true;
+            continue;
+        }
+        if (i >= ni || si == di) {
+            if (ni == 11) {
+                lossy = lfn = true;
+                break;
+            }
+            if (si != di) lossy = lfn = true;
+            if (si > di) break;
+            si = di;
+            i = 8;
+            ni = 11;
+            b <<= 2;
+            continue;
+        }
+        if (wc >= 0x80) {
+            lfn = true;
+            wc = uni2oem437(wc);
+            if (wc & 0x80) wc = ct437[wc & 0x7F];
+        }
+        if (wc == 0 || (wc < 0x80 && strchr("+,;=[]", (int)wc))) {
+            wc = '_';
+            lossy = lfn = true;
+        } else {
+            if (wc >= 'A' && wc <= 'Z') b |= 2;
+            if (wc >= 'a' && wc <= 'z') {
+                b |= 1;
+                wc -= 0x20;
+            }
+        }
+        fn[i++] = (uint8_t)wc;
+    }
+    if (fn[0] == 0xE5) fn[0] = 0x05;
+    if (ni == 8) b <<= 2;
+    if ((b & 0x0C) == 0x0C || (b & 0x03) == 0x03) lfn = true;
+    if (!lfn && (b & 0x05)) lower = true;
+}
+
+// ff.c gen_numname: ~n after the body, a CRC of the long name instead of n from the 6th collision on
+static void numbered(uint8_t dst[11], const uint8_t src[11], const std::u32string& name, unsigned seq)
+{
+    memcpy(dst, src, 11);
+    if (seq > 5) {
+        uint32_t sreg = seq;
+        for (uint32_t c : name) {
+            uint32_t units[2] = { c, 0 };
+            int nu = 1;
+            if (c >= 0x10000) {                 // UTF-16 as FatFs keeps it
+                units[0] = 0xD800 + ((c - 0x10000) >> 10);
+                units[1] = 0xDC00 + ((c - 0x10000) & 0x3FF);
+                nu = 2;
+            }
+            for (int k = 0; k < nu; k++) {
+                uint32_t wc = units[k];
+                for (int j = 0; j < 16; j++) {
+                    sreg = (sreg << 1) + (wc & 1);
+                    wc >>= 1;
+                    if (sreg & 0x10000) sreg ^= 0x11021;
+                }
+            }
+        }
+        seq = (unsigned)sreg;
+    }
+    uint8_t ns[8];
+    int i = 7;
+    do {
+        uint8_t c = (uint8_t)((seq % 16) + '0');
+        seq /= 16;
+        if (c > '9') c += 7;
+        ns[i--] = c;
+    } while (i && seq);
+    ns[i] = '~';
+    int j = 0;
+    while (j < i && dst[j] != ' ') j++;
+    do {
+        dst[j++] = (i < 8) ? ns[i++] : ' ';
+    } while (j < 8);
+}
+
+// the short name as FILINFO altname shows it (OEM to Unicode, '.' before the extension)
+static std::string sfn_text(const uint8_t fn[11])
+{
+    std::string s;
+    char buf[4];
+    for (int k = 0; k < 11; k++) {
+        uint8_t c = fn[k];
+        if (c == ' ') continue;
+        if (k == 0 && c == 0x05) c = 0xE5;
+        if (k == 8) s += '.';
+        uint32_t cp = c < 0x80 ? c : uc437[c - 0x80];
+        size_t n = put_utf8(cp, buf, sizeof(buf));
+        s.append(buf, n);
+    }
+    return s;
+}
+
+// Short names of a directory: FatFs gives a name its short name when it is created, a numbered one only for a lossy
+// conversion, the first ~n not taken by an older entry. `has_alt`: the record shows it (FatFs: an LFN or case flags).
 static std::string make_sfn(const std::string& name, const std::set<std::string>& taken, bool& has_alt)
 {
     std::u32string u;
     const char* s = name.c_str();
     while (*s) u.push_back(next_cp(&s));
-    size_t start = 0;
-    while (start < u.size() && (u[start] == '.' || u[start] == ' ')) start++;
-    size_t dot = u.rfind(U'.');
-    if (dot == std::u32string::npos || dot < start) dot = u.size();
-    std::string body, ext;
-    bool lossy = start > 0, lower = false, upper = false;
-    for (size_t i = start; i < u.size(); i++) {
-        if (i == dot) continue;
-        uint32_t c = u[i];
-        if (c == ' ' || (c == '.' && i != dot)) { lossy = true; continue; }
-        char o;
-        if (c >= 0x80 || strchr("+,;=[]", (int)c)) { o = '_'; lossy = true; }
-        else {
-            if (c >= 'a' && c <= 'z') { lower = true; c -= 0x20; }
-            else if (c >= 'A' && c <= 'Z') upper = true;
-            o = (char)c;
-        }
-        if (i < dot) body += o;
-        else ext += o;
+    uint8_t fn[11], num[11];
+    bool lossy, lfn, lower;
+    sfn_of(u, fn, lossy, lfn, lower);
+    has_alt = lfn || lower;
+    if (!lossy) return sfn_text(fn);
+    std::string t;
+    for (unsigned n = 1; n < 100; n++) {
+        numbered(num, fn, u, n);
+        t = sfn_text(num);
+        if (!taken.count(t)) break;
     }
-    if (body.size() > 8 || ext.size() > 3) lossy = true;
-    if (ext.size() > 3) ext.resize(3);
-    if (body.empty()) { body = "_"; lossy = true; }
-    std::string sfn;
-    if (!lossy) {
-        sfn = body + (ext.empty() ? "" : "." + ext);
-        has_alt = lower;                             // lower case: case flags or a long name, the SFN is shown
-        (void)upper;
-        return sfn;
-    }
-    has_alt = true;
-    for (int n = 1; n < 1000000; n++) {
-        std::string tail = "~" + std::to_string(n);
-        std::string b = body.substr(0, std::min(body.size(), 8 - tail.size())) + tail;
-        sfn = b + (ext.empty() ? "" : "." + ext);
-        if (!taken.count(sfn)) break;
-    }
-    return sfn;
+    return t;
 }
 
 static void put32(uint8_t* b, uint32_t v)
@@ -339,18 +467,25 @@ static void fat_time(fs::file_time_type t, uint16_t& fdate, uint16_t& ftime)
 
 // ---------------------------------------------------------------- the card
 
-bool DpiSd::init(const std::string& host_root, uint32_t mb, std::string& err)
+bool DpiSd::init(const std::string& host_root, uint32_t total_sectors, std::string& err)
 {
     root = host_root;
-    size_mb = mb ? mb : 1;
+    sectors = total_sectors < 64 ? 64 : total_sectors;
     std::error_code ec;
+    made_seq.clear();
+    made_count = 0;
+    bool new_dir = !fs::is_directory(u8p(root) / "DPI", ec);
     fs::create_directories(u8p(root) / "DPI", ec);
     if (!fs::is_directory(u8p(root) / "DPI", ec)) {
         err = "DPI-1L: cannot create the SD card folder " + root;
         return false;
     }
+    if (new_dir) made(DPI_DIR);
     std::string ini = host(CONFIG_PATH);
-    if (!file_exists(ini)) file_write_all(ini, default_ini, sizeof(default_ini) - 1);   // as create_default()
+    if (!file_exists(ini)) {                    // as create_default()
+        file_write_all(ini, default_ini, sizeof(default_ini) - 1);
+        made(CONFIG_PATH);
+    }
     power_on();
     return true;
 }
@@ -370,22 +505,23 @@ std::string DpiSd::host(const std::string& path) const
     return p8(u8p(root) / u8p(path.substr(1)));
 }
 
+// clusters as a card of that size is formatted (up to 128 MB 2 KB, FAT32 32 KB, exFAT 128 KB)
 uint32_t DpiSd::cluster_bytes(void) const
 {
-    if (size_mb <= 128) return 2048;
-    if (size_mb <= 32768) return 32768;
+    uint64_t bytes = (uint64_t)sectors * 512;
+    if (bytes <= 128ull << 20) return 2048;
+    if (bytes <= 32ull << 30) return 32768;
     return 131072;
 }
 
 uint32_t DpiSd::total_clusters(void) const
 {
-    uint64_t c = (uint64_t)size_mb * 1024 * 1024 / cluster_bytes();
-    return (uint32_t)(c - c / 100);             // about 1 % for the FAT and the root
+    return sectors / (cluster_bytes() / 512);
 }
 
 uint64_t DpiSd::used_clusters(const std::string& path)
 {
-    uint64_t n = 0;
+    uint64_t n = path == "/" ? 1 : 0;           // the root directory has its cluster too (FAT32)
     uint32_t cl = cluster_bytes();
     std::error_code ec;
     for (fs::recursive_directory_iterator it(u8p(host(path)), ec), end; !ec && it != end; it.increment(ec)) {
@@ -400,6 +536,81 @@ void DpiSd::fatfs(DpiSdResult& res, uint8_t fr)
     if ((fr == DFR_NO_FILE || fr == DFR_NO_PATH) && ambiguous) fr = DFR_INVALID_NAME;   // several fit
     res.ff_res = fr;
     if (fr != DFR_OK) res.err_code = REPO_ERR_FATFS;
+}
+
+// Creation time of a host file (100 ns or ns ticks; the modification time where the system does not keep it) and
+// its number in the file system (NTFS MFT index, inode): files made within one tick of the clock (about 15 ms on
+// NTFS) have the same time, a new file gets the lowest free number, so the number keeps their order.
+static void birth_time(const fs::path& p, int64_t& born, uint64_t& id)
+{
+    born = 0;
+    id = 0;
+#ifdef _WIN32
+    HANDLE h = CreateFileW(p.wstring().c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+                           OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    if (h != INVALID_HANDLE_VALUE) {
+        BY_HANDLE_FILE_INFORMATION fi;
+        if (GetFileInformationByHandle(h, &fi)) {
+            born = (int64_t)((uint64_t)fi.ftCreationTime.dwHighDateTime << 32 | fi.ftCreationTime.dwLowDateTime);
+            id = (uint64_t)fi.nFileIndexHigh << 32 | fi.nFileIndexLow;
+        }
+        CloseHandle(h);
+        if (born) return;
+    }
+#else
+#ifdef STATX_BTIME
+    struct statx sx;
+    if (statx(AT_FDCWD, p.c_str(), 0, STATX_BTIME | STATX_INO, &sx) == 0) {
+        id = sx.stx_ino;
+        if (sx.stx_mask & STATX_BTIME) {
+            born = (int64_t)sx.stx_btime.tv_sec * 1000000000 + sx.stx_btime.tv_nsec;
+            return;
+        }
+    }
+#endif
+    struct stat st;
+    if (stat(p.c_str(), &st) == 0) id = (uint64_t)st.st_ino;
+#endif
+    std::error_code ec;
+    born = (int64_t)fs::last_write_time(p, ec).time_since_epoch().count();
+}
+
+// key of a FatFs path in made_seq (FatFs names do not differ in case)
+static std::string path_key(const std::string& path)
+{
+    std::u32string u = upper_name(path);
+    std::string k;
+    char b[8];
+    for (uint32_t c : u) k.append(b, put_utf8(c, b, sizeof(b)));
+    return k;
+}
+
+void DpiSd::made(const std::string& path)
+{
+    made_seq[path_key(path)] = ++made_count;
+#ifdef _WIN32
+    // the creation time strictly after the last one made here, so the order holds after a restart too
+    FILETIME now;
+    GetSystemTimeAsFileTime(&now);
+    uint64_t t = (uint64_t)now.dwHighDateTime << 32 | now.dwLowDateTime;
+    if (t <= last_birth) t = last_birth + 1;
+    last_birth = t;
+    HANDLE h = CreateFileW(u8p(host(path)).wstring().c_str(), FILE_WRITE_ATTRIBUTES,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
+                           FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    if (h != INVALID_HANDLE_VALUE) {
+        FILETIME ft;
+        ft.dwLowDateTime = (DWORD)t;
+        ft.dwHighDateTime = (DWORD)(t >> 32);
+        SetFileTime(h, &ft, NULL, NULL);
+        CloseHandle(h);
+    }
+#endif
+}
+
+void DpiSd::gone(const std::string& path)
+{
+    made_seq.erase(path_key(path));
 }
 
 // entries of a directory as FatFs lists them (without "." and ".."), short names made in this order
@@ -417,19 +628,26 @@ bool DpiSd::list(const std::string& path, std::vector<DpiEntry>& out)
         e.size = e.dir ? 0 : (uint32_t)std::min<uint64_t>(it->file_size(ec), 0xFFFFFFFFu);
         fat_time(it->last_write_time(ec), e.fdate, e.ftime);
         e.attr = e.dir ? 0x10 : 0x20;
+        birth_time(it->path(), e.born, e.id);
+        auto ms = made_seq.find(path_key(join(path, e.name)));
+        if (ms != made_seq.end()) e.seq = ms->second;
         fs::perms pm = it->status(ec).permissions();
         if ((pm & fs::perms::owner_write) == fs::perms::none) e.attr |= 0x01;
         out.push_back(e);
     }
+    // FAT keeps entries in the order they were made: the creation time of the PC, then the name
     std::sort(out.begin(), out.end(), [](const DpiEntry& a, const DpiEntry& b) {
+        if (a.born != b.born) return a.born < b.born;
+        if (a.seq != b.seq) return a.seq < b.seq;
+        if (a.id != b.id) return a.id < b.id;
         return upper_name(a.name) < upper_name(b.name);
     });
     std::set<std::string> taken;
     for (DpiEntry& e : out) {
         bool alt;
-        std::string s = make_sfn(e.name, taken, alt);
-        taken.insert(s);
-        e.sfn = alt ? s : std::string();
+        std::string sn = make_sfn(e.name, taken, alt);
+        taken.insert(sn);
+        e.sfn = alt ? sn : std::string();
     }
     return true;
 }
@@ -457,11 +675,9 @@ int DpiSd::walk(const std::string& path, DpiEntry* e, std::string* real)
         std::vector<DpiEntry> ents;
         if (!list(cur, ents)) return DFR_NO_PATH;
         std::u32string want = upper_name(comp);
-        std::string upper_sfn;
-        for (char c : comp) upper_sfn += (char)toupper((unsigned char)c);
         const DpiEntry* hit = nullptr;
         for (const DpiEntry& x : ents)
-            if (upper_name(x.name) == want || (!x.sfn.empty() && x.sfn == upper_sfn)) { hit = &x; break; }
+            if (upper_name(x.name) == want || (!x.sfn.empty() && upper_name(x.sfn) == want)) { hit = &x; break; }
         if (!hit) return last ? DFR_NO_FILE : DFR_NO_PATH;
         cur = join(cur, hit->name);
         if (last) {
@@ -692,6 +908,7 @@ uint8_t DpiSd::do_open(uint8_t mode, const std::string& path)
             FILE* f = file_open(host(real), "wb");
             if (!f) return DFR_DENIED;
             fclose(f);
+            made(real);
             e = DpiEntry();
         } else {
             if (e.attr & (0x01 | 0x10)) return DFR_DENIED;
@@ -740,6 +957,7 @@ uint8_t DpiSd::do_unlink(const std::string& path)
         if (!fs::is_empty(u8p(host(real)), ec)) return DFR_DENIED;
     }
     if (!fs::remove(u8p(host(real)), ec)) return DFR_DENIED;
+    gone(real);
     return DFR_OK;
 }
 
@@ -761,7 +979,10 @@ uint8_t DpiSd::do_rename(const std::string& from, const std::string& to)
     if (!valid_name(name)) return DFR_INVALID_NAME;
     std::error_code ec;
     fs::rename(u8p(host(old_real)), u8p(host(join(dir, name))), ec);
-    return ec ? DFR_DENIED : DFR_OK;
+    if (ec) return DFR_DENIED;
+    gone(old_real);
+    made(join(dir, name));                      // FatFs registers the new name as a new entry
+    return DFR_OK;
 }
 
 uint8_t DpiSd::do_mkdir(const std::string& path)
@@ -776,6 +997,7 @@ uint8_t DpiSd::do_mkdir(const std::string& path)
     if (used_clusters("/") + 1 > total_clusters()) return DFR_DENIED;
     std::error_code ec;
     if (!fs::create_directory(u8p(host(join(dir, name))), ec)) return DFR_DENIED;
+    made(join(dir, name));
     return DFR_OK;
 }
 

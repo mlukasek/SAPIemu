@@ -9,8 +9,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   stránka 4 KB, `/DPI/DPI.INI` s GETCONFIG/SETCONFIG, RTC, BOOT (/RTL), SDCARD (`src/cards/dpi1l_fs.*`, test
   `test_dpi1l_files`). `DPI.COM` z repa firmwaru v CP/M v emulátoru funguje. Potom TCP a DNS (80–89h) podle `net.c` (ověřeno i HTTP GET
   na `example.com`).
-  Session firmwaru dostala seznam referenčních záznamů (soubory, nastavení, RTC, BOOT, TCP); až budou v zadání §10,
-  porovnat a dorovnat (`docs/desky/DPI-1L.md`, „Čeká se na záznamy“).
+  Podle záznamů ze skutečné karty (`..\SAPI_DPI-firmware\docs\sapiemu_dpi_repo.md`) dorovnané: velikost karty
+  (`sd.sectors`, SanDisk 32 GB), pořadí položek, krátká jména FatFs (CP437) a opravy firmwaru `f3e583b` (RESET zavře
+  TCP, DNS bez staré IP, chyba odmítnutých parametrů zůstane). Test `test_dpi1l_files` jde podle záznamů A–G.
 - **DPI-1L, síťová část (2026-10-16, zadání `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`):** karta `DPI-1L` jen
   s Repository API na B0h/B1h a NET A0h–A9h pro síťový BomberNet (`src/cards/dpi1l.*`, spojení `src/core/relay.*`,
   `docs/desky/DPI-1L.md`). Emulace karet, kterou dělá skutečná DPI, ani soubory nad složkou PC v ní nejsou. Vzorem je

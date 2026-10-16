@@ -16,7 +16,10 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
 ## Podklady
 
 - **Zadání:** `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md` (2026-10-16). Jsou v něm i referenční záznamy ze
-  skutečné DPI-1L pro NET (§6) a odpovědi na otázky (§9). Záznamy pro soubory a TCP firmware teprve nahraje (§10).
+  skutečné DPI-1L pro NET (§6) a odpovědi na otázky (§9).
+- **Záznamy zbytku Repository API:** `..\SAPI_DPI-firmware\docs\sapiemu_dpi_repo.md` (2026-10-16, soubory, nastavení,
+  RTC, BOOT, SDCARD, TCP a DNS, odpovědi na otázky). Firmware se při nich opravil (`f3e583b`), emulátor jde podle
+  opraveného.
 - **Vzor je ověřený firmware DPI v0.2** (`..\SAPI_DPI-firmware`, stejný autor, GPLv3):
   - `common/repo.c` a `repo.h`: stavový automat Repository API, bajty souboru, SEEK, TELL, SIZE, RTC;
   - `common/repo_fs.c`: soubory a adresáře (FatFs), dohledávání jmen, skryté soubory;
@@ -80,8 +83,10 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
 - **Parametry** (katalog, konfigurátor):
   - `sd.folder`: složka PC, kořen `/` karty, výchozí `work/dpi-1l/sdcard`. Složka ve `media/` se použije přes
     pracovní kopii ve `work/` jako u PMD32-SD. Jiná cesta (i absolutní, třeba výstup překladu) se použije přímo.
-  - `sd.size_mb`: velikost karty pro GETFREE a plnou kartu, výchozí 32 MB (Martinova SanDisk; přesná čísla z GETFREE
-    skutečné karty doplní záznamy firmwaru). Clustery: do 128 MB po 2 KB, do 32 GB po 32 KB.
+  - `sd.sectors`: velikost karty v sektorech po 512 B, jak ji ukazuje GETFREE (FatFs: clustery krát sektory
+    v clusteru). Výchozí 62 309 376 je Martinova SanDisk 32 GB (FAT32, cluster 32 KB, GETFREE `03B6C400h`). Clustery:
+    do 128 MB po 2 KB, do 32 GB po 32 KB, nad tím 128 KB. Volné místo = celek minus soubory ve složce (zaokrouhlené
+    na clustery), adresáře a kořen po clusteru.
   - `sd.flush_on_exit`: odchylka, výchozí vypnutá (viz stránka níže).
 - **Při prvním spuštění** se složka založí se složkou `/DPI` a souborem `/DPI/DPI.INI` s výchozím obsahem, stejným jako
   ve firmwaru (`create_default`).
@@ -96,7 +101,7 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   - výsledky FR_* v bajtu 3 (OPEN adresáře = 4, mazání neprázdného adresáře nebo CWD = 7, mazání nebo přejmenování
     otevřeného souboru = 16 LOCKED, STAT kořene = 6…);
   - OPEN s režimy FatFs (01 READ, 02 WRITE, 04 CREATE_NEW, 08 CREATE_ALWAYS, 10 OPEN_ALWAYS); bit 20h (SharpASCII) se
-    ignoruje; soubor otevřený pro zápis jde i číst, ale příznak ve stavu a kontrola čtení se řídí režimem od Z80;
+    ignoruje; soubor v režimu 0Ah je jen pro zápis (čtení dá ERROR 4 a 00h), číst i zapisovat jde v režimu 0Bh;
   - SEEK od začátku, od konce, vpřed a vzad, před začátek = 0; TRUNC na pozici (dál než konec soubor prodlouží);
   - CHDIR na soubor = 5, STAT se jménem zakončeným tečkou nebo mezerou najde jméno bez nich.
 - **Stránka 4 KB jako ve firmwaru:**
@@ -118,12 +123,16 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   zavře soubor a adresář a vrátí chybu 5 jako DPI bez připojeného PC.
 - **Uložený stav** drží CWD, otevřený soubor s pozicí a nezapsanou stránkou, otevřený adresář (při načtení se
   vypíše znovu, jak je teď), proud GETCONFIG a posun RTC. Soubory samotné jsou ve složce.
-- **Rozdíly proti skutečné kartě** (než přijdou záznamy firmwaru):
-  - pořadí položek v adresáři je abecední (FAT je má v pořadí vytvoření);
-  - krátká jména 8.3 (`altname` v záznamu) vznikají podle pravidel FatFs, ale čísla `~1`, `~2` podle abecedního
-    pořadí a písmena s diakritikou jako `_` (DPI má kódovou stránku 437);
-  - čas souborů je čas PC, ne RTC karty;
-  - `/DPI/LOG.TXT` (záznamy firmwaru o startu a SETCONFIG) emulátor nepíše;
+- **Pořadí položek** v READDIR a FILELIST je jako na FAT pořadí vytvoření: podle času vytvoření na PC. Co vytvořila
+  karta (OPEN, MKDIR, RENAME, `/DPI` při prvním spuštění), jde v pořadí vytvoření i v rámci jednoho tiku hodin PC;
+  na Windows emulátor čas vytvoření o zlomek posune, aby pořadí platilo i po restartu.
+- **Krátká jména 8.3** (`altname` v záznamu FILINFO) dělá emulátor jako FatFs R0.15 s kódovou stránkou 437 (`ff.c`
+  `create_name` a `gen_numname`): é → E, Ü zůstane, ž → `_`, mezery a další tečky vypadnou, `~1` až `~5`, pak hash.
+  `altname` je prázdné u jména, které je čisté velké 8.3. Krátké jméno najde soubor i při hledání.
+- **Rozdíly proti skutečné kartě, které zůstávají:**
+  - FAT zaplní místo po smazané položce novou, emulátor ji dá na konec;
+  - čas souborů je čas PC, karta bere čas z RTC (NTP);
+  - `/DPI/LOG.TXT` (záznamy firmwaru o startu a SETCONFIG) emulátor nepíše, `DPI.INI` má výchozí obsah;
   - atributy: adresář 10h, soubor 20h, soubor jen pro čtení na PC 01h.
 
 ## Emulace: TCP a DNS (podle `net.c`)
@@ -136,11 +145,16 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   - TCPRECV vrátí nejvýš 253 bajtů (WORD počet, pak data). Po zavření protistranou (stav 4) jde přijaté dočíst.
   - TCPSEND s délkou nad 252 B = chyba 2 už při parametrech. Bez spojení se data tiše zahodí (jako Unicard). Když
     odeslání nejde, chyba 5.
-  - RESET 00h ani /RES spojení nezavřou (jako DPI a Unicard), TCPCLOSE ano.
+  - RESET 00h spojení zavře a DNS zapomene odpověď (`f3e583b`, jako místnost NET); adresa a port zůstanou. /RES
+    spojení nezavře. TCPCLOSE ho zavře, přijaté bajty jdou dočíst.
+  - Spojení na port, kde nic neposlouchá, ohlásí karta hned (stav 3), PC na Windows až po asi 2 s pokusů.
   - Cíl TCPOPEN, dokud ho program nenastaví: parametr `net.tcp_default` (`a.b.c.d:port`, jako `[net] tcp_default`
     v `DPI.INI`), výchozí 0.0.0.0:0.
 - **DNS:** DNSREQ jméno (číselná adresa je hotová hned), DNSRES stav (0 nic, 1 hledá, 2 nalezeno, 3 neznámé jméno,
-  4 špatný parametr) a IP. Hledání běží ve vlastním vlákně (jen IPv4), po 5 s bez odpovědi je výsledek 3.
+  4 špatný parametr) a IP. Hledání běží ve vlastním vlákně (jen IPv4), po 5 s bez odpovědi je výsledek 3. Každý
+  DNSREQ IP vynuluje, neúspěch tedy ukáže `03 00 00 00 00` (`f3e583b`).
+- **Bajt na B1h, který nic nepřijme** (žádné parametry, žádný soubor), nastaví ERROR 4, jen když ještě žádná chyba
+  není: TCPSEND s délkou 253 nechá chybu 2 i po zbytku dat (`f3e583b`).
 - **Uložený stav** drží adresu, port a stav. Spojení ani hledání se uložit nedá: po načtení je spojení zavřené
   (stav 4, nebo 3 při připojování) a hledání skončí jako neznámé jméno.
 
@@ -212,12 +226,16 @@ podle zadání (`..\SAPI_DPI-firmware\docs\sapiemu_dpi.md` §9):
 3. **JOIN s kódem delším než 7 znaků** dá chybu 10 (`"ABCDEFGH"` → `80 A2 0A 00`).
 4. **RTC 60–63h a BOOT 07h** mohly zůstat ERROR 1. S druhou částí (soubory) jsou hotové podle firmwaru.
 
-## Čeká se na záznamy ze skutečné karty
+## Porovnání se záznamy ze skutečné karty (2026-10-16)
 
-Session firmwaru dostala (2026-10-16) seznam záznamů pro soubory, nastavení, RTC, BOOT, SDCARD a TCP/DNS (zadání §10).
-Až budou, porovnat bajt po bajtu a dorovnat hlavně:
-- GETFREE (velikost a clustery karty, výchozí `sd.size_mb`);
-- krátká jména 8.3 a pořadí položek v READDIR;
-- stav po /RES s otevřeným souborem a nezapsanou stránkou;
-- čas souborů (RTC karty, nebo NTP);
-- délku pulzu /RTL u BOOT.
+Záznamy `sapiemu_dpi_repo.md` (A–G) jsou v testu `test_dpi1l_files` bajt po bajtu, jen datum a čas souborů v záznamu
+FILINFO se nesrovnávají. Podle nich se upravilo:
+- velikost karty (`sd.sectors`, GETFREE celkem stejné jako karta);
+- pořadí položek (pořadí vytvoření) a krátká jména podle FatFs s kódovou stránkou 437 (`DLOUHE~1.TXT`, `_ABA~1.TXT`,
+  `_ABA~2.TXT`, `ÜNICODE.TXT`);
+- opravy firmwaru `f3e583b`: RESET zavře TCP a zapomene DNS, DNSREQ vynuluje IP, chyba odmítnutých parametrů zůstane.
+
+Souhlasilo bez úprav: stavové bajty všech příkazů, stránka 4 KB a velikost v adresáři až po CLOSE, /RES s otevřeným
+souborem (B.3), režim 0Ah jen pro zápis (B.2), hledání jmen (C.3), skryté soubory, GETCONFIG a SETCONFIG, RTC,
+BOOT (100 ms), SDCARD, TCP (F). TCP v testu `test_dpi1l` jde proti falešnému serveru, F samo proti `example.com` je
+ručně ověřené výše.

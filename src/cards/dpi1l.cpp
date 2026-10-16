@@ -207,8 +207,8 @@ bool Dpi1l::configure(const json& cfg, std::string& e)
     json sdc = cfg.contains("sd") && cfg["sd"].is_object() ? cfg["sd"] : json::object();
     std::string folder;
     if (!cfg_string(sdc, "folder", folder, "work/dpi-1l/sdcard", e)) return false;
-    if (!cfg_number(sdc, "size_mb", v, 32, e)) return false;
-    if (v < 1 || v > 2097152) { e = "sd.size_mb must be 1 ... 2097152"; return false; }
+    if (!cfg_number(sdc, "sectors", v, 62309376, e)) return false;
+    if (v < 64 || v > 0xFFFFFFFFll) { e = "sd.sectors must be 64 ... 4294967295"; return false; }
     if (!cfg_bool(sdc, "flush_on_exit", flush_on_exit, false, e)) return false;
     sd_ready = false;
     if (!probe) {                       // a folder under media/ is used through its working copy in work/
@@ -502,7 +502,7 @@ void Dpi1l::data_out(uint8_t v)
     sts_pos = 0;
     if (phase != PH_PARAMRQ) {
         if (sd.file.open) file_putc(v);
-        else fail(ERR_NO_FILE);
+        else if (!err) fail(ERR_NO_FILE);   // nobody takes it; after refused parameters their error stays (f3e583b)
         return;
     }
     char f = fmt[fmt_pos];
@@ -847,8 +847,9 @@ void Dpi1l::post(uint8_t c)
 {
     DpiSdResult r;
     bool pending = false;
-    if (c == 0x00) {                    // RESET: NET leaves its room, then the files (repo_fs_execute)
+    if (c == 0x00) {                    // RESET: NET leaves its room, TCP closes, then the files (repo_fs_execute)
         net_reset();
+        tcp_reset();
         if (sd_ready) sd.execute(0x00, dir_cmd, buf, r);
     } else if (c >= 0xA0 && c <= 0xA9) {
         run_net(r, pending);
@@ -880,8 +881,19 @@ void Dpi1l::post(uint8_t c)
     }
 }
 
-// TCP and DNS (common/net.c repo_net_execute): one TCP client connection, a name looked up. RESET and /RES do not
-// close the connection (as the DPI and the Unicard).
+// RESET 00h: the TCP connection goes as well (as a NET room), DNS forgets its answer (f3e583b); address and port stay
+void Dpi1l::tcp_reset(void)
+{
+    if (tcp) tcp->close();
+    tcp.reset();
+    tstate = 0;
+    dns.reset();
+    dstate = 0;
+    memset(dns_ip, 0, 4);
+}
+
+// TCP and DNS (common/net.c repo_net_execute): one TCP client connection, a name looked up. RESET closes the
+// connection, /RES of SAPI does not.
 void Dpi1l::run_tcp(DpiSdResult& r)
 {
     static const uint8_t T_IDLE = 0, T_CONNECTING = 1, T_CONNECTED = 2, T_FAILED = 3;
@@ -946,6 +958,7 @@ void Dpi1l::run_tcp(DpiSdResult& r)
         }
         dstate = D_RESOLVING;
         dns_started = ms_now();
+        memset(dns_ip, 0, 4);               // a failed request must not show the IP of an older one (f3e583b)
         unsigned a, b, c, d;
         char tail;
         if (sscanf((const char*)p, "%u.%u.%u.%u%c", &a, &b, &c, &d, &tail) == 4 && a < 256 && b < 256 && c < 256 &&

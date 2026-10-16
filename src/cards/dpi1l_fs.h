@@ -4,10 +4,11 @@
 //
 // The folder is the root of the card. Paths inside are FatFs paths ("/A/B", real names in UTF-8); the Z80 sends and
 // gets names in KOI-8cs2. FatFs behaviour that programs can see is followed: names compared without regard to case,
-// short names 8.3 (generated, an approximation), results FR_* in status byte 3, one open file with a page of 4 KB
+// short names 8.3 as FatFs makes them (CP437), the entries in the order they were made, results FR_* in byte 3, one open file with a page of 4 KB
 // that reaches the disk only at a page change, SYNC, CLOSE, TRUNC, RESET, READDIR or OPEN, the size in the directory
 // entry written at SYNC and CLOSE, /DPI/SECRET.INI hidden, the card size of a real card (GETFREE, card full).
 #include <stdint.h>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -65,12 +66,16 @@ struct DpiEntry {
     uint32_t size = 0;
     uint16_t fdate = 0, ftime = 0;
     uint8_t attr = 0;
+    int64_t born = 0;          // creation time on the PC (the order of the entries)
+    uint64_t seq = 0;          // made by this card in this run: the order (0 = not known)
+    uint64_t id = 0;           // number of the file on the PC (the order when nothing else tells it)
 };
 
 class DpiSd {
 public:
     // `host_root`: the folder of the card (UTF-8), created with /DPI and /DPI/DPI.INI if missing
-    bool init(const std::string& host_root, uint32_t size_mb, std::string& err);
+    // `sectors`: the size of the card as GETFREE gives it (FatFs: clusters x sectors per cluster)
+    bool init(const std::string& host_root, uint32_t sectors, std::string& err);
     void power_on(void);                       // nothing open, CWD = /, the page lost
 
     // Commands 00h (RESET), 20h-56h, 92h, 99h, B0h; F2h = the next directory record, F3h = the page with file.pos
@@ -104,9 +109,11 @@ private:
     uint32_t total_clusters(void) const;
     void fatfs(DpiSdResult& res, uint8_t fr);
     void fix_entry_size(DpiEntry& e, const std::string& path);
+    void made(const std::string& path);        // an entry made by the card: it goes after the older ones
+    void gone(const std::string& path);
 
     std::string cwd = "/";
-    uint32_t size_mb = 32;
+    uint32_t sectors = 62309376;              // the SanDisk 32 GB of the DPI (FAT32, clusters of 32 KB)
     bool ambiguous = false;                    // the last resolve() met several names without diacritics
     // the open directory (READDIR, FILELIST): the entries when it was opened, the next one
     bool dir_open = false, dir_is_dpi = false, dir_is_root = false;
@@ -117,4 +124,8 @@ private:
     bool cfg_stream = false;
     std::string cfg_section;
     uint32_t cfg_index = 0;
+    // the order of the entries the card made (FAT keeps the order of making, the PC clock ticks too slowly for it)
+    std::map<std::string, uint64_t> made_seq;  // FatFs path in upper case -> sequence
+    uint64_t made_count = 0;
+    uint64_t last_birth = 0;                    // Windows: the last creation time set
 };
