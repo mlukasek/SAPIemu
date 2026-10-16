@@ -1,8 +1,8 @@
 # DPI-1L – Repository API (soubory na SD kartě, NET)
 
 Stav: **emulované Repository API** (typ `DPI-1L`, `src/cards/dpi1l.*`, SD karta nad složkou PC `src/cards/dpi1l_fs.*`,
-spojení s relay `src/core/relay.*`). Síťová část od 2026-10-16 ráno, soubory, nastavení, RTC a BOOT od 2026-10-16
-odpoledne. TCP a DNS (80–89h) jsou další krok. Sestava `machines/sapi1v_BomberNet.sapi`.
+spojení s relay, TCP a DNS `src/core/relay.*`). Síťová část od 2026-10-16 ráno, soubory, nastavení, RTC, BOOT, TCP
+a DNS od 2026-10-16 odpoledne. Sestava `machines/sapi1v_BomberNet.sapi`.
 
 DPI-1L je Martinova karta s RP2350 na sběrnici SAPI. Na skutečném železe emuluje i karty DPP-1, IDE-1, RAM disk
 a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 2026-10-16). Emulované je **Repository API**
@@ -10,6 +10,7 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
 - soubory a adresáře SD karty nad **složkou PC**, aby šel v emulátoru vyvíjet software pro SAPI, který s DPI pracuje
   (například `DPI.COM`);
 - nastavení v `/DPI/DPI.INI`, hodiny RTC a BOOT;
+- jedno spojení TCP a DNS (80–89h) ze sítě PC;
 - příkazy NET A0h–A9h pro síťové hry přes relay, hlavně **BomberNet**.
 
 ## Podklady
@@ -21,6 +22,7 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   - `common/repo_fs.c`: soubory a adresáře (FatFs), dohledávání jmen, skryté soubory;
   - `common/koi8.c`: jména v KOI-8čs2 (převzato beze změny);
   - `common/config.c`, `common/ini.c`: `/DPI/DPI.INI`, GETCONFIG a SETCONFIG;
+  - `common/net.c`: TCP a DNS;
   - `common/netgame.c`: NET A0–A9, relay a WebSocket;
   - `firmware/main.c`: reset SAPI, BOOT (pulz /RTL 100 ms).
 - **Popis protokolu:** `docs/unicard.md` (§2 stav, §3 parametry, §4 příkazy, §6 záznam FILINFO, §7 NET, §8 detekce,
@@ -67,9 +69,9 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   - 60–63 RTC (datum D, M, R−1980; čas H, M, S);
   - 92 GETCONFIG (záznamy po 80 B: klíč 16 B, hodnota 64 B), 99 SETCONFIG (sekce, klíč, hodnota; prázdná maže);
   - B0 SDCARD (FFh stav, 1 půjčit kartu PC, 0 vrátit);
+  - 80 TCPSTATUS, 81 TCPIP, 82 TCPPORT, 83 TCPOPEN, 84 TCPCLOSE, 85 TCPSEND, 86 TCPRECV, 88 DNSREQ, 89 DNSRES;
   - A0–A9 NET: STATUS, CREATE, JOIN, LEAVE, READY, SEND, POLL, HASH, MSG, RECV (tabulka v zadání §3);
-  - 32 CHMOD a 33 UTIME po parametrech ERROR 1 (DPI má FatFs bez `FF_USE_CHMOD`);
-  - 80–89 TCP a DNS zatím po parametrech ERROR 1.
+  - 32 CHMOD a 33 UTIME po parametrech ERROR 1 (DPI má FatFs bez `FF_USE_CHMOD`).
 - **Detekce v BomberNetu:** REVD musí dát stav `02 06 04`; INFO musí být bez ERROR, s výstupem alespoň 16 B a s bitem
   08h v bajtu 3.
 
@@ -124,6 +126,24 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   - `/DPI/LOG.TXT` (záznamy firmwaru o startu a SETCONFIG) emulátor nepíše;
   - atributy: adresář 10h, soubor 20h, soubor jen pro čtení na PC 01h.
 
+## Emulace: TCP a DNS (podle `net.c`)
+
+- **Jedno spojení klienta** přes síť PC, ve vlastním vlákně (`TcpLink` v `src/core/relay.*`).
+  - TCPSTATUS 10 B: bajt 0 připojeno (0/1), bajt 1 stav (0 nečinné, 1 připojuje, 2 připojeno, 3 selhalo, 4 zavřela
+    protistrana), WORD bajtů k přečtení, IP (první oktet první), port.
+  - TCPOPEN se dokončí na pozadí; když se do 10 s (času PC) nepřipojí, TCPSTATUS ukáže 3.
+  - Příjem čeká ve frontě 16 KB. Plná fronta přestane číst, okno TCP pak zdrží odesílatele, nic se neztratí.
+  - TCPRECV vrátí nejvýš 253 bajtů (WORD počet, pak data). Po zavření protistranou (stav 4) jde přijaté dočíst.
+  - TCPSEND s délkou nad 252 B = chyba 2 už při parametrech. Bez spojení se data tiše zahodí (jako Unicard). Když
+    odeslání nejde, chyba 5.
+  - RESET 00h ani /RES spojení nezavřou (jako DPI a Unicard), TCPCLOSE ano.
+  - Cíl TCPOPEN, dokud ho program nenastaví: parametr `net.tcp_default` (`a.b.c.d:port`, jako `[net] tcp_default`
+    v `DPI.INI`), výchozí 0.0.0.0:0.
+- **DNS:** DNSREQ jméno (číselná adresa je hotová hned), DNSRES stav (0 nic, 1 hledá, 2 nalezeno, 3 neznámé jméno,
+  4 špatný parametr) a IP. Hledání běží ve vlastním vlákně (jen IPv4), po 5 s bez odpovědi je výsledek 3.
+- **Uložený stav** drží adresu, port a stav. Spojení ani hledání se uložit nedá: po načtení je spojení zavřené
+  (stav 4, nebo 3 při připojování) a hledání skončí jako neznámé jméno.
+
 ## Emulace: NET
 
 - **Parametry:** `net.transport` (`ws` WebSocket, výchozí, nebo `tcp` řádky JSON), `net.host` (`api.mzpico.com`),
@@ -169,6 +189,11 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
   `DPI.COM` nahraný do paměti a uložený příkazem `SAVE 50 DPI.COM`. INFO (`DPI-1L v0.2`, `31 MB free of 31 MB`),
   DIR, GET a TYPE, MD, CD, PUT (12800 B), REN, DEL, DEL neexistujícího (`file not found (FatFs 4)`), PWD a SDCARD PC
   (`busy (error 5)`) dělají, co mají.
+- **TCP a DNS v `test_dpi1l`:** falešný server v testu: stav, adresa a port, připojení, odeslání, příjem po
+  částech, TCPSEND 253 B, RESET spojení nezavře, zavření protistranou, odeslání bez spojení, nedostupný port, DNS
+  číselné, `localhost`, neznámé jméno a prázdné jméno.
+- **TCP ručně 2026-10-16:** přes MCP: DNSREQ `example.com`, TCPOPEN na port 80, `GET / HTTP/1.0`, příjem celé
+  odpovědi (`HTTP/1.1 200 OK`, 891 B) až do zavření protistranou.
 - **NET ručně 2026-10-16:** `sapiemu-cli --mcp` s kartou ovládanou přes `io_write`/`io_read` jako konzolí DPI a
   `tools/net_peer.py` z repa firmwaru jako druhý hráč. Všechny tři cesty daly stejné bajty jako záznam §6 (jiný byl
   jen kód místnosti a seed): `relay.py` přes TCP 8766 s druhým hráčem přes WebSocket 8765, `relay.py` přes WebSocket,

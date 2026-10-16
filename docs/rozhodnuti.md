@@ -1699,3 +1699,6 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   a port jsou parametry karty. SECRET.INI a starý `/DPI.INI` skryté jako na kartě.
 - **BOOT jako /RTL 100 ms, RTC podle hodin PC s posunem, SDCARD bez USB = chyba 5** (autor souhlasil s BOOT; zbytek
   podle firmwaru).
+- **TCP a DNS ze sítě PC** (autor: „určitě taky prosím implementovat“): jedno spojení ve vlastním vlákně, fronta
+  16 KB s řízením toku přes okno TCP, limity 10 s a 5 s časem PC, RESET spojení nezavře, cíl na začátku parametrem
+  `net.tcp_default`. Program na SAPI tak může mluvit s libovolným serverem, na který dosáhne PC.

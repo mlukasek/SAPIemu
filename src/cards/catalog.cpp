@@ -1811,6 +1811,8 @@ static const CardParam k_dpi1l[] = {
     { "net.host", PK_TEXT, "NET: relay address", "NET: adresa relay", "\"api.mzpico.com\"", nullptr, 0, 0 },
     { "net.port", PK_INT, "NET: relay port (80; relay.py 8765 ws, 8766 tcp)",
       "NET: port relay (80; relay.py 8765 ws, 8766 tcp)", "80", nullptr, 1, 65535 },
+    { "net.tcp_default", PK_TEXT, "TCP: target of TCPOPEN until the program sets one (a.b.c.d:port)",
+      "TCP: cíl TCPOPEN, dokud ho program nenastaví (a.b.c.d:port)", "\"\"", nullptr, 0, 0 },
     { "sd.folder", PK_DIR, "SD card: folder of the PC (its root /)", "SD karta: složka PC (její kořen /)",
       "\"work/dpi-1l/sdcard\"", nullptr, 0, 0 },
     { "sd.size_mb", PK_INT, "SD card: size (MB, GETFREE and a full card)", "SD karta: velikost (MB, GETFREE a plná karta)",

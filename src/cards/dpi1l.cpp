@@ -169,6 +169,7 @@ static bool json_true(const char* l, const char* key)
 Dpi1l::~Dpi1l()
 {
     link_close();   // no 'leave': the relay sees the link end (as switching the DPI off)
+    if (tcp) tcp->close();
     flush();
 }
 
@@ -187,6 +188,22 @@ bool Dpi1l::configure(const json& cfg, std::string& e)
     if (!cfg_number(net, "port", v, 80, e)) return false;
     if (v < 1 || v > 65535) { e = "net.port must be 1 ... 65535"; return false; }
     relay_port = (uint16_t)v;
+    if (!cfg_string(net, "tcp_default", s, "", e)) return false;
+    {                                   // TCPOPEN target until the Z80 sets one ([net] tcp_default of DPI.INI)
+        unsigned a = 0, b = 0, c = 0, d = 0, pt = 0;
+        memset(tcp_default_ip, 0, 4);
+        tcp_default_port = 0;
+        if (!s.empty()) {
+            if (sscanf(s.c_str(), "%u.%u.%u.%u:%u", &a, &b, &c, &d, &pt) != 5 || a > 255 || b > 255 || c > 255 ||
+                d > 255 || pt > 65535) {
+                e = "net.tcp_default must be a.b.c.d:port";
+                return false;
+            }
+            uint8_t ip[4] = { (uint8_t)a, (uint8_t)b, (uint8_t)c, (uint8_t)d };
+            memcpy(tcp_default_ip, ip, 4);
+            tcp_default_port = (uint16_t)pt;
+        }
+    }
     json sdc = cfg.contains("sd") && cfg["sd"].is_object() ? cfg["sd"] : json::object();
     std::string folder;
     if (!cfg_string(sdc, "folder", folder, "work/dpi-1l/sdcard", e)) return false;
@@ -209,6 +226,14 @@ bool Dpi1l::configure(const json& cfg, std::string& e)
     dir_cmd = 0;
     rtc_offset = 0;
     boot_until = 0;
+    if (tcp) tcp->close();
+    tcp.reset();
+    tstate = 0;
+    memcpy(tcp_ip, tcp_default_ip, 4);
+    tcp_port = tcp_default_port;
+    dns.reset();
+    dstate = 0;
+    memset(dns_ip, 0, 4);
     phase = PH_DONE;
     cmd = 0;
     err = false;
@@ -828,7 +853,7 @@ void Dpi1l::post(uint8_t c)
     } else if (c >= 0xA0 && c <= 0xA9) {
         run_net(r, pending);
     } else if (c >= 0x80 && c <= 0x89) {
-        r.err_code = ERR_NOT_IMPLEMENTED;   // TCP and DNS: not yet
+        run_tcp(r);
     } else if (sd_ready) {
         sd.execute(c, dir_cmd, buf, r);
     } else {
@@ -852,6 +877,106 @@ void Dpi1l::post(uint8_t c)
     } else if (r.out_len) {
         memcpy(buf, r.data, r.out_len);
         output(r.out_len);
+    }
+}
+
+// TCP and DNS (common/net.c repo_net_execute): one TCP client connection, a name looked up. RESET and /RES do not
+// close the connection (as the DPI and the Unicard).
+void Dpi1l::run_tcp(DpiSdResult& r)
+{
+    static const uint8_t T_IDLE = 0, T_CONNECTING = 1, T_CONNECTED = 2, T_FAILED = 3;
+    static const uint8_t D_RESOLVING = 1, D_RESOLVED = 2, D_UNKNOWN = 3, D_BADARGS = 4;
+    const uint8_t* p = buf;
+    if (tcp && (tstate == T_CONNECTING || tstate == T_CONNECTED)) {
+        int s = tcp->state();               // what the link thread found (connected, failed, closed by the other side)
+        if (s != TcpLink::CONNECTING) tstate = (uint8_t)s;
+    }
+    switch (cmd) {
+    case 0x80: {                            // TCPSTATUS: 10 B
+        if (tstate == T_CONNECTING && ms_now() - connect_started > 10000) {
+            if (tcp) tcp->close();
+            tcp.reset();
+            tstate = T_FAILED;              // nobody answered within 10 s
+        }
+        size_t n = tcp ? tcp->available() : 0;
+        r.data[0] = tstate == T_CONNECTED ? 1 : 0;
+        r.data[1] = tstate;
+        r.data[2] = (uint8_t)(n > 0xFFFF ? 0xFF : n);
+        r.data[3] = (uint8_t)(n > 0xFFFF ? 0xFF : n >> 8);
+        memcpy(r.data + 4, tcp_ip, 4);
+        r.data[8] = (uint8_t)tcp_port;
+        r.data[9] = (uint8_t)(tcp_port >> 8);
+        r.out_len = 10;
+        break;
+    }
+    case 0x81:                              // TCPIP: 4 B, first octet first
+        memcpy(tcp_ip, p, 4);
+        break;
+    case 0x82:                              // TCPPORT: WORD
+        tcp_port = (uint16_t)(p[0] | p[1] << 8);
+        break;
+    case 0x83:                              // TCPOPEN: finishes in the background, TCPSTATUS shows it
+        if (tcp) tcp->close();
+        tcp = TcpLink::start(tcp_ip, tcp_port);
+        tstate = T_CONNECTING;
+        connect_started = ms_now();
+        break;
+    case 0x84:                              // TCPCLOSE (the bytes that came stay readable)
+        if (tcp) tcp->close();
+        tstate = T_IDLE;
+        break;
+    case 0x85: {                            // TCPSEND: WORD length (bit 15 = push now), data
+        uint16_t n = (uint16_t)((p[0] | p[1] << 8) & 0x7FFF);
+        if (tstate != T_CONNECTED || !tcp) break;   // not connected: dropped, as the Unicard
+        if (!tcp->send(p + 2, n)) r.err_code = REPO_ERR_BUSY;
+        break;
+    }
+    case 0x86: {                            // TCPRECV: WORD max -> WORD n, n bytes (n <= 253)
+        size_t max = (size_t)(p[0] | p[1] << 8);
+        size_t n = tcp ? tcp->take(r.data + 2, max < 253 ? max : 253) : 0;
+        r.data[0] = (uint8_t)n;
+        r.data[1] = (uint8_t)(n >> 8);
+        r.out_len = (uint16_t)(2 + n);
+        break;
+    }
+    case 0x88: {                            // DNSREQ: name
+        if (!p[0]) {
+            dstate = D_BADARGS;
+            break;
+        }
+        dstate = D_RESOLVING;
+        dns_started = ms_now();
+        unsigned a, b, c, d;
+        char tail;
+        if (sscanf((const char*)p, "%u.%u.%u.%u%c", &a, &b, &c, &d, &tail) == 4 && a < 256 && b < 256 && c < 256 &&
+            d < 256) {                      // a number: at once, as lwIP
+            uint8_t v[4] = { (uint8_t)a, (uint8_t)b, (uint8_t)c, (uint8_t)d };
+            memcpy(dns_ip, v, 4);
+            dstate = D_RESOLVED;
+            dns.reset();
+        } else if (strlen((const char*)p) > 255) {
+            dstate = D_BADARGS;
+        } else {
+            dns = DnsQuery::start((const char*)p);
+        }
+        break;
+    }
+    case 0x89:                              // DNSRES: state, IP (4 B)
+        if (dstate == D_RESOLVING && dns && dns->done) {
+            if (dns->ok) memcpy(dns_ip, dns->ip, 4);
+            dstate = dns->ok ? D_RESOLVED : D_UNKNOWN;
+            dns.reset();
+        }
+        if (dstate == D_RESOLVING && ms_now() - dns_started > 5000) {
+            dstate = D_UNKNOWN;             // no answer: give up
+            dns.reset();
+        }
+        r.data[0] = dstate;
+        memcpy(r.data + 1, dns_ip, 4);
+        r.out_len = 5;
+        break;
+    default:
+        r.err_code = ERR_NOT_IMPLEMENTED;
     }
 }
 
@@ -1024,10 +1149,22 @@ void Dpi1l::state(StateIO& io)
     io.v(dir_cmd);
     io.v(rtc_offset);
     io.v(boot_until);
+    io.arr(tcp_ip, 4);
+    io.v(tcp_port);
+    io.v(tstate);
+    io.v(dstate);
+    io.arr(dns_ip, 4);
     sd.state(io);
     if (io.loading) {
         fmt = params_format(cmd);
         net_reset();
+        // a TCP connection or a name being looked up can not be saved: closed / unknown after loading
+        if (tcp) tcp->close();
+        tcp.reset();
+        if (tstate == 1) tstate = 3;
+        if (tstate == 2) tstate = 4;
+        dns.reset();
+        if (dstate == 1) dstate = 3;
     }
 }
 

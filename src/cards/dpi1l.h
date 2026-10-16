@@ -1,9 +1,9 @@
 #pragma once
 // DPI-1L (Martin Lukasek, RP2350 card on the SAPI bus), its Repository API (Unicard compatible) on base/base+1:
 // files and directories of the SD card over a folder of the PC (cards/dpi1l_fs), the configuration in
-// /DPI/DPI.INI, RTC, BOOT and the NET commands A0h-A9h for network games through a relay (BomberNet).
-// The emulation of other cards the real DPI does on the bus (DPP-1, IDE-1, RAM disk...) is not here: SAPIemu
-// has those cards itself. TCP/DNS (80h-89h) answer ERROR 1 for now.
+// /DPI/DPI.INI, RTC, BOOT, one TCP connection and DNS (80h-89h) and the NET commands A0h-A9h for network games
+// through a relay (BomberNet). The emulation of other cards the real DPI does on the bus (DPP-1, IDE-1, RAM
+// disk...) is not here: SAPIemu has those cards itself.
 //
 // The model is the verified DPI firmware (SAPI_DPI-firmware, common/repo.c, repo_fs.c and netgame.c, API v0.2);
 // what the Z80 sees has to match it byte for byte. docs/desky/DPI-1L.md.
@@ -18,6 +18,8 @@
 #include "core/card.h"
 
 class RelayLink;
+class TcpLink;
+class DnsQuery;
 
 class Dpi1l : public Card {
 public:
@@ -54,6 +56,7 @@ private:
     void post(uint8_t c);                 // a command with its parameters that the SD card side or NET runs
     void run_net(DpiSdResult& res, bool& pending);   // NET A0h-A9h (repo_netgame_execute)
     void run_params(void);                // SEEK, RTC with their parameters
+    void run_tcp(DpiSdResult& res);       // TCP and DNS 80h-89h (common/net.c)
     void file_putc(uint8_t v);
     void rtc_get(struct tm& t);
     void rtc_set(const struct tm& t);
@@ -82,6 +85,17 @@ private:
     bool flush_on_exit = false;           // deviation: the page not written yet survives switching off
     int64_t rtc_offset = 0;               // seconds the RTC is ahead of the PC clock (RTCSETD, RTCSETT)
     uint64_t boot_until = 0;              // BOOT: /RTL low until this bus time
+
+    // ---- TCP and DNS (net.c) ----
+    std::shared_ptr<TcpLink> tcp;
+    uint8_t tstate = 0;                   // TCPSTATUS byte 1: 0 idle, 1 connecting, 2 connected, 3 failed, 4 closed
+    uint8_t tcp_ip[4] = { 0, 0, 0, 0 }, tcp_default_ip[4] = { 0, 0, 0, 0 };
+    uint16_t tcp_port = 0, tcp_default_port = 0;
+    uint64_t connect_started = 0;         // ms of the PC clock
+    std::shared_ptr<DnsQuery> dns;
+    uint8_t dstate = 0;                   // DNSRES: 0 idle, 1 resolving, 2 resolved, 3 unknown host, 4 bad args
+    uint8_t dns_ip[4] = { 0, 0, 0, 0 };
+    uint64_t dns_started = 0;
 
     // ---- NET (netgame.c) ----
     void poll(void);                      // relay events, the 10 s limit of CREATE/JOIN (netgame_poll)

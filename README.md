@@ -102,7 +102,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   Joystick z gamepadu nebo z klávesnice, myš PC.
 - **Síťové hry a SD karta DPI-1L:** Repository API karty DPI-1L na B0h/B1h. Příkazy NET A0h–A9h hrají přes relay
   `ws://api.mzpico.com/net` v jedné místnosti s MZ-800, ZX Spectrem, CPC a PC (BomberNet, sestava
-  `sapi1v_BomberNet.sapi`). Soubory a adresáře SD karty jsou nad složkou PC (`DPI.COM` v CP/M funguje),
+  `sapi1v_BomberNet.sapi`). Soubory a adresáře SD karty jsou nad složkou PC (`DPI.COM` v CP/M funguje), TCP a DNS
+  jdou do sítě PC,
   [docs/desky/DPI-1L.md](docs/desky/DPI-1L.md).
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
   joysticku (joystick z šipek a mezerníku nebo gamepadu, myš). Matice ANK-1 drží klávesu, dokud ji držíš na PC

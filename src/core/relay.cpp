@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 #include <chrono>
 #include <random>
 #include <thread>
@@ -388,4 +389,130 @@ void RelayLink::run(void)
         sock = -1;
     }
     push(true, std::string());   // nothing when we closed it ourselves (push() skips it then)
+}
+
+// ---------------------------------------------------------------- TCP client of the Repository API (80h-86h)
+
+static const size_t TCP_RX_SIZE = 16384;   // more than a TCP window: the window does the flow control
+
+std::shared_ptr<TcpLink> TcpLink::start(const uint8_t a[4], uint16_t p)
+{
+    net_init();
+    std::shared_ptr<TcpLink> l = std::make_shared<TcpLink>();
+    memcpy(l->ip, a, 4);
+    l->port = p;
+    l->rx.resize(TCP_RX_SIZE);
+    std::thread([l]() { l->run(); }).detach();
+    return l;
+}
+
+void TcpLink::run(void)
+{
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(port);
+    memcpy(&sa.sin_addr, ip, 4);
+    sock_t s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (s == SOCK_INVALID) {
+        st = FAILED;
+        return;
+    }
+    set_blocking(s, false);
+    ::connect(s, (struct sockaddr*)&sa, sizeof(sa));
+    int r = 0;
+    while (r == 0 && !stop) r = wait_sock(s, true, 100);   // the card gives up after 10 s (TCPSTATUS)
+    int e = 0;
+    socklen_t el = sizeof(e);
+    if (stop || r != 1 || getsockopt(s, SOL_SOCKET, SO_ERROR, (char*)&e, &el) != 0 || e != 0) {
+        sock_close(s);
+        if (!stop) st = FAILED;
+        return;
+    }
+    set_blocking(s, true);
+    int one = 1;
+    setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&one, sizeof(one));   // small Z80 packets go out at once
+    {
+        std::lock_guard<std::mutex> g(lock);
+        sock = (intptr_t)s;
+    }
+    st = CONNECTED;
+    while (!stop) {
+        size_t room;
+        {
+            std::lock_guard<std::mutex> g(lock);
+            room = TCP_RX_SIZE - (head - tail);
+        }
+        if (!room) {                            // full: wait for the Z80 (TCPRECV)
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            continue;
+        }
+        int w = wait_sock(s, false, 100);
+        if (w == 0) continue;
+        uint8_t b[2048];
+        int n = w < 0 ? -1 : recv(s, (char*)b, (int)std::min(room, sizeof(b)), 0);
+        if (n <= 0) {                           // the other side closed: what came is still readable
+            if (!stop) st = CLOSED;
+            break;
+        }
+        std::lock_guard<std::mutex> g(lock);
+        for (int i = 0; i < n; i++) rx[(head++) % TCP_RX_SIZE] = b[i];
+    }
+    if (stop) shutdown(s, SHUT_WR);
+    std::lock_guard<std::mutex> g(lock);
+    sock_close(s);
+    sock = -1;
+}
+
+bool TcpLink::send(const uint8_t* d, size_t n)
+{
+    std::lock_guard<std::mutex> g(lock);
+    if (sock == -1 || st != CONNECTED) return false;
+    while (n) {
+        int r = ::send((sock_t)sock, (const char*)d, (int)n, 0);
+        if (r <= 0) return false;
+        d += r;
+        n -= (size_t)r;
+    }
+    return true;
+}
+
+size_t TcpLink::available(void)
+{
+    std::lock_guard<std::mutex> g(lock);
+    return head - tail;
+}
+
+size_t TcpLink::take(uint8_t* out, size_t max)
+{
+    std::lock_guard<std::mutex> g(lock);
+    size_t n = std::min(max, head - tail);
+    for (size_t i = 0; i < n; i++) out[i] = rx[(tail++) % TCP_RX_SIZE];
+    return n;
+}
+
+void TcpLink::close(void)
+{
+    stop = true;
+}
+
+// ---------------------------------------------------------------- DNS (88h, 89h)
+
+std::shared_ptr<DnsQuery> DnsQuery::start(const std::string& name)
+{
+    net_init();
+    std::shared_ptr<DnsQuery> q = std::make_shared<DnsQuery>();
+    std::thread([q, name]() {
+        struct addrinfo hints, *res = nullptr;
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        if (getaddrinfo(name.c_str(), nullptr, &hints, &res) == 0 && res) {
+            memcpy(q->ip, &((struct sockaddr_in*)res->ai_addr)->sin_addr, 4);
+            q->ok = true;
+        }
+        if (res) freeaddrinfo(res);
+        q->done = true;
+    }).detach();
+    return q;
 }

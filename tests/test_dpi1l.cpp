@@ -320,7 +320,7 @@ static void test_no_room(FakeRelay& r)
     m.bus.io_write(B, 0x04);                // STORNO
     REC(m, "03", "00 04 00 00");
     REC(m, "60 1F 02 2E", "80 60 02 00");   // RTCSETD 31. 2.: BAD_PARAM (files, RTC: test_dpi1l_files)
-    REC(m, "80", "80 80 01 00");            // TCP: not yet
+    REC(m, "87", "80 87 01 00");            // between TCP and DNS: unknown
 
     // the detection of BomberNet (netdev_card.c): REVD status 02 06 04, INFO without ERROR with >= 16 bytes, bit 08h
     m.bus.io_write(B, 0x06);
@@ -565,6 +565,95 @@ static void test_link(FakeRelay& r)
     REC(m, CREATE, "80 A1 09 00");
 }
 
+// status read again until byte `i` of the output equals `v` (the link thread works meanwhile)
+static std::vector<uint8_t> wait_out(Machine& m, uint8_t c, int i, uint8_t v, int ms = 12000)
+{
+    std::vector<uint8_t> got;
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+    do {
+        got.clear();
+        m.bus.io_write(B, c);
+        m.bus.io_write(B, 0x03);
+        for (int k = 0; k < 4; k++) got.push_back(m.bus.io_read(B));
+        if (got[0] & 0x02)
+            for (int k = got[2]; k > 0; k--) got.push_back(m.bus.io_read(B + 1));
+        if ((int)got.size() > 4 + i && got[4 + i] == v) break;
+        sleep_ms(5);
+    } while (std::chrono::steady_clock::now() - t0 < std::chrono::milliseconds(ms));
+    return got;
+}
+
+static std::string ip_port(int port)
+{
+    char b[32];
+    snprintf(b, sizeof(b), "7F 00 00 01 %02X %02X", port & 0xFF, port >> 8);
+    return b;
+}
+
+// TCP and DNS (common/net.c)
+static void test_tcp(FakeRelay& r)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(machine(r.port, "tcp"), err));
+    REC(m, "80", "02 80 0A 00 | 00 00 00 00 00 00 00 00 00 00");
+    char cmd[64];
+    snprintf(cmd, sizeof(cmd), "82 %02X %02X", r.port & 0xFF, r.port >> 8);
+    REC(m, "81 7F 00 00 01", "00 81 00 00");
+    REC(m, cmd, "00 82 00 00");
+    REC(m, "80", "02 80 0A 00 | 00 00 00 00 " + ip_port(r.port));
+    REC(m, "83", "00 83 00 00");
+    CHECK(r.accept_client());
+    std::vector<uint8_t> st = wait_out(m, 0x80, 1, 2);
+    CHECK(st == hex("02 80 0A 00 | 01 02 00 00 " + ip_port(r.port)));
+    REC(m, "85 05 80 48 45 4C 4C 4F", "00 85 00 00");          // TCPSEND "HELLO", push
+    CHECK(r.fill(3000) && r.buf == "HELLO");
+    ::send(r.cl, "WORLD!", 6, 0);
+    st = wait_out(m, 0x80, 2, 6);
+    CHECK(st == hex("02 80 0A 00 | 01 02 06 00 " + ip_port(r.port)));
+    REC(m, "86 04 00", "02 86 06 00 | 04 00 57 4F 52 4C");       // TCPRECV max 4
+    REC(m, "86 2C 01", "02 86 04 00 | 02 00 44 21");             // max 300: what is there
+    REC(m, "86 10 00", "02 86 02 00 | 00 00");
+    std::vector<uint8_t> c = hex("85 FD 00");                    // 253 bytes: BAD_PARAM after the length
+    m.bus.io_write(B, c[0]);
+    m.bus.io_write(B + 1, c[1]);
+    m.bus.io_write(B + 1, c[2]);
+    REC(m, "03", "80 85 02 00");
+    REC(m, "00", "00 00 00 00");                                 // RESET does not close TCP
+    REC(m, "80", "02 80 0A 00 | 01 02 00 00 " + ip_port(r.port));
+    r.drop();                                                    // the other side closes
+    st = wait_out(m, 0x80, 1, 4);
+    CHECK(st == hex("02 80 0A 00 | 00 04 00 00 " + ip_port(r.port)));
+    REC(m, "85 02 80 41 42", "00 85 00 00");                     // not connected: dropped
+    REC(m, "84", "00 84 00 00");
+    REC(m, "80", "02 80 0A 00 | 00 00 00 00 " + ip_port(r.port));
+
+    // a port nobody listens on: failed
+    FakeRelay none;
+    CHECK(none.listen_on());
+    int dead = none.port;
+    sock_close(none.lst);
+    none.lst = SOCK_INVALID;
+    snprintf(cmd, sizeof(cmd), "82 %02X %02X", dead & 0xFF, dead >> 8);
+    REC(m, cmd, "00 82 00 00");
+    REC(m, "83", "00 83 00 00");
+    st = wait_out(m, 0x80, 1, 3);
+    CHECK(st.size() == 14 && st[4] == 0 && st[5] == 3);
+
+    // DNS
+    REC(m, "89", "02 89 05 00 | 00 00 00 00 00");
+    REC(m, "88 31 32 37 2E 30 2E 30 2E 31 00", "00 88 00 00");  // a number: at once
+    REC(m, "89", "02 89 05 00 | 02 7F 00 00 01");
+    REC(m, "88 6C 6F 63 61 6C 68 6F 73 74 00", "00 88 00 00");  // localhost
+    st = wait_out(m, 0x89, 0, 2, 6000);
+    CHECK(st == hex("02 89 05 00 | 02 7F 00 00 01"));
+    REC(m, "88 6E 65 6E 69 2E 69 6E 76 61 6C 69 64 00", "00 88 00 00");   // neni.invalid
+    st = wait_out(m, 0x89, 0, 3, 8000);
+    CHECK(st.size() == 9 && st[4] == 3);
+    REC(m, "88 00", "00 88 00 00");                              // no name
+    REC(m, "89", "02 89 05 00 | 04 7F 00 00 01");
+}
+
 int main(void)
 {
     test_init();
@@ -574,6 +663,7 @@ int main(void)
     test_game(tcp);
     test_join(tcp);
     test_link(tcp);
+    test_tcp(tcp);
     FakeRelay ws;
     ws.ws = true;
     CHECK(ws.listen_on());

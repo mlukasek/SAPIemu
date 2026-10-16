@@ -15,6 +15,41 @@
 #include <string>
 #include <vector>
 
+// A plain TCP client connection for the Repository API TCP commands of DPI-1L (TCPOPEN ... TCPRECV, common/net.c).
+// Its thread connects and then reads into a buffer of 16 KB; when the buffer is full it stops reading, so the TCP
+// window of the PC holds the sender back (nothing is lost). The emulation thread sends and takes the bytes.
+class TcpLink {
+public:
+    enum { CONNECTING = 1, CONNECTED = 2, FAILED = 3, CLOSED = 4 };   // TCPSTATUS byte 1
+    static std::shared_ptr<TcpLink> start(const uint8_t ip[4], uint16_t port);
+    int state(void) const { return st.load(); }
+    bool send(const uint8_t* d, size_t n);     // false: not sent (no room or the link is gone)
+    size_t available(void);
+    size_t take(uint8_t* out, size_t max);
+    void close(void);                          // FIN, the thread ends by itself
+    TcpLink() {}
+
+private:
+    void run(void);
+    uint8_t ip[4] = { 0, 0, 0, 0 };
+    uint16_t port = 0;
+    intptr_t sock = -1;
+    std::atomic<int> st{ CONNECTING };
+    std::atomic<bool> stop{ false };
+    std::mutex lock;                           // the buffer and the socket for sending
+    std::vector<uint8_t> rx;                   // ring of RX_SIZE
+    size_t head = 0, tail = 0;
+};
+
+// DNSREQ: a name looked up in its own thread (IPv4); `done` with ok = false: the name is unknown
+class DnsQuery {
+public:
+    static std::shared_ptr<DnsQuery> start(const std::string& name);
+    std::atomic<bool> done{ false };
+    std::atomic<bool> ok{ false };
+    uint8_t ip[4] = { 0, 0, 0, 0 };            // valid once done and ok
+};
+
 struct RelayEvent {
     bool lost;          // the link is gone (could not connect, refused, closed by the relay); else `line`
     std::string line;   // one JSON message

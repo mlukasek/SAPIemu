@@ -7,7 +7,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **DPI-1L, SD karta nad složkou PC (2026-10-16 odpoledne, autor: „zbytek MZFRepo“):** celé Repository API podle
   firmwaru (`repo_fs.c`, `koi8.c`, `config.c`): soubory a adresáře ve složce `sd.folder` (výchozí `work/dpi-1l/sdcard`),
   stránka 4 KB, `/DPI/DPI.INI` s GETCONFIG/SETCONFIG, RTC, BOOT (/RTL), SDCARD (`src/cards/dpi1l_fs.*`, test
-  `test_dpi1l_files`). `DPI.COM` z repa firmwaru v CP/M v emulátoru funguje. **Další krok: TCP a DNS (80–89h).**
+  `test_dpi1l_files`). `DPI.COM` z repa firmwaru v CP/M v emulátoru funguje. Potom TCP a DNS (80–89h) podle `net.c` (ověřeno i HTTP GET
+  na `example.com`).
   Session firmwaru dostala seznam referenčních záznamů (soubory, nastavení, RTC, BOOT, TCP); až budou v zadání §10,
   porovnat a dorovnat (`docs/desky/DPI-1L.md`, „Čeká se na záznamy“).
 - **DPI-1L, síťová část (2026-10-16, zadání `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`):** karta `DPI-1L` jen
