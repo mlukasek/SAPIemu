@@ -112,6 +112,11 @@
                 "transport": "ws",          // NET: connection to the game relay - WebSocket
                 "host": "api.mzpico.com",   // NET: relay address
                 "port": 80                  // NET: relay port
+            },
+            "sd": {
+                "folder": "work/dpi-1l/sdcard",  // SD card: folder of the PC (its root /)
+                "size_mb": 32,              // SD card: size (MB, GETFREE and a full card)
+                "flush_on_exit": false      // SD card: write the open file's page at switching off (a deviation)
             }
         }
     ]

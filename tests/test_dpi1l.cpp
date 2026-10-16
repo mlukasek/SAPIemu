@@ -264,7 +264,8 @@ static json machine(int port, const char* transport)
     cfg["cards"].push_back({ { "slot", 1 }, { "type", "JPR-1ZI" } });
     cfg["cards"].push_back({ { "slot", 2 },
                              { "type", "DPI-1L" },
-                             { "net", { { "transport", transport }, { "host", "127.0.0.1" }, { "port", port } } } });
+                             { "net", { { "transport", transport }, { "host", "127.0.0.1" }, { "port", port } } },
+                             { "sd", { { "folder", "work/test/dpi1l_net_sd" } } } });
     return cfg;
 }
 
@@ -318,9 +319,8 @@ static void test_no_room(FakeRelay& r)
     REC(m, "A2 4E 42", "01 A2 FC 00");      // JOIN waits for parameters: 255 - 1 string - 2 bytes
     m.bus.io_write(B, 0x04);                // STORNO
     REC(m, "03", "00 04 00 00");
-    REC(m, "20", "80 20 01 00");            // files: not in the emulator
-    REC(m, "60", "80 60 01 00");            // RTC
-    REC(m, "80", "80 80 01 00");            // TCP
+    REC(m, "60 1F 02 2E", "80 60 02 00");   // RTCSETD 31. 2.: BAD_PARAM (files, RTC: test_dpi1l_files)
+    REC(m, "80", "80 80 01 00");            // TCP: not yet
 
     // the detection of BomberNet (netdev_card.c): REVD status 02 06 04, INFO without ERROR with >= 16 bytes, bit 08h
     m.bus.io_write(B, 0x06);
@@ -547,7 +547,7 @@ static void test_link(FakeRelay& r)
     CHECK(m.load_state(st, err));
     LINE(r, "{\"op\":\"leave\"}");
     CHECK(r.closed());
-    REC(m, "03", "00 00 00 00");
+    REC(m, "03", "00 A1 00 00");            // the Repository API as it was saved
     REC(m, "A0", "02 A0 08 00 | 01 FF 00 00 00 00 00 00");
 
     // nobody listens: error 9

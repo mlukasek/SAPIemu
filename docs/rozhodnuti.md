@@ -1680,3 +1680,22 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   nevejde a všechny programy sestavy V tak běží beze změny.
 - **Release 0.6.0-alpha pro SAPI-BomberNet:** ostatní projekty smějí spouštět jen release SAPIemu
   (`..\SAPIemu-release`), ne vývojový strom.
+
+## 2026-10-16 – DPI-1L: SD karta nad složkou PC
+
+- **Repository API celé, soubory nad složkou PC** (autor: „zbytek MZFRepo do emulace DPI … směřoval do složky
+  sdcard“, pro vývoj softwaru pro SAPI, který s DPI pracuje). Parametr `sd.folder` (výchozí `work/dpi-1l/sdcard`),
+  složka ve `media/` přes pracovní kopii jako PMD32-SD. TCP a DNS (80–89h) jako druhý krok.
+- **Vzorem je firmware DPI**, `repo_fs.c` a `koi8.c` převzaté co nejvěrněji, i s chováním FatFs, které program vidí
+  (výsledky FR_*, velikost v adresáři až po SYNC/CLOSE, LOCKED u otevřeného souboru). Kde to věrně nejde (pořadí
+  položek, čísla krátkých jmen, čas souborů), je to v `docs/desky/DPI-1L.md` a čeká na záznamy ze skutečné karty.
+- **Stránka 4 KB věrně** (autor souhlasil): program, který zapomene CLOSE, přijde o data jako na železe. Odchylka
+  `sd.flush_on_exit` (výchozí vypnutá) zapíše stránku při vypnutí emulátoru.
+- **Uložený stav drží otevřený soubor** i s nezapsanou stránkou a CWD (autor souhlasil). Dřív se karta po načtení
+  chovala jako po RESET; síťové spojení se uložit nedá dál, místnost se opustí.
+- **Velikost karty parametrem** `sd.size_mb`, výchozí 32 MB (autorova SanDisk). Skutečný disk PC by dal nesmyslné
+  GETFREE. Plná karta vrátí FR_DENIED jako `flush_page` ve firmwaru.
+- **`/DPI/DPI.INI` se založí a GETCONFIG/SETCONFIG s ním pracují, emulátor se jím neřídí** (autor souhlasil): relay
+  a port jsou parametry karty. SECRET.INI a starý `/DPI.INI` skryté jako na kartě.
+- **BOOT jako /RTL 100 ms, RTC podle hodin PC s posunem, SDCARD bez USB = chyba 5** (autor souhlasil s BOOT; zbytek
+  podle firmwaru).

@@ -1,11 +1,12 @@
 #pragma once
-// DPI-1L (Martin Lukasek, RP2350 card on the SAPI bus), only its network part: the Repository API (Unicard
-// compatible) on base/base+1 with the NET commands A0h-A9h for network games through a relay (BomberNet).
+// DPI-1L (Martin Lukasek, RP2350 card on the SAPI bus), its Repository API (Unicard compatible) on base/base+1:
+// files and directories of the SD card over a folder of the PC (cards/dpi1l_fs), the configuration in
+// /DPI/DPI.INI, RTC, BOOT and the NET commands A0h-A9h for network games through a relay (BomberNet).
 // The emulation of other cards the real DPI does on the bus (DPP-1, IDE-1, RAM disk...) is not here: SAPIemu
-// has those cards itself. Files on the SD card (20h-56h), RTC (60h-63h) and TCP/DNS (80h-89h) answer ERROR 1.
+// has those cards itself. TCP/DNS (80h-89h) answer ERROR 1 for now.
 //
-// The model is the verified DPI firmware (SAPI_DPI-firmware, common/repo.c and common/netgame.c, API v0.2); what
-// the Z80 sees has to match it byte for byte. docs/desky/DPI-1L.md.
+// The model is the verified DPI firmware (SAPI_DPI-firmware, common/repo.c, repo_fs.c and netgame.c, API v0.2);
+// what the Z80 sees has to match it byte for byte. docs/desky/DPI-1L.md.
 //   base     OUT command, IN status (4 bytes, then 00)
 //   base + 1 OUT parameter byte, IN output byte
 // The real card holds the Z80 in WAIT until an access is done; here every access is done at once. Only CREATE
@@ -13,6 +14,7 @@
 #include <stdint.h>
 #include <memory>
 #include <string>
+#include "cards/dpi1l_fs.h"
 #include "core/card.h"
 
 class RelayLink;
@@ -32,6 +34,8 @@ public:
     int decode_io(uint8_t port, const char** what) override;
     bool live_param(const char* path) const override;
     bool set_live_param(const char* path, const nlohmann::json& v, std::string& err) override;
+    bool rtl_line() override;
+    void flush() override;
 
     // the relay the NET commands use (a room on the old one is left)
     void relay(const std::string& host, uint16_t port, bool websocket);
@@ -47,7 +51,12 @@ private:
     void fail(uint8_t code);
     void output(uint16_t n);
     void want_params(const char* fmt);
-    void run_net(void);                   // a NET command (or RESET) with its parameters
+    void post(uint8_t c);                 // a command with its parameters that the SD card side or NET runs
+    void run_net(DpiSdResult& res, bool& pending);   // NET A0h-A9h (repo_netgame_execute)
+    void run_params(void);                // SEEK, RTC with their parameters
+    void file_putc(uint8_t v);
+    void rtc_get(struct tm& t);
+    void rtc_set(const struct tm& t);
     void complete(uint8_t err, const uint8_t* d, uint16_t n);   // the end of CREATE/JOIN (repo_complete)
 
     uint8_t base = 0xB0;
@@ -62,6 +71,17 @@ private:
     uint16_t len = 0;                     // parameter bytes stored
     uint8_t count = 0;                    // PARAMRQ: free space left; DOUTRQ: output bytes left
     uint8_t out_pos = 0;
+    uint8_t ff_res = 0;                   // FatFs result of the last command of the SD card side
+    uint8_t rec[256];                     // directory or configuration record being streamed
+    uint16_t rec_len = 0, rec_pos = 0;
+    uint8_t dir_cmd = 0;                  // READDIR or FILELIST of the open directory (GETCONFIG too)
+
+    // ---- SD card, RTC, BOOT ----
+    DpiSd sd;
+    bool sd_ready = false;                // the folder is there (not when only probing)
+    bool flush_on_exit = false;           // deviation: the page not written yet survives switching off
+    int64_t rtc_offset = 0;               // seconds the RTC is ahead of the PC clock (RTCSETD, RTCSETT)
+    uint64_t boot_until = 0;              // BOOT: /RTL low until this bus time
 
     // ---- NET (netgame.c) ----
     void poll(void);                      // relay events, the 10 s limit of CREATE/JOIN (netgame_poll)

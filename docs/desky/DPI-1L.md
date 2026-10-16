@@ -1,32 +1,39 @@
-# DPI-1L – síťová část (Repository API a NET)
+# DPI-1L – Repository API (soubory na SD kartě, NET)
 
-Stav: **emulovaná jen síťová část** (typ `DPI-1L`, `src/cards/dpi1l.*`, spojení s relay `src/core/relay.*`) od
-2026-10-16. Sestava `machines/sapi1v_BomberNet.sapi`.
+Stav: **emulované Repository API** (typ `DPI-1L`, `src/cards/dpi1l.*`, SD karta nad složkou PC `src/cards/dpi1l_fs.*`,
+spojení s relay `src/core/relay.*`). Síťová část od 2026-10-16 ráno, soubory, nastavení, RTC a BOOT od 2026-10-16
+odpoledne. TCP a DNS (80–89h) jsou další krok. Sestava `machines/sapi1v_BomberNet.sapi`.
 
-DPI-1L je Martinova karta s RP2350 na sběrnici SAPI. Na skutečném železe umí víc: emuluje karty DPP-1, IDE-1,
-RAM disk a další a má SD kartu. Do SAPIemu patří **jen síťová část**: Repository API (rozhraní kompatibilní
-s Unicardem) s příkazy NET A0h–A9h pro síťové hry přes relay, hlavně **BomberNet**. Karty, které DPI emuluje,
-má SAPIemu samo (rozhodnutí Martina 2026-10-16).
+DPI-1L je Martinova karta s RP2350 na sběrnici SAPI. Na skutečném železe emuluje i karty DPP-1, IDE-1, RAM disk
+a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 2026-10-16). Emulované je **Repository API**
+(rozhraní kompatibilní s Unicardem):
+- soubory a adresáře SD karty nad **složkou PC**, aby šel v emulátoru vyvíjet software pro SAPI, který s DPI pracuje
+  (například `DPI.COM`);
+- nastavení v `/DPI/DPI.INI`, hodiny RTC a BOOT;
+- příkazy NET A0h–A9h pro síťové hry přes relay, hlavně **BomberNet**.
 
 ## Podklady
 
 - **Zadání:** `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md` (2026-10-16). Jsou v něm i referenční záznamy ze
-  skutečné DPI-1L (§6).
+  skutečné DPI-1L pro NET (§6) a odpovědi na otázky (§9). Záznamy pro soubory a TCP firmware teprve nahraje (§10).
 - **Vzor je ověřený firmware DPI v0.2** (`..\SAPI_DPI-firmware`, stejný autor, GPLv3):
-  - `common/repo.c` a `repo.h`: stavový automat Repository API;
+  - `common/repo.c` a `repo.h`: stavový automat Repository API, bajty souboru, SEEK, TELL, SIZE, RTC;
+  - `common/repo_fs.c`: soubory a adresáře (FatFs), dohledávání jmen, skryté soubory;
+  - `common/koi8.c`: jména v KOI-8čs2 (převzato beze změny);
+  - `common/config.c`, `common/ini.c`: `/DPI/DPI.INI`, GETCONFIG a SETCONFIG;
   - `common/netgame.c`: NET A0–A9, relay a WebSocket;
-  - `firmware/main.c`: reset SAPI.
-- **Popis protokolu:** `docs/unicard.md` (§2 stav, §3 parametry, §7 NET, §8 detekce) a `docs/net.md` (relay,
-  chyby MZPico, kterým se vyhnout).
-- **Klient na Z80:** `..\BomberNet\c\common\netdev_card.c` (detekce, volání NET). Port pro SAPI vzniká v repu
-  `SAPI-BomberNet` (`sapi/uc_sapi.c`).
+  - `firmware/main.c`: reset SAPI, BOOT (pulz /RTL 100 ms).
+- **Popis protokolu:** `docs/unicard.md` (§2 stav, §3 parametry, §4 příkazy, §6 záznam FILINFO, §7 NET, §8 detekce,
+  §8a rozhodnutí pro DPI, §9 opravené chyby originálu), `docs/funkce/repository.md` a `docs/net.md`.
+- **Klienti na Z80:** `cpm/dpi.com` (DPI.COM, z88dk) a `..\BomberNet\c\common\netdev_card.c`. Port BomberNetu pro SAPI
+  je v repu `SAPI-BomberNet`.
 
 ## Porty
 
 | Port | Zápis (OUT) | Čtení (IN) |
 |---|---|---|
 | báze (B0h) | příkaz | stav: 4 bajty, pak 00h |
-| báze + 1 (B1h) | parametr | výstup |
+| báze + 1 (B1h) | parametr, bajt do otevřeného souboru | výstup, záznam adresáře, bajt ze souboru |
 
 - Báze je parametr `base`. Na skutečné kartě se nastavuje v `DPI.INI`, výchozí B0h. Zrcadla B2h/B3h karta nemá.
 - Kódy A0–A9 jsou příkazy zapsané na B0h, ne porty. S RTC-1 na A0h tedy nekolidují.
@@ -34,35 +41,93 @@ má SAPIemu samo (rozhodnutí Martina 2026-10-16).
 ## Protokol (podle `repo.c`)
 
 - **Stav** (čtení B0h):
-  - bajt 0 = příznaky: 01h PARAMRQ, 02h DOUTRQ, 40h IN_PROGRESS, 80h ERROR;
-  - bajt 1 = poslední příkaz;
-  - bajt 2 = chybový kód, nebo volné místo pro parametry (PARAMRQ), nebo zbývající bajty výstupu (DOUTRQ);
-  - bajt 3 = výsledek FatFs, tady vždy 0.
+  - bajt 0 = příznaky: 01h PARAMRQ, 02h DOUTRQ, 04h otevřený adresář (nebo GETCONFIG), 08h soubor pro čtení,
+    10h soubor pro zápis, 20h konec souboru, 40h IN_PROGRESS, 80h ERROR;
+  - bajt 1 = poslední příkaz (F0h čtení a F1h zápis bajtu souboru, po NEXT 41h/42h);
+  - bajt 2 = chybový kód, nebo volné místo pro parametry (PARAMRQ), nebo zbývající bajty výstupu (DOUTRQ), nebo
+    zbývající bajty záznamu adresáře;
+  - bajt 3 = výsledek FatFs posledního příkazu SD karty (4 soubor není, 5 cesta není, 6 neplatné jméno, 7 odepřeno,
+    8 existuje, 16 soubor je otevřený…).
 - **Ukazatel stavu se vrací na bajt 0** každým zápisem na B0h a každým přístupem na B1h. STSR (03h) nedělá nic
   jiného, chybu nemaže.
-- **Parametry:**
-  - `B` = bajt, `S` = řetězec ukončený libovolným bajtem < 20h;
-  - volné místo na začátku je 255 − počet řetězců;
-  - po posledním parametru se příkaz hned vykoná.
-- **Čtení výstupu:** po posledním bajtu je fáze DONE. Čtení, když není co číst, dá 00h a ERROR 4.
-- **Chybové kódy:** 1 neznámý příkaz, 3 přetečení parametrů, 4 nic ke čtení nebo zápisu; u NET 6 build, 7 místnost,
-  8 není v místnosti, 9 spojení, 10 parametr, 11 nejde odeslat.
+- **Parametry:** `B` = bajt, `S` = řetězec ukončený libovolným bajtem < 20h. Volné místo na začátku je
+  255 − počet řetězců. Po posledním parametru se příkaz hned vykoná.
+- **Datový port bez příkazu:** čtení dá další bajt záznamu adresáře, jinak bajt otevřeného souboru (za koncem 00h bez
+  chyby, konec ukazuje bit 5), jinak 00h a ERROR 4. Zápis jde do otevřeného souboru, jinak ERROR 4.
+- **Chybové kódy:** 1 neznámý příkaz, 2 špatný parametr, 3 přetečení parametrů, 4 nic ke čtení nebo zápisu (nebo
+  soubor otevřený jinak), 5 zaneprázdněno, 6 chyba FatFs (kód v bajtu 3); u NET 6 build, 7 místnost, 8 není
+  v místnosti, 9 spojení, 10 parametr, 11 nejde odeslat.
 - **Příkazy:**
-  - 00 RESET (opustí místnost NET);
-  - 01 ASCII a 04 STORNO nedělají nic, 02 SHASCII dá ERROR 1;
-  - 05 REV `DPI-1L v0.2` + 0Dh, 06 REVD `00 02 44 01`;
+  - 00 RESET: opustí místnost NET, zapíše a zavře soubor, zavře adresář, CWD = `/`;
+  - 01 ASCII a 04 STORNO nedělají nic, 02 SHASCII dá ERROR 1 (jen Sharp);
+  - 05 REV `DPI-1L v0.2` + 0Dh, 06 REVD `00 02 44 01`, 07 BOOT (reset SAPI přes /RTL);
   - 11 INTCALLER `00`, 93 WIFISTATUS `03` (připojeno), 95 INFO 16 B `01 01 04 09` + nuly (bit 08h = NET);
+  - 20 GETFREE, 21 CHDIR, 22 GETCWD, 30 STAT, 31 UNLINK, 34 RENAME, 40 MKDIR, 41 READDIR, 42 FILELIST, 43 NEXT;
+  - 50 OPEN, 51 SEEK, 52 TRUNC, 53 SYNC, 54 CLOSE, 55 TELL, 56 SIZE;
+  - 60–63 RTC (datum D, M, R−1980; čas H, M, S);
+  - 92 GETCONFIG (záznamy po 80 B: klíč 16 B, hodnota 64 B), 99 SETCONFIG (sekce, klíč, hodnota; prázdná maže);
+  - B0 SDCARD (FFh stav, 1 půjčit kartu PC, 0 vrátit);
   - A0–A9 NET: STATUS, CREATE, JOIN, LEAVE, READY, SEND, POLL, HASH, MSG, RECV (tabulka v zadání §3);
-  - ostatní (soubory 20–56h, RTC 60–63h, TCP/DNS 80–89h, BOOT 07h…) ERROR 1.
+  - 32 CHMOD a 33 UTIME po parametrech ERROR 1 (DPI má FatFs bez `FF_USE_CHMOD`);
+  - 80–89 TCP a DNS zatím po parametrech ERROR 1.
 - **Detekce v BomberNetu:** REVD musí dát stav `02 06 04`; INFO musí být bez ERROR, s výstupem alespoň 16 B a s bitem
   08h v bajtu 3.
 
-## Emulace
+## Emulace: SD karta nad složkou PC
 
 - **Parametry** (katalog, konfigurátor):
-  - `base` (B0h);
-  - `net.transport`: `ws` (WebSocket, výchozí), nebo `tcp` (řádky JSON);
-  - `net.host` (`api.mzpico.com`), `net.port` (80).
+  - `sd.folder`: složka PC, kořen `/` karty, výchozí `work/dpi-1l/sdcard`. Složka ve `media/` se použije přes
+    pracovní kopii ve `work/` jako u PMD32-SD. Jiná cesta (i absolutní, třeba výstup překladu) se použije přímo.
+  - `sd.size_mb`: velikost karty pro GETFREE a plnou kartu, výchozí 32 MB (Martinova SanDisk; přesná čísla z GETFREE
+    skutečné karty doplní záznamy firmwaru). Clustery: do 128 MB po 2 KB, do 32 GB po 32 KB.
+  - `sd.flush_on_exit`: odchylka, výchozí vypnutá (viz stránka níže).
+- **Při prvním spuštění** se složka založí se složkou `/DPI` a souborem `/DPI/DPI.INI` s výchozím obsahem, stejným jako
+  ve firmwaru (`create_default`).
+- **Jména:** Z80 posílá a dostává KOI-8čs2, na PC jsou UTF-8 (`koi8.c` z firmwaru beze změny).
+  - Co KOI-8čs2 nemá, dostane rozumnou ASCII podobu, jinak `_`.
+  - Hledání jména jde jako ve firmwaru (`look_up`): přesné jméno bez ohledu na velikost písmen (jako FatFs, tedy
+    i na Linuxu), pak podoba v KOI-8čs2, nakonec pro jméno v ASCII bez diakritiky, když pasuje jediný soubor. Víc
+    shod = FatFs 6.
+  - Záznam FILINFO má jméno nejvýš 31 bajtů. Soubor jde najít i podle takto zkráceného jména.
+- **Chování FatFs, které program vidí:**
+  - jeden otevřený soubor a jeden adresář; READDIR zavře soubor, OPEN zavře adresář a předchozí soubor zapíše;
+  - výsledky FR_* v bajtu 3 (OPEN adresáře = 4, mazání neprázdného adresáře nebo CWD = 7, mazání nebo přejmenování
+    otevřeného souboru = 16 LOCKED, STAT kořene = 6…);
+  - OPEN s režimy FatFs (01 READ, 02 WRITE, 04 CREATE_NEW, 08 CREATE_ALWAYS, 10 OPEN_ALWAYS); bit 20h (SharpASCII) se
+    ignoruje; soubor otevřený pro zápis jde i číst, ale příznak ve stavu a kontrola čtení se řídí režimem od Z80;
+  - SEEK od začátku, od konce, vpřed a vzad, před začátek = 0; TRUNC na pozici (dál než konec soubor prodlouží);
+  - CHDIR na soubor = 5, STAT se jménem zakončeným tečkou nebo mezerou najde jméno bez nich.
+- **Stránka 4 KB jako ve firmwaru:**
+  - bajty souboru se čtou a zapisují ve stránce 4 KB;
+  - na disk PC jdou až při změně stránky, SYNC, CLOSE, TRUNC, RESET, READDIR nebo OPEN;
+  - velikost v adresáři (STAT, READDIR) se mění až při SYNC a CLOSE, jako u FatFs;
+  - /RES soubor nezavře a stránku nezapíše, stav Repository API přežije reset;
+  - vypnutí emulátoru (i restart sestavy) rozepsanou stránku ztratí jako skutečná karta. `sd.flush_on_exit` ji
+    zapíše (odchylka pro pohodlí, výchozí vypnutá).
+- **Skryté soubory:** `/DPI/SECRET.INI` a starý `/DPI.INI` v kořeni READDIR nevypíše, STAT ani OPEN je nenajde (zápis
+  = odepřeno), nejdou smazat ani přejmenovat. Složku `/DPI` nejde smazat ani přejmenovat.
+- **GETCONFIG a SETCONFIG** pracují s `/DPI/DPI.INI` jako firmware (stejné čtení a přepis řádků, limity délek).
+  Emulátor se ale tímto souborem neřídí: relay a port jsou parametry karty. Na skutečné kartě SETCONFIG stejně platí
+  až po dalším startu.
+- **RTC 60–63h:** hodiny PC posunuté o to, co nastavil program. Posun se pamatuje v uloženém stavu.
+- **BOOT 07h:** /RTL na 100 ms jako `rtl_pulse` ve firmwaru. JPR-1V a ostatní procesorové karty s /RTL resetují celé
+  SAPI.
+- **SDCARD B0h:** emulátor nemá USB, kam by kartu půjčil. Stav (FFh) i vrácení (0) dají 00h = karta v DPI, půjčení (1)
+  zavře soubor a adresář a vrátí chybu 5 jako DPI bez připojeného PC.
+- **Uložený stav** drží CWD, otevřený soubor s pozicí a nezapsanou stránkou, otevřený adresář (při načtení se
+  vypíše znovu, jak je teď), proud GETCONFIG a posun RTC. Soubory samotné jsou ve složce.
+- **Rozdíly proti skutečné kartě** (než přijdou záznamy firmwaru):
+  - pořadí položek v adresáři je abecední (FAT je má v pořadí vytvoření);
+  - krátká jména 8.3 (`altname` v záznamu) vznikají podle pravidel FatFs, ale čísla `~1`, `~2` podle abecedního
+    pořadí a písmena s diakritikou jako `_` (DPI má kódovou stránku 437);
+  - čas souborů je čas PC, ne RTC karty;
+  - `/DPI/LOG.TXT` (záznamy firmwaru o startu a SETCONFIG) emulátor nepíše;
+  - atributy: adresář 10h, soubor 20h, soubor jen pro čtení na PC 01h.
+
+## Emulace: NET
+
+- **Parametry:** `net.transport` (`ws` WebSocket, výchozí, nebo `tcp` řádky JSON), `net.host` (`api.mzpico.com`),
+  `net.port` (80).
   - Relay jde změnit i za chodu, karta přitom opustí místnost (jako příkaz `ngame relay` na konzoli DPI).
   - Pro lokální `relay.py` z repa BomberNet: `tcp` s portem 8766, nebo `ws` s portem 8765. `relay.py` poslouchá jen
     na 127.0.0.1.
@@ -78,18 +143,17 @@ má SAPIemu samo (rozhodnutí Martina 2026-10-16).
   - LEAVE, RESET 00h i /RES pošlou `leave` a teprve pak spojení zavřou (FIN za odeslanými daty).
 - **WebSocket je vlastní**, jako ve firmwaru:
   - handshake s `Host` bez portu, `Sec-WebSocket-Accept` se neověřuje;
-  - rámce klienta maskované, ping → pong se stejným obsahem;
+  - rámce klienta maskované, celá zpráva jedním zápisem, ping → pong se stejným obsahem;
   - `wss://` nejde (SAPIemu nemá TLS), produkce má proto i `ws://api.mzpico.com/net`.
-- **Uložený stav:** spojení se uložit nedá. Po načtení stavu je karta jako po RESET 00h: bez místnosti, stav
-  `00 00 00 00`.
+- **Uložený stav:** spojení se uložit nedá. Po načtení stavu je karta mimo místnost a čekající CREATE/JOIN skončí.
 - **Bez sítě** se karta chová jako skutečná, které se nepodařilo spojit: CREATE a JOIN skončí chybou 9. S prázdným
   `net.host` hlásí STATUS stav 0 (NOLINK).
 - **Konfigurátor** ukazuje za chodu stav sítě (např. „NET: running, room SYTN, slot 0, 2 members“). MCP
-  `machine_info` vypisuje relay, stav, kód místnosti, slot a poslední chybu.
+  `machine_info` vypisuje relay, stav, kód místnosti, slot, poslední chybu, složku SD karty, CWD a otevřený soubor.
 
 ## Ověření
 
-- **Test `test_dpi1l`:** malá falešná relay v testu (TCP řádky i WebSocket). Pokrývá:
+- **Test `test_dpi1l`:** NET s malou falešnou relay v testu (TCP řádky i WebSocket):
   - záznamy ze skutečné karty bez místnosti (zadání §6) a detekci BomberNetu;
   - hru dvou hráčů ze záznamu §6 bajt po bajtu, přes TCP i WebSocket (s pingem);
   - JOIN jako divák a jako hráč, chyby relay 6 a 7, limit → chyba 9, nedostupnou relay;
@@ -97,12 +161,18 @@ má SAPIemu samo (rozhodnutí Martina 2026-10-16).
   - LEAVE, RESET 00h, /RES a načtení stavu: vždy `leave` před koncem spojení;
   - zrušení CREATE novým příkazem (i s `room`, který Z80 ještě nepřečetl), /RES během CREATE, kód JOIN delší než
     7 znaků.
-- **Ručně 2026-10-16:** `sapiemu-cli --mcp` s kartou ovládanou přes `io_write`/`io_read` jako konzolí DPI a
+- **Test `test_dpi1l_files`:** SD karta nad čistou složkou `work/test/`: adresáře, zápis a čtení, stránka 4 KB a
+  velikost v adresáři, SEEK, TRUNC, /RES s otevřeným souborem, READDIR a FILELIST (dlouhé a české jméno, krátké
+  jméno), NEXT, dohledávání jmen (bez diakritiky, víc shod, zkrácené jméno), RENAME, UNLINK, LOCKED, skryté soubory,
+  GETCONFIG a SETCONFIG, RTC, BOOT, SDCARD, uložený stav s otevřeným souborem, RESET, plná karta 1 MB.
+- **`DPI.COM` z repa firmwaru v CP/M v emulátoru (2026-10-16):** kopie `sapi1v_BomberNet.sapi` (disky bez ukládání),
+  `DPI.COM` nahraný do paměti a uložený příkazem `SAVE 50 DPI.COM`. INFO (`DPI-1L v0.2`, `31 MB free of 31 MB`),
+  DIR, GET a TYPE, MD, CD, PUT (12800 B), REN, DEL, DEL neexistujícího (`file not found (FatFs 4)`), PWD a SDCARD PC
+  (`busy (error 5)`) dělají, co mají.
+- **NET ručně 2026-10-16:** `sapiemu-cli --mcp` s kartou ovládanou přes `io_write`/`io_read` jako konzolí DPI a
   `tools/net_peer.py` z repa firmwaru jako druhý hráč. Všechny tři cesty daly stejné bajty jako záznam §6 (jiný byl
-  jen kód místnosti a seed):
-  - `relay.py`, karta přes TCP 8766, druhý hráč přes WebSocket 8765;
-  - `relay.py` přes WebSocket;
-  - produkční `ws://api.mzpico.com/net`.
+  jen kód místnosti a seed): `relay.py` přes TCP 8766 s druhým hráčem přes WebSocket 8765, `relay.py` přes WebSocket,
+  produkční `ws://api.mzpico.com/net`.
 
 ## Otázky k firmwaru a odpovědi (2026-10-16)
 
@@ -115,5 +185,14 @@ podle zadání (`..\SAPI_DPI-firmware\docs\sapiemu_dpi.md` §9):
 2. **Zrušené CREATE/JOIN** (nový příkaz během čekání) zavře spojení. Pozdější `room` kartu do místnosti nedá. Platí
    to i pro `room`, který už přišel, ale Z80 si ho nepřečetl, protože mezitím zadal jiný příkaz.
 3. **JOIN s kódem delším než 7 znaků** dá chybu 10 (`"ABCDEFGH"` → `80 A2 0A 00`).
-4. **RTC 60–63h a BOOT 07h** zůstávají ERROR 1. BomberNet je nepotřebuje, RTC patří k volitelné části se soubory
-   (§7) a BOOT by znamenal reset stroje.
+4. **RTC 60–63h a BOOT 07h** mohly zůstat ERROR 1. S druhou částí (soubory) jsou hotové podle firmwaru.
+
+## Čeká se na záznamy ze skutečné karty
+
+Session firmwaru dostala (2026-10-16) seznam záznamů pro soubory, nastavení, RTC, BOOT, SDCARD a TCP/DNS (zadání §10).
+Až budou, porovnat bajt po bajtu a dorovnat hlavně:
+- GETFREE (velikost a clustery karty, výchozí `sd.size_mb`);
+- krátká jména 8.3 a pořadí položek v READDIR;
+- stav po /RES s otevřeným souborem a nezapsanou stránkou;
+- čas souborů (RTC karty, nebo NTP);
+- délku pulzu /RTL u BOOT.

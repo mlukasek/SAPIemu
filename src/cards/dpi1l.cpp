@@ -1,11 +1,14 @@
 #include "cards/dpi1l.h"
 #include "core/log.h"
 #include "core/relay.h"
+#include "core/bus.h"
 #include "core/state.h"
+#include "core/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <chrono>
 #include <vector>
 
@@ -15,9 +18,10 @@ using nlohmann::json;
 enum { PH_DONE, PH_PARAMRQ, PH_DOUTRQ, PH_PROGRESS };   // PROGRESS: NET CREATE/JOIN, status bit 6
 
 enum {
-    ST_PARAMRQ = 0x01, ST_DOUTRQ = 0x02, ST_IN_PROGRESS = 0x40, ST_ERROR = 0x80,
+    ST_PARAMRQ = 0x01, ST_DOUTRQ = 0x02, ST_DIR = 0x04, ST_FILE_READ = 0x08, ST_FILE_WRITE = 0x10, ST_EOF = 0x20,
+    ST_IN_PROGRESS = 0x40, ST_ERROR = 0x80,
 };
-enum { ERR_NOT_IMPLEMENTED = 1, ERR_OVERFLOW = 3, ERR_NO_FILE = 4 };
+enum { ERR_NOT_IMPLEMENTED = 1, ERR_BAD_PARAM = 2, ERR_OVERFLOW = 3, ERR_NO_FILE = 4, ERR_FATFS = 6 };
 
 static const uint8_t VERSION_MAJOR = 0, VERSION_MINOR = 2;   // API of the DPI firmware the card answers as
 static const uint8_t BOARD = 0x01;                           // REVD/INFO board byte: bit 0 = DPI-1L
@@ -31,12 +35,41 @@ static const uint8_t E_ROOM = 7, E_NOROOM = 8, E_NOLINK = 9, E_PARAM = 10, E_FUL
 static const int WINDOW = 128;
 static const int MSGQ = 4;
 
-// parameter formats of the commands the card runs with parameters (repo.c fs_cmds: the NET part and RESET)
-static const char* net_format(uint8_t c)
+// commands the SD card side (repo_fs.c) or NET runs, with their parameter formats (repo.c fs_cmds):
+// B = byte, S = string ended by any byte < 20h, X = TCPSEND: WORD length (bit 15 = push), then the data
+static const char* fs_format(uint8_t c)
 {
     switch (c) {
-    case 0x00: return "";                         // RESET
-    case 0xA0: return "";                         // STATUS
+    case 0x00: return "";                         // RESET: close everything, CWD = /
+    case 0x20: return "";                         // GETFREE
+    case 0x21: return "S";                        // CHDIR
+    case 0x22: return "";                         // GETCWD
+    case 0x30: return "S";                        // STAT
+    case 0x31: return "S";                        // UNLINK
+    case 0x32: return "BBS";                      // CHMOD
+    case 0x33: return "BBBBBBS";                  // UTIME
+    case 0x34: return "SS";                       // RENAME
+    case 0x40: return "S";                        // MKDIR
+    case 0x41: return "S";                        // READDIR
+    case 0x42: return "S";                        // FILELIST
+    case 0x43: return "";                         // NEXT
+    case 0x50: return "BS";                       // OPEN: mode, path
+    case 0x52: return "";                         // TRUNC
+    case 0x53: return "";                         // SYNC
+    case 0x54: return "";                         // CLOSE
+    case 0x80: return "";                         // TCPSTATUS
+    case 0x81: return "BBBB";                     // TCPIP
+    case 0x82: return "BB";                       // TCPPORT
+    case 0x83: return "";                         // TCPOPEN
+    case 0x84: return "";                         // TCPCLOSE
+    case 0x85: return "X";                        // TCPSEND
+    case 0x86: return "BB";                       // TCPRECV: WORD max
+    case 0x88: return "S";                        // DNSREQ
+    case 0x89: return "";                         // DNSRES
+    case 0x92: return "S";                        // GETCONFIG: section
+    case 0x99: return "SSS";                      // SETCONFIG: section, key, value
+    case 0xB0: return "B";                        // SDCARD
+    case 0xA0: return "";                         // NET STATUS
     case 0xA1: return "BBBBBBBBBBBBBBBBBBBBBBB";  // CREATE: game W, build W, slots, bytes, settings length, 16 B
     case 0xA2: return "BBBBS";                    // JOIN: game W, build W, code
     case 0xA3: return "";                         // LEAVE
@@ -49,6 +82,10 @@ static const char* net_format(uint8_t c)
     }
     return nullptr;
 }
+
+enum { CMD_STSR = 0x03, CMD_READDIR = 0x41, CMD_FILELIST = 0x42, CMD_NEXT = 0x43, CMD_OPEN = 0x50, CMD_SEEK = 0x51,
+       CMD_TRUNC = 0x52, CMD_SYNC = 0x53, CMD_TELL = 0x55, CMD_SIZE = 0x56, CMD_GETCONFIG = 0x92 };
+static const uint8_t REQ_DIRNEXT = 0xF2, REQ_PAGE = 0xF3;
 
 static uint64_t ms_now(void)
 {
@@ -132,6 +169,7 @@ static bool json_true(const char* l, const char* key)
 Dpi1l::~Dpi1l()
 {
     link_close();   // no 'leave': the relay sees the link end (as switching the DPI off)
+    flush();
 }
 
 bool Dpi1l::configure(const json& cfg, std::string& e)
@@ -149,9 +187,28 @@ bool Dpi1l::configure(const json& cfg, std::string& e)
     if (!cfg_number(net, "port", v, 80, e)) return false;
     if (v < 1 || v > 65535) { e = "net.port must be 1 ... 65535"; return false; }
     relay_port = (uint16_t)v;
+    json sdc = cfg.contains("sd") && cfg["sd"].is_object() ? cfg["sd"] : json::object();
+    std::string folder;
+    if (!cfg_string(sdc, "folder", folder, "work/dpi-1l/sdcard", e)) return false;
+    if (!cfg_number(sdc, "size_mb", v, 32, e)) return false;
+    if (v < 1 || v > 2097152) { e = "sd.size_mb must be 1 ... 2097152"; return false; }
+    if (!cfg_bool(sdc, "flush_on_exit", flush_on_exit, false, e)) return false;
+    sd_ready = false;
+    if (!probe) {                       // a folder under media/ is used through its working copy in work/
+        std::string path;
+        if (!media_path(folder, true, path, e)) return false;
+        if (!sd.init(path, (uint32_t)v, e)) return false;
+        sd_ready = true;
+    }
 
     // power on: as repo_init and the NET variables of the firmware
     link_close();
+    sd.power_on();
+    ff_res = 0;
+    rec_len = rec_pos = 0;
+    dir_cmd = 0;
+    rtc_offset = 0;
+    boot_until = 0;
     phase = PH_DONE;
     cmd = 0;
     err = false;
@@ -228,7 +285,7 @@ void Dpi1l::want_params(const char* f)
 void Dpi1l::command(uint8_t c)
 {
     sts_pos = 0;
-    if (c == 0x03) return;              // STSR: only rewinds the status pointer
+    if (c == CMD_STSR) return;          // STSR: only rewinds the status pointer
     if (phase == PH_PROGRESS) cancel_pending();   // a new command drops the pending CREATE/JOIN (as the Unicard)
     cmd = c;
     err = false;
@@ -236,14 +293,23 @@ void Dpi1l::command(uint8_t c)
     phase = PH_DONE;
     len = 0;
 
-    const char* f = net_format(c);
+    const char* f = fs_format(c);
     if (f) {
+        if ((c == CMD_TRUNC || c == CMD_SYNC) && !sd.file.open) {
+            fail(ERR_NO_FILE);
+            return;
+        }
+        if (c == 0x00 || c == CMD_READDIR || c == CMD_FILELIST || c == CMD_OPEN || c == CMD_GETCONFIG)
+            rec_len = rec_pos = 0;      // the old directory stream ends here
+        if (c == CMD_READDIR || c == CMD_FILELIST || c == CMD_GETCONFIG) dir_cmd = c;
+        if (c == CMD_NEXT && dir_cmd) cmd = dir_cmd;   // status byte 1 shows 41h/42h after NEXT, as the Unicard
         if (*f) want_params(f);
-        else run_net();
+        else post(c);
         return;
     }
+    struct tm t;
     switch (c) {
-    case 0x01:                          // ASCII
+    case 0x01:                          // ASCII: names are always KOI-8cs2, contents never converted
     case 0x04:                          // STORNO
         break;
     case 0x05: {                        // REV
@@ -259,9 +325,44 @@ void Dpi1l::command(uint8_t c)
         buf[3] = BOARD;
         output(4);
         break;
+    case 0x07:                          // BOOT: /RTL pulled low for 100 ms (firmware/main.c rtl_pulse)
+        if (bus) boot_until = bus->now + (uint64_t)bus->cpu_hz / 10 * (uint64_t)bus->cpu_step;
+        break;
     case 0x11:                          // INTCALLER: no interrupt sources
         buf[0] = 0;
         output(1);
+        break;
+    case 0x60:                          // RTCSETD
+    case 0x61:                          // RTCSETT
+        want_params("BBB");
+        break;
+    case CMD_SEEK:
+        want_params("BBBBB");
+        break;
+    case CMD_TELL:
+    case CMD_SIZE: {
+        if (!sd.file.open) { fail(ERR_NO_FILE); break; }
+        uint32_t v = c == CMD_TELL ? sd.file.pos : sd.file.size;
+        buf[0] = (uint8_t)v;
+        buf[1] = (uint8_t)(v >> 8);
+        buf[2] = (uint8_t)(v >> 16);
+        buf[3] = (uint8_t)(v >> 24);
+        output(4);
+        break;
+    }
+    case 0x62:                          // RTCGETD
+        rtc_get(t);
+        buf[0] = (uint8_t)t.tm_mday;
+        buf[1] = (uint8_t)(t.tm_mon + 1);
+        buf[2] = (uint8_t)(t.tm_year - 80);
+        output(3);
+        break;
+    case 0x63:                          // RTCGETT
+        rtc_get(t);
+        buf[0] = (uint8_t)t.tm_hour;
+        buf[1] = (uint8_t)t.tm_min;
+        buf[2] = (uint8_t)t.tm_sec;
+        output(3);
         break;
     case 0x93:                          // WIFISTATUS: the emulator is always on the network
         buf[0] = WIFI_CONNECTED;
@@ -275,22 +376,126 @@ void Dpi1l::command(uint8_t c)
         buf[3] = 0x01 | 0x08;
         output(16);
         break;
-    default:                            // SHASCII (Sharp only), files, RTC, TCP/DNS, BOOT: not here
+    default:                            // SHASCII (Sharp only) and unknown commands
         fail(ERR_NOT_IMPLEMENTED);
     }
+}
+
+// ---- RTC: the clock of the PC, moved by RTCSETD/RTCSETT (the AON timer of the RP2350) ----
+
+void Dpi1l::rtc_get(struct tm& t)
+{
+    time_t now = host_time_now() + (time_t)rtc_offset;
+#ifdef _WIN32
+    localtime_s(&t, &now);
+#else
+    localtime_r(&now, &t);
+#endif
+}
+
+void Dpi1l::rtc_set(const struct tm& t)
+{
+    struct tm c = t;
+    c.tm_isdst = -1;
+    time_t want = mktime(&c);
+    if (want != (time_t)-1) rtc_offset = (int64_t)want - (int64_t)host_time_now();
+}
+
+static bool valid_date(int d, int m, int y)
+{
+    static const uint8_t days[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    if (m < 1 || m > 12 || d < 1 || d > days[m - 1]) return false;
+    bool leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+    return !(m == 2 && d == 29 && !leap);
+}
+
+void Dpi1l::run_params(void)
+{
+    struct tm t;
+    switch (cmd) {
+    case CMD_SEEK: {                    // mode (0 from the start, 1 from the end, 2 forward, 3 back), DWORD
+        if (!sd.file.open) { fail(ERR_NO_FILE); return; }
+        uint32_t n = buf[1] | buf[2] << 8 | buf[3] << 16 | (uint32_t)buf[4] << 24;
+        uint64_t from = buf[0] == 1 ? sd.file.size : buf[0] >= 2 ? sd.file.pos : 0;
+        if (buf[0] > 3) { fail(ERR_BAD_PARAM); return; }
+        if (buf[0] == 1 || buf[0] == 3) sd.file.pos = n > from ? 0 : (uint32_t)(from - n);   // before the start: 0
+        else sd.file.pos = (uint32_t)(from + n);
+        break;
+    }
+    case 0x60:                          // RTCSETD: D, M, Y-1980
+        if (!valid_date(buf[0], buf[1], 1980 + buf[2])) { fail(ERR_BAD_PARAM); return; }
+        rtc_get(t);
+        t.tm_mday = buf[0];
+        t.tm_mon = buf[1] - 1;
+        t.tm_year = 80 + buf[2];
+        rtc_set(t);
+        break;
+    case 0x61:                          // RTCSETT: H, M, S
+        if (buf[0] > 23 || buf[1] > 59 || buf[2] > 59) { fail(ERR_BAD_PARAM); return; }
+        rtc_get(t);
+        t.tm_hour = buf[0];
+        t.tm_min = buf[1];
+        t.tm_sec = buf[2];
+        rtc_set(t);
+        break;
+    default:
+        fail(ERR_NOT_IMPLEMENTED);
+    }
+}
+
+// ---- the data port ----
+
+// one byte to the open file
+void Dpi1l::file_putc(uint8_t v)
+{
+    DpiFile& f = sd.file;
+    if (!(f.mode & 0x02)) {             // opened for reading only
+        fail(ERR_NO_FILE);
+        return;
+    }
+    if (!(f.valid && f.pos >= f.page_pos && f.pos < f.page_pos + DPI_PAGE)) {
+        DpiSdResult r;
+        sd.execute(REQ_PAGE, 0, buf, r);   // core 0 writes the old page back and loads the one with pos
+        ff_res = r.ff_res;
+        if (r.err_code) {
+            fail(ERR_FATFS);
+            return;
+        }
+    }
+    uint32_t off = f.pos - f.page_pos;
+    f.page[off] = v;
+    if (off + 1 > f.page_len) f.page_len = off + 1;
+    f.dirty = true;
+    f.pos++;
+    if (f.pos > f.size) f.size = f.pos;
+    cmd = 0xF1;                         // INTPUTC, as the Unicard shows it in status byte 1
+    err = false;
 }
 
 void Dpi1l::data_out(uint8_t v)
 {
     sts_pos = 0;
-    if (phase != PH_PARAMRQ) {          // no file can be open here
-        fail(ERR_NO_FILE);
+    if (phase != PH_PARAMRQ) {
+        if (sd.file.open) file_putc(v);
+        else fail(ERR_NO_FILE);
         return;
     }
-    if (fmt[fmt_pos] == 'B') {
+    char f = fmt[fmt_pos];
+    if (f == 'B') {
         buf[len++] = v;
         count--;
         fmt_pos++;
+    } else if (f == 'X') {              // TCPSEND: WORD length (bit 15 = push now), then that many bytes
+        buf[len++] = v;
+        count--;
+        if (len >= 2) {
+            uint16_t n = (uint16_t)((buf[0] | buf[1] << 8) & 0x7FFF);
+            if (n > 252) {              // the Unicard read past its buffer here (unicard.md Q9)
+                fail(ERR_BAD_PARAM);
+                return;
+            }
+            if (len >= 2u + n) fmt_pos++;
+        }
     } else if (v >= 0x20) {             // 'S'
         buf[len++] = v;
         count--;
@@ -305,7 +510,8 @@ void Dpi1l::data_out(uint8_t v)
     }
     if (fmt[fmt_pos] == 0) {            // all parameters are in: run the command
         phase = PH_DONE;
-        run_net();
+        if (fs_format(cmd)) post(cmd);
+        else run_params();
     }
 }
 
@@ -318,6 +524,43 @@ uint8_t Dpi1l::data_in(void)
         err = false;
         return v;
     }
+    if (rec_pos < rec_len) {            // directory record
+        uint8_t v = rec[rec_pos++];
+        err = false;
+        if (rec_pos == rec_len) {       // the whole record is read: the next one is loaded meanwhile
+            rec_len = rec_pos = 0;
+            DpiSdResult r;
+            sd.execute(REQ_DIRNEXT, dir_cmd, buf, r);
+            ff_res = r.ff_res;
+            if (!sd.dir_active()) dir_cmd = 0;
+            rec_len = r.err_code ? 0 : r.rec_len;
+            rec_pos = 0;
+            if (rec_len) memcpy(rec, r.data, rec_len);
+            if (r.err_code) fail(r.err_code);
+        }
+        return v;
+    }
+    DpiFile& f = sd.file;
+    if (f.open) {
+        if (!(f.mode & 0x01)) {
+            fail(ERR_NO_FILE);          // opened for writing only
+            return 0x00;
+        }
+        cmd = 0xF0;                     // INTGETC
+        err = false;
+        if (f.pos >= f.size) return 0x00;   // at the end: 00, no error, the EOF bit tells it
+        if (!(f.valid && f.pos >= f.page_pos && f.pos < f.page_pos + DPI_PAGE) || f.pos >= f.page_pos + f.page_len) {
+            DpiSdResult r;
+            sd.execute(REQ_PAGE, 0, buf, r);
+            ff_res = r.ff_res;
+            if (r.err_code) {
+                fail(ERR_FATFS);
+                return 0x00;
+            }
+            if (f.pos >= f.page_pos + f.page_len) return 0x00;   // a size not on the disk (not written yet)
+        }
+        return f.page[f.pos++ - f.page_pos];
+    }
     fail(ERR_NO_FILE);                  // nothing to read
     return 0x00;
 }
@@ -327,7 +570,12 @@ uint8_t Dpi1l::status(void)
     uint8_t v;
     switch (sts_pos) {
     case 0:
-        v = 0;
+        v = sd.dir_active() ? ST_DIR : 0;
+        if (sd.file.open) {
+            if (sd.file.mode & 0x01) v |= ST_FILE_READ;
+            if (sd.file.mode & 0x02) v |= ST_FILE_WRITE;
+            if (sd.file.pos >= sd.file.size) v |= ST_EOF;
+        }
         if (phase == PH_PARAMRQ) v |= ST_PARAMRQ;
         if (phase == PH_DOUTRQ) v |= ST_DOUTRQ;
         if (phase == PH_PROGRESS) v |= ST_IN_PROGRESS;
@@ -339,10 +587,11 @@ uint8_t Dpi1l::status(void)
     case 2:
         if (err) v = err_code;
         else if (phase == PH_PARAMRQ || phase == PH_DOUTRQ) v = count;
+        else if (rec_len) v = (uint8_t)(rec_len - rec_pos);
         else v = 0;
         break;
     case 3:
-        v = 0;                          // FatFs result
+        v = ff_res;                     // FatFs result
         break;
     default:
         return 0x00;                    // past the 4 bytes: 00 until the pointer is rewound
@@ -567,20 +816,54 @@ void Dpi1l::handle_line(const char* l)
     }
 }
 
-// a command with its parameters (repo_fs_execute: RESET, repo_netgame_execute: A0h-A9h)
-void Dpi1l::run_net(void)
+// A command of the SD card side or NET with its parameters (post + repo_service of the firmware: the card runs it at
+// once, the Z80 does not wait)
+void Dpi1l::post(uint8_t c)
+{
+    DpiSdResult r;
+    bool pending = false;
+    if (c == 0x00) {                    // RESET: NET leaves its room, then the files (repo_fs_execute)
+        net_reset();
+        if (sd_ready) sd.execute(0x00, dir_cmd, buf, r);
+    } else if (c >= 0xA0 && c <= 0xA9) {
+        run_net(r, pending);
+    } else if (c >= 0x80 && c <= 0x89) {
+        r.err_code = ERR_NOT_IMPLEMENTED;   // TCP and DNS: not yet
+    } else if (sd_ready) {
+        sd.execute(c, dir_cmd, buf, r);
+    } else {
+        r.err_code = ERR_NOT_IMPLEMENTED;
+    }
+
+    ff_res = r.ff_res;
+    if (!sd.dir_active()) dir_cmd = 0;
+    bool dir_request = c == CMD_READDIR || c == CMD_FILELIST || c == CMD_NEXT || c == 0x00 || c == CMD_OPEN ||
+                       c == CMD_GETCONFIG;
+    if (dir_request) {                  // the directory stream is whatever the card says now (empty at the end)
+        rec_len = r.err_code ? 0 : r.rec_len;
+        rec_pos = 0;
+        if (rec_len) memcpy(rec, r.data, rec_len);
+    }
+    if (pending) {
+        phase = PH_PROGRESS;            // goes on in the background, complete() ends it
+        err = false;
+    } else if (r.err_code) {
+        fail(r.err_code);
+    } else if (r.out_len) {
+        memcpy(buf, r.data, r.out_len);
+        output(r.out_len);
+    }
+}
+
+// NET A0h-A9h (common/netgame.c repo_netgame_execute)
+void Dpi1l::run_net(DpiSdResult& r, bool& pending)
 {
     const uint8_t* p = buf;
-    uint8_t res_err = 0;
-    bool pending = false;
-    uint8_t o[64];
-    uint16_t on = 0;
+    uint8_t& res_err = r.err_code;
+    uint8_t* o = r.data;
+    uint16_t& on = r.out_len;
     char l[200];
 
-    if (cmd == 0x00) {                  // RESET: leave a NET room (as MZPico; nothing else without files)
-        net_reset();
-        return;
-    }
     // a new command: the Z80 does not wait for an older CREATE/JOIN any more
     pend_cmd = 0;
     switch (cmd) {
@@ -706,34 +989,57 @@ void Dpi1l::run_net(void)
     default:
         res_err = ERR_NOT_IMPLEMENTED;
     }
-
-    // as repo_service
-    if (pending) {
-        phase = PH_PROGRESS;            // goes on in the background, complete() ends it
-        err = false;
-    } else if (res_err) {
-        fail(res_err);
-    } else if (on) {
-        memcpy(buf, o, on);
-        output(on);
-    }
 }
 
 // ---- the rest of the card interface ----
 
+// the parameter format of a command waiting for its parameters (fmt after loading a state)
+static const char* params_format(uint8_t c)
+{
+    if (c == 0x60 || c == 0x61) return "BBB";
+    if (c == CMD_SEEK) return "BBBBB";
+    const char* f = fs_format(c);
+    return f ? f : "";
+}
+
 void Dpi1l::state(StateIO& io)
 {
-    // a link to the relay can not be saved: after loading the card is as after RESET 00h (no room, 00 00 00 00)
+    // The Repository API, the SD card side (the folder holds the files themselves, here the CWD, the open file with
+    // its page not written yet, the directory stream) and the RTC. A link to the relay can not be saved: after
+    // loading the card is out of the NET room, a waiting CREATE/JOIN ended.
+    io.v(phase);
+    io.v(cmd);
+    io.v(err);
+    io.v(err_code);
+    io.v(sts_pos);
+    io.v(fmt_pos);
+    io.arr(buf, sizeof(buf));
+    io.v(len);
+    io.v(count);
+    io.v(out_pos);
+    io.v(ff_res);
+    io.arr(rec, sizeof(rec));
+    io.v(rec_len);
+    io.v(rec_pos);
+    io.v(dir_cmd);
+    io.v(rtc_offset);
+    io.v(boot_until);
+    sd.state(io);
     if (io.loading) {
+        fmt = params_format(cmd);
         net_reset();
-        phase = PH_DONE;
-        cmd = 0;
-        err = false;
-        err_code = 0;
-        sts_pos = 0;
-        len = 0;
-        count = 0;
     }
+}
+
+bool Dpi1l::rtl_line()
+{
+    return bus && bus->now < boot_until;
+}
+
+// Switching off loses the page not written yet, as on the card; flush_on_exit (a deviation) writes it.
+void Dpi1l::flush()
+{
+    if (flush_on_exit && sd_ready) sd.flush_page();
 }
 
 int Dpi1l::decode_io(uint8_t port, const char** what)
@@ -771,6 +1077,16 @@ void Dpi1l::describe(json& out)
         out["ready_mask"] = ready_mask;
     }
     out["last_error"] = last_error;
+    if (sd_ready) {
+        out["sd_folder"] = sd.root;
+        out["sd_cwd"] = sd.cwd_path();
+        if (sd.file.open) {
+            out["sd_file"] = sd.file.path;
+            out["sd_file_pos"] = sd.file.pos;
+            out["sd_file_size"] = sd.file.size;
+            out["sd_page_unwritten"] = sd.file.dirty;
+        }
+    }
 }
 
 std::string Dpi1l::live_status()
