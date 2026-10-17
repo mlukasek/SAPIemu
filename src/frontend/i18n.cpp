@@ -193,7 +193,13 @@ static const Translation k_table[] = {
     { "Show the hidden guides again", "Znovu ukazovat skryté průvodce" },
     { "Thanks", "Poděkování" },
     { "The guides are in Czech, they open in the program for .md files.", "Návody jsou česky, otevřou se v programu pro soubory .md." },
-    { "Their licences are in the folder third_party.", "Jejich licence jsou ve složce third_party." },
+    { "Their licences are in the file THIRD-PARTY-NOTICES.txt.", "Jejich licence jsou v souboru THIRD-PARTY-NOTICES.txt." },
+    { "Cannot start the graphics (SDL)", "Nelze spustit grafiku (SDL)" },
+    { "Cannot create the window", "Nelze vytvořit okno" },
+    { "The data of the emulator were not found (the folders roms and machines next to sapiemu.exe). Unpack the whole "
+      "archive and start sapiemu.exe from it.",
+      "Data emulátoru nebyla nalezena (složky roms a machines vedle sapiemu.exe). Rozbalte celý archiv a spusťte "
+      "sapiemu.exe z něj." },
     { "User guides", "Návody k obsluze" },
     { "Video", "Video" },
     { "Volume, mouse sensitivity...", "Hlasitost, citlivost myši…" },

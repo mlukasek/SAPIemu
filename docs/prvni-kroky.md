@@ -8,8 +8,10 @@ zprávu, co nefunguje (GitHub Issues: https://github.com/mlukasek/SAPIemu/issues
 1. Rozbalte zip kamkoli (třeba `C:\SAPIemu`). Exe najde ROM, média a sestavy ve složkách vedle sebe.
 2. Spusťte **`sapiemu.exe`**. Windows u nepodepsaného programu ukážou varování SmartScreen: „Další informace“
    → „Přesto spustit“.
-3. Nic se neinstaluje. Nastavení se ukládá vedle exe (`sapiemu-settings.json`, `imgui.ini`). Pracovní kopie
-   disků a RAM disků vznikají ve složce `work\`. Originály v `media\` zůstávají netknuté.
+3. Nic se neinstaluje. Nastavení se ukládá vedle exe (`sapiemu-settings.json`, `imgui.ini`), stejně jako log
+   posledního spuštění `sapiemu.log` (hodí se k hlášení chyby). Pracovní kopie disků a RAM disků vznikají ve složce
+   `work\`. Originály v `media\` zůstávají netknuté. Když do složky programu nejde zapisovat (např. `Program Files`),
+   ukládá se nastavení do `%APPDATA%\SAPIemu\SAPIemu` a `work` do `%LOCALAPPDATA%\SAPIemu\work`.
 
 Potřebujete Windows 10 nebo 11, 64 bit.
 

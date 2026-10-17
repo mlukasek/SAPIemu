@@ -23,16 +23,20 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     u pravého okraje; průvodce se sám otevře jen po spuštění sestavy uživatelem. **MCP v GUI podle Nastavení:** nová
     instalace vypnutý, starší nastavení bez položky `mcp` zapnutý (autorovo nastavení tedy MCP zachová),
     `--mcp-port` zapne vždy, `--no-mcp` ne.
-  - **Stav:** vše jen lokálně commitnuté (od `d503a33` po `9119c46`), **nepushnuté**; testy debug 57/57.
+  - **Etapa 5 (hotová, 2026-10-17):**
+    - `THIRD-PARTY-NOTICES.txt` z `tools/third_party_notices.py` (licence SDL3 v `third_party/sdl3/`), jde do zipu;
+    - copyright v README, O programu a exe;
+    - ikona `src/res/sapiemu.ico` (`tools/make_icon.py`) a VERSIONINFO z `src/res/sapiemu.rc.in`;
+    - log `sapiemu.log` vedle nastavení;
+    - okno s chybou při startu (SDL, chybějící data);
+    - `work/` náhradou v `%LOCALAPPDATA%\SAPIemu\work` (`work_root()`, test `test_paths`);
+    - `package.py --public` (bez `work/ide`, `REPO_ONLY` a `DEV_DOCS`: `SOUHRN`, `rozhodnuti`, `docs/vydani/`);
+    - anglický úvod a sekce Síť a soukromí v README;
+    - verze 0.7.0-alpha.
+  - **Stav:** vše jen lokálně commitnuté (od `5af2807`), **nepushnuté**; testy debug 58/58.
     Před pushem: release test, WSL, `check_machines.py --games`, kontrola dokumentace.
-  - **Dál, etapa 5:**
-    - `THIRD-PARTY-NOTICES.txt` (i SDL3, zlib) do zipu, copyright v README a LICENSE;
-    - ikona a VERSIONINFO exe, soubor logu, okno s chybou při startu, `work/` náhradou v uživatelské složce;
-    - `package.py --public` bez `REPO_ONLY` a bez `work/ide`, vývojářské poznámky (`SOUHRN`, `rozhodnuti`,
-      `hw-otazky*`) do `docs/dev/` a nebalit;
-    - anglický úvod v README, sekce Síť a soukromí, verze 0.7.0 v CMake.
-
-    Pak etapa 6: beta pro kamarády se žádostí o souhlasy (`docs/vydani/souhlasy.md`), nakonec veřejné vydání.
+  - **Dál, etapa 6:** zip `package.py --public` pro Libora, Petra a Michala jako beta se žádostí o souhlasy
+    (`docs/vydani/souhlasy.md`), pak veřejné repo, tag, GitHub Release; po zveřejnění GitHub Actions.
 - **Grafická jednotka XY 4130 (2026-10-17, autor: „Zkusil bych ten plotter XY 4130“):** podle stránky Z9001
   (hc-ddr.hucki.net) a jejích odkazů: návody XY 4131 a XY 4140, schéma XY 4140, Průvodní technická dokumentace
   XY 4150 a projekt plottercontroller. Zapisovač `src/chips/xy4130.*`:

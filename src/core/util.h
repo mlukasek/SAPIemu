@@ -29,11 +29,17 @@ std::string path_dir(const std::string& p);
 void data_root_init(void);
 void data_root_set(const std::string& dir);
 const std::string& data_root(void);
+// True when the data root has roms/ and machines/ (else the data were not found).
+bool data_root_valid(void);
+// The folder of the working copies, battery files and printer outputs: work/ in the data root, or
+// SAPIemu/work in the user's local application data when the data root is not writable (the program
+// unpacked into Program Files, a read only medium).
+const std::string& work_root(void);
 // Resolve a path from a config file: absolute paths are kept, relative ones are
-// taken relative to the data root.
+// taken relative to the data root ("work/..." relative to work_root()).
 std::string data_path(const std::string& rel);
-// The other way round: a path inside the data root as relative with '/'
-// separators (for machine files), other paths unchanged.
+// The other way round: a path inside the data root (or the work root, as "work/...") as relative
+// with '/' separators (for machine files), other paths unchanged.
 std::string data_relative(const std::string& path);
 // Machine descriptions (*.sapi; older *.jsonc, *.json) under machines/ including subfolders,
 // as data root relative paths, sorted.

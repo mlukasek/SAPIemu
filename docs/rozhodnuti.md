@@ -1760,3 +1760,20 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   ne přes obrazovku. Uložené rozložení (`imgui.ini`) má přednost.
 - **Průvodce se sám otevře jen po spuštění sestavy** z okna Vybrat sestavu nebo z menu, ne při každém startu programu
   s poslední sestavou.
+
+
+## 2026-10-17 – příprava vydání (etapa 5)
+
+- **Vývojářské poznámky zůstávají v `docs/`**, do veřejného zipu nejdou (`package.py --public`, seznam `DEV_DOCS`:
+  `SOUHRN.md`, `rozhodnuti.md`, `docs/vydani/`). Plán počítal s přesunem do `docs/dev/`, to by ale rozbilo odkazy
+  v CLAUDE.md, README a dokumentaci a ve veřejném repu by byly stejně vidět. Otázky na HW (`hw-otazky*.md`) a změny
+  podle HW se balí dál, můžou zajímat lidi se skutečným SAPI.
+- **`work/` mimo složku programu:** když do `work/` ve složce dat nejde zapisovat (zip rozbalený do `Program Files`),
+  pracovní kopie, soubory s bateriemi a výstupy tiskáren jdou do `%LOCALAPPDATA%\SAPIemu\work` (Linux
+  `$XDG_DATA_HOME` nebo `~/.local/share/SAPIemu/work`). Cesty v sestavách zůstávají `work/...`, mapuje je
+  `data_path` a zpět `data_relative`. Nastavení už dřív šlo do `%APPDATA%` (SDL pref path).
+- **Log do souboru:** GUI píše `sapiemu.log` vedle nastavení, při každém spuštění znovu (pro hlášení chyb).
+- **Chyba při startu** (SDL, chybějící `roms/` a `machines/`) se ukáže v okně, ne jen na stderr, které spuštění
+  z Průzkumníka nevidí.
+- **Ikona:** zelené „SAPI“ a oranžové „-1“ na tmavě modré obrazovce (`tools/make_icon.py`), jde snadno změnit.
+- **Verze 0.7.0-alpha.** O „beta“ nebo „1.0“ rozhodne autor před vydáním.

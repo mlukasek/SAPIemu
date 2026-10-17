@@ -13,6 +13,9 @@ void log_msg(LogLevel level, const char* fmt, ...)
     ;
 void log_set_level(LogLevel level);        // minimum level printed to stderr
 void log_set_stderr(bool enabled);
+// Also write the messages (info and up) into a file, rewritten at each start; the messages logged
+// before are written first. Empty path: no file.
+bool log_set_file(const std::string& utf8_path);
 // Copy the last `max` messages (oldest first).
 void log_recent(std::vector<std::string>& out, int max);
 

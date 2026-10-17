@@ -90,7 +90,7 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
 Výsledek 2026-10-06: všech 37 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX),
-`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-17: 57 testů (2026-10-16 před 0.6.0: 55, 2026-10-14 před 0.5.0: 53, 2026-10-09 před 0.4.0: 44; čisté
+`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-17: 58 testů (2026-10-16 před 0.6.0: 55, 2026-10-14 před 0.5.0: 53, 2026-10-09 před 0.4.0: 44; čisté
 sestavení našlo dvě varování v kódu DPS-1, opravená; distribuce se ve WSL jmenuje `Ubuntu`,
 `wsl -d Ubuntu`, klon aktualizuje `git pull /mnt/e/SAPI_GIT/SAPIemu main`). Čisté sestavení (`cmake --build --preset linux-debug --clean-first`) je bez varování
 GCC ve vlastním kódu (varování v `third_party/` a `_deps/` se neřeší).
@@ -177,7 +177,8 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 ## Vydání (release)
 
 1. **Verze:** `project(SAPIemu VERSION ...)` a `SAPIEMU_VERSION_SUFFIX` (`-alpha`) v `CMakeLists.txt`.
-   `sapiemu --version` ji ukáže.
+   `sapiemu --version` ji ukáže, na Windows je i ve vlastnostech exe (VERSIONINFO z `src/res/sapiemu.rc.in`, ikona
+   `src/res/sapiemu.ico` z `tools/make_icon.py`).
 2. **Build:** `tools\build.cmd release test`. Runtime MSVC je přilinkovaný (`CMAKE_MSVC_RUNTIME_LIBRARY`), takže exe
    nepotřebuje Visual C++ Redistributable.
 3. **Balík:** `python tools\package.py` vytvoří `out\package\SAPIemu-<verze>-win64.zip`:
@@ -187,7 +188,12 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
    - odmítne build se zapnutým `SAPIEMU_SOURCE_FALLBACK` (balík nesmí sahat do repa);
    - přidá i IDE disk tohoto PC (`work\ide\*.img`) jako `work\ide\`. Sestava V a
      `cpm_ide.sapi` pak mají na C: připravené programy. Na disku je i hudba: pro veřejný release
-     `--no-ide`.
+     `--no-ide`;
+   - **`--public`** (beta a veřejné vydání): bez IDE disku, bez souborů `REPO_ONLY` (Prince of Persia) a bez
+     vývojářských poznámek `DEV_DOCS` (`docs/SOUHRN.md`, `docs/rozhodnuti.md`, `docs/vydani/`), zip se na to
+     zkontroluje;
+   - přibalí `THIRD-PARTY-NOTICES.txt`. Po aktualizaci knihovny ho přegenerovat: `python tools\third_party_notices.py`
+     (licenci SDL3 zkopírovat z `out\build\<preset>\_deps\sdl3-src\LICENSE.txt` do `third_party\sdl3\`).
 4. **Obrázky do README** (`docs\img\`) se dělají skrytým oknem GUI:
    - připravit stav přes `sapiemu-cli ... --save-state scena.sapistate`;
    - `sapiemu --settings s.json --ui-snapshot obr.png --ui-state scena.sapistate --ui-size 1540x572`;

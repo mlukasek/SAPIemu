@@ -1313,12 +1313,24 @@ const MachineWindow* machine_windows(int* count)
     return k_machine_windows;
 }
 
+// A start that fails: the message on stderr, in the log and in a message box (a user who started the
+// exe from Explorer sees no console).
+static int fatal(const std::string& text, bool box)
+{
+    LOGE("%s", text.c_str());
+    if (box) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SAPIemu", text.c_str(), nullptr);
+    return 1;
+}
+
 int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snap, const std::string& settings_file)
 {
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
-        fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
-        return 1;
-    }
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+        return fatal(std::string(tr("Cannot start the graphics (SDL)")) + ":\n" + SDL_GetError(), !snap);
+    if (!data_root_valid())
+        return fatal(std::string(tr("The data of the emulator were not found (the folders roms and machines next to "
+                                    "sapiemu.exe). Unpack the whole archive and start sapiemu.exe from it.")) +
+                         "\n\n" + (SDL_GetBasePath() ? SDL_GetBasePath() : ""),
+                     !snap);
     App* app_ptr = new App();
     App& app = *app_ptr;
     app.ui.host = &app.host;
@@ -1347,6 +1359,13 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
+    // the log of this run next to the settings (sapiemu.log; FILE.log for --settings FILE), for error reports
+    if (!app.settings_path.empty()) {
+        std::string log_file = !settings_file.empty() ? settings_file + ".log"
+                                                      : path_join(path_dir(app.settings_path), "sapiemu.log");
+        if (log_set_file(log_file)) LOGI("SAPIemu %s, data %s, work %s", sapiemu_version(), data_root().c_str(),
+                                         work_root().c_str());
+    }
     // no settings yet: the first start of a fresh copy offers the machines (window Choose a machine, author
     // 2026-10-17; before it was the configuration behind the screen)
     bool first_start = !app.settings_path.empty() && !file_exists(app.settings_path);
@@ -1389,10 +1408,15 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     if (app.window) track_window(app);
     if (app.window && smax) SDL_MaximizeWindow(app.window);
     app.renderer = SDL_CreateRenderer(app.window, nullptr);
-    if (!app.window || !app.renderer) {
-        fprintf(stderr, "cannot create window: %s\n", SDL_GetError());
-        return 1;
+    if (!app.window || !app.renderer)
+        return fatal(std::string(tr("Cannot create the window")) + ":\n" + SDL_GetError(), !snap);
+#ifndef _WIN32
+    // Windows takes the icon from the exe resources (src/res/sapiemu.rc.in)
+    if (SDL_Surface* icon = SDL_LoadPNG(data_path("docs/img/ikona.png").c_str())) {
+        SDL_SetWindowIcon(app.window, icon);
+        SDL_DestroySurface(icon);
     }
+#endif
     SDL_SetRenderVSync(app.renderer, 1);
     app.ui.window = app.window;
     SDL_StartTextInput(app.window);

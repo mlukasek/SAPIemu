@@ -15,7 +15,13 @@ softwaru pro SAPI s Claude.
 > cassette data recorder, the RKD-1 cartridge disk, the RMP-1 magnetic tape, the IMS-2 instrument bus with a
 > voltmeter and a power supply, the ARITMA Minigraf 0507 and XY 4130 plotters, cassette tapes made from programs, save states,
 > a debugger and a built-in MCP server. The V boards are checked against a real SAPI-1 V with a logic analyzer.
-> Alpha version, the documentation is in Czech.*
+>
+> *Getting started: download the zip from [Releases](https://github.com/mlukasek/SAPIemu/releases), unpack it
+> and run `sapiemu.exe`, nothing is installed. The first start shows the window Choose a machine: the historic
+> ZPS sets, the boards of Libor Lasota, games and demos, instruments, each with a preview and a short text; the
+> machines of the first groups have a guide in English (Help → Machine guide). The user interface is in Czech
+> and English (View → Settings), the detailed documentation is in Czech. The emulator sends nothing anywhere by
+> itself, see "Síť a soukromí" (network and privacy) below. Alpha version.*
 
 ![Sestava V: CP/M na AND-1V a obrázek na barevné grafice CGA-1V](docs/img/sapi1v-cpm-cga.png)
 
@@ -197,10 +203,28 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **Balík pro vydání:** `python tools\package.py`.
 - SDL3 se stáhne při prvním configure (CMake FetchContent). Ostatní knihovny jsou v `third_party/`.
 
+## Síť a soukromí
+
+- Emulátor sám od sebe nic neodesílá: nemá telemetrii ani kontrolu aktualizací.
+- **Server MCP** (vývoj s Claude) poslouchá jen na `127.0.0.1`. V nové instalaci je vypnutý, zapíná se
+  v Zobrazení → Nastavení.
+- **Sériová linka přes TCP** (terminál, TeraTerm) poslouchá na `127.0.0.1`, jinou adresu jde nastavit
+  v konfigurátoru.
+- **Karta DPI-1L** (sestava `sapi1v_BomberNet`) se připojí do sítě, až o to požádá program na SAPI:
+  - síťové hry přes relay `api.mzpico.com` (WebSocket);
+  - spojení TCP a DNS na adresu, kterou zadá program.
+- Odkazy v okně O programu a v průvodcích otevřou webový prohlížeč.
+- **Kam se co ukládá:**
+  - nastavení, rozložení oken (`imgui.ini`) a log posledního spuštění (`sapiemu.log`) ukládá emulátor vedle
+    `sapiemu.exe`;
+  - pracovní kopie disket, disků a kazet, obsah pamětí s baterií a výstupy tiskáren jsou ve složce `work/`;
+  - když do složky programu nejde zapisovat (např. `Program Files`), ukládá se nastavení do
+    `%APPDATA%\SAPIemu\SAPIemu` a `work/` do `%LOCALAPPDATA%\SAPIemu\work` (Linux: `~/.local/share/SAPIemu`).
+
 ## Licence a poděkování
 
-- **Licence:** emulátor je pod GPLv3 ([LICENSE](LICENSE)). Knihovny třetích stran mají vlastní licence
-  ([third_party/README.md](third_party/README.md)).
+- **Licence:** emulátor je pod GPLv3 ([LICENSE](LICENSE)), Copyright © 2026 Martin Lukášek. Knihovny třetích stran
+  mají vlastní licence ([THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), [third_party/README.md](third_party/README.md)).
 - **ROM, PROM a programy** v `roms/` a `media/` patří svým autorům a jsou tu pro zachování historie SAPI-1.
   Zdroje jsou v [roms/README.md](roms/README.md) a [media/README.md](media/README.md).
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,

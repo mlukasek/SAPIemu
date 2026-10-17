@@ -71,7 +71,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `check_machines.py` (před vydáním: v každé sestavě něco spustí a zkontroluje, `--games` hry a dema sestavy
   `sapi1v_hry`; nad čistou kopií dat v `out/check/`, `docs/build.md`), `make_previews.py` (náhledy sestav pro
   okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích
-  vedle SAPIemu, `docs/vydani/sestavy.md`).
+  vedle SAPIemu, `docs/vydani/sestavy.md`), `third_party_notices.py` (`THIRD-PARTY-NOTICES.txt`), `make_icon.py`
+  (ikona `src/res/sapiemu.ico`; VERSIONINFO z `src/res/sapiemu.rc.in`).
 - **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
@@ -125,7 +126,8 @@ Pasti ověřené 2026-10-05:
   i `release test`, `release full` (ZEX, asi 3 min) jen po změně jader CPU nebo před vydáním, Linux ve WSL po změně
   kódu závislého na platformě nebo před vydáním.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
-- **Data hledá exe** od své složky nahoru, pak od aktuální. Záchranná cesta ke zdrojákům (`SAPIEMU_SOURCE_FALLBACK`)
+- **Data hledá exe** od své složky nahoru, pak od aktuální. Cesty `work/...` vedou do `work_root()`: `work/` v datech,
+  nebo `%LOCALAPPDATA%\SAPIemu\work`, když tam nejde zapisovat. GUI píše log `sapiemu.log` vedle nastavení. Záchranná cesta ke zdrojákům (`SAPIEMU_SOURCE_FALLBACK`)
   je jen v debug a lokálních buildech mimo repo, release presety ji vypínají a `package.py` to hlídá.
 - **Linux:** `cmake --preset linux-debug && cmake --build --preset linux-debug`, ověřeno ve WSL 2 (Ubuntu 24.04,
   klon v `~/SAPIemu`, ne na `/mnt/e`; postup a pasti GCC v `docs/build.md`). Windows build má přednost, změny

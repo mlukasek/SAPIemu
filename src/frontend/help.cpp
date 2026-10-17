@@ -149,7 +149,7 @@ void draw_about(UiState& ui)
         ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), ImVec2(w, h));
     }
     ImGui::SeparatorText(tr("Author"));
-    ImGui::TextUnformatted("Martin Lukášek, 8bity.cz");
+    ImGui::TextUnformatted("Copyright © 2026 Martin Lukášek, 8bity.cz");
     ImGui::TextWrapped("%s", tr("Free software under the GNU General Public License v3 (the file LICENSE)."));
     link("GitHub", "https://github.com/mlukasek/SAPIemu");
     ImGui::SameLine();
@@ -165,7 +165,7 @@ void draw_about(UiState& ui)
     ImGui::SeparatorText(tr("Libraries"));
     ImGui::TextWrapped("%s", "SDL 3 (zlib), Dear ImGui (MIT), cpp-httplib (MIT), nlohmann/json (MIT), chips z80.h "
                              "(zlib), i8080 (MIT), Nuked-OPL3 (LGPL 2.1+), minimp3 (CC0), DejaVu fonts.");
-    ImGui::TextDisabled("%s", tr("Their licences are in the folder third_party."));
+    ImGui::TextDisabled("%s", tr("Their licences are in the file THIRD-PARTY-NOTICES.txt."));
     ImGui::End();
 }
 

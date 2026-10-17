@@ -11,8 +11,11 @@
 | `nuked-opl3/` | Nuked-OPL3 (YMF262, pro YM3812 na MPH-1V) | v1.8 @ 765ec96 (2026-08-24) | LGPL-2.1+ | https://github.com/nukeykt/Nuked-OPL3 |
 | `fonts/` | DejaVu Sans, DejaVu Sans Mono | 2.37 | Bitstream Vera / DejaVu (free) | https://github.com/dejavu-fonts/dejavu-fonts |
 
-SDL3 není vendorované. CMake ho při prvním configure stáhne přes FetchContent (release-3.4.18).
-Na Linuxu se přednostně použije SDL3 nainstalované v systému.
+SDL3 není vendorované. CMake ho při prvním configure stáhne přes FetchContent (release-3.4.18, licence zlib).
+Na Linuxu se přednostně použije SDL3 nainstalované v systému. Jeho licence je kvůli balíku v `sdl3/LICENSE.txt`.
+
+Souhrn všech licencí pro balík je `THIRD-PARTY-NOTICES.txt` v kořeni repa, vyrábí ho
+`tools/third_party_notices.py` (po aktualizaci knihovny upravit verzi i tam).
 
 Všechny licence jsou kompatibilní s GPLv3 projektu. Soubory se needitují. Při aktualizaci se nahradí celé
 a tady se upraví verze.

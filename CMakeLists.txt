@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(SAPIemu VERSION 0.6.0 LANGUAGES C CXX)
+project(SAPIemu VERSION 0.7.0 LANGUAGES C CXX)
 set(SAPIEMU_VERSION_SUFFIX "-alpha")   # release stage, shown with the version
 
 # MSVC: the C runtime linked in (no Visual C++ redistributable needed on other PCs);
@@ -109,6 +109,21 @@ endif()
 # Console tool: headless runs, scripting, tests
 add_executable(sapiemu-cli src/main.cpp)
 target_link_libraries(sapiemu-cli PRIVATE sapicore)
+
+# Windows: the icon and the version of both exe files (Explorer, file properties)
+if(WIN32)
+    set(SAPIEMU_ICON "${CMAKE_CURRENT_SOURCE_DIR}/src/res/sapiemu.ico")
+    set(SAPIEMU_FULL_VERSION "${PROJECT_VERSION}${SAPIEMU_VERSION_SUFFIX}")
+    set(SAPIEMU_EXES sapiemu-cli)
+    if(SAPIEMU_BUILD_GUI)
+        list(APPEND SAPIEMU_EXES sapiemu)
+    endif()
+    foreach(exe ${SAPIEMU_EXES})
+        set(SAPIEMU_EXE "${exe}.exe")
+        configure_file(src/res/sapiemu.rc.in ${CMAKE_CURRENT_BINARY_DIR}/${exe}.rc @ONLY)
+        target_sources(${exe} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${exe}.rc)
+    endforeach()
+endif()
 
 # Runs CP/M programs on the PC (M80/L80 for the SAPI system sources)
 add_executable(cpmrun tools/cpmrun.cpp)

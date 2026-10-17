@@ -5,6 +5,7 @@ roms/**  binary
 media/** binary
 *.ttf    binary
 *.pdf    binary
+*.ico    binary
 
 # keep Windows batch files with CRLF
 *.cmd text eol=crlf

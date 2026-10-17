@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Release package: out/package/SAPIemu-<version>-win64.zip
 
-Usage: python tools/package.py [--no-ide]   (after tools\\build.cmd release test)
+Usage: python tools/package.py [--no-ide | --public]   (after tools\\build.cmd release test)
 
 The IDE disk of this PC (work/ide/*.img) goes in as work/ide/: the machine V and cpm_ide.sapi
 start with its content (C: with the programs) instead of an empty disk. --no-ide leaves it out
 (the disk holds music too, not for a public release).
+
+--public: the package for everybody (beta and release, docs/vydani/): no IDE disk of this PC, no notes
+of the development (DEV_DOCS); the zip is checked not to hold them.
 
 The zip holds the release build (sapiemu.exe, sapiemu-cli.exe) and the data the emulator
 finds next to the exe: roms/, media/, machines/, third_party/fonts, the licences of the
@@ -23,10 +26,12 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, "out", "build", "windows-release")
 DATA = ["roms", "media", "machines", "docs", "third_party/fonts"]
-FILES = ["README.md", "LICENSE", "third_party/README.md"]
+FILES = ["README.md", "LICENSE", "THIRD-PARTY-NOTICES.txt", "third_party/README.md"]
+# --public: notes of the development (state, decisions, the release plan and consents) stay in the repository
+DEV_DOCS = ("docs/SOUHRN.md", "docs/rozhodnuti.md", "docs/vydani/")
 # in the repository only: the data of the game Prince of Persia (Jordan Mechner, Broderbund) is not passed on
 REPO_ONLY = {"media/zrmd-1/pop-ramdisk.bin", "media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin",
-             "machines/sapi1v_PoP.sapi"}
+             "machines/sapi1v_PoP.sapi", "machines/previews/sapi1v_PoP.png"}
 
 
 def git_files(path):
@@ -51,7 +56,8 @@ def main():
     name = "SAPIemu-%s-win64" % version
     out_dir = os.path.join(ROOT, "out", "package")
     os.makedirs(out_dir, exist_ok=True)
-    with_ide = "--no-ide" not in sys.argv[1:]
+    public = "--public" in sys.argv[1:]
+    with_ide = "--no-ide" not in sys.argv[1:] and not public
     zip_path = os.path.join(out_dir, name + ".zip")
 
     files = []
@@ -60,6 +66,8 @@ def main():
     files += FILES
     files += [f for f in git_files("third_party") if os.path.basename(f).upper().startswith(("LICENSE", "COPYING"))]
     files = sorted(set(files) - REPO_ONLY)
+    if public:
+        files = [f for f in files if not f.startswith(DEV_DOCS)]
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         z.write(gui, name + "/sapiemu.exe")
@@ -75,6 +83,15 @@ def main():
                     print("  + work/ide/" + f)
     size = os.path.getsize(zip_path)
     print("%s: %d files, %.1f MB" % (zip_path, len(files) + 3, size / 1e6))
+
+    if public:
+        with zipfile.ZipFile(zip_path) as z:
+            inner = [n[len(name) + 1:] for n in z.namelist()]
+        bad = [n for n in inner if n.startswith(("work/",) + DEV_DOCS) or n in REPO_ONLY]
+        if bad:
+            print("the public package holds files it must not: " + ", ".join(bad[:5]))
+            return 1
+        print("public: no work/, no notes of the development, no REPO_ONLY files")
 
     # check: unpacked elsewhere, the emulator finds its data next to the exe and boots
     with tempfile.TemporaryDirectory() as tmp:

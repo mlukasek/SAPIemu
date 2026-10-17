@@ -144,6 +144,7 @@ std::string path_dir(const std::string& p)
 }
 
 static std::string g_data_root;
+static std::string g_work_root;   // empty: not decided yet (work_root)
 
 static bool is_data_root(const fs::path& d)
 {
@@ -183,7 +184,11 @@ void data_root_init(void)
     g_data_root = ".";
 }
 
-void data_root_set(const std::string& dir) { g_data_root = dir; }
+void data_root_set(const std::string& dir)
+{
+    g_data_root = dir;
+    g_work_root.clear();
+}
 
 const std::string& data_root(void)
 {
@@ -191,10 +196,74 @@ const std::string& data_root(void)
     return g_data_root;
 }
 
+bool data_root_valid(void)
+{
+    return is_data_root(u8_to_path(data_root()));
+}
+
+static bool dir_writable(const fs::path& d)
+{
+    std::error_code ec;
+    fs::create_directories(d, ec);
+    if (!fs::is_directory(d, ec)) return false;
+    fs::path probe = d / ("write-test-" + std::to_string((unsigned long long)std::random_device()()) + ".tmp");
+    FILE* f = file_open(path_to_u8(probe), "wb");
+    if (!f) return false;
+    fclose(f);
+    fs::remove(probe, ec);
+    return true;
+}
+
+// SAPIemu/work in the per-user local application data
+static fs::path user_work_dir(void)
+{
+#ifdef _WIN32
+    const wchar_t* base = _wgetenv(L"LOCALAPPDATA");
+    if (base && *base) return fs::path(base) / "SAPIemu" / "work";
+#else
+    const char* xdg = getenv("XDG_DATA_HOME");
+    if (xdg && *xdg) return fs::path(xdg) / "SAPIemu" / "work";
+    const char* home = getenv("HOME");
+    if (home && *home) return fs::path(home) / ".local" / "share" / "SAPIemu" / "work";
+#endif
+    return fs::path();
+}
+
+const std::string& work_root(void)
+{
+    if (!g_work_root.empty()) return g_work_root;
+    fs::path w = u8_to_path(data_root()) / "work";
+    if (dir_writable(w)) {
+        g_work_root = path_to_u8(w);
+        return g_work_root;
+    }
+    fs::path u = user_work_dir();
+    if (!u.empty() && dir_writable(u)) {
+        g_work_root = path_to_u8(u);
+        LOGI("the program folder is not writable, working files in %s", g_work_root.c_str());
+    } else {
+        g_work_root = path_to_u8(w);   // nothing writable: the errors come when a file is written
+        LOGW("no writable folder for the working files (%s)", g_work_root.c_str());
+    }
+    return g_work_root;
+}
+
+// "work" or "work/..." (either separator): the rest after "work/", else false
+static bool work_relative(const std::string& rel, std::string& rest)
+{
+    if (rel.compare(0, 4, "work") != 0) return false;
+    if (rel.size() == 4) { rest.clear(); return true; }
+    if (rel[4] != '/' && rel[4] != '\\') return false;
+    rest = rel.substr(5);
+    return true;
+}
+
 std::string data_path(const std::string& rel)
 {
     fs::path p = u8_to_path(rel);
     if (p.is_absolute()) return rel;
+    std::string rest;
+    if (work_relative(rel, rest)) return rest.empty() ? work_root() : path_to_u8(u8_to_path(work_root()) / u8_to_path(rest));
     return path_to_u8(u8_to_path(data_root()) / p);
 }
 
@@ -215,6 +284,16 @@ std::string data_relative(const std::string& path)
     std::error_code ec;
     fs::path p = fs::weakly_canonical(u8_to_path(path), ec);
     if (ec) return path;
+    fs::path work = fs::weakly_canonical(u8_to_path(work_root()), ec);   // also outside the data root
+    if (!ec) {
+        fs::path rel = p.lexically_relative(work);
+        std::string r = path_to_u8(rel);
+        if (!rel.empty() && !rel.is_absolute() && r.rfind("..", 0) != 0) {
+            for (char& c : r) if (c == '\\') c = '/';
+            return r == "." ? "work" : "work/" + r;
+        }
+    }
+    ec.clear();
     fs::path root = fs::weakly_canonical(u8_to_path(data_root()), ec);
     if (ec) return path;
     fs::path rel = p.lexically_relative(root);
@@ -265,7 +344,7 @@ bool media_path(const std::string& rel, bool work_copy, std::string& out, std::s
         return true;
     }
     fs::path src = u8_to_path(data_path(norm));
-    fs::path dst = u8_to_path(data_root()) / "work" / u8_to_path(norm.substr(6));
+    fs::path dst = u8_to_path(work_root()) / u8_to_path(norm.substr(6));
     out = path_to_u8(dst);
     std::error_code ec;
     if (fs::exists(dst, ec)) {
