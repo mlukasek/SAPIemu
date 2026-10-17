@@ -1,0 +1,72 @@
+# Software ve vydání a souhlasy
+
+Podklad pro žádosti o souhlas před veřejným vydáním (2026-10-17). Ke každému autorovi nebo zdroji je uvedené, co
+ve vydání je, odkud to je a jaký souhlas už máme. Podrobnosti o souborech jsou v `roms/README.md` a
+`media/README.md`.
+
+Autor (Martin) rozhodl: historii repa neřešit, staré CP/M programy (i komerční, často dnes uvolněné) nechat,
+**Prince of Persia do vydání nedávat** (`REPO_ONLY` v `tools/package.py`).
+
+## Libor Lasota: souhlas máme, potvrdit rozsah
+
+Souhlas je zapsaný u MikroMonu a MIKROBIOSu („použito s jeho souhlasem“, `roms/README.md`, `docs/rozhodnuti.md`).
+Potvrdit, že platí pro všechno níže a pro veřejné vydání, a vyžádat si případně poslední verze:
+
+- MikroMon 1.3 (`roms/mikromon/`);
+- MIKROBIOS 1.0, 1.02 a 2.1 (`roms/jpr-1s/`), MikroBIOS 3.0 v bance JPR-1V (`roms/jpr-1v/`), MIKROBIOS +
+  MIKROBASIC pro JPR-1X (`roms/jpr-1x/`);
+- fonty AND-1B a AND-1V (`roms/and-1b/`, `roms/and-1v/`);
+- programy pro CGA-1V (`media/cga-1v/`: test, obrázky Rembrandt, hrad) a MPH-1V (`media/mph-1v/`: MPH-TEST,
+  SPLAY, RAT PLAYER, Y1STDEMO);
+- programy pro JPR-1S a BGP-1S, které poslal (`media/jpr-1s/`: hra „auto“ a další). Manic Miner je port ViLiSoft
+  a DaJeSoft 1985 pro PMD-85: kdo ho portoval na BGP-1S?
+- kdo je autor programů na disku C: (SNDDEMON a další), aby je šlo uvést v poděkování.
+
+## Petr Všijanský (EC1045, sapi.cz)
+
+Byl mezi příjemci soukromých alf, výslovný souhlas pro veřejné vydání zapsaný není. Vyžádat souhlas s:
+
+- výpisy a dumpy převzatými ze sapi.cz: MIKOS, MIKROBASIC, MOR*, ELIS, APS-5, DPS-1, PKT-1 a RSW-1, BASIMS,
+  disketa MIKOS/D a další (`roms/`, `media/`, vždy se zdrojem v README);
+- ECMON verze EC1045 (`roms/jpr-1zi/JPR-1ZI_ECMON_2k_EC1045.bin`), RAM disk `*_sysEC1045.bin`;
+- dumpem znakového generátoru DBS-1A (`roms/dbs-1a/DBS-1A_CharGen_59.bin`);
+- obrazy disket z archivu EC1045 (CP/M Tesla IMA 48K a 64K, diskety SAPI-1.5 Melsoft);
+- uvedením jeho jména v poděkování (první v pořadí).
+
+## Jiří Bíba (SAPIMAN)
+
+Podle dosavadních zpráv není k zastižení (zapsáno). Ve vydání jsou jeho monitory a systémy CP/M (`roms/jpr-1zi/
+JPR-1ZI_MON*_JB_*.bin`), diskety `media/sapiman/` a knihovna disket, programy RMP-1 a DSP-1. Navrhuji ponechat
+s poděkováním a poznámkou, že jde o historický archiv. Kdyby se ozval, vyžádat souhlas dodatečně.
+
+## Michal Medek
+
+Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenacházím. Stačí informovat o zveřejnění.
+
+## Tesla a další historické zdroje (bez žijícího držitele práv, jen uvést)
+
+- Tesla ELTOS IMA, DIZ, Liberec, Elstroj: MIKROBASIC, MIKOS V4/V5, MIKOS/D, MIKOS/K, monitory ZPS-3, APS-5, RKD-1,
+  PKT-1, ovladače Minigrafu a XY 4130, BASIC EXP, CKM, BASIMS, výpisy PROM.
+- R. Peřina (1988): CP/M MOR48A, MOR62A, MOR62Z a jejich diskety.
+- ELIS (*JME/JPE), Melsoft (1990), V. Julius OK1IVJ (plotter z AR 1990, přepsaný z výpisu v AR).
+- Komerční software 80. let na disketách (Turbo Pascal, dBase II, WordStar, MBASIC, Pascal/MT+…): podle rozhodnutí
+  autora ponechat.
+
+## Autorovy porty a dema (Martin rozhodne sám)
+
+| Program | Původní autor | Kde ve vydání | Poznámka |
+|---|---|---|---|
+| Bad Apple!! | hudba ZUN (Team Shanghai Alice), video fanouškovské; port Martin Lukášek | `media/zrmd-1/ba-ramdisk.bin` | repo SAPI-Bad-Apple má sekci Autorská práva |
+| Fuxoft Soundtrack IV (FXS4) | František Fuka (Fuxoft), skladby různých autorů | RAM disk herní sestavy | port Martin, repo SAPI-FXS4 |
+| Flappy | dB-SOFT 1984 (Sharp MZ-800) | RAM disk a IDE disk herní sestavy | port Martin, repo SAPI-Flappy |
+| Bomberman | Hudson Soft 1983 (Sharp MZ-700) | RAM disk herní sestavy | port Martin, repo SAPI-Bomberman |
+| BomberNet | Martin Matyáš (MZPico), podle Bomber Man | zatím ne | až bude ve vydání, souhlas M. Matyáše |
+| Prince of Persia | Jordan Mechner, Broderbund | **ne** | jen v repu |
+| Hudba RAD a VGM na IDE disku (HELLFIRE.VGM, SMJOOP, VOIDRAST, VOIDTERR, ADLIB2, BLUEAD) | různí autoři scény | vydávací IDE disk | zvážit, které skladby dát (RAD moduly scény se volně šíří) |
+
+## Postup
+
+1. Martin odsouhlasí rozřazení sestav (`docs/vydani/sestavy.md`) a obsah herní sestavy.
+2. Podle tohoto souboru napíše Liborovi a Petrovi s konkrétním seznamem.
+3. Souhlasy se zapíšou sem a do `roms/README.md` a `media/README.md` (sloupec Zdroj), poděkování do README a okna
+   O programu.
