@@ -116,9 +116,10 @@ void draw_about(UiState& ui)
         ImGui::End();
         return;
     }
-    // the picture: the rack of SAPI-1 V as the configurator draws it
+    // the pictures: the logo SAPI 1 (tools/make_icon.py) and the rack of SAPI-1 V as the configurator draws it
     static SDL_Texture* tex = nullptr;
-    static int tw = 0, th = 0;
+    static SDL_Texture* logo = nullptr;
+    static int tw = 0, th = 0, lw = 0, lh = 0;
     static bool tried = false;
     if (!tried) {
         tried = true;
@@ -129,6 +130,16 @@ void draw_about(UiState& ui)
             th = s->h;
             SDL_DestroySurface(s);
         }
+        if (SDL_Surface* s = r ? SDL_LoadPNG(data_path("docs/img/logo.png").c_str()) : nullptr) {
+            logo = SDL_CreateTextureFromSurface(r, s);
+            lw = s->w;
+            lh = s->h;
+            SDL_DestroySurface(s);
+        }
+    }
+    if (logo) {
+        float h = 3.2f * u, w = h * lw / (float)lh;
+        ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)logo), ImVec2(w, h));
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.45f, 1.0f));
     ImGui::SetWindowFontScale(1.6f);

@@ -1,5 +1,7 @@
 # SAPIemu
 
+<img src="docs/img/logo.png" alt="SAPI 1" width="342">
+
 **Emulátor počítače Tesla SAPI-1**: Z80, 8080 a 8085, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1
 až ZPS-4 a SAPI-1.5 (ZPS-6) po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
 PROM dumpů). K počítači patří i přístroje: měřicí jednotka APS-5 s regulací pecí, kazetopáskový záznamník dat

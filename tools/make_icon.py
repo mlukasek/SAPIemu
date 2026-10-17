@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Icon of SAPIemu: src/res/sapiemu.ico (the exe, sizes 16-256) and docs/img/ikona.png (256 px,
-the window icon on Linux).
+the window icon on Linux); the logo "SAPI 1" docs/img/logo.png (About, README).
 
-Usage: python tools/make_icon.py   (needs Pillow)
+Usage: python tools/make_icon.py   (needs Pillow; the logo a bold sans font: Arial Bold or DejaVu Sans Bold)
 
 The digit "1" of the SAPI-1 logo (Tesla manuals): a track of parallel lines around a skeleton (the stem
 from the sharp tip down to the base, the flag from the tip to the rounded hook, the wide base with rounded
@@ -13,7 +13,7 @@ five across the stem, 24 and 32 px the outline and the centre, 16 px a solid dig
 import math
 import os
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -90,6 +90,34 @@ def picture(px):
     return im.resize((px, px), Image.LANCZOS)
 
 
+FONTS = ["C:/Windows/Fonts/arialbd.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
+
+
+def logo(height):
+    """The logo as in the manuals: white "SAPI" and the digit 1 of the same height on a black band."""
+    font = next((f for f in FONTS if os.path.exists(f)), None)
+    if not font:
+        raise SystemExit("no bold font for the logo (" + ", ".join(FONTS) + ")")
+    h = height * 4
+    f = ImageFont.truetype(font, int(h * 1.08))
+    im = Image.new("RGBA", (h * 6, h), BG)
+    d = ImageDraw.Draw(im)
+    cap = d.textbbox((0, 0), "S", font=f)
+    cap_h = cap[3] - cap[1]
+    top = (h - cap_h) / 2
+    x = h * 0.12
+    for ch in "SAPI":   # letter by letter: tight like the logo
+        box = d.textbbox((0, 0), ch, font=f)
+        d.text((x - box[0], top - cap[1]), ch, font=f, fill=FG)
+        x += box[2] - box[0] + h * 0.035
+    x += h * 0.28
+    scale = cap_h / (Y1 - Y0)
+    draw_one(im, scale, x, top, 3, 9.0)
+    x += (X1 - X0) * scale + h * 0.12
+    im = im.crop((0, 0, int(x), h))
+    return im.resize((im.width // 4, height), Image.LANCZOS)
+
+
 def main():
     sizes = [16, 24, 32, 48, 64, 128, 256]
     pics = [picture(n) for n in sizes]
@@ -98,8 +126,11 @@ def main():
     pics[-1].save(ico, format="ICO", sizes=[(n, n) for n in sizes], append_images=pics[:-1])
     png = os.path.join(ROOT, "docs", "img", "ikona.png")
     pics[-1].save(png, optimize=True)
+    lg = os.path.join(ROOT, "docs", "img", "logo.png")
+    logo(160).convert("RGB").save(lg, optimize=True)
     print(ico)
     print(png)
+    print(lg)
 
 
 if __name__ == "__main__":
