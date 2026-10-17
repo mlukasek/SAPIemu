@@ -37,7 +37,7 @@ obrazovky je otevřený **konfigurátor sestavy** (karty v rámu, propojky, mapa
 | `cpm_zrmd_rtc_dsp.sapi` | navíc deska reálného času RTC-1 a sériová DSP-1 (programy J. Bíby) | po startu `3`, `E:RTCZ` hodiny RTC-1 (ESC konec), `RTC421` hodiny ZRMD-1, `DOPCP soubor` pošle soubor XMODEMem do okna terminálu „DSP-1 X2 #48“ |
 | `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35`: 3,5") | „dlouhé“ CP/M J. Bíby: A:, B: 8" (RPD-1), C: ZRMD-1, D:, E: 5,25" HD (FDC-1) | naběhne CP/M, zkuste `DIR B:`, `STAT D:` |
 | `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `3` = CP/M z RAM disku A: a IDE disk B:, C: (volby 0–2 čekají na řadič disket, který sestava nemá, jako skutečná deska) |
-| `sapi1v_BadApple.sapi` | sestava V s demem Bad Apple!! na RAM disku | `3`, pak `BADAPPLE` |
+| `sapi1v_hry.sapi` | **hry a dema** na sestavě V s grafikou CGA-1V i DGD-1V: Bad Apple!!, FXS4, Flappy (CGA-1V a DGD-1V), Bomberman, Bratrstvo kočičí pracky, dema a hudba L. Lasoty | `3`, pak `DIR` a jméno programu (viz Vyzkoušejte) |
 | `sapi1v_PoP.sapi` | sestava V s Prince of Persia na RAM disku (jen v repu, ne v balíčku) | `3`, pak `POP` |
 | `sapi1v_BomberNet.sapi` | sestava V s kartou DPI-1L (Repository API: NET přes relay `ws://api.mzpico.com/net` pro síťový BomberNet z repa SAPI-BomberNet, SD karta ve složce `work/dpi-1l/sdcard`, s ní pracuje `DPI.COM` z repa firmwaru DPI) | `3` = CP/M jako `sapi1v`; síťovou hru spustí BomberNet (`docs/desky/DPI-1L.md`) |
 | `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `3` = CP/M z RAM disku (disky B:, C: bez IDE-1 nefungují) |
@@ -117,12 +117,14 @@ obrazovky je otevřený **konfigurátor sestavy** (karty v rámu, propojky, mapa
 
 ## Vyzkoušejte
 
-**Disk C:** sestavy V (start volbou `3`, pak `C:`) má už programy připravené:
-- SPLAY s HELLFIRE.VGM (`SPLAY HELLFIRE.VGM`);
-- RAT PLAYER se skladbami RAD (`RAT SMJOOP.RAD`, VOIDRAST, VOIDTERR, ADLIB2, BLUEAD);
-- MPH-TEST, Y1STDEMO, SNDDEMON, ZRDTEST;
-- hra Flappy `FLAPDGD` pro sestavu `sapi1v_DGD_Flapy.sapi` (grafika DGD-1V, `C:FLAPDGD` po volbě 3); ovládá se
-  joystickem: Ctrl+F8 joystick z klávesnice, mezerník = fire (úvod, výběr scény, hra).
+**Hry a dema** (`sapi1v_hry.sapi`, start volbou `3`, pak jméno programu na RAM disku A:):
+- `BADAPPLE` (demo Bad Apple!!), `FXS4` (Fuxoft Soundtrack IV, skladby klávesami A–Z);
+- `FLAPPY` (Flappy na CGA-1V) a `FLAPDGD` (Flappy na DGD-1V, port L. Lasoty): ovládá se joystickem, Ctrl+F8
+  joystick z klávesnice, mezerník = fire (úvod, výběr scény, hra);
+- `BOMBER` (Bomberman), `BKP` (textová hra Bratrstvo kočičí pracky, verze pro SAPI od L. Lasoty);
+- dema L. Lasoty: `Y1STDEMO`, `SNDDEMON` (jen zvuk), obrázky `CASTLE`, `REMBRAN1`, `REMBRAN2`, testy `CGATEST`,
+  `MPHTEST`;
+- hudba: `SPLAY HELLFIRE.VGM` (dalších 10 skladeb VGM, `DIR *.VGM`) a `RAT SMJOOP.RAD` (15 modulů RAD, `DIR *.RAD`).
 
 Další programy z `media\` si nahrajete takto:
 

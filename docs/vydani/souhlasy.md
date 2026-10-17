@@ -20,7 +20,8 @@ Potvrdit, že platí pro všechno níže a pro veřejné vydání, a vyžádat s
   SPLAY, RAT PLAYER, Y1STDEMO);
 - programy pro JPR-1S a BGP-1S, které poslal (`media/jpr-1s/`: hra „auto“ a další). Manic Miner je port ViLiSoft
   a DaJeSoft 1985 pro PMD-85: kdo ho portoval na BGP-1S?
-- kdo je autor programů na disku C: (SNDDEMON a další), aby je šlo uvést v poděkování.
+- Flappy pro DGD-1V (FLAPDGD), SNDDEMON, BKP (verze pro SAPI, „-LAILA-“ = Libor), skladby VGM převedené pro SPLAY
+  a moduly RAD pro RAT na RAM disku herní sestavy (`docs/vydani/sestavy.md`, oddíl „Co je Liborovo“).
 
 ## Petr Všijanský (EC1045, sapi.cz)
 
@@ -58,11 +59,11 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
 |---|---|---|---|
 | Bad Apple!! | hudba ZUN (Team Shanghai Alice), video fanouškovské; port Martin Lukášek | `media/zrmd-1/ba-ramdisk.bin` | repo SAPI-Bad-Apple má sekci Autorská práva |
 | Fuxoft Soundtrack IV (FXS4) | František Fuka (Fuxoft), skladby různých autorů | RAM disk herní sestavy | port Martin, repo SAPI-FXS4 |
-| Flappy | dB-SOFT 1984 (Sharp MZ-800) | RAM disk a IDE disk herní sestavy | port Martin, repo SAPI-Flappy |
+| Flappy | dB-SOFT 1984 (Sharp MZ-800) | RAM disk herní sestavy | port Martin (CGA-1V), FLAPDGD port Libor (DGD-1V) |
 | Bomberman | Hudson Soft 1983 (Sharp MZ-700) | RAM disk herní sestavy | port Martin, repo SAPI-Bomberman |
 | BomberNet | Martin Matyáš (MZPico), podle Bomber Man | zatím ne | až bude ve vydání, souhlas M. Matyáše |
 | Prince of Persia | Jordan Mechner, Broderbund | **ne** | jen v repu |
-| Hudba RAD a VGM na IDE disku (HELLFIRE.VGM, SMJOOP, VOIDRAST, VOIDTERR, ADLIB2, BLUEAD) | různí autoři scény | vydávací IDE disk | zvážit, které skladby dát (RAD moduly scény se volně šíří) |
+| Hudba: 11 skladeb VGM z her (Hellfire, Tyrian, Monkey Island…) a 15 modulů RAD (3eality.com) | různí autoři | RAM disk herní sestavy | autor rozhodl: ponechat obojí |
 
 ## Postup
 

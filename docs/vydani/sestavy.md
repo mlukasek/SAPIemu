@@ -49,7 +49,7 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 | FLAPPY | Flappy na CGA-1V | `..\SAPI-Flappy\build` | dB-SOFT 1984, port M. Lukášek |
 | FLAPDGD | Flappy na DGD-1V (beta 26. 3. 2026) | `..\Games\flappy_dgd.hex` | port **L. Lasota** (titulek „2025 Libor L.A.“) |
 | BOMBER | Bomberman | `..\SAPI-Bomberman\build` | Hudson Soft 1983, port M. Lukášek |
-| BKP | textová hra Bratrstvo kočičí pracky | `..\Games\Bratrstvo\bkp.com` | R. Bořík (Tolkien 2017), verze pro SAPI 2026 „-LAILA-“ |
+| BKP | textová hra Bratrstvo kočičí pracky | `..\Games\Bratrstvo\bkp.com` | R. Bořík (Tolkien 2017), verze pro SAPI 2026 **L. Lasota** („-LAILA-“) |
 | Y1STDEMO | demo zvuku YM3812 na DGD-1V | `media/mph-1v` | **L. Lasota** |
 | SNDDEMON | zvukové demo (jen zvuk) | `..\SAPI-karty\MPH-1V\snddemon.hex` | **L. Lasota** |
 | CASTLE, REMBRAN1, REMBRAN2 | obrázky na CGA-1V (hrad, Rembrandt) | `media/cga-1v` | **L. Lasota** |
@@ -58,8 +58,8 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 | SPLAY + 11 skladeb VGM | přehrávač skladeb VGM (Hellfire, Tyrian, Monkey Island…) | `media/mph-1v`, `..\SAPI-karty\MPH-1V\SPLAY` | přehrávač a převody **L. Lasota**, hudba her (různí autoři) |
 | RAT + 15 modulů RAD | přehrávač modulů RAD v1 | `media/mph-1v`, `..\SAPI-karty\MPH-1V\RATplayer` | přehrávač **L. Lasota** („-LAILA-“), moduly z 3eality.com |
 
-`sapi1v_BadApple.sapi` a `sapi1v_DGD_Flapy.sapi` nová sestava nahrazuje (Bad Apple i oba Flappy jsou v ní).
-Navrhuji je smazat, `ba-ramdisk.bin` zůstane jako základ pro `make_hry_disk.py`.
+`sapi1v_BadApple.sapi` a `sapi1v_DGD_Flapy.sapi` nová sestava nahradila, autor je 2026-10-17 smazal.
+`ba-ramdisk.bin` zůstal jako základ pro `make_hry_disk.py`.
 
 ### 3b. Hry na 8080
 
@@ -134,11 +134,11 @@ ve vydání.
 | SNDDEMON | jen RAM disk `hry-a-dema.bin` (z `..\SAPI-karty\MPH-1V`) |
 | skladby VGM převedené pro SPLAY (11) a moduly RAD pro RAT (15) | jen RAM disk `hry-a-dema.bin` |
 | Flappy pro DGD-1V (FLAPDGD) | jen RAM disk `hry-a-dema.bin` (z `..\Games\flappy_dgd.hex`) |
-| BKP, verze pro SAPI („-LAILA-“, pokud je to Libor) | jen RAM disk `hry-a-dema.bin` (z `..\Games\Bratrstvo`) |
+| BKP, verze pro SAPI („-LAILA-“ = L. Lasota) | jen RAM disk `hry-a-dema.bin` (z `..\Games\Bratrstvo`) |
 
-## Otázky k rozhodnutí
+## Rozhodnuto (autor, 2026-10-17)
 
-1. Smazat `sapi1v_BadApple.sapi` a `sapi1v_DGD_Flapy.sapi`, když je nahradila `sapi1v_hry`?
-2. Je „-LAILA-“ Libor (BKP, RAT)? A kdo upravil Manic Miner pro BGP-1S?
-3. Hudba: skladby VGM jsou z her (Hellfire, Tyrian, Monkey Island, Supaplex…), moduly RAD z veřejného archivu
-   3eality.com. Ponechat obojí, nebo jen RAD?
+- `sapi1v_BadApple` a `sapi1v_DGD_Flapy` smazané, nahradila je `sapi1v_hry`.
+- „-LAILA-“ je L. Lasota (BKP, RAT).
+- Hudba: skladby VGM i moduly RAD zůstanou.
+- Otevřené: kdo upravil Manic Miner pro BGP-1S.

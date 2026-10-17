@@ -231,10 +231,12 @@ bez MFC-1A a DBS-1) nemá dochovaný firmware.
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,
 `docs/desky/MPH-1V.md`).
-**Hry na sestavě V** (2026-10-10): `sapi1v_PoP.sapi` (Prince of Persia, RAM disk `media/zrmd-1/pop-ramdisk.bin`, jen
-v repu, ne v balíčku alfy) a `sapi1v_BadApple.sapi` (demo Bad Apple!!, `ba-ramdisk.bin`). Sestava je stejná jako V,
-ZRD-1V rev 1.1; po startu volba 3, pak `POP` nebo `BADAPPLE`. Obraz se všemi hrami (PoP, FXS4, Flappy, Bomberman,
-BKP) jde u ZRD-1V vybrat v konfigurátoru.
+**Hry a dema na sestavě V** (2026-10-17): `sapi1v_hry.sapi` má grafiku CGA-1V i DGD-1V (střídají se podle MAP2 jako
+u `libor_doma`), bez IDE. RAM disk `media/zrmd-1/hry-a-dema.bin` vyrábí `tools/make_hry_disk.py` z obrazu Bad Apple!!
+(`ba-ramdisk.bin`) a her a dem z repozitářů vedle SAPIemu: Bad Apple!!, FXS4, Flappy (CGA-1V i DGD-1V), Bomberman,
+BKP, dema, přehrávače a hudba L. Lasoty (`docs/vydani/sestavy.md`). Po startu volba 3, pak jméno programu.
+`sapi1v_PoP.sapi` (Prince of Persia, `media/zrmd-1/pop-ramdisk.bin`) je jen v repu, ne v balíčku. Sestavy
+`sapi1v_BadApple` a `sapi1v_DGD_Flapy` nahradila 2026-10-17 `sapi1v_hry`.
 **Síťová hra na sestavě V** (`machines/sapi1v_BomberNet.sapi`, 2026-10-16): sestava V a navíc karta DPI-1L v X9 s Repository
 API na B0h/B1h (NET A0–A9h přes relay `ws://api.mzpico.com/net`, SD karta nad složkou `work/dpi-1l/sdcard`,
 `docs/desky/DPI-1L.md`). Devět karet se nevejde na ARB-1C-8, sběrnice je ARB-1C se 14 pozicemi. Hra BomberNet pro SAPI
