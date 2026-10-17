@@ -33,8 +33,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     - `package.py --public` (bez `work/ide`, `REPO_ONLY` a `DEV_DOCS`: `SOUHRN`, `rozhodnuti`, `docs/vydani/`);
     - anglický úvod a sekce Síť a soukromí v README;
     - verze 0.7.0-alpha.
-  - **Stav:** vše jen lokálně commitnuté (od `5af2807`), **nepushnuté**; testy debug 58/58.
-    Před pushem: release test, WSL, `check_machines.py --games`, kontrola dokumentace.
+  - **Stav:** vše jen lokálně commitnuté (od `5af2807`), **nepushnuté**. Ověřeno 2026-10-17:
+    - testy debug a release 58/58, WSL 58/58 (oprava `help.cpp` pro GCC);
+    - `check_machines.py` 60/60, `--games` 12/12;
+    - zkušební `package.py --public` (521 souborů, 30 MB) naběhne z rozbaleného zipu.
   - **Dál, etapa 6:** zip `package.py --public` pro Libora, Petra a Michala jako beta se žádostí o souhlasy
     (`docs/vydani/souhlasy.md`), pak veřejné repo, tag, GitHub Release; po zveřejnění GitHub Actions.
 - **Grafická jednotka XY 4130 (2026-10-17, autor: „Zkusil bych ten plotter XY 4130“):** podle stránky Z9001
