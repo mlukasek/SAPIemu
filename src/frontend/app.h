@@ -20,6 +20,7 @@ struct UiSnapshot {
     bool plotter = false;    // show the Minigraf window
     bool browser = false;    // show the window Choose a machine
     bool guide = false;      // show the guide of the machine
+    std::string crop;        // the picture of one window only: its key ("Media", "Minigraf"; the part after ###)
     bool ims2 = false;       // show the IMS-2 measuring bench window
     bool aps5_demo = false;  // and start its DEMO
     int drag_from = 0, drag_to = 0;   // drag the card in slot drag_from to drag_to in the configurator

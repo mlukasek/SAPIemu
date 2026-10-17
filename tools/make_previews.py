@@ -35,6 +35,28 @@ PREVIEWS = {
     'jpr1s_bgp1s': (cm.MANIC, 'BGP-1S'),
 }
 
+# machines with an instrument: the picture of its window in the GUI (sapiemu --ui-snapshot --ui-crop) after the
+# actions, which run in sapiemu-cli and save the state: (actions, window option, window id after ###)
+INSTRUMENTS = {
+    'aps5': (cm.run(5000), '--ui-aps5', 'APS-5: panel and furnaces'),
+    'zps_ZPS-2_DPS-1_IMS-2': (cm.run(3000), '--ui-ims2', 'IMS-2 measuring bench'),
+    'zps_ZPS-2_MIKOS_K': (cm.run(3000), '--ui-media', 'Media'),
+    'zps_ZPS-2_MIKOS_V5_Minigraf': (cm.run(3000) + cm.t('G1800\\r') + cm.run(15000) + cm.t('G1809\\r') + cm.run(150000),
+                                    '--ui-plotter', 'Minigraf'),
+    'rmp1_jb_izot': (cm.MACHINES['rmp1_jb_izot'][0], '--ui-media', 'Media'),
+}
+
+
+def instrument_picture(cli, gui, sb, rel, name, png, tmp):
+    acts, opt, key = INSTRUMENTS[name]
+    state = os.path.join(tmp, name + '.sapistate')
+    cm.cli_run(cli, sb, rel, list(acts) + ['--save-state', state], os.path.join(tmp, name + '.txt'))
+    settings = os.path.join(tmp, name + '_settings.json')
+    open(settings, 'w').write('{"guides": {"auto": false}}')   # not a first start, no guide over the window
+    args = [gui, '--data-root', sb, '--machine', rel, '--no-mcp', '--lang', 'cs', '--settings', settings,
+            '--ui-state', state, opt, '--ui-crop', key, '--ui-size', '1400x900', '--ui-snapshot', png]
+    subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=600, cwd=sb)
+
 
 def read_png(path):
     """RGB rows of a PNG of the emulator: RGB/RGBA 8 bits or a palette of 1-8 bits, any filter."""
@@ -132,7 +154,7 @@ def write_png(path, w, h, rows):
 def sandbox():
     sb = os.path.join(ROOT, 'out', 'previews', time.strftime('%Y%m%d-%H%M%S'))
     os.makedirs(sb)
-    arc = subprocess.run(['git', 'archive', 'HEAD', 'roms', 'media', 'machines'], cwd=ROOT, capture_output=True,
+    arc = subprocess.run(['git', 'archive', 'HEAD', 'roms', 'media', 'machines', 'third_party/fonts'], cwd=ROOT, capture_output=True,
                          check=True).stdout
     open(os.path.join(sb, 'data.tar'), 'wb').write(arc)
     subprocess.run(['tar', '-xf', 'data.tar'], cwd=sb, check=True)
@@ -146,6 +168,7 @@ def main():
     cli = os.path.join(ROOT, 'out', 'build', preset, 'sapiemu-cli.exe')
     if not os.path.exists(cli):
         cli = os.path.join(ROOT, 'out', 'build', 'windows-debug', 'sapiemu-cli.exe')
+    gui = os.path.join(os.path.dirname(cli), 'sapiemu.exe')
     sb = sandbox()
     os.makedirs(OUT, exist_ok=True)
     tmp = os.path.join(sb, 'shots')   # the full pictures and the logs stay there
@@ -164,8 +187,12 @@ def main():
             shots = [e[5:] for e in exp if e.startswith('shot:')]
             disp = shots[0] if shots else None
         png = os.path.join(tmp, name + '.png')
-        acts = list(acts) + (['--display', disp] if disp else []) + ['--screenshot', png]
-        out = cm.cli_run(cli, sb, rel, acts, os.path.join(tmp, name + '.txt'))
+        out = ''
+        if name in INSTRUMENTS:
+            instrument_picture(cli, gui, sb, rel, name, png, tmp)
+        else:
+            acts = list(acts) + (['--display', disp] if disp else []) + ['--screenshot', png]
+            out = cm.cli_run(cli, sb, rel, acts, os.path.join(tmp, name + '.txt'))
         if not os.path.exists(png) or cm.png_colours(png) < 2:
             print('%-36s FAIL (no picture) %s' % (name, out.strip().splitlines()[-1:] if out.strip() else ''))
             bad += 1

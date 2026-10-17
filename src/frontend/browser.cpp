@@ -107,7 +107,12 @@ static void details(UiState& ui, const MachineEntry& e)
     float avail = ImGui::GetContentRegionAvail().x;
     if (!e.preview.empty()) {
         if (const Preview* p = preview(ui, e.preview)) {
-            float w = std::min(avail, 560.0f * ImGui::GetFontSize() / 16.0f), h = w * p->h / (float)p->w;
+            float u = ImGui::GetFontSize();
+            float w = std::min(avail, 35.0f * u), h = w * p->h / (float)p->w;
+            if (h > 22.0f * u) {   // a tall picture (the sheet of a plotter) keeps the text in sight
+                w *= 22.0f * u / h;
+                h = 22.0f * u;
+            }
             ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)p->tex), ImVec2(w, h));
         }
     } else {

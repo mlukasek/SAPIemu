@@ -1532,7 +1532,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
         if (snap && snap_frames >= 12 && !(snap->video > 0 && video_busy(app.ui))) {
             // window content as PNG (our own renderer, not the screen)
-            SDL_Surface* s = SDL_RenderReadPixels(app.renderer, nullptr);
+            SDL_Rect crop, *rect = nullptr;   // --ui-crop: only that window (previews of machines)
+            if (!snap->crop.empty()) {
+                if (ImGuiWindow* w = ImGui::FindWindowByName(("###" + snap->crop).c_str())) {
+                    ImVec2 sc = io.DisplayFramebufferScale;
+                    crop = { (int)(w->Pos.x * sc.x), (int)(w->Pos.y * sc.y), (int)(w->Size.x * sc.x), (int)(w->Size.y * sc.y) };
+                    rect = &crop;
+                } else {
+                    fprintf(stderr, "UI snapshot: no window ###%s\n", snap->crop.c_str());
+                }
+            }
+            SDL_Surface* s = SDL_RenderReadPixels(app.renderer, rect);
             SDL_Surface* c = s ? SDL_ConvertSurface(s, SDL_PIXELFORMAT_ARGB8888) : nullptr;
             bool ok = c && png_write_argb(snap->path, (const uint32_t*)c->pixels, c->w, c->h, 1, 1);
             if (c) SDL_DestroySurface(c);
