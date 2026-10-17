@@ -75,7 +75,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
-- **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`.
+- **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`. V GUI podle
+  Zobrazení → Nastavení (nová instalace vypnutý, starší nastavení zapnutý; `--mcp-port` ho zapne vždy).
   Projektový `.mcp.json` ho nabídne Claude Code. Při ladění softwaru pro SAPI ho používat.
 - **Ověřování:** stav emulace si Claude ověřuje přes `sapiemu-cli` (`--print-screen`, `--screenshot`), ne snímky
   plochy uživatele. Vzhled GUI ověřuje přes `sapiemu --ui-snapshot soubor.png` (skryté okno, viz `docs/sestavy.md`;

@@ -202,6 +202,7 @@ void draw_debugger(UiState& ui)
 {
     if (!ui.show_debugger) return;
     Machine* m = ui.host->machine();
+    first_use_right(560, 720, 0);
     ImGui::SetNextWindowSize(ImVec2(560, 720), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr_id("Debugger"), &ui.show_debugger) || !m || !m->cpu) {
         ImGui::End();
@@ -221,6 +222,7 @@ void draw_memory(UiState& ui)
 {
     if (!ui.show_memory) return;
     Machine* m = ui.host->machine();
+    first_use_right(640, 480, 1);
     ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr_id("Memory"), &ui.show_memory) || !m) {
         ImGui::End();
@@ -281,6 +283,7 @@ void draw_iolog(UiState& ui)
 {
     if (!ui.show_iolog) return;
     Machine* m = ui.host->machine();
+    first_use_right(420, 400, 2);
     ImGui::SetNextWindowSize(ImVec2(420, 400), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr_id("I/O log"), &ui.show_iolog) || !m) {
         ImGui::End();

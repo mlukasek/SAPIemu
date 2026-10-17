@@ -12,7 +12,7 @@ v `docs/desky/DPS-1.md`.
 ![Měřicí pracoviště: BASIC ve smyčce čte voltmetr, vpravo voltmetr M1T 330, zdroj BS 525 a monitor sběrnice](img/navod-dps1.png)
 
 Deska DPS-1 je v sestavě ve slotu X6. Kabel IMS-2 k přístrojům vede z jejího jediného konektoru (FRB 30, K3 = X2),
-v konfigurátoru (Stroj → Sestava) je na panelu vidět:
+v konfigurátoru (Zobrazení → Sestava…) je na panelu vidět:
 
 ![Panel desky DPS-1 v konfigurátoru](img/panel-dps1.png)
 

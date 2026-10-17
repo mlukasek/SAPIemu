@@ -40,14 +40,15 @@ static void print_help(void)
            "options:\n"
            "  --machine FILE     machine description (default %s)\n"
            "  --data-root DIR    directory with roms/, media/, machines/\n"
-           "  --mcp-port N       MCP server port (default %d, 127.0.0.1 only)\n"
-           "  --no-mcp           GUI: do not start the MCP server\n"
+           "  --mcp-port N       MCP server port (default %d, 127.0.0.1 only); GUI: start it whatever the settings say\n"
+           "  --no-mcp           GUI: do not start the MCP server (else as View -> Settings says)\n"
            "  --settings FILE    GUI: settings file instead of sapiemu-settings.json next to the exe\n"
            "  --lang cs|en       GUI: language of the user interface for this run (not saved)\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2: those windows (--ui-aps5-demo: and its DEMO),\n"
            "                     --ui-browser: Choose a machine, --ui-guide: the guide of the machine,\n"
+           "                     --ui-about, --ui-settings, --ui-shortcuts: About, Settings, Keyboard shortcuts,\n"
            "                     --ui-crop KEY: only the window with the id ###KEY (Media, Minigraf...),\n"
            "                     --ui-terminal: the serial terminal, --ui-term-text TEXT: text in it (\\n = new line),\n"
            "                     --ui-term-sel L0,C0-L1,C1: a selection in it (line indexes, cell boundaries),\n"
@@ -184,6 +185,7 @@ int main(int argc_ansi, char** argv_ansi)
     std::vector<std::string> actions;
     int mcp_port = MCP_DEFAULT_PORT;
     bool mcp_enabled = true;
+    bool mcp_explicit = false;   // --mcp-port: on whatever the settings say
     bool mcp_serve = false;
     UiSnapshot snap;
     std::string settings_file;
@@ -207,7 +209,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--data-root" && i + 1 < argc) data_root_set(argv[++i]);
         else if (a == "--verbose") log_set_level(LOG_DEBUG);
         else if (a == "--headless") headless = true;
-        else if (a == "--mcp-port" && i + 1 < argc) mcp_port = atoi(argv[++i].c_str());
+        else if (a == "--mcp-port" && i + 1 < argc) { mcp_port = atoi(argv[++i].c_str()); mcp_explicit = true; }
         else if (a == "--no-mcp") mcp_enabled = false;
         else if (a == "--ui-snapshot" && i + 1 < argc) { snap.path = argv[++i]; mcp_enabled = false; }
         else if (a == "--ui-rack" && i + 1 < argc) { snap.rack = true; snap.rack_slot = atoi(argv[++i].c_str()); }
@@ -223,6 +225,9 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-plotter") snap.plotter = true;
         else if (a == "--ui-browser") snap.browser = true;
         else if (a == "--ui-guide") snap.guide = true;
+        else if (a == "--ui-about") snap.about = true;
+        else if (a == "--ui-settings") snap.settings = true;
+        else if (a == "--ui-shortcuts") snap.shortcuts = true;
         else if (a == "--ui-crop" && i + 1 < argc) snap.crop = argv[++i];
         else if (a == "--ui-ims2") snap.ims2 = true;
         else if (a == "--ui-aps5-demo") snap.aps5_demo = true;
@@ -287,7 +292,9 @@ int main(int argc_ansi, char** argv_ansi)
         fprintf(stderr, "unknown option '%s' (see --help)\n", actions[0].c_str());
         return 1;
     }
-    return app_run(machine_file, mcp_enabled ? mcp_port : 0, snap.path.empty() ? nullptr : &snap, settings_file);
+    // GUI: the MCP server as the settings say (View -> Settings), unless --mcp-port or --no-mcp
+    return app_run(machine_file, !mcp_enabled ? 0 : mcp_explicit ? mcp_port : -1, snap.path.empty() ? nullptr : &snap,
+                   settings_file);
 #else
     (void)mcp_enabled;   // GUI options are parsed (and ignored) by sapiemu-cli too
     return 0;

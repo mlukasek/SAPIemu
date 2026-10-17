@@ -247,7 +247,7 @@ bez MFC-1A a DBS-1) nemá dochovaný firmware.
 
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
-vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk a joystick,
+vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk, joystick a myš,
 `docs/desky/MPH-1V.md`).
 **Hry a dema na sestavě V** (2026-10-17): `sapi1v_hry.sapi` má grafiku CGA-1V i DGD-1V (střídají se podle MAP2 jako
 u `libor_doma`), bez IDE. RAM disk `media/zrmd-1/hry-a-dema.bin` vyrábí `tools/make_hry_disk.py` z obrazu Bad Apple!!
@@ -368,6 +368,8 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
 `--ui-aps5` okno APS-5 (panel a pece; s `--ui-state` i se žhavými pecemi a grafem), `--ui-aps5-demo` totéž
 se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou),
+`--ui-browser` okno Vybrat sestavu, `--ui-guide` Průvodce sestavou, `--ui-about`, `--ui-settings`, `--ui-shortcuts`
+okna O programu, Nastavení a Klávesové zkratky, `--ui-crop KLÍČ` uloží jen okno s ID `###KLÍČ` (náhledy přístrojů),
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
 `--ui-copy` zkopíruje snímek do schránky (Zobrazení → Kopírovat snímek; přepíše schránku),
 `--ui-zoom 200` zvolí zoom obrazovky jako z menu, `--ui-reset-layout` Zobrazení → Výchozí rozložení oken,

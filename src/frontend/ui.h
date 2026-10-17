@@ -116,6 +116,9 @@ struct UiState {
     std::string browser_sel;       // the machine selected in it
     MachineIndex machine_index;
     std::vector<std::string> recent;   // machines started from the window, newest first (settings)
+    bool show_settings = false;    // View -> Settings
+    bool show_about = false;       // Help -> About SAPIemu
+    bool show_shortcuts = false;   // Help -> Keyboard shortcuts
     bool show_guide = false;
     std::string guide_machine;     // the machine whose guide is shown
     uint64_t guide_gen = ~0ull;    // the machine generation the guide was considered for
@@ -239,6 +242,13 @@ void draw_plotter(UiState& ui);
 void browser_open(UiState& ui);
 void draw_browser(UiState& ui);
 void draw_guide(UiState& ui);
+// Help (frontend/help.cpp): About, Keyboard shortcuts, the user guides of docs/
+void draw_about(UiState& ui);
+void draw_shortcuts(UiState& ui);
+void help_docs_menu(UiState& ui);
+void open_doc(const char* rel);   // a file of docs/ in the program of the system
+// The first place of a tool window: at the right edge, k-th of a cascade (the screen stays visible)
+void first_use_right(float w, float h, int k);
 void draw_ims2(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);

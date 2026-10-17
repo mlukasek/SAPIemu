@@ -20,6 +20,7 @@ struct UiSnapshot {
     bool plotter = false;    // show the Minigraf window
     bool browser = false;    // show the window Choose a machine
     bool guide = false;      // show the guide of the machine
+    bool about = false, settings = false, shortcuts = false;   // Help -> About, View -> Settings, Help -> Keyboard shortcuts
     std::string crop;        // the picture of one window only: its key ("Media", "Minigraf"; the part after ###)
     bool ims2 = false;       // show the IMS-2 measuring bench window
     bool aps5_demo = false;  // and start its DEMO
@@ -44,4 +45,4 @@ struct UiSnapshot {
 // machine_file starts the machine used last (settings), else DEFAULT_MACHINE_FILE.
 // settings_file: settings to use instead of sapiemu-settings.json next to the exe.
 int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snapshot = nullptr,
-            const std::string& settings_file = std::string());   // mcp_port 0 = no MCP server
+            const std::string& settings_file = std::string());   // mcp_port 0 = no MCP server, -1 = as the settings say

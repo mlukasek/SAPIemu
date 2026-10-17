@@ -416,6 +416,7 @@ void draw_terminal(UiState& ui)
     ui.terminal_focused = false;
     if (!ui.show_terminal) return;
     Machine* m = ui.host->machine();
+    first_use_right(700, 460, 3);
     ImGui::SetNextWindowSize(ImVec2(700, 460), ImGuiCond_FirstUseEver);
     if (m) {
         if (ui.machine_gen != ui.host->machine_generation()) {

@@ -80,6 +80,9 @@ struct App {
     HostJoystick joy;             // gamepad / keyboard for the joystick ports
     HostMouse mouse;              // the host mouse for the mouse ports (captured by a click)
     McpServer* mcp = nullptr;
+    bool mcp_pref = false;        // View -> Settings: the MCP server on (saved; new installs off, author 2026-10-17)
+    int mcp_pref_port = MCP_DEFAULT_PORT;
+    std::string mcp_error;        // the last start failed (a port in use...)
     UiState ui;
     std::string error_text;
     bool show_error = false;
@@ -166,6 +169,7 @@ nlohmann::json settings_json(App& app)
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     if (!app.language.empty()) j["language"] = app.language;
     j["browser"] = { { "recent", ui.recent } };
+    j["mcp"] = { { "enabled", app.mcp_pref }, { "port", app.mcp_pref_port } };
     j["guides"] = { { "auto", ui.guides_auto }, { "hidden", ui.guides_hidden } };
     return j;
 }
@@ -408,6 +412,7 @@ static void paste_keyboard(App& app, Machine* m);
 void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
+    if (ImGui::GetIO().WantTextInput) return;   // typing into a text field: no shortcuts, nothing for SAPI
     switch (ev.key) {
     case SDLK_F5:   // Ctrl+F5: a screenshot of the focused output (as in DOSBox); F5 run/pause
         if ((ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_ALT)) video_toggle(app);   // Ctrl+Alt+F5: video
@@ -695,10 +700,10 @@ void shot_items(App& app, DisplayDevice* d, const char* name)
     if (ImGui::MenuItem(tr("Save screenshot as..."), nullptr, false, d != nullptr)) shot_save_as(app.ui, d, name, a);
     if (ImGui::MenuItem(tr("Copy screenshot"), nullptr, false, d != nullptr)) shot_copy(app.ui, d, a);
     ImGui::MenuItem(tr("Screenshot enlarged 3x (as shown)"), nullptr, &app.ui.shot_enlarged);
-    ImGui::Separator();
-    video_item(app, d, name);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the screen (TV aspect)."));
+    ImGui::Separator();
+    video_item(app, d, name);
 }
 
 // Right click on the picture: the zoom of this window and its screenshot.
@@ -779,13 +784,126 @@ void ink_menu(App& app, Machine* m)
     ImGui::EndMenu();
 }
 
+// The MCP server on or off now (View -> Settings, the start).
+static void mcp_set(App& app, bool on, int port)
+{
+    if (app.mcp) {
+        app.mcp->stop();
+        delete app.mcp;
+        app.mcp = nullptr;
+        app.ui.mcp = nullptr;
+    }
+    app.mcp_error.clear();
+    if (!on) return;
+    app.mcp = new McpServer(app.host);
+    std::string err;
+    if (!app.mcp->start(port, err)) {
+        LOGW("MCP server not started: %s", err.c_str());
+        app.mcp_error = err;
+        delete app.mcp;
+        app.mcp = nullptr;
+        return;
+    }
+    app.ui.mcp = app.mcp;
+}
+
+// View -> Settings: what used to be scattered in the menus (language, sound, mouse) and what had no place (MCP,
+// ffmpeg, the guides).
+static void draw_settings(App& app)
+{
+    UiState& ui = app.ui;
+    if (!ui.show_settings) return;
+    float u = ImGui::GetFontSize();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowSize(ImVec2(34 * u, 30 * u), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+    if (!ImGui::Begin(tr_id("Settings"), &ui.show_settings)) {
+        ImGui::End();
+        return;
+    }
+    ImGui::SeparatorText("Jazyk / Language");
+    UiLanguage cur = i18n_language();
+    if (ImGui::RadioButton("Čeština", cur == LANG_CS)) set_ui_language(app, LANG_CS);
+    ImGui::SameLine();
+    if (ImGui::RadioButton("English", cur == LANG_EN)) set_ui_language(app, LANG_EN);
+
+    ImGui::SeparatorText(tr("Sound"));
+    ImGui::Checkbox(tr("Sound"), &app.audio.enabled);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(12 * u);
+    ImGui::SliderInt(tr("Volume"), &app.audio.volume, 0, 100, "%d %%");
+    if (app.audio.failed) ImGui::TextDisabled("%s", tr("No sound device."));
+    ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
+
+    ImGui::SeparatorText(tr("Mouse"));
+    ImGui::Checkbox(tr("PC mouse as the SAPI mouse (a click into a screen captures it)"), &app.mouse.enabled);
+    ImGui::SetNextItemWidth(12 * u);
+    ImGui::SliderFloat(tr("Mouse sensitivity"), &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
+
+    ImGui::SeparatorText(tr("Machine guides"));
+    ImGui::Checkbox(tr("Guides open by themselves"), &ui.guides_auto);
+    ImGui::BeginDisabled(ui.guides_hidden.empty());
+    if (ImGui::Button(tr("Show the hidden guides again"))) ui.guides_hidden.clear();
+    ImGui::EndDisabled();
+
+    ImGui::SeparatorText(tr("MCP server (development with Claude)"));
+    bool on = app.mcp_pref;
+    if (ImGui::Checkbox(tr("MCP server on"), &on)) {
+        app.mcp_pref = on;
+        mcp_set(app, on, app.mcp_pref_port);
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(7 * u);
+    int port = app.mcp_pref_port;
+    if (ImGui::InputInt(tr("Port"), &port, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue) && port > 0 && port < 65536) {
+        app.mcp_pref_port = port;
+        if (app.mcp_pref) mcp_set(app, true, port);
+    }
+    if (app.mcp && app.mcp->running()) {
+        ImGui::TextUnformatted(app.mcp->url().c_str());
+        ImGui::TextDisabled("claude mcp add --transport http sapiemu %s", app.mcp->url().c_str());
+    } else if (!app.mcp_error.empty()) {
+        ImGui::TextColored(ImVec4(1, 0.5f, 0.4f, 1), "%s", app.mcp_error.c_str());
+    } else if (app.mcp_pref) {
+        ImGui::TextDisabled("%s", tr("Not running now (started with --no-mcp)."));
+    } else {
+        ImGui::TextDisabled("%s", tr("Off. Only programs on this PC (127.0.0.1) can connect, it is for the development "
+                                     "of software for SAPI with Claude (docs/mcp.md)."));
+    }
+
+    ImGui::SeparatorText(tr("Video"));
+    static char ff[512];
+    static bool ff_init = false;
+    if (!ff_init) {
+        snprintf(ff, sizeof(ff), "%s", ui.ffmpeg_path.c_str());
+        ff_init = true;
+    }
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputTextWithHint("##ffmpeg", tr("ffmpeg.exe (empty = from PATH)"), ff, sizeof(ff))) ui.ffmpeg_path = ff;
+    ImGui::Checkbox(tr("Screenshot enlarged 3x (as shown)"), &ui.shot_enlarged);
+    ImGui::End();
+}
+
 void draw_menu(App& app)
 {
     if (!ImGui::BeginMainMenuBar()) return;
     Machine* m = app.host.machine();
     if (ImGui::BeginMenu(tr("File"))) {
         if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
+        if (ImGui::BeginMenu(tr("Recent machines"), !app.ui.recent.empty())) {
+            for (const std::string& f : std::vector<std::string>(app.ui.recent)) {
+                const MachineEntry* e = machine_index_find(app.ui.machine_index, f);
+                std::string label = e ? (e->title.empty() ? e->name : e->title) : f;
+                if (ImGui::MenuItem((label + "##" + f).c_str(), nullptr, f == app.host.machine_file())) {
+                    rack_start_machine(app.ui, f);
+                    app.ui.guide_gen = 0;   // its guide may open itself
+                    m = app.host.machine();
+                }
+            }
+            ImGui::EndMenu();
+        }
         if (ImGui::MenuItem(tr("Open machine file..."))) rack_open_and_run(app.ui);
+        ImGui::Separator();
         if (ImGui::MenuItem(tr("Load program into memory (Intel HEX)..."), nullptr, false, m != nullptr))
             hex_load_dialog(app.ui);
         if (ImGui::MenuItem(tr("Load binary file into memory..."), nullptr, false, m != nullptr))
@@ -805,7 +923,7 @@ void draw_menu(App& app)
             m = app.host.machine();   // the old machine is gone
             set_title(app);
         }
-        if (ImGui::MenuItem(tr("Reset"), "F12 / F9", false, m != nullptr) && m) m->reset();
+        if (ImGui::MenuItem(tr("Reset"), "F12", false, m != nullptr) && m) m->reset();
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         if (ImGui::BeginMenu(tr("Emulation speed"))) {   // the whole machine against real time
             for (int p = 100; p <= 400; p *= 2) {
@@ -864,10 +982,7 @@ void draw_menu(App& app)
         }
         if (ImGui::BeginMenu(tr("Sound, joystick and mouse"))) {
             ImGui::MenuItem(tr("Sound"), nullptr, &app.audio.enabled);
-            ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
-            ImGui::SliderInt(tr("Volume"), &app.audio.volume, 0, 100, "%d %%");
             if (app.audio.failed) ImGui::TextDisabled("%s", tr("No sound device."));
-            ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
             ImGui::Separator();
             ImGui::MenuItem(tr("Joystick from the keyboard (arrows, space = fire)"), "Ctrl+F8", &app.joy.keyboard);
             for (int i = 0; i < 2; i++) {
@@ -876,11 +991,9 @@ void draw_menu(App& app)
             }
             ImGui::Separator();
             ImGui::MenuItem(tr("PC mouse as the SAPI mouse (a click into a screen captures it)"), nullptr, &app.mouse.enabled);
-            ImGui::BeginDisabled(!app.mouse.enabled);
-            ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
-            ImGui::SliderFloat(tr("Mouse sensitivity"), &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
-            ImGui::EndDisabled();
             ImGui::TextDisabled("%s", tr("Middle button or Ctrl+F10 releases the captured mouse."));
+            ImGui::Separator();
+            if (ImGui::MenuItem(tr("Volume, mouse sensitivity..."))) app.ui.show_settings = true;
             ImGui::EndMenu();
         }
         ImGui::EndMenu();
@@ -889,21 +1002,28 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Debugger"), nullptr, &app.ui.show_debugger);
         ImGui::MenuItem(tr("Memory"), nullptr, &app.ui.show_memory);
         ImGui::MenuItem(tr("I/O log"), nullptr, &app.ui.show_iolog);
+        ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
         ImGui::Separator();
-        if (ImGui::MenuItem(tr("Step"), "F11")) debug_step(app, false);
-        if (ImGui::MenuItem(tr("Step over"), "F10")) debug_step(app, true);
+        bool stepping = m && app.host.paused;   // the steps are for a paused machine (F5)
+        if (ImGui::MenuItem(tr("Step"), "F11", false, stepping)) debug_step(app, false);
+        if (ImGui::MenuItem(tr("Step over"), "F10", false, stepping)) debug_step(app, true);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("View"))) {
         ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
-        ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer);
-        ImGui::MenuItem(tr("Plotter (Minigraf, XY 4130)"), nullptr, &app.ui.show_plotter);
-        ImGui::MenuItem(tr("IMS-2 measuring bench"), nullptr, &app.ui.show_ims2);
+        bool has_printer = false, has_plotter = false;   // windows of devices the machine has
+        if (m)
+            for (auto& c : m->cards) {
+                if (c->printer()) has_printer = true;
+                if (c->plotter()) has_plotter = true;
+            }
+        ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer, has_printer || app.ui.show_printer);
+        ImGui::MenuItem(tr("Plotter (Minigraf, XY 4130)"), nullptr, &app.ui.show_plotter, has_plotter || app.ui.show_plotter);
+        ImGui::MenuItem(tr("IMS-2 measuring bench"), nullptr, &app.ui.show_ims2, (m && m->plant) || app.ui.show_ims2);
         ImGui::MenuItem(tr("Diagnostic board (K3)"), nullptr, &app.ui.show_diag, m && m->cpu && m->cpu->k3_diag());
         ImGui::MenuItem(tr("APS-5: panel and furnaces"), nullptr, &app.ui.show_aps5, m && m->plant);
-        ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
         ImGui::Separator();
         ink_menu(app, m);
         if (ImGui::BeginMenu(tr("Screen zoom"), m && m->display)) {
@@ -931,6 +1051,7 @@ void draw_menu(App& app)
             if (ImGui::MenuItem("English", nullptr, cur == LANG_EN)) set_ui_language(app, LANG_EN);
             ImGui::EndMenu();
         }
+        if (ImGui::MenuItem(tr("Settings..."))) app.ui.show_settings = true;
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
@@ -940,21 +1061,10 @@ void draw_menu(App& app)
         }
         if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
         ImGui::Separator();
-        ImGui::TextUnformatted(tr("Keys: F5 run/pause, Ctrl+F5 screenshot, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
-        ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
-        ImGui::TextUnformatted(tr("Ctrl+F7 game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)"));
-        ImGui::TextUnformatted(tr("Ctrl+F2 quick save of the state, Ctrl+F3 quick load"));
-        ImGui::TextUnformatted(tr("Ctrl+Alt+F5 video with sound (MP4 through ffmpeg) on/off"));
-        ImGui::TextUnformatted(tr("Click the screen to type on the SAPI keyboard."));
+        help_docs_menu(app.ui);
+        if (ImGui::MenuItem(tr("Keyboard shortcuts"))) app.ui.show_shortcuts = true;
         ImGui::Separator();
-        if (app.mcp && app.mcp->running()) {
-            ImGui::Text("MCP: %s", app.mcp->url().c_str());
-            ImGui::TextDisabled("claude mcp add --transport http sapiemu %s", app.mcp->url().c_str());
-        } else {
-            ImGui::TextUnformatted(tr("MCP server is not running."));
-        }
-        ImGui::Separator();
-        ImGui::Text("SAPIemu %s", sapiemu_version());
+        if (ImGui::MenuItem(tr("About SAPIemu"))) app.ui.show_about = true;
         ImGui::EndMenu();
     }
 
@@ -962,20 +1072,22 @@ void draw_menu(App& app)
     char st[200];
     st[0] = 0;
     bool kb_leds = false;   // LEDs of the keyboard in it (a tooltip explains them)
-    if (!m) snprintf(st, sizeof(st), "%s", tr("Switched off"));
+    std::string notice;   // the result of the last save, load, screenshot: 3 s, the file name is enough
+    if (!app.ui.notice.empty() && !app.ui.notice_error && SDL_GetTicksNS() - app.ui.notice_ns < 3000000000ull) {
+        notice = app.ui.notice;
+        size_t slash = notice.find_last_of("/\\");
+        size_t colon = notice.find(": ");
+        if (slash != std::string::npos && colon != std::string::npos)
+            notice = notice.substr(0, colon + 2) + notice.substr(slash + 1);
+    }
+    if (!m) snprintf(st, sizeof(st), "%s  %s", notice.c_str(), tr("Switched off"));
     if (m) {
         const char* state = app.host.paused ? (app.host.status.empty() ? tr("Paused") : app.host.status.c_str())
                                             : (app.host.max_speed ? tr("Maximum") : "");
         KeyboardDevice* kb = m->keyboard();
         std::string ks = kb ? kb->status() : std::string();
         kb_leds = ks.find("LED") != std::string::npos;
-        if (!app.ui.notice.empty() && !app.ui.notice_error && SDL_GetTicksNS() - app.ui.notice_ns < 3000000000ull) {
-            std::string n = app.ui.notice;
-            size_t slash = n.find_last_of("/\\");   // the file name is enough here
-            size_t colon = n.find(": ");
-            if (slash != std::string::npos && colon != std::string::npos) n = n.substr(0, colon + 2) + n.substr(slash + 1);
-            ks += "  " + n;
-        }
+        if (!notice.empty()) ks += "  " + notice;
         if (video_recording(app.ui)) {
             int s = (int)video_seconds(app.ui);
             char rec[48];
@@ -1161,6 +1273,7 @@ void draw_graphic_screens(App& app)
 void draw_log(App& app)
 {
     if (!app.ui.show_log) return;
+    first_use_right(600, 250, 5);
     ImGui::SetNextWindowSize(ImVec2(600, 250), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(tr_id("Log"), &app.ui.show_log)) {
         std::vector<std::string> lines;
@@ -1317,6 +1430,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (!app.host.load_state_file(snap->state, err)) fprintf(stderr, "UI snapshot: %s\n", err.c_str());
     }
     if (!app.host.machine() && first != DEFAULT_MACHINE_FILE) load_machine(app, DEFAULT_MACHINE_FILE);
+    // the machine of the last session: its guide does not open by itself at every start (only a machine started
+    // from the window Choose a machine or a menu)
+    app.ui.guide_gen = app.host.machine_generation();
     const nlohmann::json& sp = settings.value("speed", nlohmann::json::object());
     get_opt(sp, "max", app.host.max_speed);
     get_opt(sp, "percent", app.host.pace_percent);
@@ -1327,6 +1443,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_rack = snap->rack || !snap->open.empty();
         app.ui.show_browser = snap->browser || first_start;   // --settings NEW: as a first start
         app.ui.show_guide = snap->guide;
+        app.ui.show_about = snap->about;
+        app.ui.show_settings = snap->settings;
+        app.ui.show_shortcuts = snap->shortcuts;
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
@@ -1339,12 +1458,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.rack.machine_gen = ~0ull;
     }
 
-    if (mcp_port > 0) {
-        app.mcp = new McpServer(app.host);
-        app.ui.mcp = app.mcp;
-        std::string err;
-        if (!app.mcp->start(mcp_port, err)) LOGW("MCP server not started: %s", err.c_str());
+    // the MCP server: View -> Settings; settings of an older version without the key keep it on as it was, a new
+    // install has it off (author 2026-10-17); --mcp-port starts it, --no-mcp (and a snapshot) not
+    if (settings.contains("mcp")) {
+        const nlohmann::json& mj = settings["mcp"];
+        get_opt(mj, "enabled", app.mcp_pref);
+        get_opt(mj, "port", app.mcp_pref_port);
+    } else {
+        app.mcp_pref = !first_start;
     }
+    if (mcp_port > 0) mcp_set(app, true, mcp_port);
+    else if (mcp_port < 0 && app.mcp_pref) mcp_set(app, true, app.mcp_pref_port);
 
     uint64_t last = SDL_GetTicksNS();
     while (!app.quit) {
@@ -1422,6 +1546,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_printer(app.ui);
         draw_plotter(app.ui);
         draw_browser(app.ui);
+        draw_settings(app);
+        draw_about(app.ui);
+        draw_shortcuts(app.ui);
         draw_guide(app.ui);
         draw_ims2(app.ui);
         draw_diag(app.ui);

@@ -1744,3 +1744,19 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
 - **Sestava „SAPI-1 V: hry a dema“** (`sapi1v_hry`) má CGA-1V i DGD-1V přepínané přes MAP2 a jeden RAM disk z
   `tools/make_hry_disk.py`. `sapi1v_BadApple` a `sapi1v_DGD_Flapy` nahradila a autor je smazal. Hudba VGM i RAD
   zůstala (autor), „-LAILA-“ je L. Lasota.
+
+## 2026-10-17 – úklid ovládání (etapa 4 vydání)
+
+- **Server MCP v GUI podle Nastavení** (autor: ve vydání vypnutý, zapnout v Nastavení). Nová instalace ho má vypnutý.
+  Soubor nastavení starší verze bez položky `mcp` ho nechá zapnutý jako dřív, aby sessions s Claude běžely dál.
+  `--mcp-port` ho zapne vždy, `--no-mcp` ne. Zapnutí a vypnutí v okně Nastavení platí hned.
+- **Zkratky emulátoru se při psaní do textového pole neuplatní** (dřív F9/F12 resetovaly stroj i z políčka
+  konfigurátoru). Všechny zkratky jsou v jedné tabulce v okně Nápověda → Klávesové zkratky; Ctrl+písmeno, Esc, F1–F4,
+  F6 a F7 zůstávají klávesnicím SAPI.
+- **Menu:** Soubor má Poslední sestavy; Ladění má Log a Krok jen při pauze; Zobrazení má Nastavení… a okna přístrojů,
+  které sestava nemá, jsou nedostupná; Nápověda místo řádků textu otevírá Průvodce sestavou, První kroky, Návody,
+  Klávesové zkratky a O programu. Hlasitost a citlivost myši se přestěhovaly do Nastavení.
+- **Nástrojová okna** (debugger, paměť, I/O log, terminál, Média, tiskárna, Log) se poprvé otevřou u pravého okraje,
+  ne přes obrazovku. Uložené rozložení (`imgui.ini`) má přednost.
+- **Průvodce se sám otevře jen po spuštění sestavy** z okna Vybrat sestavu nebo z menu, ne při každém startu programu
+  s poslední sestavou.

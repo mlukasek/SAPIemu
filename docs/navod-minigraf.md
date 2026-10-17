@@ -12,7 +12,7 @@ v `docs/desky/Minigraf.md`.
 ## Co je potřeba
 
 1. Soubor → Vybrat sestavu… → `zps\ZPS-2_MIKOS_V5_Minigraf.sapi`. Naběhne `MIKOS V5.0`, `MONITOR V5.0` a tečka.
-2. Vpravo se samo otevře okno **Minigraf** (jinak Zobrazení → Zapisovač Minigraf).
+2. Vpravo se samo otevře okno **Minigraf** (jinak Zobrazení → Zapisovač (Minigraf, XY 4130)).
 
 Po zapnutí je pero dole a udělá na papíře tečku, dokud program nenastaví port. Skutečný Minigraf se chová stejně.
 Tečku smaže tlačítko Nový papír.

@@ -1388,6 +1388,7 @@ void draw_media(UiState& ui)
     media_restore_dialog(ui);
     if (!ui.show_media) return;
     Machine* m = ui.host->machine();
+    first_use_right(760, 440, 1);
     ImGui::SetNextWindowSize(ImVec2(760, 440), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(tr_id("Media"), &ui.show_media) || !m) {
         ImGui::End();

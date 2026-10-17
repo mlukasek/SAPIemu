@@ -5,9 +5,11 @@ na klávesnici, číst obrazovku, nahrávat programy, krokovat a nastavovat brea
 
 ## Spuštění
 
-- **GUI (`sapiemu.exe`):** server se spouští automaticky na `http://127.0.0.1:8580/mcp`. Adresa je uvedena
-  v menu Nápověda. Ve stavovém řádku je pak „MCP“.
-  - `--mcp-port N` nastaví jiný port, `--no-mcp` server vypne.
+- **GUI (`sapiemu.exe`):** server se zapíná v **Zobrazení → Nastavení** (Server MCP zapnutý, port, výchozí 8580).
+  Nastavení se uloží. Nová instalace ho má vypnutý (vydání pro veřejnost). Starší soubor nastavení, který tu položku
+  ještě nemá, server nechá zapnutý jako dřív. Adresa a příkaz `claude mcp add` jsou v okně Nastavení, ve stavovém
+  řádku je pak „MCP“.
+  - `--mcp-port N` server spustí na portu N bez ohledu na nastavení, `--no-mcp` ho nespustí.
 - **Bez okna:** `sapiemu-cli --mcp [--machine ...] [--mcp-port N]`. Emuluje v reálném čase a obsluhuje MCP,
   dokud se nestiskne Ctrl+C.
 - **Obsazený port:** když port drží jiný emulátor (jiná session, jiné cli), server se nespustí a v logu je

@@ -36,7 +36,7 @@ Zobrazení → Sestava….
 | `cpm_boot_fdc1_irmd.sapi` | CP/M J. Bíby, RAM disk RMD-1 si připraví BIOS sám (zjistí i velikost) | `SAVE 2 C:X.COM`, `B:STAT C:` |
 | `cpm_boot_rpd1_mfc256.sapi`, `_mfc512`, `cpm_boot_rpd1_fdc1_rmd.sapi` | CP/M J. Bíby z RPD-1 s RMD-1 a druhým řadičem pro D:, E: (MFC-1A s 8" FM 14 × 256 nebo 8 × 512, FDC-1 8") | `B:IRMD40`, `A`, pak `SAVE 2 D:X.COM`, `DIR D:` |
 | `cpm_pmd_fdc1.sapi` | CP/M J. Bíby: FDC-1 a PMD32-SD přes DPP-1 | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
-| `cpm_term64k_fdc1.sapi` | CP/M 64K bez obrazovky, jen terminál | Zobrazení → Terminál (nebo TeraTerm na 127.0.0.1:2323) |
+| `cpm_term64k_fdc1.sapi` | CP/M 64K bez obrazovky, jen terminál | Zobrazení → Sériový terminál (nebo TeraTerm na 127.0.0.1:2323) |
 | `cpm_pmd_rpd1.sapi` | CP/M J. Bíby s PMD32-SD přes DPP-1 (C:, D: = 5,25" diskety J. Bíby na SD kartě) | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
 | `cpm_zrmd_dpp1.sapi` | `cpm_zrmd` s deskou DPP-1 a PMD32-SD | po startu `3`, pak `DIR D:`, `DIR E:` |
 | `cpm_zrmd_rtc_dsp.sapi` | navíc deska reálného času RTC-1 a sériová DSP-1 (programy J. Bíby) | po startu `3`, `E:RTCZ` hodiny RTC-1 (ESC konec), `RTC421` hodiny ZRMD-1, `DOPCP soubor` pošle soubor XMODEMem do okna terminálu „DSP-1 X2 #48“ |
@@ -66,7 +66,7 @@ Zobrazení → Sestava….
 ## Ovládání
 
 - **Psaní:** klikněte do okna obrazovky. Text jde na klávesnici SAPI (české znaky podle klávesnice sestavy).
-- **Klávesy emulátoru:**
+- **Klávesy emulátoru** (přehled v Nápověda → Klávesové zkratky; při psaní do textového pole se neuplatní):
   - F5 pauza;
   - **Ctrl+F5 snímek obrazovky** okna, které má fokus (konzole nebo grafika CGA-1V, BGP-1S, DGD…), do
     `work/snimky/<karta>_<datum-čas>.png`; pravé tlačítko na obraz nabízí i „Uložit snímek jako…“, „Kopírovat
@@ -117,7 +117,11 @@ Zobrazení → Sestava….
   Tiskárnu zapnete v konfigurátoru u procesorové karty (X3) nebo u DPP-1 (`docs/tiskarna.md`).
 - **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX `.hex`, `.ihx` i `.txt`) nebo binární soubor. V CP/M pak
   `SAVE n JMENO.COM` (okno počet stránek napoví).
-- **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš. Zvuk hraje jen při rychlosti 100 %.
+- **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš; hlasitost a citlivost myši v Zobrazení → Nastavení. Zvuk
+  hraje jen při rychlosti 100 %.
+- **Nastavení** (Zobrazení → Nastavení…): jazyk, zvuk, myš, průvodci sestavami, server MCP pro vývoj s Claude, cesta
+  k ffmpeg. **Nápověda:** Průvodce sestavou, První kroky a Návody k obsluze (otevřou se v programu pro soubory .md),
+  Klávesové zkratky (všechny na jednom místě) a O programu.
 - **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků.
 
 ## Vyzkoušejte

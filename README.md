@@ -142,7 +142,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
   `--joystick`, `--save-state` …).
-- **MCP server** (`http://127.0.0.1:8580/mcp`): Claude Code může emulátor ovládat, psát a ladit programy
+- **MCP server** (`http://127.0.0.1:8580/mcp`, v GUI se zapíná v Zobrazení → Nastavení): Claude Code může emulátor
+  ovládat, psát a ladit programy
   a nakonec ho i ukončit (`quit`, média se uloží) ([docs/mcp.md](docs/mcp.md)).
 
 ## Dokumentace
