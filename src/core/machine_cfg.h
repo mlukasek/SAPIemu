@@ -52,5 +52,15 @@ struct CfgProblem {
 };
 std::vector<CfgProblem> machine_cfg_problems(const nlohmann::json& cfg);
 
+// What a machine is made of, for lists (the window Choose a machine): the cards in the order of the slots with
+// the devices plugged into them (keyboard, drives, printer, plotter...), and the technology outside the computer
+// (APS-5 furnaces, IMS-2 bench) with slot 0.
+struct MachinePart {
+    int slot;
+    std::string type, title;           // "JPR-1V", the title of the catalog
+    std::vector<std::string> devices;  // "Klávesnice Consul 262.3", "Mechanika 0: cpm.img"
+};
+std::vector<MachinePart> machine_cfg_parts(const nlohmann::json& cfg, bool czech);
+
 // Commented text of a machine description (.sapi file, JSON with comments).
 std::string machine_cfg_to_jsonc(const nlohmann::json& cfg);

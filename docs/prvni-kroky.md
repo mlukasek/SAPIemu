@@ -19,7 +19,8 @@ Potřebujete Windows 10 nebo 11, 64 bit.
 
 Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám. Sestavy jsou rozdělené do skupin:
 **Základ** (historické sestavy Tesla), **Desky Libora Lasoty**, **Hry a dema** (včetně přístrojů) a **Ostatní**. U
-každé je náhled, krátký popis a tlačítko Spustit; dvojklik sestavu také spustí. U sestav ze Základu, Liborových desek
+každé je náhled, krátký popis, karty po slotech s připojeným příslušenstvím (klávesnice, mechaniky a obrazy
+disket, tiskárna, zapisovač, magnetofon…) a tlačítko Spustit; dvojklik sestavu také spustí. U sestav ze Základu, Liborových desek
 a Her a dem se po spuštění otevře **Průvodce sestavou** s tím, co vyzkoušet (políčko dole ho vypne, Nápověda →
 Průvodce sestavou ho otevře kdykoli). Bloky kódu v průvodci napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy
 odjinud otevře Soubor → Otevřít soubor sestavy…, konfigurátor sestavy (karty v rámu, propojky, mapa portů) je

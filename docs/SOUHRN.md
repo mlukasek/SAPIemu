@@ -16,7 +16,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     `core/machine_index`), náhledy `machines/previews` z `tools/make_previews.py`, průvodci `machines/guides` česky
     a anglicky pro 16 sestav, okno Průvodce sestavou (otevře se samo u Základu, Liborových desek a Her a dem, jde
     vypnout), první spuštění otevře výběr sestav. Test `test_machine_index`. Náhledy přístrojů (APS-5, IMS-2, KZD-1,
-    Minigraf, RMP-1) jsou snímky jejich oken (`sapiemu --ui-crop`, stav z cli přes `--ui-state`).
+    Minigraf, RMP-1) jsou snímky jejich oken (`sapiemu --ui-crop`, stav z cli přes `--ui-state`). Od 2026-10-18
+    okno ukazuje i karty po slotech s příslušenstvím (`machine_cfg_parts()`, autor: „zobrazit i jména karet
+    + příslušenství“).
   - **Etapa 4 (hotová, `9119c46`):** okno Nastavení (jazyk, zvuk, myš, průvodci, server MCP s portem, ffmpeg),
     Nápověda → Klávesové zkratky, O programu (logo `docs/img/logo.png`, vedle název a verze; obrázek Liborovy skříně
     vyřazen, nejde o původní SAPI-1), První kroky a Návody; Soubor →

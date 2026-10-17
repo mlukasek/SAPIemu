@@ -14,6 +14,7 @@
 #include "core/host.h"
 #include "core/log.h"
 #include "core/machine.h"
+#include "core/machine_cfg.h"
 #include "core/machine_index.h"
 #include "core/util.h"
 
@@ -102,6 +103,44 @@ static void machine_item(UiState& ui, const MachineEntry& e, const char* id_suff
     }
 }
 
+// the cards of the machine by slots with the devices plugged into them (read when the selection changes)
+static void parts(const MachineEntry& e)
+{
+    static std::string s_file;
+    static bool s_en = false;
+    static std::vector<MachinePart> s_parts;
+    if (e.file != s_file || english() != s_en) {
+        s_file = e.file;
+        s_en = english();
+        s_parts.clear();
+        std::string text;
+        if (file_read_text(data_path(e.file), text)) {
+            nlohmann::json j = nlohmann::json::parse(text, nullptr, false, true /* comments */);
+            if (!j.is_discarded()) s_parts = machine_cfg_parts(j, !s_en);
+        }
+    }
+    if (s_parts.empty() || !ImGui::CollapsingHeader(tr("Cards and devices"), ImGuiTreeNodeFlags_DefaultOpen)) return;
+    if (!ImGui::BeginTable("parts", 3, ImGuiTableFlags_SizingFixedFit)) return;
+    ImGui::TableSetupColumn("slot");
+    ImGui::TableSetupColumn("type");
+    ImGui::TableSetupColumn("title", ImGuiTableColumnFlags_WidthStretch);
+    for (const MachinePart& p : s_parts) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (p.slot > 0) ImGui::TextDisabled("X%d", p.slot);
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(p.type.c_str());
+        ImGui::TableNextColumn();
+        ImGui::TextWrapped("%s", p.title.c_str());
+        for (const std::string& d : p.devices) {
+            ImGui::Bullet();
+            ImGui::TextWrapped("%s", d.c_str());
+        }
+    }
+    ImGui::EndTable();
+    ImGui::Spacing();
+}
+
 static void details(UiState& ui, const MachineEntry& e)
 {
     float avail = ImGui::GetContentRegionAvail().x;
@@ -140,6 +179,7 @@ static void details(UiState& ui, const MachineEntry& e)
         ui.show_rack = true;
     }
     ImGui::Spacing();
+    parts(e);
     if (!e.description.empty() && ImGui::CollapsingHeader(tr("Technical description"), sum.empty() ? ImGuiTreeNodeFlags_DefaultOpen : 0))
         ImGui::TextWrapped("%s", e.description.c_str());
     ImGui::TextDisabled("%s", e.file.c_str());

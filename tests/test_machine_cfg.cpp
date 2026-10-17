@@ -319,9 +319,53 @@ static void test_line_ends(void)
     file_remove(file);
 }
 
+static std::vector<MachinePart> parts_of(const char* file, bool czech)
+{
+    std::string text;
+    CHECK(file_read_text(data_path(file), text));
+    return machine_cfg_parts(json::parse(text, nullptr, false, true), czech);
+}
+
+static bool has_device(const MachinePart& p, const char* d)
+{
+    for (const std::string& s : p.devices)
+        if (s == d) return true;
+    return false;
+}
+
+// the cards and devices of the window Choose a machine
+static void test_parts(void)
+{
+    std::vector<MachinePart> p = parts_of("machines/sapi1v_hry.sapi", true);
+    CHECK(p.size() == 8);
+    CHECK(p[0].slot == 1 && p[0].type == "JPR-1V" && has_device(p[0], "Klávesnice Consul 262.3"));
+    CHECK(p[4].type == "ZRD-1V" && p[4].devices.empty());
+    bool mouse = false;
+    for (const MachinePart& m : p)
+        if (m.type == "MPH-1V") mouse = has_device(m, "Myš Atari ST");
+    CHECK(mouse);
+    p = parts_of("machines/aps5.sapi", false);
+    CHECK(!p.empty() && p.back().slot == 0 && p.back().type == "APS-5");
+    p = parts_of("machines/zps/ZPS-2_MIKOS_V5_XY4130.sapi", true);
+    bool plotter = false;
+    for (const MachinePart& m : p)
+        if (has_device(m, "Zapisovač XY 4130")) plotter = true;
+    CHECK(plotter);
+}
+
 int main(int argc, char** argv)
 {
     test_init();
+    if (argc > 1 && !strcmp(argv[1], "--parts")) {   // print the parts of all machines
+        for (const std::string& f : list_machine_files()) {
+            printf("%s\n", f.c_str());
+            for (const MachinePart& m : parts_of(f.c_str(), argc < 3)) {
+                printf("  X%d %s: %s\n", m.slot, m.type.c_str(), m.title.c_str());
+                for (const std::string& d : m.devices) printf("      - %s\n", d.c_str());
+            }
+        }
+        return 0;
+    }
     if (argc > 1) {   // print a machine as written by the configurator
         std::string text;
         file_read_text(data_path(argv[1]), text);
@@ -338,5 +382,6 @@ int main(int argc, char** argv)
     test_two_dmr();
     test_map();
     test_line_ends();
+    test_parts();
     return TEST_RESULT();
 }

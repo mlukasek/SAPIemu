@@ -1,5 +1,6 @@
 #include "core/machine_cfg.h"
 #include "core/util.h"
+#include "input/keyboards.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -310,6 +311,118 @@ int machine_cfg_card_at(const json& cfg, int slot)
         if (slot >= s && slot < s + card_cfg_width(cards[i])) return (int)i;
     }
     return -1;
+}
+
+// ---------------------------------------------------------------- parts of a machine
+
+static std::string base_name(const std::string& path)
+{
+    size_t s = path.find_last_of("/\\");
+    return s == std::string::npos ? path : path.substr(s + 1);
+}
+
+// a label up to its details in parentheses, with a capital letter ("myš Atari ST" -> "Myš Atari ST")
+static std::string short_label(const char* label)
+{
+    std::string s = label;
+    size_t p = s.find(" (");
+    if (p != std::string::npos) s = s.substr(0, p);
+    if (!s.empty()) s[0] = (char)toupper((unsigned char)s[0]);
+    return s;
+}
+
+// the first file (disk image, cartridge, cassette) set in a section
+static std::string section_file(const json& card, const CardInfo* ci, const CardParam* sec)
+{
+    for (const CardParam* p = ci->params; p->path; p++) {
+        if (p->kind != PK_FILE || !has_prefix(p->path, sec->path)) continue;
+        json v = card_param_value(card, p);
+        if (v.is_string() && !v.get<std::string>().empty()) return base_name(v.get<std::string>());
+    }
+    return std::string();
+}
+
+// the sections of cards that are devices, with short names; drives and units ("drive_a", "unit0") take the label
+// of the catalog, other sections (channels of serial cards, the PC side) are not devices
+static const struct {
+    const char* path;
+    const char* en;
+    const char* cs;
+} k_device_sections[] = {
+    { "printer", "Printer", "Tiskárna" },
+    { "xy4130", "Plotter XY 4130", "Zapisovač XY 4130" },
+    { "minigraf", "Plotter ARITMA Minigraf 0507", "Zapisovač ARITMA Minigraf 0507" },
+    { "kzd1", "Cassette data recorder KZD-1", "Kazetopáskový záznamník dat KZD-1" },
+    { "pmd32sd", "Floppy emulator PMD32-SD", "Emulátor disket PMD32-SD" },
+    { "ide", "IDE disk", "IDE disk" },
+};
+
+static std::vector<std::string> card_devices(const json& card, const CardInfo* ci, bool czech)
+{
+    std::vector<std::string> out;
+    if (!ci->params) return out;
+    for (const CardParam* p = ci->params; p->path; p++) {
+        if (strchr(p->path, '.') && strcmp(p->path, "keyboard.joyport") != 0) continue;
+        json v = card_param_value(card, p);
+        if (p->kind == PK_KEYBOARD) {
+            std::string type = v.is_object() ? v.value("type", std::string()) : v.is_string() ? v.get<std::string>() : "";
+            if (type.empty()) continue;
+            std::string name = (czech ? "Klávesnice " : "Keyboard ") + type;
+            for (const KeyboardPreset& k : keyboard_presets())   // another device on the keyboard connector
+                if (!k.keyboard && json::parse(k.config, nullptr, false).value("type", std::string()) == type) name = k.name;
+            out.push_back(name);
+        } else if (!strcmp(p->path, "keyboard.joyport")) {   // the joystick connector of ANK-1M2
+            const json* kb = cfg_find(card, "keyboard");
+            std::string type = kb && kb->is_object() ? kb->value("type", std::string()) : "";
+            int o = param_option_index(p, v);
+            if (type.rfind("ANK-1M", 0) == 0 && o > 0) out.push_back(short_label(czech ? p->options[o].cs : p->options[o].en));
+        } else if (p->kind == PK_SECTION && v == json(true)) {
+            std::string name;
+            for (const auto& d : k_device_sections)
+                if (!strcmp(d.path, p->path)) name = czech ? d.cs : d.en;
+            if (!strncmp(p->path, "drive_", 6) || !strncmp(p->path, "unit", 4)) name = czech ? p->cs : p->en;
+            if (name.empty()) continue;
+            std::string f = strcmp(p->path, "printer") ? section_file(card, ci, p) : "";   // not the output on the PC
+            out.push_back(f.empty() ? name : name + ": " + f);
+        } else if (p->kind == PK_FILE && !strcmp(p->path, "tape")) {   // the cassette recorder of DSM-1
+            std::string f = v.is_string() ? base_name(v.get<std::string>()) : "";
+            std::string name = czech ? "Magnetofon" : "Tape recorder";
+            out.push_back(f.empty() ? name : name + ": " + f);
+        } else if (p->kind == PK_CHOICE && (!strcmp(p->path, "k2") || !strcmp(p->path, "k3"))) {   // connectors
+            int o = param_option_index(p, v);
+            if (o >= 0 && v != json("none")) out.push_back(short_label(czech ? p->options[o].cs : p->options[o].en));
+        }
+    }
+    return out;
+}
+
+std::vector<MachinePart> machine_cfg_parts(const json& cfg, bool czech)
+{
+    std::vector<MachinePart> out;
+    if (cfg.contains("cards") && cfg["cards"].is_array()) {
+        for (const json& card : cfg["cards"]) {
+            if (!card.is_object()) continue;
+            MachinePart m;
+            m.slot = card_slot(card);
+            m.type = card_display_name(card);
+            if (const CardInfo* ci = card_info(card.value("type", std::string()))) {
+                m.title = czech ? ci->cs : ci->en;
+                m.devices = card_devices(card, ci, czech);
+            }
+            out.push_back(m);
+        }
+    }
+    std::stable_sort(out.begin(), out.end(), [](const MachinePart& a, const MachinePart& b) { return a.slot < b.slot; });
+    if (cfg.contains("plant") && cfg["plant"].is_object()) {   // the technology outside the computer
+        MachinePart m;
+        m.slot = 0;
+        m.type = cfg["plant"].value("type", std::string());
+        if (m.type == "APS-5") m.title = czech ? "Osm pecí s termočlánky" : "Eight furnaces with thermocouples";
+        if (m.type == "IMS-2")
+            m.title = czech ? "Měřicí pracoviště: voltmetr M1T 330, zdroj BS 525" : "Measuring bench: voltmeter M1T 330, power supply BS 525";
+        out.push_back(m);
+    }
+    return out;
 }
 
 std::vector<CfgProblem> machine_cfg_problems(const json& cfg)

@@ -6,7 +6,12 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor sestavy… nebo v
 
 ## Výběr sestav (Soubor → Vybrat sestavu…)
 
-Okno nabízí sestavy po skupinách s náhledem, krátkým textem a technickým popisem (pole `description` sestavy).
+Okno nabízí sestavy po skupinách s náhledem, krátkým textem, kartami a příslušenstvím a technickým popisem (pole
+`description` sestavy). Karty a příslušenství čte ze sestavy `machine_cfg_parts()` (`src/core/machine_cfg.cpp`):
+karty podle slotů s názvem z katalogu, pod nimi klávesnice, joystick nebo myš, zařízení z oddílů karty (tiskárna,
+zapisovače, KZD-1, PMD32-SD, IDE disk, mechaniky a jednotky s obrazem média), magnetofon DSM-1, co je v K2/K3,
+a technologie mimo počítač (APS-5, IMS-2). Nové zařízení karty se do seznamu dostane přes `k_device_sections`.
+Výpis všech sestav: `test_machine_cfg --parts` (`--parts en` anglicky).
 Při prvním spuštění (bez souboru nastavení) se otevře samo. Podklady (2026-10-17, `docs/vydani/sestavy.md`):
 
 - **`machines/_vyber.json`** (JSON s komentáři; soubory začínající `_` nejsou sestavy): kategorie v pořadí
