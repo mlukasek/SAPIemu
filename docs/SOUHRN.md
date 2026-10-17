@@ -15,7 +15,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `zps/ZPS-2_MIKOS_V5_XY4130.sapi` s `MIKOS5.BIN` (ovladač TESLA DIZ na 1800h), okno zapisovače s panelem POWER,
   READY, PEN, MCP `plotter` (`pen_button`), test `test_xy4130`. Ovladač v emulátoru nastaví počátek na levém dorazu
   a nakreslí znakovou sadu nezrcadleně; KRES s konfigurací 0Dh kreslí kružnici 60,0 mm. Nejasnosti (platí logika
-  XY 4140 i pro XY 4130? dráha vozíku, diakritika testu) v `docs/desky/XY4130.md`. Testy: debug 56.
+  XY 4140 i pro XY 4130? dráha vozíku, diakritika testu) v `docs/desky/XY4130.md`. Autor rozhodnutí potvrdil („souhlas“) a chtěl
+  návod: `docs/navod-xy4130.md` (PEN, zkouška, `LLIST`, ukázka `media/mikos/XY4130_DEMO` ze strojového kódu, nový
+  papír), vše vyzkoušené přes MCP, obrázek `docs/img/navod-xy4130.png`. Testy: debug 56, release 56.
 - **DPI-1L, SD karta nad složkou PC (2026-10-16 odpoledne, autor: „zbytek MZFRepo“):** celé Repository API podle
   firmwaru (`repo_fs.c`, `koi8.c`, `config.c`): soubory a adresáře ve složce `sd.folder` (výchozí `work/dpi-1l/sdcard`),
   stránka 4 KB, `/DPI/DPI.INI` s GETCONFIG/SETCONFIG, RTC, BOOT (/RTL), SDCARD (`src/cards/dpi1l_fs.*`, test

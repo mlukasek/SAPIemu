@@ -166,6 +166,24 @@ static void test_driver(void)
     CHECK(text.find("stroke-width=\"3.75\"") != std::string::npos);   // the pen 0.375 mm in steps of 0.1 mm
     file_remove(png);
     file_remove(svg);
+    // the guide (docs/navod-xy4130.md): a new sheet puts READY off, .G=1803 sets the origin again (MIKOS
+    // restarts), media/mikos/XY4130_DEMO.hex from .G=8000 writes its text and draws the frame 100 x 60 mm
+    wait_still(m, g, 30.0);
+    g->new_sheet();
+    CHECK(!g->ready());
+    m.type_text("G1803\r");
+    m.run_seconds(1.0);
+    wait_still(m, g, 30.0);
+    CHECK(g->ready());
+    CHECK(file_read_text(data_path("media/mikos/XY4130_DEMO.hex"), text));
+    CHECK(m.load_ihex_text(text, err, nullptr));
+    m.type_text("G8000\r");
+    for (int i = 0; i < 240 && g->strokes.empty(); i++) m.run_seconds(0.5);
+    wait_still(m, g, 120.0);
+    CHECK(g->extent(x0, y0, x1, y1));
+    printf("DEMO: %u strokes, %.1f x %.1f mm\n", (unsigned)g->strokes.size(), (x1 - x0) / 10.0, (y1 - y0) / 10.0);
+    CHECK_EQ(x1 - x0, 1000);   // the frame 100 mm wide, the text above it within
+    CHECK(fabs((y1 - y0) / 10.0 - 78.8) < 1.0);
 }
 
 // KRES of BASIC EXP V5.0/G+SZ with the configuration byte 0Dh (XY 4130 on DPP-1, port B 31h): millimetres

@@ -1710,6 +1710,8 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 
 ## 2026-10-17 – grafická jednotka XY 4130
 
+Autor body níže potvrdil („souhlas“, 2026-10-17).
+
 - **Podle řady XY 41x0** (autor: „Zkusil bych ten plotter XY 4130 … návod … by mohlo lecčemus pomoci“): pro XY 4130
   samotný podklady nejsou, rozhraní a chování jsou z návodů XY 4131 a XY 4140 (XY 4140 je „funkčně identická“ s XY
   4131), ze schématu XY 4140, z dokumentace XY 4150 a z projektu plottercontroller, který s XY 41xx skutečně kreslí.

@@ -169,7 +169,10 @@ Další programy z `media\` si nahrajete takto:
   1. po startu se ovladač ohlásí `L=XY4130` a vozík dojede na levý doraz (rozsvítí se READY);
   2. v okně zapisovače stisknout **PEN** (po zapnutí nesvítí, bez něj se pero nespustí);
   3. `.G=181E` nakreslí znakovou sadu: ovladač napíše `ZALOZ PAPIR A STISKNI KLAVESU`, stačí mezerník;
-  4. výpisy na tiskárnu L: (třeba `LIST` v BASICu) se kreslí písmem (`docs/desky/XY4130.md`).
+  4. výpisy na tiskárnu L: (`LLIST` v BASICu EXP) se kreslí písmem; ukázka kresby `media\mikos\XY4130_DEMO.hex`
+     (z BASICu `A=CALL(32768)`).
+
+  Celý návod: `docs/navod-xy4130.md`.
 - **Kazetový disk RKD-1** (`rkd1_tesla_cpm.sapi`, CP/M 2.2 Tesla Elstroj 1987 z kazety CM 5403):
   1. po startu číslo uživatele (`1`) a název oblasti; výzva `b1$` je disk B:, uživatel 1;
   2. `DIR A:` ukáže systémovou kazetu (shell, formátovač, zdrojáky systému);

@@ -74,7 +74,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - grafická jednotka XY 4130 (Laboratorní přístroje Praha) na konektoru X3 desky JPR-1 s ovladačem TESLA DIZ
     z EPROM za MIKOSem V5: Monitor ho spustí sám, vozík najede na levý doraz (READY), výpisy na tiskárnu L: se
     kreslí písmem; logika READY a tlačítka PEN podle schématu XY 4140, krok 0,1 mm, i pro `KRES` na DPP-1
-    ([docs/desky/XY4130.md](docs/desky/XY4130.md));
+    ([docs/desky/XY4130.md](docs/desky/XY4130.md), návod [docs/navod-xy4130.md](docs/navod-xy4130.md));
   - deska přístrojové sběrnice DPS-1 (IMS-2, IEEE 488) s měřicím pracovištěm: voltmetr Metra M1T 330 a zdroj
     Tesla BS 525 nakreslené v okně, knoflíky zdroje se točí myší, zátěž s omezením proudu, monitor sběrnice;
     BASIMS V4.0 (BASIC s `IMS#`) z kazety měří napětí, na kazetě jsou za ním ukázkové programy `PRIKLAD`
@@ -87,7 +87,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
     stranami a zoubky proti zápisu, kreslená kazeta s cívkami v okně Média, kopírovací program CKM magnetofon ↔
     KZD-1 v originále i v opravené kopii (`media/mikos/CKM_opraveny.hex`, originál po čtení z KZD-1 nastaví
     nulovou délku bloku). Návody k obsluze KZD-1 a Minigrafu:
-    [docs/navod-kzd1.md](docs/navod-kzd1.md), [docs/navod-minigraf.md](docs/navod-minigraf.md);
+    [docs/navod-kzd1.md](docs/navod-kzd1.md), [docs/navod-minigraf.md](docs/navod-minigraf.md),
+    [docs/navod-xy4130.md](docs/navod-xy4130.md);
   - DSP-1 se dvěma sériovými kanály 8251 (programy XMODEM J. Bíby ověřené oběma směry);
   - deska reálného času RTC-1 (čítač ve dvousekundách podle hodin PC, 8253, přerušení, watchdog);
   - tiskárna Centronics na X3 procesorové karty nebo na DPP-1: soubor s bajty a okno s vytištěným textem;
@@ -152,6 +153,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   i monitoru, adresář, kopírování z magnetofonu a zpět programem CKM, i jeho opravenou kopií).
 - [docs/navod-minigraf.md](docs/navod-minigraf.md): návod k zapisovači Minigraf 0507 (ovladač z EPROM, kreslení
   z BASICu přes `CALL`, příkaz `KRES` v milimetrech, s příklady).
+- [docs/navod-xy4130.md](docs/navod-xy4130.md): návod k grafické jednotce XY 4130 (tlačítko PEN, zkouška, výpis
+  `LLIST`, ukázka kresby ze strojového kódu, nový papír).
 - [docs/navod-dps1.md](docs/navod-dps1.md): návod k desce DPS-1 a měřicímu pracovišti IMS-2 (BASIMS z kazety,
   měření voltmetrem M1T 330, smyčka, okno s přístroji a monitorem sběrnice, příkazy).
 - [docs/navod-ar1990.md](docs/navod-ar1990.md): návod k plotteru z AR 1990 (zapnutí, test, ukázka, povely

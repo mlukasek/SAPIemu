@@ -59,7 +59,7 @@ Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5
 | Soubor | Obsah | Zdroj |
 |---|---|---|
 | `roms/mikos/MONITOR_V5.0F_MIKOS_V5.0.bin` | Monitor V5.0F (0000–0BFF) + MIKOS V5.0 (0C00–13FF), 5 KB | prvních 5 KB `_ROM\MIKOS v5\MIKOS5.BIN` (MD5 celého 29d02716…). Za tím je v originálu na 1400–17FF program přenosu dat (BLOCK DATA TRANSFER) a na 1800–1FFF ovladač zapisovače
-XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); v repu nejsou. |
+XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); celé je jako `MONITOR_V5.0F_MIKOS_V5.0_XY4130.bin` (sestava `zps/ZPS-2_MIKOS_V5_XY4130`, `docs/desky/XY4130.md`). |
 | `roms/mikos/MONITOR_V5.0E_MIKOS_V5.0.bin` | Monitor V5.0E + MIKOS V5.0, 5 KB | `_ROM\MIKOS v5\MONITOR5.BIN`, MD5 af17aef0… |
 
 - Shoda s výpisy na sapi.cz: MIKOS V5.0 bajt po bajtu. Monitory se liší jen výplní za koncem kódu (0801 u E,
