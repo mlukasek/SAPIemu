@@ -15,10 +15,24 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - **Etapa 2 (hotová):** okno Vybrat sestavu (`src/frontend/browser.cpp`, rejstřík `machines/_vyber.json`,
     `core/machine_index`), náhledy `machines/previews` z `tools/make_previews.py`, průvodci `machines/guides` česky
     a anglicky pro 16 sestav, okno Průvodce sestavou (otevře se samo u Základu, Liborových desek a Her a dem, jde
-    vypnout), první spuštění otevře výběr sestav. Test `test_machine_index`.
-  - **Dál:** náhledy přístrojů jako snímky jejich oken (teď obrazovka SAPI), etapa 4 (úklid GUI, zkratky,
-    Nastavení s MCP, O programu), etapa 5 (licence a poznámky třetích stran, ikona, log, `package.py --public`,
-    anglické README), beta pro kamarády.
+    vypnout), první spuštění otevře výběr sestav. Test `test_machine_index`. Náhledy přístrojů (APS-5, IMS-2, KZD-1,
+    Minigraf, RMP-1) jsou snímky jejich oken (`sapiemu --ui-crop`, stav z cli přes `--ui-state`).
+  - **Etapa 4 (hotová, `9119c46`):** okno Nastavení (jazyk, zvuk, myš, průvodci, server MCP s portem, ffmpeg),
+    Nápověda → Klávesové zkratky, O programu (obrázek `docs/img/o-programu.png`), První kroky a Návody; Soubor →
+    Poslední sestavy; zkratky emulátoru se při psaní do textového pole neuplatní; nástrojová okna se poprvé otevřou
+    u pravého okraje; průvodce se sám otevře jen po spuštění sestavy uživatelem. **MCP v GUI podle Nastavení:** nová
+    instalace vypnutý, starší nastavení bez položky `mcp` zapnutý (autorovo nastavení tedy MCP zachová),
+    `--mcp-port` zapne vždy, `--no-mcp` ne.
+  - **Stav:** vše jen lokálně commitnuté (od `d503a33` po `9119c46`), **nepushnuté**; testy debug 57/57.
+    Před pushem: release test, WSL, `check_machines.py --games`, kontrola dokumentace.
+  - **Dál, etapa 5:**
+    - `THIRD-PARTY-NOTICES.txt` (i SDL3, zlib) do zipu, copyright v README a LICENSE;
+    - ikona a VERSIONINFO exe, soubor logu, okno s chybou při startu, `work/` náhradou v uživatelské složce;
+    - `package.py --public` bez `REPO_ONLY` a bez `work/ide`, vývojářské poznámky (`SOUHRN`, `rozhodnuti`,
+      `hw-otazky*`) do `docs/dev/` a nebalit;
+    - anglický úvod v README, sekce Síť a soukromí, verze 0.7.0 v CMake.
+
+    Pak etapa 6: beta pro kamarády se žádostí o souhlasy (`docs/vydani/souhlasy.md`), nakonec veřejné vydání.
 - **Grafická jednotka XY 4130 (2026-10-17, autor: „Zkusil bych ten plotter XY 4130“):** podle stránky Z9001
   (hc-ddr.hucki.net) a jejích odkazů: návody XY 4131 a XY 4140, schéma XY 4140, Průvodní technická dokumentace
   XY 4150 a projekt plottercontroller. Zapisovač `src/chips/xy4130.*`:
