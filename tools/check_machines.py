@@ -17,6 +17,7 @@ import subprocess
 import sys
 import time
 import wave
+import re
 import zlib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,6 +67,7 @@ MACHINES = {
     'sapi1v_BadApple': (ecmon('3') + t('BADAPPLE\\r') + run(15000), ['shot:CGA-1V']),
     'sapi1v_PoP': (ecmon('3') + t('POP\\r') + run(15000), ['shot:CGA-1V']),
     'sapi1v_DGD_Flapy': (ecmon('3') + t('C:FLAPDGD\\r') + run(8000), ['shot:DGD-1V']),
+    'sapi1v_hry': (ecmon('3') + t('FLAPDGD\\r') + run(8000), ['shot:DGD-1V']),
     'cpm_boot_dlouhe_rpd1_fdc1': (CPM + cpm_dir('B:'), ['.']),
     'cpm_boot_dlouhe_rpd1_fdc1_35': (CPM + cpm_dir('B:'), ['.']),
     'cpm_boot_fdc1': (CPM + cpm_dir(), [' MAC']),
@@ -228,7 +230,7 @@ def variant(sb, src, dst, image=None):
     s = open(os.path.join(sb, 'machines', src), encoding='utf-8').read()
     s = s.replace('"mode": "rw"', '"mode": "nosave"')
     if image:
-        s = s.replace('media/zrmd-1/ba-ramdisk.bin', image)
+        s = re.sub(r'"image": "media/zrmd-1/[^"]*"', '"image": "%s"' % image, s, count=1)
     open(os.path.join(sb, 'machines', dst), 'w', encoding='utf-8').write(s)
     return 'machines/' + dst
 
@@ -236,9 +238,9 @@ def variant(sb, src, dst, image=None):
 def check_games(cli, sb):
     out_dir = os.path.join(sb, 'games')
     os.makedirs(out_dir, exist_ok=True)
-    allgames = variant(sb, 'sapi1v_BadApple.sapi', 'check_games.sapi', 'media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin')
-    badapple = variant(sb, 'sapi1v_BadApple.sapi', 'check_badapple.sapi')
-    flapdgd = variant(sb, 'sapi1v_DGD_Flapy.sapi', 'check_flapdgd.sapi')
+    # the machine of the release with all games and demos; Prince of Persia only from the disk of the repository
+    hry = variant(sb, 'sapi1v_hry.sapi', 'check_hry.sapi')
+    pop = variant(sb, 'sapi1v_hry.sapi', 'check_pop.sapi', 'media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin')
     ok = bad = 0
 
     def report(name, fails):
@@ -254,7 +256,7 @@ def check_games(cli, sb):
     acts = ecmon('3') + t('BADAPPLE\\r')
     for k in range(1, 9):
         acts += run(30000) + ['--display', 'CGA-1V', '--screenshot', os.path.join(out_dir, 'badapple_%03d.png' % (k * 30))]
-    out = cli_run(cli, sb, badapple, acts + ['--print-screen'], os.path.join(out_dir, 'badapple.txt'))
+    out = cli_run(cli, sb, hry, acts + ['--print-screen'], os.path.join(out_dir, 'badapple.txt'))
     fails, text = problems(out)
     tail = text[text.find('A>BADAPPLE'):] if 'A>BADAPPLE' in text else ''
     if tail.count('A>') < 2:
@@ -271,7 +273,7 @@ def check_games(cli, sb):
     for L in letters:
         acts += t(L) + run(20000)
     acts += ['--display', 'CGA-1V', '--screenshot', os.path.join(out_dir, 'fxs4.png')]
-    out = cli_run(cli, sb, allgames, acts, os.path.join(out_dir, 'fxs4.txt'))
+    out = cli_run(cli, sb, hry, acts, os.path.join(out_dir, 'fxs4.txt'))
     fails, text = problems(out)
     try:
         wf = wave.open(wav)
@@ -296,10 +298,10 @@ def check_games(cli, sb):
     keys = t('\\r') + run(1000) + t(' ') + run(4000)
     fire = (['--joystick', 'fire1'] + run(300) + ['--joystick', '-'] + run(1500) +   # the title: SELECT SCENE
             ['--joystick', 'fire1'] + run(300) + ['--joystick', '-'] + run(2900))    # scene 1
-    for name, machine, disp, cmd, start in (('POP', allgames, 'CGA-1V', 'POP', keys),
-                                            ('BOMBER', allgames, 'CGA-1V', 'BOMBER', keys),
-                                            ('FLAPPY', allgames, 'CGA-1V', 'FLAPPY', keys),
-                                            ('FLAPDGD', flapdgd, 'DGD-1V', 'C:FLAPDGD', fire)):
+    for name, machine, disp, cmd, start in (('POP', pop, 'CGA-1V', 'POP', keys),
+                                            ('BOMBER', hry, 'CGA-1V', 'BOMBER', keys),
+                                            ('FLAPPY', hry, 'CGA-1V', 'FLAPPY', keys),
+                                            ('FLAPDGD', hry, 'DGD-1V', 'FLAPDGD', fire)):
         pngs = [os.path.join(out_dir, '%s_%02d.png' % (name.lower(), s)) for s in (5, 15, 30, 60)]
         acts = (ecmon('3') + t(cmd + '\\r') + run(5000) + ['--display', disp, '--screenshot', pngs[0]] + run(5000) +
                 start + ['--display', disp, '--screenshot', pngs[1]] + run(15000) +
@@ -309,6 +311,31 @@ def check_games(cli, sb):
         imgs = [open(p, 'rb').read() for p in pngs if os.path.exists(p)]
         if len(imgs) < 4 or len(set(imgs)) < 3 or png_colours(pngs[2]) < 3:
             fails.append('the picture does not change')
+        report(name, fails)
+
+    # the demos of L. Lasota on the games disk: pictures on CGA-1V and DGD-1V, the music players sound
+    for name, cmd, disp, ms in (('CASTLE', 'CASTLE', 'CGA-1V', 5000), ('REMBRAN2', 'REMBRAN2', 'CGA-1V', 6000),
+                                ('Y1STDEMO', 'Y1STDEMO', 'DGD-1V', 8000)):
+        png = os.path.join(out_dir, name.lower() + '.png')
+        out = cli_run(cli, sb, hry, ecmon('3') + t(cmd + '\\r') + run(ms) + ['--display', disp, '--screenshot', png],
+                      os.path.join(out_dir, name.lower() + '.txt'))
+        fails, text = problems(out)
+        if not os.path.exists(png) or png_colours(png) < 2:
+            fails.append('no picture on ' + disp)
+        report(name, fails)
+    for name, cmd in (('SPLAY', 'SPLAY HELLFIRE.VGM'), ('RAT', 'RAT SMJOOP.RAD'), ('SNDDEMON', 'SNDDEMON')):
+        wav = os.path.join(out_dir, name.lower() + '.wav')
+        out = cli_run(cli, sb, hry, ecmon('3') + ['--audio-wav', wav] + t(cmd + '\\r') + run(10000),
+                      os.path.join(out_dir, name.lower() + '.txt'))
+        fails, text = problems(out)
+        try:
+            wf = wave.open(wav)
+            data = wf.readframes(wf.getnframes())
+            smp = struct.unpack('<%dh' % (len(data) // 2), data)[::7]
+            if not smp or max(abs(x) for x in smp) < 1000:
+                fails.append('silent')
+        except Exception as ex:
+            fails.append('no sound: %s' % ex)
         report(name, fails)
     return ok, bad
 

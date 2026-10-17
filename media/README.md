@@ -59,7 +59,16 @@ Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
   - `pop-ramdisk.bin`: POP.COM, POP.DAT (data hry, 3,3 MB), POP.SAV, ZRDBENCH.COM, port Prince of Persia z repa
     SAPI-Prince-of-Persia. Sestava `sapi1v_PoP.sapi`;
   - `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin`: PoP, FXS4, FLAPPY, BOMBER, BKP, DOCPM, DOCPM10, ZRDBENCH (záloha
-    se všemi hrami), volba v konfigurátoru u ZRD-1V.
+    se všemi hrami), volba v konfigurátoru u ZRD-1V;
+  - `hry-a-dema.bin` (2026-10-17): RAM disk ve vydání, sestava `sapi1v_hry.sapi` (CGA-1V i DGD-1V). Vyrábí ho
+    `tools/make_hry_disk.py` z `ba-ramdisk.bin`, BADAPPLE.DAT zůstane na svém místě. Na disku jsou:
+    - hry z build složek repozitářů vedle SAPIemu: FXS4, FLAPPY (CGA-1V), FLAPDGD (DGD-1V, port L. Lasoty),
+      BOMBER, BKP (Bratrstvo kočičí pracky, verze pro SAPI „-LAILA-“);
+    - dema a testy L. Lasoty z `media/cga-1v`, `media/mph-1v` a `..\SAPI-karty\MPH-1V`: Y1STDEMO, SNDDEMON,
+      CASTLE, REMBRAN1, REMBRAN2, CGATEST, MPHTEST;
+    - přehrávače SPLAY a RAT s 11 skladbami VGM a 15 moduly RAD.
+
+    Volných zůstává 244 KB. Seznam souborů je v `tools/make_hry_disk.py` a `docs/vydani/sestavy.md`.
 
   **Obrazy s Prince of Persia jsou jen v repu**, do balíčku alfy je `tools/package.py` nedává (data hry Jordana
   Mechnera / Broderbund se dál nešíří; `REPO_ONLY`, stejně tak sestava `sapi1v_PoP.sapi`).
