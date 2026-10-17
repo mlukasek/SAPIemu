@@ -80,6 +80,7 @@ Zdroje:
 - 28C64: A0–A3 = řádek, A4–A11 = kód, **A12 = sada fontu z S1 9-10**. 16 B na znak (řádky 0–5 a 8–13), body
   D7 (vlevo) až D2, stejně jako AND-1Z.
 - Dvě sady po 256 znacích: `..\SAPI-karty\AND-1V\FontROM\FontAND1V.bmp.bin` (alternativní a standardní).
+  **Standardní je sada bez propojky S1 9-10, tedy horní polovina (A12 = 1)** (L. Lasota 2026-10-17).
 
 ## Plán emulace
 

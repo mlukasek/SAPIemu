@@ -133,7 +133,8 @@ Otevřených bodů: **237** v 49 sekcích. Desky jsou první, pak ostatní téma
   `JPR-1V.md`. **Změřeno na desce autora 2026-10-11 a emulováno** (`docs/zmeny-podle-hw.md`). Zbývá ověřit po
   Liborově záplatě IC15 na JPR-1V.
 
-- Samostatný dokument „Programování karty“ (datasheet str. 7 na něj odkazuje) zatím nemáme.
+- Samostatný dokument „Programování karty“ (datasheet str. 7 na něj odkazuje) zatím neexistuje: L. Lasota ho ještě
+  nenapsal (2026-10-17).
 
 
 ## [CRM-1 – deska zálohovaných pamětí](desky/CRM-1.md) – Nejasnosti k ověření na HW (3)
@@ -783,8 +784,8 @@ Rozhodne všechna místa označená [S] a [?]:
       nepoužívají (autor, odpovědi výše); AND-1V je na F800 s MAP1 = L kvůli CGA-1V.
     - ~~Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká?~~ Nečeká (změřeno 2026-10-11,
       `docs/zmeny-podle-hw.md`). Visí DGD-1 při BOOT opravdu?
-    - Rev 1.1 (autor ji nemá, jeho deska je rev 2.3): která polovina fontu (A12 = 0/1) je standardní?
-      Zeptat se Libora.
+    - ~~Rev 1.1 (autor ji nemá, jeho deska je rev 2.3): která polovina fontu (A12 = 0/1) je standardní?~~
+      L. Lasota 2026-10-17: ta bez propojky S1 9-10, tedy horní polovina (A12 = 1).
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
     - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). ~~Nuluje /RES čítače a
@@ -802,7 +803,8 @@ Rozhodne všechna místa označená [S] a [?]:
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
     - ~~`..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?~~ Ano, je od Sharpu, autor ho smazal
       (2026-10-14).
-    - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
+    - ~~Je k dispozici dokument „Programování karty“~~ Zatím ne, L. Lasota ho ještě nenapsal (2026-10-17).
+      Novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
 25. **Bzučák** (`docs/desky/klavesnice.md`):

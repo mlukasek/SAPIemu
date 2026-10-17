@@ -897,8 +897,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
       nepoužívají (autor, odpovědi výše); AND-1V je na F800 s MAP1 = L kvůli CGA-1V.
     - ~~Ověřit: s JPR-1V AND-1V při IN/OUT na porty F8–FF nečeká?~~ Nečeká (změřeno 2026-10-11,
       `docs/zmeny-podle-hw.md`). Visí DGD-1 při BOOT opravdu?
-    - Rev 1.1 (autor ji nemá, jeho deska je rev 2.3): která polovina fontu (A12 = 0/1) je standardní?
-      Zeptat se Libora.
+    - ~~Rev 1.1 (autor ji nemá, jeho deska je rev 2.3): která polovina fontu (A12 = 0/1) je standardní?~~
+      L. Lasota 2026-10-17: ta bez propojky S1 9-10, tedy horní polovina (A12 = 1).
 
 22. **Desky V – RAM-1V, DSM-1V, ZRD-1V** (rozbor `docs/desky/RAM-1V.md`, `DSM-1V.md`, `ZRMD-1.md`):
     - **ZRD-1V:** PDF schématu (vytisknout `ZRD-1V.sch` z Eagle jako u ostatních). ~~Nuluje /RES čítače a
@@ -916,7 +916,8 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 23. **CGA-1V** (`docs/desky/CGA-1V.md`):
     - ~~`..\SAPI-karty\CGA-1V\RADICROM.bin` k desce nepatří. Je tam omylem?~~ Ano, je od Sharpu, autor ho smazal
       (2026-10-14).
-    - Je k dispozici dokument „Programování karty“ a novější CGATEST, který má i test CGA (volba 1)?
+    - ~~Je k dispozici dokument „Programování karty“~~ Zatím ne, L. Lasota ho ještě nenapsal (2026-10-17).
+      Novější CGATEST, který má i test CGA (volba 1)?
     - Liborovy programy smí do repa jako binárky (autor), jsou v `media/cga-1v/`.
 
 24. ~~**MPH-1V**~~: vyřešeno schématem hotové desky (`..\SAPI-karty\MPH-1V\Eagle`), viz `docs/desky/MPH-1V.md`.

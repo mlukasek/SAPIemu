@@ -60,7 +60,7 @@ Seřazeno podle toho, jak viditelný by rozdíl byl.
   magnetofonu ([kazeta.md](software/kazeta.md)).
 - **Ostatní karty:** DSP-1 (bity SA2, 75154 bez kabelu), RTC-1 (PA v módu 1, kabel /INT), CRM-1 (délka WAIT, SA1),
   DPP-1 (kanál 1, tiskárna), RAM-1Z, ZRD-1V rev 2.1 (okno 74LS123, AIN), JPR-1S (propojky, /RTL), AND-1B starší
-  revize, AND-1Z neoznačené vstupy DD4 A7 a DA1 A6, AND-1V rev 1.1 (polovina fontu; autor má rev 2.3).
+  revize, AND-1Z neoznačené vstupy DD4 A7 a DA1 A6.
 - **Přístroje:** APS-5 (/PFAIL, kódy kláves HRK-1B, ADP-1), DPS-1 a IMS-2 (NDAC, /OBF, bajt 00h s ATN, odpovědi
   M1T 330), plotter AR 1990 (doraz, LED, kód zrušení zmenšení), Minigraf (rychlost, pero po zapnutí), XY 4130,
   tiskárna (kolík 16 X3, hrana /STROBE).
@@ -75,7 +75,7 @@ Tyto body se mohou vyřešit kdykoli, nebo nikdy:
   ruční oprava FAST v plotteru AR 1990, verze ovladače ve FORMRKD, zdroje OFFSHDD.COM a BIOSu 2015, test TSX 10,
   kdo dělal testy MFC_TEST_CPM;
 - dokumentace a tisky: OCR „EB00H“ u DGD-1, BAT41/BAT42, IC4 74HCT04/14 u JPR-1S, prázdný `TEST AND1` v BIOSu 2.1,
-  dokument „Programování karty“ CGA-1V, PROM D3D DPS-1 (jen ukázka), zapojení lišty SV2 IDE-1;
+  PROM D3D DPS-1 (jen ukázka), zapojení lišty SV2 IDE-1;
 - vzhled: panely karet a přístrojů (ZPS, SM 5300, BS 525), poloha obrazu AND-1B o pár bodů, S3 AND-1B, výchozí
   barva AND-1B, směr os myši MPH-1V (žádný program myš nepoužívá), joyport ANK-1M2 (žádný známý program);
 - historie: kdo a s čím provozoval RKD-1, XY 4130, DSP-1 v. č. 44127, mechaniky u MFC-1A, firmware ZPS-5, sítě
