@@ -2,7 +2,25 @@
 
 Sestava je popis počítače: sběrnice, karty ve slotech a jejich jumpery. Je uložená v souboru `.sapi`
 (JSON s komentáři). Emulátor sestavy hledá ve složce `machines/` vedle sebe (i v podsložkách), ale soubor může
-ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigurátoru.
+ležet kdekoli: otevírá se přes Soubor → Otevřít soubor sestavy… nebo v konfigurátoru.
+
+## Výběr sestav (Soubor → Vybrat sestavu…)
+
+Okno nabízí sestavy po skupinách s náhledem, krátkým textem a technickým popisem (pole `description` sestavy).
+Při prvním spuštění (bez souboru nastavení) se otevře samo. Podklady (2026-10-17, `docs/vydani/sestavy.md`):
+
+- **`machines/_vyber.json`** (JSON s komentáři; soubory začínající `_` nejsou sestavy): kategorie v pořadí
+  (`id`, `name`, `name_en`, `text`, `text_en`, `group` pro kategorie pod společným nadpisem „Ostatní“, `guides`
+  = průvodce se otevře sám) a seznamy sestav, k sestavám krátký titulek a text (`title`, `title_en`, `summary`,
+  `summary_en`). Sestavy, které rejstřík nezná (vlastní), jsou na konci v „Nezařazené a vlastní sestavy“.
+- **Náhledy** `machines/previews/<id>.png`, kde `<id>` je cesta v `machines/` bez `.sapi` a s `_` místo `/`
+  (`zps_ZPS-1`). Vyrábí je `python tools/make_previews.py [--debug] [filtr]`: sestavu spustí scénářem z
+  `tools/check_machines.py` (nebo z `PREVIEWS` ve skriptu) nad čistou kopií dat a obrazovku zmenší na 480 bodů.
+- **Průvodci** `machines/guides/<id>.md` a `<id>.en.md`: krátký Markdown (nadpisy, odrážky, bloky kódu s
+  tlačítkem Napsat do SAPI, odkazy na `docs/` a web). Okno Průvodce sestavou se otevře samo u kategorií s
+  `guides`, dokud ho uživatel u sestavy nebo celkově nevypne (nastavení `guides`).
+- Naposledy spuštěné sestavy (z okna) jsou nahoře, ukládají se v nastavení (`browser.recent`).
+- Test `test_machine_index` hlídá, že rejstřík zná jen existující sestavy a sestavy s průvodcem ho mají.
 
 ## Konfigurátor (Zobrazení → Sestava…)
 
@@ -104,7 +122,7 @@ ležet kdekoli: otevírá se přes Soubor → Otevřít soubor… nebo v konfigu
 - **Uložit** zapíše soubor s komentáři z katalogu: u každého jumperu je jeho označení a význam zvolené
   hodnoty. Ruční komentáře z původního souboru se při uložení z konfigurátoru ztratí.
 - **Konfigurátor ukazuje běžící sestavu.** Když má neuložené změny a má se nahradit jinou sestavou (menu
-  Soubor → Otevřít sestavu, Otevřít soubor…, v konfigurátoru Nová a Otevřít…, i ukončení emulátoru), nejdřív
+  Soubor → Vybrat sestavu…, Otevřít soubor sestavy…, v konfigurátoru Nová a Otevřít…, i ukončení emulátoru), nejdřív
   se zeptá: **Uložit / Uložit jako… / Zahodit / Zrušit**. Zrušit akci nechá být. Když sestavu přepne MCP,
   dotaz přijde hned potom a Zrušit ponechá rozpracované změny v konfigurátoru. Vypnutí a zapnutí stejné sestavy
   (NAPÁJENÍ, „Zapnout s touto sestavou“) se neptá a změny zachová.

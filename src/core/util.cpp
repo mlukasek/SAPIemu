@@ -232,6 +232,7 @@ std::vector<std::string> list_machine_files(void)
     for (auto& e : fs::recursive_directory_iterator(u8_to_path(data_path("machines")), ec)) {
         std::filesystem::path ext = e.path().extension();
         if (ext != ".sapi" && ext != ".jsonc" && ext != ".json") continue;   // .jsonc/.json: older files
+        if (path_to_u8(e.path().filename()).rfind("_", 0) == 0) continue;   // _vyber.json: the index, not a machine
         out.push_back(data_relative(path_to_u8(e.path())));
     }
     std::sort(out.begin(), out.end());

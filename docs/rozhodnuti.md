@@ -1729,3 +1729,18 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
 - **Kabely dva** (`mikos`, `kres`): sapi.cz u ovladače v EPROM a návod KRESu uvádějí jiná zapojení; zapisovač jde na
   JPR-1 X3 i na DPP-1. READY je zapojený jen v kabelu KRESu (P2-IN5, PB5), na JPR-1 by šel do žádosti o přerušení R5
   jako každý vstup P2-IN.
+
+## 2026-10-17 – výběr sestav a průvodci
+
+- **Po prvním spuštění se otevře výběr sestav** (autor: „po první spuštění by měl být nějaký výběr sestav“). Dřív
+  se otevíral konfigurátor za obrazovkou (0.5.0), teď je dostupný ze Zobrazení a z výběru (Otevřít v konfigurátoru).
+- **Rejstřík `machines/_vyber.json` místo nových polí v `.sapi`:** kategorie, pořadí a texty pro nováčky jsou na
+  jednom místě, sestavy zůstávají beze změny a konfigurátor je nemusí znát. Náhledy a průvodci se hledají podle
+  jména souboru (`machines/previews`, `machines/guides`). Vlastní sestavy se ukážou v „Nezařazené a vlastní“.
+- **Průvodce se otevře sám jen u Základu, Liborových desek a Her a dem**, jde vypnout u sestavy i celkově a
+  zkušené neobtěžuje (autor: „snadno skrytelné a neotravující pro zkušenější uživatele“).
+- **Soubor → Otevřít sestavu** (plochý seznam 60 cest) nahradilo okno výběru; „Otevřít soubor…“ se jmenuje
+  „Otevřít soubor sestavy…“. MCP `list_machines` vrací cesty jako dřív a navíc `entries` s texty z rejstříku.
+- **Sestava „SAPI-1 V: hry a dema“** (`sapi1v_hry`) má CGA-1V i DGD-1V přepínané přes MAP2 a jeden RAM disk z
+  `tools/make_hry_disk.py`. `sapi1v_BadApple` a `sapi1v_DGD_Flapy` nahradila a autor je smazal. Hudba VGM i RAD
+  zůstala (autor), „-LAILA-“ je L. Lasota.

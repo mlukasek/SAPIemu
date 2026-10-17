@@ -12,6 +12,7 @@
 #include "core/headless.h"
 #include "core/host.h"
 #include "core/log.h"
+#include "core/machine_index.h"
 #include "core/machine_cfg.h"
 #include "core/machine_map.h"
 #include "core/png.h"
@@ -236,9 +237,22 @@ json t_machine_info(EmuHost& h, const json&)
 
 json t_list_machines(EmuHost&, const json&)
 {
-    json list = json::array();
-    for (const std::string& f : list_machine_files()) list.push_back(f);
-    return json_result(json{ { "machines", list } });
+    MachineIndex idx;
+    std::string err;
+    machine_index_load(idx, err);
+    json list = json::array(), entries = json::array();   // machines: the paths as before; entries: the details
+    for (const MachineEntry& e : idx.machines) {
+        list.push_back(e.file);
+        json j = { { "file", e.file }, { "name", e.name } };
+        if (!e.title.empty()) j["title"] = e.title;
+        if (e.category >= 0) j["category"] = idx.categories[(size_t)e.category].name;
+        if (!e.summary.empty()) j["summary"] = e.summary;
+        if (!e.guide.empty()) j["guide"] = e.guide;
+        entries.push_back(j);
+    }
+    json r = { { "machines", list }, { "entries", entries } };
+    if (!err.empty()) r["index_problems"] = err;
+    return json_result(r);
 }
 
 json param_json(const CardParam* p)

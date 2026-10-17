@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""Preview pictures of the machines for the window "Choose a machine": machines/previews/<id>.png.
+
+Usage: python tools/make_previews.py [--debug] [FILTER]
+
+Each machine runs in sapiemu-cli as in tools/check_machines.py (its scenario brings the machine to something to
+see), over a clean copy of the data (git archive, no work/ as in a fresh install). The screen, or the graphics
+named by the scenario ("shot:CGA-1V") or by PREVIEWS below, is saved, scaled down to at most 480 points wide and
+compressed. Run again after a machine or its software changes; the pictures are committed.
+"""
+import os
+import struct
+import subprocess
+import sys
+import time
+import zlib
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import check_machines as cm  # noqa: E402
+
+ROOT = cm.ROOT
+OUT = os.path.join(ROOT, 'machines', 'previews')
+MAX_W = 480
+
+# machines with a better picture than the one of their check: (actions, display or None for the console)
+PREVIEWS = {
+    'sapi1v': (cm.ecmon('3') + ['--load-hex', 'media/cga-1v/castle.hex'] + cm.t('SAVE 64 CASTLE.COM\\r') +
+               cm.run(1500) + cm.t('CASTLE\\r') + cm.run(5000), 'CGA-1V'),
+    'sapi1v_hry': (cm.ecmon('3') + cm.t('FLAPPY\\r') + cm.run(8000), 'CGA-1V'),
+    'zps_ZPS-2_MIKOS_V5': (cm.run(3000) + ['--load-hex', 'media/mikos/BASIC_EXP_V5.0G.hex'] + cm.t('B') + cm.run(3000) +
+                           cm.t('CLSG:FOR I=0 TO 319 STEP 8:MOVE I,0:PLOT 319-I,239:NEXT I\\r') + cm.run(8000), 'DGD-1'),
+    'zps_ZPS-1': (cm.w('READY', 10000) + cm.t('10 FOR I=1 TO 5\\r') + cm.run(400) + cm.t('20 PRINT I,I*I\\r') + cm.run(400) +
+                  cm.t('30 NEXT I\\r') + cm.run(400) + cm.t('RUN\\r') + cm.run(6000), None),
+    'zps_ZPS-6': (cm.CPM + cm.t('SETDBS1\\r') + cm.run(5000), None),
+    'jpr1s_bgp1s': (cm.MANIC, 'BGP-1S'),
+}
+
+
+def read_png(path):
+    """RGB rows of a PNG of the emulator: RGB/RGBA 8 bits or a palette of 1-8 bits, any filter."""
+    d = open(path, 'rb').read()
+    pos, w, h, depth, ct, idat, pal = 8, 0, 0, 8, 0, b'', b''
+    while pos < len(d):
+        ln = struct.unpack('>I', d[pos:pos + 4])[0]
+        tp = d[pos + 4:pos + 8]
+        body = d[pos + 8:pos + 8 + ln]
+        if tp == b'IHDR':
+            w, h, depth, ct = struct.unpack('>IIBB', body[:10])
+        elif tp == b'PLTE':
+            pal = body
+        elif tp == b'IDAT':
+            idat += body
+        pos += 12 + ln
+    raw = zlib.decompress(idat)
+    chans = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[ct]
+    bits = chans * depth
+    stride = (w * bits + 7) // 8
+    bpp = max(1, bits // 8)
+    prev = bytearray(stride)
+    rows = []
+    for y in range(h):
+        f = raw[y * (stride + 1)]
+        line = bytearray(raw[y * (stride + 1) + 1:(y + 1) * (stride + 1)])
+        for i in range(stride):   # undo the filter
+            a = line[i - bpp] if i >= bpp else 0
+            b = prev[i]
+            c = prev[i - bpp] if i >= bpp else 0
+            if f == 1:
+                line[i] = (line[i] + a) & 255
+            elif f == 2:
+                line[i] = (line[i] + b) & 255
+            elif f == 3:
+                line[i] = (line[i] + (a + b) // 2) & 255
+            elif f == 4:
+                pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
+                pr = a if pa <= pb and pa <= pc else (b if pb <= pc else c)
+                line[i] = (line[i] + pr) & 255
+        prev = line
+        out = bytearray()
+        if ct == 3 or ct == 0:
+            mask = (1 << depth) - 1
+            for x in range(w):
+                bit = x * depth
+                v = (line[bit // 8] >> (8 - depth - bit % 8)) & mask
+                if ct == 3:
+                    out += pal[v * 3:v * 3 + 3]
+                else:
+                    g = v * 255 // mask
+                    out += bytes((g, g, g))
+        else:
+            step = chans
+            for x in range(w):
+                px = line[x * step:x * step + step]
+                out += px[:3] if ct in (2, 6) else bytes((px[0], px[0], px[0]))
+        rows.append(bytes(out))
+    return w, h, rows
+
+
+def shrink(w, h, rows):
+    """Integer box filter down to at most MAX_W wide."""
+    f = 1
+    while w // f > MAX_W:
+        f += 1
+    if f == 1:
+        return w, h, rows
+    nw, nh = w // f, h // f
+    out = []
+    for y in range(nh):
+        r = bytearray(nw * 3)
+        for x in range(nw):
+            acc = [0, 0, 0]
+            for yy in range(y * f, y * f + f):
+                src = rows[yy]
+                for xx in range(x * f, x * f + f):
+                    for c in range(3):
+                        acc[c] += src[xx * 3 + c]
+            for c in range(3):
+                r[x * 3 + c] = acc[c] // (f * f)
+        out.append(bytes(r))
+    return nw, nh, out
+
+
+def write_png(path, w, h, rows):
+    def chunk(tp, body):
+        return struct.pack('>I', len(body)) + tp + body + struct.pack('>I', zlib.crc32(tp + body) & 0xFFFFFFFF)
+    raw = b''.join(b'\x00' + r for r in rows)
+    png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
+    png += chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b'')
+    open(path, 'wb').write(png)
+
+
+def sandbox():
+    sb = os.path.join(ROOT, 'out', 'previews', time.strftime('%Y%m%d-%H%M%S'))
+    os.makedirs(sb)
+    arc = subprocess.run(['git', 'archive', 'HEAD', 'roms', 'media', 'machines'], cwd=ROOT, capture_output=True,
+                         check=True).stdout
+    open(os.path.join(sb, 'data.tar'), 'wb').write(arc)
+    subprocess.run(['tar', '-xf', 'data.tar'], cwd=sb, check=True)
+    os.remove(os.path.join(sb, 'data.tar'))
+    return sb
+
+
+def main():
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    preset = 'windows-debug' if '--debug' in sys.argv else 'windows-release'
+    cli = os.path.join(ROOT, 'out', 'build', preset, 'sapiemu-cli.exe')
+    if not os.path.exists(cli):
+        cli = os.path.join(ROOT, 'out', 'build', 'windows-debug', 'sapiemu-cli.exe')
+    sb = sandbox()
+    os.makedirs(OUT, exist_ok=True)
+    tmp = os.path.join(sb, 'shots')   # the full pictures and the logs stay there
+    os.makedirs(tmp)
+    done = bad = 0
+    for name in sorted(cm.MACHINES):
+        if args and args[0] not in name:
+            continue
+        rel = 'machines/' + name.replace('zps_', 'zps/', 1) + '.sapi' if name.startswith('zps_') else 'machines/' + name + '.sapi'
+        if not os.path.exists(os.path.join(sb, rel)):
+            continue
+        if name in PREVIEWS:
+            acts, disp = PREVIEWS[name]
+        else:
+            acts, exp = cm.MACHINES[name]
+            shots = [e[5:] for e in exp if e.startswith('shot:')]
+            disp = shots[0] if shots else None
+        png = os.path.join(tmp, name + '.png')
+        acts = list(acts) + (['--display', disp] if disp else []) + ['--screenshot', png]
+        out = cm.cli_run(cli, sb, rel, acts, os.path.join(tmp, name + '.txt'))
+        if not os.path.exists(png) or cm.png_colours(png) < 2:
+            print('%-36s FAIL (no picture) %s' % (name, out.strip().splitlines()[-1:] if out.strip() else ''))
+            bad += 1
+            continue
+        w, h, rows = shrink(*read_png(png))
+        dst = os.path.join(OUT, name + '.png')
+        write_png(dst, w, h, rows)
+        print('%-36s %dx%d %d B' % (name, w, h, os.path.getsize(dst)))
+        done += 1
+    print('previews: %d, failed %d' % (done, bad))
+    return 1 if bad else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

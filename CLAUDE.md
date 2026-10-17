@@ -51,7 +51,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap, diag = okno desky diagnostiky na K3, `plotter` = okno
-    zapisovače (Minigraf, XY 4130), `shot` = snímky obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg);
+    zapisovače (Minigraf, XY 4130), `shot` = snímky obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg,
+    `browser` = okno Vybrat sestavu a Průvodce sestavou; rejstřík sestav je `core/machine_index` nad
+    `machines/_vyber.json`, náhledy `machines/previews`, průvodci `machines/guides`, `docs/sestavy.md`);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `plant/`: technologie mimo počítač (`core/plant.h`, `Bus::plant`): pece a termočlánky APS-5
@@ -66,8 +68,11 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   a `rkd5400_bios.py` (vlastní BIOS CP/M J. Bíby pro RKD-1 s CM 5400 a jeho bootovací disketa, `docs/desky/RKD-1.md`),
   `ar1990_rom.py` (EPROM plotteru z AR 1990 z výpisu `roms/ar1990/PLOTTER.MAC`, `docs/desky/AR1990.md`),
   `dps1_kazeta.py` (kazeta BASIMS s programy BASIC nahraná v emulátoru přes MCP, `docs/navod-dps1.md`),
-  `check_machines.py` (před vydáním: v každé sestavě něco spustí a zkontroluje, `--games` porty a dema sestavy V;
-  nad čistou kopií dat v `out/check/`, `docs/build.md`).
+  `check_machines.py` (před vydáním: v každé sestavě něco spustí a zkontroluje, `--games` hry a dema sestavy
+  `sapi1v_hry`; nad čistou kopií dat v `out/check/`, `docs/build.md`), `make_previews.py` (náhledy sestav pro
+  okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích
+  vedle SAPIemu, `docs/vydani/sestavy.md`).
+- **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`.

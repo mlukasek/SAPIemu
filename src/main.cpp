@@ -47,6 +47,7 @@ static void print_help(void)
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2: those windows (--ui-aps5-demo: and its DEMO),\n"
+           "                     --ui-browser: Choose a machine, --ui-guide: the guide of the machine,\n"
            "                     --ui-terminal: the serial terminal, --ui-term-text TEXT: text in it (\\n = new line),\n"
            "                     --ui-term-sel L0,C0-L1,C1: a selection in it (line indexes, cell boundaries),\n"
            "                     --ui-drag FROM:TO[:drop]: drag a card in the configurator (and drop it),\n"
@@ -219,6 +220,8 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-diag") snap.diag = true;
         else if (a == "--ui-aps5") snap.aps5 = true;
         else if (a == "--ui-plotter") snap.plotter = true;
+        else if (a == "--ui-browser") snap.browser = true;
+        else if (a == "--ui-guide") snap.guide = true;
         else if (a == "--ui-ims2") snap.ims2 = true;
         else if (a == "--ui-aps5-demo") snap.aps5_demo = true;
         else if (a == "--ui-drag" && i + 1 < argc) {

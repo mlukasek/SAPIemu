@@ -4,6 +4,21 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Kde jsme skončili (2026-10-17) a co dál
 
+- **Příprava veřejného vydání (2026-10-17, autor: „soustředil bych se teď na to vydání“).** Plán po etapách je
+  v paměti a v `docs/vydani/`. Rozhodnutí autora: ostatní sestavy zůstanou v sekci Ostatní, historii repa neřešit
+  (Prince of Persia jen v repu), česky a anglicky jen základ, MCP ve vydání vypnutý.
+  - **Etapa 1 (hotová):** `docs/vydani/sestavy.md` (rozřazení 61 sestav: Základ, Liborovy desky, Hry a dema
+    včetně přístrojů, Ostatní) a `docs/vydani/souhlasy.md` (software podle majitelů, souhlasy).
+  - **Herní sestava (hotová):** `sapi1v_hry` s CGA-1V i DGD-1V a RAM diskem z `tools/make_hry_disk.py` (Bad Apple!!,
+    FXS4, oba Flappy, Bomberman, BKP, dema a hudba L. Lasoty). `check_machines --games` 12/12.
+    `sapi1v_BadApple` a `sapi1v_DGD_Flapy` smazané.
+  - **Etapa 2 (hotová):** okno Vybrat sestavu (`src/frontend/browser.cpp`, rejstřík `machines/_vyber.json`,
+    `core/machine_index`), náhledy `machines/previews` z `tools/make_previews.py`, průvodci `machines/guides` česky
+    a anglicky pro 16 sestav, okno Průvodce sestavou (otevře se samo u Základu, Liborových desek a Her a dem, jde
+    vypnout), první spuštění otevře výběr sestav. Test `test_machine_index`.
+  - **Dál:** náhledy přístrojů jako snímky jejich oken (teď obrazovka SAPI), etapa 4 (úklid GUI, zkratky,
+    Nastavení s MCP, O programu), etapa 5 (licence a poznámky třetích stran, ikona, log, `package.py --public`,
+    anglické README), beta pro kamarády.
 - **Grafická jednotka XY 4130 (2026-10-17, autor: „Zkusil bych ten plotter XY 4130“):** podle stránky Z9001
   (hc-ddr.hucki.net) a jejích odkazů: návody XY 4131 a XY 4140, schéma XY 4140, Průvodní technická dokumentace
   XY 4150 a projekt plottercontroller. Zapisovač `src/chips/xy4130.*`:

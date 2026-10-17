@@ -12,7 +12,7 @@ v `docs/desky/XY4130.md`.
 
 ## Co je potřeba
 
-1. Soubor → Otevřít sestavu → `zps\ZPS-2_MIKOS_V5_XY4130.sapi`.
+1. Soubor → Vybrat sestavu… → `zps\ZPS-2_MIKOS_V5_XY4130.sapi`.
 2. Vpravo se samo otevře okno **Zapisovač XY 4130** (jinak Zobrazení → Zapisovač (Minigraf, XY 4130)).
 3. Na obrazovce naběhne:
 

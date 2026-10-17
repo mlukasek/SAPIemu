@@ -17,7 +17,7 @@ Všechny kroky jsou vyzkoušené v emulátoru (2026-10-10), výpisy obrazovky js
 
 ## Co je potřeba
 
-1. Soubor → Otevřít sestavu → `rmp1_jb_izot.sapi`.
+1. Soubor → Vybrat sestavu… → `rmp1_jb_izot.sapi`.
 2. Zobrazení → **Média**. Dole je část „RMP-1: magnetická páska IZOT SM 5300“.
 
 Na jednotce 0 je **ukázková páska SAPI01** (pracovní kopie `work\rmp-1\sapi01_ukazka.tap` z originálu

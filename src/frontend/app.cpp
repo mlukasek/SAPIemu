@@ -165,6 +165,8 @@ nlohmann::json settings_json(App& app)
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     if (!app.language.empty()) j["language"] = app.language;
+    j["browser"] = { { "recent", ui.recent } };
+    j["guides"] = { { "auto", ui.guides_auto }, { "hidden", ui.guides_hidden } };
     return j;
 }
 
@@ -211,6 +213,10 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(s, "tv_aspect", app.tv_aspect);
     get_opt(s, "smooth", app.smooth);
     get_opt(s, "card_types", ui.rack.show_types);
+    get_opt(j.value("browser", nlohmann::json::object()), "recent", ui.recent);
+    const nlohmann::json& gd = j.value("guides", nlohmann::json::object());
+    get_opt(gd, "auto", ui.guides_auto);
+    get_opt(gd, "hidden", ui.guides_hidden);
     const nlohmann::json& cas = j.value("cassette", nlohmann::json::object());
     get_opt(cas, "last_dir", ui.tape_dlg.last_dir);
     std::string ba;
@@ -778,15 +784,8 @@ void draw_menu(App& app)
     if (!ImGui::BeginMainMenuBar()) return;
     Machine* m = app.host.machine();
     if (ImGui::BeginMenu(tr("File"))) {
-        if (ImGui::BeginMenu(tr("Open machine"))) {
-            for (const std::string& f : list_machine_files())
-                if (ImGui::MenuItem(f.c_str(), nullptr, f == app.host.machine_file())) {
-                    rack_start_machine(app.ui, f);   // asks first if the configurator has unsaved changes
-                    m = app.host.machine();          // the old machine may be gone
-                }
-            ImGui::EndMenu();
-        }
-        if (ImGui::MenuItem(tr("Open file..."))) rack_open_and_run(app.ui);
+        if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
+        if (ImGui::MenuItem(tr("Open machine file..."))) rack_open_and_run(app.ui);
         if (ImGui::MenuItem(tr("Load program into memory (Intel HEX)..."), nullptr, false, m != nullptr))
             hex_load_dialog(app.ui);
         if (ImGui::MenuItem(tr("Load binary file into memory..."), nullptr, false, m != nullptr))
@@ -935,6 +934,12 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
+        if (ImGui::MenuItem(tr("Machine guide"), nullptr, app.ui.show_guide)) {
+            app.ui.show_guide = !app.ui.show_guide;
+            app.ui.guide_machine = app.host.machine_file();
+        }
+        if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
+        ImGui::Separator();
         ImGui::TextUnformatted(tr("Keys: F5 run/pause, Ctrl+F5 screenshot, F8 emulation speed 100/200/400 %/max, F10 step over, F11 step, F12 or F9 reset"));
         ImGui::TextUnformatted(tr("Ctrl+F8 joystick from the keyboard on/off, Ctrl+F10 releases the captured mouse"));
         ImGui::TextUnformatted(tr("Ctrl+F7 game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)"));
@@ -1229,8 +1234,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
-    // no settings yet: the first start of a fresh copy shows the machine configuration (behind the screen), so a
-    // new user sees there is one (author, 0.5.0)
+    // no settings yet: the first start of a fresh copy offers the machines (window Choose a machine, author
+    // 2026-10-17; before it was the configuration behind the screen)
     bool first_start = !app.settings_path.empty() && !file_exists(app.settings_path);
     ini_rename_windows(app.ini_path);
     if (!app.ini_path.empty()) {   // the layout knows the configuration: its place is kept at a first start too
@@ -1296,10 +1301,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
     settings_apply(app, settings);
-    if (first_start) {
-        app.ui.show_rack = true;
-        app.rack_behind = true;
-    }
+    if (first_start) app.ui.show_browser = true;
     std::string first = machine_file;
     if (first.empty()) {
         std::string last;
@@ -1322,7 +1324,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     app.settings_saved = settings;
     int snap_frames = 0;
     if (snap) {
-        app.ui.show_rack = snap->rack || !snap->open.empty() || first_start;   // --settings NEW: as a first start
+        app.ui.show_rack = snap->rack || !snap->open.empty();
+        app.ui.show_browser = snap->browser || first_start;   // --settings NEW: as a first start
+        app.ui.show_guide = snap->guide;
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
@@ -1417,6 +1421,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_media(app.ui);
         draw_printer(app.ui);
         draw_plotter(app.ui);
+        draw_browser(app.ui);
+        draw_guide(app.ui);
         draw_ims2(app.ui);
         draw_diag(app.ui);
         draw_aps5(app.ui);

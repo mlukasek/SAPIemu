@@ -153,6 +153,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   i monitoru, adresář, kopírování z magnetofonu a zpět programem CKM, i jeho opravenou kopií).
 - [docs/navod-minigraf.md](docs/navod-minigraf.md): návod k zapisovači Minigraf 0507 (ovladač z EPROM, kreslení
   z BASICu přes `CALL`, příkaz `KRES` v milimetrech, s příklady).
+- [docs/vydani/sestavy.md](docs/vydani/sestavy.md): sestavy ve vydání po skupinách (Základ, Liborovy desky, Hry a
+  dema, Ostatní), okno Vybrat sestavu s náhledy a průvodci.
 - [docs/navod-xy4130.md](docs/navod-xy4130.md): návod k grafické jednotce XY 4130 (tlačítko PEN, zkouška, výpis
   `LLIST`, ukázka kresby ze strojového kódu, nový papír).
 - [docs/navod-dps1.md](docs/navod-dps1.md): návod k desce DPS-1 a měřicímu pracovišti IMS-2 (BASIMS z kazety,

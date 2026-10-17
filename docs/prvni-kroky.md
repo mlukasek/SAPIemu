@@ -15,8 +15,13 @@ Potřebujete Windows 10 nebo 11, 64 bit.
 
 ## Sestavy
 
-Soubor → **Otevřít sestavu** nabídne připravené sestavy (`machines\`). Po prvním spuštění běží MikroMon a za oknem
-obrazovky je otevřený **konfigurátor sestavy** (karty v rámu, propojky, mapa portů; jinak Zobrazení → Sestava…).
+Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám. Sestavy jsou rozdělené do skupin:
+**Základ** (historické sestavy Tesla), **Desky Libora Lasoty**, **Hry a dema** (včetně přístrojů) a **Ostatní**. U
+každé je náhled, krátký popis a tlačítko Spustit; dvojklik sestavu také spustí. U sestav ze Základu, Liborových desek
+a Her a dem se po spuštění otevře **Průvodce sestavou** s tím, co vyzkoušet (políčko dole ho vypne, Nápověda →
+Průvodce sestavou ho otevře kdykoli). Bloky kódu v průvodci napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy
+odjinud otevře Soubor → Otevřít soubor sestavy…, konfigurátor sestavy (karty v rámu, propojky, mapa portů) je
+Zobrazení → Sestava….
 
 | Sestava | Co v ní je | Jak začít |
 |---|---|---|

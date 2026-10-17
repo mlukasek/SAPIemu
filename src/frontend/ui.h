@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "json.hpp"
+#include "core/machine_index.h"
 #include "core/machine_map.h"
 #include "core/term.h"
 #include "plant/aps5_demo.h"
@@ -109,6 +110,17 @@ struct UiState {
     bool aps5_demo_was_max = false;   // the speed before
     bool aps5_demo_autostart = false; // --ui-aps5-demo: start it without the dialog
     bool show_rack = false;
+    // the window "Choose a machine" and the guide of a machine (frontend/browser.cpp)
+    bool show_browser = false;
+    bool browser_loaded = false;   // the index is read when the window opens
+    std::string browser_sel;       // the machine selected in it
+    MachineIndex machine_index;
+    std::vector<std::string> recent;   // machines started from the window, newest first (settings)
+    bool show_guide = false;
+    std::string guide_machine;     // the machine whose guide is shown
+    uint64_t guide_gen = ~0ull;    // the machine generation the guide was considered for
+    bool guides_auto = true;       // guides open themselves for the basic, Libor's and the games machines (settings)
+    std::vector<std::string> guides_hidden;   // machines whose guide does not open itself (settings)
     bool quit = false;             // exit confirmed (no unsaved machine description)
     std::string error;             // error for the message box of the main window
     SDL_Window* window = nullptr;
@@ -223,6 +235,10 @@ void draw_terminal(UiState& ui);
 void draw_media(UiState& ui);
 void draw_printer(UiState& ui);
 void draw_plotter(UiState& ui);
+// File -> Choose a machine: categories, previews, short texts (docs/vydani/sestavy.md); the guide of a machine
+void browser_open(UiState& ui);
+void draw_browser(UiState& ui);
+void draw_guide(UiState& ui);
 void draw_ims2(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);

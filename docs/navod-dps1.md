@@ -18,7 +18,7 @@ v konfigurátoru (Stroj → Sestava) je na panelu vidět:
 
 ## 1. Zapnutí
 
-1. Soubor → Otevřít sestavu → `zps/ZPS-2_DPS-1_IMS-2.sapi`. Naběhne MIKOS:
+1. Soubor → Vybrat sestavu… → `zps/ZPS-2_DPS-1_IMS-2.sapi`. Naběhne MIKOS:
 
    ```
    MIKOS-1 V4.0F +

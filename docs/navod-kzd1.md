@@ -12,7 +12,7 @@ o emulaci jsou v `docs/desky/KZD-1.md`, původní návod k MIKOSu/K v `..\SAPI_D
 
 ## Co je potřeba
 
-1. Soubor → Otevřít sestavu → `zps\ZPS-2_MIKOS_K.sapi`. Po startu je na obrazovce `MIKOS/K V5.0 (C) TESLA DIZ 1987`,
+1. Soubor → Vybrat sestavu… → `zps\ZPS-2_MIKOS_K.sapi`. Po startu je na obrazovce `MIKOS/K V5.0 (C) TESLA DIZ 1987`,
    `MONITOR V5.0` a tečka, výzva monitoru.
 2. Zobrazení → **Média**. Dole je část „DPP-1: kazetopáskový záznamník dat KZD-1“ s kazetou.
 

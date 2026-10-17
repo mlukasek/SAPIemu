@@ -1,0 +1,180 @@
+// Machines offered in the window "Choose a machine" (src/core/machine_index.h): categories in this order, short
+// texts for newcomers (Czech, English). Machines not named here go to "Nezařazené a vlastní sestavy".
+// Rozřazení odsouhlasené autorem 2026-10-17: docs/vydani/sestavy.md.
+{
+    "categories": [
+        {
+            "id": "zaklad",
+            "name": "Základ: historické sestavy Tesla",
+            "name_en": "Basics: historic Tesla sets",
+            "text": "Původní sestavy ZPS v pořadí, jak šly po sobě: od MIKROBASICu přes MIKOS po CP/M a SAPI-1.5.",
+            "text_en": "The original ZPS sets in the order they came: from MIKROBASIC through MIKOS to CP/M and SAPI-1.5.",
+            "guides": true,
+            "machines": [ "zps/ZPS-1.sapi", "zps/ZPS-2.sapi", "zps/ZPS-2_MIKOS_V5.sapi", "zps/ZPS-3_CPM64K_IMA.sapi",
+                          "zps/ZPS-4.sapi", "zps/ZPS-6.sapi", "mikromon.sapi" ]
+        },
+        {
+            "id": "libor",
+            "name": "Desky Libora Lasoty",
+            "name_en": "Boards of Libor Lasota",
+            "text": "Současné desky pro SAPI-1: 8080 s grafikou jako PMD-85 a sestava V se Z80, VGA, barevnou grafikou a zvukem.",
+            "text_en": "Today's boards for SAPI-1: an 8080 with PMD-85 style graphics and the V set with a Z80, VGA, colour graphics and sound.",
+            "guides": true,
+            "machines": [ "jpr1s_bgp1s.sapi", "sapi1v.sapi" ]
+        },
+        {
+            "id": "hry",
+            "name": "Hry a dema",
+            "name_en": "Games and demos",
+            "text": "Hry, hudební a grafická dema a ukázky přístrojů, které k SAPI patřily, s nakresleným přístrojem v okně.",
+            "text_en": "Games, music and graphics demos, and the instruments SAPI worked with, drawn in their own windows.",
+            "guides": true,
+            "machines": [ "sapi1v_hry.sapi", "jpr1s_bgp1s.sapi", "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi",
+                          "zps/ZPS-2_MIKOS_K.sapi", "zps/ZPS-2_MIKOS_V5_Minigraf.sapi", "rkd1_tesla_cpm.sapi",
+                          "rmp1_jb_izot.sapi" ]
+        },
+        {
+            "id": "pristroje",
+            "group": "Ostatní", "group_en": "Other",
+            "name": "Další přístroje a periferie",
+            "name_en": "More instruments and peripherals",
+            "machines": [ "zps/ZPS-2_MIKOS_V5_XY4130.sapi", "plotter_ar1990.sapi", "rkd1_jb_cm5400.sapi" ]
+        },
+        {
+            "id": "zps",
+            "group": "Ostatní", "group_en": "Other",
+            "name": "Další sestavy ZPS a jejich varianty",
+            "name_en": "More ZPS sets and variants",
+            "machines": [ "zps/MIKROBASIC_AR1983.sapi", "zps/ZPS-1_JPR-1S_AND-1B.sapi", "zps/ZPS-1_JPR-1X.sapi",
+                          "zps/ZPS-2_MIKOS_D.sapi", "zps/ZPS-2_MIKOS_V5_DGD-1V.sapi", "zps/ZPS-3.sapi",
+                          "zps/ZPS-3_CPM48K.sapi", "zps/ZPS-3_CPM48K_FDC-1.sapi", "zps/ZPS-3_CPM48K_IMA.sapi",
+                          "zps/ZPS-3_CPM62K.sapi", "zps/ZPS-3_CPM62K_FDC-1.sapi", "zps/ZPS-4_ELIS.sapi",
+                          "zps/ZPS-4_FDC-1.sapi" ]
+        },
+        {
+            "id": "ecmon",
+            "group": "Ostatní", "group_en": "Other",
+            "name": "CP/M s ECMONem (RAM disk ZRMD-1)",
+            "name_en": "CP/M with ECMON (RAM disk ZRMD-1)",
+            "machines": [ "cpm_zrmd.sapi", "cpm_ide.sapi", "cpm_zrmd_fdc1.sapi", "cpm_zrmd_mfc1a.sapi",
+                          "cpm_zrmd_dpp1.sapi", "cpm_zrmd_rtc_dsp.sapi", "cpm_ec1045.sapi" ]
+        },
+        {
+            "id": "biba",
+            "group": "Ostatní", "group_en": "Other",
+            "name": "CP/M J. Bíby (SAPIMAN)",
+            "name_en": "CP/M of J. Bíba (SAPIMAN)",
+            "machines": [ "cpm_boot_fdc1.sapi", "cpm_boot_fdc1_irmd.sapi", "cpm_boot_fdc1_rmd.sapi",
+                          "cpm_boot_fdc1_ss256.sapi", "cpm_boot_mfc1a.sapi", "cpm_boot_mfc1a_rmd.sapi",
+                          "cpm_boot_rpd1.sapi", "cpm_boot_rpd1_rmd.sapi", "cpm_boot_rpd1_ss256.sapi",
+                          "cpm_boot_rpd1_fdc1_rmd.sapi", "cpm_boot_rpd1_mfc256.sapi", "cpm_boot_rpd1_mfc512.sapi",
+                          "cpm_boot_dlouhe_rpd1_fdc1.sapi", "cpm_boot_dlouhe_rpd1_fdc1_35.sapi", "cpm_pmd_fdc1.sapi",
+                          "cpm_pmd_rpd1.sapi", "cpm_term64k_fdc1.sapi" ]
+        },
+        {
+            "id": "libor_dalsi",
+            "group": "Ostatní", "group_en": "Other",
+            "name": "Další sestavy s deskami Libora Lasoty",
+            "name_en": "More sets with the boards of Libor Lasota",
+            "machines": [ "jpr1x_bgp1s.sapi", "libor_doma.sapi", "sapi1v_BomberNet.sapi", "sapi1v_PoP.sapi" ]
+        }
+    ],
+    "machines": {
+        "zps/ZPS-1.sapi": {
+            "title": "ZPS-1 s MIKROBASICem 2.4",
+            "title_en": "ZPS-1 with MIKROBASIC 2.4",
+            "summary": "První sestava SAPI-1 (1983): procesor 8080, displej 40 × 24, klávesnice ANK-1 a MIKROBASIC v paměti. Po zapnutí se hned píše program v BASICu.",
+            "summary_en": "The first SAPI-1 set (1983): an 8080, a 40 x 24 display, the ANK-1 keyboard and MIKROBASIC in ROM. After power on you type a BASIC program right away."
+        },
+        "zps/ZPS-2.sapi": {
+            "title": "ZPS-2 s MIKOSem V4",
+            "title_en": "ZPS-2 with MIKOS V4",
+            "summary": "ZPS-2 s monitorem a operačním systémem MIKOS V4.0 a magnetofonem: povely monitoru, programy z kazety.",
+            "summary_en": "ZPS-2 with the monitor and system MIKOS V4.0 and a tape recorder: monitor commands, programs from cassettes."
+        },
+        "zps/ZPS-2_MIKOS_V5.sapi": {
+            "title": "ZPS-2 s MIKOSem V5 a grafikou DGD-1",
+            "title_en": "ZPS-2 with MIKOS V5 and graphics DGD-1",
+            "summary": "ZPS-2 s MIKOSem V5 a grafickou kartou DGD-1 (320 × 240). BASIC EXP z adresáře media\\mikos kreslí grafiku.",
+            "summary_en": "ZPS-2 with MIKOS V5 and the DGD-1 graphics card (320 x 240). BASIC EXP from media\\mikos draws graphics."
+        },
+        "zps/ZPS-3_CPM64K_IMA.sapi": {
+            "title": "ZPS-3 s CP/M 64K Tesla IMA",
+            "title_en": "ZPS-3 with CP/M 64K of Tesla IMA",
+            "summary": "ZPS-3 s disketovou jednotkou 8\" a původním systémem CP/M 64K od Tesly IMA. Na disketě je MBASIC.",
+            "summary_en": "ZPS-3 with an 8\" floppy drive and the original CP/M 64K of Tesla IMA. MBASIC is on the disk."
+        },
+        "zps/ZPS-4.sapi": {
+            "title": "ZPS-4 s CP/M 62K",
+            "title_en": "ZPS-4 with CP/M 62K",
+            "summary": "ZPS-4 s procesorem Z80, displejem 64 × 20, disketou 8\" a RAM diskem. CP/M 62K R. Peřiny, základní verze pro ZPS-4.",
+            "summary_en": "ZPS-4 with a Z80, a 64 x 20 display, an 8\" floppy and a RAM disk. CP/M 62K by R. Peřina, the basic version for ZPS-4."
+        },
+        "zps/ZPS-6.sapi": {
+            "title": "ZPS-6 (SAPI-1.5)",
+            "title_en": "ZPS-6 (SAPI-1.5)",
+            "summary": "SAPI-1.5 z roku 1990: procesorová karta PKT-1, displej DBS-1A 80 × 25 a disketa 5,25\" s CP/M od Melsoftu.",
+            "summary_en": "SAPI-1.5 of 1990: the PKT-1 CPU card, the DBS-1A display 80 x 25 and a 5.25\" floppy with CP/M by Melsoft."
+        },
+        "mikromon.sapi": {
+            "title": "MikroMon 1.3",
+            "title_en": "MikroMon 1.3",
+            "summary": "Nejmenší sestava: procesorová karta JPR-1ZI s monitorem MikroMon Libora Lasoty. Dobrá na první seznámení a ladění strojového kódu.",
+            "summary_en": "The smallest set: the JPR-1ZI CPU card with the MikroMon monitor by Libor Lasota. Good for a first look and machine code."
+        },
+        "jpr1s_bgp1s.sapi": {
+            "title": "JPR-1S a grafika BGP-1S (8080)",
+            "title_en": "JPR-1S and graphics BGP-1S (8080)",
+            "summary": "Liborova 8080 s grafikou BGP-1S jako u PMD-85 a klávesnicí s joystickem. Hraje Manic Miner a další hry z media\\jpr-1s.",
+            "summary_en": "Libor's 8080 with the PMD-85 style BGP-1S graphics and a keyboard with a joystick. Plays Manic Miner and more from media\\jpr-1s."
+        },
+        "sapi1v.sapi": {
+            "title": "SAPI-1 V (Z80, VGA, barevná grafika, zvuk)",
+            "title_en": "SAPI-1 V (Z80, VGA, colour graphics, sound)",
+            "summary": "Sestava V Libora Lasoty: Z80 4 MHz, displej VGA, barevná grafika CGA-1V, zvuk YM3812, RAM disk a IDE disk, ECMON a CP/M.",
+            "summary_en": "Libor Lasota's V set: Z80 at 4 MHz, a VGA display, colour graphics CGA-1V, YM3812 sound, a RAM disk and an IDE disk, ECMON and CP/M."
+        },
+        "sapi1v_hry.sapi": {
+            "title": "SAPI-1 V: hry a dema",
+            "title_en": "SAPI-1 V: games and demos",
+            "summary": "Hry a dema na sestavě V: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, Bratrstvo kočičí pracky, dema a hudba Libora Lasoty.",
+            "summary_en": "Games and demos on the V set: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, a Czech text adventure, demos and music by Libor Lasota."
+        },
+        "aps5.sapi": {
+            "title": "Měřicí ústředna APS-5 (pece)",
+            "title_en": "APS-5 measuring unit (furnaces)",
+            "summary": "Měřicí ústředna Tesla APS-5 s původním firmwarem řídí pece s termočlánky. V okně je čelní panel a kotelna, tlačítko DEMO předvede obsluhu.",
+            "summary_en": "The Tesla APS-5 measuring unit with its original firmware controls furnaces with thermocouples. The window shows the panel and the plant; DEMO shows an operator."
+        },
+        "zps/ZPS-2_DPS-1_IMS-2.sapi": {
+            "title": "Měřicí pracoviště na sběrnici IMS-2",
+            "title_en": "Measuring bench on the IMS-2 bus",
+            "summary": "Karta DPS-1 a přístrojová sběrnice IMS-2 s voltmetrem M1T 330 a zdrojem BS 525. Knoflíky zdroje se točí myší, BASIMS měří.",
+            "summary_en": "The DPS-1 card and the IMS-2 instrument bus with an M1T 330 voltmeter and a BS 525 supply. Turn the knobs with the mouse, BASIMS measures."
+        },
+        "zps/ZPS-2_MIKOS_K.sapi": {
+            "title": "Záznamník dat KZD-1",
+            "title_en": "Cassette data recorder KZD-1",
+            "summary": "Kazetopáskový záznamník dat KZD-1 s MIKOSem/K: programy se ukládají na digitální kazetu, mechanika je nakreslená v okně Média.",
+            "summary_en": "The KZD-1 cassette data recorder with MIKOS/K: programs are stored on a digital cassette, the drive is drawn in the Media window."
+        },
+        "zps/ZPS-2_MIKOS_V5_Minigraf.sapi": {
+            "title": "Zapisovač Minigraf 0507",
+            "title_en": "Plotter Minigraf 0507",
+            "summary": "Souřadnicový zapisovač ARITMA Minigraf 0507: ukázka z IQ 151, znaková sada, kreslení příkazem KRES. Kresba roste v okně zapisovače.",
+            "summary_en": "The ARITMA Minigraf 0507 plotter: the IQ 151 example, the character set, drawing with KRES. The drawing grows in the plotter window."
+        },
+        "rkd1_tesla_cpm.sapi": {
+            "title": "Kazetový disk RKD-1 (CP/M Tesla Elstroj)",
+            "title_en": "Cartridge disk RKD-1 (CP/M Tesla Elstroj)",
+            "summary": "Kazetový disk CM 5403 s řadičem RKD-1 a původním CP/M Tesly Elstroj z roku 1987. Disk s kazetou je nakreslený v okně Média.",
+            "summary_en": "The CM 5403 cartridge disk with the RKD-1 controller and the original CP/M of Tesla Elstroj (1987). The drive is drawn in the Media window."
+        },
+        "rmp1_jb_izot.sapi": {
+            "title": "Magnetická páska RMP-1 a IZOT SM 5300",
+            "title_en": "Magnetic tape RMP-1 and IZOT SM 5300",
+            "summary": "Magnetopásková jednotka IZOT SM 5300 s řadičem RMP-1 a CP/M J. Bíby. Cívky se točí v okně Média.",
+            "summary_en": "The IZOT SM 5300 tape unit with the RMP-1 controller and J. Bíba's CP/M. The reels turn in the Media window."
+        }
+    }
+}

@@ -16,7 +16,7 @@ a co je v emulaci odhad, je v `docs/desky/RKD-1.md`.
 
 ## Co je potřeba
 
-1. Soubor → Otevřít sestavu → `rkd1_tesla_cpm.sapi`.
+1. Soubor → Vybrat sestavu… → `rkd1_tesla_cpm.sapi`.
 2. Zobrazení → **Média**. Dole je část „RKD-1: kazetový disk“ s kazetou a pevným diskem.
 
 V sestavě je vložená systémová kazeta (pracovní kopie `work\rkd-1\tesla_cpm_system.rkd` vyrobená z originálu
