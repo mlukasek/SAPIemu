@@ -4,7 +4,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **237** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **239** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -598,13 +598,23 @@ Autor ani EC1045 nikoho, kdo RKD-1 provozoval, neznají. Co šlo, je rozhodnuté
 4. Výstup XC2/29 je v originále i replice spojený s OUT2 DD6, návod ho uvádí jako vstup CLK.
 
 
-## [XY 4130 – grafická jednotka (souřadnicový zapisovač)](desky/XY4130.md) – Nejasnosti k ověření na HW (3)
+## [XY 4130 – grafická jednotka (souřadnicový zapisovač)](desky/XY4130.md) – Nejasnosti k ověření na HW (5)
 
-- Jaký zapisovač XY 41x0 kdo k SAPI připojoval, jakým kabelem a s jakým programem (ovladač v EPROM, nebo `KRES`)?
+- Jaký zapisovač XY 41x0 kdo k SAPI připojoval, jakým kabelem a s jakým programem (ovladač v EPROM, `KRES`, modul
+  styku MS-S)? Byl ovladač v `MIKOS5.BIN` někdy použitý (sapi.cz píše „nezkoušen“)?
 
-- Pracovní plocha, dorazy, krok 0,1 mm (z konstanty `KRES`)?
+- **Platí logika READY a PEN ze schématu XY 4140 i pro XY 4130?**
+  - Emulace ji tak má: bez dojetí na levý doraz a bez stisku PEN se pero nespustí.
+  - Návod XY 4131 uvádí jako chybu „?PO ERROR“ jen nezavřenou páku přítlaku papíru.
 
-- Byl ovladač v `MIKOS5.BIN` někdy použitý (sapi.cz píše „nezkoušen“)? Proč je v EPROM za MIKOSem V5?
+- Dráha vozíku mezi dorazy a poloha levého dorazu nad papírem. Emulace má 190 mm od 10 mm papíru (odhad
+  z plochy 180 mm a počátku 8 mm za dorazem).
+
+- **Směr posunu papíru:**
+  - +/− = L pohne perem po listu nahoru, tak aby text obou ovladačů nebyl zrcadlově;
+  - fyzický směr kladek (dopředu, nebo dozadu) se z podkladů nedá určit.
+
+- Diakritika v testu ovladače (značka vedle písmene): kreslí to tak i skutečný zapisovač?
 
 
 ## [ZRMD-1 / ZRD-1V – zálohovaný RAM disk](desky/ZRMD-1.md) – Nejasnosti (1)

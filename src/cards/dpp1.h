@@ -12,7 +12,8 @@
 // ECMON and J. Biba send PUN: (and LST: = UL1:) there, channel 1 (28h-2Bh, control word AEh).
 // The KZD-1 cassette data recorder on X2 (channel 1, MIKOS/K: 30h-33h, control word 8Bh): port A
 // drives it, port B reads it (chips/kzd1.h). The plotter ARITMA Minigraf 0507 on port B of a channel
-// (X2, 31h, control word 99h, chips/minigraf.h).
+// (X2, 31h, control word 99h, chips/minigraf.h), or the plotter XY 4130 there (KRES of BASIC EXP V5.0/G+SZ:
+// D0 STEP, D2 X/Y, D3 +/-, D5 READY, D7 PEN; chips/xy4130.h).
 // The switches S2-S4 (direction of the 3216 buffers, polarity of the PC signals) are assumed
 // set as the devices need; a channel without a device reads high.
 #include "chips/i8255.h"
@@ -20,6 +21,7 @@
 #include "chips/minigraf.h"
 #include "chips/pmd32sd.h"
 #include "chips/printer.h"
+#include "chips/xy4130.h"
 #include "core/card.h"
 
 class Dpp1 : public Card {
@@ -44,7 +46,7 @@ public:
     Pmd32Sd* pmd32sd() override { return pmd_enabled ? &pmd : nullptr; }
     Printer* printer() override { return prn_enabled ? &prn : nullptr; }
     Kzd1* kzd1() override { return kzd_enabled ? &kzd : nullptr; }
-    Minigraf* minigraf() override { return mg_enabled ? &mg : nullptr; }
+    Plotter* plotter() override;
 
 private:
     uint8_t base = 0x28;          // S1
@@ -62,6 +64,9 @@ private:
     int mg_channel = 0;           // Minigraf: 0 = channel 1 (X2), 1 = channel 2 (X3)
     bool mg_enabled = false;
     Minigraf mg;
+    int xy_channel = 0;           // XY 4130: 0 = channel 1 (X2), 1 = channel 2 (X3)
+    bool xy_enabled = false;
+    Xy4130 xy;
     void printer_service(uint64_t now);
     uint64_t access_at = 0;       // activity LED of the panel drawing (not on the real card)
     bool accessed = false;

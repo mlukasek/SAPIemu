@@ -1707,3 +1707,23 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 - **TCP a DNS ze sítě PC** (autor: „určitě taky prosím implementovat“): jedno spojení ve vlastním vlákně, fronta
   16 KB s řízením toku přes okno TCP, limity 10 s a 5 s časem PC, RESET spojení nezavře, cíl na začátku parametrem
   `net.tcp_default`. Program na SAPI tak může mluvit s libovolným serverem, na který dosáhne PC.
+
+## 2026-10-17 – grafická jednotka XY 4130
+
+- **Podle řady XY 41x0** (autor: „Zkusil bych ten plotter XY 4130 … návod … by mohlo lecčemus pomoci“): pro XY 4130
+  samotný podklady nejsou, rozhraní a chování jsou z návodů XY 4131 a XY 4140 (XY 4140 je „funkčně identická“ s XY
+  4131), ze schématu XY 4140, z dokumentace XY 4150 a z projektu plottercontroller, který s XY 41xx skutečně kreslí.
+  Že stejné rozhraní má i XY 4130, potvrzují oba ovladače pro SAPI (signály a jejich význam sedí).
+- **READY a PEN jako ve schématu XY 4140** (výchozí podle HW): pero se spustí jen po dojetí vozíku na levý doraz a
+  po stisku PEN. Ovladač z EPROM i program s `KRES #I -220,0,,` na doraz dojedou samy, PEN musí stisknout obsluha.
+  Odchylka `xy4130.pen_on` stiskne PEN už při zapnutí. Jestli to tak měla i XY 4130, je v Nejasnostech.
+- **Směr papíru odvozený ze softwaru:** +/− = L u papíru posune pero po listu nahoru. Jen tak oba ovladače píšou
+  nezrcadleně (u vozíku směr potvrzuje plottercontroller: k dorazu je +/− = L).
+- **Dráha vozíku 190 mm od 10 mm papíru je odhad** (plocha 180 mm, počátek ovladače 8 mm za dorazem). Papír je pruh
+  bez dorazů jako u Minigrafu.
+- **Společná mechanika `chips/plotter`:** kresba, export, okno a MCP jsou pro Minigraf i XY 4130 stejné, liší se jen
+  dekódování kabelu. Okno si ponechalo ID `Minigraf` (uložené rozložení), titulek ukazuje typ zapisovače. MCP
+  `plotter` hlásí `steps_too_fast` a `max_steps_per_s` místo `steps_over_400_per_s`.
+- **Kabely dva** (`mikos`, `kres`): sapi.cz u ovladače v EPROM a návod KRESu uvádějí jiná zapojení; zapisovač jde na
+  JPR-1 X3 i na DPP-1. READY je zapojený jen v kabelu KRESu (P2-IN5, PB5), na JPR-1 by šel do žádosti o přerušení R5
+  jako každý vstup P2-IN.

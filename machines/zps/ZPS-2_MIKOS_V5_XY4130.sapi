@@ -1,0 +1,66 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-2 MIKOS V5.0 se zapisovačem XY 4130 (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, DGD-1, Consul 262.3)",
+    "description": "ZPS-2 s Monitorem V5.0F a MIKOSem V5.0 a grafickou jednotkou XY 4130 (Laboratorní přístroje Praha) na konektoru X3 desky JPR-1 (P2-OUT 2C00h: D0 pero, D1 X/Y, D6 +/-, D7 krok). V EPROM na REM-1 (8× 2708, H:\\SAPI-1\\_ROM\\MIKOS v5\\MIKOS5.BIN) je za MIKOSem od 1800h ovladač TESLA DIZ (sapi.cz/sapi/doku2/xy4130.php): Monitor ho spustí při každém startu, ovladač se ohlásí L=XY4130, stane se systémovou tiskárnou L: a vozík dojede na levý doraz (rozsvítí se READY). Pero se spustí, až když na zapisovači stisknete PEN (okno zapisovače, po zapnutí nesvítí). .G=181E test (znaky 10H až FFH), LIST a výpisy na L: se kreslí písmem; funkce ovladače (1806 počátek, 1809 přesun, 180C čára…) se volají ze strojového kódu se souřadnicemi X v DE a Y v BC (0,1 mm), viz docs/desky/XY4130.md. Proměnné ovladače jsou na 4290-42BB. Kresba se ukazuje v okně zapisovače, uloží se jako PNG nebo SVG. docs/desky/XY4130.md.",
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (ZPS-1: EPROMs on REM-1)
+            "eprom_type": "2708",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2708 (1 KB)
+            "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": true },  // Keyboard (connector X2)
+            "xy4130": {                     // X3: plotter XY 4130 (P2-OUT 2C00h; window Minigraf)
+                "cable": "mikos"            // XY 4130: cable - the driver behind MIKOS V5 (D0 pen, D1 X/Y, D6 +/-, D7 step; sapi.cz doku2/xy4130.php)
+            }
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "roms/mikos/MONITOR_V5.0F_MIKOS_V5.0_XY4130.bin",  // EPROMs (from socket 1) - Monitor V5.0F + MIKOS V5.0 + XY 4130 driver at 1800h (8 KB)
+            "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
+            "ram_block": "none",            // Jumper R: RAM block - not connected
+            "ram_kb": 0                     // RAM fitted (KB, 2 per 4x 2114)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RAM-1",                // Dynamic RAM up to 48 KB
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": false,                    // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": true                      // S2
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false,                  // Jumper 49-50: INT1 at the end of the frame
+            "monitor": "amber"              // Monitor: phosphor colour (not on the card)
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "tape": "",                     // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
+            "tape_write_protect": true      // Cassette write protected
+        },
+        {
+            "slot": 7,                      // position X7
+            "type": "DGD-1",                // Graphic display 320x240
+            "base": "C000",                 // Switch SP1-2: graphics RAM 16 KB from - C000H (switch SP1-2 open, ZPS-2, ZPS-3)
+            "mapping": false,               // Switch SP1-1: with mapping (selected by MAP1)
+            "wait_states": true             // Wait states (CPU waits for its window of the display)
+        }
+    ]
+}

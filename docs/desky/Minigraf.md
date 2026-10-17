@@ -20,7 +20,8 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
   - **skutečné výstupy ze SAPI-1** `obrazky/0507_1.png` až `0507_4.png`: kopie obrazovky, výpis programu, ukázka
     a znaková sada.
 - PMD 85: `..\SAPI.CZ\sapi\prislusenstvi\doku\0507_pmd85.php` (pracovní plocha 187,5 × 262,5 mm).
-- Ostatní zapisovače u SAPI: XY 4130 v `docs/desky/XY4130.md` (zatím neemulovaný). Plotter z AR 1990 (V. Julius
+- Ostatní zapisovače u SAPI: XY 4130 v `docs/desky/XY4130.md` (emulovaný od 2026-10-17, společná mechanika
+  `chips/plotter.h`). Plotter z AR 1990 (V. Julius
   OK1IVJ) je zapisovač s JPR-1 jako řadičem (povely SHARP MZ-1P16), který kreslí právě Minigrafem: emulovaný od
   2026-10-10, `docs/desky/AR1990.md` (stejný model mechaniky, kabel z P0-OUT desky JPR-1, `Minigraf::set_lines`).
 
@@ -118,7 +119,7 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
     Nový papír se založí pod pero (Y = 0).
   - **Kresba:** tahy pera dole v krocích. Body na přímce (do jednoho kroku od úsečky) se slučují, takže úsečka má
     dva body a kružnice pár set.
-  - **Rychlost:** kroky rychlejší než 400/s se jen počítají (MCP `steps_over_400_per_s`), neztrácejí se.
+  - **Rychlost:** kroky rychlejší než 400/s se jen počítají (MCP `steps_too_fast`), neztrácejí se.
   - **Po zapnutí:** je port B vstupem, linky jsou v H a **pero je dole**. Než program nastaví port, udělá tečku
     (Nejasnosti).
 - **Parametry DPP-1:** sekce `minigraf` (bez dalších voleb) a `minigraf_channel` (1 = X2, 31h při základu 30h; 2 =

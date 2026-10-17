@@ -551,7 +551,7 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
 
 static const MachineWindow k_machine_windows[] = {
     { "media", "Media", "Media", "Média" },
-    { "minigraf", "Minigraf", "Plotter Minigraf", "Zapisovač Minigraf" },
+    { "minigraf", "Minigraf", "Plotter (Minigraf, XY 4130)", "Zapisovač (Minigraf, XY 4130)" },
     { "ims2", "IMS-2 measuring bench", "IMS-2 measuring bench", "Měřicí pracoviště IMS-2" },
     { "aps5", "APS-5: panel and furnaces", "APS-5: panel and furnaces", "APS-5: panel a pece" },
     { "diag", "Diagnostic board (K3)", "Diagnostic board (K3)", "Deska diagnostiky (K3)" },
@@ -900,7 +900,7 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer);
-        ImGui::MenuItem(tr("Plotter Minigraf"), nullptr, &app.ui.show_plotter);
+        ImGui::MenuItem(tr("Plotter (Minigraf, XY 4130)"), nullptr, &app.ui.show_plotter);
         ImGui::MenuItem(tr("IMS-2 measuring bench"), nullptr, &app.ui.show_ims2);
         ImGui::MenuItem(tr("Diagnostic board (K3)"), nullptr, &app.ui.show_diag, m && m->cpu && m->cpu->k3_diag());
         ImGui::MenuItem(tr("APS-5: panel and furnaces"), nullptr, &app.ui.show_aps5, m && m->plant);

@@ -15,7 +15,7 @@ class StateIO;
 struct FloppyDrive;
 class Pmd32Sd;
 class Kzd1;
-class Minigraf;
+class Plotter;
 struct Printer;
 
 enum IrqLine {
@@ -79,8 +79,8 @@ public:
     virtual Printer* printer() { return nullptr; }
     // KZD-1 cassette data recorder connected to the card (DPP-1 X2), nullptr if none.
     virtual Kzd1* kzd1() { return nullptr; }
-    // Plotter ARITMA Minigraf 0507 connected to the card (DPP-1 port B), nullptr if none.
-    virtual Minigraf* minigraf() { return nullptr; }
+    // A plotter connected to the card (Minigraf 0507 on DPP-1 port B, XY 4130 on JPR-1 X3 or DPP-1), nullptr if none.
+    virtual Plotter* plotter() { return nullptr; }
     virtual bool floppy_insert(int index, const std::string& image, bool write_protect, std::string& err)
     {
         err = "no such drive";

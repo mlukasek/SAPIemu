@@ -68,6 +68,15 @@ static const ParamOption k_prn_charset[] = {
     { "printer.busy_us", PK_INT, "Printer: BUSY after each byte (us; 0 = at once, a deviation)",                       \
       "Tiskárna: BUSY po každém bajtu (µs; 0 = hned, odchylka)", "100", nullptr, 0, 1000000 },
 
+static const ParamOption k_xy4130_cable[] = {
+    { "\"mikos\"", "the driver behind MIKOS V5 (D0 pen, D1 X/Y, D6 +/-, D7 step; sapi.cz doku2/xy4130.php)",
+      "ovladač za MIKOSem V5 (D0 pero, D1 X/Y, D6 +/-, D7 krok; sapi.cz doku2/xy4130.php)" },
+    { "\"kres\"", "KRES of BASIC EXP V5.0/G+SZ (D0 step, D2 X/Y, D3 +/-, D5 READY, D7 pen)",
+      "KRES z BASICu EXP V5.0/G+SZ (D0 krok, D2 X/Y, D3 +/-, D5 READY, D7 pero)" },
+    { nullptr, nullptr, nullptr },
+};
+#define XY4130_PARAMS(def_cable)                                                                                         { "xy4130.cable", PK_CHOICE, "XY 4130: cable", "XY 4130: kabel", def_cable, k_xy4130_cable, 0, 0 },                   { "xy4130.pen_on", PK_BOOL, "XY 4130: PEN pressed at power on (a deviation; the plotter waits for the PEN button)",        "XY 4130: PEN stisknuté už po zapnutí (odchylka; zapisovač čeká na tlačítko PEN)", "false", nullptr, 0, 0 },
+
 static const ParamOption k_z80_type[] = {
     { "\"nmos\"", "NMOS (Z80A, U880...): an interrupt is taken after LD A,I / LD A,R",
       "NMOS (Z80A, U880...): přerušení se přijme i po LD A,I / LD A,R" },
@@ -451,6 +460,9 @@ static const CardParam k_jpr1[] = {
     { "rx_baud", PK_INT, "Redukce34KB01: speed of the PC sending (Bd)", "Redukce34KB01: rychlost vysílání z PC (Bd)",
       "19200", nullptr, 50, 115200 },
     { "rx_stop_bits", PK_INT, "Redukce34KB01: stop bits", "Redukce34KB01: stop bity", "2", nullptr, 1, 2 },
+    { "xy4130", PK_SECTION, "X3: plotter XY 4130 (P2-OUT 2C00h; window Minigraf)", "X3: zapisovač XY 4130 (P2-OUT 2C00h; okno Minigraf)",
+      "false", nullptr, 0, 0 },
+    XY4130_PARAMS("\"mikos\"")
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
@@ -1323,6 +1335,11 @@ static const ParamOption k_dpp1_prn_channel[] = {
     { "2", "channel 2 (base+4..7, X3)", "kanál 2 (základ+4..7, X3)" },
     { nullptr, nullptr, nullptr },
 };
+static const ParamOption k_dpp1_xy_channel[] = {
+    { "1", "channel 1 (port B 31h with base 30h, X2), as KRES (configuration 0Dh)", "kanál 1 (port B 31h při základu 30h, X2), jako KRES (konfigurace 0Dh)" },
+    { "2", "channel 2 (port B, X3)", "kanál 2 (port B, X3)" },
+    { nullptr, nullptr, nullptr },
+};
 static const ParamOption k_dpp1_mg_channel[] = {
     { "1", "channel 1 (port B 31h with base 30h, X2), as the driver V.1-MGF", "kanál 1 (port B 31h při základu 30h, X2), jako ovladač V.1-MGF" },
     { "2", "channel 2 (port B, X3)", "kanál 2 (port B, X3)" },
@@ -1360,6 +1377,10 @@ static const CardParam k_dpp1[] = {
     { "minigraf_channel", PK_CHOICE, "Minigraf on", "Minigraf na", "1", k_dpp1_mg_channel, 0, 0 },
     { "minigraf", PK_SECTION, "Plotter ARITMA Minigraf 0507 (port B: X PB0-2, Y PB3-5, pen PB7; window Minigraf)",
       "Zapisovač ARITMA Minigraf 0507 (port B: X PB0-2, Y PB3-5, pero PB7; okno Minigraf)", "false", nullptr, 0, 0 },
+    { "xy4130_channel", PK_CHOICE, "XY 4130 on", "XY 4130 na", "1", k_dpp1_xy_channel, 0, 0 },
+    { "xy4130", PK_SECTION, "Plotter XY 4130 (port B, cable of KRES: STEP PB0, X/Y PB2, +/- PB3, READY PB5, pen PB7)",
+      "Zapisovač XY 4130 (port B, kabel KRESu: KROK PB0, X/Y PB2, +/- PB3, READY PB5, pero PB7)", "false", nullptr, 0, 0 },
+    XY4130_PARAMS("\"kres\"")
     { "printer_channel", PK_CHOICE, "Printer on (8255 mode 1: /OBF = /STROBE, /ACK)",
       "Tiskárna na (8255 mód 1: /OBF = /STROBE, /ACK)", "1", k_dpp1_prn_channel, 0, 0 },
     { "printer", PK_SECTION, "Printer (Centronics), ECMON and J. Biba: PUN:, LST: = UL1:",

@@ -1,4 +1,6 @@
 #include "cards/jpr1.h"
+#include "chips/minigraf.h"
+#include "chips/xy4130.h"
 #include "core/state.h"
 #include "core/bus.h"
 #include "core/ihex.h"
@@ -124,6 +126,14 @@ static bool load_jpr1x_rom(const std::string& rom, std::vector<uint8_t>& banks, 
 bool Jpr1::configure(const json& cfg, std::string& err)
 {
     power_on_fill(ram, sizeof(ram), 0);
+    xy.reset();
+    if (cfg.contains("xy4130") && !cfg["xy4130"].is_null() && cfg["xy4130"] != false) {
+        xy.reset(new Xy4130());
+        if (!xy4130_configure(*xy, cfg["xy4130"], "mikos", err)) return false;
+        xy->bus = bus;
+        xy->power_on();
+        xy->set_lines(p2_out);
+    }
     long long crystal;
     if (model_x) {
         long long osc;
@@ -274,6 +284,27 @@ void Jpr1::reset()
         kbd->reset();
         kbd->p0_out(p0_out);
     }
+    if (xy) xy->set_lines(p2_out);   // the cleared 3212 drives the cable low
+}
+
+Plotter* Jpr1::plotter()
+{
+    if (xy) return xy.get();
+    return kbd ? kbd->minigraf() : nullptr;
+}
+
+void Jpr1::write_p2(uint8_t v)
+{
+    p2_out = v;
+    if (kbd) kbd->p2_out(v);
+    if (xy) xy->set_lines(v);
+}
+
+uint8_t Jpr1::x3_in(void)
+{
+    uint8_t d = kbd ? kbd->p2_in() : 0xFF;   // a device on X3 (HRK-1 of APS-5)
+    if (xy && xy->ready_bit() >= 0 && xy->ready()) d &= (uint8_t)~(1u << xy->ready_bit());   // READY, L = ready
+    return d;
 }
 
 void Jpr1::advance(uint64_t now)
@@ -345,7 +376,7 @@ uint8_t Jpr1::p2_in(void)
     uint8_t d = 0xFF;
     if (diag && diag_btn[0]) d &= (uint8_t)~0x01;
     if (diag && diag_btn[1]) d &= (uint8_t)~0x80;
-    if (kbd) d &= kbd->p2_in();   // a device on X3 (HRK-1 of APS-5)
+    d &= x3_in();
     if (model_s) return d;   // K3 with pull-ups
     if (model_x) {   // P2-IN0/1 = bus /INT0, /INT1 (the same wires); P2-IN7 = the INT key with 11-10; the rest K3
         uint8_t v = d;
@@ -355,7 +386,7 @@ uint8_t Jpr1::p2_in(void)
         return v;
     }
     // interrupt requests are active low: R0 = /INT0, R1 = /INT1, R7 = INT key
-    uint8_t v = kbd ? kbd->p2_in() : 0xFF;
+    uint8_t v = x3_in();
     if (bus_irq & IRQ_INT0) v &= (uint8_t)~0x01;
     if (bus_irq & IRQ_INT1) v &= (uint8_t)~0x02;
     if (int_key_jumper && kbd && !(p1_in() & 0x80)) v &= (uint8_t)~0x80;
@@ -437,10 +468,7 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
             p1_out = v;
             if (kbd) kbd->p1_out(v);
             break;
-        case L_P2:
-            p2_out = v;
-            if (kbd) kbd->p2_out(v);
-            break;
+        case L_P2: write_p2(v); break;
         default: break;   // EPROM: /WE held high
         }
         bus->wait = 0;
@@ -459,10 +487,7 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
             p1_out = v;
             if (kbd) kbd->p1_out(v);
             break;
-        case L_P2:
-            p2_out = v;
-            if (kbd) kbd->p2_out(v);
-            break;
+        case L_P2: write_p2(v); break;
         case L_ECS:
             irq_status = ~v & 7;   // /B2-/B0
             irq_sgs = (v & 0x08) != 0;
@@ -488,9 +513,8 @@ void Jpr1::cpu_write(uint16_t a, uint8_t v)
         p1_out = v;
         if (kbd) kbd->p1_out(v);
         return;
-    case L_P2:   // printer (APS-5: WD of HRK-1)
-        p2_out = v;
-        if (kbd) kbd->p2_out(v);
+    case L_P2:   // printer (APS-5: WD of HRK-1, the XY 4130)
+        write_p2(v);
         return;
     case L_ECS:
         // load the current status of the 3214 and enable the next interrupt
@@ -531,7 +555,7 @@ void Jpr1::cpu_out(uint8_t port, uint8_t v)
             if (kbd) kbd->p0_out(v);
             return;
         case 2: p1_out = v; return;
-        default: p2_out = v; return;   // printer data
+        default: write_p2(v); return;   // printer data
         }
     }
     bus->io_write(port, v);
@@ -769,6 +793,11 @@ void Jpr1::describe(json& out)
     }
     out["keyboard"] = kbd ? kbd->type_name() : "none";
     if (kbd && kbd->joyport() >= 0) out["keyboard_joyport"] = joy_device_name(kbd->joyport());
+    if (xy)
+        out["xy4130"] = json{ { "cable", xy->cable == Xy4130::CABLE_KRES ? "kres" : "mikos" }, { "x_mm", xy->x() / (double)xy->spm },
+                              { "y_mm", xy->y() / (double)xy->spm }, { "pen", xy->pen_down() ? "down" : "up" },
+                              { "ready", xy->ready() }, { "pen_button", xy->pen_enabled() }, { "strokes", xy->strokes.size() },
+                              { "steps", xy->steps }, { "steps_at_stop", xy->stopped } };
 }
 
 void Jpr1::state(StateIO& io)
@@ -848,5 +877,10 @@ void Jpr1::state(StateIO& io)
         io.v(rx_start);
         io.v(rx_free);
         rx->state(io);
+    }
+    if (xy) {
+        io.begin("xy4130");
+        xy->state(io);
+        io.end();
     }
 }

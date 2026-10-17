@@ -51,6 +51,14 @@ bool Dpp1::configure(const json& cfg, std::string& err)
     }
     mg_channel = (int)v - 1;
     mg_enabled = cfg.contains("minigraf") && !cfg["minigraf"].is_null() && cfg["minigraf"] != false;
+    if (!cfg_number(cfg, "xy4130_channel", v, 1, err)) return false;
+    if (v != 1 && v != 2) {
+        err = "xy4130_channel must be 1 or 2";
+        return false;
+    }
+    xy_channel = (int)v - 1;
+    xy_enabled = cfg.contains("xy4130") && !cfg["xy4130"].is_null() && cfg["xy4130"] != false;
+    if (xy_enabled && !xy4130_configure(xy, cfg["xy4130"], "kres", err)) return false;
     pmd_enabled = cfg.contains("pmd32sd") && !cfg["pmd32sd"].is_null();
     prn_enabled = cfg.contains("printer") && !cfg["printer"].is_null();
     if (pmd_enabled && prn_enabled && pmd_channel == prn_channel) {
@@ -63,6 +71,11 @@ bool Dpp1::configure(const json& cfg, std::string& err)
     }
     if (mg_enabled && ((pmd_enabled && pmd_channel == mg_channel) || (kzd_enabled && kzd_channel == mg_channel))) {
         err = "the Minigraf needs a channel without the PMD32-SD and the KZD-1";
+        return false;
+    }
+    if (xy_enabled && ((pmd_enabled && pmd_channel == xy_channel) || (kzd_enabled && kzd_channel == xy_channel) ||
+                       (mg_enabled && mg_channel == xy_channel))) {
+        err = "the XY 4130 needs a channel without the PMD32-SD, the KZD-1 and the Minigraf";
         return false;
     }
     if (prn_enabled && !prn.configure(cfg["printer"], err)) return false;
@@ -81,6 +94,13 @@ bool Dpp1::configure(const json& cfg, std::string& err)
         mg.power_on();
         mg.lines_now();
     }
+    if (xy_enabled) {
+        xy.bus = bus;
+        xy.ppi = &ppi[xy_channel];
+        ppi[xy_channel].dev = &xy;
+        xy.power_on();
+        xy.lines_now();
+    }
     if (pmd_enabled) {
         pmd.attach(&ppi[pmd_channel]);
         pmd.cpm_drive = &bus->cpm_drive;
@@ -94,6 +114,7 @@ void Dpp1::reset()
     ppi[0].reset();
     ppi[1].reset();
     if (mg_enabled) mg.lines_now();   // port B is an input: the lines go high
+    if (xy_enabled) xy.lines_now();
     for (char& c : pmd.cpm_seen) c = 0;   // another system may come
     prn_wait_ack = false;   // /OBF is high after the reset; a byte being printed is acknowledged to nobody
     // /RES does not reach the PMD32-SD: it keeps running
@@ -128,6 +149,7 @@ int Dpp1::decode_io(uint8_t port, const char** what)
     if (pmd_enabled && ch == pmd_channel) *what = ch ? "DPP-1 channel 2 (8255), PMD32-SD" : "DPP-1 channel 1 (8255), PMD32-SD";
     else if (kzd_enabled && ch == kzd_channel) *what = ch ? "DPP-1 channel 2 (8255), KZD-1" : "DPP-1 channel 1 (8255), KZD-1";
     else if (mg_enabled && ch == mg_channel) *what = ch ? "DPP-1 channel 2 (8255), Minigraf" : "DPP-1 channel 1 (8255), Minigraf";
+    else if (xy_enabled && ch == xy_channel) *what = ch ? "DPP-1 channel 2 (8255), XY 4130" : "DPP-1 channel 1 (8255), XY 4130";
     else if (prn_enabled && ch == prn_channel) *what = ch ? "DPP-1 channel 2 (8255), printer" : "DPP-1 channel 1 (8255), printer";
     else *what = ch ? "DPP-1 channel 2 (8255)" : "DPP-1 channel 1 (8255)";
     return DEC_READ | DEC_WRITE;
@@ -197,9 +219,14 @@ void Dpp1::describe(json& out)
                             { "side", kzd.side ? "B" : "A" }, { "position_m", round(kzd.position_m() * 100) / 100 },
                             { "motion", kzd.motion() } };
     if (mg_enabled)
-        out["minigraf"] = json{ { "channel", mg_channel + 1 }, { "x_mm", mg.x() / (double)Minigraf::STEPS_PER_MM },
-                                { "y_mm", mg.y() / (double)Minigraf::STEPS_PER_MM }, { "pen", mg.pen_down() ? "down" : "up" },
+        out["minigraf"] = json{ { "channel", mg_channel + 1 }, { "x_mm", mg.x() / (double)mg.spm },
+                                { "y_mm", mg.y() / (double)mg.spm }, { "pen", mg.pen_down() ? "down" : "up" },
                                 { "strokes", mg.strokes.size() }, { "steps", mg.steps }, { "lost_steps", mg.lost }, { "steps_at_stop", mg.stopped } };
+    if (xy_enabled)
+        out["xy4130"] = json{ { "channel", xy_channel + 1 }, { "cable", xy.cable == Xy4130::CABLE_KRES ? "kres" : "mikos" },
+                              { "x_mm", xy.x() / (double)xy.spm }, { "y_mm", xy.y() / (double)xy.spm },
+                              { "pen", xy.pen_down() ? "down" : "up" }, { "ready", xy.ready() }, { "pen_button", xy.pen_enabled() },
+                              { "strokes", xy.strokes.size() }, { "steps", xy.steps }, { "steps_at_stop", xy.stopped } };
 }
 
 void Dpp1::state(StateIO& io)
@@ -223,4 +250,15 @@ void Dpp1::state(StateIO& io)
         mg.state(io);
         io.end();
     }
+    if (xy_enabled) {
+        io.begin("xy4130");
+        xy.state(io);
+        io.end();
+    }
+}
+
+Plotter* Dpp1::plotter()
+{
+    if (mg_enabled) return &mg;
+    return xy_enabled ? &xy : nullptr;
 }

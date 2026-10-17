@@ -46,11 +46,12 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`, upravené o režim 8085 pro JPR-1X,
     `docs/8085.md`);
   - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421…) a přístroje (magnetofon, záznamník dat
-    KZD-1 `kzd1`, zapisovač Minigraf 0507 `minigraf`, plotter z AR 1990 `ar1990` na portech JPR-1);
+    KZD-1 `kzd1`, zapisovače se společnou mechanikou `plotter`: Minigraf 0507 `minigraf` a XY 4130 `xy4130`,
+    plotter z AR 1990 `ar1990` na portech JPR-1);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap, diag = okno desky diagnostiky na K3, `plotter` = okno
-    zapisovače Minigraf, `shot` = snímky obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg);
+    zapisovače (Minigraf, XY 4130), `shot` = snímky obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `plant/`: technologie mimo počítač (`core/plant.h`, `Bus::plant`): pece a termočlánky APS-5

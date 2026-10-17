@@ -46,11 +46,15 @@
 // K2): an optocoupler puts an RS-232 receive line on P1-IN7 (idle 1, start bit 0); K2 pins 7
 // and 9 of the keyboard (INT, T) are not connected. MIKROBIOS BOOT reads Intel HEX from it
 // bit by bit (19200 Bd, 2 stop bits).
+//
+// The plotter XY 4130 on X3 (chips/xy4130.h): P2-OUT drives its cable (the driver behind MIKOS V5: D0 PEN,
+// D1 X/Y, D6 +/-, D7 STEP; KRES: D0 STEP, D2 X/Y, D3 +/-, D7 PEN and READY on P2-IN5).
 #include <memory>
 #include <vector>
 #include "core/devices.h"
 
 class SerialChannel;
+class Xy4130;
 
 extern "C" {
 #include "i8080.h"
@@ -75,7 +79,7 @@ public:
     uint8_t peek(uint16_t addr) override;
     void poke_local(uint16_t addr, uint8_t value) override;
     KeyboardDevice* keyboard() override { return kbd.get(); }
-    Minigraf* minigraf() override { return kbd ? kbd->minigraf() : nullptr; }   // the plotter of AR 1990
+    Plotter* plotter() override;         // the plotter of AR 1990 (a keyboard device), XY 4130 on X3
     void set_keyboard(KeyboardDevice* k) override;
     uint32_t clock_hz() const override { return cpu_hz; }
     int cpu_isa() const override { return model_x ? ISA_8085 : ISA_8080; }
@@ -107,6 +111,8 @@ private:
     bool rx_level(void);                 // the RS-232 line of the adapter now (1 = idle / stop)
     void update_interrupt(void);
     void sync(void);
+    void write_p2(uint8_t v);            // P2-OUT: the printer cable, HRK-1, the XY 4130
+    uint8_t x3_in(void);                 // the devices on X3 pulling P2-IN low
 
     i8080 cpu;
     uint32_t cpu_hz = 2000000;
@@ -129,6 +135,7 @@ private:
     int bus_irq = 0;                     // INT0/INT1 levels from the bus (IrqLine mask)
 
     std::unique_ptr<KeyboardDevice> kbd;
+    std::unique_ptr<Xy4130> xy;          // the plotter XY 4130 on X3
 
     // JPR-1S
     bool model_s = false;

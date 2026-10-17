@@ -171,6 +171,10 @@ DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno „D
 totéž s Liborovou DGD-1V (VGA, jantarová) místo DGD-1 (`docs/desky/DGD-1V.md`).
 `ZPS-2_MIKOS_V5_Minigraf.sapi` je ZPS-2 s MIKOSem V5.0 a zapisovačem ARITMA Minigraf 0507 na DPP-1 (31h), ovladač
 V.1-MGF v EPROM od 1800h, RAM-1 přes 4000–FFFF, bez DGD-1 (`docs/desky/Minigraf.md`).
+`ZPS-2_MIKOS_V5_XY4130.sapi` je ZPS-2 s MIKOSem V5.0 a grafickou jednotkou XY 4130 na X3 desky JPR-1 (P2-OUT 2C00h,
+parametr JPR-1 `xy4130`), ovladač TESLA DIZ v EPROM od 1800h (`MIKOS5.BIN`), který Monitor spustí sám; pero se
+spustí až po stisku PEN v okně zapisovače. XY 4130 jde zapojit i na DPP-1 (`xy4130_channel`, sekce `xy4130`, kabel
+KRESu) (`docs/desky/XY4130.md`).
 `ZPS-2_MIKOS_K.sapi` je ZPS-2 s MIKOSem/K V5.0 a kazetopáskovým záznamníkem dat KZD-1 na DPP-1 (30h, X2), kazeta
 v okně Média, poprvé ji připravit `.K_I` (`docs/desky/KZD-1.md`).
 `ZPS-2_MIKOS_D.sapi` je ZPS-2 s disketovým MIKOSem/D V5.0, řadičem RPD-1 (dva sloty) a 8" mechanikou se
@@ -309,7 +313,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   zálohou z baterie (DMR-1, CRM-1) a RAM disky mají dál obsah ze souboru.
 - **Okna nahoře po spuštění** (`windows`, v konfigurátoru řádek zaškrtávátek „Okna nahoře po spuštění“): okna,
   která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad okno Sestava. Klávesnice
-  zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač Minigraf), `aps5` (panel APS-5), `diag`
+  zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač: Minigraf, XY 4130), `aps5` (panel APS-5), `diag`
   (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2). Okno v doku dostane vybranou
   záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `zps/ZPS-2_DPS-1_IMS-2`
   měřicí pracoviště, `rmp1_jb_izot`,

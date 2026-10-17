@@ -1,6 +1,7 @@
-// Window "Minigraf": the sheet of the plotter ARITMA Minigraf 0507 (DPP-1), the drawing as it grows,
-// the carriage on its rail with the pen, and the sheet saved as PNG or SVG (work/minigraf). The plotter of
-// AR 1990 (a JPR-1 driving a Minigraf) has its panel and the cable from the host computer here too.
+// Window "Minigraf" (the plotter): the sheet of the plotter ARITMA Minigraf 0507 (DPP-1) or XY 4130 (JPR-1 X3,
+// DPP-1), the drawing as it grows, the carriage on its rail with the pen, and the sheet saved as PNG or SVG
+// (work/minigraf). The plotter of AR 1990 (a JPR-1 driving a Minigraf) has its panel and the cable from the
+// host computer here too, the XY 4130 its lamps and the PEN button.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 
@@ -11,6 +12,7 @@
 #include "imgui.h"
 #include "chips/ar1990.h"
 #include "chips/minigraf.h"
+#include "chips/xy4130.h"
 #include "core/host.h"
 #include "core/machine.h"
 #include "core/util.h"
@@ -41,13 +43,13 @@ static std::string plot_path(const char* ext)
 // The paper (a strip as wide as A4) around the drawing and the pen, at least as high as A4, on the
 // table; the rail goes over the travel of the carriage. The table fits the width of the window, a long roll
 // scrolls; while the pen moves, the view follows it when it would leave the view.
-static void draw_sheet(Minigraf* g)
+static void draw_sheet(Plotter* g)
 {
     ImVec2 avail = ImGui::GetContentRegionAvail();
     if (avail.y < 100) avail.y = 100;
     ImGui::BeginChild("sheet", avail, ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     float vw = ImGui::GetContentRegionAvail().x, vh = ImGui::GetWindowHeight();
-    const float spm = (float)Minigraf::STEPS_PER_MM;
+    const float spm = (float)g->spm;
     int32_t x0, y0, x1, y1;
     if (!g->extent(x0, y0, x1, y1)) y0 = y1 = g->y();
     if (g->y() < y0) y0 = g->y();
@@ -86,7 +88,7 @@ static void draw_sheet(Minigraf* g)
     }
     // the rail over the travel, the left stop, the carriage with the pen
     ImVec2 pen = P(g->x(), g->y());
-    float r0 = P(Minigraf::STOP_X, 0).x, r1 = P(Minigraf::STOP_X + Minigraf::TRAVEL, 0).x;
+    float r0 = P(g->stop_x, 0).x, r1 = P(g->stop_x + g->travel, 0).x;
     dl->AddRectFilled(ImVec2(r0 - 2 * k, pen.y - 1.2f * k), ImVec2(r1 + 2 * k, pen.y + 1.2f * k), IM_COL32(150, 155, 162, 200), 1.0f);
     dl->AddRectFilled(ImVec2(r0 - 3 * k, pen.y - 3 * k), ImVec2(r0 - 1 * k, pen.y + 3 * k), IM_COL32(110, 110, 116, 230));
     dl->AddRect(ImVec2(pen.x - 4 * k, pen.y - 4 * k), ImVec2(pen.x + 4 * k, pen.y + 4 * k), IM_COL32(60, 62, 70, 230), 1.5f, 0, 2.0f);
@@ -224,6 +226,28 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ImGui::Separator();
 }
 
+// The front panel of the XY 4130: the lamps POWER, READY and PEN, the button PEN.
+static void draw_xy4130(Xy4130* p)
+{
+    ImGui::SeparatorText(tr("Plotter XY 4130"));
+    ar_lamp("POWER", true, IM_COL32(80, 220, 90, 255));
+    ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
+    ar_lamp("READY", p->ready(), IM_COL32(80, 220, 90, 255));
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Lit after the carriage has reached the left stop (the driver does it); off after a new sheet."));
+    ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
+    ar_lamp("PEN", p->pen_enabled(), IM_COL32(240, 200, 60, 255));
+    ImGui::SameLine(0, 1.5f * ImGui::GetFontSize());
+    if (ImGui::Button("PEN")) p->pen_button();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("Ready to write: the pen goes down only with the PEN lamp lit (off after power on)."));
+    if (!p->pen_enabled() || !p->ready()) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1, 0.7f, 0.3f, 1), "%s", !p->pen_enabled() ? tr("press PEN") : tr("the pen waits for READY"));
+    }
+    ImGui::Separator();
+}
+
 void draw_plotter(UiState& ui)
 {
     Machine* m = ui.host->machine();
@@ -231,29 +255,35 @@ void draw_plotter(UiState& ui)
     if (m && ui.plotter_gen != ui.host->machine_generation()) {
         ui.plotter_gen = ui.host->machine_generation();
         for (auto& c : m->cards)
-            if (c->minigraf()) ui.show_plotter = true;
+            if (c->plotter()) ui.show_plotter = true;
     }
     if (!ui.show_plotter) return;
     float u = ImGui::GetFontSize();   // on the right: the screen of SAPI stays in sight
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(30 * u, 42 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 30.5f * u, 2.0f * u), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(tr_id("Minigraf"), &ui.show_plotter) || !m) {
+    Plotter* g = nullptr;
+    if (m)
+        for (auto& c : m->cards)
+            if (c->plotter()) g = c->plotter();
+    Xy4130* xy = dynamic_cast<Xy4130*>(g);
+    // the title names the plotter, the ID stays (the saved layout)
+    std::string title = std::string(xy ? tr("Plotter XY 4130") : tr("Minigraf")) + "###Minigraf";
+    if (!ImGui::Begin(title.c_str(), &ui.show_plotter) || !m) {
         ImGui::End();
         return;
     }
-    Minigraf* g = nullptr;
-    for (auto& c : m->cards)
-        if (c->minigraf()) g = c->minigraf();
     if (!g) {
-        ImGui::TextDisabled("%s", tr("No plotter. Configurator: DPP-1, the plotter ARITMA Minigraf 0507."));
+        ImGui::TextDisabled("%s", tr("No plotter. Configurator: DPP-1 (Minigraf 0507, XY 4130) or JPR-1 (XY 4130 on X3)."));
         ImGui::End();
         return;
     }
     if (Ar1990Plotter* ar = m->cpu ? dynamic_cast<Ar1990Plotter*>(m->cpu->keyboard()) : nullptr) draw_ar1990(ui, m, ar);
+    if (xy) draw_xy4130(xy);
     if (ImGui::Button(tr("New sheet"))) g->new_sheet();
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Clean paper is put in under the pen (the drawing is cleared)."));
+        ImGui::SetTooltip("%s", xy ? tr("Clean paper is put in under the pen (the drawing is cleared); READY goes off.")
+                                   : tr("Clean paper is put in under the pen (the drawing is cleared)."));
     ImGui::SameLine();
     std::string err;
     if (ImGui::Button(tr("Save PNG"))) {
@@ -267,8 +297,7 @@ void draw_plotter(UiState& ui)
         if (g->save_svg(p, false, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
         else plot_notice(ui, false, err);
     }
-    ImGui::Text("X %.1f  Y %.1f mm   %s   %s %llu", g->x() / (double)Minigraf::STEPS_PER_MM,
-                g->y() / (double)Minigraf::STEPS_PER_MM, g->pen_down() ? tr("pen down") : tr("pen up"), tr("steps"),
+    ImGui::Text("X %.1f  Y %.1f mm   %s   %s %llu", g->x() / (double)g->spm, g->y() / (double)g->spm, g->pen_down() ? tr("pen down") : tr("pen up"), tr("steps"),
                 (unsigned long long)g->steps);
     if (g->stopped) {
         ImGui::SameLine();

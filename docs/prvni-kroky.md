@@ -53,7 +53,7 @@ obrazovky je otevřený **konfigurátor sestavy** (karty v rámu, propojky, mapa
 | `jpr1x_bgp1s.sapi` | JPR-1X (8085, TURBO) s RAM-1, BGP-1S a MIKROBIOSem 1.02 | jako `jpr1s_bgp1s`; TURBO tlačítkem na panelu ZDR nebo v menu Stroj |
 | `zps/ZPS-1_JPR-1X.sapi` | ekvivalent ZPS-1 s JPR-1X: MIKROBASIC 2.4 z horní banky ROM | rovnou píšete v BASICu |
 | `zps/ZPS-6.sapi` | SAPI-1.5 (1990): PKT-1, RSW-1, MFC-1A, barevná DBS-1A, CP/M 2.2 62K z 5,25" diskety | `DIR`, `SETDBS1` (barvy a celá znaková sada), další diskety Melsoft `media/sapi15` v okně Média |
-| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety, MIKOS/K se záznamníkem dat KZD-1, zapisovač Minigraf 0507 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
+| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety, MIKOS/K se záznamníkem dat KZD-1, zapisovače Minigraf 0507 a XY 4130 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
 | `zps/ZPS-3*.sapi`, `zps/ZPS-4*.sapi` | CP/M 2.2/P z 8" diskety (RPD-1, u `_FDC-1` řadič FDC-1), 48K a 62K, ELIS | naběhne CP/M |
 | `zps/ZPS-3_CPM48K_IMA.sapi` | originální CP/M 2.2 46K Tesla IMA s MON V1.0-C1 (systém z MOVCPM48) | `DIR`, `DIR B:` |
 | `zps/ZPS-3_CPM64K_IMA.sapi` | originální CP/M 2.2 64K Tesla IMA (B: MBASIC, COBOL) | `B:`, `MBASIC` |
@@ -165,6 +165,11 @@ Další programy z `media\` si nahrajete takto:
      (příkaz `KRES`: kružnice, šrafování, text).
 
   Celý návod s příklady vlastních kreseb: `docs/navod-minigraf.md`.
+- **Grafická jednotka XY 4130** (`zps\ZPS-2_MIKOS_V5_XY4130.sapi`, okno zapisovače se otevře samo):
+  1. po startu se ovladač ohlásí `L=XY4130` a vozík dojede na levý doraz (rozsvítí se READY);
+  2. v okně zapisovače stisknout **PEN** (po zapnutí nesvítí, bez něj se pero nespustí);
+  3. `.G=181E` nakreslí znakovou sadu: ovladač napíše `ZALOZ PAPIR A STISKNI KLAVESU`, stačí mezerník;
+  4. výpisy na tiskárnu L: (třeba `LIST` v BASICu) se kreslí písmem (`docs/desky/XY4130.md`).
 - **Kazetový disk RKD-1** (`rkd1_tesla_cpm.sapi`, CP/M 2.2 Tesla Elstroj 1987 z kazety CM 5403):
   1. po startu číslo uživatele (`1`) a název oblasti; výzva `b1$` je disk B:, uživatel 1;
   2. `DIR A:` ukáže systémovou kazetu (shell, formátovač, zdrojáky systému);

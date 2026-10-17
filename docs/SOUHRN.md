@@ -2,8 +2,20 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-16) a co dál
+## Kde jsme skončili (2026-10-17) a co dál
 
+- **Grafická jednotka XY 4130 (2026-10-17, autor: „Zkusil bych ten plotter XY 4130“):** podle stránky Z9001
+  (hc-ddr.hucki.net) a jejích odkazů: návody XY 4131 a XY 4140, schéma XY 4140, Průvodní technická dokumentace
+  XY 4150 a projekt plottercontroller. Zapisovač `src/chips/xy4130.*`:
+  - rozhraní KROK (náběžná hrana), X/Y, +/−, PERO, READY;
+  - 0,1 mm, dorazy vozíku, READY z levého dorazu, tlačítko PEN;
+  - mechanika a kresba společná s Minigrafem v `src/chips/plotter.*`.
+
+  Na JPR-1 X3 (P2-OUT, kabel ovladače `mikos`) a na DPP-1 (kabel KRESu). Sestava
+  `zps/ZPS-2_MIKOS_V5_XY4130.sapi` s `MIKOS5.BIN` (ovladač TESLA DIZ na 1800h), okno zapisovače s panelem POWER,
+  READY, PEN, MCP `plotter` (`pen_button`), test `test_xy4130`. Ovladač v emulátoru nastaví počátek na levém dorazu
+  a nakreslí znakovou sadu nezrcadleně; KRES s konfigurací 0Dh kreslí kružnici 60,0 mm. Nejasnosti (platí logika
+  XY 4140 i pro XY 4130? dráha vozíku, diakritika testu) v `docs/desky/XY4130.md`. Testy: debug 56.
 - **DPI-1L, SD karta nad složkou PC (2026-10-16 odpoledne, autor: „zbytek MZFRepo“):** celé Repository API podle
   firmwaru (`repo_fs.c`, `koi8.c`, `config.c`): soubory a adresáře ve složce `sd.folder` (výchozí `work/dpi-1l/sdcard`),
   stránka 4 KB, `/DPI/DPI.INI` s GETCONFIG/SETCONFIG, RTC, BOOT (/RTL), SDCARD (`src/cards/dpi1l_fs.*`, test
@@ -474,8 +486,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         (Aritma Minigraf 0507/0517, XY4130, plotter z AR 1990). Výpisy a extrakty v pracovní složce průzkumu (mimo git).
      f) **Zásobník nápadů (2026-10-09, autor: „všechno jsou dobré nápady, vrátíme se k nim“):**
         1. ~~model plotteru na DPP-1~~ hotové 2026-10-09: Minigraf 0507 (`docs/desky/Minigraf.md`), 2026-10-10
-           plotter z AR 1990 (`docs/desky/AR1990.md`); zbývá XY 4130 (ovladač za MIKOSem V5 v
-           `_ROM\MIKOS v5\MIKOS5.BIN` 1800h, chybí plocha, polarity a kresba na porovnání);
+           plotter z AR 1990 (`docs/desky/AR1990.md`), 2026-10-17 XY 4130 (`docs/desky/XY4130.md`, podklady ze
+           stránky Z9001 a plottercontrolleru);
         2. ~~RKD-1~~ hotové 2026-10-09: karta, sestava `rkd1_tesla_cpm.sapi`, systémová kazeta z originálních
            programů Tesla Elstroj (`docs/desky/RKD-1.md`);
         3. DSE-1 (simulátor a programátor EPROM);

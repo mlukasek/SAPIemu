@@ -17,7 +17,7 @@ using nlohmann::json;
 static Minigraf* find(Machine& m)
 {
     for (auto& c : m.cards)
-        if (c->minigraf()) return c->minigraf();
+        if (Minigraf* g = dynamic_cast<Minigraf*>(c->plotter())) return g;
     return nullptr;
 }
 
@@ -38,7 +38,7 @@ static void test_codes(void)
     m.bus.io_write(0x33, 0x99);   // PB output: all low, the pen goes up, X and Y step from 7 to 0
     CHECK(!g->pen_down());
     int32_t x0 = g->x(), y0 = g->y();
-    CHECK_EQ(x0, Minigraf::STOP_X + 60 * Minigraf::STEPS_PER_MM + 1);
+    CHECK_EQ(x0, (Minigraf::STOP_X_MM + 60) * Minigraf::STEPS_PER_MM + 1);
     CHECK_EQ(y0, 1);
     g->new_sheet();
     CHECK(g->strokes.empty());
@@ -86,7 +86,7 @@ static void test_codes(void)
     CHECK_EQ(g->lost, lost + 1);
     // against the left stop: the carriage stays there, the steps are counted
     for (int i = 0; i < 1000 * Minigraf::STEPS_PER_MM / 4; i++) { xc--; out(false); }
-    CHECK_EQ(g->x(), Minigraf::STOP_X);
+    CHECK_EQ(g->x(), Minigraf::STOP_X_MM * Minigraf::STEPS_PER_MM);
     CHECK(g->stopped > 100);
     CHECK_EQ(g->lost, lost + 1);
 }
@@ -126,7 +126,7 @@ static void test_driver(void)
     // INIC: control word 99h, the pen to the left stop and 80 steps (10 mm) back right, the paper 1700 steps on
     CHECK(command(m, "G1800\r", 30.0));
     CHECK(!g->pen_down());
-    CHECK_EQ(g->x(), Minigraf::STOP_X + 80);
+    CHECK_EQ(g->x(), Minigraf::STOP_X_MM * Minigraf::STEPS_PER_MM + 80);
     CHECK(g->stopped > 1000);
     CHECK_EQ(g->lost, 0u);
     CHECK_EQ(g->fast, 0u);   // the origin is set at the speed the plotter takes (400 steps/s)

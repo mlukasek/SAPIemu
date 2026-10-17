@@ -4,7 +4,7 @@
 až ZPS-4 a SAPI-1.5 (ZPS-6) po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
 PROM dumpů). K počítači patří i přístroje: měřicí jednotka APS-5 s regulací pecí, kazetopáskový záznamník dat
 KZD-1, kazetový disk RKD-1, magnetická páska RMP-1, přístrojová sběrnice IMS-2 s voltmetrem a zdrojem, zapisovač
-ARITMA Minigraf 0507 a plotter z Amatérského radia 1990. Chování desek V se ověřuje měřením na skutečném SAPI-1 V
+ARITMA Minigraf 0507, grafická jednotka XY 4130 a plotter z Amatérského radia 1990. Chování desek V se ověřuje měřením na skutečném SAPI-1 V
 (logický analyzátor), odchylky od desky jdou v konfigurátoru vypnout. Emulátor má vestavěný MCP server pro vývoj
 softwaru pro SAPI s Claude.
 
@@ -13,7 +13,7 @@ softwaru pro SAPI s Claude.
 > machines with MIKROBASIC, MIKOS and CP/M, the new boards of Libor Lasota ("V" boards with VGA, colour graphics
 > and YM3812 sound, JPR-1S/JPR-1X, PMD-85 style graphics BGP-1S), the APS-5 furnace control unit, the KZD-1
 > cassette data recorder, the RKD-1 cartridge disk, the RMP-1 magnetic tape, the IMS-2 instrument bus with a
-> voltmeter and a power supply, the ARITMA Minigraf 0507 plotter, cassette tapes made from programs, save states,
+> voltmeter and a power supply, the ARITMA Minigraf 0507 and XY 4130 plotters, cassette tapes made from programs, save states,
 > a debugger and a built-in MCP server. The V boards are checked against a real SAPI-1 V with a logic analyzer.
 > Alpha version, the documentation is in Czech.*
 
@@ -71,6 +71,10 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
     a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
     `KRES` kreslí v milimetrech (kružnice, šrafování, text);
+  - grafická jednotka XY 4130 (Laboratorní přístroje Praha) na konektoru X3 desky JPR-1 s ovladačem TESLA DIZ
+    z EPROM za MIKOSem V5: Monitor ho spustí sám, vozík najede na levý doraz (READY), výpisy na tiskárnu L: se
+    kreslí písmem; logika READY a tlačítka PEN podle schématu XY 4140, krok 0,1 mm, i pro `KRES` na DPP-1
+    ([docs/desky/XY4130.md](docs/desky/XY4130.md));
   - deska přístrojové sběrnice DPS-1 (IMS-2, IEEE 488) s měřicím pracovištěm: voltmetr Metra M1T 330 a zdroj
     Tesla BS 525 nakreslené v okně, knoflíky zdroje se točí myší, zátěž s omezením proudu, monitor sběrnice;
     BASIMS V4.0 (BASIC s `IMS#`) z kazety měří napětí, na kazetě jsou za ním ukázkové programy `PRIKLAD`
@@ -167,6 +171,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - [docs/tiskarna.md](docs/tiskarna.md): tiskárna Centronics (X3 procesorové karty, DPP-1).
 - [docs/desky/KZD-1.md](docs/desky/KZD-1.md): kazetopáskový záznamník dat KZD-1 a MIKOS/K.
 - [docs/desky/Minigraf.md](docs/desky/Minigraf.md): zapisovač ARITMA Minigraf 0507 a jeho ovladač.
+- [docs/desky/XY4130.md](docs/desky/XY4130.md): grafická jednotka XY 4130 (rozhraní řady XY 41x0, ovladač za MIKOSem V5,
+  `KRES`).
 - [docs/hw-otazky.md](docs/hw-otazky.md): všechny otevřené otázky k ověření na skutečném HW (generuje
   `tools/hw_otazky.py`), roztříděné podle důležitosti v [docs/hw-otazky-priorita.md](docs/hw-otazky-priorita.md).
 - [docs/hw-otazky-priorita.md](docs/hw-otazky-priorita.md): otevřené otázky na HW podle důležitosti.

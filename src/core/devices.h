@@ -11,6 +11,7 @@
 #include "core/card.h"
 #include "input/joyport.h"
 
+class Minigraf;
 class StateIO;
 
 struct CpuRegs {
