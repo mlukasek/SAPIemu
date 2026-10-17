@@ -109,27 +109,20 @@ void draw_about(UiState& ui)
     if (!ui.show_about) return;
     float u = ImGui::GetFontSize();
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(42 * u, 40 * u), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(42 * u, 31 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowBgAlpha(1.0f);
     if (!ImGui::Begin(tr_id("About SAPIemu"), &ui.show_about)) {
         ImGui::End();
         return;
     }
-    // the pictures: the logo SAPI 1 (tools/make_icon.py) and the rack of SAPI-1 V as the configurator draws it
-    static SDL_Texture* tex = nullptr;
+    // the logo SAPI 1 (tools/make_icon.py)
     static SDL_Texture* logo = nullptr;
-    static int tw = 0, th = 0, lw = 0, lh = 0;
+    static int lw = 0, lh = 0;
     static bool tried = false;
     if (!tried) {
         tried = true;
         SDL_Renderer* r = ui.window ? SDL_GetRenderer(ui.window) : nullptr;
-        if (SDL_Surface* s = r ? SDL_LoadPNG(data_path("docs/img/o-programu.png").c_str()) : nullptr) {
-            tex = SDL_CreateTextureFromSurface(r, s);
-            tw = s->w;
-            th = s->h;
-            SDL_DestroySurface(s);
-        }
         if (SDL_Surface* s = r ? SDL_LoadPNG(data_path("docs/img/logo.png").c_str()) : nullptr) {
             logo = SDL_CreateTextureFromSurface(r, s);
             lw = s->w;
@@ -137,28 +130,33 @@ void draw_about(UiState& ui)
             SDL_DestroySurface(s);
         }
     }
+    // the logo on the left, the name and the version in the top right corner next to it
+    ImVec2 top = ImGui::GetCursorPos();
+    float right = top.x + ImGui::GetContentRegionAvail().x, left = top.x, bottom = top.y;
     if (logo) {
         float h = 3.2f * u, w = h * lw / (float)lh;
         ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)logo), ImVec2(w, h));
+        left += w + u;
+        bottom += h;
     }
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.45f, 1.0f));
+    const char* ver = sapiemu_version();
     ImGui::SetWindowFontScale(1.6f);
+    float nw = ImGui::CalcTextSize("SAPIemu").x;
+    ImGui::SetCursorPos(ImVec2(right - nw > left ? right - nw : left, top.y));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.45f, 1.0f));
     ImGui::TextUnformatted("SAPIemu");
-    ImGui::SetWindowFontScale(1.0f);
     ImGui::PopStyleColor();
-    ImGui::SameLine();
-    ImGui::TextDisabled("%s", sapiemu_version());
-    ImGui::TextWrapped("%s", tr("Emulator of the Czechoslovak modular computer Tesla SAPI-1 (1983-1990) and of the "
-                                "boards made for it since: the historic ZPS sets, the boards of Libor Lasota, the "
+    ImGui::SetWindowFontScale(1.0f);
+    float vw = ImGui::CalcTextSize(ver).x;
+    ImGui::SetCursorPosX(right - vw > left ? right - vw : left);
+    ImGui::TextDisabled("%s", ver);
+    if (ImGui::GetCursorPosY() < bottom) ImGui::SetCursorPosY(bottom);
+    ImGui::Spacing();
+    ImGui::TextWrapped("%s", tr("Emulator of the Czechoslovak modular 8-bit microcomputer Tesla SAPI-1 (1983-1990), "
+                                "designed by Ing. Eduard Smutný and made by Tesla Liberec. The emulator offers the "
+                                "original boards and the historic ZPS sets as well as the boards made for it later, "
+                                "e.g. the boards of Libor Lasota and Petr Všijanský, and also the devices and "
                                 "instruments SAPI worked with."));
-    if (tex) {
-        float w = ImGui::GetContentRegionAvail().x, h = w * th / (float)tw;
-        if (h > 16 * u) {
-            w *= 16 * u / h;
-            h = 16 * u;
-        }
-        ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), ImVec2(w, h));
-    }
     ImGui::SeparatorText(tr("Author"));
     ImGui::TextUnformatted("Copyright © 2026 Martin Lukášek, 8bity.cz");
     ImGui::TextWrapped("%s", tr("Free software under the GNU General Public License v3 (the file LICENSE)."));
@@ -167,10 +165,12 @@ void draw_about(UiState& ui)
     url_link("8bity.cz", "https://www.8bity.cz");
     ImGui::SameLine();
     url_link("sapi.cz", "https://www.sapi.cz");
+    ImGui::SameLine();
+    url_link("pmd85.cz", "https://pmd85.cz");
     ImGui::SeparatorText(tr("Thanks"));
     ImGui::TextWrapped("%s", tr("Petr Všijanský (EC1045, sapi.cz): dumps, documentation and disks of SAPI-1 and "
                                 "answers to many questions."));
-    ImGui::TextWrapped("%s", tr("Libor Lasota: the boards V, MikroMon, MIKROBIOS, his programs, demos and games."));
+    ImGui::TextWrapped("%s", tr("Libor Lasota (pmd85.cz): the boards V, MikroMon, MIKROBIOS, his programs, demos and games."));
     ImGui::TextWrapped("%s", tr("Jiří Bíba (SAPIMAN): CP/M systems, disks and programs. R. Peřina, Tesla ELTOS, IMA, "
                                 "DIZ, Elstroj and all authors of the software of the time."));
     ImGui::SeparatorText(tr("Libraries"));

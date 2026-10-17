@@ -18,7 +18,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     vypnout), první spuštění otevře výběr sestav. Test `test_machine_index`. Náhledy přístrojů (APS-5, IMS-2, KZD-1,
     Minigraf, RMP-1) jsou snímky jejich oken (`sapiemu --ui-crop`, stav z cli přes `--ui-state`).
   - **Etapa 4 (hotová, `9119c46`):** okno Nastavení (jazyk, zvuk, myš, průvodci, server MCP s portem, ffmpeg),
-    Nápověda → Klávesové zkratky, O programu (obrázek `docs/img/o-programu.png`), První kroky a Návody; Soubor →
+    Nápověda → Klávesové zkratky, O programu (logo `docs/img/logo.png`, vedle název a verze; obrázek Liborovy skříně
+    vyřazen, nejde o původní SAPI-1), První kroky a Návody; Soubor →
     Poslední sestavy; zkratky emulátoru se při psaní do textového pole neuplatní; nástrojová okna se poprvé otevřou
     u pravého okraje; průvodce se sám otevře jen po spuštění sestavy uživatelem. **MCP v GUI podle Nastavení:** nová
     instalace vypnutý, starší nastavení bez položky `mcp` zapnutý (autorovo nastavení tedy MCP zachová),
@@ -26,7 +27,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - **Etapa 5 (hotová, 2026-10-17):**
     - `THIRD-PARTY-NOTICES.txt` z `tools/third_party_notices.py` (licence SDL3 v `third_party/sdl3/`), jde do zipu;
     - copyright v README, O programu a exe;
-    - ikona `src/res/sapiemu.ico` (`tools/make_icon.py`) a VERSIONINFO z `src/res/sapiemu.rc.in`;
+    - ikona `src/res/sapiemu.ico` (`tools/make_icon.py`, jednička z loga SAPI 1 překreslená podle příručky) a VERSIONINFO
+      z `src/res/sapiemu.rc.in`; logo `docs/img/logo.png` ze stejného skriptu v O programu a README;
     - log `sapiemu.log` vedle nastavení;
     - okno s chybou při startu (SDL, chybějící data);
     - `work/` náhradou v `%LOCALAPPDATA%\SAPIemu\work` (`work_root()`, test `test_paths`);
