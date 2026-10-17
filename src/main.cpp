@@ -297,6 +297,7 @@ int main(int argc_ansi, char** argv_ansi)
                    settings_file);
 #else
     (void)mcp_enabled;   // GUI options are parsed (and ignored) by sapiemu-cli too
+    (void)mcp_explicit;
     return 0;
 #endif
 }

@@ -98,7 +98,7 @@ void draw_shortcuts(UiState& ui)
 
 // ---------------------------------------------------------------- about
 
-static void link(const char* label, const char* url)
+static void url_link(const char* label, const char* url)
 {
     if (ImGui::SmallButton(label)) SDL_OpenURL(url);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", url);
@@ -151,11 +151,11 @@ void draw_about(UiState& ui)
     ImGui::SeparatorText(tr("Author"));
     ImGui::TextUnformatted("Copyright © 2026 Martin Lukášek, 8bity.cz");
     ImGui::TextWrapped("%s", tr("Free software under the GNU General Public License v3 (the file LICENSE)."));
-    link("GitHub", "https://github.com/mlukasek/SAPIemu");
+    url_link("GitHub", "https://github.com/mlukasek/SAPIemu");
     ImGui::SameLine();
-    link("8bity.cz", "https://www.8bity.cz");
+    url_link("8bity.cz", "https://www.8bity.cz");
     ImGui::SameLine();
-    link("sapi.cz", "https://www.sapi.cz");
+    url_link("sapi.cz", "https://www.sapi.cz");
     ImGui::SeparatorText(tr("Thanks"));
     ImGui::TextWrapped("%s", tr("Petr Všijanský (EC1045, sapi.cz): dumps, documentation and disks of SAPI-1 and "
                                 "answers to many questions."));
