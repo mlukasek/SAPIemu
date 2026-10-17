@@ -122,6 +122,8 @@ if(WIN32)
         set(SAPIEMU_EXE "${exe}.exe")
         configure_file(src/res/sapiemu.rc.in ${CMAKE_CURRENT_BINARY_DIR}/${exe}.rc @ONLY)
         target_sources(${exe} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${exe}.rc)
+        # a new icon (tools/make_icon.py) rebuilds the resources
+        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${exe}.rc PROPERTIES OBJECT_DEPENDS ${SAPIEMU_ICON})
     endforeach()
 endif()
 

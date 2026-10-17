@@ -1775,5 +1775,9 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
 - **Log do souboru:** GUI píše `sapiemu.log` vedle nastavení, při každém spuštění znovu (pro hlášení chyb).
 - **Chyba při startu** (SDL, chybějící `roms/` a `machines/`) se ukáže v okně, ne jen na stderr, které spuštění
   z Průzkumníka nevidí.
-- **Ikona:** zelené „SAPI“ a oranžové „-1“ na tmavě modré obrazovce (`tools/make_icon.py`), jde snadno změnit.
+- **Ikona (autor: „z toho udělej ikonu“):** jednička z loga SAPI 1 z příruček Tesla, překreslená podle fotky loga.
+  Je to dráha souběžných linek kolem kostry: ostrá špička, vlajka se zaobleným koncem, patka asi pětkrát širší
+  než dřík se zaoblenými konci, ve středu jedna linka. Bílá na černém zaobleném čtverci. Ve 24 a 32 px má jen obrys
+  a středovou linku, v 16 px je plná. Kreslí ji `tools/make_icon.py`. Původní návrh (zelené „SAPI“ a oranžové „-1“)
+  autor nechtěl.
 - **Verze 0.7.0-alpha.** O „beta“ nebo „1.0“ rozhodne autor před vydáním.

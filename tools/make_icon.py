@@ -2,52 +2,92 @@
 """Icon of SAPIemu: src/res/sapiemu.ico (the exe, sizes 16-256) and docs/img/ikona.png (256 px,
 the window icon on Linux).
 
-Usage: python tools/make_icon.py   (needs Pillow and a bold sans font: Arial Bold or DejaVu Sans Bold)
+Usage: python tools/make_icon.py   (needs Pillow)
 
-A dark blue screen with "SAPI" in green phosphor letters and an orange "-1" below; 16 and 24 px get a
-simpler picture ("S1"), the four letters are not readable there.
+The digit "1" of the SAPI-1 logo (Tesla manuals): a track of parallel lines around a skeleton (the stem
+from the sharp tip down to the base, the flag from the tip to the rounded hook, the wide base with rounded
+ends): the outline, a middle line and the centre line, which is a single line in the base. The skeleton
+was measured on a photo of the logo (units of that photo). Smaller sizes have fewer lines: from 48 px all
+five across the stem, 24 and 32 px the outline and the centre, 16 px a solid digit.
 """
+import math
 import os
-import sys
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FONTS = ["C:/Windows/Fonts/arialbd.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
-BG = (24, 38, 72)
-EDGE = (120, 140, 180)
-GREEN = (110, 235, 120)
-ORANGE = (255, 150, 40)
+
+T = (510.0, 193.0)   # the tip of the skeleton (the stem and the flag meet here)
+H = (340.0, 278.0)   # the end of the flag (rounded hook)
+B = (510.0, 520.0)   # the foot of the stem, on the base
+L = (245.0, 520.0)   # the ends of the base (rounded)
+R = (795.0, 520.0)
+S = 32.5             # spacing of the lines; the half width of the digit is 2 * S
+X0, Y0, X1, Y1 = 180.0, 85.0, 860.0, 585.0   # bounding box of the outline
+BG = (20, 20, 20, 255)
+FG = (245, 245, 245, 255)
 
 
-def font(size):
-    for f in FONTS:
-        if os.path.exists(f):
-            return ImageFont.truetype(f, size)
-    sys.exit("no bold font found (" + ", ".join(FONTS) + ")")
+def unit(a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    n = math.hypot(dx, dy)
+    return dx / n, dy / n
 
 
-def centred(d, y, text, f, fill, w):
-    box = d.textbbox((0, 0), text, font=f)
-    d.text(((w - (box[2] - box[0])) / 2 - box[0], y - box[1]), text, font=f, fill=fill)
+def segment(d, a, b, r, fill):
+    ux, uy = unit(a, b)
+    nx, ny = -uy * r, ux * r
+    d.polygon([(a[0] + nx, a[1] + ny), (b[0] + nx, b[1] + ny), (b[0] - nx, b[1] - ny), (a[0] - nx, a[1] - ny)],
+              fill=fill)
 
 
-def picture(size):
-    big = 1024 if size >= 32 else 256   # drawn larger and scaled down: smooth edges
-    s = big / 256.0
+def disc(d, p, r, fill):
+    d.ellipse((p[0] - r, p[1] - r, p[0] + r, p[1] + r), fill=fill)
+
+
+def layer(d, r, fill, tf):
+    """The digit as a stroke of half width r around the skeleton, with the sharp tip."""
+    t, h, b, l, rr = (tf(p) for p in (T, H, B, L, R))
+    segment(d, t, b, r, fill)
+    segment(d, t, h, r, fill)
+    segment(d, l, rr, r, fill)
+    for p in (h, l, rr):
+        disc(d, p, r, fill)
+    d1, d2 = unit(t, b), unit(t, h)
+    bx, by = d1[0] + d2[0], d1[1] + d2[1]
+    bl = math.hypot(bx, by)
+    half = math.acos(max(-1.0, min(1.0, d1[0] * d2[0] + d1[1] * d2[1]))) / 2
+    m = r / math.sin(half)
+    tip = (t[0] - bx / bl * m, t[1] - by / bl * m)
+    n1 = (abs(d1[1]) * r, 0.0)               # the right side of the (vertical) stem
+    n2 = (d2[1] * r, -d2[0] * r)             # the upper side of the flag
+    if n2[1] > 0:
+        n2 = (-n2[0], -n2[1])
+    d.polygon([t, (t[0] + n1[0], t[1] + n1[1]), tip, (t[0] + n2[0], t[1] + n2[1])], fill=fill)
+
+
+def draw_one(img, scale, ox, oy, lines, width):
+    d = ImageDraw.Draw(img)
+    tf = lambda p: (ox + (p[0] - X0) * scale, oy + (p[1] - Y0) * scale)
+    s, w = S * scale, width * scale
+    if lines == 1:
+        layer(d, 2 * s, FG, tf)
+        return
+    radii = [2 * s + w / 2, 2 * s - w / 2, s + w / 2, s - w / 2, w / 2] if lines == 3 else \
+            [2 * s + w / 2, 2 * s - w / 2, w / 2]
+    for k, r in enumerate(radii):
+        layer(d, r, FG if k % 2 == 0 else BG, tf)
+
+
+def picture(px):
+    big = px * 8   # drawn larger and scaled down: smooth edges
     im = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((8 * s, 8 * s, 248 * s, 248 * s), radius=36 * s, fill=BG, outline=EDGE, width=int(8 * s))
-    if size >= 32:
-        f = font(int(86 * s))
-        centred(d, 40 * s, "SAPI", f, GREEN, big)
-        centred(d, 140 * s, "-1", font(int(80 * s)), ORANGE, big)
-    else:
-        f = font(int(150 * s))
-        box = d.textbbox((0, 0), "S", font=f)
-        d.text((40 * s - box[0], 54 * s - box[1]), "S", font=f, fill=GREEN)
-        d.text((140 * s - box[0], 54 * s - box[1]), "1", font=f, fill=ORANGE)
-    return im.resize((size, size), Image.LANCZOS)
+    ImageDraw.Draw(im).rounded_rectangle((0, 0, big - 1, big - 1), radius=big * 0.16, fill=BG)
+    w, h = X1 - X0, Y1 - Y0
+    scale = big * 0.86 / w
+    lines = 3 if px >= 48 else 2 if px >= 24 else 1
+    draw_one(im, scale, (big - w * scale) / 2, (big - h * scale) / 2, lines, 12.0 if px >= 128 else 16.0)
+    return im.resize((px, px), Image.LANCZOS)
 
 
 def main():
