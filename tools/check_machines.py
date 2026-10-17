@@ -102,7 +102,7 @@ MACHINES = {
     'zps_ZPS-2_MIKOS_V5': (MIKOS, ['0000']),
     'zps_ZPS-2_MIKOS_V5_DGD-1V': (MIKOS, ['0000']),
     'zps_ZPS-2_MIKOS_V5_Minigraf': (MIKOS, ['0000']),
-    'zps_ZPS-2_MIKOS_V5_XY4130': (MIKOS, ['L=XY4130', '0000']),
+    'zps_ZPS-2_MIKOS_V5_XY4130': (run(5000) + MIKOS, ['L=XY4130', '0000']),   # the carriage to the left stop first
     'zps_ZPS-3': (CPM + cpm_dir(), [' COM']),
     'zps_ZPS-3_CPM48K': (CPM + cpm_dir(), [' COM']),
     'zps_ZPS-3_CPM48K_FDC-1': (CPM + cpm_dir(), [' COM']),
