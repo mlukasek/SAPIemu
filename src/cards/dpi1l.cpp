@@ -23,7 +23,9 @@ enum {
 };
 enum { ERR_NOT_IMPLEMENTED = 1, ERR_BAD_PARAM = 2, ERR_OVERFLOW = 3, ERR_NO_FILE = 4, ERR_FATFS = 6 };
 
-static const uint8_t VERSION_MAJOR = 0, VERSION_MINOR = 2;   // API of the DPI firmware the card answers as
+// the version of the DPI firmware the card answers as (REV, REVD): 0.4.0 since 2026-10-20 as the real card; the
+// Repository API and NET are the same as in 0.2, the model below
+static const uint8_t VERSION_MAJOR = 0, VERSION_MINOR = 4, VERSION_PATCH = 0;
 static const uint8_t BOARD = 0x01;                           // REVD/INFO board byte: bit 0 = DPI-1L
 static const uint8_t WIFI_CONNECTED = 3;                     // WIFISTATUS (MZPico numbering)
 static const uint8_t FLASH_MB = 4;                           // INFO byte 2 (RP2350 board of DPI-1L)
@@ -338,7 +340,7 @@ void Dpi1l::command(uint8_t c)
     case 0x04:                          // STORNO
         break;
     case 0x05: {                        // REV
-        int n = snprintf((char*)buf, sizeof(buf), "DPI-1L v%u.%u", VERSION_MAJOR, VERSION_MINOR);
+        int n = snprintf((char*)buf, sizeof(buf), "DPI-1L v%u.%u.%u", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
         buf[n++] = 0x0D;
         output((uint16_t)n);
         break;
