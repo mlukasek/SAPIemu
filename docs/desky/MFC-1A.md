@@ -13,7 +13,7 @@ sestava `machines/cpm_zrmd_mfc1a.sapi`, test `test_fdc_ecmon`.
 >    (a `MFC1.ASM`, který podle něj vznikl).
 > 2. **BIOS ECBIM8 má chybu:** v `INIT_MFC` chybí `RET`, takže při inicializaci zapíše do 0FH hodnotu FFh. Podle
 >    obou schémat tím drží 8272 v resetu a čeká navěky. Oprava pro EC1045 (zdrojáky a obraz RAM disku s přepsanými
->    dvěma bajty na 583Dh a 3B832h, ověřená v emulátoru) je v `..\Dotazy\EC1045_2026-10-07\pro_Petra\`.
+>    dvěma bajty na 583Dh a 3B832h a s hláškou `BIOS-3K M050815JB` na 5A70h a 3BA65h, ověřená v emulátoru) je v `..\Dotazy\EC1045_2026-10-07\pro_Petra\`.
 > 3. Emulace umí obě zapojení (`wiring = ec1045`, výchozí od 2026-10-07, nebo `tesla`) a reset přesně podle
 >    schématu (`reset_mode = level`, výchozí). Sestava `cpm_zrmd_mfc1a.sapi` má `ec1045`, reset podle schématu a **RAM disk s opraveným BIOSem**
 >    (`media/zrmd-1/SAPI_CPM_Martin_2019-10-07_fixMFC.bin`, zdroják `..\SAPI-karty\ZRMD-1\SRC`). Pro původní

@@ -365,6 +365,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     vede X3/16 na BUSY (DSUB25/11, zapojení jako LPT PC); **ZPS-5:** dvojitá vana, dlouhá sběrnice, bez MFC-1A;
   - pro Petra je připravená oprava BIOSu MFC8 (`..\Dotazy\EC1045_2026-10-07\pro_Petra\`: opravené ECBIM8.MAC
     a ECBIM8_cd.MAC a obraz RAM disku s přepsanými dvěma bajty, v emulátoru ověřený); poslat ji musí autor.
+    Od 2026-10-20 se opravený BIOS všude hlásí `BIOS-3K M050815JB` (balíček, `_fixMFC`, autorova kopie, zdroják).
 - **Hotové 2026-10-07 večer: CRM-1** (zálohovaná CMOS RAM 4 KB, `docs/desky/CRM-1.md`, test `test_crm1`) podle
   návodu Tesla; autor desku nemá, software pro ni neznáme. ZPS-7 až ZPS-9 jako samostatné sestavy nebudou (od ZPS-6
   se v emulaci neliší), poznámka v `docs/software/SAPI-1.5.md`.
