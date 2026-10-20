@@ -118,7 +118,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
     Spectrem, CPC a PC (BomberNet, sestava `sapi1v_BomberNet.sapi`);
   - SD karta nad složkou PC (`work/dpi-1l/sdcard`): soubory a adresáře, české názvy v KOI-8čs2, `DPI.COM` v CP/M
     funguje;
-  - TCP a DNS do sítě PC, nastavení v `/DPI/DPI.INI`, RTC, BOOT
+  - TCP a DNS do sítě PC, nastavení v `/DPI/DPI.INI`, RTC, BOOT;
+  - verzi hlásí jako skutečná karta s firmwarem 0.4.0 (REV `DPI-1L v0.4.0`, REVD `00 04 44 01`)
     ([docs/desky/DPI-1L.md](docs/desky/DPI-1L.md)).
 - **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
   joysticku (joystick z šipek a mezerníku nebo gamepadu, myš). Matice ANK-1 drží klávesu, dokud ji držíš na PC
