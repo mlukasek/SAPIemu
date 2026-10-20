@@ -72,7 +72,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `sapi1v_hry`; nad čistou kopií dat v `out/check/`, `docs/build.md`), `make_previews.py` (náhledy sestav pro
   okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích
   vedle SAPIemu, `docs/vydani/sestavy.md`), `third_party_notices.py` (`THIRD-PARTY-NOTICES.txt`), `make_icon.py`
-  (ikona `src/res/sapiemu.ico`; VERSIONINFO z `src/res/sapiemu.rc.in`).
+  (ikona `src/res/sapiemu.ico` a logo `docs/img/logo.png` pro README a O programu; VERSIONINFO z `src/res/sapiemu.rc.in`).
 - **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.

@@ -2,8 +2,12 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-17) a co dál
+## Kde jsme skončili (2026-10-20) a co dál
 
+- **Hláška opraveného BIOSu ECBIM8 (2026-10-20):** opravený BIOS pro MFC-1A (volba 2 „MFC8“) se všude hlásí
+  `BIOS-3K M050815JB` (`_fixMFC`, autorova pracovní kopie, zdroják `ECBIM8C.MAC`, balíček pro EC1045 v
+  `..\Dotazy\EC1045_2026-10-07\pro_Petra\` včetně `CTI_ME.txt` a zipu). Oprava `RET` je nově i v `ECBIM8.BIN` na RAM
+  disku. Autorova pracovní kopie RAM disku má opravu se souhlasem autora. Balíček Petrovi pošle autor.
 - **Příprava veřejného vydání (2026-10-17, autor: „soustředil bych se teď na to vydání“).** Plán po etapách je
   v paměti a v `docs/vydani/`. Rozhodnutí autora: ostatní sestavy zůstanou v sekci Ostatní, historii repa neřešit
   (Prince of Persia jen v repu), česky a anglicky jen základ, MCP ve vydání vypnutý.
@@ -37,7 +41,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     - `package.py --public` (bez `work/ide`, `REPO_ONLY` a `DEV_DOCS`: `SOUHRN`, `rozhodnuti`, `docs/vydani/`);
     - anglický úvod a sekce Síť a soukromí v README;
     - verze 0.7.0-alpha.
-  - **Stav:** vše jen lokálně commitnuté (od `5af2807`), **nepushnuté**. Ověřeno 2026-10-17:
+  - **Stav:** etapy 1–5 pushnuté 2026-10-20 (od `5af2807`) i s ikonou, logem, novým O programu a kartami ve výběru
+    sestav. Ověřeno 2026-10-17 a před pushem 2026-10-20:
     - testy debug a release 58/58, WSL 58/58 (oprava `help.cpp` pro GCC);
     - `check_machines.py` 60/60, `--games` 12/12;
     - zkušební `package.py --public` (521 souborů, 30 MB) naběhne z rozbaleného zipu.

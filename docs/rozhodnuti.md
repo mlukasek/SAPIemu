@@ -1781,3 +1781,27 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   a středovou linku, v 16 px je plná. Kreslí ji `tools/make_icon.py`. Původní návrh (zelené „SAPI“ a oranžové „-1“)
   autor nechtěl.
 - **Verze 0.7.0-alpha.** O „beta“ nebo „1.0“ rozhodne autor před vydáním.
+- **Logo „SAPI 1“** (`docs/img/logo.png`, `tools/make_icon.py`) je nahoře v README a v O programu.
+
+## 2026-10-18 – O programu a karty ve výběru sestav
+
+- **O programu bez obrázku skříně:** obrázek byl Liborova skříň, ne původní SAPI-1, a logo grafice stačí (autor).
+  Později možná menší obrázek původního šasi. Název a verze jsou v pravém horním rohu vedle loga. Text podle autora:
+  osmibitový mikropočítač, navrhl Ing. Eduard Smutný, vyráběla Tesla Liberec, původní desky a sestavy ZPS i desky
+  Libora Lasoty a Petra Všijanského, přístroje. Přibyl odkaz pmd85.cz.
+- **Výběr sestav ukazuje karty a příslušenství** (autor: „zobrazit i jména karet + příslušenství“): seznam
+  `machine_cfg_parts()` vychází z katalogu karet. Příslušenství jsou klávesnice (a joystick ANK-1M2), co je v K2/K3,
+  oddíly karet, které jsou zařízením (tabulka `k_device_sections` a mechaniky a jednotky), magnetofon DSM-1
+  a technologie mimo počítač. U médií je jméno obrazu, u tiskárny ne (výstupní soubor na PC médium není). Kanály
+  sériových karet a strana PC se neukazují.
+
+## 2026-10-20 – hláška opraveného BIOSu ECBIM8
+
+- **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`
+  (autor: „aby bylo na první dobrou vidět, že je upravený BIOS“, délku textu zatím neměnit). Platí všude, kde je
+  oprava: `_fixMFC` v `media/`, autorova pracovní kopie, zdroják `ECBIM8C.MAC` (`build.py --check` hlásí u SYS2
+  právě dva rozdíly) a balíček pro EC1045. Neopravené obrazy hlásí dál `V`, takže se verze nepletou.
+- **Oprava i v souboru `ECBIM8.BIN`** na RAM disku (3B832h), nejen v systémové oblasti, aby se chyba nevrátila při
+  generování systému z toho souboru.
+- **Původ chyby:** monitor `mon281211` má na stejném místě záměrný průchod do výběru disku 0, do BIOSu pro RAM disk
+  se nejspíš přenesl i s ním (`docs/software/CPM_SAPIMAN.md`).
