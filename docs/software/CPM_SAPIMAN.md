@@ -106,8 +106,10 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
 5. ~~**Okno Média:** ověřit vzhled výběru formátu nové diskety~~ hotové 2026-10-05: výběr je jednou nad
    mechanikami řadiče, snímek `sapiemu --ui-snapshot X.png --ui-media`.
 6. **Otázky na EC1045** (sekce výše): `PETR/2MB`, zdroják ECMON IDE-1, zapojení jeho MFC-1A.
-7. **Pracovní kopie autora** `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`: oprava `RET` v ECBIM8 (bajt 583Dh
-   0Eh → C9h) jen se souhlasem autora; sestava `cpm_zrmd_mfc1a` má zatím vlastní opravený obraz `_fixMFC`.
+7. ~~**Pracovní kopie autora** `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`: oprava `RET` v ECBIM8~~ hotové
+   2026-10-20 se souhlasem autora: na 583Dh (systém varianty 2) i 3B832h (soubor `ECBIM8.BIN`) 0Eh → C9h. Volba 2
+   s MFC-1A pak nabootuje i s resetem podle schématu a `DIR B:` čte disketu. Originál v `media/` zůstal beze
+   změny, sestava `cpm_zrmd_mfc1a` dál používá `_fixMFC`.
 
 ## Původ chyby ECBIM8
 
