@@ -110,7 +110,8 @@ s BIOSy `ECBIF8_cd`, `ECBIF3_cd`, `ECBIF5_cd`, `ECBIHD_cd`).
    2026-10-20 se souhlasem autora: na 583Dh (systém varianty 2) i 3B832h (soubor `ECBIM8.BIN`) 0Eh → C9h. Volba 2
    s MFC-1A pak nabootuje i s resetem podle schématu a `DIR B:` čte disketu. Originál v `media/` zůstal beze
    změny, sestava `cpm_zrmd_mfc1a` dál používá `_fixMFC`. Ten měl do 2026-10-20 opravené jen 583Dh,
-   teď i 3B832h (`media/` i pracovní kopie).
+   teď i 3B832h (`media/` i pracovní kopie). Všechny tři opravené obrazy a zdroják `ECBIM8C.MAC` mají v hlášce
+   `BIOS-3K M050815JB` místo `V050815JB`, aby byl opravený BIOS hned poznat.
 
 ## Původ chyby ECBIM8
 

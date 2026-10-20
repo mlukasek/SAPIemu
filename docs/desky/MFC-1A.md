@@ -127,7 +127,8 @@ BIOS CP/M (varianta 2 menu ECMON, zdroj `..\SAPI-karty\FDC-1\sw\ECBIM8.MAC`, na 
 Registr C po návratu nevadí: `INIT_MFC` volá jen `BOOT`, ten pak volá `MCHECK`, který C nebere (ECBIF8 vrací C =
 30h stejně). Na originální desce Tesla by BIOS musel navíc pracovat s D6 = 0.
 
-**Oprava je ve zdrojáku** `..\SAPI-karty\ZRMD-1\SRC\ECBIM8C.MAC` (`docs/software/ECMON.md`, překlad `build.py`).
+**Opravený BIOS se hlásí `BIOS-3K M050815JB`** (M místo V, délka textu stejná, 2026-10-20): v obrazech je to znak na
+5A70h (systém varianty 2) a 3BA65h (`ECBIM8.BIN`), BIOSy ostatních variant zůstaly `V050815JB`. **Oprava je ve zdrojáku** `..\SAPI-karty\ZRMD-1\SRC\ECBIM8C.MAC` (`docs/software/ECMON.md`, překlad `build.py`).
 **Ověřeno 2026-10-05:** systém přeložený s opravou nabootuje variantu 2 i s `wiring = ec1045`
 a `reset_mode = level`, tedy s resetem 8272 přesně podle schématu, a `DIR B:` čte disketu. Odchylka `pulse` je
 potřeba jen pro neopravený obraz.

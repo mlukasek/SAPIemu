@@ -97,7 +97,8 @@ s originály bajt po bajtu**, kromě neinicializovaných oblastí DS:
   CP/M 2.2** (výřez z rekonstrukce C. A. Calkinse, 3 bajty vrácené na původní stav), CBIOS `ECBIF8_cd`,
   `ECBIR8_cd`, `ECBIM8_cd`, `ECBIHD_cd` (všechny „BIOS-3K V050815JB“). Verze bez `_cd` jsou na RAM disku
   v souborech `ECBI*.BIN`.
-- **ECBIM8C (MFC-1A) má ve zdrojáku opravu** chybějícího `RET` v `INIT_MFC` (`docs/desky/MFC-1A.md`).
+- **ECBIM8C (MFC-1A) má ve zdrojáku opravu** chybějícího `RET` v `INIT_MFC` (`docs/desky/MFC-1A.md`). Opravený BIOS
+  se hlásí `BIOS-3K M050815JB` (M místo V, stejná délka, 2026-10-20).
   `build.py --image` ji zapíše do kopie obrazu RAM disku.
 - Starší česká CCP a BDOS ze sady 4XBOOT (2012) v tomto systému nejsou.
 
