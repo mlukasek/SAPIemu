@@ -1690,7 +1690,7 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   (výsledky FR_*, velikost v adresáři až po SYNC/CLOSE, LOCKED u otevřeného souboru). Kde to věrně nejde (pořadí
   položek, čísla krátkých jmen, čas souborů), je to v `docs/desky/DPI-1L.md` a čeká na záznamy ze skutečné karty.
 - **Verze jako skutečná karta** (autor 2026-10-20: „uprav verzi v SAPIemu“): REV a REVD hlásí verzi firmwaru,
-  který má skutečná DPI-1L (od 2026-10-20 0.4.0, REV i se třetím číslem `DPI-1L v0.4.0`). Protokol se od 0.2
+  který má skutečná DPI-1L (od 2026-10-22 0.4.1, od 2026-10-20 0.4.0, REV i se třetím číslem `DPI-1L v0.4.1`). Protokol se od 0.2
   nezměnil, takže chování zůstává podle v0.2.
 - **Stránka 4 KB věrně** (autor souhlasil): program, který zapomene CLOSE, přijde o data jako na železe. Odchylka
   `sd.flush_on_exit` (výchozí vypnutá) zapíše stránku při vypnutí emulátoru.

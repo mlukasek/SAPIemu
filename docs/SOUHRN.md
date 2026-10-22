@@ -4,6 +4,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Kde jsme skončili (2026-10-20) a co dál
 
+- **DPI-1L hlásí verzi 0.4.1 (2026-10-22):** firmware 0.4.1 (vydání `v0.4.1`, oprava resetu karet 71,6 min po resetu
+  SAPI), REV `DPI-1L v0.4.1` + 0Dh, REVD beze změny `00 04 44 01`; `test_dpi1l` upravený.
 - **DPI-1L hlásí verzi 0.4.0 (2026-10-20 večer):** skutečná karta dostala firmware 0.4.0 (vydání `v0.4.0`
   v `..\SAPI_DPI-firmware`), emulovaná proto taky: REV `DPI-1L v0.4.0` + 0Dh, REVD `00 04 44 01` (dřív 0.2).
   Repository API a NET se od 0.2 nezměnily. `test_dpi1l` upravený, debug sada 58/58.
@@ -79,7 +81,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **DPI-1L, síťová část (2026-10-16, zadání `..\SAPI_DPI-firmware\docs\sapiemu_dpi.md`):** karta `DPI-1L` jen
   s Repository API na B0h/B1h a NET A0h–A9h pro síťový BomberNet (`src/cards/dpi1l.*`, spojení `src/core/relay.*`,
   `docs/desky/DPI-1L.md`). Emulace karet, kterou dělá skutečná DPI, ani soubory nad složkou PC v ní nejsou. Vzorem je
-  firmware v0.2 bajt po bajtu (od 2026-10-20 hlásí verzi 0.4.0 jako karta, protokol stejný). Test `test_dpi1l` s falešnou relay (TCP i WebSocket) a ručně přes MCP s `net_peer.py`
+  firmware v0.2 bajt po bajtu (od 2026-10-22 hlásí verzi 0.4.1 jako karta, protokol stejný). Test `test_dpi1l` s falešnou relay (TCP i WebSocket) a ručně přes MCP s `net_peer.py`
   proti `relay.py` (TCP i WebSocket) a produkční `ws://api.mzpico.com/net`: stejné bajty jako záznamy ze skutečné
   karty. Sestava `sapi1v_BomberNet.sapi` (ARB-1C, DPI-1L v X9). Verze **0.6.0-alpha** pro repo SAPI-BomberNet,
   které spouští jen release (`..\SAPIemu-release`). Rozdíly zadání a firmwaru (stav po /RES, zrušené
