@@ -23,9 +23,10 @@ enum {
 };
 enum { ERR_NOT_IMPLEMENTED = 1, ERR_BAD_PARAM = 2, ERR_OVERFLOW = 3, ERR_NO_FILE = 4, ERR_FATFS = 6 };
 
-// the version of the DPI firmware the card answers as (REV, REVD): 0.4.2 since 2026-10-22 evening as the real card
-// (0.4.1 that morning, 0.4.0 since 2026-10-20); the Repository API and NET are the same as in 0.2, the model below
-static const uint8_t VERSION_MAJOR = 0, VERSION_MINOR = 4, VERSION_PATCH = 2;
+// the version of the DPI firmware the card answers as (REV, REVD): 0.5.0 since 2026-10-25 as the real card (REVD
+// 00 05; 0.4.2 since 2026-10-22 evening, 0.4.1 that morning, 0.4.0 since 2026-10-20); the Repository API and NET
+// are the same as in 0.2, the model below
+static const uint8_t VERSION_MAJOR = 0, VERSION_MINOR = 5, VERSION_PATCH = 0;
 static const uint8_t BOARD = 0x01;                           // REVD/INFO board byte: bit 0 = DPI-1L
 static const uint8_t WIFI_CONNECTED = 3;                     // WIFISTATUS (MZPico numbering)
 static const uint8_t FLASH_MB = 4;                           // INFO byte 2 (RP2350 board of DPI-1L)

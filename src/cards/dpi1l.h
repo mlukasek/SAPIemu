@@ -6,7 +6,7 @@
 // disk...) is not here: SAPIemu has those cards itself.
 //
 // The model is the verified DPI firmware (SAPI_DPI-firmware, common/repo.c, repo_fs.c and netgame.c, API v0.2, the
-// same in v0.4.2, which REV and REVD report since 2026-10-22 evening);
+// same in v0.5.0, which REV and REVD report since 2026-10-25);
 // what the Z80 sees has to match it byte for byte. docs/desky/DPI-1L.md.
 //   base     OUT command, IN status (4 bytes, then 00)
 //   base + 1 OUT parameter byte, IN output byte
