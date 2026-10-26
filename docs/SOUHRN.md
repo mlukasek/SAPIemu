@@ -8,6 +8,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   odolnější proti špatné Wi-Fi), REV `DPI-1L v0.4.2`, REVD beze změny; `test_dpi1l` upravený.
 - **DPI-1L hlásí verzi 0.5.0 (2026-10-25):** firmware 0.5.0 (vydání `v0.5.0`: zásobník jádra 0 v hlavní
   SRAM, 7–8× rychlejší `DPI.COM`), REV `DPI-1L v0.5.0`, **REVD `00 05 44 01`**; `test_dpi1l` upravený.
+- **DPI-1L hlásí verzi 0.5.1 (2026-10-26):** firmware 0.5.1 (vydání `v0.5.1`: oprava `bus stats`, kontrola
+  fyzického RAM disku na portech emulovaného), REV `DPI-1L v0.5.1`, REVD beze změny; `test_dpi1l` upravený.
 - **DPI-1L hlásí verzi 0.4.1 (2026-10-22):** firmware 0.4.1 (vydání `v0.4.1`, oprava resetu karet 71,6 min po resetu
   SAPI), REV `DPI-1L v0.4.1` + 0Dh, REVD beze změny `00 04 44 01`; `test_dpi1l` upravený.
 - **DPI-1L hlásí verzi 0.4.0 (2026-10-20 večer):** skutečná karta dostala firmware 0.4.0 (vydání `v0.4.0`
