@@ -285,7 +285,7 @@ static void test_no_room(FakeRelay& r)
     CHECK(m.load_json(machine(r.port, "tcp"), err));
     REC(m, "00", "00 00 00 00");
     REC(m, "06", "02 06 04 00 | 00 05 44 01");
-    REC(m, "05", "02 05 0E 00 | 44 50 49 2D 31 4C 20 76 30 2E 35 2E 31 0D");   // "DPI-1L v0.5.1" as the card
+    REC(m, "05", "02 05 0E 00 | 44 50 49 2D 31 4C 20 76 30 2E 35 2E 32 0D");   // "DPI-1L v0.5.2" as the card
     REC(m, "95", "02 95 10 00 | 01 01 04 09" + zeros(12));
     REC(m, "93", "02 93 01 00 | 03");
     REC(m, "77", "80 77 01 00");
@@ -524,7 +524,7 @@ static void test_link(FakeRelay& r)
     for (size_t i = 1; i < c.size(); i++) m.bus.io_write(B + 1, c[i]);
     CHECK(r.accept_client());
     LINE(r, CREATE_LINE);
-    REC(m, "05", "02 05 0E 00 | 44 50 49 2D 31 4C 20 76 30 2E 35 2E 31 0D");   // "DPI-1L v0.5.1" as the card
+    REC(m, "05", "02 05 0E 00 | 44 50 49 2D 31 4C 20 76 30 2E 35 2E 32 0D");   // "DPI-1L v0.5.2" as the card
     CHECK(r.closed());
     REC(m, "A0", "02 A0 08 00 | 01 FF 00 00 00 00 00 00");
 

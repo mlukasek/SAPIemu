@@ -65,8 +65,8 @@ a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 202
 - **Příkazy:**
   - 00 RESET: opustí místnost NET, zapíše a zavře soubor, zavře adresář, CWD = `/`;
   - 01 ASCII a 04 STORNO nedělají nic, 02 SHASCII dá ERROR 1 (jen Sharp);
-  - 05 REV `DPI-1L v0.5.1` + 0Dh (14 B), 06 REVD `00 05 44 01` (od 2026-10-26 jako skutečná karta s firmwarem
-    0.5.1, REVD stejné od 0.5.0 z 25. 10.; do té doby REVD `00 04 44 01`: 22. 10. večer 0.4.2, ráno 0.4.1, od 2026-10-20 0.4.0; REVD nese jen hlavní a vedlejší číslo; protokol Repository API a NET je stejný
+  - 05 REV `DPI-1L v0.5.2` + 0Dh (14 B), 06 REVD `00 05 44 01` (od 2026-10-27 jako skutečná karta s firmwarem
+    0.5.2, 0.5.1 od 26. 10., REVD stejné od 0.5.0 z 25. 10.; do té doby REVD `00 04 44 01`: 22. 10. večer 0.4.2, ráno 0.4.1, od 2026-10-20 0.4.0; REVD nese jen hlavní a vedlejší číslo; protokol Repository API a NET je stejný
     jako ve v0.2, dřív `DPI-1L v0.2` a `00 02 44 01`),
     07 BOOT (reset SAPI přes /RTL);
   - 11 INTCALLER `00`, 93 WIFISTATUS `03` (připojeno), 95 INFO 16 B `01 01 04 09` + nuly (bit 08h = NET);
