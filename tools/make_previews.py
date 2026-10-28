@@ -31,7 +31,10 @@ PREVIEWS = {
                            cm.t('CLSG:FOR I=0 TO 319 STEP 8:MOVE I,0:PLOT 319-I,239:NEXT I\\r') + cm.run(8000), 'DGD-1'),
     'zps_ZPS-1': (cm.w('READY', 10000) + cm.t('10 FOR I=1 TO 5\\r') + cm.run(400) + cm.t('20 PRINT I,I*I\\r') + cm.run(400) +
                   cm.t('30 NEXT I\\r') + cm.run(400) + cm.t('RUN\\r') + cm.run(6000), None),
-    'zps_ZPS-6': (cm.CPM + cm.t('SETDBS1\\r') + cm.run(5000), None),
+    # SETDBS1: each F / B steps the colour by one (keys typed too fast get lost); foreground 7 -> 14 (yellow),
+    # background 0 -> 1 (blue)
+    'zps_ZPS-6': (cm.CPM + cm.t('SETDBS1\\r') + cm.run(5000) + sum([cm.t('F') + cm.run(500) for _ in range(7)], []) +
+                  cm.t('B') + cm.run(1000), None),
     'jpr1s_bgp1s': (cm.MANIC, 'BGP-1S'),
 }
 
