@@ -1,5 +1,10 @@
 # Prince of Persia: porty, práva a doporučení (průzkum webu 2026-10-28)
 
+> **Rozhodnutí autora (2026-10-28, po tomto průzkumu):** PoP zůstává v SAPIemu i ve veřejném vydání jako ukázka
+> historické technologie staré 40 let, s upozorněním, že se na žádost nositelů autorských práv cokoli upraví nebo
+> odstraní. Historie gitu se nepřepisuje. Repo SAPI-Prince-of-Persia zůstane bez hry v binární podobě a autor ho
+> zveřejní. Doporučení v oddílu 5 jsou tím zčásti překonaná (`docs/vydani/souhlasy.md`).
+
 Průzkum webu je z 2026-10-28 a zdroje jsem otevíral přímo. Nejde o právní radu. Co nemám ověřené z primárního zdroje, je označené jako odhad, můj výklad nebo neověřeno.
 
 **Ve zkratce**

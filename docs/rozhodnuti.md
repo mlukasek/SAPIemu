@@ -1824,6 +1824,11 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   a demech a **v betě pro testery** (autor: „dej to i do vydání, tady bych se toho nebál“; repo je zatím soukromé).
   Do veřejného vydání „to možná nedáme“: autor se zeptá kolegů, podklad je průzkum webu o portech PoP a právech.
   Do té doby bylo `REPO_ONLY`, protože data hry jsou Broderbundu.
+- **PoP zůstává i ve veřejném vydání** (autor, po průzkumu `docs/vydani/pop-prava.md`): je to ukázka historické
+  technologie staré 40 let na emulátoru velmi specifického, většinou průmyslového počítače, autor nečeká velké
+  rozšíření ani dopady. Ke hře patří upozornění pro nositele práv (průvodce, popis sestavy, výběr sestav, README):
+  neoficiální nekomerční port, kdo drží práva, licence SAPIemu se na data hry nevztahuje, na žádost cokoli upravíme
+  nebo odstraníme. Historie gitu se nepřepisuje. Repo SAPI-Prince-of-Persia zůstane bez hry v binární podobě.
 - **Starý kombinovaný disk** `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` (PoP 1.0.0, Bomberman 1.0.0) smazaný.
 - **Mimo git aktualizované (autor):** IDE disk `work/ide/sapi_hdd.img` (C: BOMBER 1.0.1, FXS4 1.0.2; jde do alfa
   zipů bez `--public`), FXS4 1.0.2 v autorově pracovní kopii `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`. Pracovní

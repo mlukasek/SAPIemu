@@ -23,7 +23,9 @@ softwaru pro SAPI s Claude.
 > ZPS sets, the boards of Libor Lasota, games and demos, instruments, each with a preview and a short text; the
 > machines of the first groups have a guide in English (Help → Machine guide). The user interface is in Czech
 > and English (View → Settings), the detailed documentation is in Czech. The emulator sends nothing anywhere by
-> itself, see "Síť a soukromí" (network and privacy) below. Alpha version.*
+> itself, see "Síť a soukromí" (network and privacy) below. Prince of Persia (machine `sapi1v_PoP`) is an
+> unofficial, non-commercial port shown as a demonstration of historic technology; at the request of the copyright
+> holders it will be changed or removed. Alpha version.*
 
 ![Sestava V: CP/M na AND-1V a obrázek na barevné grafice CGA-1V](docs/img/sapi1v-cpm-cga.png)
 
@@ -230,6 +232,10 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   mají vlastní licence ([THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), [third_party/README.md](third_party/README.md)).
 - **ROM, PROM a programy** v `roms/` a `media/` patří svým autorům a jsou tu pro zachování historie SAPI-1.
   Zdroje jsou v [roms/README.md](roms/README.md) a [media/README.md](media/README.md).
+- **Prince of Persia** (sestava `sapi1v_PoP`): ukázka historické technologie: neoficiální nekomerční port hry na 40
+  let starý československý počítač. Prince of Persia © Jordan Mechner, grafika a hudba DOS verze © Brøderbund
+  Software, práva vydávat hry Prince of Persia má Ubisoft. Licence SAPIemu (GPLv3) se na data hry nevztahuje. Na
+  žádost nositelů autorských práv cokoli upravím nebo odstraním.
 - **Petr Všijanský (EC1045):** stránky [sapi.cz](https://www.sapi.cz) s dokumentací, schématy, výpisy a dumpy,
   ze kterých emulace vychází, a překreslená schémata desek.
 - **Libor Lasota:** desky V, desky k původním sestavám (JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2), sběrnice ImBUS, MikroMon, MIKROBIOS

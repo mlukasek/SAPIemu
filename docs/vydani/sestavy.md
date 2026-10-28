@@ -80,8 +80,8 @@ Od každého druhu jeden, hlavně ty s nakresleným přístrojem v okně:
 
 ### 3d. Prince of Persia
 
-`sapi1v_PoP.sapi` „SAPI-1 V: Prince of Persia“ je od 2026-10-28 v Hrách a demech a v betě pro testery (autor: „dej to i do
-vydání, tady bych se toho nebál“; veřejné vydání zatím otevřené, „poptám se, jak to řeší kolegové“), s verzí s grafikou a hudbou DOS (RAM disk `media/zrmd-1/pop-ramdisk.bin`
+`sapi1v_PoP.sapi` „SAPI-1 V: Prince of Persia“ je od 2026-10-28 v Hrách a demech, v betě i ve veřejném vydání, s
+upozorněním pro nositele práv (`docs/vydani/souhlasy.md`), s verzí s grafikou a hudbou DOS (RAM disk `media/zrmd-1/pop-ramdisk.bin`
 z `build\ramdisk_dos.bin` repa SAPI-Prince-of-Persia, větev `dos-graphics`). Dřív jen v repu s verzí 1.0.0
 převedenou z Apple.
 

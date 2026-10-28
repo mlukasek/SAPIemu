@@ -5,14 +5,15 @@ ve vydání je, odkud to je a jaký souhlas už máme. Podrobnosti o souborech j
 `media/README.md`.
 
 Autor (Martin) rozhodl: historii repa neřešit, staré CP/M programy (i komerční, často dnes uvolněné) nechat,
-**Prince of Persia** je od 2026-10-28 v betě pro testery (repo je zatím soukromé). Zda půjde i do veřejného vydání,
-autor rozhodne, až zjistí, jak to řeší jiní (průzkum webu 2026-10-28); do té doby se nepočítá jako hotové. Dřív
-`REPO_ONLY`.
+**Prince of Persia** zůstává v emulátoru i ve veřejném vydání (autor 2026-10-28, po průzkumu webu): je to ukázka
+historické technologie staré 40 let s upozorněním pro nositele práv (průvodce, popis sestavy, výběr sestav, README),
+že se na jejich žádost cokoli upraví nebo odstraní. Jde o emulátor velmi specifického, většinou průmyslového
+československého počítače, autor nečeká velké rozšíření ani dopady. Repo SAPI-Prince-of-Persia zůstane bez hry
+v binární podobě (jen kód, informace a snímky) a autor ho zveřejní.
 
-**Pozor na historii gitu:** obrazy RAM disku s PoP jsou v historii repa (`media/zrmd-1/pop-ramdisk.bin` od
-2026-10-10 verze z Apple, od 2026-10-28 verze DOS; smazaný `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` také). Otevření repa
-i s historií by data PoP zveřejnilo bez ohledu na obsah zipu. Průzkum, jak to řeší jiné porty, postoj Jordana Mechnera,
-práva a doporučení: `docs/vydani/pop-prava.md`.
+**Historie gitu se nepřepisuje** (autor): obrazy RAM disku s PoP v ní zůstanou (`media/zrmd-1/pop-ramdisk.bin` od
+2026-10-10 verze z Apple, od 2026-10-28 verze DOS; smazaný `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` také). Průzkum,
+jak to řeší jiné porty, postoj Jordana Mechnera, práva a doporučení: `docs/vydani/pop-prava.md`.
 
 ## Libor Lasota: souhlas máme, potvrdit rozsah
 
@@ -69,7 +70,7 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
 | Flappy | dB-SOFT 1984 (Sharp MZ-800) | RAM disk herní sestavy | port Martin (CGA-1V), FLAPDGD port Libor (DGD-1V) |
 | Bomberman | Hudson Soft 1983 (Sharp MZ-700) | RAM disk herní sestavy | port Martin, repo SAPI-Bomberman |
 | BomberNet | Martin Matyáš (MZPico), podle Bomber Man | **ano** (autor 2026-10-28: „Herní, i ve vydání“) | port 0.3.0, sestava `sapi1v_BomberNet` |
-| Prince of Persia | Jordan Mechner, Broderbund (DOS verze Broderbund) | beta ano, veřejné vydání **otevřené** | verze s grafikou a hudbou DOS |
+| Prince of Persia | Jordan Mechner, Broderbund (DOS verze Broderbund) | **ano**, s upozorněním pro nositele práv (autor 2026-10-28) | verze s grafikou a hudbou DOS |
 | Hudba: 11 skladeb VGM z her (Hellfire, Tyrian, Monkey Island…) a 15 modulů RAD (3eality.com) | různí autoři | RAM disk herní sestavy | autor rozhodl: ponechat obojí |
 
 ## Postup

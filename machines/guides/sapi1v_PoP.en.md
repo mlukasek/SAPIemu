@@ -28,3 +28,11 @@ POP
 
 - The port comes from the repository [SAPI-Prince-of-Persia](https://github.com/mlukasek/SAPI-Prince-of-Persia), on
   a real SAPI-1 it runs as fast as the original.
+
+## Copyright
+
+A demonstration of historic technology: an unofficial, non-commercial port of the game to a 40-year-old
+Czechoslovak computer. Prince of Persia © Jordan Mechner, graphics and music of the DOS version © Brøderbund
+Software, the rights to publish Prince of Persia games are held by Ubisoft. The SAPIemu licence (GPLv3) does not
+cover the game data. At the request of the copyright holders I will change or remove anything. Contact: Martin
+Lukášek, [8bity.cz](https://www.8bity.cz).

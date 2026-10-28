@@ -25,3 +25,10 @@ POP
 
 - Port vznikl v repu [SAPI-Prince-of-Persia](https://github.com/mlukasek/SAPI-Prince-of-Persia), na skutečném SAPI-1
   běží stejně rychle jako originál.
+
+## Autorská práva
+
+Ukázka historické technologie: neoficiální nekomerční port hry na 40 let starý československý počítač. Prince of
+Persia © Jordan Mechner, grafika a hudba DOS verze © Brøderbund Software, práva vydávat hry Prince of Persia má
+Ubisoft. Licence SAPIemu (GPLv3) se na data hry nevztahuje. Na žádost nositelů autorských práv cokoli upravím nebo
+odstraním. Kontakt: Martin Lukášek, [8bity.cz](https://www.8bity.cz).

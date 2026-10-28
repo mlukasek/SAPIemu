@@ -89,8 +89,8 @@
         "sapi1v_PoP.sapi": {
             "title": "SAPI-1 V: Prince of Persia",
             "title_en": "SAPI-1 V: Prince of Persia",
-            "summary": "Prince of Persia (Jordan Mechner) na barevné grafice CGA-1V s hudbou DOS verze na YM3812: celá hra, 14 úrovní, joystick i klávesnice.",
-            "summary_en": "Prince of Persia (Jordan Mechner) on the CGA-1V colour graphics with the music of the DOS version on the YM3812: the whole game, 14 levels, joystick or keyboard."
+            "summary": "Prince of Persia (Jordan Mechner) na barevné grafice CGA-1V s hudbou DOS verze na YM3812: celá hra, 14 úrovní, joystick i klávesnice. Neoficiální nekomerční port, ukázka historické technologie.",
+            "summary_en": "Prince of Persia (Jordan Mechner) on the CGA-1V colour graphics with the music of the DOS version on the YM3812: the whole game, 14 levels, joystick or keyboard. An unofficial, non-commercial port, a demonstration of historic technology."
         },
         "zps/ZPS-1.sapi": {
             "title": "ZPS-1 s MIKROBASICem 2.4",
