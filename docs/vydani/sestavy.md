@@ -91,7 +91,7 @@ převedenou z Apple.
 „Herní, i ve vydání“). Herní sestava na ARB-1C-8 bez IDE-1: JPR-1V (TURBO), RAM-1V, AND-1V, DSM-1V, ZRD-1V, DPI-1L,
 CGA-1V, MPH-1V. RAM disk `media/zrmd-1/bombernet.bin` (`tools/make_hry_disk.py --bombernet`) s `BOMBNET.COM` 0.3.0 z
 `..\SAPI-BomberNet\build`, neukládá se, takže dvě instance na jednom PC si nepřekážejí. Do sítě se karta připojí až
-po volbě HOST nebo JOIN ve hře.
+po volbě HOST nebo JOIN ve hře. Autor 0.3.0 vyzkoušel 2026-10-28 na skutečném SAPI-1 i v emulátoru.
 
 ## 4. Ostatní
 

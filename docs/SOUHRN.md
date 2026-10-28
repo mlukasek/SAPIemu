@@ -13,8 +13,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - Hry v sestavách: Bad Apple!!, FXS4, Flappy a Bomberman byly aktuální. **Prince of Persia s grafikou a hudbou
     DOS** (`sapi1v_PoP`, v Hrách a demech, v betě; veřejné vydání otevřené, průzkum práv `docs/vydani/pop-prava.md`,
     pozor: obrazy PoP jsou v historii gitu). Starý kombinovaný RAM disk smazaný.
-  - **BomberNet 0.3.0:** port v repu SAPI-BomberNet (lokální commity), herní sestava `sapi1v_BomberNet`
-    (ARB-1C-8 bez IDE-1, DPI-1L v X6, RAM disk `media/zrmd-1/bombernet.bin`) v Hrách a demech i ve vydání.
+  - **BomberNet 0.3.0:** port v repu SAPI-BomberNet (pushnutý), herní sestava `sapi1v_BomberNet`
+    (ARB-1C-8 bez IDE-1, DPI-1L v X6, RAM disk `media/zrmd-1/bombernet.bin`) v Hrách a demech i ve vydání. Autor
+    ho večer vyzkoušel na skutečném SAPI-1 i v emulátoru: obojí funguje.
+  - **PoP zůstává i ve veřejném vydání** s upozorněním pro nositele práv (průvodce, sestava, výběr, README);
+    historie gitu se nepřepisuje. Poznámky ke zveřejnění repa PoP jsou v tom repu v `docs/zverejneni.md`.
   - Mimo git aktualizované: IDE disk `work/ide` (BOMBER 1.0.1, FXS4 1.0.2), autorova pracovní kopie RAM disku
     (FXS4 1.0.2) a v `..\SAPIemu-release` RAM disk (BOMBER 1.0.1, BOMBNET 0.3.0) a IDE disk. Zálohy původních
     obrazů jsou ve scratchpadu sezení 42c8d710 (`bkp\`).

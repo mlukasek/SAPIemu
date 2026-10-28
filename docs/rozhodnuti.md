@@ -1841,6 +1841,8 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   Nahrazuje rozhodnutí z 2026-10-16 o vývojové sestavě na ARB-1C se 14 pozicemi: plná sestava V s DPI-1L se dá
   složit v konfigurátoru, ve výběru sestav má být hra. RAM disk se neukládá (`nosave`), aby si dvě instance na
   jednom PC, které spolu hrají, nepřepisovaly pracovní kopii; hra na disk nic nezapisuje.
+- **BomberNet 0.3.0 ověřený autorem** (2026-10-28 večer): na skutečném SAPI-1 (A: na ZRMD-1, sestava s DPI-1,
+  „funguje to jako víno“) i v GUI vývojového SAPIemu se sestavou `sapi1v_BomberNet` („funguje parádně“).
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
