@@ -2,7 +2,27 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-20) a co dál
+## Kde jsme skončili (2026-10-28) a co dál
+
+- **2026-10-28, příprava bety (lokálně, nepushnuté):**
+  - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
+    dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.
+  - Odkazy v průvodci jsou pod odstavcem a zalamují se; opravené konflikty ID ImGui (sestava ve dvou skupinách,
+    Zobrazení → Barva se dvěma displeji, PMD32-SD na dvou kartách, kanály terminálu se stejným jménem).
+  - Náhled ZPS-6 barevný (SETDBS1, žlutá na modré).
+  - Hry v sestavách: Bad Apple!!, FXS4, Flappy a Bomberman byly aktuální. **Prince of Persia s grafikou a hudbou
+    DOS** (`sapi1v_PoP`, v Hrách a demech, v betě; veřejné vydání otevřené, průzkum práv `docs/vydani/pop-prava.md`,
+    pozor: obrazy PoP jsou v historii gitu). Starý kombinovaný RAM disk smazaný.
+  - **BomberNet 0.3.0:** port v repu SAPI-BomberNet (lokální commity), herní sestava `sapi1v_BomberNet`
+    (ARB-1C-8 bez IDE-1, DPI-1L v X6, RAM disk `media/zrmd-1/bombernet.bin`) v Hrách a demech i ve vydání.
+  - Mimo git aktualizované: IDE disk `work/ide` (BOMBER 1.0.1, FXS4 1.0.2), autorova pracovní kopie RAM disku
+    (FXS4 1.0.2) a v `..\SAPIemu-release` RAM disk (BOMBER 1.0.1, BOMBNET 0.3.0) a IDE disk. Zálohy původních
+    obrazů jsou ve scratchpadu sezení 42c8d710 (`bkp\`).
+  - **Hodnocení GUI** (7 pohledů, oponentura): `docs/vydani/ux-hodnoceni.md`, snímky v `out\ux-review-20261028\`.
+    Doporučené první kroky před betou: rozmístění oken, neprůhledná okna a kontrast, fokus klávesnice, cesta ke
+    hrám bez slepých uliček, konfigurátor podle výšky, oprava zápisu cesty média po každé klávese.
+  - Ověřeno: debug testy 58/58, `check_machines --games` (60/60, 12/12 před přidáním BomberNetu), sestava
+    BomberNet zvlášť OK.
 
 - **DPI-1L hlásí verzi 0.4.2 (2026-10-22 večer):** firmware 0.4.2 (vydání `v0.4.2`: vzorová SD karta, web
   odolnější proti špatné Wi-Fi), REV `DPI-1L v0.4.2`, REVD beze změny; `test_dpi1l` upravený.
