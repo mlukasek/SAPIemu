@@ -1902,6 +1902,10 @@ v zásadě souhlasí („pustil bych se do úprav“).
   se posouvalo o 2 px).
 - **Checkpoint B (autor):** texty schválené, jen první věta úvodu je „SAPI-1 (Tesla, 1983–1990) byl průmyslový
   řídicí počítač do racku.“ (anglicky „was a rack-mounted industrial control computer“). Roky 1983–1990 zůstávají.
+- **Tlačítka v průvodcích** (autor: šedá jsou „smutné a málo viditelné“): odkazy na dokumenty jsou odkazy v barvě
+  odkazů (podtržené, se šipkou ↗), Napsat do SAPI je modré hlavní tlačítko bloku kódu, Kopírovat zůstává normální.
+- **MCP a cli si Claude doplňuje sám** (autor: „cokoli ti bude chybět v MCP nebo cli, tak si dodělej“), třeba
+  tlačítka panelu plotteru z AR 1990 pro náhledy a testy.
 - **SAPI-1 je v textech rodu mužského** („byl průmyslový řídicí počítač“, „pracoval“), APS-5 je „měřicí jednotka“
   jako v původním návodu Tesly.
 

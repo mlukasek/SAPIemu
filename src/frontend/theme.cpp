@@ -288,7 +288,7 @@ void theme_focus_frame()
     dl->PopClipRect();
 }
 
-bool theme_accent_button(const char* label, const ImVec2& size)
+bool theme_accent_button(const char* label, const ImVec2& size, bool small)
 {
     const ThemeColors& t = g_colors;
     ImGui::PushStyleColor(ImGuiCol_Button, t.accent);
@@ -296,7 +296,9 @@ bool theme_accent_button(const char* label, const ImVec2& size)
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, t.accent_active);
     ImGui::PushStyleColor(ImGuiCol_Text, t.accent_text);
     ImGui::PushStyleColor(ImGuiCol_Border, t.accent_active);
+    if (small) ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x, 0.0f));
     bool pressed = ImGui::Button(label, size);
+    if (small) ImGui::PopStyleVar();
     ImGui::PopStyleColor(5);
     return pressed;
 }

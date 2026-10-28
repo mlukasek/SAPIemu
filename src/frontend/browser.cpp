@@ -443,7 +443,7 @@ static void code_block(UiState& ui, const std::vector<std::string>& lines, int n
     snprintf(b, sizeof(b), "%s##type%d", tr("Type into SAPI"), n);
     Machine* m = ui.host->machine();
     ImGui::BeginDisabled(!m);
-    if (ImGui::SmallButton(b) && m) m->type_text(text);
+    if (theme_accent_button(b, ImVec2(0, 0), true) && m) m->type_text(text);   // the action of the block
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Types the lines on the keyboard of SAPI, each ended by Enter."));
     ImGui::SameLine();
@@ -521,17 +521,17 @@ static void markdown(UiState& ui, const std::string& text)
         } else {
             ImGui::TextWrapped("%s", plain(body, &links).c_str());
         }
-        // the links as buttons under the text (aligned with it), wrapped to the width of the window
+        // the links under the text (aligned with it) in the colour of links, wrapped to the width of the window
         if (bullet > 0 && !links.empty()) ImGui::Indent(bullet);
         for (size_t k = 0; k < links.size(); k++) {
             char b[300];
             snprintf(b, sizeof(b), "%s \xE2\x86\x97##link%zu_%zu", links[k].first.c_str(), i, k);
-            float w = ImGui::CalcTextSize(b, nullptr, true).x + 2.0f * ImGui::GetStyle().FramePadding.x;
+            float w = ImGui::CalcTextSize(b, nullptr, true).x;
             if (k > 0) {
-                ImGui::SameLine();
+                ImGui::SameLine(0.0f, ImGui::GetFontSize());
                 if (ImGui::GetContentRegionAvail().x < w) ImGui::NewLine();
             }
-            if (ImGui::SmallButton(b)) open_link(links[k].second);
+            if (ImGui::TextLink(b)) open_link(links[k].second);
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", links[k].second.c_str());
         }
         if (bullet > 0 && !links.empty()) ImGui::Unindent(bullet);

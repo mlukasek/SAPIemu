@@ -99,8 +99,8 @@ ThemeVariant theme_variant();
 // After all windows, before Render: the frame of the focused window (where the keyboard goes).
 void theme_focus_frame();
 
-// The main button of a window in the accent colour.
-bool theme_accent_button(const char* label, const ImVec2& size = ImVec2(0, 0));
+// The main button of a window in the accent colour; small: without the vertical padding (as SmallButton).
+bool theme_accent_button(const char* label, const ImVec2& size = ImVec2(0, 0), bool small = false);
 // A bar at the left edge of the last item: a selected list item is not marked by its colour only.
 void theme_selected_bar();
 // The text of a title in the bold font and the heading colour (wrapped).
