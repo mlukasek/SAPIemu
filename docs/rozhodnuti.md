@@ -1844,6 +1844,33 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
 - **BomberNet 0.3.0 ověřený autorem** (2026-10-28 večer): na skutečném SAPI-1 (A: na ZRMD-1, sestava s DPI-1,
   „funguje to jako víno“) i v GUI vývojového SAPIemu se sestavou `sapi1v_BomberNet` („funguje parádně“).
 
+## 2026-10-28 – plán nového vzhledu GUI
+
+Plán po etapách: `docs/vydani/plan-vzhled.md`, podle hodnocení `docs/vydani/ux-hodnoceni.md`, se kterým autor
+v zásadě souhlasí („pustil bych se do úprav“).
+
+- **SAPI-1 byl průmyslový řídicí počítač v rámu, ne počítač pro lidi** (autor). Pro uživatele emulátoru jsou
+  hlavní základní sestavy ZPS. Lidi, kteří SAPI neznají, přitáhnou přístroje (kotelna APS-5, měřák IMS-2 se
+  zdrojem, zapisovače, KZD-1, RKD-1, RMP-1). Výběr sestav to řekne v úvodu.
+- **Hry na SAPI nikdy nebyly** (autor). Libor Lasota udělal moderní karty CGA-1V a MPH-1V a dema, autor převedl
+  Flappy, Bad Apple, PoP a FXS4 a udělal DPI-1L s BomberNetem. Hry jsou zábavný novodobý doplněk, skupina „Začněte
+  zde“ s PoP z hodnocení proto odpadá.
+- **Kategorie výběru sestav:** Základ → Přístroje a technologie → Desky Libora Lasoty → Hry a dema → Ostatní.
+  XY 4130 a AR 1990 přejdou do přístrojů s průvodci, RKD-1 s CM 5400 zůstane v Ostatních, Manic Miner
+  (`jpr1s_bgp1s`) bude v Liborových deskách i v hrách.
+- **Rám v konfigurátoru je záměrná odchylka** (autor): kreslí se podle Liborovy modernizované skříně s popsanými
+  panely. Původní Tesla měla holé karty za krycím panelem (http://www.osmibitovemuzeum.cz/fotogalerie/sapi-1_2/1.jpg),
+  což je nezajímavé. Zapíše se v etapě 2 plánu (tooltip, opravy dokumentace).
+- **Vzhled jako aplikace Windows, světlý i tmavý** (autor: výchozí vzhled ImGui je „přinejlepším nudný“). Tři
+  varianty (Windows 11, Windows klasický, SAPI průmyslový) se ukážou na skutečných snímcích emulátoru v galerii
+  a autor vybere, ladit se dá i za chodu.
+- **Beta pro Libora, Petra a Michala až s novým vzhledem** (autor), zip až na jeho pokyn.
+- **Docking ani F9 = reset nejsou dogma** (autor): výchozí zadokované rozložení je v pořádku, když ho většina
+  uživatelů preferuje a GUI s ním bude hezké; F9 vznikla kvůli ladění. Plán proto porovná plovoucí a zadokované
+  rozložení a navrhne zkratky ladění jako ve Visual Studiu (F9 = breakpoint, reset jen F12).
+- **Linux ve WSL nemusí být zelený** (autor: „prostě co má smysl“): pouští se tam, kde to má smysl (kód závislý na
+  platformě, písma), a není podmínkou commitu ani pushe.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`
