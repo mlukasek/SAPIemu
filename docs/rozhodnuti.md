@@ -1821,8 +1821,9 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   sestavách (`hry-a-dema.bin`, `ba-ramdisk.bin`) už aktuální, bajt po bajtu shodné s buildy repozitářů. Zastaralý
   byl Prince of Persia (1.0.0 převedená z Apple) a v sestavě `sapi1v_BomberNet` hra chyběla.
 - **Prince of Persia s grafikou a hudbou DOS verze** (větev `dos-graphics`, `build\ramdisk_dos.bin`) je v Hrách
-  a demech a **ve vydání** (autor: „dej to i do vydání, tady bych se toho nebál“). Do té doby `REPO_ONLY`, protože
-  data hry jsou Broderbundu; rozhodnutí je autorovo.
+  a demech a **v betě pro testery** (autor: „dej to i do vydání, tady bych se toho nebál“; repo je zatím soukromé).
+  Do veřejného vydání „to možná nedáme“: autor se zeptá kolegů, podklad je průzkum webu o portech PoP a právech.
+  Do té doby bylo `REPO_ONLY`, protože data hry jsou Broderbundu.
 - **Starý kombinovaný disk** `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` (PoP 1.0.0, Bomberman 1.0.0) smazaný.
 - **Mimo git aktualizované (autor):** IDE disk `work/ide/sapi_hdd.img` (C: BOMBER 1.0.1, FXS4 1.0.2; jde do alfa
   zipů bez `--public`), FXS4 1.0.2 v autorově pracovní kopii `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`. Pracovní
