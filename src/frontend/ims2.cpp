@@ -6,6 +6,7 @@
 // of the bus: the lines and the last transfers (addressing with ATN, the texts).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -67,7 +68,7 @@ static void lamp(ImDrawList* dl, ImVec2 c, float r, bool lit, ImU32 col = K_LED_
 
 static void text_center(ImDrawList* dl, ImVec2 c, ImU32 col, const char* s, float scale = 1.0f)
 {
-    ImFont* f = ImGui::GetFont();
+    ImFont* f = panel_font();
     float fs = ImGui::GetFontSize() * scale;
     ImVec2 sz = f->CalcTextSizeA(fs, FLT_MAX, 0.0f, s);
     dl->AddText(f, fs, ImVec2(c.x - sz.x * 0.5f, c.y - sz.y * 0.5f), col, s);
@@ -188,7 +189,7 @@ static M1tTerms draw_m1t330(Ims2Bench* b, uint64_t now, ImVec2 o, float w)
     for (int i = 0; i < 3; i++) {
         ImVec2 c(d1.x + fw * 0.03f, d0.y + (d1.y - d0.y) * (0.18f + 0.32f * i));
         lamp(dl, c, u * 0.22f, ulit[i]);
-        dl->AddText(ImVec2(c.x + u * 0.4f, c.y - u * 0.45f), IM_COL32(210, 210, 210, 255), units[i]);
+        panel_text(dl, ImVec2(c.x + u * 0.4f, c.y - u * 0.45f), IM_COL32(210, 210, 210, 255), units[i]);
     }
     // the badge of Metra
     ImVec2 b0(f0.x + fw * 0.60f, f0.y + fh * 0.08f), b1(f0.x + fw * 0.73f, f0.y + fh * 0.44f);
@@ -200,9 +201,9 @@ static M1tTerms draw_m1t330(Ims2Bench* b, uint64_t now, ImVec2 o, float w)
     text_center(dl, lc, IM_COL32(220, 220, 220, 255), "M", 0.7f);
     // TEST, EXT
     ImVec2 t0(f0.x + fw * 0.85f, f0.y + fh * 0.17f);
-    dl->AddText(ImVec2(t0.x - u * 2.1f, t0.y - u * 0.45f), IM_COL32(210, 210, 210, 255), "TEST");
+    panel_text(dl, ImVec2(t0.x - u * 2.1f, t0.y - u * 0.45f), IM_COL32(210, 210, 210, 255), "TEST");
     lamp(dl, ImVec2(t0.x + u * 0.5f, t0.y), u * 0.25f, false);
-    dl->AddText(ImVec2(t0.x - u * 2.1f, t0.y + fh * 0.18f - u * 0.45f), IM_COL32(210, 210, 210, 255), "EXT.");
+    panel_text(dl, ImVec2(t0.x - u * 2.1f, t0.y + fh * 0.18f - u * 0.45f), IM_COL32(210, 210, 210, 255), "EXT.");
     lamp(dl, ImVec2(t0.x + u * 0.5f, t0.y + fh * 0.18f), u * 0.25f, v.power && v.remote);
     if (ImGui::IsMouseHoveringRect(ImVec2(t0.x - u * 2.2f, t0.y + fh * 0.1f), ImVec2(t0.x + u, t0.y + fh * 0.26f)))
         ImGui::SetTooltip("%s", tr("EXT: remote control from the IMS-2 bus (REN and addressed)."));
@@ -215,29 +216,29 @@ static M1tTerms draw_m1t330(Ims2Bench* b, uint64_t now, ImVec2 o, float w)
     };
     float x = f0.x + fw * 0.05f;
     // SIT
-    dl->AddText(ImVec2(x + bw * 0.2f, by0 - u * 1.9f), K_LABEL, "SÍŤ");
-    dl->AddText(ImVec2(x, by0 - u * 1.05f), K_LABEL, "0\xe2\x96\xa1 I\xe2\x96\xa0");
+    panel_text(dl, ImVec2(x + bw * 0.2f, by0 - u * 1.9f), K_LABEL, "SÍŤ");
+    panel_text(dl, ImVec2(x, by0 - u * 1.05f), K_LABEL, "0\xe2\x96\xa1 I\xe2\x96\xa0");
     if (panel_button("##m1t_power", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Mains switch"))) b->set_power_m1t(!v.power);
     x += bw * 1.35f;
-    dl->AddText(ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "AUTO");
+    panel_text(dl, ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "AUTO");
     lamp(dl, ImVec2(x + bw * 0.5f, by0 - u * 0.55f), u * 0.22f, v.power && v.autorange);
     if (panel_button("##m1t_auto", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Autorange (R4); local only"))) v.key_auto(now);
     x += bw * 1.35f;
-    dl->AddText(ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "FILTR");
+    panel_text(dl, ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "FILTR");
     lamp(dl, ImVec2(x + bw * 0.5f, by0 - u * 0.55f), u * 0.22f, v.power && v.filter);
     if (panel_button("##m1t_filter", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Digital filter (D1); local only")))
         v.key_filter(now);
     x += bw * 1.35f;
-    dl->AddText(ImVec2(x + bw * 0.8f, by0 - u * 1.9f), K_LABEL, "START");
-    dl->AddText(ImVec2(x + bw * 0.1f, by0 - u * 1.05f), K_LABEL, "REP");
-    dl->AddText(ImVec2(x + bw * 1.6f, by0 - u * 1.05f), K_LABEL, "1x");
+    panel_text(dl, ImVec2(x + bw * 0.8f, by0 - u * 1.9f), K_LABEL, "START");
+    panel_text(dl, ImVec2(x + bw * 0.1f, by0 - u * 1.05f), K_LABEL, "REP");
+    panel_text(dl, ImVec2(x + bw * 1.6f, by0 - u * 1.05f), K_LABEL, "1x");
     lamp(dl, ImVec2(x + bw * 1.17f, by0 - u * 0.55f), u * 0.22f, v.power && v.repeat && !v.remote);
     if (panel_button("##m1t_rep", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Measure again and again; local only")))
         v.key_rep(now);
     if (panel_button("##m1t_one", ImVec2(x + bw * 1.35f, by0), ImVec2(x + bw * 2.35f, by1), tr("One measurement; local only")))
         v.key_single(now);
     x += bw * 2.7f;
-    dl->AddText(ImVec2(x + bw * 0.02f, by0 - u * 1.9f), K_LABEL, "CHYBA");
+    panel_text(dl, ImVec2(x + bw * 0.02f, by0 - u * 1.9f), K_LABEL, "CHYBA");
     if (panel_button("##m1t_err", ImVec2(x, by0), ImVec2(x + bw, by1), tr("The display shows the error of the value in %")))
         v.key_error();
     // the terminals
@@ -324,19 +325,19 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
         meter(dl, ImVec2(x0 + fw * 0.03f, f0.y + fh * 0.22f), ImVec2(x0 + fw * 0.25f, f0.y + fh * 0.56f), out, bs.power);
         // the switch "Mereni"
         ImVec2 s0(x0 + fw * 0.29f, f0.y + fh * 0.26f), s1(x0 + fw * 0.38f, f0.y + fh * 0.36f);
-        dl->AddText(ImVec2(s0.x, s0.y - u * 1.0f), IM_COL32(20, 20, 20, 255), "MĚŘENÍ");
+        panel_text(dl, ImVec2(s0.x, s0.y - u * 1.0f), IM_COL32(20, 20, 20, 255), "MĚŘENÍ");
         ImGui::SetCursorScreenPos(s0);
         if (ImGui::InvisibleButton("##meas", ImVec2(s1.x - s0.x, s1.y - s0.y))) out.meter_a = !out.meter_a;
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The meter shows the voltage (V) or the current (A)."));
         dl->AddRectFilled(s0, s1, IM_COL32(40, 40, 40, 255), 3.0f);
         float sx = out.meter_a ? s1.x - (s1.x - s0.x) * 0.3f : s0.x + (s1.x - s0.x) * 0.3f;
         dl->AddRectFilled(ImVec2(sx - u * 0.25f, s0.y + 2), ImVec2(sx + u * 0.25f, s1.y - 2), IM_COL32(210, 210, 210, 255), 2.0f);
-        dl->AddText(ImVec2(s0.x - u * 0.1f, s1.y + 1), IM_COL32(20, 20, 20, 255), "V");
-        dl->AddText(ImVec2(s1.x - u * 0.6f, s1.y + 1), IM_COL32(20, 20, 20, 255), "A");
+        panel_text(dl, ImVec2(s0.x - u * 0.1f, s1.y + 1), IM_COL32(20, 20, 20, 255), "V");
+        panel_text(dl, ImVec2(s1.x - u * 0.6f, s1.y + 1), IM_COL32(20, 20, 20, 255), "A");
         // the protection lamp
         ImVec2 lc(x0 + fw * 0.335f, f0.y + fh * 0.52f);
         lamp(dl, lc, u * 0.28f, bs.power && out.limiting);
-        dl->AddText(ImVec2(lc.x - u * 1.9f, lc.y + u * 0.35f), IM_COL32(20, 20, 20, 255), tr("PROTECTION"));
+        panel_text(dl, ImVec2(lc.x - u * 1.9f, lc.y + u * 0.35f), IM_COL32(20, 20, 20, 255), tr("PROTECTION"));
         // the knobs
         ImVec2 ku(x0 + fw * 0.08f, f0.y + fh * 0.83f), ki(x0 + fw * 0.22f, f0.y + fh * 0.83f);
         text_center(dl, ImVec2(ku.x, ku.y - u * 1.75f), IM_COL32(20, 20, 20, 255), tr("VOLTAGE"), 0.8f);

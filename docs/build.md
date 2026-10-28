@@ -71,6 +71,24 @@ v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazy
 po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky
 čelního panelu (potisk skutečného stroje), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
 
+**Vzhled GUI** (od 2026-10-28, plán `docs/vydani/plan-vzhled.md`): tři varianty, každá světlá i tmavá, jako data
+v `src/frontend/theme_data.cpp`. Varianty jsou Windows 11, Windows klasický a SAPI průmyslový.
+- **Vzhled:**
+  - `theme.cpp` styl pokaždé postaví znovu z čistého `ImGuiStyle`;
+  - okna berou sémantické barvy z `theme()` (ok, warn, error, pending, heading…), ne pevné hodnoty;
+  - kresby hardwaru (rám, panely, displeje, papír) mají vlastní barvy a pevné písmo `panel_font()` (DejaVu Sans)
+    v každém vzhledu.
+- **Písma:** Segoe UI se bere ze systému (`%WINDIR%\Fonts`, nesmí se přibalit), bez něj a na Linuxu je to DejaVu Sans.
+- **Volba:** Zobrazení → Nastavení → Vzhled (varianta, Podle systému / Světlý / Tmavý, velikost písma), uloží se jako
+  `"appearance"`. `sapiemu --ui-theme win11|classic|sapi[-light|-dark]` vybere vzhled jen pro jedno spuštění.
+  `--ui-snapshot` bez něj kreslí světlý, aby obrázky nezávisely na nastavení Windows. `--ui-scale 1.25` napodobí
+  měřítko monitoru.
+- **Kontrola:** test `test_theme` hlídá kontrast všech palet (WCAG 2.2: text 4,5:1, prvky 3:1).
+- **Ladění:** v debug buildu je Ladění → Editor stylu (ImGui `ShowStyleEditor`).
+- **Galerie vzhledů:** `python tools\ui_gallery.py [--themes win11-light,sapi-dark] [--screens 01,16]
+  [--ref out\ux-review-20261028]` udělá 16 obrazovek v každém vzhledu (stavy z `sapiemu-cli`, každý snímek s novým
+  nastavením). Výsledek je v `out\ui-gallery\<čas>\index.html`.
+
 ## Linux (ověřeno ve WSL 2, 2026-10-06)
 
 Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (WSLg zobrazí i okno GUI a zvuk):

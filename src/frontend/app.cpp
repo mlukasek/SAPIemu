@@ -4,6 +4,7 @@
 #include "frontend/hostio.h"
 #include "frontend/i18n.h"
 #include "frontend/keymap.h"
+#include "frontend/theme.h"
 #include "frontend/ui.h"
 
 #include <stdio.h>
@@ -107,6 +108,15 @@ struct App {
     int win_x = 0, win_y = 0, win_w = 0, win_h = 0;   // restored (not maximized) window geometry
     bool win_pos_known = false;
     std::string language;         // "cs" / "en" chosen in View -> Language, empty = by the system
+    // View -> Settings -> Look (frontend/theme.h): the choice saved; --ui-theme takes its place for one run
+    ThemeVariant look = THEME_WIN11;
+    ThemeMode look_mode = THEME_SYSTEM;
+    int text_percent = 100;       // the size of the text
+    bool look_override = false;   // --ui-theme in use (not saved) until a look is chosen in the settings
+    bool restyle = true;          // build the style before the next frame
+    bool snapshot = false;        // a self-check: "as the system says" is light, the pictures do not depend on the PC
+    float dpi = 1.0f;
+    bool style_editor = false;    // Debug -> Style editor (debug builds)
 };
 
 // ---------------------------------------------------------------- settings
@@ -168,6 +178,8 @@ nlohmann::json settings_json(App& app)
     j["cassette"] = { { "last_dir", ui.tape_dlg.last_dir } };
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     if (!app.language.empty()) j["language"] = app.language;
+    j["appearance"] = { { "theme", k_themes[app.look].key }, { "mode", theme_mode_key(app.look_mode) },
+                        { "text_percent", app.text_percent } };
     j["browser"] = { { "recent", ui.recent } };
     j["mcp"] = { { "enabled", app.mcp_pref }, { "port", app.mcp_pref_port } };
     j["guides"] = { { "auto", ui.guides_auto }, { "hidden", ui.guides_hidden } };
@@ -254,6 +266,21 @@ void settings_apply(App& app, const nlohmann::json& j)
     if (!app.language.empty() && !i18n_parse(app.language.c_str(), &lang)) app.language.clear();
     if (!i18n_override(&lang) && !i18n_parse(app.language.c_str(), &lang)) lang = i18n_system_language();
     i18n_set_language(lang);
+    // the look: --ui-theme, else the saved one, else Windows 11 light or dark as the system says
+    const nlohmann::json& ap = j.value("appearance", nlohmann::json::object());
+    std::string look, mode;
+    get_opt(ap, "theme", look);
+    get_opt(ap, "mode", mode);
+    get_opt(ap, "text_percent", app.text_percent);
+    ThemeVariant v;
+    ThemeMode md;
+    if (theme_parse((look + (mode.empty() ? "" : "-" + mode)).c_str(), &v, &md)) {
+        app.look = v;
+        app.look_mode = md;
+    }
+    if (app.text_percent < 100 || app.text_percent > 200) app.text_percent = 100;
+    app.look_override = theme_override(&v, &md);
+    app.restyle = true;
 }
 
 // View -> Language: switches at once (the texts are translated every frame) and is saved.
@@ -261,6 +288,33 @@ void set_ui_language(App& app, UiLanguage lang)
 {
     i18n_set_language(lang);
     app.language = i18n_code(lang);
+}
+
+// The look in use: --ui-theme until a look is chosen in the settings, else the saved one; "as the system says"
+// asks SDL (light when the system does not tell, and in a self-check). Between frames only (app.restyle).
+static void apply_look(App& app)
+{
+    ThemeVariant v = app.look;
+    ThemeMode md = app.look_mode;
+    if (app.look_override) theme_override(&v, &md);
+    bool dark = md == THEME_DARK;
+    if (md == THEME_SYSTEM && !app.snapshot) dark = SDL_GetSystemTheme() == SDL_SYSTEM_THEME_DARK;
+    theme_apply(v, dark, app.dpi, (float)app.text_percent / 100.0f);
+}
+
+// View -> Settings: a look chosen here is saved and replaces --ui-theme.
+static void set_look(App& app, ThemeVariant v, ThemeMode md)
+{
+    if (app.look_override) {
+        ThemeVariant ov;
+        ThemeMode om;
+        theme_override(&ov, &om);
+        if (v == ov && md == om) return;
+    }
+    app.look = v;
+    app.look_mode = md;
+    app.look_override = false;
+    app.restyle = true;
 }
 
 // Replaces the section "[Window][old]" (a whole line) by "[Window][now]"; false when missing.
@@ -771,7 +825,7 @@ void ink_menu(App& app, Machine* m)
         while (p && p->path && strcmp(p->path, d->ink_param()) != 0) p++;
         if (!p || !p->path || !p->options) continue;
         std::string head = c->name + " - " + (cs ? p->cs : p->en);
-        ImGui::SeparatorText(head.c_str());
+        theme_section(head.c_str());
         std::string cur = d->ink();
         ImGui::PushID(d);   // two displays may offer the same colours (AND-1V and DGD-1V)
         for (const ParamOption* o = p->options; o->value; o++) {
@@ -823,13 +877,40 @@ static void draw_settings(App& app)
         ImGui::End();
         return;
     }
-    ImGui::SeparatorText("Jazyk / Language");
+    theme_section("Jazyk / Language");
     UiLanguage cur = i18n_language();
     if (ImGui::RadioButton("Čeština", cur == LANG_CS)) set_ui_language(app, LANG_CS);
     ImGui::SameLine();
     if (ImGui::RadioButton("English", cur == LANG_EN)) set_ui_language(app, LANG_EN);
 
-    ImGui::SeparatorText(tr("Sound"));
+    theme_section(tr("Look"));
+    ThemeVariant cv = app.look;
+    ThemeMode cm = app.look_mode;
+    if (app.look_override) theme_override(&cv, &cm);
+    for (int i = 0; i < THEME_VARIANTS; i++) {
+        if (i) ImGui::SameLine();
+        if (ImGui::RadioButton(cur == LANG_CS ? k_themes[i].name_cs : k_themes[i].name_en, cv == i))
+            set_look(app, (ThemeVariant)i, cm);
+    }
+    static const char* const k_modes[] = { "As the system", "Light", "Dark" };
+    for (int i = 0; i < 3; i++) {
+        if (i) ImGui::SameLine();
+        if (ImGui::RadioButton(tr(k_modes[i]), cm == i)) set_look(app, cv, (ThemeMode)i);
+    }
+    static int text_edit = 100;   // dragged: the size changes when the slider is released, not under the mouse
+    static bool text_drag = false;
+    if (!text_drag) text_edit = app.text_percent;
+    ImGui::SetNextItemWidth(12 * u);
+    ImGui::SliderInt(tr("Text size"), &text_edit, 100, 200, "%d %%");
+    text_drag = ImGui::IsItemActive();
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        app.text_percent = (text_edit + 5) / 10 * 10;
+        app.restyle = true;
+    }
+    if (app.look_override)
+        ImGui::TextDisabled("%s", tr("The look of this run comes from --ui-theme; a choice here replaces it and is saved."));
+
+    theme_section(tr("Sound"));
     ImGui::Checkbox(tr("Sound"), &app.audio.enabled);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(12 * u);
@@ -837,18 +918,18 @@ static void draw_settings(App& app)
     if (app.audio.failed) ImGui::TextDisabled("%s", tr("No sound device."));
     ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
 
-    ImGui::SeparatorText(tr("Mouse"));
+    theme_section(tr("Mouse"));
     ImGui::Checkbox(tr("PC mouse as the SAPI mouse (a click into a screen captures it)"), &app.mouse.enabled);
     ImGui::SetNextItemWidth(12 * u);
     ImGui::SliderFloat(tr("Mouse sensitivity"), &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
 
-    ImGui::SeparatorText(tr("Machine guides"));
+    theme_section(tr("Machine guides"));
     ImGui::Checkbox(tr("Guides open by themselves"), &ui.guides_auto);
     ImGui::BeginDisabled(ui.guides_hidden.empty());
     if (ImGui::Button(tr("Show the hidden guides again"))) ui.guides_hidden.clear();
     ImGui::EndDisabled();
 
-    ImGui::SeparatorText(tr("MCP server (development with Claude)"));
+    theme_section(tr("MCP server (development with Claude)"));
     bool on = app.mcp_pref;
     if (ImGui::Checkbox(tr("MCP server on"), &on)) {
         app.mcp_pref = on;
@@ -865,7 +946,7 @@ static void draw_settings(App& app)
         ImGui::TextUnformatted(app.mcp->url().c_str());
         ImGui::TextDisabled("claude mcp add --transport http sapiemu %s", app.mcp->url().c_str());
     } else if (!app.mcp_error.empty()) {
-        ImGui::TextColored(ImVec4(1, 0.5f, 0.4f, 1), "%s", app.mcp_error.c_str());
+        ImGui::TextColored(theme().error, "%s", app.mcp_error.c_str());
     } else if (app.mcp_pref) {
         ImGui::TextDisabled("%s", tr("Not running now (started with --no-mcp)."));
     } else {
@@ -873,7 +954,7 @@ static void draw_settings(App& app)
                                      "of software for SAPI with Claude (docs/mcp.md)."));
     }
 
-    ImGui::SeparatorText(tr("Video"));
+    theme_section(tr("Video"));
     static char ff[512];
     static bool ff_init = false;
     if (!ff_init) {
@@ -1009,6 +1090,10 @@ void draw_menu(App& app)
         bool stepping = m && app.host.paused;   // the steps are for a paused machine (F5)
         if (ImGui::MenuItem(tr("Step"), "F11", false, stepping)) debug_step(app, false);
         if (ImGui::MenuItem(tr("Step over"), "F10", false, stepping)) debug_step(app, true);
+#ifndef NDEBUG
+        ImGui::Separator();   // tuning the look live; Export copies the values for frontend/theme_data.cpp
+        ImGui::MenuItem(tr("Style editor (development)"), nullptr, &app.style_editor);
+#endif
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("View"))) {
@@ -1127,7 +1212,7 @@ void draw_menu(App& app)
     float pw = pend.empty() ? 0.0f : ImGui::CalcTextSize(pend.c_str()).x + ImGui::GetStyle().ItemSpacing.x * 2;
     ImGui::SameLine(ImGui::GetWindowWidth() - w - pw);
     if (!pend.empty()) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.55f, 0.1f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, theme().pending);
         ImVec2 sz = ImGui::CalcTextSize(pend.c_str());
         if (ImGui::Selectable(pend.c_str(), false, ImGuiSelectableFlags_None, sz)) app.ui.show_rack = true;
         ImGui::PopStyleColor();
@@ -1208,21 +1293,21 @@ void draw_screen(App& app)
     display_title(title, sizeof(title), c ? c->name.c_str() : tr("Screen"), d ? app.screen_zs.zoom : 0, "screen");
     zoom_resize(app, d, app.screen_zs);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertU32ToFloat4(k_background));   // a monitor in every look
     ImGui::Begin(title);
+    ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     zoom_track(app.screen_zs);
     app.ui.screen_focused = ImGui::IsWindowFocused();
     if (app.ui.screen_focused) app.shot_target = -1;
 
-    if (!m) {   // switched off: a dark screen
+    if (!m || !d) {   // switched off: a dark screen; the text light on it in every look
         ImVec2 a = ImGui::GetCursorScreenPos(), av = ImGui::GetContentRegionAvail();
         ImGui::GetWindowDrawList()->AddRectFilled(a, ImVec2(a.x + av.x, a.y + av.y), IM_COL32(8, 8, 8, 255));
-        ImGui::TextDisabled("%s", tr("Switched off (POWER on the ZDR panel, Machine -> Switch on)"));
-        ImGui::End();
-        return;
-    }
-    if (!d) {
-        ImGui::TextUnformatted(tr("No display card in this machine."));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.0f));
+        ImGui::TextUnformatted(!m ? tr("Switched off (POWER on the ZDR panel, Machine -> Switch on)")
+                                  : tr("No display card in this machine."));
+        ImGui::PopStyleColor();
         ImGui::End();
         return;
     }
@@ -1257,7 +1342,9 @@ void draw_graphic_screens(App& app)
         ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
         zoom_resize(app, d, v.zs);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertU32ToFloat4(k_background));
         bool open = ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+        ImGui::PopStyleColor();
         ImGui::PopStyleVar();
         if (open) {
             zoom_track(v.zs);
@@ -1339,6 +1426,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
 
     float dpi = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     if (dpi <= 0) dpi = 1.0f;
+    if (snap && snap->scale > 0) dpi = snap->scale;   // --ui-scale: pictures at 125 %, 150 %... on any PC
+    app.dpi = dpi;
+    app.snapshot = snap != nullptr;
 
     // settings of the previous run: --settings FILE, else next to the exe / AppData;
     // a layout self-check uses none unless a file is given
@@ -1428,14 +1518,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.IniFilename = app.ini_path.empty() ? nullptr : app.ini_path.c_str();   // none for a self-check
-    ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(dpi);
-    style.FontScaleDpi = dpi;
-    std::string font = data_path("third_party/fonts/DejaVuSans.ttf");
-    std::string mono = data_path("third_party/fonts/DejaVuSansMono.ttf");
-    if (file_exists(font)) io.Fonts->AddFontFromFileTTF(font.c_str(), 16.0f);
-    if (file_exists(mono)) app.ui.mono = io.Fonts->AddFontFromFileTTF(mono.c_str(), 15.0f);
+    // the fonts of all looks (baked on demand); the style is built before the first frame (app.restyle)
+    theme_fonts_load(io);
+    app.ui.mono = theme_fonts().mono;
+    apply_look(app);
     ImGui_ImplSDL3_InitForSDLRenderer(app.window, app.renderer);
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
@@ -1512,6 +1598,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             }
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
             else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
+            else if (ev.type == SDL_EVENT_SYSTEM_THEME_CHANGED) app.restyle = true;   // Windows light / dark
         }
         app.host.poll();   // MCP commands
         if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator
@@ -1548,6 +1635,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         audio_frame(app.audio, app.host.machine(),
                     !snap && !app.host.paused && !app.host.max_speed && app.host.pace_percent == 100);
 
+        if (app.restyle) {   // a look chosen, the system switched between light and dark: between frames only
+            apply_look(app);
+            app.restyle = false;
+        }
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
@@ -1583,6 +1674,12 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_rack(app.ui);
         draw_log(app);
         draw_error(app);
+#ifndef NDEBUG
+        if (app.style_editor) {
+            if (ImGui::Begin(tr_id("Style editor (development)"), &app.style_editor)) ImGui::ShowStyleEditor();
+            ImGui::End();
+        }
+#endif
         if (app.focus_screen > 0) {   // after the windows that opened with the machine
             app.focus_screen--;
             if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window(app);
@@ -1608,10 +1705,13 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 if (app.focus_screen == 0) app.rack_behind = false;
             }
         }
+        theme_focus_frame();
         ImGui::Render();
 
         SDL_SetRenderScale(app.renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-        SDL_SetRenderDrawColor(app.renderer, 24, 24, 24, 255);
+        ImU32 desk = theme().desktop;   // behind the windows: the colour of the look
+        SDL_SetRenderDrawColor(app.renderer, (Uint8)(desk & 0xFF), (Uint8)((desk >> 8) & 0xFF), (Uint8)((desk >> 16) & 0xFF),
+                               255);
         SDL_RenderClear(app.renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.renderer);
         if (snap && snap_frames == 3) {   // the menu items, after the windows have their places

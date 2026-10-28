@@ -4,6 +4,7 @@
 // temperatures (docs/desky/APS-5.md).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include "imgui.h"
 #include "cards/hrk1.h"
@@ -68,8 +69,8 @@ static void draw_panel(Hrk1* p, float u)
     dl->AddRect(o, ImVec2(o.x + w, o.y + h), IM_COL32(90, 92, 88, 255), 4.0f, 0, 1.5f);
     ImU32 ink = IM_COL32(30, 30, 30, 255);
     float y = o.y + 0.5f * u;
-    dl->AddText(ImVec2(o.x + pad, y), ink, "porucha");
-    dl->AddText(ImVec2(o.x + w - pad - ImGui::CalcTextSize("napájení").x, y), ink, "napájení");
+    panel_text(dl, ImVec2(o.x + pad, y), ink, "porucha");
+    panel_text(dl, ImVec2(o.x + w - pad - panel_text_size("napájení").x, y), ink, "napájení");
     lamp(dl, ImVec2(o.x + pad + 1.4f * u, y + 1.9f * u), 0.45f * u, p->powered() && p->led_fault(), IM_COL32(255, 40, 30, 255));
     lamp(dl, ImVec2(o.x + w - pad - 1.6f * u, y + 1.9f * u), 0.45f * u, p->powered(), IM_COL32(60, 230, 60, 255));
     // keys: 7 8 9 / 4 5 6 / 1 2 3 / 0 / <- M -> / R
@@ -106,8 +107,8 @@ static void draw_panel(Hrk1* p, float u)
     float a = p->lock == 1 ? -2.2f : -0.9f;
     ImVec2 d(cosf(a) * kr * 0.8f, sinf(a) * kr * 0.8f);
     dl->AddLine(ImVec2(kc.x - d.x, kc.y - d.y), ImVec2(kc.x + d.x, kc.y + d.y), IM_COL32(30, 30, 30, 255), 0.35f * u);
-    dl->AddText(ImVec2(kc.x - kr - 0.9f * u, kc.y - kr - 0.4f * u), ink, "1");
-    dl->AddText(ImVec2(kc.x + kr + 0.4f * u, kc.y - kr - 0.4f * u), ink, "2");
+    panel_text(dl, ImVec2(kc.x - kr - 0.9f * u, kc.y - kr - 0.4f * u), ink, "1");
+    panel_text(dl, ImVec2(kc.x + kr + 0.4f * u, kc.y - kr - 0.4f * u), ink, "2");
     ImGui::SetCursorScreenPos(ImVec2(kc.x - kr, kc.y - kr));
     if (ImGui::InvisibleButton("##lock", ImVec2(2 * kr, 2 * kr))) p->lock = p->lock == 1 ? 2 : 1;
     if (ImGui::IsItemHovered())
@@ -154,14 +155,14 @@ static void draw_furnace(FurnacePlant* pl, Hrk1* panel, int i, float u, float tw
     // the temperature on the chamber
     char b[64];
     snprintf(b, sizeof(b), "%.0f °C", f.tch);
-    ImFont* font = ImGui::GetFont();
+    ImFont* font = panel_font();
     float fs = ImGui::GetFontSize() * 1.45f;
     ImVec2 ts = font->CalcTextSizeA(fs, FLT_MAX, 0, b);
     ImVec2 tp(tx - ts.x * 0.5f, (c0.y + c1.y) * 0.5f - ts.y * 0.1f);
     dl->AddRectFilled(ImVec2(tp.x - 4, tp.y - 2), ImVec2(tp.x + ts.x + 4, tp.y + ts.y + 2), IM_COL32(0, 0, 0, 150), 3.0f);
     dl->AddText(font, fs, tp, IM_COL32(255, 255, 255, 255), b);
     // name and the lamps (heater = DRV-1A contact, LO1, LO2) on the casing
-    dl->AddText(ImVec2(o.x + 0.3f * u, o.y + 0.05f * u), IM_COL32(255, 235, 210, 255), f.name.c_str());
+    panel_text(dl, ImVec2(o.x + 0.3f * u, o.y + 0.05f * u), IM_COL32(255, 235, 210, 255), f.name.c_str());
     lamp(dl, ImVec2(o.x + tw - 0.6f * u, o.y + 0.55f * u), 0.32f * u, heat && !f.heater_broken, IM_COL32(255, 150, 20, 255));
     ImGui::Dummy(ImVec2(tw, bh));
     if (ImGui::IsItemHovered()) {
@@ -257,9 +258,14 @@ static void draw_plot(FurnacePlant* pl, UiState& ui, float u)
     }
     dl->PopClipRect();
     ImGui::Dummy(ImVec2(w, h));
-    for (size_t i = 0; i < pl->furnaces.size() && i < 8; i++) {   // legend
-        if (i) ImGui::SameLine();
-        ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(k_plot_col[i]), "%s", pl->furnaces[i].name.c_str());
+    for (size_t i = 0; i < pl->furnaces.size() && i < 8; i++) {   // legend: the stroke of the line, the name
+        if (i) ImGui::SameLine(0, ImGui::GetFontSize());
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        float u = ImGui::GetFontSize(), y = p.y + ImGui::GetTextLineHeight() * 0.5f;
+        dl->AddLine(ImVec2(p.x, y), ImVec2(p.x + 1.2f * u, y), k_plot_col[i], 0.25f * u);
+        ImGui::Dummy(ImVec2(1.4f * u, ImGui::GetTextLineHeight()));
+        ImGui::SameLine(0, 0);
+        ImGui::TextUnformatted(pl->furnaces[i].name.c_str());
     }
 }
 
@@ -309,22 +315,22 @@ static void demo_controls(UiState& ui, Machine* m, float u)
     ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 10.1f * u);   // as wide as the panel
     Aps5Demo& d = ui.aps5_demo;
     if (!d.running()) {
-        if (ImGui::Button(tr("DEMO"), ImVec2(5.5f * u, 0))) ImGui::OpenPopup("##aps5demo");
+        if (theme_accent_button(tr("DEMO"), ImVec2(5.5f * u, 0))) ImGui::OpenPopup("##aps5demo");
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("%s", tr("Types the example of docs/aps5-ukazka.md on the panel: calibration, program 1, "
                                        "furnaces 1, 2, 5 regulated to 700 degC, 4 and 6 by hand."));
         if (d.phase == Aps5Demo::DONE) {
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.5f, 1), "%s", tr("Demo done"));
+            ImGui::TextColored(theme().ok, "%s", tr("Demo done"));
         } else if (d.phase == Aps5Demo::FAILED) {
-            ImGui::TextColored(ImVec4(1, 0.45f, 0.35f, 1), "%s %s", tr("Demo stopped:"), tr(d.error.c_str()));
+            ImGui::TextColored(theme().error, "%s %s", tr("Demo stopped:"), tr(d.error.c_str()));
         }
     } else {
         if (ImGui::Button(tr("Stop the demo"))) {
             d.stop();
             demo_speed_back(ui);
         }
-        ImVec4 c(1, 0.8f, 0.3f, 1);
+        ImVec4 c = theme().warn;
         if (d.phase == Aps5Demo::TYPING)
             ImGui::TextColored(c, "%s %d/%d: %s", tr("DEMO"), d.step + 1, d.steps, tr(d.label));
         else
@@ -379,7 +385,7 @@ void draw_aps5(UiState& ui)
         ImGui::PushItemWidth(5.5f * u);
         double left = panel->outage_left();
         if (left > 0) {
-            ImGui::TextColored(ImVec4(1, 0.5f, 0.3f, 1), "%s %.0f s", tr("No power,"), left);
+            ImGui::TextColored(theme().warn, "%s %.0f s", tr("No power,"), left);
         } else {
             if (ImGui::Button(tr("Mains failure"))) panel->outage(ui.aps5_outage_s);
             if (ImGui::IsItemHovered())

@@ -1,6 +1,7 @@
 // Debugger windows: CPU registers, disassembly with breakpoints, stack, memory, I/O log.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -47,7 +48,7 @@ static void draw_controls(UiState& ui, Machine* m)
     if (ImGui::Button(tr("Reset"))) m->reset();
     if (!h.status.empty()) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "%s", h.status.c_str());
+        ImGui::TextColored(theme().warn, "%s", h.status.c_str());
     }
 }
 
@@ -120,14 +121,17 @@ static void draw_disasm(UiState& ui, Machine* m)
         bool cur = (a == r.pc);
         char line[96];
         snprintf(line, sizeof(line), "%c%c %04X  %-12s %s", bp ? '*' : ' ', cur ? '>' : ' ', a, bytes, d.text.c_str());
-        if (cur) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
-        else if (bp) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+        if (cur || bp) {   // the row in the colour of the PC or of a breakpoint ('>' and '*' tell it too)
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                p, ImVec2(p.x + ImGui::GetContentRegionAvail().x, p.y + ImGui::GetTextLineHeightWithSpacing()),
+                ImGui::GetColorU32(cur ? theme().pc_bg : theme().bp_bg));
+        }
         char id[16];
         snprintf(id, sizeof(id), "##dl%d", i);
         ImGui::PushID(i);
         if (ImGui::Selectable(line, false)) m->set_breakpoint(a, !bp);
         ImGui::PopID();
-        if (cur || bp) ImGui::PopStyleColor();
         a = (uint16_t)(a + d.length);
     }
     if (ui.mono) ImGui::PopFont();

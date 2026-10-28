@@ -24,6 +24,7 @@
 #ifdef SAPIEMU_GUI
 #include <SDL3/SDL_main.h>
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 #endif
 #ifdef _WIN32
 #include <windows.h>
@@ -44,6 +45,8 @@ static void print_help(void)
            "  --no-mcp           GUI: do not start the MCP server (else as View -> Settings says)\n"
            "  --settings FILE    GUI: settings file instead of sapiemu-settings.json next to the exe\n"
            "  --lang cs|en       GUI: language of the user interface for this run (not saved)\n"
+           "  --ui-theme LOOK    GUI: the look for this run (not saved): win11, classic or sapi, with -light or\n"
+           "                     -dark (win11-dark); without it light or dark as the system says\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2: those windows (--ui-aps5-demo: and its DEMO),\n"
@@ -58,6 +61,7 @@ static void print_help(void)
            "                     --ui-zoom PCT: the screen zoom from the menu, --ui-reset-layout: View -> Default window layout,\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
+           "                     --ui-scale F: the display scale (1.25 = 125 %%) instead of the one of the system,\n"
            "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied)\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
@@ -249,6 +253,19 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-term-sel" && i + 1 < argc) { snap.terminal = true; snap.term_sel = argv[++i]; }
         else if (a == "--ui-state" && i + 1 < argc) snap.state = argv[++i];
         else if (a == "--ui-size" && i + 1 < argc) sscanf(argv[++i].c_str(), "%dx%d", &snap.w, &snap.h);
+        else if (a == "--ui-scale" && i + 1 < argc) snap.scale = (float)atof(argv[++i].c_str());
+        else if (a == "--ui-theme" && i + 1 < argc) {
+            std::string look = argv[++i];
+#ifdef SAPIEMU_GUI
+            ThemeVariant v;
+            ThemeMode md;
+            if (!theme_parse(look.c_str(), &v, &md)) {
+                fprintf(stderr, "--ui-theme: win11, classic or sapi, optionally with -light or -dark\n");
+                return 2;
+            }
+            theme_set_override(v, md);
+#endif
+        }
         else if (a == "--settings" && i + 1 < argc) settings_file = argv[++i];
         else if (a == "--lang" && i + 1 < argc) {
             std::string code = argv[++i];

@@ -2,6 +2,7 @@
 // the IDE disk of IDE-1 cards, cartridge disks of RKD-1 and the magnetic tape drives of RMP-1.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -431,9 +432,12 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
         bool on = t->mode == b.mode;
         bool dis = b.mode == TapeDeck::RECORD && t->write_protect;
         ImGui::BeginDisabled(dis);
-        if (on) ImGui::PushStyleColor(ImGuiCol_Button, b.mode == TapeDeck::RECORD ? IM_COL32(170, 40, 40, 255) : IM_COL32(40, 120, 60, 255));
+        if (on) {   // a lit button of the deck, the same in every look
+            ImGui::PushStyleColor(ImGuiCol_Button, b.mode == TapeDeck::RECORD ? IM_COL32(170, 40, 40, 255) : IM_COL32(30, 110, 50, 255));
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+        }
         if (ImGui::Button(tr(b.label))) t->mode = (TapeDeck::Mode)b.mode;
-        if (on) ImGui::PopStyleColor();
+        if (on) ImGui::PopStyleColor(2);
         ImGui::EndDisabled();
         if (dis && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
             ImGui::SetTooltip("%s", tr("The cassette is write protected"));
@@ -453,7 +457,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     snprintf(over, sizeof(over), "%s / %s", mmss(p).c_str(), mmss(len).c_str());
     ImGui::ProgressBar(len > 0 ? (float)(p / len) : 0.0f, ImVec2(260, 0), over);
     ImGui::SameLine();
-    if (dsm->motor_on()) ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "%s", tr("motor running"));
+    if (dsm->motor_on()) ImGui::TextColored(theme().ok, "%s", tr("motor running"));
     else ImGui::TextDisabled("%s", tr("motor stopped"));
     ImGui::PopID();
 }
@@ -477,9 +481,9 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
         std::string name = k->path();
         size_t sl = name.find_last_of("/\\");
         if (sl != std::string::npos) name = name.substr(sl + 1);
-        dl->AddText(ImVec2(o.x + 1.1f * u, o.y + 0.8f * u), IM_COL32(30, 30, 30, 255), name.c_str());
+        panel_text(dl, ImVec2(o.x + 1.1f * u, o.y + 0.8f * u), IM_COL32(30, 30, 30, 255), name.c_str());
         char sd[4] = { (char)(k->side ? 'B' : 'A'), 0 };
-        dl->AddText(ImGui::GetFont(), 1.4f * u, ImVec2(o.x + w - 2.0f * u, o.y + 0.65f * u), IM_COL32(170, 30, 30, 255), sd);
+        dl->AddText(panel_font(), 1.4f * u, ImVec2(o.x + w - 2.0f * u, o.y + 0.65f * u), IM_COL32(170, 30, 30, 255), sd);
         // reels: hub 11 mm, full 24 mm; the tape of this side from the left reel to the right one
         const double hub = 0.011, full = 0.024, len = KzdCassette::LENGTH_UM * 1e-6;
         double p = k->position_m();
@@ -512,7 +516,7 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
             }
         }
     } else {
-        dl->AddText(ImVec2(o.x + 1.0f * u, o.y + 4.0f * u), IM_COL32(150, 150, 150, 255), tr("(no cassette)"));
+        panel_text(dl, ImVec2(o.x + 1.0f * u, o.y + 4.0f * u), IM_COL32(150, 150, 150, 255), tr("(no cassette)"));
     }
     ImGui::Dummy(ImVec2(w, h));
     ImGui::SameLine();
@@ -523,11 +527,11 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
     }
     double sp = k->speed();
     if (sp != 0 || k->target() != 0)
-        ImGui::TextColored(k->recording() ? ImVec4(1, 0.45f, 0.4f, 1) : ImVec4(0.5f, 1, 0.5f, 1), "%s  %.2f m/s", tr(k->motion()), sp);
+        ImGui::TextColored(k->recording() ? theme().error : theme().ok, "%s  %.2f m/s", tr(k->motion()), sp);
     else
         ImGui::TextDisabled("%s", tr("stop"));
     if (k->overload(1) || k->overload(2))
-        ImGui::TextColored(ImVec4(1, 0.7f, 0.3f, 1), "%s %d", tr("End of tape: overload of motor"), k->overload(1) ? 1 : 2);
+        ImGui::TextColored(theme().warn, "%s %d", tr("End of tape: overload of motor"), k->overload(1) ? 1 : 2);
     if (has) {
         bool ta = k->tab(0), tb = k->tab(1);
         const char* tip = tr("The break-out tab of the side: present = recording allowed (MIKOS/K checks it)");
@@ -668,7 +672,6 @@ static void cpm_save_hint(const std::string& path, long long last, const char* e
     ImGui::Text("CP/M: SAVE %lld %s", pages, cpm_name(path, ext).c_str());
 }
 
-const ImVec4 k_load_error(1.0f, 0.4f, 0.4f, 1.0f);
 
 // File -> Load program (Intel HEX): the addresses come from the file; shown with the size and
 // the pages for CP/M SAVE before anything is written (the same layout as for a binary file).
@@ -688,7 +691,7 @@ static void hex_load_question(UiState& ui, Machine* m)
         ImGui::Text("%04X-%04Xh", (unsigned)ui.hex_lo, (unsigned)ui.hex_hi);
         if (ui.hex_lo == 0x100) cpm_save_hint(ui.hex_path, ui.hex_hi, "COM");
     } else {
-        ImGui::TextColored(k_load_error, "%s", ui.hex_error.c_str());
+        ImGui::TextColored(theme().error, "%s", ui.hex_error.c_str());
     }
     ImGui::BeginDisabled(!ok || !m);
     if (ImGui::Button(tr("Load"))) {
@@ -739,7 +742,7 @@ static void bin_load_question(UiState& ui, Machine* m)
         ImGui::Text("%04llX-%04llXh", addr, addr + size - 1);
         if (addr == 0x100) cpm_save_hint(ui.bin_path, addr + size - 1, nullptr);
     } else {
-        ImGui::TextColored(k_load_error, "%s", size < 0 ? tr("Cannot read the file.")
+        ImGui::TextColored(theme().error, "%s", size < 0 ? tr("Cannot read the file.")
                                                         : tr("The file does not fit into memory there."));
     }
     ImGui::BeginDisabled(!fits || !m);
@@ -790,7 +793,7 @@ static void tape_program_question(UiState& ui, Machine* m)
     ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
     ImGui::InputText(tr("Start (hex, empty = lowest address)"), ui.tprog_entry, sizeof(ui.tprog_entry),
                      ImGuiInputTextFlags_CharsHexadecimal);
-    if (!ui.tprog_error.empty()) ImGui::TextColored(k_load_error, "%s", ui.tprog_error.c_str());
+    if (!ui.tprog_error.empty()) ImGui::TextColored(theme().error, "%s", ui.tprog_error.c_str());
     Card* card = m ? m->find_card(ui.tprog_card) : nullptr;
     Dsm1* dsm = ui.tprog_kzd ? nullptr : dynamic_cast<Dsm1*>(card);
     Kzd1* kzd = ui.tprog_kzd && card ? card->kzd1() : nullptr;
@@ -904,10 +907,10 @@ static void rkd_system_dialog(Rkd1* r, bool open)
     ImGui::Checkbox(tr("Format the whole cartridge first (A: and B: as FORMTRKD does; erases all files)"),
                     &s_rkd_sys_format);
     if (u >= 0 && !s_rkd_sys_format && !r->platter_formatted(u, Rkd1::CARTRIDGE))
-        ImGui::TextColored(k_load_error, "%s", tr("The cartridge is not formatted: A: cannot be used without it."));
+        ImGui::TextColored(theme().error, "%s", tr("The cartridge is not formatted: A: cannot be used without it."));
     ImGui::TextUnformatted(tr("Then Reset (F12): the CBIOS does not notice a changed cartridge. Copy SH.COM, SH.OVR, "
                               "STARTSYS.SUB and other files with PIP, e.g. through the fixed disk C:."));
-    if (!s_rkd_sys_error.empty()) ImGui::TextColored(k_load_error, "%s", s_rkd_sys_error.c_str());
+    if (!s_rkd_sys_error.empty()) ImGui::TextColored(theme().error, "%s", s_rkd_sys_error.c_str());
     ImGui::PopTextWrapPos();
     if (ImGui::Button(tr("Write the system"))) {
         std::string err;
@@ -1128,10 +1131,10 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     float w = 20.0f * s, h = 16.9f * s;
     dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), IM_COL32(222, 220, 208, 255), 0.4f * s);
     dl->AddRect(o, ImVec2(o.x + w, o.y + h), IM_COL32(120, 118, 110, 255), 0.4f * s, 0, 1.5f);
-    dl->AddText(ImGui::GetFont(), 1.15f * s, ImVec2(o.x + 0.8f * s, o.y + 0.5f * s), IM_COL32(40, 40, 40, 255), "IZOT SM 5300.01");
+    dl->AddText(panel_font(), 1.15f * s, ImVec2(o.x + 0.8f * s, o.y + 0.5f * s), IM_COL32(40, 40, 40, 255), "IZOT SM 5300.01");
     char unit_s[32];
     snprintf(unit_s, sizeof(unit_s), "%s %d", tr("unit"), i);
-    dl->AddText(ImVec2(o.x + w - 5.0f * s, o.y + 0.6f * s), IM_COL32(90, 90, 90, 255), unit_s);
+    panel_text(dl, ImVec2(o.x + w - 5.0f * s, o.y + 0.6f * s), IM_COL32(90, 90, 90, 255), unit_s);
     // the tape deck: reels of 216 mm with a hub of 100 mm, 350 m of tape from the left reel to the right one
     ImVec2 p0(o.x + 0.8f * s, o.y + 2.0f * s), p1(o.x + w - 0.8f * s, o.y + 11.4f * s);
     dl->AddRectFilled(p0, p1, IM_COL32(44, 46, 50, 255), 0.3f * s);
@@ -1182,7 +1185,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         }
     } else {
         for (int side = 0; side < 2; side++) dl->AddCircleFilled(side ? cr : cl, (float)hub * sc * 0.75f, IM_COL32(200, 202, 208, 255), 32);
-        dl->AddText(ImVec2(o.x + w * 0.5f - 3.0f * s, o.y + 10.2f * s), IM_COL32(170, 170, 170, 255), tr("(no tape)"));
+        panel_text(dl, ImVec2(o.x + w * 0.5f - 3.0f * s, o.y + 10.2f * s), IM_COL32(170, 170, 170, 255), tr("(no tape)"));
     }
     // the lamps: what the controller reads in port B of D2B for this unit
     struct Lamp { const char* name; bool on; ImU32 col; };
@@ -1201,8 +1204,8 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         ImVec2 c(lx + k * step, ly);
         dl->AddCircleFilled(c, 0.55f * s, lamps[k].on ? lamps[k].col : IM_COL32(88, 88, 86, 255), 20);
         dl->AddCircle(c, 0.55f * s, IM_COL32(60, 60, 58, 255), 20, 1.0f);
-        ImVec2 ts = ImGui::CalcTextSize(lamps[k].name);
-        dl->AddText(ImVec2(c.x - ts.x * 0.5f, c.y + 0.8f * s), IM_COL32(50, 50, 50, 255), lamps[k].name);
+        ImVec2 ts = panel_text_size(lamps[k].name);
+        panel_text(dl, ImVec2(c.x - ts.x * 0.5f, c.y + 0.8f * s), IM_COL32(50, 50, 50, 255), lamps[k].name);
     }
     // the buttons of the drive, on its panel
     ImGui::SetCursorScreenPos(ImVec2(o.x + 0.8f * s, o.y + 14.4f * s));
@@ -1297,7 +1300,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         ImDrawList* md = ImGui::GetWindowDrawList();
         ImVec2 m0 = ImGui::GetCursorScreenPos();
         float x = m0.x + 0.2f * s, y0 = m0.y + 0.5f * s, y1 = m0.y + mh - 0.3f * s;
-        md->AddRectFilled(ImVec2(x, y0 - 0.3f * s), ImVec2(x + 0.3f * s, y1 + 0.3f * s), IM_COL32(230, 230, 230, 255));   // BOT foil
+        md->AddRectFilled(ImVec2(x, y0 - 0.3f * s), ImVec2(x + 0.3f * s, y1 + 0.3f * s), ImGui::GetColorU32(ImGuiCol_TextDisabled));   // BOT foil
         x += 0.8f * s;
         float head_x = -1;
         for (size_t k = 0; k < c.items.size(); k++) {
@@ -1339,7 +1342,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
                 ImGui::SetScrollX(at - vw * 0.5f);
         }
         md->AddTriangleFilled(ImVec2(head_x - 0.4f * s, m0.y), ImVec2(head_x + 0.4f * s, m0.y), ImVec2(head_x, m0.y + 0.45f * s),
-                              IM_COL32(250, 200, 40, 255));
+                              ImGui::GetColorU32(theme().warn));   // the head
         ImGui::Dummy(ImVec2(x - m0.x + 0.5f * s, mh));
         ImGui::EndChild();
 
@@ -1405,7 +1408,7 @@ void draw_media(UiState& ui)
             any = true;
             char title[96];
             snprintf(title, sizeof(title), "%s #%02X %s", c->type.c_str(), dsm->base_port(), tr("cassette recorder"));
-            ImGui::SeparatorText(title);
+            theme_section(title);
             draw_tape(ui, dsm);
             continue;
         }
@@ -1413,7 +1416,7 @@ void draw_media(UiState& ui)
             any = true;
             char title[96];
             snprintf(title, sizeof(title), "%s %s", c->name.c_str(), tr("floppy drives"));
-            ImGui::SeparatorText(title);
+            theme_section(title);
             draw_floppies(ui, c.get());
             continue;
         }
@@ -1421,7 +1424,7 @@ void draw_media(UiState& ui)
             any = true;
             char title[96];
             snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("cartridge disk"));
-            ImGui::SeparatorText(title);
+            theme_section(title);
             draw_rkd(ui, rk);
             continue;
         }
@@ -1429,7 +1432,7 @@ void draw_media(UiState& ui)
             any = true;
             char title[128];
             snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("magnetic tape IZOT SM 5300 (9 tracks, 800 bpi NRZI, 12.5 ips)"));
-            ImGui::SeparatorText(title);
+            theme_section(title);
             draw_rmp(ui, mt);
             continue;
         }
@@ -1437,14 +1440,14 @@ void draw_media(UiState& ui)
             any = true;
             char title[96];
             snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("KZD-1 cassette data recorder"));
-            ImGui::SeparatorText(title);
+            theme_section(title);
             draw_kzd(ui, c.get(), k);
             if (!c->pmd32sd()) continue;
         }
         Ide1* ide = dynamic_cast<Ide1*>(c.get());
         if (!ide && !c->pmd32sd()) continue;
         any = true;
-        ImGui::SeparatorText(c->name.c_str());
+        theme_section(c->name.c_str());
         if (IdeDisk* d = ide ? ide->disk() : nullptr) {
             if (d->present())
                 ImGui::Text("%s %s (%u MB%s)", tr("IDE disk:"), d->path().c_str(), d->sector_count() / 2048,

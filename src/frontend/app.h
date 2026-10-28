@@ -41,6 +41,7 @@ struct UiSnapshot {
     std::vector<std::string> set;   // "SLOT:KEY=VALUE": a change in the configurator, not applied
                                     // (VALUE as JSON, else a string)
     int w = 0, h = 0;        // window size in points (0 = the default)
+    float scale = 0;         // the display scale instead of the one of the system (0 = the system's)
     int zoom = 0;            // the zoom of the screen chosen from the menu (100, 200...; 0 = none)
     bool reset_layout = false;   // View -> Default window layout
 };

@@ -4,6 +4,7 @@
 // host computer here too, the XY 4130 its lamps and the PEN button.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <stdio.h>
 #include <mutex>
@@ -149,7 +150,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
             } else plot_notice(ui, false, std::string(tr("Cannot read")) + " " + file);
         }
     }
-    ImGui::SeparatorText(tr("Plotter of AR 1990 (JPR-1, commands of Sharp MZ-1P16)"));
+    theme_section(tr("Plotter of AR 1990 (JPR-1, commands of Sharp MZ-1P16)"));
     ar_lamp("PWR", true, IM_COL32(240, 60, 50, 255));
     ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
     ar_lamp("RDY", p->led_ready(), IM_COL32(80, 220, 90, 255));
@@ -229,7 +230,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
 // The front panel of the XY 4130: the lamps POWER, READY and PEN, the button PEN.
 static void draw_xy4130(Xy4130* p)
 {
-    ImGui::SeparatorText(tr("Plotter XY 4130"));
+    theme_section(tr("Plotter XY 4130"));
     ar_lamp("POWER", true, IM_COL32(80, 220, 90, 255));
     ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
     ar_lamp("READY", p->ready(), IM_COL32(80, 220, 90, 255));
@@ -243,7 +244,7 @@ static void draw_xy4130(Xy4130* p)
         ImGui::SetTooltip("%s", tr("Ready to write: the pen goes down only with the PEN lamp lit (off after power on)."));
     if (!p->pen_enabled() || !p->ready()) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1, 0.7f, 0.3f, 1), "%s", !p->pen_enabled() ? tr("press PEN") : tr("the pen waits for READY"));
+        ImGui::TextColored(theme().warn, "%s", !p->pen_enabled() ? tr("press PEN") : tr("the pen waits for READY"));
     }
     ImGui::Separator();
 }
@@ -307,7 +308,7 @@ void draw_plotter(UiState& ui)
     }
     if (g->lost) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1, 0.7f, 0.3f, 1), "  %s %llu", tr("lost"), (unsigned long long)g->lost);
+        ImGui::TextColored(theme().warn, "  %s %llu", tr("lost"), (unsigned long long)g->lost);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("%s", tr("The code skipped a phase: the motor may have lost steps."));
     }

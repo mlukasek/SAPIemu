@@ -161,6 +161,14 @@ Nejtěsnější jsou:
 
 ### Etapa 1: mechanismus vzhledu, tři varianty, galerie · L
 
+**Stav 2026-10-28:**
+- Mechanismus vzhledu, šest palet, tokeny ve všech oknech, písma a `test_theme` jsou hotové.
+- `tools/ui_gallery.py` je hotový. Galerie pro autora je na claude.ai
+  (https://claude.ai/artifact/BRYQjq7Rc8sHZvSVgf4xC4).
+- Zbývá:
+  - logo v O programu nechat, nebo udělat verzi do světlého vzhledu (podle galerie);
+  - checkpoint A.
+
 **Nové soubory**
 - `theme.h`, `theme.cpp`, `theme_data.cpp`;
 - `tests/test_theme.cpp`: WCAG kontrasty všech palet, podle vzoru `test_i18n`;

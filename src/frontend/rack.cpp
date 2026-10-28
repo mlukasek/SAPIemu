@@ -3,6 +3,7 @@
 // card and jumper settings from the card catalog, opening and saving machine
 // descriptions, power cycle with the edited description.
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 #include "frontend/ui.h"
 
 #include <math.h>
@@ -49,8 +50,6 @@ const ImU32 COL_SEL = IM_COL32(255, 196, 0, 255);
 const ImU32 COL_HOVER = IM_COL32(255, 255, 255, 170);
 const ImU32 COL_ERROR = IM_COL32(230, 50, 40, 255);
 const ImU32 COL_PENDING = IM_COL32(255, 128, 0, 255);   // differs from the running machine
-const ImVec4 COL_PENDING_TEXT(1.0f, 0.55f, 0.1f, 1.0f);
-const ImVec4 COL_PENDING_FRAME(0.45f, 0.24f, 0.04f, 1.0f);
 const ImU32 COL_LED_ON = IM_COL32(90, 240, 90, 255);
 const ImU32 COL_LED_OFF = IM_COL32(40, 70, 40, 255);
 const ImU32 COL_LED_RED_ON = IM_COL32(255, 52, 36, 255);
@@ -58,9 +57,6 @@ const ImU32 COL_LED_RED_OFF = IM_COL32(78, 30, 26, 255);
 const ImU32 COL_LED_YEL_ON = IM_COL32(255, 214, 40, 255);
 const ImU32 COL_LED_YEL_OFF = IM_COL32(80, 70, 24, 255);
 
-const ImVec4 TXT_ERROR(1.0f, 0.42f, 0.38f, 1.0f);
-const ImVec4 TXT_WARN(1.0f, 0.82f, 0.35f, 1.0f);
-const ImVec4 TXT_OK(0.55f, 0.9f, 0.55f, 1.0f);
 
 // ---------------------------------------------------------------- file dialogs
 
@@ -556,7 +552,7 @@ void follow_machine(UiState& ui)
 // Text rotated by 90 degrees (read from the bottom up), centred at c.
 void text_vertical(ImDrawList* dl, ImVec2 c, float size, ImU32 col, const char* text)
 {
-    ImFont* f = ImGui::GetFont();
+    ImFont* f = panel_font();
     ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0.0f, text);
     int v0 = dl->VtxBuffer.Size;
     dl->AddText(f, size, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), col, text);
@@ -757,7 +753,7 @@ struct Panel {   // mapping of panel points to the screen
 void pt_text(const Panel& P, float x, float y, float size, ImU32 col, const char* t, int align = 0, bool bold = false,
              float max_w = 0.0f)
 {
-    ImFont* f = ImGui::GetFont();
+    ImFont* f = panel_font(bold);
     float px = size * P.k;
     ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, t);
     if (max_w > 0 && ts.x > max_w * P.k) {   // long labels (ZRMD) shrink to the panel width
@@ -767,7 +763,6 @@ void pt_text(const Panel& P, float x, float y, float size, ImU32 col, const char
     ImVec2 c = P.p(x, y);
     float left = align == 0 ? c.x - ts.x * 0.5f : align < 0 ? c.x : c.x - ts.x;
     P.dl->AddText(f, px, ImVec2(left, c.y - ts.y * 0.5f), col, t);
-    if (bold) P.dl->AddText(f, px, ImVec2(left + (px > 24 ? 1.2f : 0.7f), c.y - ts.y * 0.5f), col, t);
 }
 
 // oblong mounting hole 16.8 x 9.4 with a screw
@@ -898,8 +893,8 @@ void draw_rpd_cable(const Panel& A, const Panel& B, const char* name)
     if (!name) return;
     float fs = 9.0f * k;
     ImVec2 c = ImVec2((b0.x + a1.x) * 0.5f, (b0.y + a1.y) * 0.5f);
-    ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, name);
-    dl->AddText(ImGui::GetFont(), fs, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), IM_COL32(40, 40, 44, 255), name);
+    ImVec2 ts = panel_font()->CalcTextSizeA(fs, FLT_MAX, 0.0f, name);
+    dl->AddText(panel_font(), fs, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), IM_COL32(40, 40, 44, 255), name);
 }
 
 // Are the two boards of a card linked by a cable over their panels; `name` = its label or nullptr
@@ -996,7 +991,7 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
             cx = 46.6f;   // between the cut-outs (FRB x 12.5-35.2, D-sub 15 to 38.0) and the edge
             cy = 245.9f;
         }
-        ImFont* f = ImGui::GetFont();
+        ImFont* f = panel_font();
         float px = ImGui::GetFontSize() * 0.85f;
         ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
         float room = (best_b - best_a) * P.k - 8.0f;
@@ -1113,10 +1108,10 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         char lab[16];
         snprintf(lab, sizeof(lab), "X%d", s);
         float fs = 13.0f * k < 0.75f * u ? 0.75f * u : 13.0f * k;
-        ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0.0f, lab);
+        ImVec2 ts = panel_font()->CalcTextSizeA(fs, FLT_MAX, 0.0f, lab);
         ImVec2 tp(cx - ts.x * 0.5f, y1 + (label_band * k - ts.y) * 0.5f);
         bool pend = slot_pending(ui, cfg, s);   // differs from the running machine: orange, with a dot
-        dl->AddText(ImGui::GetFont(), fs, tp, pend ? COL_PENDING : COL_TEXT, lab);
+        dl->AddText(panel_font(), fs, tp, pend ? COL_PENDING : COL_TEXT, lab);
         if (pend) dl->AddCircleFilled(ImVec2(tp.x - fs * 0.45f, tp.y + ts.y * 0.5f), fs * 0.28f, COL_PENDING);
     }
 
@@ -1430,7 +1425,7 @@ void card_menu_items(UiState& ui, int slot, bool combo)
     std::string cur = idx >= 0 ? r.cfg["cards"][(size_t)idx].value("type", std::string()) : std::string();
     if (ImGui::Selectable(loc("(empty)", "(prázdný)"), cur.empty())) put_card(r, slot, nullptr);   // a slot
     for (int pass = 0; pass < 2; pass++) {
-        if (pass == 1) ImGui::SeparatorText(tr("not emulated yet"));
+        if (pass == 1) theme_section(tr("not emulated yet"));
         for (const CardInfo* ci : card_catalog()) {
             if (ci->emulated != (pass == 0)) continue;
             std::string why;
@@ -1466,7 +1461,7 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     std::string id_s = label_s + "###lbl";
     const char* label = id_s.c_str();
     ImGui::PushID(p->path);
-    if (pend) ImGui::PushStyleColor(ImGuiCol_FrameBg, COL_PENDING_FRAME);   // the field, not the popup items
+    if (pend) ImGui::PushStyleColor(ImGuiCol_FrameBg, theme().pending_bg);   // the field, not the popup items
     ImGui::SetNextItemWidth(16.0f * u);
     switch (p->kind) {
     case PK_CHOICE: {
@@ -1768,10 +1763,10 @@ void draw_slot_props(UiState& ui, int slot)
     }
     if (!card) return;
     if (ci && !ci->emulated)
-        ImGui::TextColored(TXT_WARN, "%s", loc("Not emulated yet: the card occupies the slot but does not respond.",
+        ImGui::TextColored(theme().warn, "%s", loc("Not emulated yet: the card occupies the slot but does not respond.",
                                               "Zatím neemulovaná: karta zabírá slot, ale neodpovídá."));
     if (!ci) {
-        ImGui::TextColored(TXT_ERROR, "%s", tr("unknown card"));
+        ImGui::TextColored(theme().error, "%s", tr("unknown card"));
         return;
     }
     if (!ci->params || !ci->params[0].path) {
@@ -1797,7 +1792,7 @@ void draw_slot_props(UiState& ui, int slot)
     std::string st = live ? live->live_status() : std::string();
     if (!st.empty()) {
         ImGui::Spacing();
-        ImGui::TextColored(st.find("locked by") != std::string::npos ? TXT_WARN : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled),
+        ImGui::TextColored(st.find("locked by") != std::string::npos ? theme().warn : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled),
                            "%s", tr(st.c_str()));
     }
 }
@@ -1846,7 +1841,7 @@ void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>&
         for (size_t k = 0; k < rg.users.size(); k++) {
             const MapUser& us = rg.users[k];
             ImGui::TableNextRow();
-            ImVec4 col = rg.conflict ? TXT_ERROR : rg.shared_write ? TXT_WARN : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            ImVec4 col = rg.conflict ? theme().error : rg.shared_write ? theme().warn : ImGui::GetStyleColorVec4(ImGuiCol_Text);
             ImGui::TableNextColumn();
             if (k == 0) ImGui::TextColored(col, "%s", range_text(rg, digits).c_str());
             ImGui::TableNextColumn();
@@ -1877,7 +1872,7 @@ void memory_axis(ImVec2 o, float w)
     auto x_of = [&](int a) { return o.x + w * (float)a / 65536.0f; };
     for (int a = 0; a <= 0x10000; a += 0x1000) {
         float x = x_of(a);
-        dl->AddLine(ImVec2(x, o.y), ImVec2(x, o.y + ((a & 0x3FFF) ? 0.2f : 0.4f) * u), IM_COL32(150, 150, 150, 255));
+        dl->AddLine(ImVec2(x, o.y), ImVec2(x, o.y + ((a & 0x3FFF) ? 0.2f : 0.4f) * u), ImGui::GetColorU32(ImGuiCol_TextDisabled));
     }
     const int marks[5] = { 0x0000, 0x4000, 0x8000, 0xC000, 0xFFFF };
     for (int i = 0; i < 5; i++) {
@@ -1885,7 +1880,7 @@ void memory_axis(ImVec2 o, float w)
         snprintf(t, sizeof(t), "%04X", marks[i]);
         float tw = ImGui::CalcTextSize(t).x;
         float x = x_of(marks[i] == 0xFFFF ? 0x10000 : marks[i]) - (i == 0 ? 0 : i == 4 ? tw : tw * 0.5f);
-        dl->AddText(ImVec2(x, o.y + 0.45f * u), IM_COL32(200, 200, 200, 255), t);
+        dl->AddText(ImVec2(x, o.y + 0.45f * u), ImGui::GetColorU32(ImGuiCol_TextDisabled), t);
     }
 }
 
@@ -1980,7 +1975,7 @@ void map_state_bars(RackEditor& r)
         if (ImGui::InvisibleButton("state", ImVec2(label_w, row_h))) r.map_state = s;
         bool hl = ImGui::IsItemHovered();
         if (hl && !chosen) ImGui::SetTooltip("%s", tr("Click: show this map"));
-        ImU32 tc = chosen ? IM_COL32(255, 220, 120, 255) : hl ? IM_COL32(255, 255, 255, 255) : IM_COL32(160, 160, 160, 255);
+        ImU32 tc = ImGui::GetColorU32(chosen ? theme().heading : hl ? theme().text : theme().text_dim);
         dl->AddText(ImVec2(p.x, p.y + (row_h - u) * 0.5f), tc, k_map_states[s]);
         ImGui::SameLine(0, 0);
         ImVec2 o = ImGui::GetCursorScreenPos();
@@ -2035,9 +2030,9 @@ void draw_map(RackEditor& r)
     for (const MapCard& c : m.cards)
         if (!c.known && !c.declared) unknown += (unknown.empty() ? "" : ", ") + c.name + " (X" + std::to_string(c.slot) + ")";
     if (!unknown.empty())
-        ImGui::TextColored(TXT_WARN, "%s %s", tr("Decoding unknown (not emulated):"), unknown.c_str());
+        ImGui::TextColored(theme().warn, "%s %s", tr("Decoding unknown (not emulated):"), unknown.c_str());
 
-    ImGui::SeparatorText(tr("Memory"));
+    theme_section(tr("Memory"));
     const std::vector<MapRange>& mem = r.map.mem[r.map_state & 3];
     if (m.map_matters) {
         map_state_bars(r);
@@ -2047,7 +2042,7 @@ void draw_map(RackEditor& r)
     }
     if (mem.empty()) ImGui::TextDisabled("%s", tr("No card answers in the memory."));
     else map_table("memmap", m, mem, 4);
-    ImGui::SeparatorText(tr("I/O ports"));
+    theme_section(tr("I/O ports"));
     if (m.io.empty()) ImGui::TextDisabled("%s", tr("No card answers on the ports."));
     else map_table("iomap", m, m.io, 2);
     ImGui::TextDisabled("%s", tr("Addresses nobody answers read FFh (open bus). The CPU card's EPROM is read on the card, writes go to the bus."));
@@ -2068,7 +2063,7 @@ void new_empty(RackEditor& r)
 void new_menu(UiState& ui)
 {
     if (ImGui::Selectable(tr("Empty machine"))) request(ui, RackEditor::PEND_EMPTY, std::string());
-    ImGui::SeparatorText(tr("From a template or another machine"));
+    theme_section(tr("From a template or another machine"));
     for (const std::string& f : list_machine_files()) {
         if (ImGui::Selectable(f.c_str())) request(ui, RackEditor::PEND_TEMPLATE, f);
     }
@@ -2194,15 +2189,16 @@ void draw_rack(UiState& ui)
     bool running = ui.host->machine() != nullptr;
     bool pending = rack_pending(ui);
     ImGui::BeginDisabled(!runnable);
-    if (pending) {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(190, 95, 0, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(225, 120, 10, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(245, 140, 20, 255));
+    if (pending) {   // white text on the colour of the changes
+        ImGui::PushStyleColor(ImGuiCol_Button, theme().pending_btn);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme().pending_btn_hover);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, theme().pending_btn_active);
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
     }
     std::string apply_s = std::string(running ? tr("Restart with this configuration")
                                               : tr("Switch on with this configuration")) + "###apply";
     if (ImGui::Button(apply_s.c_str())) editor_apply(ui);
-    if (pending) ImGui::PopStyleColor(3);
+    if (pending) ImGui::PopStyleColor(4);
     if (running && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("Switches the machine off and on with this configuration. The memory is lost as on "
                                    "the real machine."));
@@ -2229,10 +2225,10 @@ void draw_rack(UiState& ui)
                         dirty ? tr("  - unsaved changes") : "");
     if (!r.message.empty()) {
         ImGui::SameLine();
-        ImGui::TextColored(r.message_error ? TXT_ERROR : TXT_OK, "%s", r.message.c_str());
+        ImGui::TextColored(r.message_error ? theme().error : theme().ok, "%s", r.message.c_str());
     }
     if (pending)
-        ImGui::TextColored(COL_PENDING_TEXT, "\xE2\x97\x8F %s", tr("The running machine does not have these changes yet: "
+        ImGui::TextColored(theme().pending, "\xE2\x97\x8F %s", tr("The running machine does not have these changes yet: "
                                                                     "they take effect after Restart with this configuration "
                                                                     "(marked in orange)."));
 
@@ -2240,7 +2236,7 @@ void draw_rack(UiState& ui)
 
     ImGui::BeginChild("props", ImVec2(0, 0), ImGuiChildFlags_None);
     for (const CfgProblem& p : problems)
-        ImGui::TextColored(p.error ? TXT_ERROR : TXT_WARN, "%s", loc(p.en.c_str(), p.cs.c_str()));
+        ImGui::TextColored(p.error ? theme().error : theme().warn, "%s", loc(p.en.c_str(), p.cs.c_str()));
     if (!problems.empty()) ImGui::Separator();
     if (r.sel > machine_cfg_slots(r.cfg)) r.sel = 0;
     if (ImGui::BeginTabBar("props_tabs")) {

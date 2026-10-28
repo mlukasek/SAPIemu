@@ -14,6 +14,12 @@ add_executable(test_i18n test_i18n.cpp ../src/frontend/i18n.cpp test_util.h)
 target_link_libraries(test_i18n PRIVATE sapicore)
 add_test(NAME test_i18n COMMAND test_i18n)
 
+# The looks of the GUI: the contrast of the palettes (WCAG 2.2), only the data (no SDL, no ImGui code)
+add_executable(test_theme test_theme.cpp ../src/frontend/theme_data.cpp test_util.h)
+target_include_directories(test_theme PRIVATE ${CMAKE_SOURCE_DIR}/third_party/imgui)
+target_link_libraries(test_theme PRIVATE sapicore)
+add_test(NAME test_theme COMMAND test_theme)
+
 sapi_test(test_charset)
 sapi_test(test_decoders)
 sapi_test(test_uart)

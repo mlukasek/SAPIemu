@@ -9,7 +9,7 @@
 | `httplib/` | cpp-httplib | v0.59.0 | MIT | https://github.com/yhirose/cpp-httplib |
 | `json/` | nlohmann/json (single header) | v3.12.0 | MIT | https://github.com/nlohmann/json |
 | `nuked-opl3/` | Nuked-OPL3 (YMF262, pro YM3812 na MPH-1V) | v1.8 @ 765ec96 (2026-08-24) | LGPL-2.1+ | https://github.com/nukeykt/Nuked-OPL3 |
-| `fonts/` | DejaVu Sans, DejaVu Sans Mono | 2.37 | Bitstream Vera / DejaVu (free) | https://github.com/dejavu-fonts/dejavu-fonts |
+| `fonts/` | DejaVu Sans, DejaVu Sans Bold, DejaVu Sans Mono | 2.37 | Bitstream Vera / DejaVu (free) | https://github.com/dejavu-fonts/dejavu-fonts |
 
 SDL3 není vendorované. CMake ho při prvním configure stáhne přes FetchContent (release-3.4.18, licence zlib).
 Na Linuxu se přednostně použije SDL3 nainstalované v systému. Jeho licence je kvůli balíku v `sdl3/LICENSE.txt`.

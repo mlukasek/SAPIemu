@@ -4,6 +4,7 @@
 // The guide opens itself when a machine of a category with guides starts, unless the user said no (settings).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -96,10 +97,11 @@ static void machine_item(UiState& ui, const MachineEntry& e, const char* id_suff
 {
     bool sel = ui.browser_sel == e.file;
     std::string label = entry_name(e) + "##" + e.file + id_suffix;
-    // the running one in green (not a mark: arrows belong to the headers that fold)
+    // the running one in the colour "ok" (not a mark: arrows belong to the headers that fold)
     bool running = e.file == ui.host->machine_file();
-    if (running) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.90f, 0.55f, 1.0f));
+    if (running) ImGui::PushStyleColor(ImGuiCol_Text, theme().ok);
     bool clicked = ImGui::Selectable(label.c_str(), sel, ImGuiSelectableFlags_AllowDoubleClick);
+    if (sel) theme_selected_bar();
     if (running) {
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Running now"));
@@ -165,14 +167,12 @@ static void details(UiState& ui, const MachineEntry& e)
         ImGui::TextDisabled("%s", tr("No preview"));
     }
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.45f, 1.0f));
-    ImGui::TextWrapped("%s", entry_name(e).c_str());
-    ImGui::PopStyleColor();
+    theme_heading(entry_name(e).c_str());
     if (entry_name(e) != e.name) ImGui::TextDisabled("%s", e.name.c_str());
     const std::string& sum = pick(e.summary, e.summary_en);
     if (!sum.empty()) ImGui::TextWrapped("%s", sum.c_str());
     ImGui::Spacing();
-    if (ImGui::Button(tr("Start"))) start(ui, e.file);
+    if (theme_accent_button(tr("Start"))) start(ui, e.file);
     ImGui::SameLine();
     if (!e.guide.empty()) {
         if (ImGui::Button(tr("Guide"))) {
@@ -212,7 +212,6 @@ void draw_browser(UiState& ui)
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(58 * u, 38 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowBgAlpha(1.0f);
     if (!ImGui::Begin(tr_id("Choose a machine"), &ui.show_browser)) {
         ImGui::End();
         return;
@@ -314,7 +313,7 @@ static void open_link(const std::string& url)
 static void code_block(UiState& ui, const std::vector<std::string>& lines, int n)
 {
     float u = ImGui::GetFontSize();
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.10f, 0.11f, 0.13f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, theme().code_bg);
     float h = (float)lines.size() * ImGui::GetTextLineHeightWithSpacing() + 0.8f * u;
     char id[32];
     snprintf(id, sizeof(id), "code%d", n);
@@ -397,12 +396,10 @@ static void markdown(UiState& ui, const std::string& text)
         float indent = (float)lead * 0.5f * ImGui::GetFontSize(), bullet = 0;
         if (indent > 0) ImGui::Indent(indent);
         if (body.rfind("# ", 0) == 0) {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.45f, 1.0f));
-            ImGui::TextWrapped("%s", plain(body.substr(2), nullptr).c_str());
-            ImGui::PopStyleColor();
+            theme_heading(plain(body.substr(2), nullptr).c_str(), 20.0f);
         } else if (body.rfind("## ", 0) == 0 || body.rfind("### ", 0) == 0) {
             ImGui::Spacing();
-            ImGui::SeparatorText(plain(body.substr(body.find(' ') + 1), nullptr).c_str());
+            theme_section(plain(body.substr(body.find(' ') + 1), nullptr).c_str());
         } else if (body.rfind("- ", 0) == 0 || body.rfind("* ", 0) == 0) {
             ImGui::Bullet();
             ImGui::TextWrapped("%s", plain(body.substr(2), &links).c_str());

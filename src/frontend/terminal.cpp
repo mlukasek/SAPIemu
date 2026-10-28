@@ -4,6 +4,7 @@
 // mouse selection (or the whole terminal text) and pastes as typed text.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -270,7 +271,7 @@ static void draw_send(UiState& ui, SerialChannel* ch)
     } else if (r.state == XmodemReceiver::FAILED && !x.active() && x.state != XmodemSender::FAILED &&
                x.state != XmodemSender::DONE) {
         snprintf(msg, sizeof(msg), tr("XMODEM failed: %s"), r.error.c_str());
-        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", msg);
+        ImGui::TextColored(theme().error, "%s", msg);
     } else if (x.active()) {
         if (x.state == XmodemSender::WAIT_START) snprintf(msg, sizeof(msg), "%s", tr("XMODEM: waiting for the receiver (NAK or C)..."));
         else snprintf(msg, sizeof(msg), tr("XMODEM: packet %zu of %zu (%s)"), x.packet + 1 > x.packets ? x.packets : x.packet + 1,
@@ -291,7 +292,7 @@ static void draw_send(UiState& ui, SerialChannel* ch)
         ImGui::TextDisabled("%s", msg);
     } else if (x.state == XmodemSender::FAILED) {
         snprintf(msg, sizeof(msg), tr("XMODEM failed: %s"), x.error.c_str());
-        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", msg);
+        ImGui::TextColored(theme().error, "%s", msg);
     } else if (!ui.term_status.empty()) {
         ImGui::TextDisabled("%s", ui.term_status.c_str());
     }
@@ -313,7 +314,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
         if (ImGui::Button(tr("Stop TCP"))) { m->remove_bridges(ch, "tcp"); tcp = nullptr; }
         if (tcp) {
             ImGui::SameLine();
-            ImGui::TextColored(tcp->client_connected() ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(0.8f, 0.8f, 0.8f, 1.0f),
+            ImGui::TextColored(tcp->client_connected() ? theme().ok : theme().text_dim,
                                "%s", tcp->describe().c_str());
         }
     } else {
@@ -354,7 +355,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
         ImGui::TextDisabled("%d Bd", ch->baud);
     }
     if (!ui.bridge_error.empty()) {
-        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", ui.bridge_error.c_str());
+        ImGui::TextColored(theme().error, "%s", ui.bridge_error.c_str());
         ImGui::SameLine();
         if (ImGui::SmallButton("x")) ui.bridge_error.clear();
     }

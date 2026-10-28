@@ -2,6 +2,7 @@
 // of docs/ opened in the program the system has for them.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <stdio.h>
 #include <SDL3/SDL.h>
@@ -100,7 +101,7 @@ void draw_shortcuts(UiState& ui)
 
 static void url_link(const char* label, const char* url)
 {
-    if (ImGui::SmallButton(label)) SDL_OpenURL(url);
+    ImGui::TextLinkOpenURL(label, url);   // a link as in a browser; the backend opens it through SDL
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", url);
 }
 
@@ -111,7 +112,6 @@ void draw_about(UiState& ui)
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(42 * u, 31 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowBgAlpha(1.0f);
     if (!ImGui::Begin(tr_id("About SAPIemu"), &ui.show_about)) {
         ImGui::End();
         return;
@@ -140,13 +140,14 @@ void draw_about(UiState& ui)
         bottom += h;
     }
     const char* ver = sapiemu_version();
-    ImGui::SetWindowFontScale(1.6f);
+    ImFont* bold = theme_fonts().bold[theme_variant()];
+    ImGui::PushFont(bold, 32.0f);
     float nw = ImGui::CalcTextSize("SAPIemu").x;
     ImGui::SetCursorPos(ImVec2(right - nw > left ? right - nw : left, top.y));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.45f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, theme().heading);
     ImGui::TextUnformatted("SAPIemu");
     ImGui::PopStyleColor();
-    ImGui::SetWindowFontScale(1.0f);
+    ImGui::PopFont();
     float vw = ImGui::CalcTextSize(ver).x;
     ImGui::SetCursorPosX(right - vw > left ? right - vw : left);
     ImGui::TextDisabled("%s", ver);
@@ -157,7 +158,7 @@ void draw_about(UiState& ui)
                                 "original boards and the historic ZPS sets as well as the boards made for it later, "
                                 "e.g. the boards of Libor Lasota and Petr Všijanský, and also the devices and "
                                 "instruments SAPI worked with."));
-    ImGui::SeparatorText(tr("Author"));
+    theme_section(tr("Author"));
     ImGui::TextUnformatted("Copyright © 2026 Martin Lukášek, 8bity.cz");
     ImGui::TextWrapped("%s", tr("Free software under the GNU General Public License v3 (the file LICENSE)."));
     url_link("GitHub", "https://github.com/mlukasek/SAPIemu");
@@ -167,13 +168,13 @@ void draw_about(UiState& ui)
     url_link("sapi.cz", "https://www.sapi.cz");
     ImGui::SameLine();
     url_link("pmd85.cz", "https://pmd85.cz");
-    ImGui::SeparatorText(tr("Thanks"));
+    theme_section(tr("Thanks"));
     ImGui::TextWrapped("%s", tr("Petr Všijanský (EC1045, sapi.cz): dumps, documentation and disks of SAPI-1 and "
                                 "answers to many questions."));
     ImGui::TextWrapped("%s", tr("Libor Lasota (pmd85.cz): the boards V, MikroMon, MIKROBIOS, his programs, demos and games."));
     ImGui::TextWrapped("%s", tr("Jiří Bíba (SAPIMAN): CP/M systems, disks and programs. R. Peřina, Tesla ELTOS, IMA, "
                                 "DIZ, Elstroj and all authors of the software of the time."));
-    ImGui::SeparatorText(tr("Libraries"));
+    theme_section(tr("Libraries"));
     ImGui::TextWrapped("%s", "SDL 3 (zlib), Dear ImGui (MIT), cpp-httplib (MIT), nlohmann/json (MIT), chips z80.h "
                              "(zlib), i8080 (MIT), Nuked-OPL3 (LGPL 2.1+), minimp3 (CC0), DejaVu fonts.");
     ImGui::TextDisabled("%s", tr("Their licences are in the file THIRD-PARTY-NOTICES.txt."));

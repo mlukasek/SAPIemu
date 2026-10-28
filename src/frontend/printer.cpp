@@ -1,6 +1,7 @@
 // Window "Printer": the paper of the printers of the machine (JPR X3, DPP-1).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include <stdio.h>
 #include <map>
@@ -34,7 +35,7 @@ void draw_printer(UiState& ui)
         if (!p) continue;
         ImGui::PushID(p);
         std::string head = c->type + " " + tr("printer");
-        ImGui::SeparatorText(head.c_str());
+        theme_section(head.c_str());
         if (ImGui::Button(tr("New sheet"))) p->new_sheet();
         ImGui::SameLine();
         if (ImGui::Button(tr("Copy text"))) ImGui::SetClipboardText(p->text(1000000).c_str());

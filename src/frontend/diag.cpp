@@ -2,6 +2,7 @@
 // segment displays (P2-OUT left, P1-OUT right) and the buttons "-" (P2-IN7) and "+" (P2-IN0).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/theme.h"
 
 #include "imgui.h"
 #include "core/host.h"
@@ -66,8 +67,8 @@ void draw_diag(UiState& ui)
     float bw = 2 * dw + gap + 2 * pad + 0.6f * u, bh = dh + 2 * pad + 1.4f * u;
     dl->AddRectFilled(o, ImVec2(o.x + bw, o.y + bh), IM_COL32(40, 8, 8, 255), 4.0f);
     ImU32 label = IM_COL32(230, 230, 230, 255);
-    dl->AddText(ImVec2(o.x + pad + dw * 0.5f - 0.4f * u, o.y + 0.1f * u), label, "P2");
-    dl->AddText(ImVec2(o.x + pad + dw + gap + dw * 0.5f - 0.4f * u, o.y + 0.1f * u), label, "P1");
+    panel_text(dl, ImVec2(o.x + pad + dw * 0.5f - 0.4f * u, o.y + 0.1f * u), label, "P2");
+    panel_text(dl, ImVec2(o.x + pad + dw + gap + dw * 0.5f - 0.4f * u, o.y + 0.1f * u), label, "P1");
     draw_digit(dl, ImVec2(o.x + pad, o.y + 1.3f * u), dw, dh, cpu->k3_display(0));
     draw_digit(dl, ImVec2(o.x + pad + dw + gap, o.y + 1.3f * u), dw, dh, cpu->k3_display(1));
     ImGui::Dummy(ImVec2(bw, bh));
