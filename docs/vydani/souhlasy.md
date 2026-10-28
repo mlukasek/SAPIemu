@@ -9,6 +9,11 @@ Autor (Martin) rozhodl: historii repa neřešit, staré CP/M programy (i komerč
 autor rozhodne, až zjistí, jak to řeší jiní (průzkum webu 2026-10-28); do té doby se nepočítá jako hotové. Dřív
 `REPO_ONLY`.
 
+**Pozor na historii gitu:** obrazy RAM disku s PoP jsou v historii repa (`media/zrmd-1/pop-ramdisk.bin` od
+2026-10-10 verze z Apple, od 2026-10-28 verze DOS; smazaný `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` také). Otevření repa
+i s historií by data PoP zveřejnilo bez ohledu na obsah zipu. Průzkum, jak to řeší jiné porty, postoj Jordana Mechnera,
+práva a doporučení: `docs/vydani/pop-prava.md`.
+
 ## Libor Lasota: souhlas máme, potvrdit rozsah
 
 Souhlas je zapsaný u MikroMonu a MIKROBIOSu („použito s jeho souhlasem“, `roms/README.md`, `docs/rozhodnuti.md`).
