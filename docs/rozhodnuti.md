@@ -1815,6 +1815,21 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   výběru (JPR-1S a BGP-1S). Při prohledání frontendu se našla a opravila i Zobrazení → Barva se dvěma displeji
   (AND-1V a DGD-1V), PMD32-SD na dvou kartách v okně Média a kanály se stejným jménem v Sériovém terminálu.
 
+## 2026-10-28 – aktuální verze her v sestavách
+
+- **Soupis (2026-10-28):** Bad Apple!! 1.0.0, FXS4 1.0.2, Flappy 1.0.0 a Bomberman 1.0.1 byly ve vydávaných
+  sestavách (`hry-a-dema.bin`, `ba-ramdisk.bin`) už aktuální, bajt po bajtu shodné s buildy repozitářů. Zastaralý
+  byl Prince of Persia (1.0.0 převedená z Apple) a v sestavě `sapi1v_BomberNet` hra chyběla.
+- **Prince of Persia s grafikou a hudbou DOS verze** (větev `dos-graphics`, `build\ramdisk_dos.bin`) je v Hrách
+  a demech a **ve vydání** (autor: „dej to i do vydání, tady bych se toho nebál“). Do té doby `REPO_ONLY`, protože
+  data hry jsou Broderbundu; rozhodnutí je autorovo.
+- **Starý kombinovaný disk** `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` (PoP 1.0.0, Bomberman 1.0.0) smazaný.
+- **Mimo git aktualizované (autor):** IDE disk `work/ide/sapi_hdd.img` (C: BOMBER 1.0.1, FXS4 1.0.2; jde do alfa
+  zipů bez `--public`), FXS4 1.0.2 v autorově pracovní kopii `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`. Pracovní
+  kopie `work/zrmd-1/pop-ramdisk.bin` nahrazená novým obrazem (emulátor ji z `media/` sám neobnoví).
+- **BomberNet:** nejdřív port SAPI-BomberNet na BomberNet 0.3.0 (autor), pak herní sestava s vlastním RAM diskem
+  v Hrách a demech a ve vydání.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`
