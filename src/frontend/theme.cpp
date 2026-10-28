@@ -106,9 +106,14 @@ void theme_fonts_load(ImGuiIO& io)
     ImFont* dejavu = add_font(io, dv, 1.0f, std::string());
     ImFont* dejavu_bold = add_font(io, dvb, 1.0f, std::string());
     if (!dejavu_bold) dejavu_bold = dejavu;
-    ImFont* segoe = add_font(io, windows_font("segoeui.ttf"), 1.16f, dv);
-    ImFont* segoe_semibold = add_font(io, windows_font("seguisb.ttf"), 1.16f, dvb);
-    ImFont* segoe_bold = add_font(io, windows_font("segoeuib.ttf"), 1.16f, dvb);
+    bool need_semibold = false, need_bold = false;   // the fonts the looks of k_themes use
+    for (int v = 0; v < THEME_VARIANTS; v++) {
+        if (k_themes[v].font == THEME_FONT_SEGOE_SEMIBOLD) need_semibold = true;
+        if (k_themes[v].font == THEME_FONT_SEGOE_BOLD) need_bold = true;
+    }
+    ImFont* segoe = need_semibold || need_bold ? add_font(io, windows_font("segoeui.ttf"), 1.16f, dv) : nullptr;
+    ImFont* segoe_semibold = need_semibold ? add_font(io, windows_font("seguisb.ttf"), 1.16f, dvb) : nullptr;
+    ImFont* segoe_bold = need_bold ? add_font(io, windows_font("segoeuib.ttf"), 1.16f, dvb) : nullptr;
     if (!segoe_bold) segoe_bold = segoe_semibold;
     if (!segoe_semibold) segoe_semibold = segoe_bold;
     for (int v = 0; v < THEME_VARIANTS; v++) {

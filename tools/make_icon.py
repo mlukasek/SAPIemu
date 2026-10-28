@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Icon of SAPIemu: src/res/sapiemu.ico (the exe, sizes 16-256) and docs/img/ikona.png (256 px,
-the window icon on Linux); the logo "SAPI 1" docs/img/logo.png (About, README).
+the window icon on Linux); the logo "SAPI 1" docs/img/logo.png (README) and its mask docs/img/logo-alpha.png
+(white on transparent, About tints it with the colour of the text: dark on a light window, white on a dark one).
 
 Usage: python tools/make_icon.py   (needs Pillow; the logo a bold sans font: Arial Bold or DejaVu Sans Bold)
 
@@ -118,6 +119,16 @@ def logo(height):
     return im.resize((im.width // 4, height), Image.LANCZOS)
 
 
+def mask(im):
+    """The logo white on transparent: the alpha from the brightness between the band and the letters (the smooth
+    edges stay)."""
+    lo, hi = BG[0], FG[0]
+    a = im.convert("L").point(lambda v: max(0, min(255, round((v - lo) * 255 / (hi - lo)))))
+    out = Image.new("RGBA", im.size, (255, 255, 255, 0))
+    out.putalpha(a)
+    return out
+
+
 def main():
     sizes = [16, 24, 32, 48, 64, 128, 256]
     pics = [picture(n) for n in sizes]
@@ -127,10 +138,14 @@ def main():
     png = os.path.join(ROOT, "docs", "img", "ikona.png")
     pics[-1].save(png, optimize=True)
     lg = os.path.join(ROOT, "docs", "img", "logo.png")
-    logo(160).convert("RGB").save(lg, optimize=True)
+    lgi = logo(160)
+    lgi.convert("RGB").save(lg, optimize=True)
+    la = os.path.join(ROOT, "docs", "img", "logo-alpha.png")
+    mask(lgi).save(la, optimize=True)
     print(ico)
     print(png)
     print(lg)
+    print(la)
 
 
 if __name__ == "__main__":

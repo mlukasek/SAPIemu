@@ -6,7 +6,7 @@ The states of the machines are made by sapiemu-cli, the pictures by sapiemu --ui
 copy of the data (as a new installation); every picture gets new settings, so no imgui.ini of a previous one
 moves its windows.
 
-  python tools/ui_gallery.py [--themes win11-light,sapi-dark] [--screens 01,16] [--lang en] [--ref DIR] [--debug]
+  python tools/ui_gallery.py [--themes win11-light,win11-dark] [--screens 01,16] [--lang en] [--ref DIR] [--debug]
 
 --ref DIR: older pictures with the same names (out/ux-review-20261028) as the first column "before".
 """
@@ -24,7 +24,7 @@ import check_machines as cm  # noqa: E402
 import make_previews as mp  # noqa: E402
 
 ROOT = cm.ROOT
-THEMES = ['win11-light', 'win11-dark', 'classic-light', 'classic-dark', 'sapi-light', 'sapi-dark']
+THEMES = ['win11-light', 'win11-dark']   # the classic and SAPI looks of the first gallery: commit 1fc9a21
 THEME_NAMES = {'win11': 'Windows 11', 'classic': 'Windows klasický', 'sapi': 'SAPI průmyslový'}
 
 ZPS1 = 'machines/zps/ZPS-1.sapi'

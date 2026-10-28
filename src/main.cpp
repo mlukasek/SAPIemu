@@ -45,8 +45,8 @@ static void print_help(void)
            "  --no-mcp           GUI: do not start the MCP server (else as View -> Settings says)\n"
            "  --settings FILE    GUI: settings file instead of sapiemu-settings.json next to the exe\n"
            "  --lang cs|en       GUI: language of the user interface for this run (not saved)\n"
-           "  --ui-theme LOOK    GUI: the look for this run (not saved): win11, classic or sapi, with -light or\n"
-           "                     -dark (win11-dark); without it light or dark as the system says\n"
+           "  --ui-theme MODE    GUI: light or dark for this run (not saved; also win11-light, win11-dark);\n"
+           "                     without it as the system says\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2: those windows (--ui-aps5-demo: and its DEMO),\n"
@@ -260,7 +260,7 @@ int main(int argc_ansi, char** argv_ansi)
             ThemeVariant v;
             ThemeMode md;
             if (!theme_parse(look.c_str(), &v, &md)) {
-                fprintf(stderr, "--ui-theme: win11, classic or sapi, optionally with -light or -dark\n");
+                fprintf(stderr, "--ui-theme: light, dark or system (win11-light, win11-dark)\n");
                 return 2;
             }
             theme_set_override(v, md);

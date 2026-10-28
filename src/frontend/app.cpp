@@ -274,10 +274,8 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(ap, "text_percent", app.text_percent);
     ThemeVariant v;
     ThemeMode md;
-    if (theme_parse((look + (mode.empty() ? "" : "-" + mode)).c_str(), &v, &md)) {
-        app.look = v;
-        app.look_mode = md;
-    }
+    if (theme_parse(look.c_str(), &v, &md)) app.look = v;   // a look no longer offered: the default one
+    if (theme_parse(mode.c_str(), &v, &md)) app.look_mode = md;
     if (app.text_percent < 100 || app.text_percent > 200) app.text_percent = 100;
     app.look_override = theme_override(&v, &md);
     app.restyle = true;
@@ -887,7 +885,7 @@ static void draw_settings(App& app)
     ThemeVariant cv = app.look;
     ThemeMode cm = app.look_mode;
     if (app.look_override) theme_override(&cv, &cm);
-    for (int i = 0; i < THEME_VARIANTS; i++) {
+    for (int i = 0; i < THEME_VARIANTS && THEME_VARIANTS > 1; i++) {   // one look now: no choice
         if (i) ImGui::SameLine();
         if (ImGui::RadioButton(cur == LANG_CS ? k_themes[i].name_cs : k_themes[i].name_en, cv == i))
             set_look(app, (ThemeVariant)i, cm);

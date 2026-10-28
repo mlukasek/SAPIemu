@@ -8,8 +8,11 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
   (Windows 11, Windows klasický, SAPI průmyslový; světlá i tmavá) a galerie ke srovnání → 2 výběr sestav a texty
   podle historie SAPI → 3 dokončení vzhledu → 4 ovládání → 5 okna (plovoucí, nebo zadokovaná) → 6 zbytek před
-  betou → beta → 7–9. Rozhodnutí v `docs/rozhodnuti.md` (2026-10-28 – plán nového vzhledu GUI). **Teď se dělá
-  etapa 1.**
+  betou → beta → 7–9. Rozhodnutí v `docs/rozhodnuti.md` (2026-10-28 – plán nového vzhledu GUI).
+  - **Etapa 1 hotová:** mechanismus vzhledu, tokeny, písma, `test_theme`, galerie `tools/ui_gallery.py`.
+  - **Checkpoint A:** autor vybral Windows 11, světlý i tmavý. Ostatní vzhledy jsou zrušené, mechanismus pro ně
+    zůstává. Logo v O programu je v barvě textu.
+  - **Teď se dělá etapa 2.**
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

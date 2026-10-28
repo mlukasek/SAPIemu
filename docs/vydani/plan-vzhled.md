@@ -161,13 +161,14 @@ Nejtěsnější jsou:
 
 ### Etapa 1: mechanismus vzhledu, tři varianty, galerie · L
 
-**Stav 2026-10-28:**
-- Mechanismus vzhledu, šest palet, tokeny ve všech oknech, písma a `test_theme` jsou hotové.
-- `tools/ui_gallery.py` je hotový. Galerie pro autora je na claude.ai
-  (https://claude.ai/artifact/BRYQjq7Rc8sHZvSVgf4xC4).
-- Zbývá:
-  - logo v O programu nechat, nebo udělat verzi do světlého vzhledu (podle galerie);
-  - checkpoint A.
+**Stav 2026-10-28: hotová** (`1fc9a21`).
+- Mechanismus vzhledu, tokeny ve všech oknech, písma, `test_theme` a `tools/ui_gallery.py` jsou hotové. Galerie šesti
+  vzhledů pro autora: https://claude.ai/artifact/BRYQjq7Rc8sHZvSVgf4xC4.
+- **Checkpoint A (autor):** „Jdeme do Windows 11, ostatní vzhledy zatím zruš“.
+  - Zůstal jen Windows 11, světlý i tmavý podle systému.
+  - Mechanismus unese další vzhledy, kdyby o ně byl zájem. Klasický a SAPI vzhled jsou v `1fc9a21` a v příloze A.
+  - Logo SAPI 1 v O programu: ve světlém režimu inverzní (tmavé na světlém), v tmavém bez černého obdélníku
+    (bílé na barvě okna). Je to maska `logo-alpha.png` v barvě textu.
 
 **Nové soubory**
 - `theme.h`, `theme.cpp`, `theme_data.cpp`;

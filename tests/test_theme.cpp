@@ -89,11 +89,14 @@ int main(void)
 
     ThemeVariant v = THEME_WIN11;
     ThemeMode m = THEME_SYSTEM;
-    CHECK(theme_parse("sapi-dark", &v, &m) && v == THEME_SAPI && m == THEME_DARK);
-    CHECK(theme_parse("classic", &v, &m) && v == THEME_CLASSIC && m == THEME_SYSTEM);
+    CHECK(theme_parse("win11-dark", &v, &m) && v == THEME_WIN11 && m == THEME_DARK);
+    CHECK(theme_parse("win11", &v, &m) && v == THEME_WIN11 && m == THEME_SYSTEM);
     CHECK(theme_parse("win11-light", &v, &m) && v == THEME_WIN11 && m == THEME_LIGHT);
     CHECK(theme_parse("win11-system", &v, &m) && m == THEME_SYSTEM);
+    CHECK(theme_parse("dark", &v, &m) && v == THEME_WIN11 && m == THEME_DARK);   // the mode alone
+    CHECK(theme_parse("light", &v, &m) && m == THEME_LIGHT);
     CHECK(!theme_parse("win11-blue", &v, &m));
+    CHECK(!theme_parse("sapi-dark", &v, &m));   // the looks of the gallery not chosen (2026-10-28)
     CHECK(!theme_parse("amiga", &v, &m));
     CHECK(!theme_parse(nullptr, &v, &m));
     CHECK(strcmp(theme_mode_key(THEME_DARK), "dark") == 0);

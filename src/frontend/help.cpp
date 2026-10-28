@@ -116,14 +116,18 @@ void draw_about(UiState& ui)
         ImGui::End();
         return;
     }
-    // the logo SAPI 1 (tools/make_icon.py)
+    // the logo SAPI 1 (tools/make_icon.py): the mask logo-alpha.png in the colour of the text, so dark letters on
+    // the light window and white ones on the dark window (author 2026-10-28), else logo.png with its black band
     static SDL_Texture* logo = nullptr;
     static int lw = 0, lh = 0;
-    static bool tried = false;
+    static bool tried = false, tinted = false;
     if (!tried) {
         tried = true;
         SDL_Renderer* r = ui.window ? SDL_GetRenderer(ui.window) : nullptr;
-        if (SDL_Surface* s = r ? SDL_LoadPNG(data_path("docs/img/logo.png").c_str()) : nullptr) {
+        SDL_Surface* s = r ? SDL_LoadPNG(data_path("docs/img/logo-alpha.png").c_str()) : nullptr;
+        tinted = s != nullptr;
+        if (r && !s) s = SDL_LoadPNG(data_path("docs/img/logo.png").c_str());
+        if (s) {
             logo = SDL_CreateTextureFromSurface(r, s);
             lw = s->w;
             lh = s->h;
@@ -135,7 +139,9 @@ void draw_about(UiState& ui)
     float right = top.x + ImGui::GetContentRegionAvail().x, left = top.x, bottom = top.y;
     if (logo) {
         float h = 3.2f * u, w = h * lw / (float)lh;
-        ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)logo), ImVec2(w, h));
+        if (tinted) ImGui::ImageWithBg(ImTextureRef((ImTextureID)(intptr_t)logo), ImVec2(w, h), ImVec2(0, 0), ImVec2(1, 1),
+                                       ImVec4(0, 0, 0, 0), theme().text);
+        else ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)logo), ImVec2(w, h));
         left += w + u;
         bottom += h;
     }

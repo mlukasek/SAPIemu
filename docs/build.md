@@ -71,21 +71,25 @@ v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazy
 po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky
 čelního panelu (potisk skutečného stroje), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
 
-**Vzhled GUI** (od 2026-10-28, plán `docs/vydani/plan-vzhled.md`): tři varianty, každá světlá i tmavá, jako data
-v `src/frontend/theme_data.cpp`. Varianty jsou Windows 11, Windows klasický a SAPI průmyslový.
+**Vzhled GUI** (od 2026-10-28, plán `docs/vydani/plan-vzhled.md`): Windows 11, světlý i tmavý, jako data
+v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled je dvojice palet, rozměry a řádek
+`k_themes`. Varianty Windows klasický a SAPI průmyslový z galerie autor nevybral, jsou v commitu `1fc9a21`.
 - **Vzhled:**
   - `theme.cpp` styl pokaždé postaví znovu z čistého `ImGuiStyle`;
   - okna berou sémantické barvy z `theme()` (ok, warn, error, pending, heading…), ne pevné hodnoty;
   - kresby hardwaru (rám, panely, displeje, papír) mají vlastní barvy a pevné písmo `panel_font()` (DejaVu Sans)
     v každém vzhledu.
 - **Písma:** Segoe UI se bere ze systému (`%WINDIR%\Fonts`, nesmí se přibalit), bez něj a na Linuxu je to DejaVu Sans.
-- **Volba:** Zobrazení → Nastavení → Vzhled (varianta, Podle systému / Světlý / Tmavý, velikost písma), uloží se jako
-  `"appearance"`. `sapiemu --ui-theme win11|classic|sapi[-light|-dark]` vybere vzhled jen pro jedno spuštění.
+- **Volba:** Zobrazení → Nastavení → Vzhled (Podle systému / Světlý / Tmavý, velikost písma), uloží se jako
+  `"appearance"`. `sapiemu --ui-theme light|dark` (také `win11-light`, `win11-dark`) vybere režim jen pro jedno
+  spuštění.
   `--ui-snapshot` bez něj kreslí světlý, aby obrázky nezávisely na nastavení Windows. `--ui-scale 1.25` napodobí
   měřítko monitoru.
 - **Kontrola:** test `test_theme` hlídá kontrast všech palet (WCAG 2.2: text 4,5:1, prvky 3:1).
 - **Ladění:** v debug buildu je Ladění → Editor stylu (ImGui `ShowStyleEditor`).
-- **Galerie vzhledů:** `python tools\ui_gallery.py [--themes win11-light,sapi-dark] [--screens 01,16]
+- **Logo v O programu** je maska `docs/img/logo-alpha.png` (z `tools/make_icon.py`) v barvě textu: tmavé písmo na
+  světlém okně, bílé na tmavém. `docs/img/logo.png` s černým pruhem zůstává pro README.
+- **Galerie vzhledů:** `python tools\ui_gallery.py [--themes win11-light,win11-dark] [--screens 01,16]
   [--ref out\ux-review-20261028]` udělá 16 obrazovek v každém vzhledu (stavy z `sapiemu-cli`, každý snímek s novým
   nastavením). Výsledek je v `out\ui-gallery\<čas>\index.html`.
 

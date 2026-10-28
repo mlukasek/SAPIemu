@@ -1,15 +1,15 @@
 #pragma once
-// The look of the GUI: three variants (Windows 11, Windows classic, SAPI industrial), each light and dark. The
-// palettes and sizes are data (theme_data.cpp); theme_apply() builds the ImGui style from them between frames. The
-// windows take the semantic colours from theme() instead of fixed ones; the drawings of hardware (the rack, the
-// panels, the displays, the paper) keep their own colours in every look. Plan: docs/vydani/plan-vzhled.md.
+// The look of the GUI: Windows 11, light and dark (as the system says or chosen). The palettes and sizes are data
+// (theme_data.cpp, room for more looks); theme_apply() builds the ImGui style from them between frames. The windows
+// take the semantic colours from theme() instead of fixed ones; the drawings of hardware (the rack, the panels,
+// the displays, the paper) keep their own colours in every look. Plan: docs/vydani/plan-vzhled.md.
 #include <stdint.h>
 #include "imgui.h"
 
 struct ImFont;
 struct ImGuiIO;
 
-enum ThemeVariant { THEME_WIN11 = 0, THEME_CLASSIC, THEME_SAPI, THEME_VARIANTS };
+enum ThemeVariant { THEME_WIN11 = 0, THEME_VARIANTS };   // more looks may come back (commit 1fc9a21)
 enum ThemeMode { THEME_SYSTEM = 0, THEME_LIGHT, THEME_DARK };
 
 // Colours as data: 0xRRGGBB; THEME_NONE = transparent.
@@ -49,7 +49,7 @@ struct ThemeMetrics {
 };
 
 struct ThemeDef {
-    const char* key;               // "win11", "classic", "sapi" (settings, --ui-theme)
+    const char* key;               // "win11" (settings, --ui-theme)
     const char* name_cs;
     const char* name_en;
     const ThemePalette* light;
@@ -72,15 +72,15 @@ struct ThemeColors {
 };
 const ThemeColors& theme();
 
-// --ui-theme win11|classic|sapi[-light|-dark]: the look of this run, not saved (like --lang).
+// --ui-theme light|dark|win11[-light|-dark]: the look of this run, not saved (like --lang).
 bool theme_parse(const char* s, ThemeVariant* variant, ThemeMode* mode);
 void theme_set_override(ThemeVariant variant, ThemeMode mode);
 bool theme_override(ThemeVariant* variant, ThemeMode* mode);
 const char* theme_mode_key(ThemeMode mode);   // "system", "light", "dark"
 
 // The fonts of all looks, loaded once (Dear ImGui bakes the glyphs on demand): Segoe UI from the system on
-// Windows (it may not be distributed), DejaVu Sans elsewhere and in the SAPI look; DejaVu Sans Mono for the
-// terminal and the debugger; DejaVu Sans for the lettering of the drawn panels in every look.
+// Windows (it may not be distributed), DejaVu Sans elsewhere; DejaVu Sans Mono for the terminal and the debugger;
+// DejaVu Sans for the lettering of the drawn panels in every look.
 struct ThemeFonts {
     ImFont* ui[THEME_VARIANTS];
     ImFont* bold[THEME_VARIANTS];

@@ -1871,6 +1871,17 @@ v zásadě souhlasí („pustil bych se do úprav“).
 - **Linux ve WSL nemusí být zelený** (autor: „prostě co má smysl“): pouští se tam, kde to má smysl (kód závislý na
   platformě, písma), a není podmínkou commitu ani pushe.
 
+## 2026-10-28 – vzhled GUI: Windows 11
+
+- **Jen Windows 11, světlý i tmavý** (autor po galerii šesti vzhledů: „Jdeme do Windows 11, ostatní vzhledy zatím
+  zruš, ať to ještě nezesložiťujeme“). Režim se řídí Windows, jde přepnout v Nastavení → Vzhled.
+- **Mechanismus pro víc vzhledů zůstává** (autor: kdyby byla poptávka, nastavování víc vzhledů se může vrátit).
+  Vzhled jsou data v `src/frontend/theme_data.cpp`. Palety Windows klasický a SAPI průmyslový jsou v commitu
+  `1fc9a21` a v příloze A plánu `docs/vydani/plan-vzhled.md`.
+- **Logo SAPI 1 v O programu** (autor): ve světlém režimu inverzní, tmavé písmo na světlém okně. V tmavém je černý
+  obdélník srovnaný s pozadím okna, tedy bílé písmo na barvě okna. Kreslí se maska `docs/img/logo-alpha.png` (z
+  `tools/make_icon.py`) v barvě textu; `logo.png` s černým pruhem jako v příručkách zůstává v README.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`
