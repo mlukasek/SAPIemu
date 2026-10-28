@@ -23,7 +23,6 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 | 4 | `zps/ZPS-3_CPM64K_IMA.sapi` | ZPS-3: JPR-1A, AND-1A, RPD-1, původní CP/M 64K Tesla IMA | CP/M 2.2 Tesla IMA, MBASIC na disketě |
 | 5 | `zps/ZPS-4.sapi` | ZPS-4: JPR-1Z, AND-1Z, RMD-1, CP/M 62K | CP/M 2.2/P R. Peřiny (MOR62Z), podle CPM.DOC základní verze ZPS-4 |
 | 6 | `zps/ZPS-6.sapi` | SAPI-1.5 (ZPS-6): PKT-1, DBS-1A, MFC-1A, CP/M 62K | CP/M Melsoft 1990 |
-| 7 | `mikromon.sapi` | Nejmenší sestava s MikroMonem L. Lasoty (JPR-1ZI, AND-1Z-89, EKL-1) | MikroMon 1.3 (L. Lasota) |
 
 ## 2. Liborovy desky
 
@@ -31,6 +30,7 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 |---|---|---|---|
 | 1 | `jpr1s_bgp1s.sapi` | **8080:** JPR-1S a grafika BGP-1S (jako PMD-85), klávesnice ANK-1M2 s joystickem | MIKROBIOS 1.02 (L. Lasota), hry z `media/jpr-1s` (Manic Miner…) |
 | 2 | `sapi1v.sapi` | **Z80:** sestava V (JPR-1V, AND-1V, CGA-1V, MPH-1V se zvukem YM3812, IDE, RAM disk), ECMON a CP/M | ECMON, CP/M, MikroBIOS 3.0 |
+| 3 | `mikromon.sapi` | Nejmenší sestava s MikroMonem L. Lasoty (JPR-1ZI, AND-1Z-89, EKL-1); do 2026-10-28 v Základu, autor: patří k Liborovým deskám | MikroMon 1.3 (L. Lasota) |
 
 ## 3. Hry a dema
 
@@ -125,7 +125,7 @@ ve vydání.
 
 | Co | Kde ve vydání |
 |---|---|
-| MikroMon 1.3 | `roms/mikromon/`, sestava `mikromon` (základ) |
+| MikroMon 1.3 | `roms/mikromon/`, sestava `mikromon` (Liborovy desky) |
 | MIKROBIOS 1.0, 1.02, 2.1; MikroBIOS 3.0 (JPR-1V); MIKROBIOS + MIKROBASIC (JPR-1X) | `roms/jpr-1s/`, `roms/jpr-1v/`, `roms/jpr-1x/`; sestavy `jpr1s_bgp1s`, `sapi1v`, `sapi1v_hry`, `jpr1x_bgp1s`, `libor_doma`, `zps/ZPS-1_JPR-1S_AND-1B`, `zps/ZPS-1_JPR-1X` |
 | fonty AND-1B a AND-1V | `roms/and-1b/`, `roms/and-1v/` |
 | programy pro JPR-1S a BGP-1S (hra „auto“ a další, Manic Miner v jeho úpravě?) | `media/jpr-1s/` |

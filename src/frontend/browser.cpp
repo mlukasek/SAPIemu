@@ -96,8 +96,15 @@ static void machine_item(UiState& ui, const MachineEntry& e, const char* id_suff
 {
     bool sel = ui.browser_sel == e.file;
     std::string label = entry_name(e) + "##" + e.file + id_suffix;
-    if (e.file == ui.host->machine_file()) label = "\xE2\x96\xB6 " + label;   // the running one
-    if (ImGui::Selectable(label.c_str(), sel, ImGuiSelectableFlags_AllowDoubleClick)) {
+    // the running one in green (not a mark: arrows belong to the headers that fold)
+    bool running = e.file == ui.host->machine_file();
+    if (running) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.90f, 0.55f, 1.0f));
+    bool clicked = ImGui::Selectable(label.c_str(), sel, ImGuiSelectableFlags_AllowDoubleClick);
+    if (running) {
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Running now"));
+    }
+    if (clicked) {
         ui.browser_sel = e.file;
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) start(ui, e.file);
     }

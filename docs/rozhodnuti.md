@@ -1807,6 +1807,9 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   sestava nenačte, zůstávají u `mikromon.sapi`: na tom stojí návody k MCP a testy.
 - **Odkazy v Průvodci sestavou** jsou tlačítka pod odstavcem, zarovnaná s jeho textem a zalomená podle šířky
   okna. Dřív stály za posledním řádkem odstavce a u dlouhého textu utekly za okraj.
+- **MikroMon 1.3 patří do Desek Libora Lasoty** (autor), ne do Základu, který jsou jen historické sestavy Tesla.
+- **Běžící sestava je ve výběru zelená** s nápovědou „Právě běží“. Šipka před názvem se pletla se šipkami
+  rozbalovacích nadpisů (autor).
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

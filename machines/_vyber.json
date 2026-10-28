@@ -11,16 +11,16 @@
             "text_en": "The original ZPS sets in the order they came: from MIKROBASIC through MIKOS to CP/M and SAPI-1.5.",
             "guides": true,
             "machines": [ "zps/ZPS-1.sapi", "zps/ZPS-2.sapi", "zps/ZPS-2_MIKOS_V5.sapi", "zps/ZPS-3_CPM64K_IMA.sapi",
-                          "zps/ZPS-4.sapi", "zps/ZPS-6.sapi", "mikromon.sapi" ]
+                          "zps/ZPS-4.sapi", "zps/ZPS-6.sapi" ]
         },
         {
             "id": "libor",
             "name": "Desky Libora Lasoty",
             "name_en": "Boards of Libor Lasota",
-            "text": "Současné desky pro SAPI-1: 8080 s grafikou jako PMD-85 a sestava V se Z80, VGA, barevnou grafikou a zvukem.",
-            "text_en": "Today's boards for SAPI-1: an 8080 with PMD-85 style graphics and the V set with a Z80, VGA, colour graphics and sound.",
+            "text": "Současné desky pro SAPI-1: 8080 s grafikou jako PMD-85, sestava V se Z80, VGA, barevnou grafikou a zvukem a monitor MikroMon.",
+            "text_en": "Today's boards for SAPI-1: an 8080 with PMD-85 style graphics, the V set with a Z80, VGA, colour graphics and sound, and the monitor MikroMon.",
             "guides": true,
-            "machines": [ "jpr1s_bgp1s.sapi", "sapi1v.sapi" ]
+            "machines": [ "jpr1s_bgp1s.sapi", "sapi1v.sapi", "mikromon.sapi" ]
         },
         {
             "id": "hry",

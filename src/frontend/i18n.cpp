@@ -172,6 +172,7 @@ static const Translation k_table[] = {
     { "About SAPIemu", "O programu SAPIemu" },
     { "Author", "Autor" },
     { "Cards and devices", "Karty a příslušenství" },
+    { "Running now", "Právě běží" },
     { "Click the screen of SAPI to type on its keyboard. Letters, digits, Enter, Esc, the cursor keys, F1-F4, F6 and F7 go to SAPI, Ctrl+letter is a control code. The keys below belong to the emulator and work everywhere except while typing into a text field.", "Klikněte do obrazovky SAPI a píšete na jeho klávesnici. Písmena, číslice, Enter, Esc, šipky, F1–F4, F6 a F7 jdou do SAPI, Ctrl+písmeno je řídicí kód. Klávesy níže patří emulátoru a fungují všude kromě psaní do textového pole." },
     { "Emulator of the Czechoslovak modular 8-bit microcomputer Tesla SAPI-1 (1983-1990), designed by Ing. Eduard Smutný and made by Tesla Liberec. The emulator offers the original boards and the historic ZPS sets as well as the boards made for it later, e.g. the boards of Libor Lasota and Petr Všijanský, and also the devices and instruments SAPI worked with.",
       "Emulátor československého modulárního 8bitového mikropočítače Tesla SAPI-1 (1983–1990), který navrhl Ing. Eduard Smutný a vyráběl se v podniku Tesla Liberec. Emulátor nabízí původní desky a historické sestavy ZPS, stejně jako desky, které pro něj vznikly později, např. desky Libora Lasoty a Petra Všijanského, ale i zařízení a přístroje, se kterými SAPI pracovalo." },
