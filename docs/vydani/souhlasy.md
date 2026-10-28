@@ -68,7 +68,7 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
 | Fuxoft Soundtrack IV (FXS4) | František Fuka (Fuxoft), skladby různých autorů | RAM disk herní sestavy | port Martin, repo SAPI-FXS4 |
 | Flappy | dB-SOFT 1984 (Sharp MZ-800) | RAM disk herní sestavy | port Martin (CGA-1V), FLAPDGD port Libor (DGD-1V) |
 | Bomberman | Hudson Soft 1983 (Sharp MZ-700) | RAM disk herní sestavy | port Martin, repo SAPI-Bomberman |
-| BomberNet | Martin Matyáš (MZPico), podle Bomber Man | zatím ne | až bude ve vydání, souhlas M. Matyáše |
+| BomberNet | Martin Matyáš (MZPico), podle Bomber Man | **ano** (autor 2026-10-28: „Herní, i ve vydání“) | port 0.3.0, sestava `sapi1v_BomberNet` |
 | Prince of Persia | Jordan Mechner, Broderbund (DOS verze Broderbund) | beta ano, veřejné vydání **otevřené** | verze s grafikou a hudbou DOS |
 | Hudba: 11 skladeb VGM z her (Hellfire, Tyrian, Monkey Island…) a 15 modulů RAD (3eality.com) | různí autoři | RAM disk herní sestavy | autor rozhodl: ponechat obojí |
 

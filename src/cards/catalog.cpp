@@ -1259,6 +1259,8 @@ static const ParamOption k_zrmd_images[] = {
       "CP/M s hrami a demy: Bad Apple!!, FXS4, Flappy (CGA-1V, DGD-1V), Bomberman, BKP, dema L. Lasoty, hudba" },
     { "\"media/zrmd-1/pop-ramdisk.bin\"", "CP/M with Prince of Persia, DOS graphics and music (CGA-1V, MPH-1V)",
       "CP/M s Prince of Persia, grafika a hudba DOS (CGA-1V, MPH-1V)" },
+    { "\"media/zrmd-1/bombernet.bin\"", "CP/M with the network game BomberNet (CGA-1V, MPH-1V, DPI-1L)",
+      "CP/M se síťovou hrou BomberNet (CGA-1V, MPH-1V, DPI-1L)" },
     { "\"\"", "empty", "prázdný" },
     { nullptr, nullptr, nullptr },
 };

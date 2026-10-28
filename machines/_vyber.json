@@ -29,7 +29,7 @@
             "text": "Hry, hudební a grafická dema a ukázky přístrojů, které k SAPI patřily, s nakresleným přístrojem v okně.",
             "text_en": "Games, music and graphics demos, and the instruments SAPI worked with, drawn in their own windows.",
             "guides": true,
-            "machines": [ "sapi1v_hry.sapi", "sapi1v_PoP.sapi", "jpr1s_bgp1s.sapi", "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi",
+            "machines": [ "sapi1v_hry.sapi", "sapi1v_PoP.sapi", "sapi1v_BomberNet.sapi", "jpr1s_bgp1s.sapi", "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi",
                           "zps/ZPS-2_MIKOS_K.sapi", "zps/ZPS-2_MIKOS_V5_Minigraf.sapi", "rkd1_tesla_cpm.sapi",
                           "rmp1_jb_izot.sapi" ]
         },
@@ -76,10 +76,16 @@
             "group": "Ostatní", "group_en": "Other",
             "name": "Další sestavy s deskami Libora Lasoty",
             "name_en": "More sets with the boards of Libor Lasota",
-            "machines": [ "jpr1x_bgp1s.sapi", "libor_doma.sapi", "sapi1v_BomberNet.sapi" ]
+            "machines": [ "jpr1x_bgp1s.sapi", "libor_doma.sapi" ]
         }
     ],
     "machines": {
+        "sapi1v_BomberNet.sapi": {
+            "title": "SAPI-1 V: BomberNet (síťová hra)",
+            "title_en": "SAPI-1 V: BomberNet (network game)",
+            "summary": "Síťový Bomberman až pro čtyři hráče: proti počítači, na jednom SAPI, nebo po síti se skutečným SAPI-1, Sharpy MZ-800, ZX Spectry, CPC a PC přes kartu DPI-1L.",
+            "summary_en": "The network Bomberman for up to four players: against the computer, on one SAPI, or over the network with a real SAPI-1, Sharp MZ-800s, ZX Spectrums, CPCs and PCs through the DPI-1L card."
+        },
         "sapi1v_PoP.sapi": {
             "title": "SAPI-1 V: Prince of Persia",
             "title_en": "SAPI-1 V: Prince of Persia",

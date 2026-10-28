@@ -85,8 +85,13 @@ vydání, tady bych se toho nebál“; veřejné vydání zatím otevřené, „
 z `build\ramdisk_dos.bin` repa SAPI-Prince-of-Persia, větev `dos-graphics`). Dřív jen v repu s verzí 1.0.0
 převedenou z Apple.
 
-`sapi1v_BomberNet.sapi` (karta DPI-1L, síťová hra) zatím v Ostatních, do her přijde, až bude BomberNet pro SAPI
-ve vydání.
+### 3e. BomberNet
+
+`sapi1v_BomberNet.sapi` „SAPI-1 V: BomberNet (síťová hra)“ je od 2026-10-28 v Hrách a demech a ve vydání (autor:
+„Herní, i ve vydání“). Herní sestava na ARB-1C-8 bez IDE-1: JPR-1V (TURBO), RAM-1V, AND-1V, DSM-1V, ZRD-1V, DPI-1L,
+CGA-1V, MPH-1V. RAM disk `media/zrmd-1/bombernet.bin` (`tools/make_hry_disk.py --bombernet`) s `BOMBNET.COM` 0.3.0 z
+`..\SAPI-BomberNet\build`, neukládá se, takže dvě instance na jednom PC si nepřekážejí. Do sítě se karta připojí až
+po volbě HOST nebo JOIN ve hře.
 
 ## 4. Ostatní
 
@@ -122,7 +127,6 @@ ve vydání.
 |---|---|
 | `jpr1x_bgp1s.sapi` | JPR-1X (80C85), MIKROBIOS a MIKROBASIC, deska diagnostiky |
 | `libor_doma.sapi` | Liborova sestava doma: AND-1V, DGD-1V a CGA-1V přepínané přes MAP |
-| `sapi1v_BomberNet.sapi` | sestava V s kartou DPI-1L pro síťový BomberNet |
 
 ## Co je Liborovo a kde to ve vydání je (k potvrzení souhlasu)
 

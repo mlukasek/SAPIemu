@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """RAM disk of the machine "SAPI-1 V: hry a dema" (machines/sapi1v_hry.sapi): media/zrmd-1/hry-a-dema.bin.
 
-Usage: python tools/make_hry_disk.py [--check]
+Usage: python tools/make_hry_disk.py [--check] [--bombernet]
+
+--bombernet makes instead the RAM disk of the machine "SAPI-1 V: BomberNet" (machines/sapi1v_BomberNet.sapi),
+media/zrmd-1/bombernet.bin: the system area of the base disk (ECMON choice 3), an empty directory and BOMBNET.COM
+from ..\\SAPI-BomberNet\\build.
 
 The base is the Bad Apple!! disk media/zrmd-1/ba-ramdisk.bin: CP/M (ECMON boots it with choice 3) and BADAPPLE.DAT
 at the place the demo reads it from without the directory. The games, the demos of Libor Lasota and the music go
@@ -23,6 +27,8 @@ UP = os.path.dirname(ROOT)
 MPH = os.path.join(UP, 'SAPI-karty', 'MPH-1V')
 BASE = os.path.join(ROOT, 'media', 'zrmd-1', 'ba-ramdisk.bin')
 OUT = os.path.join(ROOT, 'media', 'zrmd-1', 'hry-a-dema.bin')
+BOMBERNET = os.path.join(UP, 'SAPI-BomberNet', 'build', 'bombnet.com')
+BOMBERNET_OUT = os.path.join(ROOT, 'media', 'zrmd-1', 'bombernet.bin')
 
 # CP/M name, source (.hex/.txt = Intel HEX from 0100h, else the file as it is), what it is
 FILES = [
@@ -78,7 +84,24 @@ def load(path):
     return open(path, 'rb').read()
 
 
+def bombernet():
+    """The disk of sapi1v_BomberNet.sapi: the system area of BASE, an empty directory and the game."""
+    if not os.path.exists(BOMBERNET):
+        raise SystemExit('MISSING ' + os.path.relpath(BOMBERNET, ROOT))
+    img = bytearray(open(BASE, 'rb').read())
+    img[cpmdisk.DIR_OFF:] = bytes([0xE5]) * (len(img) - cpmdisk.DIR_OFF)
+    data = load(BOMBERNET)
+    blocks = cpmdisk.add(img, data, 'BOMBNET.COM')
+    print('%-13s %6d B  %3d blocks from %d  %s' % ('BOMBNET.COM', len(data), len(blocks), blocks[0],
+                                                   os.path.relpath(BOMBERNET, ROOT)))
+    open(BOMBERNET_OUT, 'wb').write(img)
+    print('%s: free %d KB' % (os.path.relpath(BOMBERNET_OUT, ROOT), (cpmdisk.DSM + 1 - len(cpmdisk.used_blocks(img))) * 4))
+
+
 def main():
+    if '--bombernet' in sys.argv:
+        bombernet()
+        return
     missing = [src for _, src, _ in FILES if not os.path.exists(src)]
     for _, src, _ in FILES:
         print('%-8s %s' % ('ok' if os.path.exists(src) else 'MISSING', os.path.relpath(src, ROOT)))

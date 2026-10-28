@@ -60,6 +60,8 @@ Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
     SAPI-Prince-of-Persia, od 2026-10-28 verze s grafikou a hudbou DOS verze (`build\ramdisk_dos.bin` větve
     `dos-graphics`, MD5 4ab8f6669f51cf3af769b2cfc5ad33bd; dřív verze 1.0.0 převedená z Apple). Sestava
     `sapi1v_PoP.sapi`. Starý obraz `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` (PoP 1.0.0 a starší hry) je smazaný;
+  - `bombernet.bin` (2026-10-28): CP/M a `BOMBNET.COM` 0.3.0 z `..\SAPI-BomberNet\build` (síťová hra), sestava
+    `sapi1v_BomberNet.sapi`. Vyrábí ho `tools/make_hry_disk.py --bombernet` se systémovou oblastí z `ba-ramdisk.bin`;
   - `hry-a-dema.bin` (2026-10-17): RAM disk ve vydání, sestava `sapi1v_hry.sapi` (CGA-1V i DGD-1V). Vyrábí ho
     `tools/make_hry_disk.py` z `ba-ramdisk.bin`, BADAPPLE.DAT zůstane na svém místě. Na disku jsou:
     - hry z build složek repozitářů vedle SAPIemu: FXS4, FLAPPY (CGA-1V), FLAPDGD (DGD-1V, port L. Lasoty),

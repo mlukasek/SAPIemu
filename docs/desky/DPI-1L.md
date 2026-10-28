@@ -2,7 +2,8 @@
 
 Stav: **emulované Repository API** (typ `DPI-1L`, `src/cards/dpi1l.*`, SD karta nad složkou PC `src/cards/dpi1l_fs.*`,
 spojení s relay, TCP a DNS `src/core/relay.*`). Síťová část od 2026-10-16 ráno, soubory, nastavení, RTC, BOOT, TCP
-a DNS od 2026-10-16 odpoledne. Sestava `machines/sapi1v_BomberNet.sapi`.
+a DNS od 2026-10-16 odpoledne. Sestava `machines/sapi1v_BomberNet.sapi` (od 2026-10-28 herní: ARB-1C-8 bez IDE-1,
+DPI-1L v X6, RAM disk s BomberNetem 0.3.0).
 
 DPI-1L je Martinova karta s RP2350 na sběrnici SAPI. Na skutečném železe emuluje i karty DPP-1, IDE-1, RAM disk
 a další. Ty do SAPIemu nepatří, SAPIemu je má samo (rozhodnutí Martina 2026-10-16). Emulované je **Repository API**

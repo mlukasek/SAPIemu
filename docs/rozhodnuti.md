@@ -1829,7 +1829,13 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   zipů bez `--public`), FXS4 1.0.2 v autorově pracovní kopii `work/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin`. Pracovní
   kopie `work/zrmd-1/pop-ramdisk.bin` nahrazená novým obrazem (emulátor ji z `media/` sám neobnoví).
 - **BomberNet:** nejdřív port SAPI-BomberNet na BomberNet 0.3.0 (autor), pak herní sestava s vlastním RAM diskem
-  v Hrách a demech a ve vydání.
+  v Hrách a demech a ve vydání. Port je hotový v repu SAPI-BomberNet (submodul 9961800, BUILD_ID beze změny, hraje i
+  s 0.2.0; po kontrole opravené staré ESC a klávesa v kódu místnosti), `BOMBNET.COM` 0.3.0 MD5 800a0d8f….
+- **Sestava `sapi1v_BomberNet` je herní** (autor: „Herní, i ve vydání“, souhlas M. Matyáše má): ARB-1C-8 bez IDE-1,
+  DPI-1L v X6, RAM disk `media/zrmd-1/bombernet.bin` jen s `BOMBNET.COM` (`tools/make_hry_disk.py --bombernet`).
+  Nahrazuje rozhodnutí z 2026-10-16 o vývojové sestavě na ARB-1C se 14 pozicemi: plná sestava V s DPI-1L se dá
+  složit v konfigurátoru, ve výběru sestav má být hra. RAM disk se neukládá (`nosave`), aby si dvě instance na
+  jednom PC, které spolu hrají, nepřepisovaly pracovní kopii; hra na disk nic nezapisuje.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

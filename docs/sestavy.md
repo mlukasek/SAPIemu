@@ -264,10 +264,11 @@ BKP, dema, přehrávače a hudba L. Lasoty (`docs/vydani/sestavy.md`). Po startu
 `sapi1v_PoP.sapi` (Prince of Persia s grafikou a hudbou DOS verze, `media/zrmd-1/pop-ramdisk.bin`) je od 2026-10-28
 v Hrách a demech i ve vydání. Sestavy
 `sapi1v_BadApple` a `sapi1v_DGD_Flapy` nahradila 2026-10-17 `sapi1v_hry`.
-**Síťová hra na sestavě V** (`machines/sapi1v_BomberNet.sapi`, 2026-10-16): sestava V a navíc karta DPI-1L v X9 s Repository
-API na B0h/B1h (NET A0–A9h přes relay `ws://api.mzpico.com/net`, SD karta nad složkou `work/dpi-1l/sdcard`,
-`docs/desky/DPI-1L.md`). Devět karet se nevejde na ARB-1C-8, sběrnice je ARB-1C se 14 pozicemi. Hra BomberNet pro SAPI
-vzniká v repu SAPI-BomberNet.
+**Síťová hra na sestavě V** (`machines/sapi1v_BomberNet.sapi`, od 2026-10-28 herní sestava): ARB-1C-8 bez IDE-1, karta
+DPI-1L v X6 s Repository API na B0h/B1h (NET A0–A9h přes relay `ws://api.mzpico.com/net`, SD karta nad složkou
+`work/dpi-1l/sdcard`, `docs/desky/DPI-1L.md`) a RAM disk `media/zrmd-1/bombernet.bin` s BomberNetem 0.3.0 z repa
+SAPI-BomberNet (neukládá se). Do 2026-10-28 to byla vývojová sestava V s IDE-1 na ARB-1C se 14 pozicemi a bez hry;
+taková sestava se dá kdykoli složit v konfigurátoru.
 **Libor doma** (`machines/libor_doma.sapi`, 2026-10-08): sestava Libora Lasoty na sběrnici ImBUS12 s jeho deskami V
 (JPR-1V, RAM-1V, AND-1V, DSM-1V 10h, ZRD-1V 60h, DGD-1V, CGA-1V, MPH-1V 50h, bez IDE-1). Displeje se střídají podle MAP:
 MAP1 = L AND-1V na F800h (díra 2 KB v RAM-1V), MAP1 = H grafika na C000h (díra 16 KB), MAP2 = L DGD-1V, MAP2 = H

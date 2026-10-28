@@ -1,10 +1,10 @@
 // SAPI-1 machine description, written by the SAPIemu configurator.
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
-    "name": "SAPI-1 V s DPI-1L pro BomberNet (JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V, MPH-1V, DPI-1L; ECMON + CP/M)",
-    "description": "Sestava SAPI-1 V (sapi1v.sapi) navíc s kartou DPI-1L pro síťovou hru BomberNet. Z DPI-1L je emulovaná jen síťová část: Repository API na B0h/B1h s příkazy NET A0h–A9h, spojení s relay ws://api.mzpico.com/net (docs/desky/DPI-1L.md). Ostatní karty jsou stejné jako v sapi1v.sapi. Všech devět karet se nevejde na ARB-1C-8, sběrnice je proto ARB-1C se 14 pozicemi. Síťový BomberNet pro SAPI vzniká v repu SAPI-BomberNet; hra kartu pozná podle REVD a INFO.",
+    "name": "SAPI-1 V: BomberNet (síťová hra; CGA-1V, MPH-1V, DPI-1L, RAM disk ZRD-1V)",
+    "description": "Síťový Bomberman BomberNet 0.3.0 (port M. Lukáška z BomberNetu Martina Matyáše, MZPico; originál Bomber Man © 1983 Hudson Soft) pro sestavu V. Po startu ECMONu volba 3 (CP/M z RAM disku A:, volby 0–2 čekají na řadič, který v sestavě není), pak BOMBNET. Hraje se proti počítači, ve více hráčích na jednom SAPI, nebo po síti: v menu NETWORK HOST založí místnost a ukáže její kód, druhý hráč ho zadá v JOIN, pak READY mezerou nebo palbou. V jedné místnosti hrají SAPI, MZ-800 (i web mzpico.com), ZX Spectrum, CPC, PC a další. Do sítě se karta DPI-1L připojí, až ve hře zvolíte HOST nebo JOIN: relay ws://api.mzpico.com/net (nešifrovaný WebSocket; relay vidí IP adresu a kód místnosti). Ovládání: šipky a mezera (sada A), W A S D a E (sada B), joystick na MPH-1V (Ctrl+F8 = joystick z klávesnice PC), ESC opustí zápas, Ctrl+C vrátí do CP/M. Potřebuje TURBO 4 MHz. JPR-1V (TURBO), RAM-1V, AND-1V, DSM-1V, ZRD-1V rev 1.1 (media/zrmd-1/bombernet.bin z tools/make_hry_disk.py --bombernet, neukládá se), DPI-1L (docs/desky/DPI-1L.md), CGA-1V, MPH-1V.",
     "bus": {
-        "type": "ARB-1C",                   // ARB-1C (extended, 8282 drivers, 14 positions)
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
     },
     "cards": [
@@ -41,7 +41,7 @@
             "base": "F800h",                // S2 /A11-/A15: VRAM base (2 KB steps)
             "map": "map1_l",                // S2 MAP1OFF, H/L - both open: MAP1 = L
             "color": "amber",               // S1: ink colour
-            "font": "roms/and-1v/font_and1v22_1024.bin"  // Character generator 27C256 - 10x24 type 1
+            "font": "roms/and-1v/font_and1v22_1024.bin"  // Character generator 27C256 - 10x24 type 1 (font_and1v22, on the author's board)
         },
         {
             "slot": 4,                      // position X4
@@ -63,29 +63,22 @@
             "slot": 5,                      // position X5
             "type": "ZRD-1V",               // RAM disk 4 MB (V)
             "revision": "1.1",              // Board revision - rev 1.1 (no lock, no LEDs)
-            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",  // Disk image - CP/M (Martin 2019)
-            "mode": "rw"                    // Mode - read/write, saved
+            "image": "media/zrmd-1/bombernet.bin",  // Disk image - CP/M with the network game BomberNet (CGA-1V, MPH-1V, DPI-1L)
+            "mode": "nosave"                // Mode - read/write, not saved
         },
         {
             "slot": 6,                      // position X6
-            "type": "IDE-1",                // IDE disk and PMD32-SD
-            "ide_base": "58h",              // JP1-JP3, JP5: IDE ports
-            "pmd_base": "5Ch",              // PMD32-SD ports
-            "ide": {                        // IDE disk
-                "image": "work/ide/sapi_hdd.img",  // Disk image (.img)
-                "create_mb": 128,           // Create if missing (MB, 0 = no)
-                "readonly": false           // Read only
+            "type": "DPI-1L",               // Repository API and NET (network games through a relay)
+            "base": "B0h",                  // Repository API ports (DPI.INI)
+            "net": {
+                "transport": "ws",          // NET: connection to the game relay - WebSocket (ws://host:port/net, api.mzpico.com, relay.py 8765)
+                "host": "api.mzpico.com",   // NET: relay address
+                "port": 80                  // NET: relay port (80; relay.py 8765 ws, 8766 tcp)
             },
-            "pmd32sd": {                    // PMD32-SD floppy emulator
-                "sd_card": "media/pmd32sd",  // SD card (directory)
-                "drives": [
-                    "VZOR_2M.2MB",          // Drive A (CP/M D:)
-                    "a_sluzebni CPM.8sd",   // Drive B (CP/M E:)
-                    null,                   // Drive C
-                    null                    // Drive D
-                ],
-                "card_locked": false,       // SD card write protected
-                "startup_ms": 0             // Start-up delay (ms, real 3000)
+            "sd": {
+                "folder": "work/dpi-1l/sdcard",  // SD card: folder of the PC (its root /)
+                "sectors": 62309376,        // SD card: size in sectors of 512 B as GETFREE gives it (a full card)
+                "flush_on_exit": false      // SD card: write the open file's page at switching off (a deviation)
             }
         },
         {
@@ -103,21 +96,6 @@
             "base": "50h",                  // S1: port base (8 ports)
             "k4": "joystick",               // K4 (OVL): plugged in - joystick (Atari)
             "k2": "mouse_atari"             // K2 (MYŠ): plugged in - mouse Atari ST
-        },
-        {
-            "slot": 9,                      // position X9
-            "type": "DPI-1L",               // Repository API and NET (network games through a relay)
-            "base": "B0h",                  // Repository API ports (DPI.INI)
-            "net": {
-                "transport": "ws",          // NET: connection to the game relay - WebSocket
-                "host": "api.mzpico.com",   // NET: relay address
-                "port": 80                  // NET: relay port
-            },
-            "sd": {
-                "folder": "work/dpi-1l/sdcard",  // SD card: folder of the PC (its root /)
-                "sectors": 62309376,        // SD card: size in sectors of 512 B as GETFREE gives it (SanDisk 32 GB)
-                "flush_on_exit": false      // SD card: write the open file's page at switching off (a deviation)
-            }
         }
     ]
 }
