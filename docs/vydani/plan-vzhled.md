@@ -201,7 +201,8 @@ Nejtěsnější jsou:
 
 **Stav 2026-10-28:** hotová kromě náhledů AR 1990 a okna XY 4130 (přesunuté do etapy 3 s přegenerováním náhledů).
 Dělal ji workflow (3 agenti souběžně, integrace, 4 oponenti), nálezy oponentury opravené (rozhodnutí 2026-10-28 –
-výběr sestav podle historie SAPI). Čeká checkpoint B.
+výběr sestav podle historie SAPI). **Checkpoint B:** autor texty schválil, první věta úvodu je „… byl průmyslový
+řídicí počítač do racku.“
 
 **Kategorie v `machines/_vyber.json`**
 - Pořadí `zaklad` → `pristroje` → `libor` → `hry` → Ostatní.

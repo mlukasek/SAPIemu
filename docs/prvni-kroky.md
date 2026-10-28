@@ -1,6 +1,6 @@
 # SAPIemu – první kroky
 
-Emulátor počítače Tesla SAPI-1. SAPI-1 (1983–1990) byl průmyslový řídicí počítač v rámu, ne domácí počítač.
+Emulátor počítače Tesla SAPI-1. SAPI-1 (1983–1990) byl průmyslový řídicí počítač do racku.
 Začněte základní sestavou ZPS-1, pak zkuste přístroje. Hry a dema jsou novodobý doplněk na nových deskách.
 
 Verze **alfa**: hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje (GitHub

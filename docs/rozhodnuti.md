@@ -1900,6 +1900,8 @@ v zásadě souhlasí („pustil bych se do úprav“).
 - **Logo v O programu** se zmenšuje na procesoru průměrem plochy přesně na velikost, ve které se kreslí (autor:
   hrany masky byly „lehce hrubě zubaté“). Okno O programu má pevnou šířku a výšku podle obsahu (autor: zbytečně
   se posouvalo o 2 px).
+- **Checkpoint B (autor):** texty schválené, jen první věta úvodu je „SAPI-1 (Tesla, 1983–1990) byl průmyslový
+  řídicí počítač do racku.“ (anglicky „was a rack-mounted industrial control computer“). Roky 1983–1990 zůstávají.
 - **SAPI-1 je v textech rodu mužského** („byl průmyslový řídicí počítač“, „pracoval“), APS-5 je „měřicí jednotka“
   jako v původním návodu Tesly.
 

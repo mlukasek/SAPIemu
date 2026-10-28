@@ -3,8 +3,8 @@
 // category only. Machines not named here go to "Nezařazené a vlastní sestavy".
 // Rozřazení odsouhlasené autorem 2026-10-17, kategorie podle historie SAPI-1 2026-10-28: docs/vydani/sestavy.md.
 {
-    "intro": "SAPI-1 (Tesla, 1983–1990) byl průmyslový řídicí počítač v rámu, ne domácí počítač. Začněte první základní sestavou ZPS-1 s MIKROBASICem. Pak zkuste přístroje, třeba pece s měřicí jednotkou APS-5. Hry a dema jsou novodobý doplněk na nových deskách.",
-    "intro_en": "SAPI-1 (Tesla, 1983-1990) was an industrial control computer in a rack, not a home computer. Start with ZPS-1, the first basic set, which runs MIKROBASIC. Then try the instruments, such as the furnaces with the APS-5 measuring unit. The games and demos are a modern extra on the new boards.",
+    "intro": "SAPI-1 (Tesla, 1983–1990) byl průmyslový řídicí počítač do racku. Začněte první základní sestavou ZPS-1 s MIKROBASICem. Pak zkuste přístroje, třeba pece s měřicí jednotkou APS-5. Hry a dema jsou novodobý doplněk na nových deskách.",
+    "intro_en": "SAPI-1 (Tesla, 1983-1990) was a rack-mounted industrial control computer. Start with ZPS-1, the first basic set, which runs MIKROBASIC. Then try the instruments, such as the furnaces with the APS-5 measuring unit. The games and demos are a modern extra on the new boards.",
     "categories": [
         {
             "id": "zaklad",
