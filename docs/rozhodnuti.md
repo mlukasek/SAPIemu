@@ -1810,6 +1810,10 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
 - **MikroMon 1.3 patří do Desek Libora Lasoty** (autor), ne do Základu, který jsou jen historické sestavy Tesla.
 - **Běžící sestava je ve výběru zelená** s nápovědou „Právě běží“. Šipka před názvem se pletla se šipkami
   rozbalovacích nadpisů (autor).
+- **ID položek GUI ve smyčkách** musí být jedinečná (`PushID` nebo přípona `##`), jinak ImGui (1.92, 
+  `ConfigDebugHighlightIdConflicts`) ukáže chybové okno „conflicting ID“. Projevilo se u sestavy ve dvou skupinách
+  výběru (JPR-1S a BGP-1S). Při prohledání frontendu se našla a opravila i Zobrazení → Barva se dvěma displeji
+  (AND-1V a DGD-1V), PMD32-SD na dvou kartách v okně Média a kanály se stejným jménem v Sériovém terminálu.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

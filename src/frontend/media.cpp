@@ -574,7 +574,11 @@ static void draw_pmd32(Pmd32Sd* p)
 {
     std::vector<std::string> images = p->list_images();
     ImGui::TextDisabled("%s %s", tr("SD card:"), p->root().c_str());
-    if (!ImGui::BeginTable("pmd", 3, ImGuiTableFlags_SizingFixedFit)) return;
+    ImGui::PushID(p);   // two cards may have a PMD32-SD (IDE-1, DPP-1)
+    if (!ImGui::BeginTable("pmd", 3, ImGuiTableFlags_SizingFixedFit)) {
+        ImGui::PopID();
+        return;
+    }
     for (int d = 0; d < Pmd32Sd::DRIVES; d++) {
         ImGui::PushID(d);
         ImGui::TableNextRow();
@@ -597,6 +601,7 @@ static void draw_pmd32(Pmd32Sd* p)
     }
     ImGui::EndTable();
     ImGui::Checkbox(tr("SD card locked"), &p->card_locked);
+    ImGui::PopID();
 }
 
 void hex_load_dialog(UiState& ui)

@@ -773,6 +773,7 @@ void ink_menu(App& app, Machine* m)
         std::string head = c->name + " - " + (cs ? p->cs : p->en);
         ImGui::SeparatorText(head.c_str());
         std::string cur = d->ink();
+        ImGui::PushID(d);   // two displays may offer the same colours (AND-1V and DGD-1V)
         for (const ParamOption* o = p->options; o->value; o++) {
             nlohmann::json v = nlohmann::json::parse(o->value, nullptr, false);
             if (!v.is_string()) continue;
@@ -780,6 +781,7 @@ void ink_menu(App& app, Machine* m)
             if (ImGui::MenuItem(cs ? o->cs : o->en, nullptr, val == cur) && val != cur)
                 rack_set_display_ink(app.ui, d, val);
         }
+        ImGui::PopID();
     }
     ImGui::EndMenu();
 }

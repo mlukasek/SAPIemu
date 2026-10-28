@@ -449,7 +449,9 @@ void draw_terminal(UiState& ui)
     if (m->serials.size() > 1) {
         for (size_t i = 0; i < m->serials.size(); i++) {
             if (i) ImGui::SameLine();
+            ImGui::PushID((int)i);   // two channels may have the same name
             ImGui::RadioButton(m->serials[i]->name.c_str(), &ui.terminal_channel, (int)i);
+            ImGui::PopID();
         }
     } else {
         ImGui::TextUnformatted(m->serials[0]->name.c_str());

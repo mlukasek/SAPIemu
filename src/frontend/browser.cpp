@@ -246,7 +246,7 @@ void draw_browser(UiState& ui)
             const std::string& text = pick(cat.text, cat.text_en);
             if (!text.empty() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", text.c_str());
             for (int k : cat.machines)
-                if (matches(idx.machines[(size_t)k], filter)) machine_item(ui, idx.machines[(size_t)k], "");
+                if (matches(idx.machines[(size_t)k], filter)) machine_item(ui, idx.machines[(size_t)k], ("#" + cat.id).c_str());   // one machine may be in two categories
             continue;
         }
         if (cat.group != open_group) {   // a new group header
@@ -258,7 +258,7 @@ void draw_browser(UiState& ui)
         if (filter[0]) ImGui::SetNextItemOpen(true, ImGuiCond_Always);
         if (ImGui::TreeNode(cname.c_str())) {
             for (int k : cat.machines)
-                if (matches(idx.machines[(size_t)k], filter)) machine_item(ui, idx.machines[(size_t)k], "");
+                if (matches(idx.machines[(size_t)k], filter)) machine_item(ui, idx.machines[(size_t)k], ("#" + cat.id).c_str());   // one machine may be in two categories
             ImGui::TreePop();
         }
     }
