@@ -56,10 +56,10 @@ Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 - Hry a dema pro sestavu V (CP/M jako `SAPI_CPM_Martin_2019-10-07.bin`, autorovy obrazy z 2026-10-08 a 09):
   - `ba-ramdisk.bin`: BADAPPLE.COM a BADAPPLE.DAT (3,1 MB), demo Bad Apple!! z repa SAPI-Bad-Apple. Základ
     RAM disku `hry-a-dema.bin` (sestava `sapi1v_BadApple.sapi` byla nahrazena `sapi1v_hry.sapi`);
-  - `pop-ramdisk.bin`: POP.COM, POP.DAT (data hry, 3,3 MB), POP.SAV, ZRDBENCH.COM, port Prince of Persia z repa
-    SAPI-Prince-of-Persia. Sestava `sapi1v_PoP.sapi`;
-  - `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin`: PoP, FXS4, FLAPPY, BOMBER, BKP, DOCPM, DOCPM10, ZRDBENCH (záloha
-    se všemi hrami), volba v konfigurátoru u ZRD-1V;
+  - `pop-ramdisk.bin`: POP.COM, POP.DAT (data hry, 3,2 MB), POP.SAV, ZRDBENCH.COM, port Prince of Persia z repa
+    SAPI-Prince-of-Persia, od 2026-10-28 verze s grafikou a hudbou DOS verze (`build\ramdisk_dos.bin` větve
+    `dos-graphics`, MD5 4ab8f6669f51cf3af769b2cfc5ad33bd; dřív verze 1.0.0 převedená z Apple). Sestava
+    `sapi1v_PoP.sapi`. Starý obraz `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` (PoP 1.0.0 a starší hry) je smazaný;
   - `hry-a-dema.bin` (2026-10-17): RAM disk ve vydání, sestava `sapi1v_hry.sapi` (CGA-1V i DGD-1V). Vyrábí ho
     `tools/make_hry_disk.py` z `ba-ramdisk.bin`, BADAPPLE.DAT zůstane na svém místě. Na disku jsou:
     - hry z build složek repozitářů vedle SAPIemu: FXS4, FLAPPY (CGA-1V), FLAPDGD (DGD-1V, port L. Lasoty),
@@ -70,8 +70,7 @@ Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 
     Volných zůstává 244 KB. Seznam souborů je v `tools/make_hry_disk.py` a `docs/vydani/sestavy.md`.
 
-  **Obrazy s Prince of Persia jsou jen v repu**, do balíčku alfy je `tools/package.py` nedává (data hry Jordana
-  Mechnera / Broderbund se dál nešíří; `REPO_ONLY`, stejně tak sestava `sapi1v_PoP.sapi`).
+  **Prince of Persia je od 2026-10-28 i ve vydání** (rozhodnutí autora, dřív `REPO_ONLY`).
 
 ## `mikos/` – programy pro MIKOS (Intel HEX)
 

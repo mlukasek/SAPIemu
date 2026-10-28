@@ -29,7 +29,7 @@
             "text": "Hry, hudební a grafická dema a ukázky přístrojů, které k SAPI patřily, s nakresleným přístrojem v okně.",
             "text_en": "Games, music and graphics demos, and the instruments SAPI worked with, drawn in their own windows.",
             "guides": true,
-            "machines": [ "sapi1v_hry.sapi", "jpr1s_bgp1s.sapi", "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi",
+            "machines": [ "sapi1v_hry.sapi", "sapi1v_PoP.sapi", "jpr1s_bgp1s.sapi", "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi",
                           "zps/ZPS-2_MIKOS_K.sapi", "zps/ZPS-2_MIKOS_V5_Minigraf.sapi", "rkd1_tesla_cpm.sapi",
                           "rmp1_jb_izot.sapi" ]
         },
@@ -76,10 +76,16 @@
             "group": "Ostatní", "group_en": "Other",
             "name": "Další sestavy s deskami Libora Lasoty",
             "name_en": "More sets with the boards of Libor Lasota",
-            "machines": [ "jpr1x_bgp1s.sapi", "libor_doma.sapi", "sapi1v_BomberNet.sapi", "sapi1v_PoP.sapi" ]
+            "machines": [ "jpr1x_bgp1s.sapi", "libor_doma.sapi", "sapi1v_BomberNet.sapi" ]
         }
     ],
     "machines": {
+        "sapi1v_PoP.sapi": {
+            "title": "SAPI-1 V: Prince of Persia",
+            "title_en": "SAPI-1 V: Prince of Persia",
+            "summary": "Prince of Persia (Jordan Mechner) na barevné grafice CGA-1V s hudbou DOS verze na YM3812: celá hra, 14 úrovní, joystick i klávesnice.",
+            "summary_en": "Prince of Persia (Jordan Mechner) on the CGA-1V colour graphics with the music of the DOS version on the YM3812: the whole game, 14 levels, joystick or keyboard."
+        },
         "zps/ZPS-1.sapi": {
             "title": "ZPS-1 s MIKROBASICem 2.4",
             "title_en": "ZPS-1 with MIKROBASIC 2.4",

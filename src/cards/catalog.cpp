@@ -1257,10 +1257,8 @@ static const ParamOption k_zrmd_images[] = {
     { "\"media/zrmd-1/ba-ramdisk.bin\"", "CP/M with the demo Bad Apple!! (CGA-1V, MPH-1V)", "CP/M s demem Bad Apple!! (CGA-1V, MPH-1V)" },
     { "\"media/zrmd-1/hry-a-dema.bin\"", "CP/M with games and demos: Bad Apple!!, FXS4, Flappy (CGA-1V, DGD-1V), Bomberman, BKP, demos of L. Lasota, music",
       "CP/M s hrami a demy: Bad Apple!!, FXS4, Flappy (CGA-1V, DGD-1V), Bomberman, BKP, dema L. Lasoty, hudba" },
-    // the two with Prince of Persia are in the repository only, not in the alpha packages (tools/package.py)
-    { "\"media/zrmd-1/pop-ramdisk.bin\"", "CP/M with Prince of Persia (CGA-1V, MPH-1V)", "CP/M s Prince of Persia (CGA-1V, MPH-1V)" },
-    { "\"media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin\"", "CP/M with PoP, FXS4, Flappy, Bomberman, BKP",
-      "CP/M s PoP, FXS4, Flappy, Bomberman, BKP" },
+    { "\"media/zrmd-1/pop-ramdisk.bin\"", "CP/M with Prince of Persia, DOS graphics and music (CGA-1V, MPH-1V)",
+      "CP/M s Prince of Persia, grafika a hudba DOS (CGA-1V, MPH-1V)" },
     { "\"\"", "empty", "prázdný" },
     { nullptr, nullptr, nullptr },
 };

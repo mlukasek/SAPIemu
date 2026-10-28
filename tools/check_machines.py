@@ -236,9 +236,9 @@ def variant(sb, src, dst, image=None):
 def check_games(cli, sb):
     out_dir = os.path.join(sb, 'games')
     os.makedirs(out_dir, exist_ok=True)
-    # the machine of the release with all games and demos; Prince of Persia only from the disk of the repository
+    # the machine of the release with all games and demos; Prince of Persia on its own machine (its own RAM disk)
     hry = variant(sb, 'sapi1v_hry.sapi', 'check_hry.sapi')
-    pop = variant(sb, 'sapi1v_hry.sapi', 'check_pop.sapi', 'media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin')
+    pop = variant(sb, 'sapi1v_PoP.sapi', 'check_pop.sapi')
     ok = bad = 0
 
     def report(name, fails):

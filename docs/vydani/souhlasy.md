@@ -5,7 +5,7 @@ ve vydání je, odkud to je a jaký souhlas už máme. Podrobnosti o souborech j
 `media/README.md`.
 
 Autor (Martin) rozhodl: historii repa neřešit, staré CP/M programy (i komerční, často dnes uvolněné) nechat,
-**Prince of Persia do vydání nedávat** (`REPO_ONLY` v `tools/package.py`).
+**Prince of Persia** je od 2026-10-28 ve vydání (autor: „tady bych se toho nebál“); dřív `REPO_ONLY`.
 
 ## Libor Lasota: souhlas máme, potvrdit rozsah
 
@@ -62,7 +62,7 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
 | Flappy | dB-SOFT 1984 (Sharp MZ-800) | RAM disk herní sestavy | port Martin (CGA-1V), FLAPDGD port Libor (DGD-1V) |
 | Bomberman | Hudson Soft 1983 (Sharp MZ-700) | RAM disk herní sestavy | port Martin, repo SAPI-Bomberman |
 | BomberNet | Martin Matyáš (MZPico), podle Bomber Man | zatím ne | až bude ve vydání, souhlas M. Matyáše |
-| Prince of Persia | Jordan Mechner, Broderbund | **ne** | jen v repu |
+| Prince of Persia | Jordan Mechner, Broderbund (DOS verze Broderbund) | **ano** (rozhodnutí autora 2026-10-28) | verze s grafikou a hudbou DOS |
 | Hudba: 11 skladeb VGM z her (Hellfire, Tyrian, Monkey Island…) a 15 modulů RAD (3eality.com) | různí autoři | RAM disk herní sestavy | autor rozhodl: ponechat obojí |
 
 ## Postup

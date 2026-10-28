@@ -78,9 +78,12 @@ Od každého druhu jeden, hlavně ty s nakresleným přístrojem v okně:
 | `rkd1_tesla_cpm.sapi` | kazetový disk RKD-1, CP/M Tesla Elstroj 1987 | Média (kazetový disk) |
 | `rmp1_jb_izot.sapi` | magnetická páska RMP-1 a IZOT SM 5300 | Média (páskové jednotky) |
 
-### 3d. Jen v repu
+### 3d. Prince of Persia
 
-`sapi1v_PoP.sapi` (Prince of Persia).
+`sapi1v_PoP.sapi` „SAPI-1 V: Prince of Persia“ je od 2026-10-28 v Hrách a demech a ve vydání (autor: „dej to i do
+vydání, tady bych se toho nebál“), s verzí s grafikou a hudbou DOS (RAM disk `media/zrmd-1/pop-ramdisk.bin`
+z `build\ramdisk_dos.bin` repa SAPI-Prince-of-Persia, větev `dos-graphics`). Dřív jen v repu s verzí 1.0.0
+převedenou z Apple.
 
 `sapi1v_BomberNet.sapi` (karta DPI-1L, síťová hra) zatím v Ostatních, do her přijde, až bude BomberNet pro SAPI
 ve vydání.

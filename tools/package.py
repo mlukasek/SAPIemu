@@ -29,9 +29,8 @@ DATA = ["roms", "media", "machines", "docs", "third_party/fonts"]
 FILES = ["README.md", "LICENSE", "THIRD-PARTY-NOTICES.txt", "third_party/README.md"]
 # --public: notes of the development (state, decisions, the release plan and consents) stay in the repository
 DEV_DOCS = ("docs/SOUHRN.md", "docs/rozhodnuti.md", "docs/vydani/")
-# in the repository only: the data of the game Prince of Persia (Jordan Mechner, Broderbund) is not passed on
-REPO_ONLY = {"media/zrmd-1/pop-ramdisk.bin", "media/zrmd-1/ramdisk_pop-fxs4-flappy-bomberman-bkp.bin",
-             "machines/sapi1v_PoP.sapi", "machines/previews/sapi1v_PoP.png"}
+# in the repository only (none now: Prince of Persia goes into the release since 2026-10-28, the author's decision)
+REPO_ONLY = set()
 
 
 def git_files(path):

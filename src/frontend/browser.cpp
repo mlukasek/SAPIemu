@@ -199,7 +199,7 @@ void draw_browser(UiState& ui)
         ImGui::SetNextWindowFocus();
         std::string err;
         machine_index_load(ui.machine_index, err);
-        // a machine the release leaves out (sapi1v_PoP, package.py REPO_ONLY) is skipped; test_machine_index
+        // a machine the release leaves out (package.py REPO_ONLY) is skipped; test_machine_index
         // checks the index in the repository
         if (!err.empty()) LOGD("%s", err.c_str());
         ui.browser_loaded = true;

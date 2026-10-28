@@ -261,7 +261,8 @@ vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při
 u `libor_doma`), bez IDE. RAM disk `media/zrmd-1/hry-a-dema.bin` vyrábí `tools/make_hry_disk.py` z obrazu Bad Apple!!
 (`ba-ramdisk.bin`) a her a dem z repozitářů vedle SAPIemu: Bad Apple!!, FXS4, Flappy (CGA-1V i DGD-1V), Bomberman,
 BKP, dema, přehrávače a hudba L. Lasoty (`docs/vydani/sestavy.md`). Po startu volba 3, pak jméno programu.
-`sapi1v_PoP.sapi` (Prince of Persia, `media/zrmd-1/pop-ramdisk.bin`) je jen v repu, ne v balíčku. Sestavy
+`sapi1v_PoP.sapi` (Prince of Persia s grafikou a hudbou DOS verze, `media/zrmd-1/pop-ramdisk.bin`) je od 2026-10-28
+v Hrách a demech i ve vydání. Sestavy
 `sapi1v_BadApple` a `sapi1v_DGD_Flapy` nahradila 2026-10-17 `sapi1v_hry`.
 **Síťová hra na sestavě V** (`machines/sapi1v_BomberNet.sapi`, 2026-10-16): sestava V a navíc karta DPI-1L v X9 s Repository
 API na B0h/B1h (NET A0–A9h přes relay `ws://api.mzpico.com/net`, SD karta nad složkou `work/dpi-1l/sdcard`,
