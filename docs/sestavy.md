@@ -25,8 +25,21 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
   - k sestavám krátký titulek a text (`title`, `title_en`, `summary`, `summary_en`). Sestavy, které rejstřík nezná
     (vlastní), jsou na konci v „Nezařazené a vlastní sestavy“.
 - **Náhledy** `machines/previews/<id>.png`, kde `<id>` je cesta v `machines/` bez `.sapi` a s `_` místo `/`
-  (`zps_ZPS-1`). Vyrábí je `python tools/make_previews.py [--debug] [filtr]`: sestavu spustí scénářem z
-  `tools/check_machines.py` (nebo z `PREVIEWS` ve skriptu) nad čistou kopií dat a obrazovku zmenší na 480 bodů.
+  (`zps_ZPS-1`). Vyrábí je `python tools/make_previews.py [--debug] [--instruments] [filtr…]`: sestavu spustí
+  scénářem z `tools/check_machines.py` (nebo z `PREVIEWS` ve skriptu) nad čistou kopií dat a obrazovku zmenší na
+  nejvýš 480 bodů. Filtrů může být víc (stačí jeden), `--instruments` vezme jen sestavy s přístrojem, `--debug`
+  sestavení debug (když je release starší).
+  - **Přístroje** (`INSTRUMENTS`): náhledem je okno přístroje. Akce proběhnou v `sapiemu-cli`, ten uloží stav,
+    a `sapiemu --ui-state … --ui-crop KLÍČ` vyfotí jen okno s ID `###KLÍČ`. Okna jsou vždy v **tmavém vzhledu
+    Windows 11 při 100 %** (`--ui-theme dark --ui-scale 1`): obrázek nezávisí na PC ani jeho nastavení a sedí do
+    tmavého rámečku jako monitor v okně Vybrat sestavu. Jsou to APS-5 (panel a pece), IMS-2, KZD-1 a RMP-1 (okno
+    Média), Minigraf (celá znaková sada), **XY 4130** (vozík na levém dorazu, PEN, zkouška `G181E` z návodu:
+    celá znaková sada) a **plotter z AR 1990** (READY, počátek,
+    tlačítko Ukázka `media/ar1990/ukazka.txt` asi 155 s; pak zvednuté pero nad střed kresby, protože okno jede za
+    perem a na konci ukázky by uřízlo horní okraj rámečku).
+  - Kde výchozí velikost okna obsah ořízne (RMP-1 pod mechanikami RPD-1: kontrolky pásky a bloky) nebo je moc
+    široké na ostré zmenšení (APS-5: 960 bodů = 2× zmenšení i s legendou grafu), dá skript velikost okna do
+    `imgui.ini` běhu (`WINDOW_SIZE`). Každý nový náhled je potřeba prohlédnout.
 - **Průvodci** `machines/guides/<id>.md` a `<id>.en.md`: krátký Markdown (nadpisy, odrážky, bloky kódu s
   tlačítkem Napsat do SAPI, odkazy na `docs/` a web). Okno Průvodce sestavou se otevře samo u kategorií s
   `guides`, dokud ho uživatel u sestavy nebo celkově nevypne (nastavení `guides`).

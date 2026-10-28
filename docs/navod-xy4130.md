@@ -140,5 +140,7 @@ Potom musí ovladač znovu nastavit počátek, jinak pero nekreslí:
   V konfigurátoru: DPP-1, zapisovač XY 4130. Postup je v `docs/desky/XY4130.md`.
 - **MCP:** nástroj `plotter` (`docs/mcp.md`) vrátí polohu pera, kontrolky `ready` a `pen_lamp`, rozsah kresby a
   počty kroků. `pen_button` stiskne PEN, `new_sheet` založí nový papír, `png` a `svg` uloží kresbu.
+- **Bez okna:** `sapiemu-cli --plotter pen`, `--plotter new-sheet`, `--print-plotter` a `--plotter-png SOUBOR`
+  (příklad s ukázkou z tohoto návodu je v `docs/build.md`).
 - **Odchylka:** `xy4130.pen_on` v konfigurátoru (JPR-1, X3: zapisovač XY 4130) stiskne PEN už při zapnutí, třeba pro
   automatické zkoušky.

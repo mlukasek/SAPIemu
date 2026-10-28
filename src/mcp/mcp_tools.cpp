@@ -3,6 +3,7 @@
 #include "cards/dsm1.h"
 #include "cards/hrk1.h"
 #include "cards/ide1.h"
+#include "chips/ar1990.h"
 #include "chips/kzd1.h"
 #include "chips/minigraf.h"
 #include "chips/xy4130.h"
@@ -15,6 +16,7 @@
 #include "core/machine_index.h"
 #include "core/machine_cfg.h"
 #include "core/machine_map.h"
+#include "core/plotter_ctl.h"
 #include "core/png.h"
 #include "core/util.h"
 #include "core/version.h"
@@ -1026,21 +1028,24 @@ json t_ims2(EmuHost& h, const json& a)
 json t_plotter(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
-    Plotter* g = nullptr;
-    std::string card;
-    for (auto& c : m.cards)
-        if (c->plotter()) {
-            g = c->plotter();
-            card = c->name;
-        }
-    if (!g) return error_result("no plotter in this machine (DPP-1 parameter minigraf or xy4130, JPR-1 parameter xy4130)");
-    Xy4130* xy = dynamic_cast<Xy4130*>(g);
+    PlotterRef ref;
+    if (!plotter_find(m, ref)) return error_result(PLOTTER_NONE);
+    Plotter* g = ref.g;
+    Xy4130* xy = ref.xy;
+    Ar1990Plotter* ar = ref.ar;
     std::string err;
-    if (a.value("pen_button", false)) {
-        if (!xy) return error_result("pen_button: only the XY 4130 has the button PEN");
-        xy->pen_button();
-    }
-    if (a.value("new_sheet", false)) g->new_sheet();
+    // the buttons as the window has them (core/plotter_ctl.h), in the order pen_button, new_sheet, ar_button, demo,
+    // send_file, send; a wrong ar_button is refused before anything is pressed
+    std::string button = a.contains("ar_button") ? arg_str(a, "ar_button", nullptr, true) : std::string();
+    if (a.contains("ar_button") && button != "ready" && button != "test" && button != "stop" && button != "whole_test")
+        return error_result("ar_button must be ready, test, stop or whole_test");
+    if (a.value("pen_button", false) && !plotter_action(m, "pen", "", err)) return error_result("pen_button: " + err);
+    if (a.value("new_sheet", false)) plotter_action(m, "new-sheet", "", err);
+    if (!button.empty() && !plotter_action(m, button, "", err)) return error_result("ar_button: " + err);
+    if (a.value("demo", false) && !plotter_action(m, "demo", "", err)) return error_result("demo: " + err);
+    if (a.contains("send_file") && !plotter_action(m, "send-file", arg_str(a, "send_file", nullptr, true), err))
+        return error_result("send_file: " + err);
+    if (a.contains("send") && !plotter_action(m, "send", arg_str(a, "send", nullptr, true), err)) return error_result("send: " + err);
     json j;
     if (a.contains("png")) {
         std::string p = data_path(arg_str(a, "png", nullptr, true));
@@ -1065,8 +1070,17 @@ json t_plotter(EmuHost& h, const json& a)
             y1 = std::max(y1, st[i + 1]);
         }
     const double k = 1.0 / g->spm;
-    j["card"] = card;
+    j["card"] = ref.card;
     j["plotter"] = g->model();
+    if (ar) {   // the panel of the plotter of AR 1990 and its cable from the host computer
+        j["device"] = "AR 1990";
+        j["lamp_rdy"] = ar->led_ready();
+        j["lamp_buff"] = ar->led_buff();
+        j["bytes_waiting"] = ar->pending();
+        j["bytes_taken"] = ar->sent;
+        j["switches"] = json{ { "color", ar->color }, { "mz800", !ar->ascii }, { "roll", !ar->a4 },
+                              { "cr_lf", !ar->cr_only }, { "lf_cr", !ar->lf_only } };
+    }
     if (xy) {
         j["ready"] = xy->ready();
         j["pen_lamp"] = xy->pen_enabled();
@@ -1583,8 +1597,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"press":{"type":"string","enum":["+","-"]},"hold_ms":{"type":"integer","default":150},"after_ms":{"type":"integer","default":200}}})", t_diag_board },
     { "ims2", "The measuring bench on the IMS-2 bus of DPS-1 (plant \"IMS-2\"): the voltmeter Metra M1T 330 (address, display, unit, range, autorange, filter, repeat, remote = EXT lamp, the last value) and the power supply Tesla BS 525 (outputs I, II: set voltage, current limit, output voltage and current, limiting, load), which output feeds the voltmeter, and the last transfers on the bus (log = how many; ATN commands decoded: LAD/TAD/UNL..., data characters, EOI). Arguments change the bench: u1, u2 (V, 0-30), i1, i2 (current limit, A, 0.05-1.1), load1_ohm, load2_ohm (0 none, 1000, 220, 100, 47, 22, 10), bs525_power, m1t330_power, input (I, II, none), key (auto, filter, rep, 1x, error: the buttons of the voltmeter, local only), clear_log.",
       R"({"type":"object","properties":{"u1":{"type":"number"},"u2":{"type":"number"},"i1":{"type":"number"},"i2":{"type":"number"},"load1_ohm":{"type":"number"},"load2_ohm":{"type":"number"},"bs525_power":{"type":"boolean"},"m1t330_power":{"type":"boolean"},"input":{"type":"string","enum":["I","II","none"]},"key":{"type":"string","enum":["auto","filter","rep","1x","error"]},"clear_log":{"type":"boolean"},"log":{"type":"integer"}}})", t_ims2 },
-    { "plotter", "Plotter: ARITMA Minigraf 0507 on DPP-1 port B (driver V.1-MGF: .G=1800 init, .G=1809 test, .G=180F screen copy, .G=1815 system printer; BASIC EXP CALL(6171...)) or XY 4130 on JPR-1 X3 (the driver behind MIKOS V5 at 1800h: it starts with the monitor and becomes the printer L:, .G=181E test) or DPP-1 (KRES). Without arguments the pen position on the paper (mm: x from its left edge, y up the paper from where it was put in; the paper is an A4 wide strip), the pen, strokes, the extent of the drawing, steps, steps against the stop of the carriage (the origin is set so), lost steps (Minigraf: the code skipped a phase), steps faster than the leaflet allows; XY 4130: ready (the lamp READY: the carriage was at the left stop since the sheet was put in), pen_lamp (the button PEN; the pen goes down only with READY and PEN), cable. pen_button = press PEN on the XY 4130 (off after power on), new_sheet = a clean sheet under the pen (XY 4130: READY goes off), png / svg = save the paper (paths relative to the data root, px_per_mm for PNG, default 8; crop = only the drawing with 5 mm around).",
-      R"({"type":"object","properties":{"pen_button":{"type":"boolean"},"new_sheet":{"type":"boolean"},"png":{"type":"string"},"svg":{"type":"string"},"px_per_mm":{"type":"integer","default":8},"crop":{"type":"boolean","default":false}}})", t_plotter },
+    { "plotter", "Plotter: ARITMA Minigraf 0507 on DPP-1 port B (driver V.1-MGF: .G=1800 init, .G=1809 test, .G=180F screen copy, .G=1815 system printer; BASIC EXP CALL(6171...)) or XY 4130 on JPR-1 X3 (the driver behind MIKOS V5 at 1800h: it starts with the monitor and becomes the printer L:, .G=181E test) or DPP-1 (KRES), or the plotter of AR 1990 (machines/plotter_ar1990.sapi: a JPR-1 drives a Minigraf, commands of the Sharp MZ-1P16 from a host computer). Without arguments the pen position on the paper (mm: x from its left edge, y up the paper from where it was put in; the paper is an A4 wide strip), the pen, strokes, the extent of the drawing, steps, steps against the stop of the carriage (the origin is set so), lost steps (Minigraf: the code skipped a phase), steps faster than the leaflet allows; XY 4130: ready (the lamp READY: the carriage was at the left stop since the sheet was put in), pen_lamp (the button PEN; the pen goes down only with READY and PEN), cable; AR 1990: lamp_rdy (lit: it waits for READY), lamp_buff (lit: the buffer is empty), bytes_waiting / bytes_taken (the cable from the host), switches. pen_button = press PEN on the XY 4130 (off after power on), new_sheet = a clean sheet under the pen (XY 4130: READY goes off). AR 1990: ar_button = a button of the panel held 150 ms (ready: after power on it beeps and waits for READY, then sets its origin in about 5 s; test: the test of the pens, 28 strokes 62 x 12 mm in about 16.5 s; stop; whole_test: TEST held through a reset of the JPR-1, the whole character set, then READY), demo = send media/ar1990/ukazka.txt, send = a line of commands as the window sends it (\\xNN = the byte NN, e.g. \\x02 graphics mode, \\x01 text mode; CR appended), send_file = the bytes of a file (relative to the data root). The machine has to run for the buttons and the data to take effect (run_for, or the real time of the GUI). png / svg = save the paper (paths relative to the data root, px_per_mm for PNG, default 8; crop = only the drawing with 5 mm around). The same buttons in sapiemu-cli: --plotter ACTION [ARG], --print-plotter, --plotter-png, --plotter-svg.",
+      R"({"type":"object","properties":{"pen_button":{"type":"boolean"},"new_sheet":{"type":"boolean"},"ar_button":{"type":"string","enum":["ready","test","stop","whole_test"]},"demo":{"type":"boolean"},"send":{"type":"string"},"send_file":{"type":"string"},"png":{"type":"string"},"svg":{"type":"string"},"px_per_mm":{"type":"integer","default":8},"crop":{"type":"boolean","default":false}}})", t_plotter },
     { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). program = an Intel HEX or binary file (address = its load address, hex) made into a new cassette work/kzd-1/NAME.kzd as MIKOS/K writes it (K_I with tape name volume, then K_S with name; entry = start address for .J): .K_Z, .K_L NAME, .J. Paths relative to the data root.",
       R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"string"},"eject":{"type":"boolean"},"flip":{"type":"boolean"},"tab_a":{"type":"boolean"},"tab_b":{"type":"boolean"},"flush":{"type":"boolean"},"program":{"type":"string"},"name":{"type":"string"},"volume":{"type":"string"},"address":{"type":"string"},"entry":{"type":"string"}}})", t_kzd1 },
     { "plant", "APS-5: the plant (furnaces, thermocouples, terminal block) and the front panel HRK-1. Without arguments it reports the temperatures, heaters (DRV-1A contacts), logic inputs/outputs and the panel (key switch, fault LED, watchdog relay). Arguments change it: lock (1 operator, 2 programming), outage_s (a mains failure of that many seconds: the power fail warning, then no power, then power again; run the machine to see it), ambient_c, block_c (isothermal terminal block), battery_v, reset (all furnaces to the ambient temperature), and for channel (1-8): temperature_c (sets the furnace at once), tc_broken, heater_broken, li_a / li_b (logic inputs, true = H open). Keys of the panel: type_text with 0-9, M, R, backspace (<-), CR (->).",

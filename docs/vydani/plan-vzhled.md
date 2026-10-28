@@ -256,6 +256,10 @@ výběru česky i anglicky.
 
 ### Etapa 3: dokončení vzhledu · M
 
+**Stav 2026-10-29: hotová** (workflow: tlačítka zapisovačů, okno Windows, náhledy; 2 oponenti, nálezy opravené;
+rozhodnutí 2026-10-29). Ručně ověří autor: barva titulku okna ve světlém a tmavém režimu, neaktivní okno, přepnutí
+Windows mezi světlým a tmavým za běhu, přesun okna mezi monitory s různým měřítkem.
+
 - Vybraná varianta bude výchozí, k tomu:
   - režim podle systému;
   - velikost písma;

@@ -34,8 +34,8 @@ Testy běží paralelně (8 najednou, `execution.jobs` v `CMakePresets.json`). �
 
 **Kontrola všech sestav** (`tools/check_machines.py`, od 2026-10-14): v každé sestavě z `machines/` spustí něco
 konkrétního (`DIR` na různé disky, `PRINT 6*7` v MIKROBASICu, `D0 7` v MIKOSu, přihlášení v shellu RKD-1, `DIRMT`
-pásky RMP-1, `.K_I` a `.K_D` na KZD-1, Manic Miner na BGP-1S…) a zkontroluje text obrazovky, snímek grafiky nebo
-sériovou linku a varování v logu. `--games` přidá porty a dema sestavy V: Bad Apple!! celé až do návratu do CP/M,
+pásky RMP-1, `.K_I` a `.K_D` na KZD-1, Manic Miner na BGP-1S, READY a TEST plotteru z AR 1990…) a zkontroluje text
+obrazovky, snímek grafiky, sériovou linku, kresbu zapisovače (`strokes:N`, PNG kresby vedle výpisu) a varování v logu. `--games` přidá porty a dema sestavy V: Bad Apple!! celé až do návratu do CP/M,
 všech 26 skladeb FXS4 s kontrolou zvuku, Prince of Persia, Bomberman, Flappy na CGA-1V a DGD-1V. Pracuje nad čistou
 kopií dat z gitu (`roms`, `media`, `machines` a IDE disk z `work/ide`) v `out/check/<čas>/`, takže `work/` (pracovní
 kopie, baterie) zůstane netknuté; výstupy a snímky jsou tamtéž. Používá release `sapiemu-cli` (aktuální sestavení!),
@@ -86,6 +86,26 @@ v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled j
   spuštění.
   `--ui-snapshot` bez něj kreslí světlý, aby obrázky nezávisely na nastavení Windows. `--ui-scale 1.25` napodobí
   měřítko monitoru.
+- **Titulek okna Windows** (`theme_titlebar()` v `theme.cpp`, jen `_WIN32`, na Linuxu ho kreslí správce oken):
+  - `DwmSetWindowAttribute`: 20 = světlý nebo tmavý režim (před Windows 10 20H1 číslo 19), ve Windows 11 navíc
+    35 = barva titulku jako lišta menu (#F3F3F3 / #202020) a 36 = barva textu. Titulek a lišta menu tak tvoří jeden
+    pruh. Neaktivní okno má ztlumený text (`text_dim`), jako ho tlumí Windows. Na Windows 10 35 a 36 neškodně selžou.
+    Barvu zvýraznění v záhlaví, pokud ji má uživatel ve Windows zapnutou, vzhled přebije.
+  - `dwmapi.dll` se načítá za běhu (`GetProcAddress`), CMakeLists se nemění: `dwmapi.h` by do `theme.cpp` zavlekl
+    `rpcndr.h` s makrem `small`. SDL ji načítá stejně, takže je obvykle už v paměti.
+  - Nastavuje se po každém `theme_apply()` a při získání a ztrátě fokusu. SDL titulku nastavuje tmavý režim podle
+    systému při vytvoření okna a při každé změně barev Windows (`WM_SETTINGCHANGE` „ImmersiveColorSet“,
+    `WIN_UpdateDarkModeForHWND`). Přepnutí světlý/tmavý přinese hned potom `SDL_EVENT_SYSTEM_THEME_CHANGED`, po něm se
+    nastaví znovu náš. Jinou změnu barev (barva zvýraznění) SDL neohlásí, opraví ji další změna fokusu.
+  - `sapiemu --verbose` vypíše výsledky (HRESULT, `0x00000000` = OK) při startu a po každé změně vzhledu, ne při
+    změně fokusu, např. `title bar: dark mode 1 0x00000000, caption 0x202020 0x00000000, text 0xA8A8A8 0x00000000`
+    (barvy jako COLORREF 0xBBGGRR, text neaktivního okna). Ve Windows 11 (build 26300) vracejí všechna tři volání OK.
+- **Měřítko** podle monitoru, na kterém okno je (`SDL_GetDisplayForWindow`). Nové okno dostane velikost podle hlavního
+  monitoru, kde ho SDL vycentruje. Po přesunu na monitor s jiným měřítkem nebo po změně měřítka ve Windows
+  (`SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED`, `SDL_EVENT_WINDOW_DISPLAY_CHANGED`,
+  `SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED`) se styl postaví znovu a v logu je `display scale 150 % (was 100 %)`.
+  Okno Windows si drží velikost v pixelech (tak to dělá SDL) a okna ImGui také, zvětší se písmo a rozestupy.
+  `--ui-scale` má přednost.
 - **Kontrola:** test `test_theme` hlídá kontrast všech palet (WCAG 2.2: text 4,5:1, prvky 3:1).
 - **Ladění:** v debug buildu je Ladění → Editor stylu (ImGui `ShowStyleEditor`).
 - **Logo v O programu** je maska `docs/img/logo-alpha.png` (z `tools/make_icon.py`) v barvě textu: tmavé písmo na
@@ -188,7 +208,19 @@ sapiemu-cli --machine machines/sapi1v.sapi --wait-text "Zadej 0-3" --type 3 --wa
     --load-hex media/mph-1v/splay.hex --type "SAVE 4 SPLAY.COM\r" --run-ms 1500 \
     --load-hex ../SAPI-karty/MPH-1V/SPLAY/hellfire.hex --type "SAVE 28 HELLFIRE.VGM\r" --run-ms 1500 \
     --audio-wav hellfire.wav --type "SPLAY HELLFIRE.VGM\r" --run-ms 30000
+sapiemu-cli --machine machines/plotter_ar1990.sapi --run-ms 1000 --plotter ready --run-ms 6000 \
+    --plotter test --run-ms 20000 --print-plotter --plotter-png test_per.png
+sapiemu-cli --machine machines/zps/ZPS-2_MIKOS_V5_XY4130.sapi --timeout-ms 10000 --wait-text L=XY4130 --run-ms 5000 \
+    --plotter pen --load-hex media/mikos/XY4130_DEMO.hex --type "G8000\r" --run-ms 25000 --print-plotter
 ```
+
+`--plotter AKCE [ARG]` mačká tlačítka zapisovačů jako okno Minigraf (kód `src/core/plotter_ctl.cpp` sdílí okno, MCP
+`plotter` i cli): `pen` (PEN na XY 4130), `new-sheet` (nový papír), u plotteru z AR 1990 `ready`, `test`, `stop`
+(drženo 150 ms emulovaného času), `whole-test` (TEST držené přes reset JPR-1: celá znaková sada), `demo`
+(`media/ar1990/ukazka.txt`), `send TEXT` (řádek povelů jako v okně: `\xNN` = bajt, na konci CR) a `send-file SOUBOR`.
+Plotter z AR 1990 po zapnutí pípne a čeká na READY (asi 1 s), počátek pak hledá asi 5 s, TEST nakreslí 28 tahů
+62 x 12 mm za asi 16,5 s. `--print-plotter` vypíše kontrolky (RDY, BUFF / READY, PEN), bajty čekající a převzaté,
+pero, počet tahů, rozměr kresby a kroky, `--plotter-png` a `--plotter-svg SOUBOR` uloží kresbu s okrajem 5 mm.
 
 `--audio-wav` nahrává zvuk zvukové karty (MPH-1V) od svého místa v akcích do konce (WAV mono, 49716 Hz).
 `--joystick` drží joystick (konektor K4 MPH-1V nebo ANK-1M2): `--joystick fire1 --run-ms 300 --joystick -`

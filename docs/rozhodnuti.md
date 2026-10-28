@@ -1909,6 +1909,24 @@ v zásadě souhlasí („pustil bych se do úprav“).
 - **SAPI-1 je v textech rodu mužského** („byl průmyslový řídicí počítač“, „pracoval“), APS-5 je „měřicí jednotka“
   jako v původním návodu Tesly.
 
+## 2026-10-29 – etapa 3 plánu vzhledu: tlačítka zapisovačů, okno Windows, náhledy
+
+- **Tlačítka zapisovačů pro MCP a cli** (autor: „Tlačítka pro MCP a cli vyrob“): jedna společná funkce
+  `plotter_action` (`src/core/plotter_ctl`) pro okno, MCP (`plotter`: `ar_button`, `demo`, `send`, `send_file`) i
+  cli (`--plotter AKCE`, `--print-plotter`, `--plotter-png`, `--plotter-svg`). `check_machines` u AR 1990 kreslí
+  zkoušku (28 tahů), u XY 4130 ukázku (19 tahů). Povely `send` znají jen `\xNN` jako řádek okna.
+- **Titulek okna Windows** podle vzhledu: tmavý režim (atribut DWM 20), ve Windows 11 barva titulku = lišta menu
+  (35) a text (36), u neaktivního okna tlumený. dwmapi se načítá za běhu: `dwmapi.h` přes `rpcndr.h` definuje makro
+  `small`. Po změně barvy zvýraznění Windows (bez přepnutí světlý/tmavý) může SDL do další změny fokusu nastavit
+  režim titulku podle systému; projeví se jen u pevného vzhledu jiného než systém.
+- **Měřítko podle monitoru okna**, i po přesunu na jiný monitor; okna ImGui drží velikost v pixelech.
+  `--ui-scale` má přednost.
+- **Náhledy přístrojů** v tmavém vzhledu Windows 11 při 100 % (nezávisí na PC). Nově plotter z AR 1990 (celá
+  ukázka) a XY 4130 (znaková sada `G181E`). APS-5 ostřejší a s legendou.
+- **Okno APS-5** má výchozí výšku 50 em místo 44: v novém vzhledu se obsah nevešel (posuvník, uříznutá legenda).
+- **Cesty médií v okně Média** relativně k datům (`work/…`), celá cesta v tooltipu: náhled RMP-1 ukazoval absolutní
+  cestu z PC, kde vznikl.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`

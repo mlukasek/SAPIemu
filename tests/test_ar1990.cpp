@@ -3,12 +3,14 @@
 // - power on: it beeps and waits for READY, then the origin against the left stop;
 // - code 04H: the test of the pens (*** MZ-821 *** underlined);
 // - media/ar1990/ukazka.txt: the graphics commands (lines, axes, line types, texts) and the text mode;
-// - TEST held at power on: the whole character set.
+// - TEST held at power on: the whole character set;
+// - the buttons without the window (core/plotter_ctl.h: sapiemu-cli --plotter, MCP plotter).
 // AR_PNG=<folder>: also save the drawings as PNG (pictures for the documentation).
 #include "chips/ar1990.h"
 #include "chips/minigraf.h"
 #include "core/headless.h"
 #include "core/machine.h"
+#include "core/plotter_ctl.h"
 #include "core/util.h"
 #include "test_util.h"
 
@@ -100,7 +102,9 @@ static void test_demo(void)
     if (!start(m)) return;
     std::vector<uint8_t> d;
     CHECK(file_read_all(data_path("media/ar1990/ukazka.txt"), d));
-    plot(m, d.data(), d.size(), 900.0);
+    std::string err;
+    CHECK(plotter_action(m, "demo", "", err));   // the button Demo of the window, MCP demo, cli --plotter demo
+    plot(m, nullptr, 0, 900.0);
     save(m, "ar1990_ukazka.png");
     Ar1990Plotter* p = plotter(m);
     CHECK(p->pending() == 0);
@@ -123,9 +127,10 @@ static void test_charset(void)
     Minigraf* g0 = plotter(m)->minigraf();
     size_t first = g0->strokes.size();
     CHECK(g0->lost == 0);
-    g0->new_sheet();
-    plotter(m)->press(Ar1990Plotter::BTN_TEST);
-    m.reset();
+    std::string err;
+    CHECK(plotter_action(m, "new-sheet", "", err));
+    CHECK(g0->strokes.empty());
+    CHECK(plotter_action(m, "whole_test", "", err));   // as MCP names it: TEST held, the RESET of the JPR-1
     plot(m, nullptr, 0, 300.0);
     CHECK(g0->strokes.size() == first);
     save(m, "ar1990_znaky.png");
@@ -135,6 +140,51 @@ static void test_charset(void)
     CHECK(g->extent(x0, y0, x1, y1));
     printf("  the character set: %.2f x %.2f mm\n", (x1 - x0) / 8.0, (y1 - y0) / 8.0);
     CHECK(y1 - y0 > 13 * 128);   // 14 rows of 8 characters, 16 mm apart
+}
+
+// The buttons without the window (core/plotter_ctl.h) as sapiemu-cli has them: --plotter ready, the origin,
+// --plotter test (the test of the pens: 28 strokes, 62.5 x 12 mm, about 16.5 s), --print-plotter, --plotter-png
+static void test_cli_buttons(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_file("machines/plotter_ar1990.sapi", err));
+    Ar1990Plotter* p = plotter(m);
+    CHECK(p != nullptr);
+    if (!p) return;
+    std::string png = data_path("work/test/ar1990_cli.png");
+    std::vector<std::string> acts = { "--run-ms", "1000", "--plotter", "ready", "--run-ms", "6000", "--plotter", "test",
+                                      "--run-ms", "20000", "--print-plotter", "--plotter-png", png };
+    CHECK_EQ(headless_run(m, acts), 0);
+    Minigraf* g = p->minigraf();
+    CHECK(g->stopped > 1000);   // READY: the origin against the left stop
+    CHECK_EQ(g->strokes.size(), 28u);
+    int32_t x0, y0, x1, y1;
+    CHECK(g->extent(x0, y0, x1, y1));
+    double w = (x1 - x0) / 8.0, h = (y1 - y0) / 8.0;
+    printf("  the button TEST: %u strokes, %.2f x %.2f mm\n", (unsigned)g->strokes.size(), w, h);
+    CHECK(w > 60 && w < 65);
+    CHECK(h > 10 && h < 14);
+    CHECK(p->led_buff() && !p->led_ready());
+    std::string st = plotter_status(m);
+    CHECK(st.find("plotter: AR 1990 (ARITMA Minigraf 0507)") != std::string::npos);
+    CHECK(st.find("28 strokes") != std::string::npos);
+    CHECK(st.find("RDY off, BUFF on; host: 0 B waiting") != std::string::npos);
+    std::vector<uint8_t> d;
+    CHECK(file_read_all(png, d) && d.size() > 100);
+    file_remove(png);
+    // a line of commands as the window sends it: \xNN = a byte, CR at the end
+    CHECK(plotter_line("\\x02M100,0") == std::string("\x02M100,0\r"));
+    CHECK(plotter_line("\\x2Z\\") == std::string("\\x2Z\\\r"));   // not two hex digits: as typed
+    size_t before = p->pending();
+    CHECK(plotter_action(m, "send", "\\x01", err));
+    CHECK_EQ(p->pending(), before + 2);
+    CHECK(!plotter_action(m, "pen", "", err));   // the XY 4130 only
+    CHECK(!plotter_action(m, "jump", "", err));
+    CHECK(err.find("unknown plotter action") != std::string::npos);
+    CHECK(!plotter_action(m, "send-file", "media/ar1990/none.txt", err));
+    std::vector<std::string> bad = { "--plotter", "pen" };
+    CHECK(headless_run(m, bad) != 0);
 }
 
 // AR_STATE=<file>: a state in the middle of the demo (the picture of the window in the documentation)
@@ -161,6 +211,7 @@ int main(void)
         return TEST_RESULT();
     }
     test_pens();
+    test_cli_buttons();
     test_demo();
     test_charset();
     return TEST_RESULT();

@@ -16,6 +16,7 @@
 #include "chips/xy4130.h"
 #include "core/host.h"
 #include "core/machine.h"
+#include "core/plotter_ctl.h"
 #include "core/util.h"
 
 static void plot_notice(UiState& ui, bool ok, const std::string& text)
@@ -173,10 +174,9 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ImGui::SameLine();   // on the next line when the window is narrow (English is longer)
     if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(whole).x + 2.0f * ImGui::GetStyle().FramePadding.x)
         ImGui::NewLine();
-    if (ImGui::Button(whole)) {   // TEST held while the JPR-1 starts
-        p->press(Ar1990Plotter::BTN_TEST);
-        m->reset();
-    }
+    std::string err;
+    if (ImGui::Button(whole) && !plotter_action(*m, "whole-test", "", err))   // TEST held while the JPR-1 starts
+        plot_notice(ui, false, err);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Reset with TEST held: the whole character set (then READY)."));
     bool mz = !p->ascii, roll = !p->a4, crlf = !p->cr_only, lfcr = !p->lf_only;
@@ -202,28 +202,16 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Demo"))) {
-        std::vector<uint8_t> d;
-        if (file_read_all(data_path("media/ar1990/ukazka.txt"), d)) p->send(d.data(), d.size());
-    }
+    if (ImGui::Button(tr("Demo")) && !plotter_action(*m, "demo", "", err)) plot_notice(ui, false, err);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Sends media/ar1990/ukazka.txt (graphics and text mode)."));
     ImGui::SetNextItemWidth(-8.0f * ImGui::GetFontSize());
     bool go = ImGui::InputTextWithHint("##arline", tr("commands, e.g. D400,0"), line, sizeof(line),
                                        ImGuiInputTextFlags_EnterReturnsTrue);
     if (go) ImGui::SetKeyboardFocusHere(-1);   // Enter sends, the line keeps the keyboard for the next command
     ImGui::SameLine();
-    if (ImGui::Button(tr("Send")) || go) {
-        std::string s;   // \xNN = a control code
-        for (const char* c = line; *c; c++) {
-            unsigned v;
-            if (c[0] == '\\' && (c[1] == 'x' || c[1] == 'X') && sscanf(c + 2, "%2x", &v) == 1 && c[2] && c[3]) {
-                s += (char)v;
-                c += 3;
-            } else s += *c;
-        }
-        s += '\r';   // the end of the parameters
-        p->send((const uint8_t*)s.data(), s.size());
-        line[0] = 0;
+    if (ImGui::Button(tr("Send")) || go) {   // \xNN = a control code, CR at the end
+        if (plotter_action(*m, "send", line, err)) line[0] = 0;
+        else plot_notice(ui, false, err);
     }
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Sends the line and CR. Codes: 02H graphics mode (type \\x02), 01H text mode."));

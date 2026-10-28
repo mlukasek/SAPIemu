@@ -1,6 +1,8 @@
 #include "core/headless.h"
 #include "cards/dsm1.h"
+#include "chips/plotter.h"
 #include "core/machine.h"
+#include "core/plotter_ctl.h"
 #include "core/png.h"
 #include "core/tapegen.h"
 #include "core/util.h"
@@ -225,6 +227,23 @@ static int run_actions(Machine& m, const std::vector<std::string>& actions, std:
                 printf(" %s\n", d.text.c_str());
                 pc = (uint16_t)(pc + d.length);
             }
+        } else if (a == "--plotter" && has_arg) {   // ACTION [ARG]: the buttons of the plotters (core/plotter_ctl.h)
+            std::string act = actions[++i], arg, err;
+            if (plotter_action_has_arg(act)) {
+                if (i + 1 >= actions.size()) { fprintf(stderr, "--plotter %s: the argument is missing\n", act.c_str()); return 1; }
+                arg = actions[++i];
+            }
+            if (!plotter_action(m, act, arg, err)) { fprintf(stderr, "--plotter %s: %s\n", act.c_str(), err.c_str()); return 1; }
+        } else if (a == "--print-plotter") {
+            PlotterRef p;
+            if (!plotter_find(m, p)) { fprintf(stderr, "%s: %s\n", a.c_str(), PLOTTER_NONE); return 1; }
+            printf("%s", plotter_status(m).c_str());
+        } else if ((a == "--plotter-png" || a == "--plotter-svg") && has_arg) {   // the drawing with 5 mm around
+            PlotterRef p;
+            std::string err, path = actions[++i];
+            if (!plotter_find(m, p)) { fprintf(stderr, "%s: %s\n", a.c_str(), PLOTTER_NONE); return 1; }
+            bool ok = a == "--plotter-png" ? p.g->save_png(path, 8, true, err) : p.g->save_svg(path, true, err);
+            if (!ok) { fprintf(stderr, "%s: %s\n", a.c_str(), err.c_str()); return 1; }
         } else if (a == "--display" && has_arg) {
             shot_display = actions[++i];
         } else if (a == "--audio-wav" && has_arg) {

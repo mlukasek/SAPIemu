@@ -8,6 +8,7 @@
 
 struct ImFont;
 struct ImGuiIO;
+struct SDL_Window;
 
 enum ThemeVariant { THEME_WIN11 = 0, THEME_VARIANTS };   // more looks may come back (commit 1fc9a21)
 enum ThemeMode { THEME_SYSTEM = 0, THEME_LIGHT, THEME_DARK };
@@ -95,6 +96,12 @@ const ThemeFonts& theme_fonts();
 // use) and selects its font. Between frames only, before NewFrame. text_scale: View -> Settings, 1.0 = 100 %.
 void theme_apply(ThemeVariant variant, bool dark, float dpi, float text_scale);
 ThemeVariant theme_variant();
+
+// The title bar of the OS window follows the look (Windows; elsewhere nothing): light or dark, on Windows 11 also in
+// the colour of the menu bar with the text of the look, so that the title bar and the menu bar read as one band
+// (an inactive window: the secondary text, as Windows dims it). Called after every theme_apply() and when the window
+// gains or loses the focus: SDL sets the dark mode by the system at every change of the colours of Windows.
+void theme_titlebar(SDL_Window* window);
 
 // After all windows, before Render: the frame of the focused window (where the keyboard goes).
 void theme_focus_frame();

@@ -129,7 +129,8 @@ k PMD 85 a IQ 151 přes jejich rozhraní.
   - tlačítka Nový papír, Uložit PNG a Uložit SVG (`work/minigraf/kresba_<datum-čas>`). Export má šířku A4 a
     výšku kresby s okraji, nejméně A4.
 - **MCP `plotter`:** stav (poloha v mm, pero, tahy, rozsah kresby, kroky), `new_sheet`, `png`, `svg`, `px_per_mm`,
-  `crop` (jen kresba s okrajem 5 mm).
+  `crop` (jen kresba s okrajem 5 mm). V `sapiemu-cli`: `--plotter new-sheet`, `--print-plotter`, `--plotter-png`
+  a `--plotter-svg SOUBOR` (kresba s okrajem 5 mm).
 - **Ověřeno:**
   - TEST nakreslí stejnou znakovou sadu jako skutečný Minigraf na sapi.cz (`0507_4.png`, 12 řádků po 8 znacích,
     83,75 × 184,75 mm);

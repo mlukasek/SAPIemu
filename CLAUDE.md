@@ -39,7 +39,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
     png, log, `xmodem` (vysílač a přijímač pro okno terminálu), `tapegen` (kazeta MIKOS a MIKROBASIC
-    z programu, `docs/software/kazeta.md`), `relay` (spojení s relay pro síťové hry, TCP řádky
+    z programu, `docs/software/kazeta.md`), `plotter_ctl` (tlačítka zapisovačů pro okno, MCP a cli), `relay`
+    (spojení s relay pro síťové hry, TCP řádky
     i WebSocket, a spojení TCP a DNS Repository API, každé ve vlastním vlákně; karta DPI-1L, její SD karta nad
     složkou PC je `cards/dpi1l_fs`, `docs/desky/DPI-1L.md`), `state` (ukládání stavu, `docs/stav.md`:
     **každá karta musí mít `state()`**);

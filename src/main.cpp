@@ -10,6 +10,7 @@
 #include "core/host.h"
 #include "core/log.h"
 #include "core/machine.h"
+#include "core/plotter_ctl.h"
 #include "core/util.h"
 #include "core/version.h"
 #include "mcp/mcp_server.h"
@@ -92,7 +93,14 @@ static void print_help(void)
            "  --tape-format F    for --tape / --make-tape: mikos (default; .K_L, .J) or mikrobasic (LOAD)\n"
            "  --tape-name NAME   name on the tape (default from the file name)\n"
            "  --tape-addr ADDR   load address of a .bin (hex)\n"
-           "  --tape-entry ADDR  start address (hex, default the lowest address)\n",
+           "  --tape-entry ADDR  start address (hex, default the lowest address)\n"
+           "  --plotter ACTION [ARG]  a button of the plotter: pen (XY 4130 PEN), new-sheet, and of the\n"
+           "                     plotter of AR 1990 ready, test, stop, whole-test (TEST held through a reset),\n"
+           "                     demo (media/ar1990/ukazka.txt), send TEXT (only \\xNN = a byte, as the line of\n"
+           "                     the window; CR appended), send-file FILE (relative to the data root)\n"
+           "  --print-plotter    print the plotter: lamps, bytes waiting and taken, pen, strokes, extent, steps\n"
+           "  --plotter-png FILE save the drawing (with 5 mm around) as PNG, 8 px/mm\n"
+           "  --plotter-svg FILE save the drawing (with 5 mm around) as SVG\n",
            sapiemu_version(), DEFAULT_MACHINE, MCP_DEFAULT_PORT);
 }
 
@@ -101,12 +109,15 @@ static bool action_has_arg(const std::string& a)
     return a == "--run-ms" || a == "--type" || a == "--keyboard" || a == "--wait-text" || a == "--timeout-ms" ||
            a == "--serial-send" || a == "--joystick" || a == "--break" || a == "--screenshot" || a == "--display" ||
            a == "--load-hex" || a == "--audio-wav" || a == "--save-state" || a == "--load-state" || a == "--tape" || a == "--tape-export" ||
-           a == "--tape-format" || a == "--tape-name" || a == "--tape-addr" || a == "--tape-entry";
+           a == "--tape-format" || a == "--tape-name" || a == "--tape-addr" || a == "--tape-entry" ||
+           a == "--plotter-png" || a == "--plotter-svg";
 }
 
-static int action_arg_count(const std::string& a)
+// `next` = the argument after the action (--plotter send TEXT: the action decides)
+static int action_arg_count(const std::string& a, const std::string& next)
 {
     if (a == "--disasm" || a == "--load-bin" || a == "--make-tape") return 2;
+    if (a == "--plotter") return plotter_action_has_arg(next) ? 2 : 1;
     return action_has_arg(a) ? 1 : 0;
 }
 
@@ -281,7 +292,8 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--mcp") { mcp_serve = true; headless = true; }
         else {
             actions.push_back(a);
-            for (int k = action_arg_count(a); k > 0 && i + 1 < argc; k--) actions.push_back(argv[++i]);
+            for (int k = action_arg_count(a, i + 1 < argc ? argv[i + 1] : std::string()); k > 0 && i + 1 < argc; k--)
+                actions.push_back(argv[++i]);
         }
     }
 

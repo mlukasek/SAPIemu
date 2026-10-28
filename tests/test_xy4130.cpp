@@ -5,6 +5,7 @@
 #include "chips/xy4130.h"
 #include "core/headless.h"
 #include "core/machine.h"
+#include "core/plotter_ctl.h"
 #include "core/util.h"
 #include "test_util.h"
 
@@ -186,6 +187,40 @@ static void test_driver(void)
     CHECK(fabs((y1 - y0) / 10.0 - 78.8) < 1.0);
 }
 
+// The buttons without the window (core/plotter_ctl.h) as sapiemu-cli has them: the origin after MIKOS starts,
+// --plotter pen, the demo of the guide (19 strokes, 100 x 78.8 mm), --print-plotter, --plotter new-sheet
+static void test_cli_buttons(void)
+{
+    Machine m;
+    std::string err;
+    CHECK(m.load_file("machines/zps/ZPS-2_MIKOS_V5_XY4130.sapi", err));
+    std::vector<std::string> acts = { "--timeout-ms", "10000", "--wait-text", "L=XY4130", "--run-ms", "5000", "--plotter", "pen",
+                                      "--load-hex", "media/mikos/XY4130_DEMO.hex", "--type", "G8000\\r", "--run-ms", "25000",
+                                      "--print-plotter" };
+    CHECK_EQ(headless_run(m, acts), 0);
+    Xy4130* g = find(m);
+    CHECK(g != nullptr);
+    if (!g) return;
+    CHECK(g->pen_enabled());
+    int32_t x0, y0, x1, y1;
+    CHECK(g->extent(x0, y0, x1, y1));
+    printf("cli DEMO: %u strokes, %.1f x %.1f mm\n", (unsigned)g->strokes.size(), (x1 - x0) / 10.0, (y1 - y0) / 10.0);
+    CHECK_EQ(g->strokes.size(), 19u);
+    CHECK_EQ(x1 - x0, 1000);
+    CHECK(fabs((y1 - y0) / 10.0 - 78.8) < 1.0);
+    std::string st = plotter_status(m);
+    CHECK(st.find("plotter: XY 4130 on JPR-1, cable mikos") != std::string::npos);
+    CHECK(st.find("READY on, PEN on") != std::string::npos);
+    CHECK(st.find("19 strokes, 100.0 x ") != std::string::npos);
+    CHECK(!plotter_action(m, "ready", "", err));   // the plotter of AR 1990 only
+    CHECK(plotter_action(m, "new-sheet", "", err));
+    CHECK(g->strokes.empty());   // READY stays: the demo left the carriage at the left stop
+    CHECK_EQ(g->x(), g->stop_x);
+    CHECK(g->ready());
+    CHECK(plotter_action(m, "pen", "", err));
+    CHECK(!g->pen_enabled());
+}
+
 // KRES of BASIC EXP V5.0/G+SZ with the configuration byte 0Dh (XY 4130 on DPP-1, port B 31h): millimetres
 // in steps of 0.1 mm, the origin from the left stop
 static void test_kres(void)
@@ -242,6 +277,7 @@ int main(void)
     test_init();
     test_lines();
     test_driver();
+    test_cli_buttons();
     test_kres();
     return TEST_RESULT();
 }

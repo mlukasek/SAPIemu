@@ -7,6 +7,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
+#include <unordered_map>
 #include <SDL3/SDL.h>
 #include "imgui.h"
 #include "cards/dsm1.h"
@@ -19,6 +21,16 @@
 #include "core/ihex.h"
 #include "core/log.h"
 #include "core/util.h"
+
+// A path of a medium as shown: relative to the data root or "work/..." (data_relative), the whole path is in the
+// tooltip. Cached: data_relative asks the file system.
+static const std::string& shown_path(const std::string& path)
+{
+    static std::unordered_map<std::string, std::string> s_shown;
+    auto it = s_shown.find(path);
+    if (it == s_shown.end()) it = s_shown.emplace(path, data_relative(path)).first;
+    return it->second;
+}
 
 // ---------------------------------------------------------------- cassette recorder
 
@@ -395,7 +407,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     TapeDeck* t = dsm->tape();
     ImGui::PushID(dsm);
     if (t->loaded()) {
-        ImGui::TextUnformatted(t->path.c_str());
+        ImGui::TextUnformatted(shown_path(t->path).c_str());
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t->path.c_str());
         if (t->generated) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
@@ -862,7 +874,7 @@ static void draw_floppies(UiState& ui, Card* r)
         ImGui::SameLine();
         if (!d.present()) ImGui::TextDisabled("%s", tr("(no disk)"));
         else {
-            ImGui::TextUnformatted(d.path.c_str());
+            ImGui::TextUnformatted(shown_path(d.path).c_str());
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", d.path.c_str());
             ImGui::SameLine();
             ImGui::TextDisabled("(%s)", d.format.c_str());
@@ -1243,7 +1255,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     ImGui::SameLine();
     ImGui::BeginGroup();
     if (t.loaded) {
-        ImGui::Text("%s %s", tr("Tape:"), t.path.c_str());
+        ImGui::Text("%s %s", tr("Tape:"), shown_path(t.path).c_str());
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.path.c_str());
     } else ImGui::TextDisabled("%s", tr("(no tape)"));
     if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 14, r->name, i);
@@ -1450,7 +1462,7 @@ void draw_media(UiState& ui)
         theme_section(c->name.c_str());
         if (IdeDisk* d = ide ? ide->disk() : nullptr) {
             if (d->present())
-                ImGui::Text("%s %s (%u MB%s)", tr("IDE disk:"), d->path().c_str(), d->sector_count() / 2048,
+                ImGui::Text("%s %s (%u MB%s)", tr("IDE disk:"), shown_path(d->path()).c_str(), d->sector_count() / 2048,
                             d->is_readonly() ? tr(", read only") : "");
             else
                 ImGui::TextUnformatted(tr("IDE disk: none"));

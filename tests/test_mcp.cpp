@@ -209,6 +209,32 @@ int main(void)
     CHECK(r["isError"] == true);   // write protected
     r = tool(s, "tape_control", { { "action", "eject" } });
     CHECK(json::parse(text_of(r))["tape"]["loaded"] == false);
+    r = tool(s, "plotter", json::object());
+    CHECK(r["isError"] == true);   // no plotter in ZPS-1
+
+    // the plotter of AR 1990: READY (the origin), TEST (the test of the pens), a line of commands
+    r = tool(s, "load_machine", { { "path", "machines/plotter_ar1990.sapi" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "run_for", { { "ms", 1000 } });   // it beeps and waits for READY
+    r = tool(s, "plotter", json::object());
+    CHECK(json::parse(text_of(r))["lamp_rdy"] == true);
+    r = tool(s, "plotter", { { "ar_button", "ready" } });
+    r = tool(s, "run_for", { { "ms", 6000 } });
+    r = tool(s, "plotter", { { "ar_button", "test" } });
+    CHECK(r["isError"] == false);
+    r = tool(s, "run_for", { { "ms", 20000 } });
+    r = tool(s, "plotter", json::object());
+    json pl = json::parse(text_of(r));
+    CHECK(pl["device"] == "AR 1990");
+    CHECK(pl["strokes"] == 28);
+    CHECK(pl["lamp_rdy"] == false && pl["lamp_buff"] == true);
+    CHECK(pl["bytes_waiting"] == 0);
+    r = tool(s, "plotter", { { "send", "\\x02M0,0" } });
+    CHECK(json::parse(text_of(r))["bytes_waiting"] == 6);   // 02h, M0,0 and CR
+    r = tool(s, "plotter", { { "ar_button", "jump" } });
+    CHECK(r["isError"] == true);
+    r = tool(s, "plotter", { { "pen_button", true } });
+    CHECK(r["isError"] == true);   // the XY 4130 only
 
     // quit: the machine is switched off, the loop of the program is asked to end
     CHECK(!host.quit_requested);

@@ -10,13 +10,26 @@
 #include "imgui.h"
 #include "imgui_internal.h"   // the focused window and its rectangle (the focus frame)
 
+#include "core/log.h"
 #include "core/util.h"
+
+#ifdef _WIN32
+#include <SDL3/SDL.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>   // not dwmapi.h: it brings rpcndr.h with the macro "small"
+#endif
 
 namespace {
 
 ThemeColors g_colors;
 ThemeFonts g_fonts;
 ThemeVariant g_variant = THEME_WIN11;
+const ThemePalette* g_palette = nullptr;   // in use (the title bar of the OS window)
 float g_dpi = 1.0f;
 bool g_override = false;
 ThemeVariant g_override_variant = THEME_WIN11;
@@ -70,6 +83,37 @@ std::string windows_font(const char* file)
     return std::string();
 #endif
 }
+
+#ifdef _WIN32
+// DwmSetWindowAttribute from dwmapi.dll, loaded at run time (SDL loads it the same way, so it is usually there
+// already); the attributes by number, older SDKs do not name 35 and 36.
+typedef HRESULT(WINAPI* DwmSetWindowAttributeFn)(HWND, DWORD, LPCVOID, DWORD);
+enum {
+    DWM_DARK_MODE = 20,       // DWMWA_USE_IMMERSIVE_DARK_MODE (BOOL), Windows 10 20H1 and newer
+    DWM_DARK_MODE_OLD = 19,   // the same before Windows 10 20H1
+    DWM_CAPTION_COLOR = 35,   // DWMWA_CAPTION_COLOR (COLORREF), Windows 11
+    DWM_TEXT_COLOR = 36       // DWMWA_TEXT_COLOR (COLORREF), Windows 11
+};
+
+DwmSetWindowAttributeFn dwm_set_attribute()
+{
+    static bool tried = false;
+    static DwmSetWindowAttributeFn fn = nullptr;
+    if (!tried) {
+        tried = true;
+        HMODULE dll = GetModuleHandleW(L"dwmapi.dll");
+        if (!dll) dll = LoadLibraryExW(L"dwmapi.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        if (dll) fn = (DwmSetWindowAttributeFn)(void*)GetProcAddress(dll, "DwmSetWindowAttribute");
+    }
+    return fn;
+}
+
+// 0xRRGGBB -> COLORREF 0x00BBGGRR
+DWORD colorref(uint32_t rgb)
+{
+    return ((rgb >> 16) & 0xFF) | (rgb & 0xFF00) | ((rgb & 0xFF) << 16);
+}
+#endif
 
 } // namespace
 
@@ -139,6 +183,7 @@ void theme_apply(ThemeVariant variant, bool dark, float dpi, float text_scale)
     const ThemePalette& p = dark ? *def.dark : *def.light;
     const ThemeMetrics& m = *def.metrics;
     g_variant = variant;
+    g_palette = &p;
     g_dpi = dpi;
 
     ImGuiStyle s;   // from scratch: ScaleAllSizes() truncates, a style scaled twice drifts
@@ -266,6 +311,42 @@ void theme_apply(ThemeVariant variant, bool dark, float dpi, float text_scale)
     t.code_bg = col(p.code_bg);
     t.desktop = ImGui::ColorConvertFloat4ToU32(col(p.desktop));
     t.focus = ImGui::ColorConvertFloat4ToU32(col(p.focus));
+}
+
+// SDL sets the dark mode of the title bar by the system when the window is created and at every WM_SETTINGCHANGE
+// "ImmersiveColorSet" (SDL_windows.c, WIN_UpdateDarkModeForHWND). A change between light and dark brings
+// SDL_EVENT_SYSTEM_THEME_CHANGED after it (app.cpp: restyle, so ours wins); other changes of the colours of Windows
+// (the accent colour) bring no event and are corrected at the next change of the focus. The colours of the caption
+// and its text are ours only, SDL does not touch them.
+void theme_titlebar(SDL_Window* window)
+{
+#ifdef _WIN32
+    static uint64_t logged = ~0ull;   // the mode and the caption last logged (--verbose: once per look)
+    if (!window || !g_palette) return;
+    HWND hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WIN32_HWND_POINTER,
+                                             nullptr);
+    DwmSetWindowAttributeFn set = dwm_set_attribute();
+    if (!hwnd || !set) {
+        if (logged == ~0ull) LOGD("title bar: %s", hwnd ? "no DwmSetWindowAttribute" : "no HWND");
+        logged = 0;
+        return;
+    }
+    const ThemePalette& p = *g_palette;
+    bool active = (SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS) != 0;
+    BOOL dark = g_colors.dark ? TRUE : FALSE;
+    DWORD caption = colorref(p.menubar), text = colorref(active ? p.text : p.text_dim);
+    HRESULT hd = set(hwnd, DWM_DARK_MODE, &dark, sizeof(dark));
+    if (FAILED(hd)) hd = set(hwnd, DWM_DARK_MODE_OLD, &dark, sizeof(dark));
+    HRESULT hc = set(hwnd, DWM_CAPTION_COLOR, &caption, sizeof(caption));   // fails harmlessly on Windows 10
+    HRESULT ht = set(hwnd, DWM_TEXT_COLOR, &text, sizeof(text));
+    uint64_t now = ((uint64_t)dark << 32) | caption;
+    if (now != logged)
+        LOGD("title bar: dark mode %d 0x%08lX, caption 0x%06lX 0x%08lX, text 0x%06lX 0x%08lX", (int)dark,
+             (unsigned long)hd, (unsigned long)caption, (unsigned long)hc, (unsigned long)text, (unsigned long)ht);
+    logged = now;
+#else
+    (void)window;   // the window manager draws the title bar
+#endif
 }
 
 void theme_focus_frame()

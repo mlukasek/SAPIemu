@@ -49,8 +49,14 @@ BASIC = w('READY', 10000) + t('PRINT 6*7\\r') + run(1500)
 MIKOS = run(3000) + t('D0 7\\r') + run(1500)
 MANIC = run(2000) + ['--load-hex', 'media/jpr-1s/manic_miner.hex'] + t('JUMP 4400\\r') + run(8000)
 
+def plotter(action, arg=None):
+    """A button of the plotter (sapiemu-cli --plotter: ready, test, pen, demo, send TEXT...)."""
+    return ['--plotter', action] + ([arg] if arg is not None else [])
+
+
 # machine (file name without .sapi, zps/ as zps_): (actions, checks). A check is a text on the screen,
-# 'shot:<display>' (a screenshot that is not one colour), 'serial:<text>' or 'log-clean'.
+# 'shot:<display>' (a screenshot that is not one colour), 'serial:<text>', 'strokes:<n>' (the plotter has drawn
+# at least n strokes, --print-plotter; the drawing is saved as PNG next to the log) or 'log-clean'.
 MACHINES = {
     'mikromon': (run(1500) + t('?\\r') + run(1500), ['M adr']),
     'aps5': (w('ZOBRAZENI TABULKY PORUCH', 20000) + t('11\\r') + run(6000), ['VYVOLANI MENU', 'I    0:00']),
@@ -87,7 +93,9 @@ MACHINES = {
                        t('MARTIN\\r') + w('b1$', 30000) + t('DIR A:\\r') + run(8000), ['MARTIN', 'b1$', ' COM']),
     'rkd1_jb_cm5400': (CPM + cpm_dir('B:'), ['FORMRKD']),
     'rmp1_jb_izot': (CPM + t('B:DIRMT 0\\r') + run(20000), ['SAPI01']),
-    'plotter_ar1990': (run(3000), ['log-clean']),
+    # READY after the beep: the origin (about 5 s), TEST: the test of the pens (28 strokes in about 16.5 s)
+    'plotter_ar1990': (run(1000) + plotter('ready') + run(6000) + plotter('test') + run(20000),
+                       ['strokes:28', 'log-clean']),
     'jpr1s_bgp1s': (MANIC, ['shot:BGP-1S']),
     'jpr1x_bgp1s': (MANIC, ['shot:BGP-1S']),
     'zps_MIKROBASIC_AR1983': (BASIC, ['42']),
@@ -102,7 +110,10 @@ MACHINES = {
     'zps_ZPS-2_MIKOS_V5': (MIKOS, ['0000']),
     'zps_ZPS-2_MIKOS_V5_DGD-1V': (MIKOS, ['0000']),
     'zps_ZPS-2_MIKOS_V5_Minigraf': (MIKOS, ['0000']),
-    'zps_ZPS-2_MIKOS_V5_XY4130': (run(5000) + MIKOS, ['L=XY4130', '0000']),   # the carriage to the left stop first
+    # the carriage to the left stop first; then PEN and the demo of the guide (19 strokes, the screen is cleared)
+    'zps_ZPS-2_MIKOS_V5_XY4130': (run(5000) + MIKOS + ['--print-screen'] + plotter('pen') +
+                                  ['--load-hex', 'media/mikos/XY4130_DEMO.hex'] + t('G8000\\r') + run(25000),
+                                  ['L=XY4130', '0000', 'strokes:19']),
     'zps_ZPS-3': (CPM + cpm_dir(), [' COM']),
     'zps_ZPS-3_CPM48K': (CPM + cpm_dir(), [' COM']),
     'zps_ZPS-3_CPM48K_FDC-1': (CPM + cpm_dir(), [' COM']),
@@ -200,6 +211,8 @@ def check_machines(cli, sb, filt):
         png = os.path.join(out_dir, name + '.png')
         if shot:
             acts += ['--display', shot[0], '--screenshot', png]
+        if any(e.startswith('strokes:') for e in exp):
+            acts += ['--print-plotter', '--plotter-png', os.path.join(out_dir, name + '_plotter.png')]
         out = cli_run(cli, sb, rel, acts + ['--print-screen'], os.path.join(out_dir, name + '.txt'))
         fails, text = problems(out)
         for e in exp:
@@ -210,6 +223,11 @@ def check_machines(cli, sb, filt):
             elif e.startswith('serial:'):
                 if e[7:] not in text:
                     fails.append('serial line lacks %r' % e[7:])
+            elif e.startswith('strokes:'):
+                m = re.search(r'drawing: (\d+) strokes', text)
+                n = int(m.group(1)) if m else 0
+                if n < int(e[8:]):
+                    fails.append('plotter: %d strokes, expected %s' % (n, e[8:]))
             elif e == 'log-clean':
                 pass   # warnings are in fails already
             elif e not in text:

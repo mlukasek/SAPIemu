@@ -16,6 +16,10 @@
 //   --save-state FILE     save the state of the machine (docs/stav.md)
 //   --load-state FILE     load a state (the machine of the state is built when it differs)
 //   --audio-wav FILE      record the sound card output from here on, saved as WAV at the end
+//   --plotter ACTION [ARG]  a button of the plotter: pen, new-sheet, ready, test, stop, whole-test, demo,
+//                         send TEXT, send-file FILE (core/plotter_ctl.h)
+//   --print-plotter       print the plotter: lamps, bytes waiting and taken, pen, strokes, extent, steps
+//   --plotter-png FILE    save the drawing (with 5 mm around) as PNG, 8 px/mm; --plotter-svg FILE as SVG
 //
 // Returns the process exit code (0 = all actions succeeded).
 #include <string>

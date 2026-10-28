@@ -115,7 +115,8 @@ struct App {
     bool look_override = false;   // --ui-theme in use (not saved) until a look is chosen in the settings
     bool restyle = true;          // build the style before the next frame
     bool snapshot = false;        // a self-check: "as the system says" is light, the pictures do not depend on the PC
-    float dpi = 1.0f;
+    float dpi = 1.0f;             // the scale of the display of the window (View -> Settings: text size on top)
+    bool dpi_fixed = false;       // --ui-scale: the scale of a snapshot, not of the display
     bool style_editor = false;    // Debug -> Style editor (debug builds)
 };
 
@@ -298,6 +299,27 @@ static void apply_look(App& app)
     bool dark = md == THEME_DARK;
     if (md == THEME_SYSTEM && !app.snapshot) dark = SDL_GetSystemTheme() == SDL_SYSTEM_THEME_DARK;
     theme_apply(v, dark, app.dpi, (float)app.text_percent / 100.0f);
+    theme_titlebar(app.window);   // after SDL: it sets the title bar by the system (theme.cpp)
+}
+
+// The content scale of a display (125 % = 1.25); 1 when SDL does not know it.
+static float display_scale(SDL_DisplayID display)
+{
+    float s = display ? SDL_GetDisplayContentScale(display) : 0.0f;
+    return s > 0 ? s : 1.0f;
+}
+
+// The window moved to a monitor with another scale, or the scale of its monitor changed: the style is built again
+// for it (between frames, app.restyle). The windows of ImGui keep their place and size in pixels, as SDL keeps the
+// size of the OS window in pixels. --ui-scale wins.
+static void follow_display_scale(App& app)
+{
+    if (app.dpi_fixed || !app.window) return;
+    float dpi = display_scale(SDL_GetDisplayForWindow(app.window));
+    if (dpi == app.dpi) return;
+    LOGI("display scale %.0f %% (was %.0f %%)", dpi * 100.0f, app.dpi * 100.0f);
+    app.dpi = dpi;
+    app.restyle = true;
 }
 
 // View -> Settings: a look chosen here is saved and replaces --ui-theme.
@@ -1422,9 +1444,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     App& app = *app_ptr;
     app.ui.host = &app.host;
 
-    float dpi = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-    if (dpi <= 0) dpi = 1.0f;
-    if (snap && snap->scale > 0) dpi = snap->scale;   // --ui-scale: pictures at 125 %, 150 %... on any PC
+    // the scale for the size of a new window: the primary display, where SDL centres it; once the window exists, the
+    // scale of its display (follow_display_scale)
+    float dpi = display_scale(SDL_GetPrimaryDisplay());
+    app.dpi_fixed = snap && snap->scale > 0;
+    if (app.dpi_fixed) dpi = snap->scale;   // --ui-scale: pictures at 125 %, 150 %... on any PC
     app.dpi = dpi;
     app.snapshot = snap != nullptr;
 
@@ -1500,6 +1524,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     app.renderer = SDL_CreateRenderer(app.window, nullptr);
     if (!app.window || !app.renderer)
         return fatal(std::string(tr("Cannot create the window")) + ":\n" + SDL_GetError(), !snap);
+    follow_display_scale(app);   // a saved place on another monitor; the style is not built yet (app.restyle)
 #ifndef _WIN32
     // Windows takes the icon from the exe resources (src/res/sapiemu.rc.in)
     if (SDL_Surface* icon = SDL_LoadPNG(data_path("docs/img/ikona.png").c_str())) {
@@ -1519,7 +1544,6 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     // the fonts of all looks (baked on demand); the style is built before the first frame (app.restyle)
     theme_fonts_load(io);
     app.ui.mono = theme_fonts().mono;
-    apply_look(app);
     ImGui_ImplSDL3_InitForSDLRenderer(app.window, app.renderer);
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
@@ -1596,10 +1620,15 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             else if (ev.type == SDL_EVENT_KEY_UP) handle_key_up(app, ev.key);
             else if (ev.type == SDL_EVENT_WINDOW_FOCUS_LOST) {   // keys released elsewhere are not seen
                 if (KeyboardDevice* k = held_keyboard(app)) k->release_all();
+                theme_titlebar(app.window);   // the dimmed text of an inactive window
             }
+            else if (ev.type == SDL_EVENT_WINDOW_FOCUS_GAINED) theme_titlebar(app.window);
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
             else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
             else if (ev.type == SDL_EVENT_SYSTEM_THEME_CHANGED) app.restyle = true;   // Windows light / dark
+            else if (ev.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED || ev.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
+                     ev.type == SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED)
+                follow_display_scale(app);   // another monitor, or its scale changed in the system
         }
         app.host.poll();   // MCP commands
         if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator

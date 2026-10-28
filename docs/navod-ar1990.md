@@ -97,3 +97,10 @@ Jednoznakové povely se dají psát za sebou (`HD100,200`), za dvouznakovými (`
 
 **Uložit PNG** a **Uložit SVG** uloží celý papír do `work/minigraf`. **Nový papír** smaže kresbu (pero zůstane,
 kde je).
+
+## Bez okna (pro vývojáře)
+
+- **MCP:** nástroj `plotter` (`docs/mcp.md`): `ar_button` (`ready`, `test`, `stop`, `whole_test`), `demo`, `send`
+  (povely, `\xNN` = bajt), `send_file`; výsledek ukáže kontrolky RDY a BUFF a bajty, které čekají.
+- **sapiemu-cli:** `--plotter ready|test|stop|whole-test|demo`, `--plotter send TEXT`, `--plotter send-file SOUBOR`,
+  `--print-plotter` a `--plotter-png SOUBOR` (příklad v `docs/build.md`).

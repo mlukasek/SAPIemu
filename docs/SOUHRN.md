@@ -13,7 +13,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   - **Checkpoint A:** autor vybral Windows 11, světlý i tmavý. Ostatní vzhledy jsou zrušené, mechanismus pro ně
     zůstává. Logo v O programu je v barvě textu.
   - **Etapa 2 hotová** (výběr sestav podle historie SAPI, průvodci XY 4130 a AR 1990, texty v README a Prvních
-    krocích, tooltip o rámu), čeká checkpoint B (autor schválí texty). Náhledy AR 1990 a XY 4130 v etapě 3.
+    krocích, tooltip o rámu); checkpoint B: texty schválené, úvod „průmyslový řídicí počítač do racku“.
+  - **Etapa 3 hotová** (2026-10-29): tlačítka zapisovačů v MCP a cli (`core/plotter_ctl`), titulek okna Windows
+    v barvách vzhledu, měřítko podle monitoru, náhledy přístrojů v novém vzhledu (nově AR 1990 a XY 4130).
+    Autor ručně ověří titulek a přesun mezi monitory. Další je etapa 4 (ovládání).
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.
