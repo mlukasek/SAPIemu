@@ -244,7 +244,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   okna, luminofor, škálování, poměr TV, vyhlazování, typy karet, volby terminálu (emulace, CR, echo, TCP port
   a protokol, COM) a rychlost.
 - **Poslední sestava** je jen taková, která se úspěšně spustila (ne neuložená sestava z konfigurátoru). Když
-  soubor zmizí nebo nejde spustit, naběhne MikroMon. `--machine` má přednost.
+  soubor zmizí, naběhne ZPS-1 s MIKROBASICem (od 2026-10-28, dřív MikroMon), když sestava nejde spustit, MikroMon.
+  `--machine` má přednost.
 - **Ukládá se při ukončení a každé 3 s, pokud se něco změnilo** (při pádu se nic neztratí). Okno se otevře na
   uložené pozici jen tehdy, když leží na některém připojeném monitoru.
 - `--settings soubor.json` použije jiný soubor (profily, testy). `--ui-snapshot` bez něj nastavení nečte ani
@@ -1797,6 +1798,15 @@ Autor body níže potvrdil („souhlas“, 2026-10-17).
   oddíly karet, které jsou zařízením (tabulka `k_device_sections` a mechaniky a jednotky), magnetofon DSM-1
   a technologie mimo počítač. U médií je jméno obrazu, u tiskárny ne (výstupní soubor na PC médium není). Kanály
   sériových karet a strana PC se neukazují.
+
+## 2026-10-28 – první sestava GUI
+
+- **GUI bez nastavení spustí ZPS-1 s MIKROBASICem** (`machines/zps/ZPS-1.sapi`) místo MikroMonu (autor: „jako
+  základní sestavu udělat fakt tu nejjednodušší s MIKROBASIC“, má být vybraná ve výběru sestav). Je první ze
+  Základu, výběr sestav vybírá běžící sestavu. `sapiemu-cli` bez `--machine` (headless, MCP) a záloha GUI, když se
+  sestava nenačte, zůstávají u `mikromon.sapi`: na tom stojí návody k MCP a testy.
+- **Odkazy v Průvodci sestavou** jsou tlačítka pod odstavcem, zarovnaná s jeho textem a zalomená podle šířky
+  okna. Dřív stály za posledním řádkem odstavce a u dlouhého textu utekly za okraj.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

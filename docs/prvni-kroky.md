@@ -17,7 +17,8 @@ Potřebujete Windows 10 nebo 11, 64 bit.
 
 ## Sestavy
 
-Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám. Sestavy jsou rozdělené do skupin:
+Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám. Za ním už běží nejjednodušší
+sestava ZPS-1 s MIKROBASICem a ve výběru je vybraná. Sestavy jsou rozdělené do skupin:
 **Základ** (historické sestavy Tesla), **Desky Libora Lasoty**, **Hry a dema** (včetně přístrojů) a **Ostatní**. U
 každé je náhled, krátký popis, karty po slotech s připojeným příslušenstvím (klávesnice, mechaniky a obrazy
 disket, tiskárna, zapisovač, magnetofon…) a tlačítko Spustit; dvojklik sestavu také spustí. U sestav ze Základu, Liborových desek

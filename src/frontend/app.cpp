@@ -1446,7 +1446,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (!last.empty() && !file_exists(data_path(last)) && last.size() > 6 &&
             last.compare(last.size() - 6, 6, ".jsonc") == 0)
             last = last.substr(0, last.size() - 6) + ".sapi";   // machine files were renamed to .sapi
-        first = !last.empty() && file_exists(data_path(last)) ? last : std::string(DEFAULT_MACHINE_FILE);
+        if (!last.empty() && file_exists(data_path(last))) first = last;
+        else first = file_exists(data_path(GUI_FIRST_MACHINE_FILE)) ? GUI_FIRST_MACHINE_FILE : DEFAULT_MACHINE_FILE;
     }
     load_machine(app, first);
     if (snap && !snap->state.empty()) {   // a picture of a saved moment

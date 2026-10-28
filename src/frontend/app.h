@@ -2,8 +2,12 @@
 #include <string>
 #include <vector>
 
-// Machine started when neither --machine nor the settings name one.
+// Machine started when neither --machine nor the settings name one: sapiemu-cli (headless, MCP) and the fallback
+// of the GUI when a machine does not load.
 #define DEFAULT_MACHINE_FILE "machines/mikromon.sapi"
+// The GUI without settings (a new installation): the simplest historic set, the first of the basics in the window
+// Choose a machine, which therefore has it selected.
+#define GUI_FIRST_MACHINE_FILE "machines/zps/ZPS-1.sapi"
 
 // Self-check of the GUI layout: render into a hidden window, save the window
 // content as PNG and exit (sapiemu --ui-snapshot FILE [--ui-rack SLOT] [--ui-open MACHINE]).
@@ -42,7 +46,7 @@ struct UiSnapshot {
 };
 
 // Runs the SDL3/ImGui frontend; returns the process exit code. An empty
-// machine_file starts the machine used last (settings), else DEFAULT_MACHINE_FILE.
+// machine_file starts the machine used last (settings), else GUI_FIRST_MACHINE_FILE.
 // settings_file: settings to use instead of sapiemu-settings.json next to the exe.
 int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* snapshot = nullptr,
             const std::string& settings_file = std::string());   // mcp_port 0 = no MCP server, -1 = as the settings say

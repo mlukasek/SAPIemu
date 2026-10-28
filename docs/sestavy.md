@@ -12,7 +12,9 @@ karty podle slotů s názvem z katalogu, pod nimi klávesnice, joystick nebo my�
 zapisovače, KZD-1, PMD32-SD, IDE disk, mechaniky a jednotky s obrazem média), magnetofon DSM-1, co je v K2/K3,
 a technologie mimo počítač (APS-5, IMS-2). Nové zařízení karty se do seznamu dostane přes `k_device_sections`.
 Výpis všech sestav: `test_machine_cfg --parts` (`--parts en` anglicky).
-Při prvním spuštění (bez souboru nastavení) se otevře samo. Podklady (2026-10-17, `docs/vydani/sestavy.md`):
+Při prvním spuštění (bez souboru nastavení) se otevře samo a běží v něm ZPS-1 s MIKROBASICem
+(`GUI_FIRST_MACHINE_FILE` v `src/frontend/app.h`), která je proto vybraná. `sapiemu-cli` bez `--machine` dál
+spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/vydani/sestavy.md`):
 
 - **`machines/_vyber.json`** (JSON s komentáři; soubory začínající `_` nejsou sestavy): kategorie v pořadí
   (`id`, `name`, `name_en`, `text`, `text_en`, `group` pro kategorie pod společným nadpisem „Ostatní“, `guides`
