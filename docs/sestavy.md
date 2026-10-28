@@ -16,10 +16,14 @@ Při prvním spuštění (bez souboru nastavení) se otevře samo a běží v n�
 (`GUI_FIRST_MACHINE_FILE` v `src/frontend/app.h`), která je proto vybraná. `sapiemu-cli` bez `--machine` dál
 spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/vydani/sestavy.md`):
 
-- **`machines/_vyber.json`** (JSON s komentáři; soubory začínající `_` nejsou sestavy): kategorie v pořadí
-  (`id`, `name`, `name_en`, `text`, `text_en`, `group` pro kategorie pod společným nadpisem „Ostatní“, `guides`
-  = průvodce se otevře sám) a seznamy sestav, k sestavám krátký titulek a text (`title`, `title_en`, `summary`,
-  `summary_en`). Sestavy, které rejstřík nezná (vlastní), jsou na konci v „Nezařazené a vlastní sestavy“.
+- **`machines/_vyber.json`** (JSON s komentáři; soubory začínající `_` nejsou sestavy):
+  - `intro`, `intro_en`: úvod nad seznamem přes celou šířku okna (co byl SAPI-1, kde začít);
+  - kategorie v pořadí (`id`, `name`, `name_en`, `text`, `text_en` pod otevřeným nadpisem, `group` pro kategorie
+    pod společným nadpisem „Ostatní“, `guides` = průvodce se otevře sám) a seznamy sestav;
+  - `titles` v kategorii: titulek sestavy jen v ní (`{"jpr1s_bgp1s.sapi": {"title": …, "title_en": …}}`, Manic
+    Miner v Hrách a demech), jinde má sestava svůj titulek;
+  - k sestavám krátký titulek a text (`title`, `title_en`, `summary`, `summary_en`). Sestavy, které rejstřík nezná
+    (vlastní), jsou na konci v „Nezařazené a vlastní sestavy“.
 - **Náhledy** `machines/previews/<id>.png`, kde `<id>` je cesta v `machines/` bez `.sapi` a s `_` místo `/`
   (`zps_ZPS-1`). Vyrábí je `python tools/make_previews.py [--debug] [filtr]`: sestavu spustí scénářem z
   `tools/check_machines.py` (nebo z `PREVIEWS` ve skriptu) nad čistou kopií dat a obrazovku zmenší na 480 bodů.
@@ -27,7 +31,13 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
   tlačítkem Napsat do SAPI, odkazy na `docs/` a web). Okno Průvodce sestavou se otevře samo u kategorií s
   `guides`, dokud ho uživatel u sestavy nebo celkově nevypne (nastavení `guides`).
 - Naposledy spuštěné sestavy (z okna) jsou nahoře, ukládají se v nastavení (`browser.recent`). Běžící
-  sestava je zelená.
+  sestava je zelená a má za jménem „(běží)“, hlavní tlačítko u ní je Restartovat (jen myší: Enter spustí sestavu,
+  která neběží, aby jedna klávesa nezahodila paměť běžící).
+- Hledání nedbá na diakritiku a velikost písmen (`machine_index_matches`, „zaznamnik“ najde „Záznamník“).
+- Svítí jen řádek, na který uživatel klikl (sestava může být ve dvou kategoriích); u titulku podle kategorie je
+  v podrobnostech tento titulek a pod ním vlastní titulek sestavy.
+- Při prvním spuštění: když uživatel výběr zavře bez spuštění sestavy, otevře se průvodce ZPS-1 (pokud se průvodci
+  otevírají sami a jiný průvodce už neběží).
 - Test `test_machine_index` hlídá, že rejstřík zná jen existující sestavy a sestavy s průvodcem ho mají.
 
 ## Konfigurátor (Zobrazení → Sestava…)

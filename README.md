@@ -2,26 +2,33 @@
 
 <img src="docs/img/logo.png" alt="SAPI 1" width="342">
 
-**Emulátor počítače Tesla SAPI-1**: Z80, 8080 a 8085, modulární karty na sběrnici ARB-1, od původních sestav ZPS-1
-až ZPS-4 a SAPI-1.5 (ZPS-6) po nové desky Libora Lasoty („V“, JPR-1S, JPR-1X, BGP-1S, AND-1B, ANK-1M2). Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle
-PROM dumpů). K počítači patří i přístroje: měřicí jednotka APS-5 s regulací pecí, kazetopáskový záznamník dat
-KZD-1, kazetový disk RKD-1, magnetická páska RMP-1, přístrojová sběrnice IMS-2 s voltmetrem a zdrojem, zapisovač
-ARITMA Minigraf 0507, grafická jednotka XY 4130 a plotter z Amatérského radia 1990. Chování desek V se ověřuje měřením na skutečném SAPI-1 V
-(logický analyzátor), odchylky od desky jdou v konfigurátoru vypnout. Emulátor má vestavěný MCP server pro vývoj
-softwaru pro SAPI s Claude.
+**Emulátor počítače Tesla SAPI-1.** SAPI-1 (1983–1990) byl československý průmyslový řídicí počítač, ne domácí
+počítač: modulární karty s procesorem 8080 nebo Z80 v rámu na sběrnici ARB-1. Navrhl ho Ing. Eduard Smutný,
+vyráběla ho Tesla Liberec. Hlavní jsou původní sestavy ZPS-1 až ZPS-4 a SAPI-1.5 (ZPS-6) s MIKROBASICem, MIKOSem
+a CP/M. Karty se dají skládat a nastavovat jako skutečné (propojky, dekodéry podle PROM dumpů). K počítači patří
+přístroje: měřicí jednotka APS-5 s regulací pecí, přístrojová sběrnice IMS-2 s voltmetrem a zdrojem, zapisovač
+ARITMA Minigraf 0507, grafická jednotka XY 4130, plotter z Amatérského radia 1990, kazetopáskový záznamník dat KZD-1,
+kazetový disk RKD-1 a magnetická páska RMP-1. Nové desky Libora Lasoty („V“, JPR-1S, JPR-1X s 8085, BGP-1S, AND-1B,
+ANK-1M2) přidávají VGA, barevnou grafiku a zvuk. Hry a dema na nových deskách jsou novodobý doplněk, SAPI-1 nebyl
+herní počítač. Chování desek V se ověřuje měřením na skutečném SAPI-1 V (logický analyzátor), odchylky od desky jdou
+v konfigurátoru vypnout. Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
 
-> *English: an emulator of the Czechoslovak Tesla SAPI-1 modular computer (Z80/8080/8085, ARB-1 bus) for Windows.
-> Cards are configured like the real boards (jumpers, address decoders from PROM dumps). Original ZPS-1 to ZPS-4
-> machines with MIKROBASIC, MIKOS and CP/M, the new boards of Libor Lasota ("V" boards with VGA, colour graphics
-> and YM3812 sound, JPR-1S/JPR-1X, PMD-85 style graphics BGP-1S), the APS-5 furnace control unit, the KZD-1
-> cassette data recorder, the RKD-1 cartridge disk, the RMP-1 magnetic tape, the IMS-2 instrument bus with a
-> voltmeter and a power supply, the ARITMA Minigraf 0507 and XY 4130 plotters, cassette tapes made from programs, save states,
-> a debugger and a built-in MCP server. The V boards are checked against a real SAPI-1 V with a logic analyzer.
+> *English: an emulator of the Czechoslovak Tesla SAPI-1 (1983-1990) for Windows. SAPI-1, designed by Ing. Eduard
+> Smutný and made by Tesla Liberec, was an industrial control computer, not a home computer: modular cards with an
+> 8080 or a Z80 in a rack on the ARB-1 bus. Cards are configured like the real boards (jumpers, address decoders
+> from PROM dumps). First come the original ZPS-1 to ZPS-4 sets and SAPI-1.5 (ZPS-6) with MIKROBASIC, MIKOS and
+> CP/M, then the instruments: the APS-5 furnace control unit, the IMS-2 instrument bus with a voltmeter and a power
+> supply, the ARITMA Minigraf 0507 plotter, the XY 4130 graphics unit (Laboratorní přístroje Praha), the plotter from the magazine Amatérské radio (1990), the
+> KZD-1 cassette data recorder, the RKD-1 cartridge disk and the RMP-1 magnetic tape. The new boards of Libor
+> Lasota ("V" boards with VGA, colour graphics and YM3812 sound, JPR-1S, JPR-1X with an 8085, PMD-85 style graphics
+> BGP-1S) run games and demos, a modern extra: SAPI-1 was not a games machine. Also cassette tapes made from
+> programs, save states, a debugger and a built-in MCP server. The V boards are checked against a real SAPI-1 V with
+> a logic analyzer.*
 >
 > *Getting started: download the zip from [Releases](https://github.com/mlukasek/SAPIemu/releases), unpack it
 > and run `sapiemu.exe`, nothing is installed. The first start shows the window Choose a machine: the historic
-> ZPS sets, the boards of Libor Lasota, games and demos, instruments, each with a preview and a short text; the
-> machines of the first groups have a guide in English (Help → Machine guide). The user interface is in Czech
+> ZPS sets, instruments, the boards of Libor Lasota, games and demos, each with a preview and a short text; the
+> machines of the first four groups have a guide in English (Help → Machine guide). The user interface is in Czech
 > and English (View → Settings), the detailed documentation is in Czech. The emulator sends nothing anywhere by
 > itself, see "Síť a soukromí" (network and privacy) below. Prince of Persia (machine `sapi1v_PoP`) is an
 > unofficial, non-commercial port shown as a demonstration of historic technology; at the request of the copyright
@@ -137,7 +144,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
   ([docs/software/ECMON.md](docs/software/ECMON.md)).
 - **Konfigurátor sestavy:**
-  - panely karet jako na skutečném stroji, LED podle emulace, konektory podle fotografií desek;
+  - panely karet podle modernizované skříně Libora Lasoty s popsanými panely (původní Tesla SAPI-1 měl holé karty
+    za krycím panelem), LED podle emulace, konektory podle fotografií desek;
   - sběrnice ARB-1, ARB-1A/Au, ARB-1B, ARB-1C (14 i 8 pozic) a ImBUS9/ImBUS12 Libora Lasoty;
   - propojky, některé i za chodu; karty jde myší přetáhnout do jiného slotu;
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
@@ -165,8 +173,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   i monitoru, adresář, kopírování z magnetofonu a zpět programem CKM, i jeho opravenou kopií).
 - [docs/navod-minigraf.md](docs/navod-minigraf.md): návod k zapisovači Minigraf 0507 (ovladač z EPROM, kreslení
   z BASICu přes `CALL`, příkaz `KRES` v milimetrech, s příklady).
-- [docs/vydani/sestavy.md](docs/vydani/sestavy.md): sestavy ve vydání po skupinách (Základ, Liborovy desky, Hry a
-  dema, Ostatní), okno Vybrat sestavu s náhledy a průvodci.
+- [docs/vydani/sestavy.md](docs/vydani/sestavy.md): sestavy ve vydání po skupinách (Základ, Přístroje
+  a technologie, Desky Libora Lasoty, Hry a dema, Ostatní), okno Vybrat sestavu s náhledy a průvodci.
 - [docs/navod-xy4130.md](docs/navod-xy4130.md): návod k grafické jednotce XY 4130 (tlačítko PEN, zkouška, výpis
   `LLIST`, ukázka kresby ze strojového kódu, nový papír).
 - [docs/navod-dps1.md](docs/navod-dps1.md): návod k desce DPS-1 a měřicímu pracovišti IMS-2 (BASIMS z kazety,

@@ -1,8 +1,15 @@
 # Sestavy pro veřejné vydání: rozřazení
 
-Návrh z 2026-10-17, upravený podle autora týž den. Ve vydání zůstanou všechny sestavy kromě Prince of Persia. V
-prohlížeči sestav (připravuje se) budou rozdělené do kategorií, aby nováček začal u základu a her a ostatní našel
-v sekci Ostatní. Po prvním spuštění se otevře výběr sestav. Software a jeho majitele shrnuje
+Návrh z 2026-10-17, upravený podle autora týž den. Kategorie podle historie SAPI-1 rozhodl autor 2026-10-28
+(`docs/vydani/plan-vzhled.md`, etapa 2):
+- SAPI-1 byl průmyslový řídicí počítač v rámu, ne počítač pro lidi. Hlavní jsou základní sestavy ZPS.
+- Lidi, kteří SAPI neznají, přitáhnou přístroje.
+- Hry na SAPI nikdy nebyly, hry a dema jsou novodobý doplněk.
+
+V okně Vybrat sestavu jsou kategorie v pořadí Základ → Přístroje a technologie → Desky Libora Lasoty → Hry a dema →
+Ostatní. Nahoře je krátký úvod: SAPI-1 byl průmyslový řídicí počítač, začněte ZPS-1, pak zkuste přístroje, hry jsou
+novodobý doplněk. Texty kategorií jsou vidět pod nadpisem. Ve vydání jsou všechny sestavy, Prince of Persia
+s upozorněním pro nositele práv. Po prvním spuštění se otevře výběr sestav. Software a jeho majitele shrnuje
 `docs/vydani/souhlasy.md`.
 
 Zkratky v tabulkách:
@@ -13,7 +20,7 @@ Zkratky v tabulkách:
 
 ## 1. Základ: historické sestavy Tesla
 
-Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a krátký průvodce „co vyzkoušet“.
+Původní základní počítačové sestavy (ZPS) v pořadí, jak šly po sobě. Každá má náhled a průvodce „co vyzkoušet“.
 
 | Pořadí | Soubor | Co ukazuje | Software |
 |---|---|---|---|
@@ -24,7 +31,23 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 | 5 | `zps/ZPS-4.sapi` | ZPS-4: JPR-1Z, AND-1Z, RMD-1, CP/M 62K | CP/M 2.2/P R. Peřiny (MOR62Z), podle CPM.DOC základní verze ZPS-4 |
 | 6 | `zps/ZPS-6.sapi` | SAPI-1.5 (ZPS-6): PKT-1, DBS-1A, MFC-1A, CP/M 62K | CP/M Melsoft 1990 |
 
-## 2. Liborovy desky
+## 2. Přístroje a technologie
+
+Přístroje a zařízení se SAPI-1, každý nakreslený v okně. Od 2026-10-28 samostatná kategorie s průvodci, dřív
+byly přístroje v Hrách a demech a v Ostatních. XY 4130 a plotter z AR 1990 dostaly průvodce česky i anglicky.
+
+| Pořadí | Soubor | Co ukazuje | Okno |
+|---|---|---|---|
+| 1 | `aps5.sapi` | měřicí jednotka APS-5 s regulací pecí (kotelna), původní firmware Tesla, tlačítko DEMO | panel HRK-1 a pece |
+| 2 | `zps/ZPS-2_DPS-1_IMS-2.sapi` | DPS-1, sběrnice IMS-2, voltmetr M1T 330 a zdroj BS 525 (knoflíky se točí myší), BASIMS | měřicí pracoviště |
+| 3 | `zps/ZPS-2_MIKOS_V5_Minigraf.sapi` | zapisovač Minigraf 0507, ukázka z IQ 151, `KRES` | zapisovač |
+| 4 | `zps/ZPS-2_MIKOS_V5_XY4130.sapi` | grafická jednotka XY 4130, ovladač TESLA DIZ za MIKOSem V5 | zapisovač |
+| 5 | `plotter_ar1990.sapi` | plotter z Amatérského radia 1990 (JPR-1 jako řadič Minigrafu, povely Sharp MZ-1P16) | zapisovač |
+| 6 | `zps/ZPS-2_MIKOS_K.sapi` | kazetopáskový záznamník dat KZD-1, MIKOS/K | Média (mechanika) |
+| 7 | `rkd1_tesla_cpm.sapi` | kazetový disk RKD-1, CP/M Tesla Elstroj 1987 | Média (kazetový disk) |
+| 8 | `rmp1_jb_izot.sapi` | magnetická páska RMP-1 a IZOT SM 5300 | Média (páskové jednotky) |
+
+## 3. Desky Libora Lasoty (moderní)
 
 | Pořadí | Soubor | Co ukazuje | Software |
 |---|---|---|---|
@@ -32,9 +55,15 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 | 2 | `sapi1v.sapi` | **Z80:** sestava V (JPR-1V, AND-1V, CGA-1V, MPH-1V se zvukem YM3812, IDE, RAM disk), ECMON a CP/M | ECMON, CP/M, MikroBIOS 3.0 |
 | 3 | `mikromon.sapi` | Nejmenší sestava s MikroMonem L. Lasoty (JPR-1ZI, AND-1Z-89, EKL-1); do 2026-10-28 v Základu, autor: patří k Liborovým deskám | MikroMon 1.3 (L. Lasota) |
 
-## 3. Hry a dema
+## 4. Hry a dema (novodobé)
 
-### 3a. Hry a dema na sestavě V
+SAPI-1 nebyl herní počítač (autor: „Hry na SAPI nikdy nebyly“; na disketách J. Bíby jsou jen textové hry CP/M jako
+STARTREK.COM a MAZEWAR.COM, viz `docs/software/SAPIMAN_diskety.md`). Libor Lasota udělal moderní karty CGA-1V a
+MPH-1V a dema. Autor převedl Flappy, Bad Apple!!, Bomberman, Prince of Persia a FXS4 a s kartou DPI-1L i BomberNet
+Martina Matyáše. Hry jsou zábavný novodobý doplněk a běží i na skutečném SAPI-1 (sestava V, Manic Miner na JPR-1S
+a BGP-1S). Pořadí: hry a dema na sestavě V, Prince of Persia, BomberNet, Manic Miner.
+
+### 4a. Hry a dema na sestavě V
 
 **`sapi1v_hry.sapi`** „SAPI-1 V: hry a dema“ (hotová 2026-10-17):
 - sestava V s oběma grafikami, CGA-1V i DGD-1V, přepínanými přes MAP2 jako u Libora doma; bez IDE;
@@ -61,31 +90,14 @@ Původní sestavy ZPS v pořadí, jak šly po sobě. Pro každou bude náhled a 
 `sapi1v_BadApple.sapi` a `sapi1v_DGD_Flapy.sapi` nová sestava nahradila, autor je 2026-10-17 smazal.
 `ba-ramdisk.bin` zůstal jako základ pro `make_hry_disk.py`.
 
-### 3b. Hry na 8080
-
-`jpr1s_bgp1s.sapi`: Manic Miner a hra „auto“ na grafice BGP-1S (odkaz na sestavu z oddílu 2).
-
-### 3c. Přístroje jako ukázky hardwaru
-
-Od každého druhu jeden, hlavně ty s nakresleným přístrojem v okně:
-
-| Soubor | Co ukazuje | Okno |
-|---|---|---|
-| `aps5.sapi` | měřicí jednotka APS-5 s regulací pecí (kotelna), původní firmware Tesla, tlačítko DEMO | panel HRK-1 a pece |
-| `zps/ZPS-2_DPS-1_IMS-2.sapi` | DPS-1, sběrnice IMS-2, voltmetr M1T 330 a zdroj BS 525 (knoflíky se točí myší), BASIMS | měřicí pracoviště |
-| `zps/ZPS-2_MIKOS_K.sapi` | kazetopáskový záznamník dat KZD-1, MIKOS/K | Média (mechanika) |
-| `zps/ZPS-2_MIKOS_V5_Minigraf.sapi` | zapisovač Minigraf 0507, ukázka z IQ 151, `KRES` | zapisovač |
-| `rkd1_tesla_cpm.sapi` | kazetový disk RKD-1, CP/M Tesla Elstroj 1987 | Média (kazetový disk) |
-| `rmp1_jb_izot.sapi` | magnetická páska RMP-1 a IZOT SM 5300 | Média (páskové jednotky) |
-
-### 3d. Prince of Persia
+### 4b. Prince of Persia
 
 `sapi1v_PoP.sapi` „SAPI-1 V: Prince of Persia“ je od 2026-10-28 v Hrách a demech, v betě i ve veřejném vydání, s
 upozorněním pro nositele práv (`docs/vydani/souhlasy.md`), s verzí s grafikou a hudbou DOS (RAM disk `media/zrmd-1/pop-ramdisk.bin`
 z `build\ramdisk_dos.bin` repa SAPI-Prince-of-Persia, větev `dos-graphics`). Dřív jen v repu s verzí 1.0.0
 převedenou z Apple.
 
-### 3e. BomberNet
+### 4c. BomberNet
 
 `sapi1v_BomberNet.sapi` „SAPI-1 V: BomberNet (síťová hra)“ je od 2026-10-28 v Hrách a demech a ve vydání (autor:
 „Herní, i ve vydání“). Herní sestava na ARB-1C-8 bez IDE-1: JPR-1V (TURBO), RAM-1V, AND-1V, DSM-1V, ZRD-1V, DPI-1L,
@@ -93,35 +105,36 @@ CGA-1V, MPH-1V. RAM disk `media/zrmd-1/bombernet.bin` (`tools/make_hry_disk.py -
 `..\SAPI-BomberNet\build`, neukládá se, takže dvě instance na jednom PC si nepřekážejí. Do sítě se karta připojí až
 po volbě HOST nebo JOIN ve hře. Autor 0.3.0 vyzkoušel 2026-10-28 na skutečném SAPI-1 i v emulátoru.
 
-## 4. Ostatní
+### 4d. Manic Miner na 8080
 
-### 4a. Další přístroje a periferie
+`jpr1s_bgp1s.sapi`: Manic Miner a hra „auto“ na grafice BGP-1S. Sestava je v Deskách Libora Lasoty a od 2026-10-28
+i tady, s titulkem „Manic Miner (JPR-1S + BGP-1S)“.
 
-| Soubor | Co ukazuje |
-|---|---|
-| `zps/ZPS-2_MIKOS_V5_XY4130.sapi` | grafická jednotka XY 4130 |
-| `plotter_ar1990.sapi` | plotter z Amatérského radia 1990 (JPR-1 jako řadič Minigrafu) |
-| `rkd1_jb_cm5400.sapi` | RKD-1 s mechanikou CM 5400, CP/M J. Bíby (BIOS dodělaný v emulátoru) |
+## 5. Ostatní
 
-### 4b. Další sestavy ZPS a jejich varianty
+XY 4130 a plotter z AR 1990 přešly 2026-10-28 do Přístrojů a technologie. RKD-1 s CM 5400 zůstává v Ostatních
+(autor), mezi CP/M J. Bíby (5c).
+
+### 5a. Další sestavy ZPS a jejich varianty
 
 `zps/MIKROBASIC_AR1983`, `zps/ZPS-1_JPR-1S_AND-1B`, `zps/ZPS-1_JPR-1X`, `zps/ZPS-2_MIKOS_D`,
 `zps/ZPS-2_MIKOS_V5_DGD-1V`, `zps/ZPS-3`, `zps/ZPS-3_CPM48K`, `zps/ZPS-3_CPM48K_FDC-1`, `zps/ZPS-3_CPM48K_IMA`,
 `zps/ZPS-3_CPM62K`, `zps/ZPS-3_CPM62K_FDC-1`, `zps/ZPS-4_ELIS`, `zps/ZPS-4_FDC-1` (13 sestav).
 
-### 4c. CP/M s ECMONem (RAM disk ZRMD-1)
+### 5b. CP/M s ECMONem (RAM disk ZRMD-1)
 
 `cpm_zrmd`, `cpm_ide`, `cpm_zrmd_fdc1`, `cpm_zrmd_mfc1a`, `cpm_zrmd_dpp1`, `cpm_zrmd_rtc_dsp`, `cpm_ec1045`
 (7 sestav). `cpm_zrmd` a `cpm_ide` nemají popis, doplnit.
 
-### 4d. CP/M J. Bíby (SAPIMAN)
+### 5c. CP/M J. Bíby (SAPIMAN)
 
 `cpm_boot_fdc1`, `cpm_boot_fdc1_irmd`, `cpm_boot_fdc1_rmd`, `cpm_boot_fdc1_ss256`, `cpm_boot_mfc1a`,
 `cpm_boot_mfc1a_rmd`, `cpm_boot_rpd1`, `cpm_boot_rpd1_rmd`, `cpm_boot_rpd1_ss256`, `cpm_boot_rpd1_fdc1_rmd`,
 `cpm_boot_rpd1_mfc256`, `cpm_boot_rpd1_mfc512`, `cpm_boot_dlouhe_rpd1_fdc1`, `cpm_boot_dlouhe_rpd1_fdc1_35`,
-`cpm_pmd_fdc1`, `cpm_pmd_rpd1`, `cpm_term64k_fdc1` (17 sestav).
+`cpm_pmd_fdc1`, `cpm_pmd_rpd1`, `cpm_term64k_fdc1` a `rkd1_jb_cm5400` (RKD-1 s mechanikou CM 5400, BIOS dodělaný
+v emulátoru) (18 sestav).
 
-### 4e. Další sestavy s Liborovými deskami
+### 5d. Další sestavy s Liborovými deskami
 
 | Soubor | Co ukazuje |
 |---|---|
@@ -149,3 +162,13 @@ po volbě HOST nebo JOIN ve hře. Autor 0.3.0 vyzkoušel 2026-10-28 na skutečn�
 - „-LAILA-“ je L. Lasota (BKP, RAT).
 - Hudba: skladby VGM i moduly RAD zůstanou.
 - Otevřené: kdo upravil Manic Miner pro BGP-1S.
+
+## Rozhodnuto (autor, 2026-10-28)
+
+- Kategorie podle historie SAPI-1 v pořadí Základ → Přístroje a technologie → Desky Libora Lasoty (moderní) → Hry
+  a dema (novodobé) → Ostatní, nahoře úvod o průmyslovém SAPI-1. Skupina „Začněte zde“ s Prince of Persia
+  z hodnocení GUI odpadá.
+- Přístroje a technologie jsou samostatná kategorie s průvodci, přešly do ní XY 4130 a plotter z AR 1990. RKD-1
+  s CM 5400 zůstává v Ostatních.
+- Manic Miner (`jpr1s_bgp1s`) je v Deskách Libora Lasoty i v Hrách a demech.
+- MikroMon patří do Desek Libora Lasoty, Základ jsou jen historické sestavy Tesla.

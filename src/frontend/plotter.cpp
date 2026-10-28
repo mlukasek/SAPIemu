@@ -169,8 +169,11 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     if (ImGui::Button("READY")) p->press(Ar1990Plotter::BTN_READY);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Goes on after a beep: after power on, STOP, a pen change or a stop."));
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Whole test"))) {   // TEST held while the JPR-1 starts
+    const char* whole = tr("Whole test");
+    ImGui::SameLine();   // on the next line when the window is narrow (English is longer)
+    if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(whole).x + 2.0f * ImGui::GetStyle().FramePadding.x)
+        ImGui::NewLine();
+    if (ImGui::Button(whole)) {   // TEST held while the JPR-1 starts
         p->press(Ar1990Plotter::BTN_TEST);
         m->reset();
     }
@@ -207,6 +210,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ImGui::SetNextItemWidth(-8.0f * ImGui::GetFontSize());
     bool go = ImGui::InputTextWithHint("##arline", tr("commands, e.g. D400,0"), line, sizeof(line),
                                        ImGuiInputTextFlags_EnterReturnsTrue);
+    if (go) ImGui::SetKeyboardFocusHere(-1);   // Enter sends, the line keeps the keyboard for the next command
     ImGui::SameLine();
     if (ImGui::Button(tr("Send")) || go) {
         std::string s;   // \xNN = a control code

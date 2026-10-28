@@ -199,6 +199,10 @@ Nejtěsnější jsou:
 
 ### Etapa 2: výběr sestav, průvodci a texty podle historie SAPI · M
 
+**Stav 2026-10-28:** hotová kromě náhledů AR 1990 a okna XY 4130 (přesunuté do etapy 3 s přegenerováním náhledů).
+Dělal ji workflow (3 agenti souběžně, integrace, 4 oponenti), nálezy oponentury opravené (rozhodnutí 2026-10-28 –
+výběr sestav podle historie SAPI). Čeká checkpoint B.
+
 **Kategorie v `machines/_vyber.json`**
 - Pořadí `zaklad` → `pristroje` → `libor` → `hry` → Ostatní.
 - `pristroje` („Přístroje a technologie“):

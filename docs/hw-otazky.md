@@ -721,9 +721,11 @@ Rozhodne všechna místa označená [S] a [?]:
     - Kterou verzi MIKROBASICu má tvoje ZPS-1 a v jakém pořadí jsou karty ve slotech.
 
 14. **Sestavy ZPS:** v jakém pořadí byly karty ve slotech u ZPS-1 až ZPS-4 (šablony jsou odhad)? Kolik pozic
-    mají ARB-1A/Au (odhad 13) a ARB-1B (odhad 14, ARB-1C má X1–X14)? Mají všechny karty čelní panel se zkratkou
-    (DMR, ZRMD, IDE…)? Panely jsou kreslené podle Liborových štítků. AND-1Z-89 má zatím panel AND-1V (K2 VGA),
-    jak vypadá panel originálních karet a DMR-1, ZRMD-1, IDE-1?
+    mají ARB-1A/Au (odhad 13) a ARB-1B (odhad 14, ARB-1C má X1–X14)? ~~Mají všechny karty čelní panel se zkratkou
+    (DMR, ZRMD, IDE…)? Jak vypadá panel originálních karet a DMR-1, ZRMD-1, IDE-1?~~ Odpověděl autor 2026-10-28:
+    původní Tesla SAPI-1 měl holé karty za krycím panelem
+    (http://www.osmibitovemuzeum.cz/fotogalerie/sapi-1_2/1.jpg). Rám v konfigurátoru se kreslí podle Liborovy
+    modernizované skříně s popsanými panely, je to záměrná odchylka (`docs/rozhodnuti.md`, 2026-10-28).
 
 16. **ZPS-2 a MIKOS:**
     - Byl MIKOS v ZPS-2 ve 4× 2708 (dump 1. KB tomu odpovídá), nebo ve 2× 2716? Emulace: 2708.

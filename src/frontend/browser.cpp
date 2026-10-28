@@ -75,41 +75,107 @@ static void remember_recent(UiState& ui, const std::string& file)
     if (ui.recent.size() > 8) ui.recent.resize(8);
 }
 
+// Start (or restart: the running one is loaded again from its file) a machine; its guide may open itself (a load
+// changes the machine generation, draw_guide sees it; a start waiting for the question about unsaved changes of
+// the configurator does not open the guide of the old machine).
 static void start(UiState& ui, const std::string& file)
 {
     remember_recent(ui, file);
     rack_start_machine(ui, file);
     ui.show_browser = false;
-    ui.guide_gen = 0;   // the guide of the new machine may open itself
+    ui.browser_first = false;
 }
 
-static bool matches(const MachineEntry& e, const char* filter)
+static bool running(UiState& ui, const MachineEntry& e)
 {
-    if (!filter[0]) return true;
-    std::string hay = e.file + " " + e.name + " " + e.title + " " + e.title_en + " " + e.summary + " " + e.summary_en;
-    std::string f = filter;
-    std::transform(hay.begin(), hay.end(), hay.begin(), [](unsigned char c) { return (char)tolower(c); });
-    std::transform(f.begin(), f.end(), f.begin(), [](unsigned char c) { return (char)tolower(c); });
-    return hay.find(f) != std::string::npos;
+    return ui.host->machine() && e.file == ui.host->machine_file();   // switched off = not running
 }
 
-static void machine_item(UiState& ui, const MachineEntry& e, const char* id_suffix)
+// The name of the i-th machine of a category in the list: its title in this category, else its own title.
+static std::string item_name(const MachineCategory& cat, size_t i, const MachineEntry& e)
 {
-    bool sel = ui.browser_sel == e.file;
-    std::string label = entry_name(e) + "##" + e.file + id_suffix;
-    // the running one in the colour "ok" (not a mark: arrows belong to the headers that fold)
-    bool running = e.file == ui.host->machine_file();
-    if (running) ImGui::PushStyleColor(ImGuiCol_Text, theme().ok);
+    if (i < cat.titles.size() && i < cat.titles_en.size()) {
+        const std::string& t = pick(cat.titles[i], cat.titles_en[i]);
+        if (!t.empty()) return t;
+    }
+    return entry_name(e);
+}
+
+// A row of the list: the machine, its category ("recent" for Recently started) and the title shown there.
+struct BrowserRow {
+    const MachineEntry* e = nullptr;
+    std::string cat, title;
+};
+
+static void select_row(UiState& ui, const MachineEntry& e, const std::string& cat, const std::string& name)
+{
+    ui.browser_sel = e.file;
+    ui.browser_sel_cat = cat;
+    ui.browser_sel_title = name != entry_name(e) ? name : std::string();
+}
+
+// first: the first row the list shows (Enter while the search hides the selected one)
+static void machine_item(UiState& ui, const MachineEntry& e, const std::string& name, const std::string& cat,
+                         BrowserRow* first)
+{
+    if (!first->e) *first = { &e, cat, name };
+    bool sel = ui.browser_sel == e.file && ui.browser_sel_cat == cat;   // one row lit, not every row of the machine
+    // the running one in the colour "ok" and with the word (not a mark: arrows belong to the headers that fold);
+    // the id without the name: the same item when the machine starts or the language changes
+    bool run = running(ui, e);
+    std::string label = name;
+    if (run) label += std::string(" ") + tr("(running)");
+    label += "###" + e.file + "#" + cat;
+    if (run) ImGui::PushStyleColor(ImGuiCol_Text, theme().ok);
     bool clicked = ImGui::Selectable(label.c_str(), sel, ImGuiSelectableFlags_AllowDoubleClick);
     if (sel) theme_selected_bar();
-    if (running) {
-        ImGui::PopStyleColor();
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Running now"));
-    }
+    if (run) ImGui::PopStyleColor();
     if (clicked) {
-        ui.browser_sel = e.file;
+        select_row(ui, e, cat, name);
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) start(ui, e.file);
     }
+}
+
+// The row selected when the window opens: the first category that has the machine.
+static void select_first_row(UiState& ui, const MachineIndex& idx)
+{
+    ui.browser_sel_cat.clear();
+    ui.browser_sel_title.clear();
+    for (const MachineCategory& cat : idx.categories)
+        for (size_t i = 0; i < cat.machines.size(); i++) {
+            const MachineEntry& e = idx.machines[(size_t)cat.machines[i]];
+            if (e.file != ui.browser_sel) continue;
+            select_row(ui, e, cat.id, item_name(cat, i, e));
+            return;
+        }
+}
+
+static void text_dim_wrapped(const std::string& s)
+{
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextDisabled("%s", s.c_str());
+    ImGui::PopTextWrapPos();
+}
+
+// The text of a category: wrapped under its open header (not among the results of a search, they stay compact),
+// a tooltip over the closed one. Right after the header.
+static void category_text(const MachineCategory& cat, bool open, bool searching)
+{
+    const std::string& text = pick(cat.text, cat.text_en);
+    if (text.empty()) return;
+    if (!open) {
+        if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
+            ImGui::PushTextWrapPos(30.0f * ImGui::GetFontSize());
+            ImGui::TextUnformatted(text.c_str());
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+        return;
+    }
+    if (searching) return;
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextDisabled("%s", text.c_str());
+    ImGui::PopTextWrapPos();
 }
 
 // the cards of the machine by slots with the devices plugged into them (read when the selection changes)
@@ -156,27 +222,46 @@ static void details(UiState& ui, const MachineEntry& e)
     if (!e.preview.empty()) {
         if (const Preview* p = preview(ui, e.preview)) {
             float u = ImGui::GetFontSize();
-            float w = std::min(avail, 35.0f * u), h = w * p->h / (float)p->w;
+            // in a frame of the colour Border, as thin as the borders of the windows (1 px at 100 %), with a dark
+            // margin like a monitor: the text of a screen does not touch the frame
+            float b = std::max(1.0f, ImGui::GetStyle().ChildBorderSize), m = 0.3f * u;
+            float w = std::min(avail - 2.0f * (b + m), 35.0f * u), h = w * p->h / (float)p->w;
             if (h > 22.0f * u) {   // a tall picture (the sheet of a plotter) keeps the text in sight
                 w *= 22.0f * u / h;
                 h = 22.0f * u;
             }
-            ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)p->tex), ImVec2(w, h));
+            if (w > 1.0f) {
+                ImVec2 o = ImGui::GetCursorScreenPos(), end(o.x + w + 2 * (b + m), o.y + h + 2 * (b + m));
+                ImDrawList* dl = ImGui::GetWindowDrawList();
+                dl->AddRectFilled(o, end, IM_COL32(16, 16, 16, 255));   // the background of the displays
+                dl->AddRect(o, end, ImGui::GetColorU32(ImGuiCol_Border), 0.0f, 0, b);
+                ImGui::SetCursorScreenPos(ImVec2(o.x + b + m, o.y + b + m));
+                ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)p->tex), ImVec2(w, h));
+                ImGui::SetCursorScreenPos(o);
+                ImGui::Dummy(ImVec2(end.x - o.x, end.y - o.y));
+            }
         }
     } else {
         ImGui::TextDisabled("%s", tr("No preview"));
     }
     ImGui::Spacing();
-    theme_heading(entry_name(e).c_str());
-    if (entry_name(e) != e.name) ImGui::TextDisabled("%s", e.name.c_str());
+    // the title of the row clicked (Manic Miner among the games), the machine's own title under it
+    std::string title = ui.browser_sel_title.empty() || ui.browser_sel != e.file ? entry_name(e) : ui.browser_sel_title;
+    theme_heading(title.c_str());
+    if (title != entry_name(e)) text_dim_wrapped(entry_name(e));
+    if (entry_name(e) != e.name) text_dim_wrapped(e.name);
     const std::string& sum = pick(e.summary, e.summary_en);
     if (!sum.empty()) ImGui::TextWrapped("%s", sum.c_str());
     ImGui::Spacing();
-    if (theme_accent_button(tr("Start"))) start(ui, e.file);
+    // the running machine: Restart (the mouse only, Enter does not throw its memory away); at the first start the
+    // machine behind the window was started by nobody, Start
+    bool restart = running(ui, e) && !ui.browser_first;
+    if (theme_accent_button(restart ? tr("Restart") : tr("Start"))) start(ui, e.file);
     ImGui::SameLine();
     if (!e.guide.empty()) {
         if (ImGui::Button(tr("Guide"))) {
             ui.show_guide = true;
+            ui.guide_focus = true;
             ui.guide_machine = e.file;
         }
         ImGui::SameLine();
@@ -207,59 +292,76 @@ void draw_browser(UiState& ui)
         if (!machine_index_find(ui.machine_index, ui.browser_sel) && !ui.machine_index.machines.empty() &&
             !ui.machine_index.categories.empty() && !ui.machine_index.categories[0].machines.empty())
             ui.browser_sel = ui.machine_index.machines[(size_t)ui.machine_index.categories[0].machines[0]].file;
+        select_first_row(ui, ui.machine_index);
     }
     float u = ImGui::GetFontSize();
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(58 * u, 38 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-    if (!ImGui::Begin(tr_id("Choose a machine"), &ui.show_browser)) {
+    bool visible = ImGui::Begin(tr_id("Choose a machine"), &ui.show_browser);
+    if (!ui.show_browser && ui.browser_first) {   // the first start: closed without starting a machine from it
+        ui.browser_first = false;
+        // the guide of the running machine (ZPS-1) may open itself, once (draw_guide decides); a guide the user
+        // opened from the window stays as it is
+        if (!ui.show_guide) ui.guide_gen = 0;
+    }
+    if (!visible) {
         ImGui::End();
         return;
     }
     const MachineIndex& idx = ui.machine_index;
+    // what SAPI-1 was and where to start, over the whole width
+    const std::string& intro = pick(idx.intro, idx.intro_en);
+    if (!intro.empty()) {
+        ImGui::TextWrapped("%s", intro.c_str());
+        ImGui::Spacing();
+    }
     static char filter[64] = "";
-    ImGui::BeginChild("list", ImVec2(22 * u, 0), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
+    BrowserRow first;   // the first row the list shows
+    ImGui::BeginChild("list", ImVec2(24 * u, 0), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
     ImGui::SetNextItemWidth(-1);
     ImGui::InputTextWithHint("##filter", tr("Search"), filter, sizeof(filter));
+    bool searching = filter[0] != 0;
     // recently started ones
     bool any_recent = false;
     for (const std::string& f : ui.recent)
         if (machine_index_find(idx, f)) any_recent = true;
-    if (any_recent && !filter[0] && ImGui::CollapsingHeader(tr("Recently started"), ImGuiTreeNodeFlags_DefaultOpen)) {
-        for (const std::string& f : ui.recent)
-            if (const MachineEntry* e = machine_index_find(idx, f)) machine_item(ui, *e, "#recent");
+    if (any_recent && !searching && ImGui::CollapsingHeader(tr("Recently started"), ImGuiTreeNodeFlags_DefaultOpen)) {
+        for (const std::string& f : std::vector<std::string>(ui.recent))   // a copy: a start reorders the list
+            if (const MachineEntry* e = machine_index_find(idx, f)) machine_item(ui, *e, entry_name(*e), "recent", &first);
     }
-    // the categories; those of one group under one header
+    // the categories; those of one group under one header. While searching the headers have their own ids, open
+    // at first: the results are in sight and the headers folded before stay as they were.
+    const char* mode = searching ? "#search" : "";
     std::string open_group;
     bool group_open = false;
     for (size_t c = 0; c < idx.categories.size(); c++) {
         const MachineCategory& cat = idx.categories[c];
         bool any = false;
         for (int k : cat.machines)
-            if (matches(idx.machines[(size_t)k], filter)) any = true;
+            if (machine_index_matches(idx.machines[(size_t)k], filter)) any = true;
         if (!any) continue;
-        std::string cname = pick(cat.name, cat.name_en) + "##cat" + cat.id;
+        std::string cname = pick(cat.name, cat.name_en) + "##cat" + cat.id + mode;
+        bool open;
         if (cat.group.empty()) {
-            ImGuiTreeNodeFlags fl = filter[0] || cat.guides ? ImGuiTreeNodeFlags_DefaultOpen : 0;
-            if (!ImGui::CollapsingHeader(cname.c_str(), fl)) continue;
-            const std::string& text = pick(cat.text, cat.text_en);
-            if (!text.empty() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", text.c_str());
-            for (int k : cat.machines)
-                if (matches(idx.machines[(size_t)k], filter)) machine_item(ui, idx.machines[(size_t)k], ("#" + cat.id).c_str());   // one machine may be in two categories
-            continue;
+            open = ImGui::CollapsingHeader(cname.c_str(), searching || cat.guides ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+            category_text(cat, open, searching);
+        } else {
+            if (cat.group != open_group) {   // a new group header
+                open_group = cat.group;
+                std::string g = pick(cat.group, cat.group_en) + "##group" + cat.group + mode;
+                group_open = ImGui::CollapsingHeader(g.c_str(), searching ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+            }
+            if (!group_open) continue;
+            open = ImGui::TreeNodeEx(cname.c_str(), searching ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+            category_text(cat, open, searching);
         }
-        if (cat.group != open_group) {   // a new group header
-            open_group = cat.group;
-            std::string g = pick(cat.group, cat.group_en) + "##group" + cat.group;
-            group_open = ImGui::CollapsingHeader(g.c_str(), filter[0] ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+        if (!open) continue;
+        for (size_t i = 0; i < cat.machines.size(); i++) {   // one machine may be in two categories: ids by category
+            const MachineEntry& e = idx.machines[(size_t)cat.machines[i]];
+            if (machine_index_matches(e, filter)) machine_item(ui, e, item_name(cat, i, e), cat.id, &first);
         }
-        if (!group_open) continue;
-        if (filter[0]) ImGui::SetNextItemOpen(true, ImGuiCond_Always);
-        if (ImGui::TreeNode(cname.c_str())) {
-            for (int k : cat.machines)
-                if (matches(idx.machines[(size_t)k], filter)) machine_item(ui, idx.machines[(size_t)k], ("#" + cat.id).c_str());   // one machine may be in two categories
-            ImGui::TreePop();
-        }
+        if (!cat.group.empty()) ImGui::TreePop();
     }
     ImGui::EndChild();
     ImGui::SameLine();
@@ -267,6 +369,18 @@ void draw_browser(UiState& ui)
     if (const MachineEntry* e = machine_index_find(idx, ui.browser_sel)) details(ui, *e);
     else ImGui::TextDisabled("%s", tr("Choose a machine on the left."));
     ImGui::EndChild();
+    // Enter = Start while the window has the keyboard; when the search hides the selected machine, the first one
+    // the list shows is selected and started. Not Restart: one key would throw away the memory of the running machine
+    // (the button does it with the mouse); at the first start nobody started it yet.
+    if (ui.show_browser && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+        (ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false))) {
+        const MachineEntry* e = machine_index_find(idx, ui.browser_sel);
+        if (searching && (!e || !machine_index_matches(*e, filter)) && first.e) {
+            e = first.e;
+            select_row(ui, *e, first.cat, first.title);
+        }
+        if (e && (!running(ui, *e) || ui.browser_first)) start(ui, e->file);
+    }
     ImGui::End();
 }
 
@@ -454,6 +568,10 @@ void draw_guide(UiState& ui)
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(30 * u, 36 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 30.5f * u, 2.0f * u), ImGuiCond_FirstUseEver);
+    if (ui.guide_focus) {   // asked for: in front of the windows that hide it (an instrument at the same place)
+        ImGui::SetNextWindowFocus();
+        ui.guide_focus = false;
+    }
     if (!ImGui::Begin(tr_id("Machine guide"), &ui.show_guide)) {
         ImGui::End();
         return;
@@ -488,8 +606,8 @@ void draw_guide(UiState& ui)
         }
         ImGui::Checkbox(tr("Guides open by themselves"), &ui.guides_auto);
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("For the basic machines, the boards of Libor Lasota and the games and demos. "
-                                       "Help -> Machine guide opens it any time."));
+            ImGui::SetTooltip("%s", tr("For the machines of the first four groups: basics, instruments, boards of Libor "
+                                       "Lasota, games and demos. Help -> Machine guide opens it any time."));
     }
     ImGui::End();
 }

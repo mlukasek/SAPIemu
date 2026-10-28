@@ -976,8 +976,7 @@ void draw_menu(App& app)
                 const MachineEntry* e = machine_index_find(app.ui.machine_index, f);
                 std::string label = e ? (e->title.empty() ? e->name : e->title) : f;
                 if (ImGui::MenuItem((label + "##" + f).c_str(), nullptr, f == app.host.machine_file())) {
-                    rack_start_machine(app.ui, f);
-                    app.ui.guide_gen = 0;   // its guide may open itself
+                    rack_start_machine(app.ui, f);   // its guide may open itself (a new machine generation)
                     m = app.host.machine();
                 }
             }
@@ -1140,8 +1139,9 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu(tr("Help"))) {
-        if (ImGui::MenuItem(tr("Machine guide"), nullptr, app.ui.show_guide)) {
-            app.ui.show_guide = !app.ui.show_guide;
+        if (ImGui::MenuItem(tr("Machine guide"))) {   // opens it in front (an instrument may hide it), X closes it
+            app.ui.show_guide = true;
+            app.ui.guide_focus = true;
             app.ui.guide_machine = app.host.machine_file();
         }
         if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
@@ -1524,7 +1524,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
     settings_apply(app, settings);
-    if (first_start) app.ui.show_browser = true;
+    if (first_start) {   // closed without starting a machine, it opens the guide of the running one (browser.cpp)
+        app.ui.show_browser = true;
+        app.ui.browser_first = true;
+    }
     std::string first = machine_file;
     if (first.empty()) {
         std::string last;

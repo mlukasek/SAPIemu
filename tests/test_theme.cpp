@@ -46,6 +46,7 @@ static void check_palette(const char* look, const ThemePalette& p)
     need(look, "heading / window", p.heading, p.window, TEXT);
     need(look, "link / window", p.link, p.window, TEXT);
     need(look, "ok / window", p.ok, p.window, TEXT);
+    need(look, "ok / selection", p.ok, p.header, TEXT);   // the running machine selected in the browser
     need(look, "warn / window", p.warn, p.window, TEXT);
     need(look, "error / window", p.error, p.window, TEXT);
     need(look, "pending / window", p.pending, p.window, TEXT);

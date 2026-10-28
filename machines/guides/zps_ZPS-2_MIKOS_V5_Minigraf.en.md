@@ -1,4 +1,4 @@
-# Plotter Minigraf 0507
+# Minigraf 0507 plotter
 
 The small ARITMA Minigraf 0507 plotter on the DPP-1 card. Its driver in EPROM draws from the monitor and from
 BASIC. The drawing grows in the plotter window and is saved as PNG or SVG.

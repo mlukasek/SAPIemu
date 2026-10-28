@@ -1,44 +1,52 @@
-// Machines offered in the window "Choose a machine" (src/core/machine_index.h): categories in this order, short
-// texts for newcomers (Czech, English). Machines not named here go to "Nezařazené a vlastní sestavy".
-// Rozřazení odsouhlasené autorem 2026-10-17: docs/vydani/sestavy.md.
+// Machines offered in the window "Choose a machine" (src/core/machine_index.h): the intro over the list, categories
+// in this order, short texts for newcomers (Czech, English); "titles" of a category = the title of a machine in that
+// category only. Machines not named here go to "Nezařazené a vlastní sestavy".
+// Rozřazení odsouhlasené autorem 2026-10-17, kategorie podle historie SAPI-1 2026-10-28: docs/vydani/sestavy.md.
 {
+    "intro": "SAPI-1 (Tesla, 1983–1990) byl průmyslový řídicí počítač v rámu, ne domácí počítač. Začněte první základní sestavou ZPS-1 s MIKROBASICem. Pak zkuste přístroje, třeba pece s měřicí jednotkou APS-5. Hry a dema jsou novodobý doplněk na nových deskách.",
+    "intro_en": "SAPI-1 (Tesla, 1983-1990) was an industrial control computer in a rack, not a home computer. Start with ZPS-1, the first basic set, which runs MIKROBASIC. Then try the instruments, such as the furnaces with the APS-5 measuring unit. The games and demos are a modern extra on the new boards.",
     "categories": [
         {
             "id": "zaklad",
             "name": "Základ: historické sestavy Tesla",
             "name_en": "Basics: historic Tesla sets",
-            "text": "Původní sestavy ZPS v pořadí, jak šly po sobě: od MIKROBASICu přes MIKOS po CP/M a SAPI-1.5.",
-            "text_en": "The original ZPS sets in the order they came: from MIKROBASIC through MIKOS to CP/M and SAPI-1.5.",
+            "text": "Původní základní počítačové sestavy ZPS v pořadí, jak šly po sobě: od MIKROBASICu přes MIKOS po CP/M a SAPI-1.5.",
+            "text_en": "The original basic computer sets (ZPS) in the order they came: from MIKROBASIC through MIKOS to CP/M and SAPI-1.5.",
             "guides": true,
             "machines": [ "zps/ZPS-1.sapi", "zps/ZPS-2.sapi", "zps/ZPS-2_MIKOS_V5.sapi", "zps/ZPS-3_CPM64K_IMA.sapi",
                           "zps/ZPS-4.sapi", "zps/ZPS-6.sapi" ]
         },
         {
+            "id": "pristroje",
+            "name": "Přístroje a technologie",
+            "name_en": "Instruments and equipment",
+            "text": "Přístroje a zařízení se SAPI-1, nakreslené v oknech emulátoru: pece s jednotkou APS-5, měřicí pracoviště, zapisovače, záznamník dat, kazetový disk a magnetická páska.",
+            "text_en": "Instruments and equipment around SAPI-1, drawn in the emulator's windows: furnaces with the APS-5 unit, a measuring bench, plotters, a data recorder, a cartridge disk and a magnetic tape.",
+            "guides": true,
+            "machines": [ "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi", "zps/ZPS-2_MIKOS_V5_Minigraf.sapi",
+                          "zps/ZPS-2_MIKOS_V5_XY4130.sapi", "plotter_ar1990.sapi", "zps/ZPS-2_MIKOS_K.sapi",
+                          "rkd1_tesla_cpm.sapi", "rmp1_jb_izot.sapi" ]
+        },
+        {
             "id": "libor",
-            "name": "Desky Libora Lasoty",
-            "name_en": "Boards of Libor Lasota",
-            "text": "Současné desky pro SAPI-1: 8080 s grafikou jako PMD-85, sestava V se Z80, VGA, barevnou grafikou a zvukem a monitor MikroMon.",
-            "text_en": "Today's boards for SAPI-1: an 8080 with PMD-85 style graphics, the V set with a Z80, VGA, colour graphics and sound, and the monitor MikroMon.",
+            "name": "Desky Libora Lasoty (moderní)",
+            "name_en": "Boards by Libor Lasota (modern)",
+            "text": "Nové desky pro SAPI-1 od Libora Lasoty: 8080 s grafikou jako PMD-85, sestava V se Z80, VGA, barevnou grafikou a zvukem a monitor MikroMon.",
+            "text_en": "New boards for SAPI-1 by Libor Lasota: an 8080 with PMD-85 style graphics, the V set with a Z80, VGA, colour graphics and sound, and the monitor MikroMon.",
             "guides": true,
             "machines": [ "jpr1s_bgp1s.sapi", "sapi1v.sapi", "mikromon.sapi" ]
         },
         {
             "id": "hry",
-            "name": "Hry a dema",
-            "name_en": "Games and demos",
-            "text": "Hry, hudební a grafická dema a ukázky přístrojů, které k SAPI patřily, s nakresleným přístrojem v okně.",
-            "text_en": "Games, music and graphics demos, and the instruments SAPI worked with, drawn in their own windows.",
+            "name": "Hry a dema (novodobé)",
+            "name_en": "Games and demos (modern)",
+            "text": "SAPI-1 nebyl herní počítač. Porty her a dema vznikly až v dnešní době pro nové desky a běží i na skutečném hardwaru.",
+            "text_en": "SAPI-1 was not a games machine. These game ports and demos were made in our time for the new boards, and they run on real hardware too.",
             "guides": true,
-            "machines": [ "sapi1v_hry.sapi", "sapi1v_PoP.sapi", "sapi1v_BomberNet.sapi", "jpr1s_bgp1s.sapi", "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi",
-                          "zps/ZPS-2_MIKOS_K.sapi", "zps/ZPS-2_MIKOS_V5_Minigraf.sapi", "rkd1_tesla_cpm.sapi",
-                          "rmp1_jb_izot.sapi" ]
-        },
-        {
-            "id": "pristroje",
-            "group": "Ostatní", "group_en": "Other",
-            "name": "Další přístroje a periferie",
-            "name_en": "More instruments and peripherals",
-            "machines": [ "zps/ZPS-2_MIKOS_V5_XY4130.sapi", "plotter_ar1990.sapi", "rkd1_jb_cm5400.sapi" ]
+            "machines": [ "sapi1v_hry.sapi", "sapi1v_PoP.sapi", "sapi1v_BomberNet.sapi", "jpr1s_bgp1s.sapi" ],
+            "titles": {
+                "jpr1s_bgp1s.sapi": { "title": "Manic Miner (JPR-1S + BGP-1S)", "title_en": "Manic Miner (JPR-1S + BGP-1S)" }
+            }
         },
         {
             "id": "zps",
@@ -69,7 +77,7 @@
                           "cpm_boot_rpd1.sapi", "cpm_boot_rpd1_rmd.sapi", "cpm_boot_rpd1_ss256.sapi",
                           "cpm_boot_rpd1_fdc1_rmd.sapi", "cpm_boot_rpd1_mfc256.sapi", "cpm_boot_rpd1_mfc512.sapi",
                           "cpm_boot_dlouhe_rpd1_fdc1.sapi", "cpm_boot_dlouhe_rpd1_fdc1_35.sapi", "cpm_pmd_fdc1.sapi",
-                          "cpm_pmd_rpd1.sapi", "cpm_term64k_fdc1.sapi" ]
+                          "cpm_pmd_rpd1.sapi", "cpm_term64k_fdc1.sapi", "rkd1_jb_cm5400.sapi" ]
         },
         {
             "id": "libor_dalsi",
@@ -153,9 +161,9 @@
             "summary_en": "Games and demos on the V set: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, a Czech text adventure, demos and music by Libor Lasota."
         },
         "aps5.sapi": {
-            "title": "Měřicí ústředna APS-5 (pece)",
+            "title": "Měřicí jednotka APS-5 (pece)",
             "title_en": "APS-5 measuring unit (furnaces)",
-            "summary": "Měřicí ústředna Tesla APS-5 s původním firmwarem řídí pece s termočlánky. V okně je čelní panel a kotelna, tlačítko DEMO předvede obsluhu.",
+            "summary": "Měřicí jednotka Tesla APS-5 s původním firmwarem řídí pece s termočlánky. V okně je čelní panel a kotelna, tlačítko DEMO předvede obsluhu.",
             "summary_en": "The Tesla APS-5 measuring unit with its original firmware controls furnaces with thermocouples. The window shows the panel and the plant; DEMO shows an operator."
         },
         "zps/ZPS-2_DPS-1_IMS-2.sapi": {
@@ -172,9 +180,21 @@
         },
         "zps/ZPS-2_MIKOS_V5_Minigraf.sapi": {
             "title": "Zapisovač Minigraf 0507",
-            "title_en": "Plotter Minigraf 0507",
+            "title_en": "Minigraf 0507 plotter",
             "summary": "Souřadnicový zapisovač ARITMA Minigraf 0507: ukázka z IQ 151, znaková sada, kreslení příkazem KRES. Kresba roste v okně zapisovače.",
             "summary_en": "The ARITMA Minigraf 0507 plotter: the IQ 151 example, the character set, drawing with KRES. The drawing grows in the plotter window."
+        },
+        "zps/ZPS-2_MIKOS_V5_XY4130.sapi": {
+            "title": "Zapisovač XY 4130",
+            "title_en": "XY 4130 plotter",
+            "summary": "Souřadnicový zapisovač XY 4130 (Laboratorní přístroje Praha) s ovladačem TESLA DIZ za MIKOSem V5 kreslí v okně zapisovače ukázku, celou znakovou sadu i výpisy z BASICu.",
+            "summary_en": "The XY 4130 plotter (Laboratorní přístroje Praha) with the TESLA DIZ driver behind MIKOS V5 draws a demo, its whole character set and BASIC listings in the plotter window."
+        },
+        "plotter_ar1990.sapi": {
+            "title": "Plotter z AR 1990",
+            "title_en": "Plotter from AR 1990",
+            "summary": "Deska JPR-1 jako řadič zapisovače Minigraf 0507 podle Amatérského radia 1990. Provádí povely plotteru Sharp MZ-1P16 z okna Minigraf: ukázku, zkoušku i vlastní kresby.",
+            "summary_en": "The JPR-1 card as the controller of a Minigraf 0507 plotter, after Amatérské radio 1990. It executes Sharp MZ-1P16 plotter commands sent from the Minigraf window: a demo, the test and your own drawings."
         },
         "rkd1_tesla_cpm.sapi": {
             "title": "Kazetový disk RKD-1 (CP/M Tesla Elstroj)",

@@ -69,7 +69,8 @@ tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se posled
 `--ui-snapshot`). Texty GUI jsou v `src/frontend/i18n.cpp` (klíč = anglický text, `tr()`), popisy karet a jumperů
 v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazyku (`tr_id()`, „Média###Media“), aby si
 po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky
-čelního panelu (potisk skutečného stroje), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
+čelního panelu (potisk štítků modernizované skříně Libora Lasoty, podle které se panely kreslí; původní Tesla SAPI-1
+měl holé karty za krycím panelem), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
 
 **Vzhled GUI** (od 2026-10-28, plán `docs/vydani/plan-vzhled.md`): Windows 11, světlý i tmavý, jako data
 v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled je dvojice palet, rozměry a řádek

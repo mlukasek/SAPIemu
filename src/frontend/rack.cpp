@@ -1083,6 +1083,14 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     float w = total_w * k, h = total_h * k;
 
     ImGui::Checkbox(tr("Card types on the panels"), &r.show_types);
+    if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {   // wrapped: a long text
+        ImGui::PushTextWrapPos(30.0f * ImGui::GetFontSize());
+        ImGui::TextUnformatted(tr("Shows the exact card type on each panel. The panels are drawn after Libor Lasota's "
+                                  "modernised cabinet with labelled panels; the original Tesla SAPI-1 had bare cards "
+                                  "behind a cover panel."));
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
     ImGui::BeginChild("frame", ImVec2(0, h + ImGui::GetStyle().ScrollbarSize + 4), ImGuiChildFlags_None,
                       ImGuiWindowFlags_HorizontalScrollbar);
     ImDrawList* dl = ImGui::GetWindowDrawList();

@@ -942,7 +942,8 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   skočila na výchozí místo. Stávající `imgui.ini` s českými jmény (`[Window][Média]`) se při startu převede na
   `[Window][Media]` (to ImGui ukládá u jmen s `###`), rozložení zůstane.
 - **Nepřekládá se:** sestavy (`.sapi`, data autora), výstup emulovaných programů, potisk čelního panelu (NAPÁJENÍ,
-  FREKVENCE CPU, ZDROJ jsou na skutečném stroji česky), MCP a `sapiemu-cli`.
+  FREKVENCE CPU, ZDROJ jsou česky na štítcích Liborovy modernizované skříně, podle kterých se panely kreslí), MCP
+  a `sapiemu-cli`.
 - **Opravené překlady:** test `test_i18n` našel dvojí klíče. „(empty)“ měl „(prázdný)“ i „(prázdná)“ a platil jen
   druhý, takže prázdný slot v konfigurátoru byl „(prázdná)“. Slot má teď vlastní text v `rack.cpp`.
 
@@ -1860,7 +1861,7 @@ v zásadě souhlasí („pustil bych se do úprav“).
   (`jpr1s_bgp1s`) bude v Liborových deskách i v hrách.
 - **Rám v konfigurátoru je záměrná odchylka** (autor): kreslí se podle Liborovy modernizované skříně s popsanými
   panely. Původní Tesla měla holé karty za krycím panelem (http://www.osmibitovemuzeum.cz/fotogalerie/sapi-1_2/1.jpg),
-  což je nezajímavé. Zapíše se v etapě 2 plánu (tooltip, opravy dokumentace).
+  což je nezajímavé. V etapě 2 zapsané do tooltipu Typů karet na panelech, README, Prvních kroků a `build.md`.
 - **Vzhled jako aplikace Windows, světlý i tmavý** (autor: výchozí vzhled ImGui je „přinejlepším nudný“). Tři
   varianty (Windows 11, Windows klasický, SAPI průmyslový) se ukážou na skutečných snímcích emulátoru v galerii
   a autor vybere, ladit se dá i za chodu.
@@ -1881,6 +1882,26 @@ v zásadě souhlasí („pustil bych se do úprav“).
 - **Logo SAPI 1 v O programu** (autor): ve světlém režimu inverzní, tmavé písmo na světlém okně. V tmavém je černý
   obdélník srovnaný s pozadím okna, tedy bílé písmo na barvě okna. Kreslí se maska `docs/img/logo-alpha.png` (z
   `tools/make_icon.py`) v barvě textu; `logo.png` s černým pruhem jako v příručkách zůstává v README.
+
+## 2026-10-28 – výběr sestav podle historie SAPI (etapa 2 plánu vzhledu)
+
+- **Kategorie** podle autora: Základ → Přístroje a technologie → Desky Libora Lasoty (moderní) → Hry a dema
+  (novodobé) → Ostatní, nad seznamem úvod o průmyslovém SAPI-1, texty skupin pod nadpisy. XY 4130 a plotter z AR 1990
+  mají průvodce. Manic Miner je v Hrách a demech pod vlastním titulkem (`titles` kategorie).
+- **Enter v okně Vybrat sestavu spustí jen sestavu, která neběží** (oponentura): běžící sestavu restartuje jen
+  tlačítko Restartovat myší, jinak by jedna klávesa zahodila paměť (třeba napsaný program). Při prvním spuštění
+  ZPS-1 nikdo nespustil: tlačítko je Spustit a Enter funguje.
+- **Nápověda → Průvodce sestavou průvodce otevře a přinese dopředu** (dřív přepínal): okna přístrojů ho při prvním
+  použití překrývají (stejné místo vpravo nahoře), řeší etapa 5. Zavírá se křížkem.
+- **Barvy:** autor chce „malinko víc používat barvy tam, kde to má smysl“. Nadpisy (název sestavy ve výběru,
+  nadpisy průvodců, SAPIemu v O programu) mají zase teplou barvu jako dřív: v tmavém režimu původní #FFD973,
+  ve světlém tmavší #B05000 (kontrast 5:1). Zelená „ok“ ve světlém režimu je tmavší #0B6A0B, aby byla čitelná i na
+  vybraném řádku (test `test_theme` to hlídá).
+- **Logo v O programu** se zmenšuje na procesoru průměrem plochy přesně na velikost, ve které se kreslí (autor:
+  hrany masky byly „lehce hrubě zubaté“). Okno O programu má pevnou šířku a výšku podle obsahu (autor: zbytečně
+  se posouvalo o 2 px).
+- **SAPI-1 je v textech rodu mužského** („byl průmyslový řídicí počítač“, „pracoval“), APS-5 je „měřicí jednotka“
+  jako v původním návodu Tesly.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

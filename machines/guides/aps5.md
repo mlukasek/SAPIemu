@@ -1,4 +1,4 @@
-# Měřicí ústředna APS-5 (pece)
+# Měřicí jednotka APS-5 (pece)
 
 Tesla APS-5 s původním firmwarem reguluje osm pecí podle termočlánků. V okně APS-5 je čelní panel s klávesnicí a
 displejem a kotelna s pecemi a grafem teplot.

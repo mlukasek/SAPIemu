@@ -1,7 +1,10 @@
 # SAPIemu – první kroky
 
-Emulátor počítače Tesla SAPI-1. Verze **alfa**: hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou
-zprávu, co nefunguje (GitHub Issues: https://github.com/mlukasek/SAPIemu/issues).
+Emulátor počítače Tesla SAPI-1. SAPI-1 (1983–1990) byl průmyslový řídicí počítač v rámu, ne domácí počítač.
+Začněte základní sestavou ZPS-1, pak zkuste přístroje. Hry a dema jsou novodobý doplněk na nových deskách.
+
+Verze **alfa**: hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje (GitHub
+Issues: https://github.com/mlukasek/SAPIemu/issues).
 
 ## Spuštění
 
@@ -18,54 +21,96 @@ Potřebujete Windows 10 nebo 11, 64 bit.
 ## Sestavy
 
 Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám. Za ním už běží nejjednodušší
-sestava ZPS-1 s MIKROBASICem a ve výběru je vybraná. Sestavy jsou rozdělené do skupin:
-**Základ** (historické sestavy Tesla), **Desky Libora Lasoty**, **Hry a dema** (včetně přístrojů) a **Ostatní**. U
-každé je náhled, krátký popis, karty po slotech s připojeným příslušenstvím (klávesnice, mechaniky a obrazy
-disket, tiskárna, zapisovač, magnetofon…) a tlačítko Spustit; dvojklik sestavu také spustí. U sestav ze Základu, Liborových desek
-a Her a dem se po spuštění otevře **Průvodce sestavou** s tím, co vyzkoušet (políčko dole ho vypne, Nápověda →
-Průvodce sestavou ho otevře kdykoli). Bloky kódu v průvodci napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy
-odjinud otevře Soubor → Otevřít soubor sestavy…, konfigurátor sestavy (karty v rámu, propojky, mapa portů) je
-Zobrazení → Sestava….
+sestava ZPS-1 s MIKROBASICem a ve výběru je vybraná. Nahoře je krátký úvod o SAPI-1 a sestavy jsou rozdělené do
+skupin v tomto pořadí: **Základ: historické sestavy Tesla**, **Přístroje a technologie**, **Desky Libora Lasoty
+(moderní)**, **Hry a dema (novodobé)** a **Ostatní**. U každé je náhled, krátký popis, karty po slotech
+s připojeným příslušenstvím (klávesnice, mechaniky a obrazy disket, tiskárna, zapisovač, magnetofon…) a tlačítko
+Spustit; dvojklik sestavu také spustí. U sestav z prvních čtyř skupin se po spuštění otevře **Průvodce sestavou**
+s tím, co vyzkoušet (políčko dole ho vypne, Nápověda → Průvodce sestavou ho otevře kdykoli). Bloky kódu v průvodci
+napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy odjinud otevře Soubor → Otevřít soubor sestavy…,
+konfigurátor sestavy (karty v rámu, propojky, mapa portů) je Zobrazení → Sestava….
+
+Sestavy po skupinách jako ve výběru (soubory jsou ve složce `machines\`):
+
+### Základ: historické sestavy Tesla
+
+Původní základní počítačové sestavy (ZPS) v pořadí, jak šly po sobě.
 
 | Sestava | Co v ní je | Jak začít |
 |---|---|---|
+| `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
+| `zps/ZPS-2.sapi` | ZPS-2 s MIKOSem V4 a magnetofonem | `Q` ukáže zařízení, `D0 1F` vypíše paměť, `.K_D` adresář kazety |
+| `zps/ZPS-2_MIKOS_V5.sapi` | ZPS-2 s MIKOSem V5 a grafikou DGD-1 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
+| `zps/ZPS-3_CPM64K_IMA.sapi` | ZPS-3: originální CP/M 2.2 64K Tesla IMA z 8" diskety (B: MBASIC, COBOL) | `B:`, `MBASIC` |
+| `zps/ZPS-4.sapi` | ZPS-4 se Z80: CP/M 2.2/P 62K R. Peřiny z 8" diskety, RAM disk RMD-1 | `DIR`, `TYPE CPM.DOC` |
+| `zps/ZPS-6.sapi` | SAPI-1.5 (1990): PKT-1, RSW-1, MFC-1A, barevná DBS-1A, CP/M 2.2 62K z 5,25" diskety | `DIR`, `SETDBS1` (barvy a celá znaková sada), další diskety Melsoft `media/sapi15` v okně Média |
+
+### Přístroje a technologie
+
+Přístroje a zařízení se SAPI-1. Každý je nakreslený v okně emulátoru.
+
+| Sestava | Co v ní je | Jak začít |
+|---|---|---|
+| `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | tlačítko DEMO, nebo poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
+| `zps/ZPS-2_DPS-1_IMS-2.sapi` | ZPS-2 s deskou DPS-1: přístrojová sběrnice IMS-2, voltmetr Metra M1T 330 a zdroj Tesla BS 525 (okno Měřicí pracoviště) | `.K_L BASIMS`, PLAY, `Y`, `.J`; pak `IMS# O3;"R4D0E"`, `IMS# T3`, `IMS# I A$` v programu |
+| `zps/ZPS-2_MIKOS_V5_Minigraf.sapi` | zapisovač ARITMA Minigraf 0507 na desce DPP-1 (okno Minigraf) | `.G=1800` pero na počátek, `.G=1809` nakreslí znakovou sadu |
+| `zps/ZPS-2_MIKOS_V5_XY4130.sapi` | grafická jednotka XY 4130 na X3 desky JPR-1, ovladač TESLA DIZ za MIKOSem V5 (okno zapisovače) | PEN v okně zapisovače, `.G=181E` nakreslí znakovou sadu |
+| `plotter_ar1990.sapi` | plotter z AR 1990: JPR-1 s programem z přílohy AR řídí Minigraf 0507 (okno Minigraf) | READY (po zapnutí pípá), pak Ukázka nebo TEST; povely do řádku, např. `\x02`, `D400,0` |
+| `zps/ZPS-2_MIKOS_K.sapi` | záznamník dat KZD-1 s MIKOSem/K V5.0 (kazeta v okně Média) | `.K` `I` připraví kazetu, `.K` `D` vypíše adresář |
+| `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
+| `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |
+
+### Desky Libora Lasoty (moderní)
+
+Nové desky pro SAPI-1 od Libora Lasoty.
+
+| Sestava | Co v ní je | Jak začít |
+|---|---|---|
+| `jpr1s_bgp1s.sapi` | JPR-1S s grafikou BGP-1S (PMD-85) a MIKROBIOSem 1.02 | Soubor → Nahrát program `media/jpr-1s/manic_miner.hex`, pak `JUMP 4400` a Enter |
+| `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `3` = CP/M z RAM disku A: a IDE disk B:, C: (volby 0–2 čekají na řadič disket, který sestava nemá, jako skutečná deska) |
 | `mikromon.sapi` | MikroMon 1.3 (Libor Lasota) | `?` + Enter vypíše příkazy |
+
+### Hry a dema (novodobé)
+
+SAPI-1 nebyl herní počítač. Porty her a dema vznikly pro nové desky a běží i na skutečném hardwaru.
+
+| Sestava | Co v ní je | Jak začít |
+|---|---|---|
+| `sapi1v_hry.sapi` | **hry a dema** na sestavě V s grafikou CGA-1V i DGD-1V: Bad Apple!!, FXS4, Flappy (CGA-1V a DGD-1V), Bomberman, Bratrstvo kočičí pracky, dema a hudba L. Lasoty | `3`, pak `DIR` a jméno programu (viz Vyzkoušejte) |
+| `sapi1v_PoP.sapi` | sestava V s Prince of Persia (grafika a hudba DOS verze) na RAM disku | `3`, pak `POP` |
+| `sapi1v_BomberNet.sapi` | síťová hra BomberNet 0.3.0 na sestavě V s kartou DPI-1L (NET přes relay `ws://api.mzpico.com/net`, do sítě až po volbě HOST nebo JOIN ve hře; SD karta ve složce `work/dpi-1l/sdcard`) | `3` = CP/M jako `sapi1v`; síťovou hru spustí BomberNet (`docs/desky/DPI-1L.md`) |
+| `jpr1s_bgp1s.sapi` | Manic Miner na JPR-1S a BGP-1S (ve výběru „Manic Miner (JPR-1S + BGP-1S)“) | jako v Liborových deskách; Ctrl+F7 režim pro hry |
+
+### Ostatní
+
+Další sestavy ZPS a jejich varianty, CP/M s ECMONem, CP/M J. Bíby, RKD-1 s mechanikou CM 5400 a další sestavy
+s Liborovými deskami.
+
+| Sestava | Co v ní je | Jak začít |
+|---|---|---|
+| `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
+| `zps/ZPS-1_JPR-1X.sapi` | ekvivalent ZPS-1 s JPR-1X: MIKROBASIC 2.4 z horní banky ROM | rovnou píšete v BASICu |
+| `zps/ZPS-2_MIKOS_D.sapi`, `zps/ZPS-2_MIKOS_V5_DGD-1V.sapi` | ZPS-2 s MIKOSem/D z 8" diskety, ZPS-2 s MIKOSem V5 a grafikou DGD-1V | monitor MIKOS |
+| `zps/ZPS-3.sapi`, `zps/ZPS-3_CPM48K.sapi`, `_CPM48K_FDC-1`, `_CPM62K`, `_CPM62K_FDC-1`, `zps/ZPS-4_ELIS.sapi`, `zps/ZPS-4_FDC-1.sapi` | CP/M 2.2/P z 8" diskety (RPD-1, u `_FDC-1` řadič FDC-1), 48K a 62K, ELIS | naběhne CP/M |
+| `zps/ZPS-3_CPM48K_IMA.sapi` | originální CP/M 2.2 46K Tesla IMA s MON V1.0-C1 (systém z MOVCPM48) | `DIR`, `DIR B:` |
 | `cpm_zrmd.sapi` | CP/M 2.2 z RAM disku ZRMD-1 (ECMON), s tiskárnou | po startu stiskněte `3` (B:, C: bez IDE-1 ukáží XYXY, to je v pořádku), pak `DIR`; `^P` a `DIR` vytiskne výpis (okno Tiskárna) |
 | `cpm_ide.sapi` | totéž s IDE diskem a PMD32-SD | po startu `3` |
 | `cpm_zrmd_fdc1.sapi`, `cpm_zrmd_mfc1a.sapi` | totéž s řadičem disket FDC-1 nebo MFC-1A a 8" disketami | po startu `0` (FDC-1) nebo `2` (MFC-1A), pak `DIR B:` |
+| `cpm_zrmd_dpp1.sapi` | `cpm_zrmd` s deskou DPP-1 a PMD32-SD | po startu `3`, pak `DIR D:`, `DIR E:` |
+| `cpm_zrmd_rtc_dsp.sapi` | navíc deska reálného času RTC-1 a sériová DSP-1 (programy J. Bíby) | po startu `3`, `E:RTCZ` hodiny RTC-1 (ESC konec), `RTC421` hodiny ZRMD-1, `DOPCP soubor` pošle soubor XMODEMem do okna terminálu „DSP-1 X2 #48“ |
 | `cpm_ec1045.sapi` | systém EC1045: FDC-1 s disketami PC 3,5" a 5,25" HD | `1` = 3,5", `2` = 5,25" (vložit disketu v okně Média), pak `DIR B:` |
 | `cpm_boot_mfc1a.sapi`, `cpm_boot_fdc1.sapi`, `cpm_boot_rpd1.sapi` | CP/M J. Bíby (2011) bootovaný z 8" diskety | naběhne CP/M, na A: jsou zdrojáky systému |
 | `cpm_boot_*_ss256.sapi`, `cpm_boot_mfc1a_rmd.sapi` | totéž ze systémových disket J. Bíby (A: programy, B: zdroje), C: ZRMD-1 nebo RMD-1 | naběhne CP/M (výzva `U0A>`) |
 | `cpm_boot_fdc1_rmd.sapi`, `cpm_boot_rpd1_rmd.sapi` | CP/M J. Bíby s RAM diskem RMD-1 (FDC-1, RPD-1) | `B:IRMD40`, odpověď `A`, pak C: |
 | `cpm_boot_fdc1_irmd.sapi` | CP/M J. Bíby, RAM disk RMD-1 si připraví BIOS sám (zjistí i velikost) | `SAVE 2 C:X.COM`, `B:STAT C:` |
 | `cpm_boot_rpd1_mfc256.sapi`, `_mfc512`, `cpm_boot_rpd1_fdc1_rmd.sapi` | CP/M J. Bíby z RPD-1 s RMD-1 a druhým řadičem pro D:, E: (MFC-1A s 8" FM 14 × 256 nebo 8 × 512, FDC-1 8") | `B:IRMD40`, `A`, pak `SAVE 2 D:X.COM`, `DIR D:` |
-| `cpm_pmd_fdc1.sapi` | CP/M J. Bíby: FDC-1 a PMD32-SD přes DPP-1 | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
-| `cpm_term64k_fdc1.sapi` | CP/M 64K bez obrazovky, jen terminál | Zobrazení → Sériový terminál (nebo TeraTerm na 127.0.0.1:2323) |
-| `cpm_pmd_rpd1.sapi` | CP/M J. Bíby s PMD32-SD přes DPP-1 (C:, D: = 5,25" diskety J. Bíby na SD kartě) | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
-| `cpm_zrmd_dpp1.sapi` | `cpm_zrmd` s deskou DPP-1 a PMD32-SD | po startu `3`, pak `DIR D:`, `DIR E:` |
-| `cpm_zrmd_rtc_dsp.sapi` | navíc deska reálného času RTC-1 a sériová DSP-1 (programy J. Bíby) | po startu `3`, `E:RTCZ` hodiny RTC-1 (ESC konec), `RTC421` hodiny ZRMD-1, `DOPCP soubor` pošle soubor XMODEMem do okna terminálu „DSP-1 X2 #48“ |
 | `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35`: 3,5") | „dlouhé“ CP/M J. Bíby: A:, B: 8" (RPD-1), C: ZRMD-1, D:, E: 5,25" HD (FDC-1) | naběhne CP/M, zkuste `DIR B:`, `STAT D:` |
-| `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `3` = CP/M z RAM disku A: a IDE disk B:, C: (volby 0–2 čekají na řadič disket, který sestava nemá, jako skutečná deska) |
-| `sapi1v_hry.sapi` | **hry a dema** na sestavě V s grafikou CGA-1V i DGD-1V: Bad Apple!!, FXS4, Flappy (CGA-1V a DGD-1V), Bomberman, Bratrstvo kočičí pracky, dema a hudba L. Lasoty | `3`, pak `DIR` a jméno programu (viz Vyzkoušejte) |
-| `sapi1v_PoP.sapi` | sestava V s Prince of Persia (grafika a hudba DOS verze) na RAM disku | `3`, pak `POP` |
-| `sapi1v_BomberNet.sapi` | síťová hra BomberNet 0.3.0 na sestavě V s kartou DPI-1L (NET přes relay `ws://api.mzpico.com/net`, do sítě až po volbě HOST nebo JOIN ve hře; SD karta ve složce `work/dpi-1l/sdcard`) | `3` = CP/M jako `sapi1v`; síťovou hru spustí BomberNet (`docs/desky/DPI-1L.md`) |
-| `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `3` = CP/M z RAM disku (disky B:, C: bez IDE-1 nefungují) |
-| `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
+| `cpm_pmd_fdc1.sapi` | CP/M J. Bíby: FDC-1 a PMD32-SD přes DPP-1 | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
+| `cpm_pmd_rpd1.sapi` | CP/M J. Bíby s PMD32-SD přes DPP-1 (C:, D: = 5,25" diskety J. Bíby na SD kartě) | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
+| `cpm_term64k_fdc1.sapi` | CP/M 64K bez obrazovky, jen terminál | Zobrazení → Sériový terminál (nebo TeraTerm na 127.0.0.1:2323) |
 | `rkd1_jb_cm5400.sapi` | CP/M J. Bíby s RKD-1 a bulharskou mechanikou CM 5400 (BIOS pro D: až G: vznikl v emulátoru) | `B:FORMRKD`, mechanika `F`, `O`, `A` naformátuje a zkontroluje kazetu (12 × 512 B), pak `DIR F:`, `B:PIP F:=B:*.COM` |
-| `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |
-| `plotter_ar1990.sapi` | plotter z AR 1990: JPR-1 s programem z přílohy AR řídí Minigraf 0507 (okno Minigraf) | READY (po zapnutí pípá), pak Ukázka nebo TEST; povely do řádku, např. `\x02`, `D400,0` |
-| `zps/ZPS-2_DPS-1_IMS-2.sapi` | ZPS-2 s deskou DPS-1: přístrojová sběrnice IMS-2, voltmetr Metra M1T 330 a zdroj Tesla BS 525 (okno Měřicí pracoviště) | `.K_L BASIMS`, PLAY, `Y`, `.J`; pak `IMS# O3;"R4D0E"`, `IMS# T3`, `IMS# I A$` v programu |
-| `aps5.sapi` | měřicí jednotka APS-5: původní firmware regulace osmi pecí, panel s klávesnicí a simulace pecí (okno APS-5) | poprvé kalibrace `6R` → `9990` →, typ termočlánku `8R` → `3` →; postup níže |
-| `zps/ZPS-1.sapi` | ZPS-1 s MIKROBASICem 2.4 a membránovou klávesnicí ANK-1 | rovnou píšete v BASICu |
-| `zps/ZPS-1_JPR-1S_AND-1B.sapi` | ekvivalent ZPS-1 z Liborových desek: JPR-1S, AND-1B (VGA), ANK-1M2 | rovnou píšete v BASICu |
-| `jpr1s_bgp1s.sapi` | JPR-1S s grafikou BGP-1S (PMD-85) a MIKROBIOSem 1.02 | Soubor → Nahrát program `media/jpr-1s/manic_miner.hex`, pak `JUMP 4400` a Enter |
 | `jpr1x_bgp1s.sapi` | JPR-1X (8085, TURBO) s RAM-1, BGP-1S a MIKROBIOSem 1.02 | jako `jpr1s_bgp1s`; TURBO tlačítkem na panelu ZDR nebo v menu Stroj |
-| `zps/ZPS-1_JPR-1X.sapi` | ekvivalent ZPS-1 s JPR-1X: MIKROBASIC 2.4 z horní banky ROM | rovnou píšete v BASICu |
-| `zps/ZPS-6.sapi` | SAPI-1.5 (1990): PKT-1, RSW-1, MFC-1A, barevná DBS-1A, CP/M 2.2 62K z 5,25" diskety | `DIR`, `SETDBS1` (barvy a celá znaková sada), další diskety Melsoft `media/sapi15` v okně Média |
-| `zps/ZPS-2*.sapi` | ZPS-2 s MIKOSem V4/V5, grafika DGD-1, MIKOS/D z diskety, MIKOS/K se záznamníkem dat KZD-1, zapisovače Minigraf 0507 a XY 4130 | monitor MIKOS; BASIC EXP je v `media\mikos` (viz níže) |
-| `zps/ZPS-3*.sapi`, `zps/ZPS-4*.sapi` | CP/M 2.2/P z 8" diskety (RPD-1, u `_FDC-1` řadič FDC-1), 48K a 62K, ELIS | naběhne CP/M |
-| `zps/ZPS-3_CPM48K_IMA.sapi` | originální CP/M 2.2 46K Tesla IMA s MON V1.0-C1 (systém z MOVCPM48) | `DIR`, `DIR B:` |
-| `zps/ZPS-3_CPM64K_IMA.sapi` | originální CP/M 2.2 64K Tesla IMA (B: MBASIC, COBOL) | `B:`, `MBASIC` |
+| `libor_doma.sapi` | Liborova sestava na ImBUS12: desky V s DGD-1V i CGA-1V (střídají se podle MAP2), bez IDE | `3` = CP/M z RAM disku (disky B:, C: bez IDE-1 nefungují) |
 
 ## Ovládání
 
@@ -89,10 +134,11 @@ Zobrazení → Sestava….
     program v BASICu;
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
-- **Sestava a karty:** Zobrazení → Sestava…. Panely karet jako na skutečném počítači, propojky karet, mapa portů
-  a paměti. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí). Některé propojky platí hned („platí hned“), ostatní změny se
-  projeví až tlačítkem „Restartovat s touto sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo
-  nahoře v hlavním okně).
+- **Sestava a karty:** Zobrazení → Sestava…. Rám s panely karet, propojky karet, mapa portů a paměti. Panely jsou
+  nakreslené podle modernizované skříně Libora Lasoty s popsanými panely, původní Tesla SAPI-1 měl holé karty za
+  krycím panelem. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí).
+  Některé propojky platí hned („platí hned“), ostatní změny se projeví až tlačítkem „Restartovat s touto
+  sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo nahoře v hlavním okně).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV,
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows).
 - **Okno přilepené ke kraji:** okno přetažené ke kraji hlavního okna se přilepí (zadokuje) a jeho velikost pak
@@ -130,47 +176,47 @@ Zobrazení → Sestava….
 
 ## Vyzkoušejte
 
-**Hry a dema** (`sapi1v_hry.sapi`, start volbou `3`, pak jméno programu na RAM disku A:):
-- `BADAPPLE` (demo Bad Apple!!), `FXS4` (Fuxoft Soundtrack IV, skladby klávesami A–Z);
-- `FLAPPY` (Flappy na CGA-1V) a `FLAPDGD` (Flappy na DGD-1V, port L. Lasoty): ovládá se joystickem, Ctrl+F8
-  joystick z klávesnice, mezerník = fire (úvod, výběr scény, hra);
-- `BOMBER` (Bomberman), `BKP` (textová hra Bratrstvo kočičí pracky, verze pro SAPI od L. Lasoty);
-- dema L. Lasoty: `Y1STDEMO`, `SNDDEMON` (jen zvuk), obrázky `CASTLE`, `REMBRAN1`, `REMBRAN2`, testy `CGATEST`,
-  `MPHTEST`;
-- hudba: `SPLAY HELLFIRE.VGM` (dalších 10 skladeb VGM, `DIR *.VGM`) a `RAT SMJOOP.RAD` (15 modulů RAD, `DIR *.RAD`).
+### Základ: historické sestavy Tesla
 
-Další programy z `media\` si nahrajete takto:
+Každá sestava Základu má průvodce (Nápověda → Průvodce sestavou). Pro začátek:
 
-- **Grafika CGA-1V** (sestava V, CP/M):
-  1. Soubor → Nahrát program do paměti → `media\cga-1v\rembran1.hex`;
-  2. v CP/M `SAVE 64 REMB1.COM`, pak `REMB1`.
-
-  Obrázek se ukáže v okně CGA-1V. `castle.hex` je hrad, `rembran2.hex` (`SAVE 127`) střídá stránky.
-- **Hudba MPH-1V** (sestava V):
-  1. `media\mph-1v\splay.hex` + `SAVE 4 SPLAY.COM`;
-  2. RAT PLAYER `media\mph-1v\rat_0_99_93.txt` + `SAVE 18 RAT.COM`.
-
-  Skladby nejsou součástí balíku (RAD z https://www.3eality.com/Public/Modules/RAD-v1/). Soubor RAD nahrajte
-  binárně od 0100h a uložte příkazem, který okno nabídne.
-- **Test karty MPH-1V:** `media\mph-1v\mph_test_0v99.hex`, `SAVE 31 MPH.COM`.
-- **Rychlost RAM disku a CGA-1V** (sestava V): `media\zrd-1v\zrdbench.hex`, `SAVE 7 ZRDBENCH.COM`, `ZRDBENCH`.
-  Ukáže takt CPU a takty na bajt, porovnání se skutečným SAPI-1 V je v `docs\desky\ZRMD-1.md`. Zkuste i
-  s vypnutým TURBO (tlačítko na panelu ZDR). Rychlost videopaměti AND-1V měří stejně `media\and-1v\vrambench.hex`
-  (`SAVE 6 VRAMBENCH.COM`, `VRAMBENCH`).
+- **ZPS-1 a MIKROBASIC** (`zps\ZPS-1.sapi`, běží po prvním spuštění): `10 FOR I=1 TO 5`, `20 PRINT I,I*I`,
+  `30 NEXT I`, `RUN` vypíše čísla 1 až 5 a jejich druhé mocniny; `LIST` ukáže program, `NEW` ho smaže.
+- **CP/M Tesla IMA** (`zps\ZPS-3_CPM64K_IMA.sapi`): `DIR B:` ukáže programy na druhé disketě, `B:` a `MBASIC`
+  spustí MBASIC (`PRINT 6*7`, `SYSTEM` vrátí do CP/M).
 - **MIKOS a grafika** (`zps\ZPS-2_MIKOS_V5.sapi`):
   1. Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0G.hex`;
   2. `B`;
   3. `CLSG:FOR I=0 TO 319 STEP 8:MOVE I,0:PLOT 319-I,239:NEXT I`.
-- **Záznamník dat KZD-1** (`zps\ZPS-2_MIKOS_K.sapi`, kazeta v okně Média):
-  1. `.K` `I`, název pásky (nová kazeta se musí připravit, chvíli to trvá);
-  2. `.K` `S`, jméno, `=5000 53FF` a Enter uloží paměť;
-  3. `.K` `D` vypíše adresář;
-  4. `.K` `Z` převine na začátek, `.K` `L` a jméno soubor načte (návod v `docs/desky/KZD-1.md`);
-  5. programy z kazet magnetofonu na KZD-1 a zpět zkopíruje program CKM (`.G=4400`), nejlépe opravená kopie
-     `media\mikos\CKM_opraveny.hex` (originál `CKM.hex` po čtení z KZD-1 nastaví nulovou délku bloku);
-  6. program `.hex` nebo `.bin` jde do KZD-1 vložit rovnou (Média → Vložit…), vznikne z něj kazeta jako od MIKOSu/K.
 
-  Celý návod s výpisy obrazovky: `docs/navod-kzd1.md`.
+### Přístroje a technologie
+
+- **Měřicí jednotka APS-5** (`aps5.sapi`, původní firmware Tesla):
+  - vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát
+    na PC: číslice, `M` (Esc), `R`, Backspace = ←, Enter = →;
+  - příkaz se zadá číslem a →, rezervované příkazy číslem, `R` a → (zámek musí být v poloze 2);
+  - první zapnutí je studený start. Nejdřív kalibrace `6R` → `9990` →, pak pro každou pec `0` → číslo pece →
+    a `8R` → typ termočlánku → (pec 1: 3 = ch-a);
+  - program: `2` → `1` →, `3R` → `20` → `700` → (20 minut na 700 °C) a další segmenty, `M` → zpět;
+  - pec 1: `4R` → `6` → (vzorkovací perioda 60 s), `9R` → `1` → (program 1), `1` → `1` → (zapnout regulaci);
+  - `11` → je tabulka stavu pecí. Pec v okně začne žhnout, graf ukazuje průběh. Tlačítko „Výpadek sítě“ zkusí,
+    jak si jednotka poradí.
+  - **RESET u APS-5 nepoužívejte.** Skutečná jednotka ho nemá a firmware ho bere jako chybu: „CHYBA 0 /
+    INICIALIZACE“, po M → studený start (nastavení se smaže). Vypínejte vypínačem POWER, to proběhne jako výpadek
+    sítě a nastavení zůstane.
+
+  **Nejrychleji:** tlačítko **DEMO** v okně APS-5 vše odťuká samo a pece nahřeje (asi minuta).
+  **Ukázka krok za krokem** (tři pece v regulaci na 700 °C, dvě ručně, jako na obrázku v README):
+  `docs/aps5-ukazka.md`. Zapojení a firmware: `docs/desky/APS-5.md`.
+- **Měřicí pracoviště IMS-2** (`zps/ZPS-2_DPS-1_IMS-2.sapi`, deska DPS-1, BASIMS V4.0):
+  1. nad ostatní okna se otevře Měřicí pracoviště: voltmetr M1T 330 měří výstup I zdroje BS 525;
+  2. BASIMS z kazety: `.K_L`, jméno `BASIMS`, v okně Média PŘEHRÁT, `Y`, pak `.J` (nebo Soubor → Nahrát program
+     do paměti → `media\dps-1\BASIMS.hex` a `G4400`); za ním jsou na kazetě programy `PRIKLAD` a `SMYCKA`
+     (`LOAD`, jméno, `Y`, `RUN`);
+  3. program `10 IMS# N`, `20 IMS# O3;"R4D0E"`, `30 IMS# T3`, `40 IMS# I A$`, `50 PRINT A$` vypíše `V+1.256…E+1`;
+  4. knoflíky zdroje se točí myší, monitor sběrnice ukazuje adresování a texty.
+
+  Celý návod: `docs/navod-dps1.md`.
 - **Zapisovač Minigraf 0507** (`zps\ZPS-2_MIKOS_V5_Minigraf.sapi`, okno Minigraf se otevře samo):
   1. `.G=1800` (pero na počátek), `.G=1809` nakreslí znakovou sadu;
   2. ukázka: Soubor → Nahrát program → `media\mikos\BASIC_EXP_V5.0.hex`, `.B`, v okně Minigraf Nový papír, obsah
@@ -188,6 +234,23 @@ Další programy z `media\` si nahrajete takto:
      (z BASICu `A=CALL(32768)`).
 
   Celý návod: `docs/navod-xy4130.md`.
+- **Plotter z AR 1990** (`plotter_ar1990.sapi`, deska JPR-1 jako řadič Minigrafu, povely Sharp MZ-1P16):
+  1. po zapnutí plotter pípá: tlačítko READY v okně Minigraf, vozík najede na počátek;
+  2. TEST napíše a podtrhne „*** MZ-821 ***“, Celý test nakreslí znakovou sadu;
+  3. Ukázka pošle `media/ar1990/ukazka.txt` (rámeček, osy, sinusovky, hvězda, texty, textový režim);
+  4. vlastní povely do řádku: `\x02` grafický režim, `I` počátek, `D400,0` čára, `P` text, `\x01` zpět na text.
+
+  Celý návod: `docs/navod-ar1990.md`.
+- **Záznamník dat KZD-1** (`zps\ZPS-2_MIKOS_K.sapi`, kazeta v okně Média):
+  1. `.K` `I`, název pásky (nová kazeta se musí připravit, chvíli to trvá);
+  2. `.K` `S`, jméno, `=5000 53FF` a Enter uloží paměť;
+  3. `.K` `D` vypíše adresář;
+  4. `.K` `Z` převine na začátek, `.K` `L` a jméno soubor načte (návod v `docs/desky/KZD-1.md`);
+  5. programy z kazet magnetofonu na KZD-1 a zpět zkopíruje program CKM (`.G=4400`), nejlépe opravená kopie
+     `media\mikos\CKM_opraveny.hex` (originál `CKM.hex` po čtení z KZD-1 nastaví nulovou délku bloku);
+  6. program `.hex` nebo `.bin` jde do KZD-1 vložit rovnou (Média → Vložit…), vznikne z něj kazeta jako od MIKOSu/K.
+
+  Celý návod s výpisy obrazovky: `docs/navod-kzd1.md`.
 - **Kazetový disk RKD-1** (`rkd1_tesla_cpm.sapi`, CP/M 2.2 Tesla Elstroj 1987 z kazety CM 5403):
   1. po startu číslo uživatele (`1`) a název oblasti; výzva `b1$` je disk B:, uživatel 1;
   2. `DIR A:` ukáže systémovou kazetu (shell, formátovač, zdrojáky systému);
@@ -209,41 +272,44 @@ Další programy z `media\` si nahrajete takto:
      opravenou kopii `B:MTCOPYO` (původní MTCOPY zapíše do EOF1 o blok méně), postup krok za krokem v návodu.
 
   Celý návod s výpisy obrazovky: `docs/navod-rmp1.md`.
-- **Plotter z AR 1990** (`plotter_ar1990.sapi`, deska JPR-1 jako řadič Minigrafu, povely Sharp MZ-1P16):
-  1. po zapnutí plotter pípá: tlačítko READY v okně Minigraf, vozík najede na počátek;
-  2. TEST napíše a podtrhne „*** MZ-821 ***“, Celý test nakreslí znakovou sadu;
-  3. Ukázka pošle `media/ar1990/ukazka.txt` (rámeček, osy, sinusovky, hvězda, texty, textový režim);
-  4. vlastní povely do řádku: `\x02` grafický režim, `I` počátek, `D400,0` čára, `P` text, `\x01` zpět na text.
 
-  Celý návod: `docs/navod-ar1990.md`.
+### Desky Libora Lasoty (moderní)
 
-- **Měřicí pracoviště IMS-2** (`zps/ZPS-2_DPS-1_IMS-2.sapi`, deska DPS-1, BASIMS V4.0):
-  1. nad ostatní okna se otevře Měřicí pracoviště: voltmetr M1T 330 měří výstup I zdroje BS 525;
-  2. BASIMS z kazety: `.K_L`, jméno `BASIMS`, v okně Média PŘEHRÁT, `Y`, pak `.J` (nebo Soubor → Nahrát program
-     do paměti → `media\dps-1\BASIMS.hex` a `G4400`); za ním jsou na kazetě programy `PRIKLAD` a `SMYCKA`
-     (`LOAD`, jméno, `Y`, `RUN`);
-  3. program `10 IMS# N`, `20 IMS# O3;"R4D0E"`, `30 IMS# T3`, `40 IMS# I A$`, `50 PRINT A$` vypíše `V+1.256…E+1`;
-  4. knoflíky zdroje se točí myší, monitor sběrnice ukazuje adresování a texty.
+Programy pro desky V z `media\` si nahrajete takto:
 
-  Celý návod: `docs/navod-dps1.md`.
+- **Grafika CGA-1V** (sestava V, CP/M):
+  1. Soubor → Nahrát program do paměti → `media\cga-1v\rembran1.hex`;
+  2. v CP/M `SAVE 64 REMB1.COM`, pak `REMB1`.
 
-**APS-5** (`aps5.sapi`, měřicí jednotka Tesla s původním firmwarem):
-- vedle obrazovky se otevře okno APS-5 s čelním panelem a osmi pecemi; klávesy lze mačkat myší, nebo psát
-  na PC: číslice, `M` (Esc), `R`, Backspace = ←, Enter = →;
-- příkaz se zadá číslem a →, rezervované příkazy číslem, `R` a → (zámek musí být v poloze 2);
-- první zapnutí je studený start. Nejdřív kalibrace `6R` → `9990` →, pak pro každou pec `0` → číslo pece →
-  a `8R` → typ termočlánku → (pec 1: 3 = ch-a);
-- program: `2` → `1` →, `3R` → `20` → `700` → (20 minut na 700 °C) a další segmenty, `M` → zpět;
-- pec 1: `4R` → `6` → (vzorkovací perioda 60 s), `9R` → `1` → (program 1), `1` → `1` → (zapnout regulaci);
-- `11` → je tabulka stavu pecí. Pec v okně začne žhnout, graf ukazuje průběh. Tlačítko „Výpadek sítě“ zkusí,
-  jak si jednotka poradí.
-- **RESET u APS-5 nepoužívejte.** Skutečná jednotka ho nemá a firmware ho bere jako chybu: „CHYBA 0 /
-  INICIALIZACE“, po M → studený start (nastavení se smaže). Vypínejte vypínačem POWER, to proběhne jako výpadek
-  sítě a nastavení zůstane.
+  Obrázek se ukáže v okně CGA-1V. `castle.hex` je hrad, `rembran2.hex` (`SAVE 127`) střídá stránky.
+- **Hudba MPH-1V** (sestava V):
+  1. `media\mph-1v\splay.hex` + `SAVE 4 SPLAY.COM`;
+  2. RAT PLAYER `media\mph-1v\rat_0_99_93.txt` + `SAVE 18 RAT.COM`.
 
-**Nejrychleji:** tlačítko **DEMO** v okně APS-5 vše odťuká samo a pece nahřeje (asi minuta).
-**Ukázka krok za krokem** (tři pece v regulaci na 700 °C, dvě ručně, jako na obrázku v README):
-`docs/aps5-ukazka.md`. Zapojení a firmware: `docs/desky/APS-5.md`.
+  Skladby nejsou v `media\mph-1v` (jsou na RAM disku sestavy `sapi1v_hry`, viz Hry a dema), další RAD jsou na
+  https://www.3eality.com/Public/Modules/RAD-v1/. Soubor RAD nahrajte
+  binárně od 0100h a uložte příkazem, který okno nabídne.
+- **Test karty MPH-1V:** `media\mph-1v\mph_test_0v99.hex`, `SAVE 31 MPH.COM`.
+- **Rychlost RAM disku a CGA-1V** (sestava V): `media\zrd-1v\zrdbench.hex`, `SAVE 7 ZRDBENCH.COM`, `ZRDBENCH`.
+  Ukáže takt CPU a takty na bajt, porovnání se skutečným SAPI-1 V je v `docs\desky\ZRMD-1.md`. Zkuste i
+  s vypnutým TURBO (tlačítko na panelu ZDR). Rychlost videopaměti AND-1V měří stejně `media\and-1v\vrambench.hex`
+  (`SAVE 6 VRAMBENCH.COM`, `VRAMBENCH`).
+
+### Hry a dema (novodobé)
+
+SAPI-1 nebyl herní počítač, hry a dema jsou novodobý doplněk na nových deskách.
+
+**SAPI-1 V: hry a dema** (`sapi1v_hry.sapi`, start volbou `3`, pak jméno programu na RAM disku A:):
+- `BADAPPLE` (demo Bad Apple!!), `FXS4` (Fuxoft Soundtrack IV, skladby klávesami A–Z);
+- `FLAPPY` (Flappy na CGA-1V) a `FLAPDGD` (Flappy na DGD-1V, port L. Lasoty): ovládá se joystickem, Ctrl+F8
+  joystick z klávesnice, mezerník = fire (úvod, výběr scény, hra);
+- `BOMBER` (Bomberman), `BKP` (textová hra Bratrstvo kočičí pracky, verze pro SAPI od L. Lasoty);
+- dema L. Lasoty: `Y1STDEMO`, `SNDDEMON` (jen zvuk), obrázky `CASTLE`, `REMBRAN1`, `REMBRAN2`, testy `CGATEST`,
+  `MPHTEST`;
+- hudba: `SPLAY HELLFIRE.VGM` (dalších 10 skladeb VGM, `DIR *.VGM`) a `RAT SMJOOP.RAD` (15 modulů RAD, `DIR *.RAD`).
+
+Další hry: Prince of Persia (`sapi1v_PoP.sapi`), síťový BomberNet (`sapi1v_BomberNet.sapi`) a Manic Miner
+(`jpr1s_bgp1s.sapi`). Jak začít, je v tabulce sestav výše.
 
 ## Pro vývojáře
 

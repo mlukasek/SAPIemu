@@ -76,7 +76,8 @@ Tyto body se mohou vyřešit kdykoli, nebo nikdy:
   kdo dělal testy MFC_TEST_CPM;
 - dokumentace a tisky: OCR „EB00H“ u DGD-1, BAT41/BAT42, IC4 74HCT04/14 u JPR-1S, prázdný `TEST AND1` v BIOSu 2.1,
   PROM D3D DPS-1 (jen ukázka), zapojení lišty SV2 IDE-1;
-- vzhled: panely karet a přístrojů (ZPS, SM 5300, BS 525), poloha obrazu AND-1B o pár bodů, S3 AND-1B, výchozí
+- vzhled: panely přístrojů (SM 5300, BS 525; panely karet zodpověděl autor 2026-10-28: kreslí se podle Liborovy
+  skříně, původní Tesla měla holé karty za krycím panelem), poloha obrazu AND-1B o pár bodů, S3 AND-1B, výchozí
   barva AND-1B, směr os myši MPH-1V (žádný program myš nepoužívá), joyport ANK-1M2 (žádný známý program);
 - historie: kdo a s čím provozoval RKD-1, XY 4130, DSP-1 v. č. 44127, mechaniky u MFC-1A, firmware ZPS-5, sítě
   „P1-/INT_“ a „P1-STB_“ ve schématu JPR-1ZI;

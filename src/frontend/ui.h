@@ -113,13 +113,18 @@ struct UiState {
     // the window "Choose a machine" and the guide of a machine (frontend/browser.cpp)
     bool show_browser = false;
     bool browser_loaded = false;   // the index is read when the window opens
+    bool browser_first = false;    // opened by the first start: closed without starting a machine, it lets the
+                                   // guide of the running one (ZPS-1) open itself once
     std::string browser_sel;       // the machine selected in it
+    std::string browser_sel_cat;   // the category of the row selected ("recent": Recently started): one row lit
+    std::string browser_sel_title; // the title of that row when the category has its own (Manic Miner), else empty
     MachineIndex machine_index;
     std::vector<std::string> recent;   // machines started from the window, newest first (settings)
     bool show_settings = false;    // View -> Settings
     bool show_about = false;       // Help -> About SAPIemu
     bool show_shortcuts = false;   // Help -> Keyboard shortcuts
     bool show_guide = false;
+    bool guide_focus = false;      // bring the guide window to the front (Help -> Machine guide, the button Guide)
     std::string guide_machine;     // the machine whose guide is shown
     uint64_t guide_gen = ~0ull;    // the machine generation the guide was considered for
     bool guides_auto = true;       // guides open themselves for the basic, Libor's and the games machines (settings)
