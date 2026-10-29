@@ -45,7 +45,7 @@ static void draw_controls(UiState& ui, Machine* m)
     if (ImGui::Button(tr("Step over (F10)"))) { m->step_over(); h.status = m->stop_text(); }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Reset"))) m->reset();
+    if (ImGui::Button(tr("Reset"))) request_reset(ui);   // the APS-5 unit asks first
     if (!h.status.empty()) {
         ImGui::SameLine();
         ImGui::TextColored(theme().warn, "%s", h.status.c_str());

@@ -31,6 +31,7 @@ public:
     int irq_lines() override;
     SerialChannel* serial_channel(int index) override { return index == 0 ? serial.get() : nullptr; }
     void flush() override;
+    bool unsaved() override { return deck.unsaved(); }
     void describe(nlohmann::json& out) override;
     int decode_io(uint8_t port, const char** what) override;
 
@@ -94,6 +95,7 @@ public:
     int irq_lines() override;
     SerialChannel* serial_channel(int index) override;
     void flush() override;
+    bool unsaved() override { return ch[0].unsaved() || ch[1].unsaved(); }
     void describe(nlohmann::json& out) override;
     int decode_io(uint8_t port, const char** what) override;
 

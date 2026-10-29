@@ -8,6 +8,12 @@
 
 using nlohmann::json;
 
+// Autosave of the media: a look every 250 ms; saved 3 s after the last write, or a minute after the first unsaved
+// one while the writes go on (a recording, a program writing all the time).
+static const uint64_t AUTOSAVE_LOOK_NS = 250000000ull;
+static const uint64_t AUTOSAVE_QUIET_NS = 3000000000ull;
+static const uint64_t AUTOSAVE_MAX_NS = 60000000000ull;
+
 uint64_t host_time_ns(void)
 {
     return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -70,12 +76,16 @@ bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::
     status.clear();
     speed_t0 = host_time_ns();
     speed_c0 = 0;
+    as_first = 0;
+    as_tried = UINT64_MAX;
+    as_paused = false;
     return true;
 }
 
 void EmuHost::power_off(void)
 {
     if (!m) return;
+    last_cfg = m->config;   // switched on again as it ran (a medium put in stays in)
     m->stop_bridges();
     m->power_down();
     m.reset();
@@ -94,6 +104,18 @@ bool EmuHost::power_on(std::string& err)
     }
     nlohmann::json cfg = last_cfg;
     return load_config(cfg, file, err);
+}
+
+bool EmuHost::power_cycle(std::string& err)
+{
+    if (!m) {
+        err = "the machine is switched off";
+        return false;
+    }
+    nlohmann::json cfg = m->config;   // a copy: the old machine goes away during the load
+    if (!load_config(cfg, file, err)) return false;
+    LOGI("machine switched off and on");
+    return true;
 }
 
 void EmuHost::handle_stop(void)
@@ -143,6 +165,7 @@ void EmuHost::frame(uint64_t elapsed_ns)
 {
     if (!m) return;
     if (!paused) {
+        as_paused = false;
         status.clear();
         if (max_speed) {
             uint64_t start = host_time_ns();
@@ -156,7 +179,45 @@ void EmuHost::frame(uint64_t elapsed_ns)
         }
         handle_stop();
     }
+    if (paused && !as_paused) {   // paused (F5, a breakpoint, MCP): the media saved now
+        as_paused = true;
+        save_media_new();
+    }
+    autosave(host_time_ns());
     update_speed();
+}
+
+void EmuHost::autosave(uint64_t now)
+{
+    if (!m || now - as_look < AUTOSAVE_LOOK_NS) return;
+    as_look = now;
+    uint64_t w = media_writes();
+    if (w != as_writes) {
+        as_writes = w;
+        as_quiet = now;
+    }
+    if (!m->unsaved()) {
+        as_first = 0;
+        return;
+    }
+    if (!as_first) as_first = now;
+    bool quiet = now - as_quiet >= AUTOSAVE_QUIET_NS && w != as_tried;
+    if (quiet || now - as_first >= AUTOSAVE_MAX_NS) save_media();
+}
+
+int EmuHost::save_media(void)
+{
+    if (!m) return 0;
+    int n = m->save_media();
+    as_tried = media_writes();
+    as_first = 0;
+    return n;
+}
+
+int EmuHost::save_media_new(void)
+{
+    if (!m || media_writes() == as_tried) return 0;   // saved or failed since the last write: autosave tries again
+    return save_media();
 }
 
 uint32_t EmuHost::target_hz(void) const

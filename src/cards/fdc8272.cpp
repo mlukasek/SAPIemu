@@ -64,6 +64,10 @@ bool Fdc8272Card::floppy_insert(int i, const std::string& image, bool wp, std::s
         err = "no such drive";
         return false;
     }
+    {   // read first: a bad image leaves the disk in the drive
+        FloppyDrive probe;
+        if (!probe.load(image, work_copy, err)) return false;
+    }
     floppy_eject(i);
     FloppyDrive& d = drives[i];
     if (!d.load(image, work_copy, err)) return false;
@@ -84,6 +88,13 @@ void Fdc8272Card::flush()
         std::string err;
         if (!drives[i].save(err)) LOGE("%s: %s", name.c_str(), err.c_str());
     }
+}
+
+bool Fdc8272Card::unsaved()
+{
+    for (int i = 0; i < DRIVES; i++)
+        if (drives[i].unsaved()) return true;
+    return false;
 }
 
 void Fdc8272Card::fdc_reading(int unit)

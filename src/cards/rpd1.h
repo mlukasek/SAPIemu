@@ -37,6 +37,7 @@ public:
     bool io_read(uint8_t port, uint8_t& data) override;
     bool io_write(uint8_t port, uint8_t data) override;
     void flush() override;
+    bool unsaved() override;
     void describe(nlohmann::json& out) override;
     int decode_io(uint8_t port, const char** what) override;
     FloppyDrive* floppy_drive(int index) override { return index >= 0 && index < DRIVES ? &drives[index] : nullptr; }

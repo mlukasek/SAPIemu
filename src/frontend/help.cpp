@@ -56,6 +56,7 @@ static const struct {
     { "F5", "Pause / run" },
     { "F8", "Emulation speed 100 / 200 / 400 % / maximum" },
     { "F12, F9", "Reset of the machine (the memory stays)" },
+    { "Ctrl+F12", "Switch off and on (the memory is lost, as with the power switch)" },
     { "F11, F10", "Step, step over (when paused)" },
     { "Ctrl+F5", "Screenshot of the picture focused last" },
     { "Ctrl+Alt+F5", "Video with sound on / off (MP4 through ffmpeg)" },

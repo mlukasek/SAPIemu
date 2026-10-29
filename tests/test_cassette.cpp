@@ -59,6 +59,15 @@ static void save_load(void)
     CHECK(run_until_text(m, "42", 10.0));
     CHECK(screen_contains(m, "\nHELLO"));
     printf("%s", screen_text(m).c_str());
+    // a bad file leaves the cassette in the recorder (read first); another one goes in
+    std::string bad = data_path("work/test/cassette_bad.wav");
+    uint8_t junk[64] = { 0 };
+    CHECK(file_write_all(bad, junk, sizeof(junk)));
+    CHECK(!dsm->media_change(0, "work/test/cassette_bad.wav", err));
+    CHECK(t->loaded() && t->path == data_path("work/test/cassette_test.wav") && t->length_seconds() > 1.0);
+    file_remove(bad);
+    CHECK(dsm->media_change(0, "work/test/cassette_test.wav", err));
+    CHECK(t->loaded() && t->length_seconds() > 1.0 && t->pos == 0);
 }
 
 // TOOL 48 (a real tape copied to WAV): the demodulated line gives the header

@@ -102,6 +102,10 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
 - **Klik na slot** vybere kartu a pod rámem se ukáže její nastavení: výběr karty, jumpery a soubory ROM nebo
   obrazů s nabídkou známých souborů a tlačítkem `…`. Pravé tlačítko otevře rovnou seznam karet. Klik na rám
   mimo karty ukáže název a popis sestavy a nastavení sběrnice.
+  - Rám se zmenšuje podle šířky i výšky okna, zabere nejvýš asi polovinu místa pod lištou, aby nastavení zůstalo
+    vidět (od 2026-10-29). Klik na slot přepne na záložku Nastavení karty a posune ji do pohledu.
+  - Cesta k souboru a textová pole se použijí až po Enteru nebo opuštění pole, Esc vrátí původní text. Médium se
+    tak nenačítá při každém napsaném znaku.
 - **Přetažení karty myší** na jiný slot (od 2026-10-07): karta se zvedne a jede za myší. Zelený cíl = přesun na
   volné místo nebo prohození se stejně širokou kartou, která tam začíná; červený = nejde (procesorová karta
   patří do X1, nevejde se do rámu, jiná šířka), důvod je v bublině. Esc tažení zruší. Sloty sběrnice jsou
@@ -406,6 +410,10 @@ okna O programu, Nastavení a Klávesové zkratky, `--ui-crop KLÍČ` uloží je
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
 `--ui-copy` zkopíruje snímek do schránky (Zobrazení → Kopírovat snímek; přepíše schránku),
 `--ui-zoom 200` zvolí zoom obrazovky jako z menu, `--ui-reset-layout` Zobrazení → Výchozí rozložení oken,
+`--ui-pause` těsně před obrázkem pozastaví stroj (F5: nápis přes obraz), `--ui-log` otevře okno Log (chyby
+červeně, varování žlutě; „Chyby: N“ ve stavovém řádku je vidět jen bez něj), `--ui-reset` těsně před obrázkem
+stiskne F12 (u APS-5 ukáže otázku „Resetovat jednotku APS-5?“), `--ui-rack SLOT` vybere slot jako kliknutím
+(záložka Nastavení karty, posunutá do pohledu),
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
 v něm vybere od řádku 0, hranice 7 po řádek 4, hranici 12),

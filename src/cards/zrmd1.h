@@ -36,13 +36,13 @@ public:
     bool configure(const nlohmann::json& cfg, std::string& err) override;
     void state(StateIO& io) override;
     void reset() override;
-    void advance(uint64_t now) override;
     bool io_read(uint8_t port, uint8_t& data) override;
     bool io_write(uint8_t port, uint8_t data) override;
     int irq_lines() override;
     int map_lines() override;
     int decode_io(uint8_t port, const char** what) override;
     void flush() override;
+    bool unsaved() override;   // mode rw with changes (EmuHost::autosave)
     void describe(nlohmann::json& out) override;
 
     enum Mode { MODE_RW, MODE_NOSAVE, MODE_READONLY };
@@ -81,5 +81,4 @@ private:
 
     uint8_t a_lo = 0, a_mid = 0, a_hi = 0;
     bool dirty = false;
-    uint64_t dirty_since = 0;
 };

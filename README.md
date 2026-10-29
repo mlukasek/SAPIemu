@@ -111,7 +111,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - tiskárna Centronics na X3 procesorové karty nebo na DPP-1: soubor s bajty a okno s vytištěným textem;
   - okno Média: mechaniky podle jednotek řadiče s písmenem v CP/M (ze sestavy, nebo zjištěné za chodu); výměna
     média se zapíše do sestavy, média z `media/` se používají přes pracovní kopii, kterou jde vrátit („Obnovit
-    z originálu“), změny v paměti jde zahodit („Vysunout bez uložení“);
+    z originálu“); zápisy se do souborů ukládají průběžně (pár sekund po posledním zápisu, při pauze a přepnutí
+    do jiného okna) přes dočasný soubor, takže pád nenechá napůl zapsaný obraz;
   - sériové linky do PC přes TCP nebo COM port, okno terminálu s odesíláním a příjmem souborů (i XMODEM) a schránkou (výběr myší rovnou do schránky).
 - **Měření a regulace: měřicí jednotka APS-5** s původním firmwarem Tesla (regulace osmi pecí adaptivním PSD):
   - desky A/D převodníku ADP-1, měřicího zesilovače DMT-1 a relé DRV-1A, panel HRK-1 s klávesnicí, zámkem

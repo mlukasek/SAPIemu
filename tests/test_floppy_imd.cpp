@@ -4,7 +4,8 @@
 // of an ImageDisk and is refused by a plain image of another format; the EC1045 system
 // (machines/cpm_ec1045.sapi) saves a file on a 5.25" HD disk given as ImageDisk. A new disk as
 // ImageDisk takes the formats of SAPIMAN's format programs (side 1 numbered 10-18, cylinder 80);
-// a plain image keeps a track beyond its end in memory only.
+// a plain image keeps a track beyond its end in memory only. A bad image put in leaves the disk in the drive;
+// a written disk is unsaved until Machine::save_media (the autosave of EmuHost).
 #include "chips/floppy.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -227,11 +228,57 @@ static void new_disks(void)
     CHECK(file_read_all(data_path("work/test/new720.img"), f) && f.size() == 737280);
 }
 
+// A bad image put in leaves the disk in the drive (the Media window says why); a write makes the card unsaved
+// (EmuHost::autosave) until the media are saved, the image is replaced through a temporary file.
+static void bad_insert(void)
+{
+    std::string t, err;
+    CHECK(file_read_text(data_path("machines/cpm_ec1045.sapi"), t));
+    json cfg = json::parse(t, nullptr, false, true);
+    for (json& c : cfg["cards"]) {
+        std::string ty = c.value("type", std::string());
+        if (ty == "ZRMD-1") {
+            c["mode"] = "readonly";
+            c["working_copy"] = false;
+        }
+        if (ty == "FDC-1") {
+            c["drive_a"] = { { "image", "work/test/new720.img" }, { "write_protect", false } };
+            c["working_copy"] = false;
+        }
+    }
+    Machine m;
+    CHECK(m.load_json(cfg, err));
+    Card* fdc = nullptr;
+    for (auto& c : m.cards)
+        if (c->type == "FDC-1") fdc = c.get();
+    FloppyDrive* d = fdc ? fdc->floppy_drive(0) : nullptr;
+    CHECK(d && d->present());
+    if (!d) return;
+    std::vector<uint8_t> junk(1000, 0x55);
+    CHECK(file_write_all(data_path("work/test/bad.img"), junk.data(), junk.size()));
+    err.clear();
+    CHECK(!fdc->media_change(0, "work/test/bad.img", err) && !err.empty());
+    CHECK(d->present() && d->image == "work/test/new720.img");   // still in
+    printf("bad image: %s\n", err.c_str());
+
+    CHECK(!fdc->unsaved() && !m.unsaved());
+    uint64_t w = media_writes();
+    CHECK(d->format_track(5, 0, true, 250, 2, ids_of(5, 0, 1, 2, 9), 0x6C));   // the same format: in place
+    CHECK(media_writes() > w);
+    CHECK(fdc->unsaved() && m.unsaved());
+    CHECK_EQ(m.save_media(), 1);
+    CHECK(!m.unsaved());
+    std::vector<uint8_t> f;
+    CHECK(file_read_all(data_path("work/test/new720.img"), f) && f.size() == 737280);
+    if (f.size() == 737280) CHECK_EQ(f[(size_t)(5 * 2 * 9) * 512 + 100], 0x6C);   // cylinder 5 head 0
+}
+
 int main(void)
 {
     test_init();
     imd_8inch();
     imd_hd();
     new_disks();
+    bad_insert();
     return TEST_RESULT();
 }

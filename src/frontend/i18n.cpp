@@ -133,6 +133,14 @@ static const Translation k_table[] = {
     { "Terminal block", "Svorkovnice" },
     { "The isothermal terminal block (cold junctions, the thermometer of DMT-1)", "Izotermická svorkovnice (srovnávací konce, teploměr DMT-1)" },
     { "Cool all furnaces", "Vychladit všechny pece" },
+    { "Reset the APS-5 unit?", "Resetovat jednotku APS-5?" },
+    { "The real unit has no RESET button. Its firmware takes a reset as an error (CHYBA 0, INICIALIZACE) and after M "
+      "-> it makes a cold start: the programs, the thermocouple types and the calibration are cleared. Use Machine -> "
+      "Switch off and on (Ctrl+F12) or Mains failure instead: the settings stay.",
+      "Skutečná jednotka tlačítko RESET nemá. Firmware bere reset jako chybu (CHYBA 0, INICIALIZACE) a po M → udělá "
+      "studený start: smaže programy, typy termočlánků i kalibraci. Raději použijte Stroj → Vypnout a zapnout (Ctrl+F12) "
+      "nebo Výpadek sítě, nastavení pak zůstane." },
+    { "Yes, reset", "Ano, resetovat" },
     { "DEMO", "DEMO" },
     { "Types the example of docs/aps5-ukazka.md on the panel: calibration, program 1, furnaces 1, 2, 5 regulated to 700 degC, 4 and 6 by hand.", "Odťuká na panelu ukázku z docs/aps5-ukazka.md: kalibrace, program 1, pece 1, 2, 5 v regulaci na 700 °C, 4 a 6 ručně." },
     { "Demo done", "Demo hotovo" },
@@ -375,7 +383,7 @@ static const Translation k_table[] = {
     { "Gamepad", "Gamepad" },
     { "none", "žádný" },
     { "Maximum", "Maximum" },
-    { "emulation", "emulace" },
+    { "speed", "rychlost" },
     { "CPU card TURBO (CPU 4 MHz)", "TURBO karty CPU (CPU 4 MHz)" },
     { "BIOS jumper open (EEPROM bank 1)", "Propojka BIOS rozpojená (banka EEPROM 1)" },
     { "TURBO of the CPU card: CPU 2 / 4 MHz", "TURBO karty CPU: CPU 2 / 4 MHz" },
@@ -392,7 +400,10 @@ static const Translation k_table[] = {
     { "Configuration...", "Sestava…" },
     { "Eject without saving, restore from the original", "Vysunout bez uložení, obnovit z originálu" },
     { "Eject without saving", "Vysunout bez uložení" },
-    { "What was written on it since it was put in is thrown away (only what is still in memory).", "Co se na médium od vložení zapsalo, se zahodí (jen to, co je ještě v paměti)." },
+    { "What was written on it and is not saved yet is thrown away (the media are saved a few seconds after the last "
+      "write). A medium of media/ comes back with Restore from the original.",
+      "Co se na médium zapsalo a ještě se neuložilo, se zahodí (média se ukládají pár sekund po posledním zápisu). "
+      "Médium z media/ vrátí Obnovit z originálu." },
     { "Restore from the original...", "Obnovit z originálu…" },
     { "The working copy in work/ is replaced by the original in media/.", "Pracovní kopie ve work/ se nahradí originálem z media/." },
     { "Only for media of media/ used through a working copy.", "Jen u médií z media/, se kterými se pracuje přes pracovní kopii." },
@@ -716,6 +727,33 @@ static const Translation k_table[] = {
     { "output I", "výstup I" },
     { "output II", "výstup II" },
     { "talker", "mluvčí" },
+    // the first impression (stage 4 of docs/vydani/plan-vzhled.md)
+    { "Switch off and on", "Vypnout a zapnout" },
+    { "As the power switch: the memory is lost, the cards, switches and media stay as they are. Reset (F12) keeps the "
+      "memory.",
+      "Jako síťovým vypínačem: obsah paměti se ztratí, karty, přepínače a média zůstanou, jak jsou. Reset (F12) paměť "
+      "zachová." },
+    { "Switch off and on (the memory is lost, as with the power switch)",
+      "Vypnout a zapnout (paměť se ztratí jako po vypnutí vypínačem)" },
+    { "Click here and type", "Klikněte sem a pište" },
+    { "Typing does not reach SAPI now: click its screen first.",
+      "Psaní teď nejde do SAPI: klikněte na jeho obrazovku." },
+    { "[paused]", "[pauza]" },
+    { "Speed: maximum", "Rychlost: maximum" },
+    { "no sound", "bez zvuku" },
+    { "game mode", "režim pro hry" },
+    { "joystick from the keyboard", "joystick z klávesnice" },
+    { "mouse captured", "myš zachycena" },
+    // errors loudly (stage 4, item 6)
+    { "Cannot take the medium out", "Médium nejde vyndat" },
+    { "Cannot put the medium in", "Médium nejde vložit" },
+    { "Cannot create the cassette", "Kazetu nejde vytvořit" },
+    { "Cannot create the disk", "Disketu nejde vytvořit" },
+    { "Loaded", "Nahráno" },
+    { "Cannot load the program", "Program nejde nahrát" },
+    { "Errors:", "Chyby:" },
+    { "Errors written into the Log since it was open last. Click: open the Log.",
+      "Chyby zapsané do Logu od jeho posledního otevření. Kliknutím se Log otevře." },
 };
 
 static UiLanguage g_lang = LANG_CS;

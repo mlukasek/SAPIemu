@@ -86,6 +86,7 @@ void MagTape::erase_from(int64_t pos)
     if (n != rows.size()) {
         rows.resize(n);
         dirty = true;
+        media_written();
     }
 }
 
@@ -147,7 +148,7 @@ bool MagTape::save(std::string& err)
         put32(f, len);
     }
     make_dirs(path_dir(path));
-    if (!file_write_all(path, f.data(), f.size())) {
+    if (!file_write_safe(path, f.data(), f.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -262,6 +263,10 @@ bool Rmp1::insert(int i, const std::string& image, std::string& err)
         err = "no such unit";
         return false;
     }
+    {   // read first: a bad image leaves the tape on the drive (read again after the eject saved it)
+        MagTape probe;
+        if (!probe.load(image, work_copy, err)) return false;
+    }
     eject(i);
     Unit& u = units[i];
     if (!u.tape.load(image, work_copy, err)) return false;
@@ -315,6 +320,14 @@ void Rmp1::flush()
         std::string err;
         if (!u.tape.save(err)) LOGW("%s: %s", name.c_str(), err.c_str());
     }
+}
+
+bool Rmp1::unsaved()
+{
+    if (!battery_files_enabled()) return false;
+    for (Unit& u : units)
+        if (u.tape.loaded && u.tape.dirty) return true;
+    return false;
 }
 
 void Rmp1::press_load(int i)
@@ -412,6 +425,7 @@ void Rmp1::step(void)
             if (ch) {
                 u.tape.rows.push_back({ u.pos + HEAD_GAP, ch });
                 u.tape.dirty = true;
+                media_written();
             }
         }
     }

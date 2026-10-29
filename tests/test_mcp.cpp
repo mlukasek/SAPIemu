@@ -173,6 +173,34 @@ int main(void)
     CHECK(text_of(r).find("\"success\": true") != std::string::npos);
     r = tool(s, "pause", json::object());
 
+    // switched off and on (GUI Machine -> Switch off and on, Ctrl+F12): the machine comes back as it ran, with what
+    // changed in its description while it ran (here the name, as a medium put in), not from the file; RAM cleared
+    std::string name0 = host.call([](EmuHost& h) { return json(h.machine()->name); }).get<std::string>();
+    host.call([](EmuHost& h) {
+        h.machine()->config["name"] = "MikroMon (switched off and on)";
+        return json();
+    });
+    uint64_t gen = host.machine_generation();
+    r = tool(s, "write_memory", { { "address", "8000" }, { "data", "AA" } });
+    r = tool(s, "power", { { "state", "cycle" } });
+    CHECK(r["isError"] == false);
+    CHECK(host.machine_generation() != gen);
+    CHECK(host.call([](EmuHost& h) { return json(h.machine()->name); }) == "MikroMon (switched off and on)");
+    CHECK(host.machine_file() == "machines/mikromon.sapi");
+    r = tool(s, "read_memory", { { "address", "8000" }, { "length", 1 }, { "format", "hex" } });
+    CHECK(text_of(r) == "00");
+    r = tool(s, "power", { { "state", "off" } });   // off and on: the same
+    r = tool(s, "power", { { "state", "on" } });
+    CHECK(host.call([](EmuHost& h) { return json(h.machine()->name); }) == "MikroMon (switched off and on)");
+    host.call([&](EmuHost& h) {   // as before for the rest of the test
+        h.machine()->config["name"] = name0;
+        h.machine()->name = name0;
+        return json();
+    });
+    r = tool(s, "run_until", { { "screen_text", "MikroMon 2kB V1.3" }, { "timeout_ms", 2000 } });
+    CHECK(text_of(r).find("\"success\": true") != std::string::npos);
+    r = tool(s, "pause", json::object());
+
     // machine configuration
     r = tool(s, "card_catalog", { { "type", "DMR-1" } });
     CHECK(text_of(r).find("ram_config") != std::string::npos);

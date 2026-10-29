@@ -431,3 +431,53 @@ void draw_aps5(UiState& ui)
     }
     ImGui::End();
 }
+
+// A reset from the GUI (F12, F9, Machine -> Reset, RESET of the ZDR panel, the debugger). The APS-5 unit has no
+// reset: its firmware takes one as a watchdog error (CHYBA 0, INICIALIZACE) and after M -> its cold start clears
+// the programs, the thermocouple types and the calibration (docs/desky/APS-5.md). The reset itself stays as the
+// hardware answers it; the GUI only asks first (decision 2026-10-29). Other machines reset at once, MCP never asks.
+void request_reset(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    if (!m) return;
+    if (dynamic_cast<FurnacePlant*>(m->plant.get())) {
+        ui.ask_reset = true;
+        ui.ask_reset_gen = ui.host->machine_generation();
+    } else m->reset();
+}
+
+void draw_reset_question(UiState& ui)
+{
+    const char* id = "###askreset";
+    char title[96];
+    snprintf(title, sizeof(title), "%s%s", tr("Reset"), id);
+    if (ui.ask_reset) {
+        ui.ask_reset = false;
+        ImGui::OpenPopup(title);
+    }
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    float u = ImGui::GetFontSize();
+    ImGui::PushTextWrapPos(28.0f * u);
+    ImGui::TextUnformatted(tr("Reset the APS-5 unit?"));
+    ImGui::Spacing();
+    ImGui::TextUnformatted(tr("The real unit has no RESET button. Its firmware takes a reset as an error (CHYBA 0, "
+                              "INICIALIZACE) and after M -> it makes a cold start: the programs, the thermocouple types "
+                              "and the calibration are cleared. Use Machine -> Switch off and on (Ctrl+F12) or Mains "
+                              "failure instead: the settings stay."));
+    ImGui::PopTextWrapPos();
+    ImGui::Spacing();
+    bool yes = ImGui::Button(tr("Yes, reset"));
+    ImGui::SameLine();
+    bool no = ImGui::Button(tr("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape, false);
+    if (ui.host->machine_generation() != ui.ask_reset_gen) {   // switched off and on, or another machine: not asked
+        yes = false;
+        no = true;
+    }
+    if (yes || no) {
+        ImGui::CloseCurrentPopup();
+        ui.focus_display = 2;   // the keyboard back to the panel display
+    }
+    Machine* m = ui.host->machine();
+    if (yes && m) m->reset();
+    ImGui::EndPopup();
+}

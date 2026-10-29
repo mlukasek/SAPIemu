@@ -52,6 +52,7 @@ public:
     void insert(const KzdCassette& c, const std::string& path);   // a made one; written to path by flush()
     void eject(void);              // writes it back when changed
     void flush(void);
+    bool unsaved(void) const;     // flush() would write; false while the record head is on (autosave waits)
     void discard(void) { dirty = false; rec_active = false; }   // the next eject writes nothing
     bool loaded(void) const { return has_cassette; }
     const std::string& path(void) const { return file; }

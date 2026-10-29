@@ -60,6 +60,8 @@ static void print_help(void)
            "                     --ui-screen-menu: the right click menu of the screen, --ui-shot: a screenshot (Ctrl+F5),\n"
            "                     --ui-copy: the screenshot to the clipboard (View -> Copy screenshot),\n"
            "                     --ui-zoom PCT: the screen zoom from the menu, --ui-reset-layout: View -> Default window layout,\n"
+           "                     --ui-pause: pause the machine (F5) just before the picture, --ui-log: the Log window,\n"
+           "                     --ui-reset: F12 just before the picture (APS-5: the question first),\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
            "                     --ui-scale F: the display scale (1.25 = 125 %%) instead of the one of the system,\n"
@@ -79,6 +81,8 @@ static void print_help(void)
            "  --joystick SPEC    joystick held: [PORT:]down,up,right,left,fire1,fire2 (\"-\" = released)\n"
            "  --break ADDR       set an execution breakpoint (hex)\n"
            "  --print-regs       print CPU registers\n"
+           "  --power-cycle      switch off and on (Machine -> Switch off and on): the memory is lost, the media and\n"
+           "                     battery memories are saved and read again\n"
            "  --load-hex FILE    load an Intel HEX file into memory\n"
            "  --load-bin FILE ADDR  load a binary file into memory at ADDR (hex)\n"
            "  --save-state FILE  save the state of the machine\n"
@@ -233,6 +237,9 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-media") snap.media = true;
         else if (a == "--ui-zoom" && i + 1 < argc) snap.zoom = atoi(argv[++i].c_str());
         else if (a == "--ui-reset-layout") snap.reset_layout = true;
+        else if (a == "--ui-pause") snap.pause = true;
+        else if (a == "--ui-log") snap.log = true;
+        else if (a == "--ui-reset") snap.reset = true;
         else if (a == "--ui-set" && i + 1 < argc) snap.set.push_back(argv[++i]);
         else if (a == "--ui-printer") snap.printer = true;
         else if (a == "--ui-diag") snap.diag = true;

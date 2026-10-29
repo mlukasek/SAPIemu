@@ -23,6 +23,7 @@ public:
     bool export_wav(const std::string& path, std::string& err);
     bool create(const std::string& path, std::string& err);   // new blank tape (WAV, 44.1 kHz)
     bool save(std::string& err);                              // write the WAV if recorded on
+    bool unsaved(void) const { return loaded() && modified && !read_only(); }   // save() would write
     void eject(void);
 
     bool loaded(void) const { return !path.empty(); }

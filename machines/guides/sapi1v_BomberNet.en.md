@@ -7,7 +7,9 @@ Sharp MZ-800s, ZX Spectrums, CPCs and PCs.
 ## How to start
 
 1. After power on ECMON offers the choices 0–3 ("Zadej 0-3" means "enter 0-3"). Type `3` (CP/M from the RAM
-   disk); the choices 0–2 wait for a floppy controller this machine does not have.
+   disk). The choices 0–2 wait for a floppy controller this machine does not have, and the machine stays stuck
+   there. A reset alone does not help, ECMON remembers the choice: press `3` right after the reset (F12), or use
+   Machine -> Switch off and on (Ctrl+F12).
 
 ```
 3

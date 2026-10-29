@@ -63,6 +63,7 @@ struct RackEditor {
     std::vector<CfgProblem> problems;   // layout problems and map conflicts
     int map_state = 0;                  // MAP1/MAP2 state shown in the map
     bool open_map_tab = false;          // select the map tab once (UI snapshot)
+    bool scroll_props = false;          // a slot was clicked: its settings tab selected and scrolled into view
     std::string message;
     bool message_error = false;
     // Question "save the unsaved changes?" before the description is replaced: the
@@ -109,6 +110,8 @@ struct UiState {
     bool aps5_demo_fast = false;   // it switched the emulation to full speed
     bool aps5_demo_was_max = false;   // the speed before
     bool aps5_demo_autostart = false; // --ui-aps5-demo: start it without the dialog
+    bool ask_reset = false;        // request_reset: open the question "Reset the APS-5 unit?" in the next frame
+    uint64_t ask_reset_gen = 0;    // the machine it asks about (another one closes the question)
     bool show_rack = false;
     // the window "Choose a machine" and the guide of a machine (frontend/browser.cpp)
     bool show_browser = false;
@@ -127,6 +130,9 @@ struct UiState {
     bool guide_focus = false;      // bring the guide window to the front (Help -> Machine guide, the button Guide)
     std::string guide_machine;     // the machine whose guide is shown
     uint64_t guide_gen = ~0ull;    // the machine generation the guide was considered for
+    // the machine generation the user started (Start, Restart, File -> Recent machines, Open machine file): only
+    // its guide opens itself, not after a power cycle, a restart from the configurator, a state or MCP (2026-10-17)
+    uint64_t guide_start_gen = ~0ull;
     bool guides_auto = true;       // guides open themselves for the basic, Libor's and the games machines (settings)
     std::vector<std::string> guides_hidden;   // machines whose guide does not open itself (settings)
     bool quit = false;             // exit confirmed (no unsaved machine description)
@@ -174,6 +180,9 @@ struct UiState {
 
     // keyboard routing (from the previous frame)
     bool screen_focused = false;
+    // frames in which the display used last takes the keyboard back (app.cpp): after Type into SAPI, Paste text, a
+    // program loaded, a medium put in, the guide or the window Choose a machine closed; the windows keep their order
+    int focus_display = 0;
     bool terminal_focused = false;
     int terminal_channel = 0;
     // terminal options for new terminals (remembered in the settings)
@@ -215,6 +224,9 @@ struct UiState {
     bool term_copy_on_select = true;   // a finished selection goes to the clipboard at once (PuTTY, TeraTerm)
 };
 
+// The result of a save, a load, a screenshot... (app.cpp): the status bar shows it for 7 s and it goes into the Log;
+// an error opens the window Error.
+void ui_notice(UiState& ui, bool ok, const std::string& text);
 // Serial terminal window: the clipboard (Alt+C / Alt+V as in TeraTerm, Ctrl+Insert / Shift+Insert)
 // Screenshots of a display output (frontend/shot.cpp): PNG of the exact emulated dots (or enlarged 3x with
 // px_aspect = the width of a dot on a TV), named by the card and the time in work/snimky, into a chosen
@@ -257,6 +269,10 @@ void first_use_right(float w, float h, int k);
 void draw_ims2(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);
+// Reset from the GUI (F12, F9, Machine -> Reset, RESET on the ZDR panel, the debugger): at once, or on the APS-5 unit
+// (no reset button; the firmware clears its settings after one) first the question of draw_reset_question (aps5.cpp).
+void request_reset(UiState& ui);
+void draw_reset_question(UiState& ui);
 // File -> Load program (Intel HEX): native dialog, then a confirmation with the addresses.
 void hex_load_dialog(UiState& ui);
 // File -> Load binary file: native dialog, then the address; the file goes into memory as is.
@@ -294,7 +310,7 @@ void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& valu
 // A parameter of a running card that applies at once (Machine::live_param): set it on the
 // card and in the description of the configurator (TURBO and BIOS buttons, menu).
 void rack_set_live_param(UiState& ui, Card* c, const char* path, const nlohmann::json& v);
-// Open a machine description in the configurator without starting it.
+// Open a machine description in the configurator without starting it (asks first about unsaved changes there).
 void rack_open_in_editor(UiState& ui, const std::string& path);
 // Keyboard input for the focused terminal; returns true if consumed.
 bool terminal_key(UiState& ui, int sapi_code);

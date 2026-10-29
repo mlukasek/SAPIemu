@@ -222,7 +222,7 @@ void Rtc1::flush()
     memcpy(b + 8, &when, 8);
     std::string path = data_path(file);
     make_dirs(path_dir(path));
-    if (!file_write_all(path, b, sizeof(b))) LOGW("%s: cannot save the clock to %s", name.c_str(), path.c_str());
+    if (!file_write_safe(path, b, sizeof(b))) LOGW("%s: cannot save the clock to %s", name.c_str(), path.c_str());
 }
 
 void Rtc1::describe(json& out)

@@ -60,14 +60,17 @@ bool Rpd1::configure(const json& cfg, std::string& err)
 bool Rpd1::insert(int i, const std::string& image, bool wp, std::string& err)
 {
     if (i < 0 || i >= DRIVES) { err = "no such drive"; return false; }
+    {   // read first: a bad image or another format leaves the disk in the drive
+        Drive probe;
+        if (!probe.load(image, work_copy, err)) return false;
+        if (!probe.is_8sssd()) {   // the RPD-1 data separator and its PROM know FM 8" disks only
+            err = image + ": RPD-1 reads 8\" SS SD disks only (this one is " + probe.format + ")";
+            return false;
+        }
+    }
     eject(i);
     Drive& d = drives[i];
     if (!d.load(image, work_copy, err)) return false;
-    if (!d.is_8sssd()) {   // the RPD-1 data separator and its PROM know FM 8" disks only
-        err = image + ": RPD-1 reads 8\" SS SD disks only (this one is " + d.format + ")";
-        d.unload(name.c_str());
-        return false;
-    }
     d.write_protect = wp;
     raw_valid = false;
     LOGI("%s: drive %c: %s%s", name.c_str(), 'A' + i, d.path.c_str(), wp ? " (write protected)" : "");
@@ -87,6 +90,13 @@ void Rpd1::flush()
         std::string err;
         if (!drives[i].save(err)) LOGE("%s: %s", name.c_str(), err.c_str());
     }
+}
+
+bool Rpd1::unsaved()
+{
+    for (int i = 0; i < DRIVES; i++)
+        if (drives[i].unsaved()) return true;
+    return false;
 }
 
 void Rpd1::reset()
@@ -274,7 +284,7 @@ void Rpd1::write_commit(void)
         (written[i + 1 + SECTOR_SIZE] != (uint8_t)(crc >> 8) || written[i + 2 + SECTOR_SIZE] != (uint8_t)crc))
         LOGW("%s: track %d sector %d written with a bad CRC", name.c_str(), write_track, write_sector + 1);
     memcpy(&d.data[(size_t)(write_track * SECTORS + write_sector) * SECTOR_SIZE], &written[i + 1], SECTOR_SIZE);
-    d.dirty = true;
+    d.written();
     raw_valid = false;
     written.clear();
 }

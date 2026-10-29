@@ -354,7 +354,7 @@ bool FloppyDrive::save(std::string& err)
     if (!dirty || !present()) return true;
     if (imd) return save_imd(err);
     // tracks formatted beyond the image are not in the file
-    if (!file_write_all(path, data.data(), geom ? (size_t)geom->size : data.size())) {
+    if (!file_write_safe(path, data.data(), geom ? (size_t)geom->size : data.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -400,7 +400,7 @@ bool FloppyDrive::save_imd(std::string& err)
                 else o.insert(o.end(), p, p + t.size);
             }
         }
-    if (!file_write_all(path, o.data(), o.size())) {
+    if (!file_write_safe(path, o.data(), o.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -429,6 +429,12 @@ bool FloppyDrive::create(const std::string& path, const FloppyGeom* g, std::stri
     d.path = path;
     d.dirty = true;
     return d.save(err);
+}
+
+void FloppyDrive::written(void)
+{
+    dirty = true;
+    media_written();
 }
 
 void FloppyDrive::unload(const char* who)
@@ -470,7 +476,7 @@ bool FloppyDrive::format_track(int cyl, int head, bool mfm, int kbps, int n, con
                 t.sec[k].flags = 0;
             }
             layout(t);
-            dirty = true;
+            written();
             return true;
         }
     }
@@ -500,6 +506,6 @@ bool FloppyDrive::format_track(int cyl, int head, bool mfm, int kbps, int n, con
     }
     layout(t);
     if (!beyond) geom = nullptr;   // no longer an image in logical order
-    dirty = true;
+    written();
     return true;
 }

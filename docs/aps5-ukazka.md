@@ -31,8 +31,9 @@ Ruční postup:
   v poloze **2** (je tak po spuštění).
 - Firmware odpovídá pomalu (asi sekundu, měření pecí má přednost). Po každém → je potřeba počkat, až se objeví
   výzva. `M` → kdykoli vrátí hlavní menu. Překlep se opraví ←.
-- **RESET nepoužívat.** Jednotka by ohlásila „CHYBA 0 / INICIALIZACE“ a po M → smazala nastavení. Vypíná se
-  vypínačem POWER.
+- **RESET nepoužívat.** Jednotka by ohlásila „CHYBA 0 / INICIALIZACE“ a po M → smazala nastavení. Emulátor se
+  proto před resetem (F12, F9, RESET na panelu ZDR) zeptá. Vypíná se vypínačem POWER nebo Stroj → Vypnout
+  a zapnout (Ctrl+F12), to proběhne jako výpadek sítě a nastavení zůstane.
 
 V návodu znamená `8R →` stisknout 8, R a Enter.
 

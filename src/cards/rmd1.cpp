@@ -50,9 +50,14 @@ bool Rmd1::configure(const json& cfg, std::string& err)
 
 void Rmd1::flush()
 {
-    if (!dirty || image_path.empty()) return;
-    if (!file_write_all(image_path, mem.data(), mem.size())) LOGE("%s: cannot write %s", name.c_str(), image_path.c_str());
+    if (!unsaved()) return;
+    if (!file_write_safe(image_path, mem.data(), mem.size())) LOGE("%s: cannot write %s", name.c_str(), image_path.c_str());
     else dirty = false;
+}
+
+bool Rmd1::unsaved()
+{
+    return dirty && !image_path.empty();
 }
 
 bool Rmd1::io_read(uint8_t port, uint8_t& data)
@@ -78,6 +83,7 @@ bool Rmd1::io_write(uint8_t port, uint8_t data)
         mem[full()] = data;
         addr++;
         dirty = true;
+        media_written();
     }
     return true;
 }
@@ -109,5 +115,8 @@ void Rmd1::state(StateIO& io)
     io.v(row);
     io.v(addr);
     io.v(latch);
-    if (io.loading && mem != before) dirty = true;   // the content of the state goes to the image file too
+    if (io.loading && mem != before) {   // the content of the state goes to the image file too
+        dirty = true;
+        media_written();
+    }
 }

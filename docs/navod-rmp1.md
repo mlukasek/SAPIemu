@@ -67,16 +67,17 @@ Vpravo jsou tlačítka:
 - **Nová páska…** (prázdná páska, nový soubor `.tap`);
 - **Vysunout** (jen OFF-LINE);
 - **…** s položkami:
-  - **Vysunout bez uložení**: co se na pásku od vložení zapsalo, se zahodí;
+  - **Vysunout bez uložení**: co se na pásku zapsalo a ještě neuložilo (posledních pár sekund), se zahodí;
   - **Obnovit z originálu**: pracovní kopie pásky z `media\` se přepíše originálem.
 
 Zaškrtávátko **Kroužek zápisu** povoluje zápis. Bez kroužku jednotka hlásí WPT a nezapíše. Kroužek jde změnit,
 jen když páska není zavedená.
 
-**OFF-LINE neznamená vysunout.** Páska zůstane na mechanice a změny jsou dál jen v paměti. Do souboru se zapíšou
-až při vysunutí, výměně pásky, vypnutí stroje nebo ukončení emulátoru. Kdo si omylem přepíše ukázkovou pásku,
-vrátí ji položkou **Obnovit z originálu**. Ukázkovou pásku chrání před zápisem i odškrtnutý kroužek (před
-LOAD).
+**OFF-LINE neznamená vysunout.** Páska zůstane na mechanice. Změny se do souboru zapisují pár sekund po posledním
+zápisu, při pauze a při přepnutí do jiného okna Windows a při vysunutí, výměně pásky, vypnutí stroje nebo ukončení
+emulátoru. Kdo si omylem přepíše ukázkovou pásku, vrátí ji položkou **Obnovit z originálu**. Ukázkovou pásku
+chrání před zápisem i odškrtnutý kroužek (před LOAD). Soubor, který nejde přečíst, se nevloží a na mechanice
+zůstane původní páska.
 
 Výměna pásky v okně Média se zapíše do sestavy: konfigurátor (Zobrazení → Sestava…) ukáže novou pásku
 a sestavu označí jako neuloženou. Tamtéž jde pásku vybrat nebo založit (**Nová…**) a za chodu se hned vloží.
@@ -335,6 +336,7 @@ zápis přeruší (reset uprostřed zápisu) nebo že je obraz pásky poškozen�
 ## Obraz pásky
 
 Páska je soubor ve formátu **SIMH `.tap`** (záznamy s délkou, 0 = značka pásky), stejný jako v emulátorech velkých
-počítačů. Jde ho prohlížet a vyrábět jejich nástroji. Zapíše se při vysunutí, výměně, uložení stavu, vypnutí stroje
-a ukončení emulátoru, ne při OFF-LINE. Páska z `media\` se používá přes pracovní kopii ve `work\`. Originál
-zůstává nedotčený a položka **Obnovit z originálu** ho vrátí.
+počítačů. Jde ho prohlížet a vyrábět jejich nástroji. Zapíše se pár sekund po posledním zápisu, při pauze a při
+přepnutí do jiného okna Windows, při vysunutí, výměně, uložení stavu, vypnutí stroje a ukončení emulátoru. Páska
+z `media\` se používá přes pracovní kopii ve `work\`. Originál zůstává nedotčený a položka **Obnovit
+z originálu** ho vrátí.

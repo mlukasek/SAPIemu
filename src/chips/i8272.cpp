@@ -520,7 +520,7 @@ void I8272::sector_done(void)
                 if (memcmp(p, buf, size) != 0 || fs.flags != nf) {
                     memcpy(p, buf, size);
                     fs.flags = nf;
-                    d->dirty = true;
+                    d->written();
                 }
             }
         }

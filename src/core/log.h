@@ -16,8 +16,10 @@ void log_set_stderr(bool enabled);
 // Also write the messages (info and up) into a file, rewritten at each start; the messages logged
 // before are written first. Empty path: no file.
 bool log_set_file(const std::string& utf8_path);
-// Copy the last `max` messages (oldest first).
+// Copy the last `max` messages (oldest first). Each starts with its level: "error: ", "warn: ", "info: ".
 void log_recent(std::vector<std::string>& out, int max);
+// Errors logged since the start (the GUI status bar shows the ones not seen in the Log window yet).
+int log_errors(void);
 
 #define LOGD(...) log_msg(LOG_DEBUG, __VA_ARGS__)
 #define LOGI(...) log_msg(LOG_INFO, __VA_ARGS__)

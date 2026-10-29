@@ -31,7 +31,9 @@ Sestava má vloženou kazetu `work\kzd-1\kazeta.kzd`. Když soubor neexistuje, v
 | Vysunout | Kazetu vysune a uloží. |
 | Otočit | Kazeta se otočí na druhou stranu. |
 
-Kazeta je obyčejný soubor `.kzd`. Emulátor ho zapíše při vysunutí kazety, při ukončení a při uložení stavu.
+Kazeta je obyčejný soubor `.kzd`. Emulátor ho zapíše pár sekund po posledním zápisu (během záznamu až po jeho
+konci), při pauze a při přepnutí do jiného okna Windows, při vysunutí kazety, při ukončení a při uložení stavu.
+Soubor, který nejde přečíst, se nevloží a v mechanice zůstane původní kazeta.
 
 ## Jak se píší příkazy
 

@@ -63,7 +63,9 @@ skoro stejný konektor mechanik; rozdíly kolíků jsou v FDC-1.md.
 - **HLR** dává časovač po zápisu na 3Dh, i bez diskety. EBIOS na HLR čeká bez časového limitu.
 - **INTE/INR, 3Fh** a 5,25" mechaniky nejsou emulované (software je nepoužívá).
 - **GUI:** okno Média, mechanika A/B: Vložit…, Nová disketa… (naformátovaná, celá E5h; s příponou `.imd` jako ImageDisk), Vysunout, ochrana
-  proti zápisu, stopa. Změny se ukládají při vysunutí, vypnutí a ukončení.
+  proti zápisu, stopa. Změny se ukládají pár sekund po posledním zápisu, při pauze a při přepnutí do jiného
+  okna Windows, při vysunutí, vypnutí a ukončení. Špatný obraz (nebo jiný formát než 8" SS SD) nechá
+  v mechanice původní disketu a okno Chyba řekne proč.
 
 ## Ověřeno v emulátoru
 

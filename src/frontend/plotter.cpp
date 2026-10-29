@@ -19,13 +19,6 @@
 #include "core/plotter_ctl.h"
 #include "core/util.h"
 
-static void plot_notice(UiState& ui, bool ok, const std::string& text)
-{
-    ui.notice = text;
-    ui.notice_error = !ok;
-    ui.notice_ns = SDL_GetTicksNS();
-}
-
 // work/minigraf/kresba_<YYYYMMDD-HHMMSS>.<ext>
 static std::string plot_path(const char* ext)
 {
@@ -147,8 +140,8 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
             std::vector<uint8_t> d;
             if (file_read_all(file, d)) {
                 p->send(d.data(), d.size());
-                plot_notice(ui, true, std::string(tr("Sent to the plotter")) + ": " + file);
-            } else plot_notice(ui, false, std::string(tr("Cannot read")) + " " + file);
+                ui_notice(ui, true, std::string(tr("Sent to the plotter")) + ": " + file);
+            } else ui_notice(ui, false, std::string(tr("Cannot read")) + " " + file);
         }
     }
     theme_section(tr("Plotter of AR 1990 (JPR-1, commands of Sharp MZ-1P16)"));
@@ -176,7 +169,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
         ImGui::NewLine();
     std::string err;
     if (ImGui::Button(whole) && !plotter_action(*m, "whole-test", "", err))   // TEST held while the JPR-1 starts
-        plot_notice(ui, false, err);
+        ui_notice(ui, false, err);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Reset with TEST held: the whole character set (then READY)."));
     bool mz = !p->ascii, roll = !p->a4, crlf = !p->cr_only, lfcr = !p->lf_only;
@@ -202,7 +195,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Demo")) && !plotter_action(*m, "demo", "", err)) plot_notice(ui, false, err);
+    if (ImGui::Button(tr("Demo")) && !plotter_action(*m, "demo", "", err)) ui_notice(ui, false, err);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Sends media/ar1990/ukazka.txt (graphics and text mode)."));
     ImGui::SetNextItemWidth(-8.0f * ImGui::GetFontSize());
     bool go = ImGui::InputTextWithHint("##arline", tr("commands, e.g. D400,0"), line, sizeof(line),
@@ -211,7 +204,7 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ImGui::SameLine();
     if (ImGui::Button(tr("Send")) || go) {   // \xNN = a control code, CR at the end
         if (plotter_action(*m, "send", line, err)) line[0] = 0;
-        else plot_notice(ui, false, err);
+        else ui_notice(ui, false, err);
     }
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Sends the line and CR. Codes: 02H graphics mode (type \\x02), 01H text mode."));
@@ -281,14 +274,14 @@ void draw_plotter(UiState& ui)
     std::string err;
     if (ImGui::Button(tr("Save PNG"))) {
         std::string p = plot_path(".png");
-        if (g->save_png(p, 8, false, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
-        else plot_notice(ui, false, err);
+        if (g->save_png(p, 8, false, err)) ui_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
+        else ui_notice(ui, false, err);
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Save SVG"))) {
         std::string p = plot_path(".svg");
-        if (g->save_svg(p, false, err)) plot_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
-        else plot_notice(ui, false, err);
+        if (g->save_svg(p, false, err)) ui_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
+        else ui_notice(ui, false, err);
     }
     ImGui::Text("X %.1f  Y %.1f mm   %s   %s %llu", g->x() / (double)g->spm, g->y() / (double)g->spm, g->pen_down() ? tr("pen down") : tr("pen up"), tr("steps"),
                 (unsigned long long)g->steps);

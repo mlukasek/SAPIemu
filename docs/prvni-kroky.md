@@ -67,7 +67,7 @@ Nové desky pro SAPI-1 od Libora Lasoty.
 | Sestava | Co v ní je | Jak začít |
 |---|---|---|
 | `jpr1s_bgp1s.sapi` | JPR-1S s grafikou BGP-1S (PMD-85) a MIKROBIOSem 1.02 | Soubor → Nahrát program `media/jpr-1s/manic_miner.hex`, pak `JUMP 4400` a Enter |
-| `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `3` = CP/M z RAM disku A: a IDE disk B:, C: (volby 0–2 čekají na řadič disket, který sestava nemá, jako skutečná deska) |
+| `sapi1v.sapi` | Liborovy desky V: CP/M, barevná grafika CGA-1V, zvuk MPH-1V | `3` = CP/M z RAM disku A: a IDE disk B:, C: (volby 0–2 čekají na řadič disket, který sestava nemá, jako skutečná deska; pak `3` hned po resetu F12, nebo Ctrl+F12) |
 | `mikromon.sapi` | MikroMon 1.3 (Libor Lasota) | `?` + Enter vypíše příkazy |
 
 ### Hry a dema (novodobé)
@@ -114,7 +114,11 @@ s Liborovými deskami.
 
 ## Ovládání
 
-- **Psaní:** klikněte do okna obrazovky. Text jde na klávesnici SAPI (české znaky podle klávesnice sestavy).
+- **Psaní:** klikněte do okna obrazovky. Text jde na klávesnici SAPI (české znaky podle klávesnice sestavy). Dokud
+  obrazovka klávesnici nemá a nic jste nenapsali (nebo se psaný znak právě zahodil), je dole na obrazu nápis
+  „Klikněte sem a pište“. Zahozený znak ohlásí i stavový řádek. Po „Napsat do SAPI“ v průvodci, Spustit, Nahrát
+  program, vložení média, Vložit text a po zavření průvodce nebo výběru sestavy dostane klávesnici zpět displej
+  použitý naposledy.
 - **Klávesy emulátoru** (přehled v Nápověda → Klávesové zkratky; při psaní do textového pole se neuplatní):
   - F5 pauza;
   - **Ctrl+F5 snímek obrazovky** okna, které má fokus (konzole nebo grafika CGA-1V, BGP-1S, DGD…), do
@@ -125,8 +129,12 @@ s Liborovými deskami.
     `"video": { "ffmpeg": "…" }`). Snímky se berou podle času emulace, takže video odpovídá skutečné rychlosti
     SAPI i při turbu; pauza video pozastaví. Body jsou zvětšené 4× (u VGA 2×), nejostřejší je přehrání v nativní
     velikosti. Ve stavovém řádku běží „● REC m:ss“;
-  - F8 rychlost (100 / 200 / 400 % / maximum);
-  - F9 nebo F12 reset;
+  - F8 rychlost (100 / 200 / 400 % / maximum); pauza i nová rychlost se na chvíli ukážou přes obraz, při pauze
+    je v titulku okna „[pauza]“;
+  - F9 nebo F12 reset (paměť zůstane; u APS-5, která reset nemá, se emulátor nejdřív zeptá);
+  - **Ctrl+F12 vypnout a zapnout** (Stroj → Vypnout a zapnout): jako síťový vypínač, paměť se ztratí, karty,
+    přepínače a vložená média zůstanou. Pomůže, když program visí a reset nestačí (třeba volba 0–2 v ECMONu
+    u sestavy V);
   - F10 / F11 krok v debuggeru;
   - **Ctrl+F2 / Ctrl+F3** rychlé uložení a načtení stavu;
   - Ctrl+F7 režim pro hry u klávesnice ANK-1 / ANK-1M2 (klávesy podle polohy, Shift = SHIFT; Manic Miner);
@@ -151,8 +159,16 @@ s Liborovými deskami.
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
   Výměna média v okně Média se zapíše do sestavy (konfigurátor ji ukáže, sestava je pak neuložená). Tlačítko
   „…“ u média nabízí **Vysunout bez uložení** a **Obnovit z originálu**: médium z `media\` se používá přes
-  pracovní kopii ve `work\`, která se dá kdykoli vrátit do původního stavu. Změny na páskách, kazetách a
-  disketách se do souboru zapíšou až při vysunutí, výměně, vypnutí nebo ukončení emulátoru.
+  pracovní kopii ve `work\`, která se dá kdykoli vrátit do původního stavu. Změny na páskách, kazetách,
+  disketách a RAM discích se do souboru zapisují průběžně: pár sekund po posledním zápisu, hned při pauze (F5)
+  a při přepnutí do jiného okna Windows, jinak při vysunutí, vypnutí a ukončení. Vysunout bez uložení proto zahodí
+  jen posledních pár sekund. Soubor se přepisuje přes dočasný soubor, takže ani pád nenechá napůl zapsaný obraz.
+  Špatný obraz se do mechaniky nevloží, zůstane v ní původní médium. První Vložit… nebo Nahrát program začne ve
+  složce `media\`, pak v naposledy použité.
+- **Chyby:** odmítnuté médium, nepovedená nová disketa nebo kazeta, nepovedené nahrání programu a nepovedené
+  zapnutí sestavy ukáže okno Chyba, povedené nahrání stavový řádek („Nahráno 0100-1FFFh, 7936 B: …“). Upozornění
+  ve stavovém řádku svítí 7 s a zůstanou v Logu. Červené **✖ Chyby: N** ve stavovém řádku znamená chyby zapsané do
+  Logu od jeho posledního otevření; kliknutím se Log otevře (chyby červeně, varování žlutě).
 - **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,
   FORTH, Pascal/MT+, C, dBase II, WordStar…). Okno Média, Vložit… do B: a pak např. `B:MBAS`. Soupis všech
   disket je v `docs/software/SAPIMAN_diskety.md`.
@@ -202,8 +218,8 @@ Každá sestava Základu má průvodce (Nápověda → Průvodce sestavou). Pro 
   - `11` → je tabulka stavu pecí. Pec v okně začne žhnout, graf ukazuje průběh. Tlačítko „Výpadek sítě“ zkusí,
     jak si jednotka poradí.
   - **RESET u APS-5 nepoužívejte.** Skutečná jednotka ho nemá a firmware ho bere jako chybu: „CHYBA 0 /
-    INICIALIZACE“, po M → studený start (nastavení se smaže). Vypínejte vypínačem POWER, to proběhne jako výpadek
-    sítě a nastavení zůstane.
+    INICIALIZACE“, po M → studený start (nastavení se smaže). Emulátor se proto před resetem zeptá. Vypínejte
+    vypínačem POWER, to proběhne jako výpadek sítě a nastavení zůstane.
 
   **Nejrychleji:** tlačítko **DEMO** v okně APS-5 vše odťuká samo a pece nahřeje (asi minuta).
   **Ukázka krok za krokem** (tři pece v regulaci na 700 °C, dvě ručně, jako na obrázku v README):
@@ -301,12 +317,15 @@ SAPI-1 nebyl herní počítač, hry a dema jsou novodobý doplněk na nových de
 
 **SAPI-1 V: hry a dema** (`sapi1v_hry.sapi`, start volbou `3`, pak jméno programu na RAM disku A:):
 - `BADAPPLE` (demo Bad Apple!!), `FXS4` (Fuxoft Soundtrack IV, skladby klávesami A–Z);
-- `FLAPPY` (Flappy na CGA-1V) a `FLAPDGD` (Flappy na DGD-1V, port L. Lasoty): ovládá se joystickem, Ctrl+F8
-  joystick z klávesnice, mezerník = fire (úvod, výběr scény, hra);
+- `FLAPPY` (Flappy na CGA-1V; šipky a mezerník, nebo joystick) a `FLAPDGD` (Flappy na DGD-1V, port L. Lasoty):
+  ovládá se joystickem, Ctrl+F8 joystick z klávesnice, mezerník = palba (úvod, výběr scény, hra);
 - `BOMBER` (Bomberman), `BKP` (textová hra Bratrstvo kočičí pracky, verze pro SAPI od L. Lasoty);
 - dema L. Lasoty: `Y1STDEMO`, `SNDDEMON` (jen zvuk), obrázky `CASTLE`, `REMBRAN1`, `REMBRAN2`, testy `CGATEST`,
   `MPHTEST`;
 - hudba: `SPLAY HELLFIRE.VGM` (dalších 10 skladeb VGM, `DIR *.VGM`) a `RAT SMJOOP.RAD` (15 modulů RAD, `DIR *.RAD`).
+- Většina her a přehrávačů se vrací do CP/M klávesou ESC (Bad Apple!! kteroukoli klávesou). Program, který se
+  sám neukončí, zastaví reset F12: ECMON si volbu 3 pamatuje a CP/M spustí znovu. Ovládání každé hry je v průvodci
+  sestavou.
 
 Další hry: Prince of Persia (`sapi1v_PoP.sapi`), síťový BomberNet (`sapi1v_BomberNet.sapi`) a Manic Miner
 (`jpr1s_bgp1s.sapi`). Jak začít, je v tabulce sestav výše.

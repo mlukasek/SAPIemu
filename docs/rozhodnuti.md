@@ -100,7 +100,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Pracovní kopie médií:** obrazy z `media/` se při prvním použití zkopírují do `work/` (`media_path()`).
   Nastavením `working_copy: false` se použije přímo zadaný soubor.
 - **RAM disk se ukládá** při ukončení, při načtení jiné sestavy a automaticky 5 s emulovaného času po změně.
-  Je to kompromis mezi bezpečností dat a zápisem 4 MB.
+  Je to kompromis mezi bezpečností dat a zápisem 4 MB. (Od 2026-10-29 průběžně 3 s po posledním zápisu, při pauze
+  a ztrátě fokusu, viz etapa 4 plánu vzhledu.)
 - **RTC běží podle místního času PC** s posunem, takže nastavení času v SAPI se neprojeví na PC a „přežije“
   jen do ukončení. Posun se zatím neukládá.
 - **Připojený terminál (DCD)** je vlastnost sériového kanálu, ne karty. Software se podle DCD rozhoduje,
@@ -1560,7 +1561,8 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
   (DSM-1: `.hex`, ze kterého se kazeta při zapnutí udělá znovu) nebo vytvořenou kazetu (`work/kzd-1/…`).
 - **Vysunout bez uložení a Obnovit z originálu** (autor si omylem přepsal ukázkovou pásku): `media_discard` zapomene
   změny v paměti, obnovení přepíše pracovní kopii ve `work/` originálem z `media/` (jen u médií z `media/`
-  s pracovní kopií, s potvrzením). Médium se potom vloží znovu.
+  s pracovní kopií, s potvrzením). Médium se potom vloží znovu. (Od 2026-10-29 se média ukládají průběžně, Vysunout
+  bez uložení tak zahodí jen posledních pár sekund.)
 - **Nová… v konfigurátoru jen u médií, kde nový soubor = prázdné médium** (páska, kazeta RKD-1, kazeta KZD-1;
   `CardParam.min = PF_NEW_MEDIUM`). Diskety potřebují zvolit formát, ty dál zakládá okno Média.
 - **Souborové dialogy:** složka dostane koncový oddělovač (`dialog_location`), soubor nabízený k uložení zůstává.
@@ -1926,6 +1928,170 @@ v zásadě souhlasí („pustil bych se do úprav“).
 - **Okno APS-5** má výchozí výšku 50 em místo 44: v novém vzhledu se obsah nevešel (posuvník, uříznutá legenda).
 - **Cesty médií v okně Média** relativně k datům (`work/…`), celá cesta v tooltipu: náhled RMP-1 ukazoval absolutní
   cestu z PC, kde vznikl.
+
+## 2026-10-29 – etapa 4 plánu vzhledu: ovládání
+
+Etapu udělal workflow (3 agenti, oponentura, opravy nálezů), autor spal a rozhodnutí nechal na Claudovi. Chování
+skutečného SAPI-1 se nemění: jde o pohodlnost na straně PC, reset APS-5 zůstává věrný (jen se GUI nejdřív zeptá).
+Co má autor ještě posoudit a vyzkoušet ručně, je na konci oddílu.
+
+### Klávesnice, vypínač, stavový řádek
+
+- **Klávesnice se vrací displeji použitému naposledy** (`ui.focus_display`, `focus_display_window` v `app.cpp`) po
+  Napsat do SAPI, Spustit/Restartovat, Nahrát program a binární soubor, vložení média z okna Média (i program na
+  kazetu), Vložit text z menu a po zavření průvodce nebo výběru sestav. Ostatní okna zůstávají v pořadí, žádné se
+  nevytáhne dopředu (průvodce zůstane nad obrazovkou). Obecné vracení po každém použití menu (Reset z menu, Snímek…)
+  zatím není, menu si fokus bere dál.
+- **Nápis „Klikněte sem a pište“** dole na obrazu displeje použitého naposledy, jen když žádný displej nemá
+  klávesnici, sestava má klávesnici (ne plotter AR 1990) a v tomto běhu se do SAPI ještě nic nenapsalo, nebo se
+  právě zahodil psaný znak (pak 5 s, po každém zahozeném znaku znovu; doplněno po revizi). Ne trvale, kdykoli
+  displej klávesnici nemá: při práci v debuggeru nebo jiném okně by nápis jen zakrýval obraz. Kreslí se
+  do okna, ne do obrazu, takže není ve snímcích ani videu. Světlý text na tmavém poli ve všech vzhledech (obraz je
+  monitor). **Zahozený znak** (žádný displej nemá klávesnici, nejde o textové pole) jednou za běh ohlásí stavový
+  řádek: „Psaní teď nejde do SAPI: klikněte na jeho obrazovku.“ Počítá se jen tisknutelný znak, ne Enter
+  nebo šipky (Enter ve výběru sestav spouští).
+- **Stroj → Vypnout a zapnout (Ctrl+F12)** je vypínač: sestava naběhne tak, jak běžela (`Machine::config` s médii
+  vloženými za běhu a přepnutými přepínači), paměť se ztratí, RAM disky a paměti s baterií se uloží a načtou.
+  **Odchylka od plánu „stejnou cestou jako Restartovat“:** Restartovat ve výběru sestav načte znovu soubor a na
+  neuložené změny konfigurátoru se ptá. Vypínač skutečného SAPI kazetu z magnetofonu nevyndá ani nevymění karty,
+  proto `EmuHost::power_cycle` (stejné pro MCP `power cycle`; `power off` + `on` teď také zapne sestavu, jak
+  běžela). Konfigurátor se neptá: neuložené změny drží dál (`follow_machine`) a změny uložené v souboru, ale čekající
+  na restart, zůstanou oranžové, místo aby je nahradil popis běžícího stroje. Ctrl+F12 dřív dělal totéž co F12
+  (reset), jinde použitý není.
+  - Držené Ctrl+F12, F12 a F9 se neopakují (autorepeat PC): vypínač ani reset se neopakuje. Otevřená otázka na reset
+    APS-5 se zavře, když se mezitím stroj vypne a zapne nebo vymění.
+  - `sapiemu-cli --power-cycle` dělá totéž na místě (`Machine::power_cycle`, stejná přestavba jako `--load-state`
+    jiné sestavy); `check_machines.py` tím u `cpm_zrmd` ověřuje Vypnout a zapnout i zápis RAM disku.
+- **Průvodce se sám otevře jen po výslovném spuštění** (rozhodnutí 2026-10-17): Spustit a Restartovat ve výběru,
+  Soubor → Poslední sestavy a Otevřít soubor sestavy (`ui.guide_start_gen`), a při prvním spuštění po zavření
+  výběru. Ne po Vypnout a zapnout, Restartovat s touto sestavou v konfigurátoru, zapnutí, načtení stavu ani MCP.
+- **Stavový řádek** nekreslí přes menu: když se nevejde, vypustí nejdřív upozornění, pak klávesy u režimů a zkrátí
+  „Sestava změněna: restartovat“ na ● (text v tooltipu), pak takt CPU a MCP, pak stav klávesnice. Pauza, REC a
+  rychlost zůstanou; když se nevejde ani to, není vidět nic. „emulace“ → „rychlost“. Upozornění svítí 7 s a všechna
+  jdou i do Logu (`ui_notice`, chyby jako LOGE); čtyři kopie pomocné funkce v `media`, `shot`, `plotter` a `video`
+  nahradila jedna.
+- **Pauza a rychlost přes obraz:** při změně pauzy nebo rychlosti (F5, F8, menu, zarážka, MCP) nápis nahoře na
+  obrazu na 2,5 s, poslední půlsekundu slábne (hodnocení UX chtělo 2–3 s; „Pauza (F5)“, u zarážky její důvod jako ve
+  stavovém řádku, „Rychlost 200 %“, „Rychlost: maximum“, u sestav se zvukem „(bez zvuku)“, protože
+  zvuk hraje jen při 100 %). Při pauze je v titulku okna „[pauza]“. Stav při startu programu se neohlašuje. Trvalý
+  odznak při pauze nedělám, stav je ve stavovém řádku a titulku. Snímek GUI to umí ukázat přes `--ui-pause`.
+- **Otevřít v konfigurátoru** (výběr sestav, `--ui-open`) jde přes `request(PEND_OPEN)`: na neuložené změny se zeptá.
+- **První dialog** Vložit…, Nahrát program, Nahrát binární soubor a vložení diskety, kazety RKD-1 nebo pásky RMP-1
+  začíná v `media/` (disky, kazety RKD-1 a pásky z něj se používají přes pracovní kopie, kazeta WAV se vloží chráněná
+  proti zápisu), nové soubory (Nová kazeta…, Nová disketa…) dál ve `work/`. Uložená poslední složka má přednost.
+
+### Chyby nahlas, průběžné ukládání médií
+
+- **Chyby nahlas** (`ui_notice`): odmítnuté médium v okně Média (s důvodem), nepovedená nová kazeta (DSM-1, KZD-1)
+  nebo disketa a nepovedené Nahrát program / binární soubor ukáže okno Chyba. Povedené nahrání stavový řádek
+  a Log („Nahráno 0100-1FFFh, 7936 B: soubor“). Zapnout (Stroj → Zapnout, NAPÁJENÍ) se zavřeným konfigurátorem
+  ukáže chybu v okně Chyba, s otevřeným ji dál píše konfigurátor (a Log).
+- **Špatný obraz diskety nechá v mechanice starou disketu** (FDC-1, MFC-1A, RPD-1; u RPD-1 i jiný formát než 8" SS
+  SD): obraz se nejdřív zkusí přečíst, teprve pak se stará disketa vysune a uloží. Dřív se vysunula hned a mechanika
+  zůstala bez hlášky prázdná. Po revizi stejně i kazety RKD-1, pásky RMP-1, kazety KZD-1 a DSM-1 (MP3 se dekóduje
+  jen jednou: přečtená kazeta se přesune do magnetofonu; jen stejný soubor s neuloženou nahrávkou se po uložení
+  čte znovu). Jinak by vypínač (Ctrl+F12, MCP `power`) z `Machine::config` potichu vrátil médium, které okno Média
+  ukázalo jako vysunuté.
+- **Log barevně:** řádky `error:` barvou chyby, `warn:` barvou varování (`theme()`). **„✖ Chyby: N“** ve stavovém
+  řádku (barva chyby, křížek i slovo, ne jen barva; v úzkém okně „✖ N“) počítá chyby zapsané do Logu **od jeho
+  posledního otevření**, ne od startu: jedna chyba při startu by jinak svítila do konce. Kliknutí Log otevře
+  a vytáhne dopředu. Snímek GUI: `--ui-log`.
+- **Média se ukládají průběžně** (`EmuHost::autosave`, `Card::unsaved`): 3 s po posledním zápisu (zápisy počítá
+  `media_written()`), při trvalém zápisu nejpozději po minutě, hned při pauze (F5, zarážka, MCP) a při ztrátě fokusu
+  okna programu. Kontroluje se 4× za sekundu bez práce se soubory; obraz se zapíše celý, jen když se změnil. Po
+  nepovedeném uložení se to zkusí znovu po dalším zápisu nebo za minutu (Log se nezahltí); pauza a ztráta fokusu
+  ukládají jen po novém zápisu (`EmuHost::save_media_new`), jinak by každá zapsala do Logu stejnou chybu znovu.
+  Nepovedené uložení jde jen do Logu (jednou za minutu) a do počtu „✖ Chyby: N“, okno Chyba ho zatím neukáže:
+  chtělo by to příznak selhání u každého média ve všech kartách. Platí pro diskety, RAM disky ZRMD-1/ZRD-1V
+  (`rw`) a RMD-1, kazety RKD-1, pásky RMP-1, kazety DSM-1 (WAV) a KZD-1. Kazeta KZD-1 se
+  během záznamu (zapnutá záznamová hlava) průběžně neukládá, až pár sekund po jeho konci: uložení uprostřed by
+  záznam rozdělilo a přechod zaokrouhlený o půl mikrometru před hlavu mohla další část smazat (ukončení, vysunutí
+  a uložení stavu záznam dál uloží hned). Rozdělení záznamu při změně rychlosti pásku během záznamu zůstává, bylo
+  tu už před etapou 4. `nosave`, `readonly`, chráněné kazety a testy nezapíšou nic.
+  - **Paměti s baterií** (CRM-1, DMR-1, RTC-1) se dál ukládají jen při vypnutí a ukončení: program do nich zapisuje
+    pořád, takže by „ticho“ nenastalo a zdržovalo by ukládání disků.
+  - IDE disk a PMD32-SD zapisují rovnou do souboru; DPI-1L se chová jako karta (nezapsaná stránka se vypnutím ztratí).
+  - **Zápis přes dočasný soubor** vedle obrazu (`jméno.tmpNNN`), `_commit`/`fsync` a přejmenování
+    (`file_write_safe`): pád ani výpadek proudu nenechá napůl zapsaný obraz. Když Windows přejmenování odmítne
+    (soubor drží otevřený jiný program), zapíše se jako dřív přímo. Stejně se zapisují i paměti s baterií.
+  - Dosavadní ukládání ZRMD-1 po 5 s emulovaného času je pryč: při maximální rychlosti zapisovalo 4 MB mnohokrát za
+    sekundu a při pauze nic.
+  - **Ukládají se všechna média, i pásky a kazety:** ztráta nahrávky po pádu bolí nejvíc a skutečná mechanika
+    zapisuje hned. **Vysunout bez uložení** proto teď zahodí jen zápisy posledních pár sekund (tooltip to říká),
+    ukázkové médium vrátí Obnovit z originálu. U vlastních obrazů mimo `media/` cesta zpět není (na rozhodnutí
+    autora, viz konec oddílu).
+  - **Čas měří hodiny PC, ne emulovaný čas:** při maximální rychlosti se tak neukládá častěji a při pauze se
+    nezastaví. Nepovedený zápis (plný disk) nechá starý obraz beze změny; když nejde založit dočasný soubor,
+    zapíše se obraz přímo jako dřív.
+  - Ověřeno: `test_zrmd` (3 s po posledním zápisu, nový zápis čeká znovu, pauza, žádný dočasný soubor, `nosave`
+    nic), `test_floppy_imd` (špatný obraz, `unsaved`, `save_media`), `sapiemu-cli --mcp` s RAM diskem v dočasné
+    složce (zápis přes `io_write`, soubor změněný za 3,3 s za běhu) a `check_machines.py`, který nově hlásí zbylé
+    dočasné soubory. Po revizi i `test_kzd1` (uložení uprostřed záznamu nic neuloží, po konci záznamu stejné přechody
+    jako bez něj, špatný soubor kazetu nevysune) a `test_rkd1` (nové disky a zapsaný sektor `unsaved`, `save_media`
+    zapíše soubor, špatný obraz kazetu nevysune).
+
+### Průvodci her, reset APS-5, konfigurátor
+
+- **Průvodci her** (`sapi1v_hry`, `sapi1v_PoP`, `sapi1v_BomberNet`, česky i anglicky): volba `3` je blok kódu
+  s tlačítkem Napsat do SAPI a u ní věta, že volby 0–2 čekají na řadič disket, který sestava nemá, reset sám
+  nepomůže (ECMON si volbu pamatuje v RAM), pomůže stisknout `3` hned po resetu nebo Stroj → Vypnout a zapnout.
+  Stejně i průvodce sestavy V (`sapi1v`). V českých průvodcích „palba“ (jako tabulka zkratek), ne „fire“. Blok
+  píše „3“ a Enter, Enter navíc ukáže v CP/M jen druhé `A>` (ověřeno `sapiemu-cli`).
+  - Každá hra a hlavní dema mají vlastní blok kódu (jméno ověřené výpisem RAM disku `tools/cpmdisk.py --dir`)
+    a u něj ovládání. Ukončení ověřené v emulátoru: ESC u FLAPPY, BOMBER, FXS4, SPLAY a RAT, klávesa u BADAPPLE,
+    KONEC + A u BKP. Dema, která se sama neukončí (REMBRAN2, Y1STDEMO, SNDDEMON, CGATEST, MPHTEST, FLAPDGD), zastaví
+    reset F12: ECMON za pár sekund sám znovu spustí volbu 3 (ověřeno přes MCP vlastního `sapiemu-cli --mcp`).
+  - Dřívější blok `SPLAY HELLFIRE.VGM` + `RAT SMJOOP.RAD` napsal oba řádky za sebou, druhý šel do běžícího
+    přehrávače; teď jsou to dva bloky.
+  - U Bad Apple!! věta „Obraz místy rychle bliká“ (návrh z hodnocení UX, 5.x).
+  - Řádek „Normální při startu: PMD32-SD nenalezen, INIT HDD YXYX…“ jen u her a BomberNetu. Prince of Persia má IDE-1
+    s PMD32-SD a hlásí `PMD32-SD OK`.
+- **Souhrny sestav s ECMONem** v Ostatních (`cpm_zrmd`, `cpm_ide`, `cpm_zrmd_fdc1`, `cpm_zrmd_mfc1a`, `cpm_zrmd_dpp1`,
+  `cpm_zrmd_rtc_dsp`, `cpm_ec1045`, po revizi i `libor_doma` z Dalších sestav s deskami Libora Lasoty; jeho popis
+  radil volbu 1, která visí) v `machines/_vyber.json`: co sestava je a kterou volbu stisknout po zapnutí
+  (podle `tools/check_machines.py` a prvních kroků). Titulky (kratší názvy v seznamu) jsem nepřidával, v seznamu
+  zůstávají technické názvy ze souborů sestav.
+- **Reset APS-5 se nejdřív zeptá:** F12, F9, Stroj → Reset, RESET na panelu ZDR i Reset v debuggeru jdou přes
+  `request_reset` (`aps5.cpp`). U sestavy s pecemi (`FurnacePlant`) otevře okno „Resetovat jednotku APS-5?“ s
+  důvodem (skutečná jednotka RESET nemá, firmware po něm smaže programy, typy termočlánků a kalibraci) a tlačítky
+  Ano, resetovat / Zrušit, Esc = Zrušit, Enter nedělá nic (reset omylem nejde). Reset sám zůstává věrný (CHYBA 0,
+  INICIALIZACE). Jiné sestavy se resetují hned, MCP `reset` se neptá nikdy. Pracoviště IMS-2 (`plant` typu
+  IMS-2, ZPS-2 s BASIMSem) se neptá: reset počítače tam nic neničí. Snímek GUI: `--ui-reset`.
+- **Konfigurátor:** rám se zmenší i podle výšky okna: s checkboxem zabere nejvýš 55 % místa pod lištou, nejmenší
+  měřítko kleslo z 0,034 na 0,022 velikosti písma. Typ karty na panelu se zmenší do volného místa podél i napříč
+  panelem, nejvýš na 0,6 velikosti písma; menší se nekreslí (po revizi: velikost písma 0 zastavila debug build
+  assertem ImGui při 1400–1600 × 900–1000 u sestav s 8 kartami, při 1280×720 typ přesahoval přes sousední
+  panely). Nastavení pod ním dostane zbytek, nejméně 8 řádků (v hodně nízkém okně se pak posouvá celé okno).
+  Při 1100×760 a 1280×720 je po kliknutí na X7 vidět 5 řádků nastavení CGA-1V (dřív žádný). Rám zůstává zarovnaný
+  vlevo. Vedlejší účinek: popisek JPR-1V (úzký pruh vedle konektorů) se zhruba od 1600×900 dolů nekreslí.
+  - **Kliknutí na slot** vybere záložku Nastavení karty (i když byla otevřená Mapa portů a paměti) a posune
+    nastavení do pohledu: když ho hlášky nad ním odsunou, dostane se záložka nahoru; v nízkém okně se okno posune
+    k nastavení. Klik do prázdného rámu záložku nepřepne ani neposune (posuvník by jinak překvapil).
+    `--ui-rack SLOT` to ukáže jako po kliknutí.
+  - **Textová pole a cesty médií** (`PK_TEXT`, `PK_FILE`, `PK_DIR`) se potvrdí až Enterem nebo opuštěním pole jako
+    `PK_HEX`, Esc vrátí původní text. Dřív každý napsaný znak znovu načetl médium (nebo založil nové z rozepsaného
+    jména).
+
+### Na rozhodnutí autora
+
+- **Průběžné ukládání a Vysunout bez uložení.** Doporučení: nechat, jak je (ukládat všechna média). Další možnosti:
+  volba média „neukládat průběžně“ pro starý postup „zahodit celé sezení“, nebo pásky a kazety (DSM-1, KZD-1,
+  RMP-1) průběžně neukládat a nechat jim Vysunout bez uložení v plné síle.
+- **Vypnout a zapnout nenačítá soubor sestavy znovu** (odchylka od plánu, důvod výše). Doporučení: nechat. Kdo chce
+  sestavu ze souboru, má Restartovat ve výběru sestav.
+- **Názvy sestav s ECMONem v Ostatních** zůstaly technické (jména souborů), dostaly jen souhrny. Kratší titulky
+  by šly doplnit do `_vyber.json`.
+
+### Ruční zkouška autora a známá omezení
+
+Snímek skrytého okna tyto věci neukáže:
+
+- Psaní: návrat klávesnice po Napsat do SAPI, Spustit, Nahrát program, vložení média, Vložit text a zavření
+  průvodce; nápis „Klikněte sem a pište“ a hláška o zahozeném znaku.
+- „[pauza]“ v titulku okna; uložení média při přepnutí do jiného okna Windows (zapsat na disk, přepnout, podívat se
+  na soubor); okno Chyba u odmítnutého média.
+- Známé omezení: po jiných akcích z menu (Reset, Snímek…) si klávesnici dál nechá menu, obecné vracení fokusu
+  zatím není. Nápis „Klikněte sem a pište“ a hláška o zahozeném znaku to zatím pokryjí.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

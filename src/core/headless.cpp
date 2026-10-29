@@ -206,6 +206,9 @@ static int run_actions(Machine& m, const std::vector<std::string>& actions, std:
                 return 1;
             }
             m.set_breakpoint((uint16_t)addr, true);
+        } else if (a == "--power-cycle") {   // the power switch off and on: memory lost, media and battery RAM kept
+            std::string err;
+            if (!m.power_cycle(err)) { fprintf(stderr, "--power-cycle: %s\n", err.c_str()); return 1; }
         } else if (a == "--print-regs") {
             print_regs(m);
         } else if (a == "--disasm" && i + 2 < actions.size()) {

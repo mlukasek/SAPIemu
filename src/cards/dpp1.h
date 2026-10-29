@@ -36,6 +36,7 @@ public:
     bool io_read(uint8_t port, uint8_t& data) override;
     bool io_write(uint8_t port, uint8_t data) override;
     void flush() override;
+    bool unsaved() override;
     // the cassette of the KZD-1: kzd1.cassette
     const char* media_param(int u) override { return u == 0 && kzd_enabled ? "kzd1.cassette" : nullptr; }
     bool media_change(int u, const std::string& image, std::string& err) override;

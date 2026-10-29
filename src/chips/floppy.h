@@ -108,8 +108,11 @@ struct FloppyDrive {
     bool is_8sssd(void) const;    // RPD-1: an 8" SS SD disk with its data in logical order
     // Read the image (through its working copy when work_copy); false + err if unusable.
     bool load(const std::string& image, bool work_copy, std::string& err);
-    // Write a modified image back to its file.
+    // Write a modified image back to its file (through a temporary file, file_write_safe).
     bool save(std::string& err);
+    bool unsaved(void) const { return dirty && present(); }   // save() would write
+    // A sector written, a track formatted (media_written for the autosave of EmuHost)
+    void written(void);
     // A new disk formatted as g (every byte E5h, an empty CP/M directory): ImageDisk when the name
     // ends with .imd (any format can be written on it later), else a plain image.
     static bool create(const std::string& path, const FloppyGeom* g, std::string& err);

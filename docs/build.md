@@ -35,7 +35,10 @@ Testy běží paralelně (8 najednou, `execution.jobs` v `CMakePresets.json`). �
 **Kontrola všech sestav** (`tools/check_machines.py`, od 2026-10-14): v každé sestavě z `machines/` spustí něco
 konkrétního (`DIR` na různé disky, `PRINT 6*7` v MIKROBASICu, `D0 7` v MIKOSu, přihlášení v shellu RKD-1, `DIRMT`
 pásky RMP-1, `.K_I` a `.K_D` na KZD-1, Manic Miner na BGP-1S, READY a TEST plotteru z AR 1990…) a zkontroluje text
-obrazovky, snímek grafiky, sériovou linku, kresbu zapisovače (`strokes:N`, PNG kresby vedle výpisu) a varování v logu. `--games` přidá porty a dema sestavy V: Bad Apple!! celé až do návratu do CP/M,
+obrazovky, snímek grafiky, sériovou linku, kresbu zapisovače (`strokes:N`, PNG kresby vedle výpisu), varování v logu
+a zbylé dočasné soubory ukládání médií (`*.tmpNNN` ve `work/`, od 2026-10-29). U `cpm_zrmd` uloží soubor na RAM
+disk, vypne a zapne stroj (`--power-cycle`) a zkontroluje, že ECMON znovu nabídne volbu a soubor na disku zůstal.
+`--games` přidá porty a dema sestavy V: Bad Apple!! celé až do návratu do CP/M,
 všech 26 skladeb FXS4 s kontrolou zvuku, Prince of Persia, Bomberman, Flappy na CGA-1V a DGD-1V. Pracuje nad čistou
 kopií dat z gitu (`roms`, `media`, `machines` a IDE disk z `work/ide`) v `out/check/<čas>/`, takže `work/` (pracovní
 kopie, baterie) zůstane netknuté; výstupy a snímky jsou tamtéž. Používá release `sapiemu-cli` (aktuální sestavení!),
@@ -48,14 +51,14 @@ Testy smějí běžet souběžně: každý zapisuje jen do vlastních souborů v
 pracovní kopie médií ve `work/` jen čte. Pracovní kopie vzniká pod dočasným jménem a přejmenuje se, takže
 ji souběžně nevytvoří dva procesy napůl (dřív na čistém `work/` padaly `test_zps3`, `test_state`).
 
-Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9).
+Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9), Ctrl+F12 vypnout a zapnout.
 
 **Rychlost a takt** jsou dvě různé věci:
 - **Takt CPU** je vlastnost karty: u JPR-1ZI propojky JP2/JP3 v sestavě, u JPR-1V přepínač TURBO (2/4 MHz) i za
   chodu (tlačítko TURBO na panelu ZDR, menu Stroj, MCP `cpu_turbo`).
 - **Rychlost emulace** zrychlí celý emulovaný počítač proti reálnému času (F8, menu Stroj → Rychlost emulace, MCP
   `resume speed_percent`/`max_speed`), tedy i UART, disketu a časování karet.
-- Stavový řádek ukazuje obojí („CPU 4.00 MHz  emulace 100 %“), displej FREKVENCE CPU na panelu ZDR jejich součin,
+- Stavový řádek ukazuje obojí („CPU 4.00 MHz  rychlost 100 %“), displej FREKVENCE CPU na panelu ZDR jejich součin,
   tedy efektivní takt CPU (od 100 MHz bez desetin).
 
 Nastavení GUI se ukládá do `sapiemu-settings.json` a rozložení oken do `imgui.ini` ve složce s exe (přenosné). Když
@@ -286,8 +289,16 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 - **`sapiemu-cli`:** `--timeout-ms` musí být **před** `--wait-text`, kterého se týká. `--load-hex` nahraje
   program, `--load-bin SOUBOR ADRESA` binární soubor (adresa hex, třeba `100`), `--display DGD-1` určí obrazovku
   pro `--screenshot`. `--save-state` / `--load-state SOUBOR` uloží a načte stav stroje (`docs/stav.md`).
+  `--power-cycle` vypne a zapne stroj jako Stroj → Vypnout a zapnout (Ctrl+F12): paměť se ztratí, média a paměti
+  s baterií se uloží a načtou znovu (od 2026-10-29).
 - **Pracovní kopie médií** (`work/rpd-1/…`, `work/…`) po zkouškách z příkazové řádky smazat. Zápisy na disketu
   se do nich uloží a příště by se načetly místo originálu.
+- **Průběžné ukládání médií** (od 2026-10-29): GUI a `sapiemu-cli --mcp` (oba přes `EmuHost::autosave`) zapíšou
+  zapsaná média do souborů 3 s po posledním zápisu, při trvalém zápisu nejpozději po minutě, hned při pauze
+  a GUI i při ztrátě fokusu okna. Akce samotného `sapiemu-cli` (bez `--mcp`) ukládají jako dřív až při konci,
+  vysunutí nebo `--power-cycle`. Zápis jde přes dočasný soubor `jméno.tmpNNN` vedle obrazu a přejmenování
+  (`file_write_safe` v `core/util`); zbylé `*.tmpNNN` hlásí `check_machines.py`. Na zkoušky s MCP proto kopie
+  sestavy s médii `nosave` (RAM disk `"mode": "nosave"`), jinak se `work/` přepíše už za běhu.
 - **Úpravy souborů skriptem:** na Windows v Bash heredocu se `\n`, `\r` a `\\` v Python řetězcích mění na
   skutečné znaky. Skripty proto psát nástrojem pro zápis souborů do dočasného `.py`, pro cesty používat raw
   řetězce, nebo upravovat soubory přímo editorem.

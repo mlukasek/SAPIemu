@@ -233,7 +233,7 @@ nespustí znovu: Reset (F12) a nové přihlášení. Tak se CP/M chrání před 
 |---|---|
 | Nová kazeta | Formát nové kazety: **24 × 256 B** pro CP/M Tesly (výchozí), 12 × 512 B pro systém SMEP a formátovač FORMRKD J. Bíby. Počet sektorů je daný kazetou (sektorové značky), formátovací program ho změnit nemůže. |
 | Jednotka 0 (CM 5403), kazeta | Mechanika, soubor s kazetou a její formát. |
-| Vložit… | Vloží jinou kazetu (soubor `.rkd`). |
+| Vložit… | Vloží jinou kazetu (soubor `.rkd`). Soubor, který nejde přečíst, se nevloží, zůstane původní kazeta a okno Chyba řekne proč. |
 | Nová kazeta… | Založí novou **nenaformátovanou** kazetu pod zvoleným jménem a vloží ji. |
 | Vysunout | Kazetu vysune a uloží. Mechanika bez kazety není připravená (stojí, i pevný disk). |
 | Ochrana proti zápisu | Přepínač ochrany na mechanice (níže). |
@@ -241,8 +241,8 @@ nespustí znovu: Reset (F12) a nové přihlášení. Tak se CP/M chrání před 
 | Systém… | **Pomoc emulátoru:** zapíše na kazetu systém CP/M, volitelně ji předtím naformátuje (níže). |
 | pevný disk | Soubor s pevným diskem a jeho ochrana proti zápisu. |
 
-Kazeta i pevný disk jsou obyčejné soubory `.rkd` (asi 3 MB). Emulátor je zapíše při vysunutí kazety, při ukončení
-a při přepnutí na jinou sestavu.
+Kazeta i pevný disk jsou obyčejné soubory `.rkd` (asi 3 MB). Emulátor je zapíše pár sekund po posledním zápisu,
+při pauze a při přepnutí do jiného okna Windows, při vysunutí kazety, při ukončení a při přepnutí na jinou sestavu.
 
 ### Výměna kazety: jen s Resetem a jen systémová
 

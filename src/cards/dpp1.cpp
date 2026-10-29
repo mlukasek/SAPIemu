@@ -205,6 +205,11 @@ void Dpp1::flush()
     prn.flush();
 }
 
+bool Dpp1::unsaved()
+{
+    return kzd_enabled && kzd.unsaved();   // the PMD32-SD and the printer write at once
+}
+
 void Dpp1::describe(json& out)
 {
     char buf[16];

@@ -74,7 +74,7 @@ void Dmr1::flush()
     if (!battery || !ram_enabled || sram_file.empty() || !battery_files_enabled()) return;
     std::string path = data_path(sram_file);
     make_dirs(path_dir(path));
-    if (!file_write_all(path, ram.data(), ram.size())) LOGW("%s: cannot save the SRAM to %s", name.c_str(), path.c_str());
+    if (!file_write_safe(path, ram.data(), ram.size())) LOGW("%s: cannot save the SRAM to %s", name.c_str(), path.c_str());
 }
 
 void Dmr1::reset()

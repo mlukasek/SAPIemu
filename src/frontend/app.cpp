@@ -87,6 +87,8 @@ struct App {
     UiState ui;
     std::string error_text;
     bool show_error = false;
+    int errors_seen = 0;          // log_errors() when the Log window was shown last ("Errors: N" counts the rest)
+    bool log_focus = false;       // "Errors: N" clicked: the Log in front
     bool quit = false;
     uint64_t title_gen = ~0ull;   // machine generation shown in the window title
     bool integer_scale = true;
@@ -99,6 +101,18 @@ struct App {
     int held_text_id = -1;
     bool held_drop_text = false;
     bool game_keys = false;
+    // the keyboard of SAPI: a key went to it from a display in this run (the hint "Click here and type" on the display
+    // is not needed any more); a typed character was dropped because no display had the keyboard (told once a run in
+    // the status bar, and each time by the hint for a few seconds)
+    bool typed = false;
+    bool drop_told = false;
+    uint64_t drop_ns = 0;
+    // a short text over the pictures for 2.5 s when the pause or the speed changes (F5, F8, the menu, MCP); the pause
+    // and the speed seen last frame (speed: the percent, 0 = maximum, -1 = not seen yet)
+    std::string osd;
+    uint64_t osd_ns = 0;
+    bool osd_paused = false;
+    int osd_speed = -1;
     std::string ini_path;
 
     // settings (sapiemu-settings.json next to the exe, else in the user's AppData)
@@ -403,7 +417,51 @@ void set_title(App& app)
 {
     Machine* m = app.host.machine();
     std::string title = std::string("SAPIemu - ") + (m ? m->name : "");
+    if (m && app.host.paused) title += std::string(" ") + tr("[paused]");   // seen on the task bar too
     SDL_SetWindowTitle(app.window, title.c_str());
+}
+
+// Machine -> Switch off and on, Ctrl+F12, as the power switch of the real machine (EmuHost::power_cycle): the same
+// cards, switches and media, the memory lost, the RAM disks and battery memories saved and read again. Not the file
+// again (as Restart in the window Choose a machine): a medium put in stays in, and the configurator is not asked (it
+// follows the machine and keeps its unsaved changes; changes waiting for a restart stay orange). A failure: Error.
+static void power_cycle(App& app)
+{
+    std::string err;
+    if (!app.host.power_cycle(err)) {
+        app.error_text = std::string(tr("The machine cannot be started")) + ":\n" + err;
+        app.show_error = true;
+        LOGE("%s", err.c_str());
+    }
+    set_title(app);
+}
+
+// The pause or the speed changed (F5, F8, the menu, a breakpoint, MCP): a short text over the pictures, the pause
+// also in the title of the window. The state at the start of the program is not announced.
+static void osd_follow(App& app)
+{
+    bool paused = app.host.paused && app.host.machine();
+    int speed = app.host.max_speed ? 0 : app.host.pace_percent;
+    bool first = app.osd_speed < 0;
+    std::string text;
+    if (paused != app.osd_paused) {
+        app.osd_paused = paused;
+        set_title(app);
+        if (paused) text = app.host.status.empty() ? tr("Pause (F5)") : app.host.status;   // a breakpoint says why
+    }
+    if (speed != app.osd_speed) {
+        app.osd_speed = speed;
+        char t[96];
+        if (speed) snprintf(t, sizeof(t), "%s %d %%", tr("Speed"), speed);
+        else snprintf(t, sizeof(t), "%s", tr("Speed: maximum"));
+        text = t;
+        Machine* m = app.host.machine();   // the sound plays only at 100 % (audio_frame): said where there is one
+        if (speed != 100 && app.audio.enabled && !app.audio.failed && m && m->bus.audio_rate)
+            text += std::string(" (") + tr("no sound") + ")";
+    }
+    if (first || text.empty()) return;
+    app.osd = text;
+    app.osd_ns = SDL_GetTicksNS();
 }
 
 void load_machine(App& app, const std::string& file)
@@ -509,8 +567,17 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
         else debug_step(app, true);
         return;
     case SDLK_F11: debug_step(app, false); return;
-    case SDLK_F12:   // under a debugger Windows takes F12 as the break hotkey, F9 still works
-    case SDLK_F9: if (m) m->reset(); return;
+    case SDLK_F12:   // Ctrl+F12: switch off and on; under a debugger Windows takes F12 as the break hotkey, F9 still works
+        if (ev.repeat) return;   // a held key: one power cycle, one reset (a switch does not repeat)
+        if (ev.mod & SDL_KMOD_CTRL) {
+            if (m) power_cycle(app);
+            return;
+        }
+        request_reset(app.ui);   // the APS-5 unit asks first
+        return;
+    case SDLK_F9:
+        if (!ev.repeat) request_reset(app.ui);
+        return;
     case SDLK_F2:   // Ctrl+F2 / Ctrl+F3: the quick slot of the machine; without Ctrl the SAPI keys
     case SDLK_F3:
         if (ev.mod & SDL_KMOD_CTRL) {
@@ -544,7 +611,8 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
     // serial terminal: the EKL-1 (WordStar) codes of the cursor keys
     int tcode = ctrl >= 0 ? ctrl : (hk != HK_NONE ? wordstar_code(hk, mods) : -1);
     if (tcode >= 0 && terminal_key(app.ui, tcode)) return;
-    if (!app.ui.screen_focused) return;
+    if (!app.ui.screen_focused) return;   // a character is told about in handle_text
+    app.typed = true;
     if (ev.key == SDLK_V && (ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_SHIFT)) {
         paste_keyboard(app, m);
         return;
@@ -587,7 +655,19 @@ void handle_text(App& app, const char* text)
     if (sup && text[1] == 0 && (text[0] == sup || (sup == '.' && text[0] == ','))) return;
     if (terminal_text(app.ui, text)) return;
     if (app.ui.screen_focused && app.joy.keyboard && !strcmp(text, " ")) return;   // fire of the joystick
-    if (!app.ui.screen_focused) return;
+    if (!app.ui.screen_focused) {
+        // no display has the keyboard (another window was clicked): the character is dropped, as before; said once
+        // a run, in the status bar (not into a text field, where it went)
+        if (!ImGui::GetIO().WantTextInput) {
+            app.drop_ns = SDL_GetTicksNS();   // the hint shows again for a while
+            if (!app.drop_told) {
+                app.drop_told = true;
+                ui_notice(app.ui, true, tr("Typing does not reach SAPI now: click its screen first."));
+            }
+        }
+        return;
+    }
+    app.typed = true;
     int id = app.held_text_id;
     bool drop = app.held_drop_text;
     app.held_text_id = -1;
@@ -674,12 +754,29 @@ static void open_machine_windows(App& app)
     }
 }
 
-// The keyboard to the screen window after a machine starts. Focusing raises a window, so the windows that were
-// in front of the screen stay in front (the screen would cover the Minigraf window with READY or the Media
-// window), and the windows of the machine (top_windows) come on top, in a dock their tab is selected.
-static void focus_screen_window(App& app)
+// Focus `target` (the keyboard goes to it). Focusing raises a window, so the windows that were in front of it stay in
+// front (the screen would cover the Minigraf window with READY, the Media window, the guide), then `top` on top.
+static void focus_keeping_order(ImGuiWindow* target, const ImVector<ImGuiWindow*>& top)
 {
     ImGuiContext& g = *GImGui;
+    int at = g.Windows.index_from_ptr(g.Windows.find(target->RootWindowDockTree));
+    ImVector<ImGuiWindow*> front;   // back to front, as g.Windows
+    for (int i = at + 1; i < g.Windows.Size; i++) {
+        ImGuiWindow* w = g.Windows[i];
+        if (w->RootWindow == w && (w->Active || w->WasActive) && !w->DockIsActive &&
+            !(w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
+                          ImGuiWindowFlags_NoBringToFrontOnFocus)))
+            front.push_back(w);
+    }
+    ImGui::FocusWindow(target);
+    for (ImGuiWindow* w : front) ImGui::BringWindowToDisplayFront(w);
+    for (ImGuiWindow* w : top) ImGui::BringWindowToDisplayFront(w);
+}
+
+// The keyboard to the screen window after a machine starts; the windows of the machine (top_windows) come on top,
+// in a dock their tab is selected.
+static void focus_screen_window(App& app)
+{
     ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
     if (!screen) return;
     ImVector<ImGuiWindow*> top;
@@ -690,18 +787,26 @@ static void focus_screen_window(App& app)
             top.push_back(w->RootWindowDockTree);
         }
     }
-    int at = g.Windows.index_from_ptr(g.Windows.find(screen->RootWindowDockTree));
-    ImVector<ImGuiWindow*> front;   // back to front, as g.Windows
-    for (int i = at + 1; i < g.Windows.Size; i++) {
-        ImGuiWindow* w = g.Windows[i];
-        if (w->RootWindow == w && (w->Active || w->WasActive) && !w->DockIsActive &&
-            !(w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
-                          ImGuiWindowFlags_NoBringToFrontOnFocus)))
-            front.push_back(w);
+    focus_keeping_order(screen, top);
+}
+
+// The keyboard back to the display used last (app.shot_target; the console screen when that window is gone), asked
+// by ui.focus_display: after Type into SAPI, Paste text, a program loaded, a medium put in, the guide or the window
+// Choose a machine closed. No other window comes to the front.
+static void focus_display_window(App& app)
+{
+    ImGuiWindow* w = nullptr;
+    if (app.shot_target >= 0) {
+        char id[16];
+        snprintf(id, sizeof(id), "###gfx%d", app.shot_target);
+        w = ImGui::FindWindowByName(id);
+        if (w && !(w->Active || w->WasActive)) w = nullptr;
     }
-    ImGui::FocusWindow(screen);
-    for (ImGuiWindow* w : front) ImGui::BringWindowToDisplayFront(w);
-    for (ImGuiWindow* w : top) ImGui::BringWindowToDisplayFront(w);
+    if (!w) w = ImGui::FindWindowByName("###screen");
+    if (!w || !(w->Active || w->WasActive)) return;
+    ImGuiWindow* nav = GImGui->NavWindow;
+    if (nav && nav->RootWindow == w) return;   // it has the keyboard
+    focus_keeping_order(w, ImVector<ImGuiWindow*>());
 }
 
 // View -> Default window layout: every window undocked, at the place and size it gets at its first use
@@ -987,6 +1092,63 @@ static void draw_settings(App& app)
     ImGui::End();
 }
 
+static void status_add(std::string& s, const std::string& part)
+{
+    if (part.empty()) return;
+    if (!s.empty()) s += "  ";
+    s += part;
+}
+
+// The status on the right side of the menu bar. A narrow window takes a higher `level`, each one shorter: 1 without
+// the notice, 2 the modes without their keys, 3 without the CPU clock and MCP, 4 without the keyboard (its LEDs, the
+// keys waiting). The pause, the recording and the speed stay. kb_leds: the LEDs of the keyboard are in it.
+static std::string status_text(App& app, Machine* m, const std::string& notice, int level, bool* kb_leds)
+{
+    std::string s;
+    if (!m) {
+        if (level < 1) status_add(s, notice);
+        status_add(s, tr("Switched off"));
+        return s;
+    }
+    KeyboardDevice* kb = m->keyboard();
+    if (kb && level < 4) {
+        std::string ks = kb->status();
+        *kb_leds = ks.find("LED") != std::string::npos;
+        status_add(s, ks);
+    }
+    if (level < 1) status_add(s, notice);
+    if (video_recording(app.ui)) {
+        int t = (int)video_seconds(app.ui);
+        char rec[48];
+        snprintf(rec, sizeof(rec), "\xE2\x97\x8F REC %d:%02d", t / 60, t % 60);
+        status_add(s, rec);
+    }
+    bool keys = level < 2;   // the keys that switch the modes off
+    if (app.game_keys && kb && kb->held_keys()) status_add(s, tr(keys ? "game mode (Ctrl+F7)" : "game mode"));
+    if (app.joy.keyboard)   // arrows and space do not type now
+        status_add(s, tr(keys ? "joystick from the keyboard (Ctrl+F8)" : "joystick from the keyboard"));
+    if (app.mouse.captured) status_add(s, tr(keys ? "mouse captured (middle button / Ctrl+F10)" : "mouse captured"));
+    if (kb && kb->pending() > 1 && level < 4) {   // keys typed but not taken by the program
+        char q[48];
+        snprintf(q, sizeof(q), "%s %d", tr("keys waiting:"), (int)kb->pending());
+        status_add(s, q);
+    }
+    if (app.host.paused) status_add(s, app.host.status.empty() ? tr("Paused") : app.host.status.c_str());
+    else if (app.host.max_speed) status_add(s, tr("Maximum"));
+    if (level < 3) {   // the clock of the CPU card (JPR-1V TURBO included)
+        if (app.mcp && app.mcp->running()) status_add(s, "MCP");
+        char cpu[32];
+        snprintf(cpu, sizeof(cpu), "CPU %.2f MHz", (m->cpu ? m->cpu->cpu_display_hz() : m->bus.cpu_hz) / 1e6);
+        status_add(s, cpu);
+    }
+    // the measured speed of the whole machine against real time; the first measurement comes after a second
+    char speed[48];
+    if (app.host.speed_percent > 0) snprintf(speed, sizeof(speed), "%s %3.0f %%", tr("speed"), app.host.speed_percent);
+    else snprintf(speed, sizeof(speed), "%s -- %%", tr("speed"));
+    status_add(s, speed);
+    return s;
+}
+
 void draw_menu(App& app)
 {
     if (!ImGui::BeginMainMenuBar()) return;
@@ -1025,7 +1187,14 @@ void draw_menu(App& app)
             m = app.host.machine();   // the old machine is gone
             set_title(app);
         }
-        if (ImGui::MenuItem(tr("Reset"), "F12", false, m != nullptr) && m) m->reset();
+        if (ImGui::MenuItem(tr("Switch off and on"), "Ctrl+F12", false, m != nullptr)) {
+            power_cycle(app);
+            m = app.host.machine();   // the old machine is gone
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("%s", tr("As the power switch: the memory is lost, the cards, switches and media stay as they "
+                                       "are. Reset (F12) keeps the memory."));
+        if (ImGui::MenuItem(tr("Reset"), "F12", false, m != nullptr)) request_reset(app.ui);
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         if (ImGui::BeginMenu(tr("Emulation speed"))) {   // the whole machine against real time
             for (int p = 100; p <= 400; p *= 2) {
@@ -1070,7 +1239,10 @@ void draw_menu(App& app)
                 }
             }
             ImGui::Separator();
-            if (ImGui::MenuItem(tr("Paste text"), "Ctrl+Shift+V", false, kb != nullptr)) paste_keyboard(app, m);
+            if (ImGui::MenuItem(tr("Paste text"), "Ctrl+Shift+V", false, kb != nullptr)) {
+                paste_keyboard(app, m);
+                app.ui.focus_display = 2;   // what comes next is typed on the screen
+            }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("%s", tr("The text of the clipboard is typed on the keyboard of SAPI (lines end with "
                                            "Enter), e.g. a BASIC program from a file."));
@@ -1175,77 +1347,73 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
 
-    // status on the right side of the menu bar
-    char st[200];
-    st[0] = 0;
-    bool kb_leds = false;   // LEDs of the keyboard in it (a tooltip explains them)
-    std::string notice;   // the result of the last save, load, screenshot: 3 s, the file name is enough
-    if (!app.ui.notice.empty() && !app.ui.notice_error && SDL_GetTicksNS() - app.ui.notice_ns < 3000000000ull) {
+    // status on the right side of the menu bar, never over the menus: a narrow window shortens it (status_text)
+    float menus_end = ImGui::GetCursorPosX();
+    std::string notice;   // the result of the last save, load, screenshot: 7 s, the file name is enough
+    if (!app.ui.notice.empty() && !app.ui.notice_error && SDL_GetTicksNS() - app.ui.notice_ns < 7000000000ull) {
         notice = app.ui.notice;
         size_t slash = notice.find_last_of("/\\");
         size_t colon = notice.find(": ");
         if (slash != std::string::npos && colon != std::string::npos)
             notice = notice.substr(0, colon + 2) + notice.substr(slash + 1);
     }
-    if (!m) snprintf(st, sizeof(st), "%s  %s", notice.c_str(), tr("Switched off"));
-    if (m) {
-        const char* state = app.host.paused ? (app.host.status.empty() ? tr("Paused") : app.host.status.c_str())
-                                            : (app.host.max_speed ? tr("Maximum") : "");
-        KeyboardDevice* kb = m->keyboard();
-        std::string ks = kb ? kb->status() : std::string();
-        kb_leds = ks.find("LED") != std::string::npos;
-        if (!notice.empty()) ks += "  " + notice;
-        if (video_recording(app.ui)) {
-            int s = (int)video_seconds(app.ui);
-            char rec[48];
-            snprintf(rec, sizeof(rec), "  \xE2\x97\x8F REC %d:%02d", s / 60, s % 60);
-            ks += rec;
-        }
-        if (app.game_keys && kb && kb->held_keys()) {
-            ks += "  ";
-            ks += tr("game mode (Ctrl+F7)");
-        }
-        if (app.joy.keyboard) {   // arrows and space do not type now
-            ks += "  ";
-            ks += tr("joystick from the keyboard (Ctrl+F8)");
-        }
-        if (app.mouse.captured) {
-            ks += "  ";
-            ks += tr("mouse captured (middle button / Ctrl+F10)");
-        }
-        if (kb && kb->pending() > 1) {   // keys typed but not taken by the program
-            char q[48];
-            snprintf(q, sizeof(q), "  %s %d", tr("keys waiting:"), (int)kb->pending());
-            ks += q;
-        }
-        // the clock of the CPU card (JPR-1V TURBO included) and the measured speed of the emulation
-        char speed[16] = " -- %";   // the first measurement comes after a second
-        if (app.host.speed_percent > 0) snprintf(speed, sizeof(speed), "%3.0f %%", app.host.speed_percent);
-        snprintf(st, sizeof(st), "%s  %s  %s  CPU %.2f MHz  %s %s", ks.c_str(), state,
-                 (app.mcp && app.mcp->running()) ? "MCP" : "", (m->cpu ? m->cpu->cpu_display_hz() : m->bus.cpu_hz) / 1e6,
-                 tr("emulation"), speed);
-    }
-    float w = ImGui::CalcTextSize(st).x + ImGui::GetStyle().ItemSpacing.x * 2;
     // changes in the configurator wait for a restart: visible with the configurator closed too
-    std::string pend;
-    if (rack_pending(app.ui)) pend = std::string("\xE2\x97\x8F ") + tr("Configuration changed: restart");
-    float pw = pend.empty() ? 0.0f : ImGui::CalcTextSize(pend.c_str()).x + ImGui::GetStyle().ItemSpacing.x * 2;
-    ImGui::SameLine(ImGui::GetWindowWidth() - w - pw);
-    if (!pend.empty()) {
-        ImGui::PushStyleColor(ImGuiCol_Text, theme().pending);
-        ImVec2 sz = ImGui::CalcTextSize(pend.c_str());
-        if (ImGui::Selectable(pend.c_str(), false, ImGuiSelectableFlags_None, sz)) app.ui.show_rack = true;
-        ImGui::PopStyleColor();
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("The configurator holds changes the running machine does not have yet. Click: open "
-                                       "the configurator (Restart with this configuration applies them)."));
-        ImGui::SameLine();
+    bool pending = rack_pending(app.ui);
+    int errors = log_errors() - app.errors_seen;   // errors in the Log not seen there yet
+    float sp = ImGui::GetStyle().ItemSpacing.x;
+    float room = ImGui::GetWindowWidth() - menus_end - sp;
+    std::string st, pend, errs;
+    float w = 0, pw = 0, ew = 0;
+    bool kb_leds = false;   // LEDs of the keyboard in it (a tooltip explains them)
+    bool fits = false;
+    for (int level = 0; level <= 4 && !fits; level++) {
+        kb_leds = false;
+        st = status_text(app, m, notice, level, &kb_leds);
+        pend.clear();
+        if (pending) pend = level < 2 ? std::string("\xE2\x97\x8F ") + tr("Configuration changed: restart") : "\xE2\x97\x8F";
+        errs.clear();
+        if (errors > 0) {   // a cross and the word: not the colour alone
+            char b[64];
+            if (level < 2) snprintf(b, sizeof(b), "\xE2\x9C\x96 %s %d", tr("Errors:"), errors);
+            else snprintf(b, sizeof(b), "\xE2\x9C\x96 %d", errors);
+            errs = b;
+        }
+        w = ImGui::CalcTextSize(st.c_str()).x + sp * 2;
+        pw = pend.empty() ? 0.0f : ImGui::CalcTextSize(pend.c_str()).x + sp * 2;
+        ew = errs.empty() ? 0.0f : ImGui::CalcTextSize(errs.c_str()).x + sp * 2;
+        fits = w + pw + ew <= room;
     }
-    ImGui::TextUnformatted(st);
-    if (kb_leds && ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program "
-                                   "(P0-OUT D5, D7), not the Shift key of the PC. Programs making sound on D5 "
-                                   "(Manic Miner) light the LED SHIFT with it."));
+    if (fits) {
+        ImGui::SameLine(ImGui::GetWindowWidth() - w - pw - ew);
+        if (!errs.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, theme().error);
+            ImVec2 sz = ImGui::CalcTextSize(errs.c_str());
+            if (ImGui::Selectable((errs + "##errors").c_str(), false, ImGuiSelectableFlags_None, sz)) {
+                app.ui.show_log = true;
+                app.log_focus = true;
+            }
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("%s", tr("Errors written into the Log since it was open last. Click: open the Log."));
+            ImGui::SameLine();
+        }
+        if (!pend.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, theme().pending);
+            ImVec2 sz = ImGui::CalcTextSize(pend.c_str());
+            if (ImGui::Selectable((pend + "##pending").c_str(), false, ImGuiSelectableFlags_None, sz)) app.ui.show_rack = true;
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("%s\n%s", tr("Configuration changed: restart"),
+                                  tr("The configurator holds changes the running machine does not have yet. Click: open "
+                                     "the configurator (Restart with this configuration applies them)."));
+            ImGui::SameLine();
+        }
+        ImGui::TextUnformatted(st.c_str());
+        if (kb_leds && ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", tr("LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program "
+                                       "(P0-OUT D5, D7), not the Shift key of the PC. Programs making sound on D5 "
+                                       "(Manic Miner) light the LED SHIFT with it."));
+    }
     ImGui::EndMainMenuBar();
 }
 
@@ -1254,11 +1422,38 @@ float display_px_aspect(App& app, DisplayDevice* d)
     return app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
 }
 
+// A label in a dark box over the picture `a`-`b`, centred, at the top (top = true) or at the bottom; into the draw
+// list of the window, not into the picture (screenshots and videos do not have it). Light on dark in every look: the
+// picture is a monitor. alpha: 0..1 (fading out).
+static void picture_label(ImVec2 a, ImVec2 b, const char* text, float size, bool top, float alpha)
+{
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImFont* f = ImGui::GetFont();
+    ImVec2 ts = f->CalcTextSizeA(size, 1e9f, 0.0f, text);
+    float px = 0.6f * size, py = 0.3f * size, gap = 0.5f * size;
+    float x = (a.x + b.x - ts.x) * 0.5f, y = top ? a.y + gap + py : b.y - gap - py - ts.y;
+    dl->AddRectFilled(ImVec2(x - px, y - py), ImVec2(x + ts.x + px, y + ts.y + py), IM_COL32(0, 0, 0, (int)(170 * alpha)),
+                      0.35f * size);
+    dl->AddText(f, size, ImVec2(x, y), IM_COL32(235, 235, 235, (int)(255 * alpha)), text);
+}
+
+// Over the picture: the pause or the speed just changed (2.5 s, the last 0.5 s fading), and "Click here and type"
+// (type_hint).
+static void picture_labels(App& app, ImVec2 a, ImVec2 b, bool hint)
+{
+    uint64_t age = SDL_GetTicksNS() - app.osd_ns;
+    if (!app.osd.empty() && age < 2500000000ull) {
+        float alpha = age < 2000000000ull ? 1.0f : (float)(2500000000ull - age) / 5e8f;
+        picture_label(a, b, app.osd.c_str(), ImGui::GetFontSize() * 1.5f, true, alpha);
+    }
+    if (hint) picture_label(a, b, tr("Click here and type"), ImGui::GetFontSize(), false, 0.85f);
+}
+
 // Draw display output `d` into the current window, scaled to fit (or at the zoom chosen
 // for the window), through its own texture. Returns the zoom: screen pixels per emulated
-// pixel (vertically, with the TV aspect).
+// pixel (vertically, with the TV aspect). hint: "Click here and type" over the picture.
 float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels,
-                   const ZoomState& zs)
+                   const ZoomState& zs, bool hint)
 {
     int w = d->screen_width(), h = d->screen_height();
     if (!tex || w != tex_w || h != tex_h) {
@@ -1298,7 +1493,19 @@ float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, in
     ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), size);
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) app.mouse.click = true;   // captures the mouse when the machine has one
     if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+    picture_labels(app, pos, ImVec2(pos.x + size.x, pos.y + size.y), hint);
     return scale;
+}
+
+// The hint "Click here and type" on the display used last: no display has the keyboard, the machine has a keyboard
+// to type on (not the plotter of AR 1990), and nothing was typed on the SAPI keyboard in this run yet or a character
+// was just dropped (5 s). Not always: while the debugger or another window is used, a lasting label would only cover
+// the picture.
+static bool type_hint(App& app, Machine* m, int target)
+{
+    KeyboardDevice* kb = m ? m->keyboard() : nullptr;
+    bool want = !app.typed || (app.drop_ns && SDL_GetTicksNS() - app.drop_ns < 5000000000ull);
+    return want && app.shot_target == target && !app.ui.screen_focused && kb && strcmp(kb->type_name(), "AR 1990") != 0;
 }
 
 void draw_screen(App& app)
@@ -1331,7 +1538,8 @@ void draw_screen(App& app)
         ImGui::End();
         return;
     }
-    app.screen_zs.zoom = draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels, app.screen_zs);
+    app.screen_zs.zoom = draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels, app.screen_zs,
+                                      type_hint(app, m, -1));
     if (app.open_screen_menu) {
         ImGui::OpenPopup("zoommenu");
         app.open_screen_menu = false;
@@ -1372,7 +1580,7 @@ void draw_graphic_screens(App& app)
                 app.ui.screen_focused = true;   // typing goes to the machine too
                 app.shot_target = k;
             }
-            v.zs.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels, v.zs);
+            v.zs.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels, v.zs, type_hint(app, m, k));
             display_context_menu(app, d, c ? c->name.c_str() : "graphics", v.zs);
         }
         ImGui::End();
@@ -1384,11 +1592,21 @@ void draw_log(App& app)
     if (!app.ui.show_log) return;
     first_use_right(600, 250, 5);
     ImGui::SetNextWindowSize(ImVec2(600, 250), ImGuiCond_FirstUseEver);
+    if (app.log_focus) {
+        ImGui::SetNextWindowFocus();
+        app.log_focus = false;
+    }
     if (ImGui::Begin(tr_id("Log"), &app.ui.show_log)) {
+        app.errors_seen = log_errors();   // seen here: "Errors: N" in the status bar goes away
         std::vector<std::string> lines;
         log_recent(lines, 500);
         ImGui::BeginChild("loglines");
-        for (const std::string& l : lines) ImGui::TextUnformatted(l.c_str());
+        for (const std::string& l : lines) {   // errors and warnings in their colours (each line starts with its level)
+            bool e = l.compare(0, 6, "error:") == 0, w = l.compare(0, 5, "warn:") == 0;
+            if (e || w) ImGui::PushStyleColor(ImGuiCol_Text, e ? theme().error : theme().warn);
+            ImGui::TextUnformatted(l.c_str());
+            if (e || w) ImGui::PopStyleColor();
+        }
         if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) ImGui::SetScrollHereY(1.0f);
         ImGui::EndChild();
     }
@@ -1408,13 +1626,26 @@ void draw_error(App& app)
         app.show_error = false;
     }
     if (ImGui::BeginPopupModal(tr_id("Error"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        // wrapped: a long path of a medium would push the reason past the edge of a narrow window
+        float wrap = ImGui::GetIO().DisplaySize.x * 0.8f, most = 45.0f * ImGui::GetFontSize();
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + (wrap < most ? wrap : most));
         ImGui::TextUnformatted(app.error_text.c_str());
+        ImGui::PopTextWrapPos();
         if (ImGui::Button(tr("Close"))) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
 }
 
 } // namespace
+
+void ui_notice(UiState& ui, bool ok, const std::string& text)
+{
+    ui.notice = text;
+    ui.notice_error = !ok;
+    ui.notice_ns = SDL_GetTicksNS();
+    if (ok) LOGI("%s", text.c_str());
+    else LOGE("%s", text.c_str());
+}
 
 const MachineWindow* machine_windows(int* count)
 {
@@ -1592,6 +1823,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_aps5 = snap->aps5 || snap->aps5_demo;
         app.ui.aps5_demo_autostart = snap->aps5_demo;
         app.ui.show_terminal = snap->terminal;
+        app.ui.show_log = snap->log;
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;
     }
@@ -1621,6 +1853,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             else if (ev.type == SDL_EVENT_WINDOW_FOCUS_LOST) {   // keys released elsewhere are not seen
                 if (KeyboardDevice* k = held_keyboard(app)) k->release_all();
                 theme_titlebar(app.window);   // the dimmed text of an inactive window
+                app.host.save_media_new();   // the disks and RAM disks written so far into their files (autosave)
             }
             else if (ev.type == SDL_EVENT_WINDOW_FOCUS_GAINED) theme_titlebar(app.window);
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
@@ -1637,6 +1870,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             open_machine_windows(app);
             app.focus_screen = 3;
         }
+        osd_follow(app);
         if (app.ui.quit || app.host.quit_requested) app.quit = true;
         uint64_t now = SDL_GetTicksNS();
         if (Machine* jm = app.host.machine()) {   // the joystick ports follow the gamepads and the keyboard
@@ -1701,6 +1935,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_ims2(app.ui);
         draw_diag(app.ui);
         draw_aps5(app.ui);
+        draw_reset_question(app.ui);
         draw_rack(app.ui);
         draw_log(app);
         draw_error(app);
@@ -1713,6 +1948,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (app.focus_screen > 0) {   // after the windows that opened with the machine
             app.focus_screen--;
             if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window(app);
+        } else if (app.ui.focus_display > 0) {   // Type into SAPI, Paste text, a load, a closed guide...
+            app.ui.focus_display--;
+            if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_display_window(app);
         }
         if (app.rack_behind) {   // the first start: the configuration behind the screen, the keyboard stays there
             ImGuiWindow* rack = ImGui::FindWindowByName("###rack");
@@ -1752,6 +1990,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             // follow_machine() has run: open the requested description, select the slot
             if (!snap->open.empty()) rack_open_in_editor(app.ui, snap->open);
             app.ui.rack.sel = snap->rack_slot;
+            app.ui.rack.scroll_props = snap->rack_slot > 0;   // as after a click on the slot
             app.ui.rack.open_map_tab = snap->map;
             for (const std::string& e : snap->set) {   // SLOT:KEY=VALUE into the card of the slot
                 size_t colon = e.find(':'), eq = e.find('=');
@@ -1774,6 +2013,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             }
         }
         if (snap && snap_frames == 9) {
+            if (snap->pause) app.host.paused = true;   // the text over the picture comes in the next frame
+            if (snap->reset) request_reset(app.ui);
             if (snap->screen_menu) app.open_screen_menu = true;
             if (snap->shot) shot_now(app);
             if (snap->copy) {

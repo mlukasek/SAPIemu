@@ -10,6 +10,10 @@ FILE* file_open(const std::string& utf8_path, const char* mode);
 bool file_read_all(const std::string& utf8_path, std::vector<uint8_t>& out);
 bool file_read_text(const std::string& utf8_path, std::string& out);
 bool file_write_all(const std::string& utf8_path, const void* data, size_t size);
+// The images of media and battery memories: written into a temporary file next to it, flushed to the disk and
+// renamed over the old one, so a crash or a power cut never leaves a half written image (the old one or the new
+// one). When the rename is refused (Windows: another program holds the file open) it is written in place.
+bool file_write_safe(const std::string& utf8_path, const void* data, size_t size);
 // Text file with the line ends of the platform (CRLF on Windows), like a git checkout.
 bool file_write_text(const std::string& utf8_path, const std::string& text);
 bool file_exists(const std::string& utf8_path);
@@ -56,6 +60,12 @@ bool media_path(const std::string& rel, bool work_copy, std::string& out, std::s
 // write their output there. Tests switch this off so that they never touch the user's files.
 void battery_files_enable(bool on);
 bool battery_files_enabled(void);
+
+// Writes to media kept in files (a sector of a disk, a byte of a RAM disk, a block of a tape): media_written()
+// counts them, media_writes() reads the count. EmuHost::autosave saves the media a few seconds after the count stops
+// growing (a write is cheap: one increment).
+void media_written(void);
+uint64_t media_writes(void);
 
 // Parse a number given as JSON-ish text: "0x1F", "1Fh", "$1F", "31".
 bool parse_number(const std::string& s, long long& out);

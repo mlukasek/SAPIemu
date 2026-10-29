@@ -14,8 +14,9 @@ regulace tří pecí. Asi za minutu pece začnou žhnout.
 - První zapnutí je studený start. Nejdřív kalibrace `6R` → `9990` →, pak pro každou pec `0` → číslo pece → a
   `8R` → typ termočlánku → (pec 1: 3 = ch-a).
 - `11` → ukáže tabulku stavu pecí.
-- **Reset nepoužívejte.** Skutečná jednotka ho nemá a firmware ho bere jako chybu, nastavení se smaže. Vypínejte
-  vypínačem, to proběhne jako výpadek sítě a nastavení zůstane.
+- **Reset nepoužívejte.** Skutečná jednotka ho nemá a firmware ho bere jako chybu, nastavení se smaže. Emulátor se
+  proto před resetem (F12, F9, RESET na panelu ZDR) zeptá. Vypínejte vypínačem nebo Stroj → Vypnout a zapnout
+  (Ctrl+F12), to proběhne jako výpadek sítě a nastavení zůstane.
 
 ## Dál
 

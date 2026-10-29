@@ -79,7 +79,10 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
         d.card = card;
         d.drive = drive;
     }
-    std::string where = d.last_dir.empty() ? data_path("work") : d.last_dir;
+    // the first time: a file to open in media/ (the programs, tapes and disks that come with the emulator; a disk from
+    // there is used through its working copy), a new file in work/
+    bool opens = kind == 1 || kind == 3 || kind == 4 || kind == 6 || kind == 10 || kind == 12 || kind == 14;
+    std::string where = !d.last_dir.empty() ? d.last_dir : data_path(opens && dir_exists(data_path("media")) ? "media" : "work");
     if (kind == 7 || kind == 8) {   // states: in work/state unless chosen elsewhere before
         where = data_path("work/state");
         make_dirs(where);
@@ -132,24 +135,17 @@ static void hex_scan(UiState& ui, const std::string& path)
     ui.hex_hi = s.hi;
 }
 
-static void state_notice(UiState& ui, bool ok, const std::string& text)
-{
-    ui.notice = text;
-    ui.notice_error = !ok;
-    ui.notice_ns = SDL_GetTicksNS();
-}
-
 static void state_file(UiState& ui, std::string path, bool save)
 {
     std::string err;
     if (save) {
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapistate";
-        if (ui.host->save_state_file(path, err)) state_notice(ui, true, std::string(tr("State saved")) + ": " + path);
-        else state_notice(ui, false, std::string(tr("Cannot save the state")) + ":\n" + err);
+        if (ui.host->save_state_file(path, err)) ui_notice(ui, true, std::string(tr("State saved")) + ": " + path);
+        else ui_notice(ui, false, std::string(tr("Cannot save the state")) + ":\n" + err);
     } else {
-        if (ui.host->load_state_file(path, err)) state_notice(ui, true, std::string(tr("State loaded")) + ": " + path);
-        else state_notice(ui, false, std::string(tr("Cannot load the state")) + ":\n" + err);
+        if (ui.host->load_state_file(path, err)) ui_notice(ui, true, std::string(tr("State loaded")) + ": " + path);
+        else ui_notice(ui, false, std::string(tr("Cannot load the state")) + ":\n" + err);
     }
 }
 
@@ -163,7 +159,9 @@ static void media_set(UiState& ui, Card* c, int u, const std::string& image)
     const char* p = c ? c->media_param(u) : nullptr;
     if (!m || !p) return;
     std::string err;
-    if (!m->set_live_param(c, p, nlohmann::json(image), err)) LOGE("%s: %s", c->name.c_str(), err.c_str());
+    if (!m->set_live_param(c, p, nlohmann::json(image), err))   // the Error window and the Log (a bad image: the old
+        ui_notice(ui, false, c->name + ": " +                    // disk stays in, Fdc8272Card::floppy_insert)
+                                 tr(image.empty() ? "Cannot take the medium out" : "Cannot put the medium in") + ":\n" + err);
 }
 
 // The card has the medium already (a program made into a tape here): the description only.
@@ -219,7 +217,9 @@ static void media_more(UiState& ui, Card* c, int u, bool has)
         media_set(ui, c, u, "");
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("What was written on it since it was put in is thrown away (only what is still in memory)."));
+        ImGui::SetTooltip("%s", tr("What was written on it and is not saved yet is thrown away (the media are saved a few "
+                                   "seconds after the last write). A medium of media/ comes back with Restore from the "
+                                   "original."));
     std::string orig, work;
     bool can = media_original(m, c, u, orig, work);
     if (ImGui::MenuItem(tr("Restore from the original..."), nullptr, false, can)) {
@@ -259,8 +259,8 @@ static void media_restore_dialog(UiState& ui)
         std::vector<uint8_t> d;
         bool ok = file_read_all(orig, d) && file_write_all(work, d.data(), d.size());
         media_set(ui, c, s_restore_unit, img);
-        state_notice(ui, ok, ok ? std::string(tr("Restored from the original")) + ": " + work
-                                : std::string(tr("Cannot write")) + " " + work);
+        ui_notice(ui, ok, ok ? std::string(tr("Restored from the original")) + ": " + work
+                             : std::string(tr("Cannot write")) + " " + work);
         ImGui::CloseCurrentPopup();
     }
     ImGui::EndDisabled();
@@ -291,6 +291,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     }
     if (path.empty() || !m) return;
     d.last_dir = path_dir(path);
+    if (kind != 9) ui.focus_display = 2;   // a medium put in, a program chosen: the keyboard back to the display
     if (kind == 3) {   // a program: show where it goes first
         hex_scan(ui, path);
         return;
@@ -319,7 +320,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
             if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".kzd";
             KzdCassette empty;
             if (!empty.save(path, err)) {
-                LOGE("%s", err.c_str());
+                ui_notice(ui, false, std::string(tr("Cannot create the cassette")) + ":\n" + err);
                 return;
             }
         }
@@ -355,7 +356,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
                 path += size == 327680 ? ".sp2" : size == 163840 ? ".sp1" : ".img";
             }
             if (!FloppyDrive::create(path, floppy_geoms()[s_new_disk_fmt], err)) {
-                LOGE("%s", err.c_str());
+                ui_notice(ui, false, std::string(tr("Cannot create the disk")) + ":\n" + err);
                 return;
             }
         }
@@ -370,8 +371,8 @@ static void tape_dialog_result(UiState& ui, Machine* m)
     if (kind == 9) {   // export: the tape stays in the recorder
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".wav";
-        if (t->export_wav(path, err)) state_notice(ui, true, std::string(tr("Tape saved as WAV")) + ": " + path);
-        else state_notice(ui, false, err);
+        if (t->export_wav(path, err)) ui_notice(ui, true, std::string(tr("Tape saved as WAV")) + ": " + path);
+        else ui_notice(ui, false, err);
         return;
     }
     if (kind == 1 && tape_is_program(path)) {   // a program: the format of the tape first
@@ -389,7 +390,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".wav";
         t->eject();
-        if (!t->create(path, err)) LOGE("%s", err.c_str());
+        if (!t->create(path, err)) ui_notice(ui, false, std::string(tr("Cannot create the cassette")) + ":\n" + err);
         else media_note(ui, dsm, 0, data_relative(path));
     }
 }
@@ -645,7 +646,7 @@ void state_quick(UiState& ui, bool save)
     if (save && !ui.host->machine()) return;
     std::string path = ui.host->quick_state_path();
     if (!save && !file_exists(path)) {
-        state_notice(ui, false, std::string(tr("The quick slot of this machine is empty")) + ":\n" + path);
+        ui_notice(ui, false, std::string(tr("The quick slot of this machine is empty")) + ":\n" + path);
         return;
     }
     state_file(ui, path, save);
@@ -709,10 +710,15 @@ static void hex_load_question(UiState& ui, Machine* m)
     if (ImGui::Button(tr("Load"))) {
         std::string text, err;
         int n = 0;
-        if (!file_read_text(ui.hex_path, text)) LOGE("cannot read %s", ui.hex_path.c_str());
-        else if (!m->load_ihex_text(text, err, &n)) LOGE("%s: %s", ui.hex_path.c_str(), err.c_str());
-        else LOGI("%s: %d bytes loaded at %04X-%04Xh", ui.hex_path.c_str(), n, (unsigned)ui.hex_lo, (unsigned)ui.hex_hi);
+        char done[96];   // "Loaded 0100-1FFFh, 7936 B: file" in the status bar and the Log, a failure in the Error window
+        snprintf(done, sizeof(done), "%s %04X-%04Xh, ", tr("Loaded"), (unsigned)ui.hex_lo, (unsigned)ui.hex_hi);
+        if (!file_read_text(ui.hex_path, text))
+            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + tr("Cannot read") + " " + ui.hex_path);
+        else if (!m->load_ihex_text(text, err, &n))
+            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + ui.hex_path + ": " + err);
+        else ui_notice(ui, true, done + std::to_string(n) + " B: " + ui.hex_path);
         ui.hex_path.clear();
+        ui.focus_display = 2;   // the program is started on the keyboard of SAPI
         ImGui::CloseCurrentPopup();
     }
     ImGui::EndDisabled();
@@ -761,9 +767,15 @@ static void bin_load_question(UiState& ui, Machine* m)
     if (ImGui::Button(tr("Load"))) {
         std::string err;
         int n = 0;
-        if (!m->load_binary(ui.bin_path, (uint16_t)addr, err, &n)) LOGE("%s", err.c_str());
-        else LOGI("%s: %d bytes loaded at %04llXh", ui.bin_path.c_str(), n, addr);
+        if (!m->load_binary(ui.bin_path, (uint16_t)addr, err, &n)) {
+            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + err);
+        } else {
+            char done[96];
+            snprintf(done, sizeof(done), "%s %04llX-%04llXh, %d B: ", tr("Loaded"), addr, addr + (n > 0 ? n - 1 : 0), n);
+            ui_notice(ui, true, done + ui.bin_path);
+        }
         ui.bin_path.clear();
+        ui.focus_display = 2;
         ImGui::CloseCurrentPopup();
     }
     ImGui::EndDisabled();
@@ -827,7 +839,7 @@ static void tape_program_question(UiState& ui, Machine* m)
                 kzd->insert(c, to);
                 media_note(ui, card, 0, data_relative(to));
                 kzd->flush();
-                state_notice(ui, true, info + " -> " + to);
+                ui_notice(ui, true, info + " -> " + to);
             }
         } else {
             TapeDeck* t = dsm->tape();
@@ -837,6 +849,7 @@ static void tape_program_question(UiState& ui, Machine* m)
         }
         if (ok) {
             ui.tprog_path.clear();
+            ui.focus_display = 2;   // LOAD or .K_L is typed on the keyboard of SAPI
             ImGui::CloseCurrentPopup();
         } else {
             ui.tprog_error = err;

@@ -5,8 +5,14 @@ CGA-1V, zvuková karta MPH-1V s čipem YM3812, RAM disk 4 MB a IDE disk. Systém
 
 ## Vyzkoušejte
 
-1. Po zapnutí se ECMON ptá na volbu `Zadej 0-3`. Klikněte do okna obrazovky a stiskněte `3` (CP/M z RAM
-   disku). Volby 0 až 2 čekají na řadič disket, který sestava nemá, jako skutečná deska.
+1. Po zapnutí se ECMON ptá na volbu `Zadej 0-3`. Napište `3` (CP/M z RAM disku). Volby 0 až 2 čekají na řadič
+   disket, který sestava nemá (jako skutečná deska), a stroj na nich zůstane stát. Reset sám nepomůže, ECMON si
+   volbu pamatuje: stiskněte `3` hned po resetu (F12), nebo použijte Stroj → Vypnout a zapnout (Ctrl+F12).
+
+```
+3
+```
+
 2. `DIR` vypíše RAM disk A:. B: a C: jsou IDE disk, v nové instalaci prázdný (`No File`).
 3. Grafika CGA-1V: Soubor → Nahrát program do paměti → `media\cga-1v\castle.hex`, pak v CP/M:
 

@@ -143,6 +143,53 @@ static json tesla_machine(const char* cart)
     return cfg;
 }
 
+// The autosave of the media (EmuHost::autosave -> Machine::save_media): new platters and a written sector make the
+// card unsaved, a save writes the cartridge file (through a temporary file); a bad image does not take the cartridge
+// out (read first).
+static void autosave_insert(void)
+{
+    const char* cart = "work/test/rkd_as_cart.rkd";
+    const char* fixed = "work/test/rkd_as_fixed.rkd";
+    const char* bad = "work/test/rkd_as_bad.rkd";
+    file_remove(data_path(cart));
+    file_remove(data_path(fixed));
+    json cfg = tesla_machine(cart);
+    cfg["cards"].erase(3);   // no RPD-1
+    cfg["cards"][3]["working_copy"] = false;
+    cfg["cards"][3]["unit0"]["fixed"] = fixed;
+    battery_files_enable(true);   // the media are written
+    {
+        Machine m;
+        std::string err;
+        CHECK(m.load_json(cfg, err));
+        Rkd1* r = rkd_of(m);
+        if (r) {
+            CHECK(m.unsaved());   // the new platters
+            CHECK_EQ(m.save_media(), 1);
+            CHECK(!m.unsaved());
+            CHECK(file_exists(data_path(cart)) && file_exists(data_path(fixed)));
+            uint8_t s[256];
+            for (int i = 0; i < 256; i++) s[i] = (uint8_t)(i * 7 + 3);
+            CHECK(r->write_sector(0, Rkd1::CARTRIDGE, 0, 5, 3, s, 256));
+            CHECK(m.unsaved());
+            CHECK_EQ(m.save_media(), 1);
+            CHECK(!m.unsaved());
+            RkdPlatter p;
+            CHECK(p.load(cart, false, err));
+            CHECK(p.data == r->units[0].disk[Rkd1::CARTRIDGE].data);
+            uint8_t junk[64] = { 0 };
+            CHECK(file_write_all(data_path(bad), junk, sizeof(junk)));
+            CHECK(!r->insert(0, bad, false, err));
+            CHECK(r->units[0].disk[Rkd1::CARTRIDGE].loaded);
+            CHECK(r->units[0].disk[Rkd1::CARTRIDGE].path == data_path(cart));
+            file_remove(data_path(bad));
+        }
+        battery_files_enable(false);
+    }
+    file_remove(data_path(cart));
+    file_remove(data_path(fixed));
+}
+
 static void tesla_system(void)
 {
     std::vector<uint8_t> sys;
@@ -470,7 +517,10 @@ int main(void)
         return 0;
     }
     const char* part = getenv("RKD_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
-    if (!part || !strcmp(part, "media")) media_system();
+    if (!part || !strcmp(part, "media")) {
+        media_system();
+        autosave_insert();
+    }
     if (!part || !strcmp(part, "cm5400")) cm5400_formrkd();
     if (!part || !strcmp(part, "tesla")) tesla_system();
     return TEST_RESULT();

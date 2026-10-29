@@ -6,8 +6,9 @@ CPC a PC.
 
 ## Jak spustit
 
-1. Po zapnutí ECMON nabídne volby 0–3. Napište `3` (CP/M z RAM disku); volby 0–2 čekají na řadič disket, který
-   tahle sestava nemá.
+1. Po zapnutí ECMON nabídne volby 0–3 (`Zadej 0-3`). Napište `3` (CP/M z RAM disku). Volby 0–2 čekají na řadič
+   disket, který tahle sestava nemá, a stroj na nich zůstane stát. Reset sám nepomůže, ECMON si volbu pamatuje:
+   stiskněte `3` hned po resetu (F12), nebo použijte Stroj → Vypnout a zapnout (Ctrl+F12).
 
 ```
 3

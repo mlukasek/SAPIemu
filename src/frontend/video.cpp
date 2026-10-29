@@ -197,13 +197,6 @@ std::string native(std::string p)
     return p;
 }
 
-void notice(UiState& ui, bool ok, const std::string& text)
-{
-    ui.notice = text;
-    ui.notice_error = !ok;
-    ui.notice_ns = SDL_GetTicksNS();
-}
-
 // One frame: the picture now, in the size the recording started with (a change of the raster is cut
 // or padded with black).
 void capture(uint64_t)
@@ -296,14 +289,14 @@ void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspec
     Machine* m = ui.host->machine();
     if (!d || !m || s_rec.active) return;
     if (s_mux == 1) {
-        notice(ui, false, tr("The previous video is still being finished."));
+        ui_notice(ui, false, tr("The previous video is still being finished."));
         return;
     }
     if (s_mux_thread.joinable()) s_mux_thread.join();
     std::string ffmpeg = video_ffmpeg(ui);
     if (ffmpeg.empty()) {
-        notice(ui, false, tr("Video needs ffmpeg: install it (winget install ffmpeg) or put its path into the settings "
-                             "file (\"video\": { \"ffmpeg\": \"C:/.../ffmpeg.exe\" })."));
+        ui_notice(ui, false, tr("Video needs ffmpeg: install it (winget install ffmpeg) or put its path into the settings "
+                                "file (\"video\": { \"ffmpeg\": \"C:/.../ffmpeg.exe\" })."));
         return;
     }
     Recording& r = s_rec;
@@ -345,7 +338,7 @@ void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspec
                       " -i - -vf " + vf + " -c:v libx264 -preset veryfast -crf 14 " + dq(native(r.tmp_video));
     std::string err;
     if (!proc_start(r.ff, cmd, true, r.log, err)) {
-        notice(ui, false, std::string(tr("Cannot start ffmpeg")) + ": " + ffmpeg);
+        ui_notice(ui, false, std::string(tr("Cannot start ffmpeg")) + ": " + ffmpeg);
         return;
     }
     r.active = true;
@@ -379,7 +372,7 @@ void video_stop(UiState& ui)
         m->bus.audio_record(false);
     }
     if (!encoded || r.frames == 0) {
-        notice(ui, false, std::string(tr("The video was not recorded (ffmpeg failed)")) + ":\n" + r.log);
+        ui_notice(ui, false, std::string(tr("The video was not recorded (ffmpeg failed)")) + ":\n" + r.log);
         std::error_code ec;
         std::filesystem::remove(fspath(r.tmp_video), ec);
         std::filesystem::remove(fspath(r.tmp_wav), ec);
@@ -387,7 +380,7 @@ void video_stop(UiState& ui)
     }
     s_mux = 1;
     s_mux_thread = std::thread(mux_job, video_ffmpeg(ui), r.tmp_video, r.tmp_wav, r.out, r.log, sound);
-    notice(ui, true, std::string(tr("Finishing the video")) + ": " + r.out);
+    ui_notice(ui, true, std::string(tr("Finishing the video")) + ": " + r.out);
 }
 
 void video_poll(UiState& ui)
@@ -395,14 +388,14 @@ void video_poll(UiState& ui)
     if (s_rec.active && (s_rec.failed || ui.host->machine_generation() != s_rec.gen)) {
         bool broken = s_rec.failed && ui.host->machine_generation() == s_rec.gen;
         video_stop(ui);
-        if (broken) notice(ui, false, std::string(tr("The video was not recorded (ffmpeg failed)")) + ":\n" + s_rec.log);
+        if (broken) ui_notice(ui, false, std::string(tr("The video was not recorded (ffmpeg failed)")) + ":\n" + s_rec.log);
     }
     int st = s_mux.load();
     if (st == 2 || st == 3) {
         if (s_mux_thread.joinable()) s_mux_thread.join();
         s_mux = 0;
-        if (st == 2) notice(ui, true, std::string(tr("Video saved")) + ": " + s_mux_out);
-        else notice(ui, false, std::string(tr("The video was not recorded (ffmpeg failed)")) + ":\n" + s_rec.log);
+        if (st == 2) ui_notice(ui, true, std::string(tr("Video saved")) + ": " + s_mux_out);
+        else ui_notice(ui, false, std::string(tr("The video was not recorded (ffmpeg failed)")) + ":\n" + s_rec.log);
     }
 }
 

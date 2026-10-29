@@ -77,13 +77,14 @@ static void remember_recent(UiState& ui, const std::string& file)
 
 // Start (or restart: the running one is loaded again from its file) a machine; its guide may open itself (a load
 // changes the machine generation, draw_guide sees it; a start waiting for the question about unsaved changes of
-// the configurator does not open the guide of the old machine).
+// the configurator does not open the guide of the old machine). The keyboard goes to the display.
 static void start(UiState& ui, const std::string& file)
 {
     remember_recent(ui, file);
     rack_start_machine(ui, file);
     ui.show_browser = false;
     ui.browser_first = false;
+    ui.focus_display = 2;
 }
 
 static bool running(UiState& ui, const MachineEntry& e)
@@ -266,10 +267,7 @@ static void details(UiState& ui, const MachineEntry& e)
         }
         ImGui::SameLine();
     }
-    if (ImGui::Button(tr("Open in the configurator"))) {
-        rack_open_in_editor(ui, e.file);
-        ui.show_rack = true;
-    }
+    if (ImGui::Button(tr("Open in the configurator"))) rack_open_in_editor(ui, e.file);   // asks about unsaved changes
     ImGui::Spacing();
     parts(e);
     if (!e.description.empty() && ImGui::CollapsingHeader(tr("Technical description"), sum.empty() ? ImGuiTreeNodeFlags_DefaultOpen : 0))
@@ -299,11 +297,15 @@ void draw_browser(UiState& ui)
     ImGui::SetNextWindowSize(ImVec2(58 * u, 38 * u), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
     bool visible = ImGui::Begin(tr_id("Choose a machine"), &ui.show_browser);
+    if (!ui.show_browser) ui.focus_display = 2;   // closed: the keyboard back to the display
     if (!ui.show_browser && ui.browser_first) {   // the first start: closed without starting a machine from it
         ui.browser_first = false;
         // the guide of the running machine (ZPS-1) may open itself, once (draw_guide decides); a guide the user
         // opened from the window stays as it is
-        if (!ui.show_guide) ui.guide_gen = 0;
+        if (!ui.show_guide) {
+            ui.guide_gen = 0;
+            ui.guide_start_gen = ui.host->machine_generation();
+        }
     }
     if (!visible) {
         ImGui::End();
@@ -443,7 +445,10 @@ static void code_block(UiState& ui, const std::vector<std::string>& lines, int n
     snprintf(b, sizeof(b), "%s##type%d", tr("Type into SAPI"), n);
     Machine* m = ui.host->machine();
     ImGui::BeginDisabled(!m);
-    if (theme_accent_button(b, ImVec2(0, 0), true) && m) m->type_text(text);   // the action of the block
+    if (theme_accent_button(b, ImVec2(0, 0), true) && m) {   // the action of the block
+        m->type_text(text);
+        ui.focus_display = 2;   // the next step of the guide is typed on the screen
+    }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Types the lines on the keyboard of SAPI, each ended by Enter."));
     ImGui::SameLine();
@@ -541,8 +546,10 @@ static void markdown(UiState& ui, const std::string& text)
 
 void draw_guide(UiState& ui)
 {
-    // a machine started: its guide opens itself (categories with guides), unless the user said no
-    // (not while the window Choose a machine is open: the machine the user starts from it opens its guide)
+    // a machine the user started (Start, Restart, File -> Recent machines, Open machine file): its guide opens itself
+    // (categories with guides), unless the user said no; not after a power cycle, a restart from the configurator, a
+    // state or MCP (decision 2026-10-17). Not while the window Choose a machine is open: the machine the user starts
+    // from it opens its guide.
     uint64_t gen = ui.host->machine_generation();
     if (gen != ui.guide_gen && !ui.show_browser) {
         ui.guide_gen = gen;
@@ -554,8 +561,8 @@ void draw_guide(UiState& ui)
             }
             const MachineEntry* e = machine_index_find(ui.machine_index, f);
             bool hidden = std::find(ui.guides_hidden.begin(), ui.guides_hidden.end(), f) != ui.guides_hidden.end();
-            if (e && !e->guide.empty() && e->category >= 0 && ui.machine_index.categories[(size_t)e->category].guides &&
-                ui.guides_auto && !hidden) {
+            if (gen == ui.guide_start_gen && e && !e->guide.empty() && e->category >= 0 &&
+                ui.machine_index.categories[(size_t)e->category].guides && ui.guides_auto && !hidden) {
                 ui.show_guide = true;
                 ui.guide_machine = f;
             } else if (ui.show_guide) {
@@ -572,7 +579,9 @@ void draw_guide(UiState& ui)
         ImGui::SetNextWindowFocus();
         ui.guide_focus = false;
     }
-    if (!ImGui::Begin(tr_id("Machine guide"), &ui.show_guide)) {
+    bool visible = ImGui::Begin(tr_id("Machine guide"), &ui.show_guide);
+    if (!ui.show_guide) ui.focus_display = 2;   // closed: the keyboard back to the display
+    if (!visible) {
         ImGui::End();
         return;
     }

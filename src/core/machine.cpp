@@ -430,6 +430,24 @@ void Machine::flush(void)
     for (auto& c : cards) c->flush();
 }
 
+bool Machine::unsaved(void)
+{
+    for (auto& c : cards)
+        if (c->unsaved()) return true;
+    return false;
+}
+
+int Machine::save_media(void)
+{
+    int n = 0;
+    for (auto& c : cards)
+        if (c->unsaved()) {
+            c->flush();
+            n++;
+        }
+    return n;
+}
+
 void Machine::power_down(void)
 {
     KeyboardDevice* k = keyboard();
@@ -442,6 +460,28 @@ void Machine::power_down(void)
         memcpy(bp_exec, saved.data(), sizeof(bp_exec));
     }
     flush();
+}
+
+bool Machine::rebuild(const json& cfg, std::string& err)
+{
+    json c = cfg;   // a copy: `cfg` may be our own config
+    stop_bridges();
+    flush();
+    bus.cards.clear();
+    cards.clear();
+    bus.plant = nullptr;
+    plant.reset();
+    cpu = nullptr;
+    display = nullptr;
+    displays.clear();
+    serials.clear();
+    return load_json(c, err);
+}
+
+bool Machine::power_cycle(std::string& err)
+{
+    power_down();
+    return rebuild(config, err);
 }
 
 DisplayDevice* Machine::find_display(const std::string& n)
@@ -661,18 +701,7 @@ bool Machine::load_state(const std::vector<uint8_t>& in, std::string& err, bool 
     if (!state_header(in, cfg, file, err)) return false;
     if (cfg != config) {
         if (!rebuild) { err = "the state belongs to another machine description"; return false; }
-        // built again from the description of the state (like EmuHost::load_config)
-        stop_bridges();
-        flush();
-        bus.cards.clear();
-        cards.clear();
-        bus.plant = nullptr;
-        plant.reset();
-        cpu = nullptr;
-        display = nullptr;
-        displays.clear();
-        serials.clear();
-        if (!load_json(cfg, err)) return false;
+        if (!this->rebuild(cfg, err)) return false;   // built again from the description of the state
     }
     StateIO io(true);
     io.data = in;

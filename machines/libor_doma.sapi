@@ -2,7 +2,7 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "Libor doma (ImBUS12: JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, DGD-1V, CGA-1V, MPH-1V)",
-    "description": "Sestava Libora Lasoty doma na sběrnici ImBUS12 s jeho deskami V. Displeje se střídají podle MAP (registr 63h na RAM-1V): MAP1 = L: AND-1V na F800h (RAM-1V tam má díru 2 KB); MAP1 = H: grafika na C000h (díra 16 KB v RAM-1V), MAP2 = L: DGD-1V, MAP2 = H: CGA-1V. DSM-1V na 10h, MPH-1V na 50h, ZRD-1V na 60h. JPR-1V jako v sestavě V (EEPROM banka 1 = ECMON, TURBO 4 MHz): po startu 1 = CP/M z RAM disku. docs/desky/ImBUS.md, RAM-1V.md, AND-1V.md, DGD-1V.md, CGA-1V.md.",
+    "description": "Sestava Libora Lasoty doma na sběrnici ImBUS12 s jeho deskami V. Displeje se střídají podle MAP (registr 63h na RAM-1V): MAP1 = L: AND-1V na F800h (RAM-1V tam má díru 2 KB); MAP1 = H: grafika na C000h (díra 16 KB v RAM-1V), MAP2 = L: DGD-1V, MAP2 = H: CGA-1V. DSM-1V na 10h, MPH-1V na 50h, ZRD-1V na 60h. JPR-1V jako v sestavě V (EEPROM banka 1 = ECMON, TURBO 4 MHz): po startu 3 = CP/M z RAM disku (volby 0 až 2 čekají na řadič disket). docs/desky/ImBUS.md, RAM-1V.md, AND-1V.md, DGD-1V.md, CGA-1V.md.",
     "bus": {
         "type": "ImBUS12"                   // ImBUS12 (L. Lasota, 1 CPU + 11 positions)
     },

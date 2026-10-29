@@ -54,13 +54,13 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 |---|---|
 | `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry |
 | `tape_status`, `tape_insert`, `tape_control` | Magnetofon DSM-1: stav, vložení kazety (WAV/MP3 odkudkoli, nebo nová, nebo program `.hex`/`.bin` převedený na kazetu MIKOS či MIKROBASIC: `format`, `name`, `address`, `entry`), tlačítka přehrát / nahrát / stop / převinout / vysunout / uložit / ochrana, `export` do WAV (`path`); vložení a vysunutí se zapíše i do popisu sestavy (jako v okně Média) |
-| `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (poslední popis sestavy), `cycle` |
+| `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (popis sestavy, jak běžela: vložená média a přepnuté přepínače zůstanou), `cycle` (jako Stroj → Vypnout a zapnout, Ctrl+F12) |
 | `quit` | Ukončí emulátor (`sapiemu-cli --mcp` i GUI): nejdřív stroj vypne (nahrané kazety, kazety KZD-1, SRAM s baterií a RAM disky se uloží), pak program skončí. Odpověď ještě dorazí |
 | `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/`; `list_machines` vrací cesty v `machines` a v `entries` název, titulek, kategorii, krátký text a průvodce z rejstříku `machines/_vyber.json`; kategorie je český název první, do které rejstřík sestavu dává (`aps5` Přístroje a technologie, `jpr1s_bgp1s` Desky Libora Lasoty (moderní), i když je i v Hrách a demech) |
 | `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná; `new_medium` u souborového parametru = nový soubor je prázdné médium (páska, kazeta) |
 | `machine_map` | Mapa portů a paměti z dekodérů karet (PROM, jumpery), po stavech MAP1/MAP2, s kolizemi; pro běžící sestavu, soubor nebo popis |
 | `get_machine_config`, `set_machine_config` | Popis sestavy (běžící nebo ze souboru) s kontrolou rozložení; použití upraveného popisu (vypnout a zapnout), volitelně uložení jako komentovaný soubor `.sapi` |
-| `reset`, `pause`, `resume` | Reset tlačítkem (nezabere, když JPR-1V zamrzl v INTA s PC v okně videokarty jako na železe: pomůže `power cycle`, `docs/desky/JPR-1V.md`), pauza a běh; `resume` volitelně `speed_percent` (rychlost emulace proti reálnému času, 100 = reálný čas) nebo `max_speed` (co nejrychleji) |
+| `reset`, `pause`, `resume` | Reset tlačítkem (nezabere, když JPR-1V zamrzl v INTA s PC v okně videokarty jako na železe: pomůže `power cycle`, `docs/desky/JPR-1V.md`), pauza (zapsaná média se hned uloží do souborů) a běh; `resume` volitelně `speed_percent` (rychlost emulace proti reálnému času, 100 = reálný čas) nebo `max_speed` (co nejrychleji) |
 | `step` | Krok (`count`), `over=true` = krok přes CALL, RST, DJNZ a LDIR |
 | `run_for` | Synchronní běh po zadaný emulovaný čas v ms |
 | `run_until` | Běh do adresy, do textu na obrazovce nebo na sériové lince, nebo do timeoutu |

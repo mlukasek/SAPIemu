@@ -89,7 +89,7 @@ bool RkdPlatter::save(std::string& err)
     d[10] = SURFACES;
     d.insert(d.end(), data.begin(), data.end());
     make_dirs(path_dir(path));
-    if (!file_write_all(path, d.data(), d.size())) {
+    if (!file_write_safe(path, d.data(), d.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -207,6 +207,10 @@ void Rkd1::media_discard(int u)
 bool Rkd1::insert(int i, const std::string& image, bool wp, std::string& err)
 {
     if (i < 0 || i >= UNITS || !units[i].fitted) { err = "no such unit"; return false; }
+    {   // read first: a bad image leaves the cartridge in the drive (read again after the eject saved it)
+        RkdPlatter probe;
+        if (!open_platter(probe, image, new_sectors, work_copy, err)) return false;
+    }
     eject(i);
     RkdPlatter& p = units[i].disk[CARTRIDGE];
     if (!open_platter(p, image, new_sectors, work_copy, err)) return false;
@@ -237,6 +241,15 @@ void Rkd1::flush()
             std::string err;
             if (!p.save(err)) LOGW("%s: %s", name.c_str(), err.c_str());
         }
+}
+
+bool Rkd1::unsaved()
+{
+    if (!battery_files_enabled()) return false;
+    for (Unit& u : units)
+        for (RkdPlatter& p : u.disk)
+            if (p.loaded && p.dirty) return true;
+    return false;
 }
 
 void Rkd1::reset()
@@ -387,6 +400,7 @@ void Rkd1::finish(void)
         }
         ptr = (uint16_t)((ptr + op_count) & 0x3FF);
         p.dirty = true;
+        media_written();
         return;
     }
     size_t len = (size_t)(rec[0] | rec[1] << 8);
@@ -432,6 +446,7 @@ bool Rkd1::write_sector(int ui, int disk, int surface, int track, int sector, co
     rec[0] = (uint8_t)s.size();
     rec[1] = (uint8_t)(s.size() >> 8);
     p.dirty = true;
+    media_written();
     return true;
 }
 
@@ -521,6 +536,7 @@ bool Rkd1::write_system(int ui, const std::string& source, std::string& err)
         for (int c = 0; c < 24; c++)
             memcpy(&p.data[p.record(0, t, c)], &src.data[src.record(0, t, c)], rec);
     p.dirty = true;
+    media_written();
     LOGI("%s: unit %d: the system written on the cartridge (tracks 0 and 1 of A:) from %s", name.c_str(), ui,
          source.c_str());
     return true;

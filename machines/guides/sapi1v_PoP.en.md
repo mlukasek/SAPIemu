@@ -6,15 +6,24 @@ its data are on the RAM disk A:.
 
 ## How to start
 
-1. After power on press `3` (CP/M from the RAM disk), then type:
+1. After power on ECMON offers the choices 0–3 ("Zadej 0-3" means "enter 0-3"). Type `3` (CP/M from the RAM
+   disk). The choices 0–2 wait for a floppy controller this machine does not have, and the machine stays stuck
+   there. A reset alone does not help, ECMON remembers the choice: press `3` right after the reset (F12), or use
+   Machine -> Switch off and on (Ctrl+F12).
+
+```
+3
+```
+
+2. At the prompt `A>` start the game:
 
 ```
 POP
 ```
 
-2. The game shows in the CGA-1V window, the music plays at 100 % speed. A key or fire skips the intro and starts
+3. The game shows in the CGA-1V window, the music plays at 100 % speed. A key or fire skips the intro and starts
    the game.
-3. Ctrl-Q returns to CP/M.
+4. Ctrl-Q returns to CP/M.
 
 ## Controls
 

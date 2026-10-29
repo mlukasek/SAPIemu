@@ -36,7 +36,8 @@ Zdroje:
   - Tlačítka PŘEHRÁT, NAHRÁT, STOP, Převinout, Vysunout, Nová kazeta, ochrana proti zápisu.
   - Motor se točí, jen když je stisknuté PŘEHRÁT nebo NAHRÁT a program sepne relé (bit 5).
   - Vložená kazeta je chráněná proti zápisu (MP3 vždy). Nahrávat jde na novou kazetu nebo po vypnutí ochrany.
-    Nahraná kazeta se uloží jako WAV (16 bitů mono) při vysunutí, vypnutí a ukončení emulátoru.
+    Nahraná kazeta se uloží jako WAV (16 bitů mono) pár sekund po posledním zápisu, při pauze a při přepnutí do
+    jiného okna Windows (při dlouhém nahrávání nejpozději po minutě), při vysunutí, vypnutí a ukončení emulátoru.
 - **KAZ = 1:** UART pracuje s magnetofonem na 2400 Bd, terminál je odpojený. RD = 1 čte z pásky, RD = 0 nahrává.
   Bit 4 stavu modemu je surová úroveň dekódované linky.
 - **Záznam:** linka UART (start, data, parita, stop, klid = 1) XOR hodiny 2400 Hz, obdélník do WAV 44,1 kHz.

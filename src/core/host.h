@@ -29,9 +29,14 @@ public:
     // Power switch: off = the machine is gone (battery backed memories and RAM
     // disks saved, host connections closed); on = built again from the last
     // description, like switching the real computer off and on.
+    // The description is the machine as it ran (Machine::config: the media put in, the switches changed), as the
+    // real machine keeps its tape in the recorder.
     bool powered(void) const { return m != nullptr; }
     void power_off(void);
     bool power_on(std::string& err);
+    // Off and on at once (GUI Machine -> Switch off and on, Ctrl+F12; MCP power cycle): the memory is lost, the
+    // machine comes back as it ran; on error the old one is kept.
+    bool power_cycle(std::string& err);
     const std::string& machine_file(void) const { return file; }
     uint64_t machine_generation(void) const { return generation; }   // changes on every load
 
@@ -42,6 +47,17 @@ public:
     // taken at their exact emulated time whatever the speed.
     std::function<void(uint64_t)> tick_hook;
     uint64_t tick_period = 0, tick_next = 0;
+    // Autosave of the media (Card::unsaved; docs/rozhodnuti.md 2026-10-29): the disks, tapes and RAM disks written
+    // while running go to their files a few seconds after the last write (at least once a minute while the writes go
+    // on), when the emulation pauses (frame) and when the program window loses the focus (the GUI calls
+    // save_media_new). A medium that could not be saved is tried again after a new write or a minute later, not on
+    // every pause or focus loss (the Log would fill with the same error).
+    // frame() calls autosave with host_time_ns(); a test gives its own times.
+    void autosave(uint64_t now_ns);
+    // The media with unsaved writes saved now; returns how many cards saved.
+    int save_media(void);
+    // The same, unless nothing was written since the last try (a pause, the focus lost).
+    int save_media_new(void);
     // Execute commands posted by other threads. Call from the emulation thread.
     void poll(void);
     // Post a command and wait for its result (from any thread except the emulation thread).
@@ -94,6 +110,11 @@ private:
     std::deque<std::shared_ptr<Task>> tasks;
     bool closing = false;   // guarded by task_mtx
     uint64_t speed_t0 = 0, speed_c0 = 0;
+    // autosave: the last look, media_writes() seen then and since when it has not changed, the first unsaved write
+    // seen (0 = nothing unsaved), media_writes() at the last save (after a failed one only a new write or a minute
+    // tries again), the pause already saved
+    uint64_t as_look = 0, as_writes = 0, as_quiet = 0, as_first = 0, as_tried = UINT64_MAX;
+    bool as_paused = false;
 };
 
 uint64_t host_time_ns(void);

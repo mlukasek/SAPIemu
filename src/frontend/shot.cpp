@@ -19,13 +19,6 @@
 
 static const uint32_t k_shot_bg = 0xFF000000u;   // a monochrome picture's background
 
-static void shot_notice(UiState& ui, bool ok, const std::string& text)
-{
-    ui.notice = text;
-    ui.notice_error = !ok;
-    ui.notice_ns = SDL_GetTicksNS();
-}
-
 // The picture and the repeat of its dots: 1x1, or 3 lines per dot and the width by the TV aspect
 static void shot_pixels(UiState& ui, DisplayDevice* d, float px_aspect, std::vector<uint32_t>& px, int& w, int& h,
                         int& sx, int& sy)
@@ -67,9 +60,9 @@ static std::string shot_auto_path(const char* name)
 static void shot_write(UiState& ui, const std::string& path, const std::vector<uint32_t>& px, int w, int h, int sx, int sy)
 {
     if (png_write_argb(path, px.data(), w, h, sx, sy))
-        shot_notice(ui, true, std::string(tr("Screenshot saved")) + ": " + path);
+        ui_notice(ui, true, std::string(tr("Screenshot saved")) + ": " + path);
     else
-        shot_notice(ui, false, std::string(tr("Cannot save the screenshot")) + ":\n" + path);
+        ui_notice(ui, false, std::string(tr("Cannot save the screenshot")) + ":\n" + path);
 }
 
 void shot_save(UiState& ui, DisplayDevice* d, const char* name, float px_aspect)
@@ -178,15 +171,15 @@ void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect)
     s_clip_bmp = bmp_encode_argb(px.data(), w, h, sx, sy);
 #ifdef _WIN32
     if (clip_windows(ui))
-        shot_notice(ui, true, tr("Screenshot copied to the clipboard."));
+        ui_notice(ui, true, tr("Screenshot copied to the clipboard."));
     else
-        shot_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ": Windows error " +
-                                   std::to_string((unsigned long)GetLastError()));
+        ui_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ": Windows error " +
+                                 std::to_string((unsigned long)GetLastError()));
 #else
     static const char* mimes[] = { "image/png", "image/bmp" };
     if (SDL_SetClipboardData(shot_clip_data, nullptr, nullptr, mimes, 2))
-        shot_notice(ui, true, tr("Screenshot copied to the clipboard."));
+        ui_notice(ui, true, tr("Screenshot copied to the clipboard."));
     else
-        shot_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ":\n" + SDL_GetError());
+        ui_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ":\n" + SDL_GetError());
 #endif
 }

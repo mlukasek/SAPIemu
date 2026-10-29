@@ -17,6 +17,7 @@ public:
 
     void advance(uint64_t now) override;
     void flush() override;
+    bool unsaved() override;
     void describe(nlohmann::json& out) override;
     std::string live_status() override;
     FloppyDrive* floppy_drive(int index) override { return index >= 0 && index < DRIVES ? &drives[index] : nullptr; }

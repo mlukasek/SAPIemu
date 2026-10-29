@@ -68,8 +68,17 @@ public:
     bool set_keyboard(const std::string& preset, std::string& err);
 
     void flush(void);   // persist RAM disks etc.
+    // Media with writes not saved yet (Card::unsaved), and saving just those (EmuHost::autosave); returns how many
+    // cards saved.
+    bool unsaved(void);
+    int save_media(void);
     // Switch off as the mains goes away: the power fail warning runs first (APS-5), then flush().
     void power_down(void);
+    // The power switch off and on in place (sapiemu-cli --power-cycle; the GUI and MCP build a new machine,
+    // EmuHost::power_cycle): power_down, then built again from `config` as it runs (media put in since stay in).
+    bool power_cycle(std::string& err);
+    // Built again from a description in place (the cards, the plant and the displays made anew).
+    bool rebuild(const nlohmann::json& cfg, std::string& err);
 
     // Save state (core/state.h, docs/stav.md): the machine description, the time of the bus and
     // the state of every card, the keyboard and the serial channels. `file` = the machine file

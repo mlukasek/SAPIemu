@@ -290,6 +290,73 @@ static void test_ckm(const char* hex, const char* title, uint8_t debl)
     file_remove(data_path(file));
 }
 
+// The autosave of the media (EmuHost::autosave -> Machine::save_media) does not cut a recording in progress: a save
+// commits it, and the next part could erase a transition rounded ahead of the head at the split. The recording is
+// saved once the record head goes off, the same as one recording without a save in the middle. A bad cassette file
+// leaves the cassette in the recorder (read first).
+static void test_autosave(void)
+{
+    static const uint8_t data[] = { 0x3C, 0xA5, 0xFF, 0x00, 0x81, 0x7E, 0x55, 0xAA };
+    std::vector<uint32_t> ref;
+    for (int pass = 0; pass < 2; pass++) {
+        std::string file = data_path(pass ? "work/test/kzd_as1.kzd" : "work/test/kzd_as0.kzd");
+        file_remove(file);
+        json cfg = { { "cards", json::array() } };
+        cfg["cards"].push_back({ { "slot", 1 }, { "type", "JPR-1ZI" } });
+        cfg["cards"].push_back({ { "slot", 2 }, { "type", "DPP-1" }, { "base", "30h" }, { "kzd1", { { "cassette", file } } } });
+        battery_files_enable(true);   // the media are written (a new cassette at once)
+        {
+            Machine m;
+            std::string err;
+            CHECK(m.load_json(cfg, err));
+            Kzd1* k = m.cards.size() > 1 ? m.cards[1]->kzd1() : nullptr;
+            CHECK(k && k->loaded());
+            if (k) {
+                CHECK(!m.unsaved());
+                m.bus.io_write(0x33, 0x8B);
+                m.bus.io_write(0x30, 0xFF);
+                m.bus.io_write(0x30, 0xAE);   // record forward
+                wait_us(m, 200000);
+                for (size_t n = 0; n < sizeof(data); n++) {
+                    for (int i = 7; i >= 0; i--) {
+                        uint8_t v = (uint8_t)((((data[n] >> i) & 1) << 7) | 0x2E);
+                        m.bus.io_write(0x30, v);
+                        m.bus.io_write(0x30, v ^ 0x20);
+                        wait_us(m, 50);
+                        m.bus.io_write(0x30, v);
+                        wait_us(m, 70);
+                    }
+                    if (pass == 1 && n == sizeof(data) / 2) {   // an autosave while the head records: not now
+                        CHECK(!m.unsaved());
+                        CHECK_EQ(m.save_media(), 0);
+                    }
+                }
+                wait_us(m, 100000);
+                m.bus.io_write(0x30, 0xFF);   // the head off: the recording is committed
+                wait_us(m, 100000);
+                CHECK(m.unsaved());
+                CHECK_EQ(m.save_media(), 1);
+                CHECK(!m.unsaved());
+                KzdCassette c;
+                CHECK(c.load(file, err));
+                CHECK(c.tr[0].size() >= 64);
+                if (!pass) ref = c.tr[0];
+                else CHECK(c.tr[0] == ref);
+                if (pass == 1) {
+                    std::string bad = data_path("work/test/kzd_bad.kzd");
+                    uint8_t junk[32] = { 0 };
+                    CHECK(file_write_all(bad, junk, sizeof(junk)));
+                    CHECK(!k->insert(bad, err));
+                    CHECK(k->loaded() && k->path() == file);
+                    file_remove(bad);
+                }
+            }
+            battery_files_enable(false);
+        }
+        file_remove(file);
+    }
+}
+
 // A cassette made from a program (the Media window, MCP kzd1 program): BASIC EXP V5.0 as MIKOS/K would
 // have saved it; .K_Z, .K_L BASIC and .J run it
 static void test_program_cassette(void)
@@ -335,6 +402,7 @@ int main(void)
 {
     test_init();
     test_mechanism();
+    test_autosave();
     test_mikos_k();
     test_ckm("media/mikos/CKM.hex", "KOPIROVACI PROGRAM  MGF - KZD-1", 0x00);
     test_ckm("media/mikos/CKM_opraveny.hex", "OPRAVENY KOPIR. PROGRAM MGF-KZD-1", 0xFF);

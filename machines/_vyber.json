@@ -207,6 +207,38 @@
             "title_en": "Magnetic tape RMP-1 and IZOT SM 5300",
             "summary": "Magnetopásková jednotka IZOT SM 5300 s řadičem RMP-1 a CP/M J. Bíby. Cívky se točí v okně Média.",
             "summary_en": "The IZOT SM 5300 tape unit with the RMP-1 controller and J. Bíba's CP/M. The reels turn in the Media window."
+        },
+        "cpm_zrmd.sapi": {
+            "summary": "CP/M 2.2 z RAM disku ZRMD-1, zavádí ho ECMON na procesorové kartě JPR-1ZI. Po zapnutí stiskněte 3 (bez IDE disku vypíše ECMON INIT HDD YXYX…, to je v pořádku), pak DIR. Ctrl+P a DIR vytiskne výpis do okna Tiskárna.",
+            "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk, booted by ECMON on the JPR-1ZI CPU card. After power on press 3 (without an IDE disk ECMON prints INIT HDD YXYX…, that is fine), then DIR. Ctrl+P and DIR print the listing in the Printer window."
+        },
+        "cpm_ide.sapi": {
+            "summary": "CP/M 2.2 z RAM disku ZRMD-1 s IDE diskem (B:, C:) a emulátorem disket PMD32-SD (D:, E:) na desce IDE-1. Po zapnutí stiskněte 3, pak třeba DIR B:.",
+            "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with an IDE disk (B:, C:) and the PMD32-SD floppy emulator (D:, E:) on the IDE-1 board. After power on press 3, then for example DIR B:."
+        },
+        "cpm_zrmd_fdc1.sapi": {
+            "summary": "CP/M 2.2 z RAM disku ZRMD-1 s řadičem disket FDC-1 a 8\" mechanikami. Po zapnutí stiskněte 0, pak DIR B: (disketa s CP/M 2.2/P). Disketu do C: vložíte v okně Média.",
+            "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the FDC-1 floppy controller and 8\" drives. After power on press 0, then DIR B: (a CP/M 2.2/P disk). A disk for C: goes in through the Media window."
+        },
+        "cpm_zrmd_mfc1a.sapi": {
+            "summary": "CP/M 2.2 z RAM disku ZRMD-1 s řadičem disket MFC-1A (Tesla Liberec 1989) a 8\" mechanikami. Po zapnutí stiskněte 2, pak DIR B:.",
+            "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the MFC-1A floppy controller (Tesla Liberec 1989) and 8\" drives. After power on press 2, then DIR B:."
+        },
+        "cpm_zrmd_dpp1.sapi": {
+            "summary": "CP/M 2.2 z RAM disku ZRMD-1 s deskou DPP-1, přes kterou ECMON obsluhuje emulátor disket PMD32-SD. Po zapnutí stiskněte 3, pak DIR D: (BASIC J. Bíby) a DIR E:.",
+            "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the DPP-1 board, through which ECMON drives the PMD32-SD floppy emulator. After power on press 3, then DIR D: (J. Bíba's BASIC) and DIR E:."
+        },
+        "cpm_zrmd_rtc_dsp.sapi": {
+            "summary": "CP/M 2.2 z RAM disku ZRMD-1 s hodinami reálného času RTC-1, sériovou deskou DSP-1 a programy J. Bíby. Po zapnutí stiskněte 3; E:RTCZ ukáže hodiny (ESC konec), DOPCP SOUBOR pošle soubor XMODEMem do okna terminálu.",
+            "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the RTC-1 real-time clock, the DSP-1 serial board and J. Bíba's programs. After power on press 3; E:RTCZ shows the clock (ESC ends), DOPCP FILE sends a file by XMODEM to the terminal window."
+        },
+        "cpm_ec1045.sapi": {
+            "summary": "Systém EC1045 (Petr Všijanský): CP/M z RAM disku ZRMD-1 a řadič FDC-1 s disketami PC 3,5\" a 5,25\" HD. Po zapnutí stiskněte 1 (3,5\") nebo 2 (5,25\", disketu vložte v okně Média), pak DIR B:.",
+            "summary_en": "The EC1045 system (Petr Všijanský): CP/M from the ZRMD-1 RAM disk and the FDC-1 controller with PC floppies, 3.5\" and 5.25\" HD. After power on press 1 (3.5\") or 2 (5.25\", insert the disk in the Media window), then DIR B:."
+        },
+        "libor_doma.sapi": {
+            "summary": "Sestava Libora Lasoty doma na sběrnici ImBUS12 s jeho deskami V: textový displej AND-1V, grafiky DGD-1V a CGA-1V (střídají se podle MAP), myš MPH-1V a RAM disk ZRD-1V. Po zapnutí stiskněte 3 (CP/M z RAM disku), pak DIR. Disky B: a C: bez desky IDE-1 nefungují.",
+            "summary_en": "Libor Lasota's set at home on the ImBUS12 bus with his V boards: the AND-1V text display, the DGD-1V and CGA-1V graphics (switched by MAP), the MPH-1V mouse and the ZRD-1V RAM disk. After power on press 3 (CP/M from the RAM disk), then DIR. The disks B: and C: do not work without the IDE-1 board."
         }
     }
 }

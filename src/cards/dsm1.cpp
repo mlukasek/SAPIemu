@@ -77,9 +77,19 @@ bool Dsm1::media_change(int u, const std::string& image, std::string& err)
         err = "no such recorder";
         return false;
     }
-    deck.eject();
-    if (image.empty()) return true;
-    if (!deck.load(image, err)) return false;
+    if (image.empty()) {
+        deck.eject();
+        return true;
+    }
+    TapeDeck nd;   // read first: a bad file leaves the cassette in the recorder (an MP3 is decoded once)
+    if (!nd.load(image, err)) return false;
+    bool same = deck.loaded() && deck.path == nd.path && deck.unsaved();
+    deck.eject();   // saves what was recorded
+    if (same) {     // the same cassette: as just saved, not as it was read before
+        if (!deck.load(image, err)) return false;
+    } else {
+        deck = std::move(nd);
+    }
     deck.write_protect = deck.write_protect || deck.read_only();
     return true;
 }

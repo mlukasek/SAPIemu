@@ -2,7 +2,7 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-28) a co dál
+## Kde jsme skončili (2026-10-29) a co dál
 
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
@@ -16,7 +16,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     krocích, tooltip o rámu); checkpoint B: texty schválené, úvod „průmyslový řídicí počítač do racku“.
   - **Etapa 3 hotová** (2026-10-29): tlačítka zapisovačů v MCP a cli (`core/plotter_ctl`), titulek okna Windows
     v barvách vzhledu, měřítko podle monitoru, náhledy přístrojů v novém vzhledu (nově AR 1990 a XY 4130).
-    Autor ručně ověří titulek a přesun mezi monitory. Další je etapa 4 (ovládání).
+    Autor ručně ověří titulek a přesun mezi monitory.
+  - **Etapa 4 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 4 plánu vzhledu: ovládání):
+    klávesnice se vrací displeji a nápis „Klikněte sem a pište“, Stroj → Vypnout a zapnout (Ctrl+F12, i MCP
+    a `--power-cycle`), průvodci her s volbou `3` a ovládáním, reset APS-5 s otázkou, konfigurátor podle výšky
+    okna, chyby v okně Chyba a „✖ Chyby: N“, média se ukládají průběžně přes dočasný soubor, stavový řádek bez
+    překryvu menu, pauza a rychlost přes obraz. Na rozhodnutí autora: průběžné ukládání a Vysunout bez uložení.
+    Autor ručně vyzkouší psaní a průvodce. Další je etapa 5 (okna).
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

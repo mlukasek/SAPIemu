@@ -43,7 +43,7 @@ bool KzdCassette::save(const std::string& path, std::string& err) const
     for (int s = 0; s < 2; s++)
         for (uint32_t v : tr[s]) put32(d, v);
     make_dirs(path_dir(path));
-    if (!file_write_all(path, d.data(), d.size())) {
+    if (!file_write_safe(path, d.data(), d.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -210,13 +210,18 @@ double Kzd1::now_s(void) const
 
 bool Kzd1::insert(const std::string& p, std::string& err)
 {
-    eject();
+    // read first: a bad file leaves the cassette in the recorder; the same cassette is read again after the eject
+    // saved it
     KzdCassette c;
-    if (file_exists(p)) {
+    bool exists = file_exists(p);
+    if (exists) {
         if (!c.load(p, err)) return false;
     } else if (battery_files_enabled() && !c.save(p, err)) {   // a new, empty cassette (only in memory for tests)
         return false;
     }
+    bool same = has_cassette && p == file;
+    eject();
+    if (same && exists && !c.load(p, err)) return false;
     cas = c;
     file = p;
     has_cassette = true;
@@ -233,8 +238,17 @@ void Kzd1::insert(const KzdCassette& c, const std::string& p)
     file = p;
     has_cassette = true;
     dirty = true;
+    media_written();
     side = 0;
     pos_um = KzdCassette::LEADER_UM;
+}
+
+// Not while the record head is on: a save commits the recording, and a transition rounded half a micrometre ahead
+// of the head could be erased by the next part (commit erases from the head on). The recording is saved a few
+// seconds after the head goes off; exit, eject and a saved state still commit and save it at once (flush).
+bool Kzd1::unsaved(void) const
+{
+    return has_cassette && battery_files_enabled() && !rec_active && (dirty || !rec_new.empty());
 }
 
 void Kzd1::flush(void)
@@ -270,6 +284,7 @@ void Kzd1::set_tab(int s, bool present)
     if (!has_cassette) return;
     cas.tab[s & 1] = present;
     dirty = true;
+    media_written();
 }
 
 bool Kzd1::overload(int motor) const
@@ -318,6 +333,7 @@ void Kzd1::move(double t)
                 if (rec_active) {
                     rec_lo = std::min(rec_lo, std::min(x0, x1));
                     rec_hi = std::max(rec_hi, std::max(x0, x1));
+                    media_written();   // the head erases what it passes
                 }
             } else {
                 const std::vector<uint32_t>& tv = cas.tr[side];
@@ -388,8 +404,10 @@ void Kzd1::set_controls(uint8_t value)
     }
     if ((old & 0x20) && !(value & 0x20) && rec && has_cassette) {   // D.P.* falling: one transition
         double x = floor(pos_um + 0.5);
-        if (x >= KzdCassette::LEADER_UM && x <= KzdCassette::LENGTH_UM - KzdCassette::LEADER_UM)
+        if (x >= KzdCassette::LEADER_UM && x <= KzdCassette::LENGTH_UM - KzdCassette::LEADER_UM) {
             rec_new.push_back((uint32_t)x << 1 | ((value & 0x80) ? 1u : 0u));
+            media_written();
+        }
     }
     if (!rec && rec_old) {
         commit();

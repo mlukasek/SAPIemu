@@ -219,7 +219,7 @@ bool TapeDeck::save(std::string& err)
     w32(40, (uint32_t)(samples.size() * 2));
     for (size_t i = 0; i < samples.size(); i++) w16(44 + i * 2, (uint16_t)samples[i]);
     make_dirs(path_dir(path));
-    if (!file_write_all(path, f.data(), f.size())) {
+    if (!file_write_safe(path, f.data(), f.size())) {
         err = "cannot write " + path;
         return false;
     }
@@ -250,6 +250,7 @@ void TapeDeck::write(double from, double to, int16_t value)
     if (samples.size() < b) samples.resize(b, 0);
     for (size_t i = a; i < b; i++) samples[i] = value;
     modified = true;
+    media_written();
     line_dirty = true;
 }
 

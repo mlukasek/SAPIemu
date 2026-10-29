@@ -447,9 +447,12 @@ json t_power(EmuHost& h, const json& a)
         return text_result("switched off");
     }
     if (state != "on" && state != "cycle") throw ToolError{ "state must be on, off or cycle" };
-    if (state == "cycle") h.power_off();
     std::string err;
-    if (!h.machine() && !h.power_on(err)) return error_result(err);
+    if (state == "cycle" && h.machine()) {   // as GUI Machine -> Switch off and on (Ctrl+F12)
+        if (!h.power_cycle(err)) return error_result(err);
+    } else if (!h.machine() && !h.power_on(err)) {
+        return error_result(err);
+    }
     return t_machine_info(h, a);
 }
 
@@ -1545,7 +1548,7 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"path":{"type":"string"},"new":{"type":"boolean","default":false},"write_protect":{"type":"boolean"},"format":{"type":"string","enum":["mikos","mikrobasic"],"default":"mikos"},"name":{"type":"string"},"address":{"type":"string","description":"hex, load address of a .bin"},"entry":{"type":"string","description":"hex, start address, default the lowest address"},"card":{"type":"string"}},"required":["path"]})", t_tape_insert },
     { "tape_control", "Buttons of a DSM-1 recorder: play, record, stop, rewind (to the start), eject, save, protect / unprotect, export (the tape into the WAV file path, e.g. to play it into a real SAPI). The tape moves only while PLAY or RECORD is pressed and the program switches the motor relay on (MIKROBASIC LOAD / SAVE do that).",
       R"({"type":"object","properties":{"action":{"type":"string","enum":["play","record","stop","rewind","eject","save","export","protect","unprotect"]},"path":{"type":"string","description":"WAV file for export"},"card":{"type":"string"}},"required":["action"]})", t_tape_control },
-    { "power", "Power switch of the machine: off (RAM lost, battery backed SRAM and RAM disks kept, host connections closed), on (with the last machine description), cycle = off and on. Reset (tool reset) keeps the RAM.",
+    { "power", "Power switch of the machine: off (RAM lost, battery backed SRAM and RAM disks kept, host connections closed), on (with the machine description as it ran: media put in and switches changed stay), cycle = off and on (GUI Machine -> Switch off and on, Ctrl+F12). Reset (tool reset) keeps the RAM.",
       R"({"type":"object","properties":{"state":{"type":"string","enum":["on","off","cycle"]}},"required":["state"]})", t_power },
     { "quit", "End the emulator process (sapiemu-cli --mcp or the GUI): the machine is switched off first, so recorded tapes, cassettes, battery backed memories and RAM disks are saved, then the program exits.",
       R"({"type":"object","properties":{}})", t_quit },

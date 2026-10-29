@@ -85,8 +85,10 @@ Zdroje:
 - **Konfigurace:** `image`, `working_copy` (výchozí `true` = kopie ve `work/`), `mode`, `chips` (1–8),
   `base`, `write_enable` [S1..S4], `rtc`, `rtc_int` (JP3: `none`/`int0`/`int1`), `map_jp2`.
 - **Obrazy Intel HEX** se načtou, ale změny se neukládají (režim `nosave`).
-- **Ukládání:** soubor se uloží při ukončení, při načtení jiné sestavy a automaticky 5 s emulovaného času
-  po první změně.
+- **Ukládání:** v režimu `rw` průběžně (pár sekund po posledním zápisu, při pauze a při přepnutí do jiného okna
+  Windows; `EmuHost::autosave`), při ukončení a při načtení jiné sestavy, přes dočasný soubor a přejmenování.
+  Do 2026-10-29 automaticky 5 s emulovaného času po první změně (při maximální rychlosti 4 MB mnohokrát
+  za sekundu).
 - **RTC:** hodiny běží podle místního času PC s posunem, který se mění, když program nastaví čas.
   HOLD, STOP, RESET, 30s ADJ, 12/24 h a periodické přerušení (1/64 s, 1 s, 1 min, 1 h) jsou emulované.
   Rozdíl mezi pulzním a úrovňovým režimem se zatím neemuluje, výstup je vždy úroveň do smazání příznaku.

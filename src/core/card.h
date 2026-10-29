@@ -98,6 +98,10 @@ public:
 
     // Save battery-backed / persistent content (RAM disk...). Called on exit and on demand.
     virtual void flush() {}
+    // Media kept in files (disks, tapes, RAM disks; not the battery memories) hold writes that flush() would save:
+    // EmuHost::autosave saves them while running. False when flush() writes nothing (nosave, read only, tests).
+    // Every write to such a medium calls media_written() (core/util.h).
+    virtual bool unsaved() { return false; }
 
     // Short status for UIs / MCP.
     virtual void describe(nlohmann::json& out) {}

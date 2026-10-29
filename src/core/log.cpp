@@ -13,6 +13,7 @@ static int g_ring_next = 0;
 static LogLevel g_min_level = LOG_INFO;
 static bool g_stderr = true;
 static FILE* g_file = nullptr;
+static int g_errors = 0;
 
 static const char* level_name(LogLevel l)
 {
@@ -37,6 +38,7 @@ void log_msg(LogLevel level, const char* fmt, ...)
         fprintf(stderr, "[%s] %s\n", level_name(level), buf);
     if (level == LOG_DEBUG)
         return;
+    if (level == LOG_ERROR) g_errors++;
     std::string line = std::string(level_name(level)) + ": " + buf;
     if (g_file) {
         fprintf(g_file, "%s\n", line.c_str());
@@ -75,4 +77,10 @@ void log_recent(std::vector<std::string>& out, int max)
     int skip = n > max ? n - max : 0;
     for (int i = skip; i < n; i++)
         out.push_back(g_ring[(start + i) % n]);
+}
+
+int log_errors(void)
+{
+    std::lock_guard<std::mutex> lock(g_log_mutex);
+    return g_errors;
 }

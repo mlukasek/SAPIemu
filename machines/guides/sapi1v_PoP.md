@@ -5,21 +5,29 @@ převedená z Apple II, obrázky a hudba jsou z DOS verze. Celá hra i data jsou
 
 ## Jak spustit
 
-1. Po zapnutí stiskněte `3` (CP/M z RAM disku), pak napište:
+1. Po zapnutí ECMON nabídne volby 0–3 (`Zadej 0-3`). Napište `3` (CP/M z RAM disku). Volby 0–2 čekají na řadič
+   disket, který tahle sestava nemá, a stroj na nich zůstane stát. Reset sám nepomůže, ECMON si volbu pamatuje:
+   stiskněte `3` hned po resetu (F12), nebo použijte Stroj → Vypnout a zapnout (Ctrl+F12).
+
+```
+3
+```
+
+2. Na výzvu `A>` spusťte hru:
 
 ```
 POP
 ```
 
-2. Hra je v okně CGA-1V, hudba hraje při rychlosti 100 %. Úvod přeskočí klávesa nebo fire, tím začne hra.
-3. Ctrl-Q vrátí do CP/M.
+3. Hra je v okně CGA-1V, hudba hraje při rychlosti 100 %. Úvod přeskočí klávesa nebo palba, tím začne hra.
+4. Ctrl-Q vrátí do CP/M.
 
 ## Ovládání
 
 - Šipky nebo J, L, I, K: běh, skok nahoru, přikrčení; U a O skok šikmo.
 - Mezerník: opatrný krok, chycení okraje, rána mečem, napití. Shift se směrem dělá totéž co směr s tlačítkem.
 - ESC pauza (v pauze ESC krok o snímek, Enter dál), T zbývající čas.
-- Joystick: Ctrl+F8 zapne joystick z klávesnice (šipky, mezerník = fire).
+- Joystick: Ctrl+F8 zapne joystick z klávesnice (šipky, mezerník = palba).
 
 ## Dál
 

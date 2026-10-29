@@ -44,6 +44,9 @@ struct UiSnapshot {
     float scale = 0;         // the display scale instead of the one of the system (0 = the system's)
     int zoom = 0;            // the zoom of the screen chosen from the menu (100, 200...; 0 = none)
     bool reset_layout = false;   // View -> Default window layout
+    bool pause = false;          // F5 before the picture: the text over the picture, "[paused]" in the title
+    bool log = false;            // show the Log window (errors and warnings in their colours)
+    bool reset = false;          // F12 before the picture (the APS-5 unit asks first)
 };
 
 // Runs the SDL3/ImGui frontend; returns the process exit code. An empty

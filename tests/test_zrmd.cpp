@@ -1,6 +1,7 @@
 // ZRMD-1 / ZRD-1V: port interface, address wrap, write protection, modes,
-// saving, RTC, MAP lines.
+// saving (also the autosave of EmuHost), RTC, MAP lines.
 #include <time.h>
+#include "core/host.h"
 #include "core/machine.h"
 #include "core/util.h"
 #include "test_util.h"
@@ -113,6 +114,79 @@ static void test_save(void)
     if (data.size() > 0x1234) CHECK_EQ(data[0x1234], 0x5A);
 }
 
+// The autosave of EmuHost: 3 s after the last write (a new write waits again), at once at a pause, through a
+// temporary file that does not stay; nosave never writes.
+static void test_autosave(void)
+{
+    std::string dir = path_join(data_root(), "work/tests");
+    std::string path = path_join(dir, "zrmd_autosave.bin");
+    std::vector<uint8_t> init(512 * 1024, 0x00), data;
+    CHECK(make_dirs(dir));
+    CHECK(file_write_all(path, init.data(), init.size()));
+    json cfg;
+    cfg["cards"] = json::array();
+    cfg["cards"].push_back({ { "slot", 1 }, { "type", "JPR-1ZI" } });
+    cfg["cards"].push_back({ { "slot", 2 }, { "type", "ZRMD-1" }, { "chips", 1 }, { "image", path }, { "mode", "rw" } });
+    EmuHost host;
+    std::string err;
+    battery_files_enable(true);   // rw saves only with battery files enabled
+    bool ok = host.load_config(cfg, "", err);
+    battery_files_enable(false);
+    CHECK(ok);
+    if (!ok) return;
+    Machine* m = host.machine();
+    const uint64_t S = 1000000000ull;
+    uint64_t t = host_time_ns();
+    set_addr(m->bus, 0x1234);
+    m->bus.io_write(0x60, 0x5A);
+    CHECK(m->unsaved());
+    host.autosave(t);            // the write seen: 3 s of quiet from now
+    host.autosave(t + 2 * S);
+    CHECK(m->unsaved());
+    CHECK(file_read_all(path, data) && data.size() > 0x1234 && data[0x1234] == 0x00);
+    set_addr(m->bus, 0x1235);
+    m->bus.io_write(0x60, 0xA5);   // another write: the quiet starts again
+    host.autosave(t + 4 * S);
+    host.autosave(t + 6 * S + S / 2);
+    CHECK(m->unsaved());
+    host.autosave(t + 7 * S + S / 2);
+    CHECK(!m->unsaved());
+    CHECK(file_read_all(path, data));
+    CHECK_EQ(data.size(), 512 * 1024);
+    if (data.size() > 0x1235) {
+        CHECK_EQ(data[0x1234], 0x5A);
+        CHECK_EQ(data[0x1235], 0xA5);
+    }
+
+    // a pause saves at once
+    set_addr(m->bus, 0x2000);
+    m->bus.io_write(0x60, 0x11);
+    host.paused = true;
+    host.frame(0);
+    CHECK(!m->unsaved());
+    CHECK(file_read_all(path, data) && data.size() > 0x2000 && data[0x2000] == 0x11);
+    host.paused = false;
+
+    // no temporary file stays next to the image
+    int tmps = 0;
+    std::error_code ec;
+    for (auto& e : std::filesystem::directory_iterator(std::filesystem::path(std::u8string(dir.begin(), dir.end())), ec))
+        if (e.path().filename().u8string().rfind(u8"zrmd_autosave.bin.tmp", 0) == 0) tmps++;
+    CHECK_EQ(tmps, 0);
+
+    // nosave: never written, nothing to save
+    cfg["cards"][1]["mode"] = "nosave";
+    CHECK(host.load_config(cfg, "", err));
+    m = host.machine();
+    set_addr(m->bus, 0x3000);
+    m->bus.io_write(0x60, 0x77);
+    CHECK(!m->unsaved());
+    CHECK_EQ(host.save_media(), 0);
+    host.autosave(t + 20 * S);
+    host.autosave(t + 90 * S);
+    CHECK(file_read_all(path, data) && data.size() > 0x3000 && data[0x3000] == 0x00);
+}
+
 static void test_rtc_map(void)
 {
     Machine* m = make({ { "map_jp2", true } });
@@ -165,6 +239,7 @@ int main(void)
     test_ports();
     test_protection();
     test_save();
+    test_autosave();
     test_rtc_map();
     return TEST_RESULT();
 }

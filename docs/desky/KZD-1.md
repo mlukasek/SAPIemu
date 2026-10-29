@@ -139,8 +139,10 @@ Země: KZD 3, 4, 5, 6 → X2 17, 19. Piny X2 → 8255 jsou podle netlistu replik
   a směru dává impulsy 40 µs (monostabil není znovu spustitelný). Záznam maže, co hlava přejede, a přidá změnu
   při každé sestupné hraně D.P.*. Během záznamu čtecí výstupy nic nedávají (předpoklad).
 - **Soubor kazety `.kzd`:** `KZD1TAPE`, verze, délka, zoubky A a B, počty a seznamy změn obou stran (u32 poloha
-  << 1 | stopa). Nová prázdná kazeta se vytvoří, když soubor chybí. Do souboru se zapisuje při vysunutí, ukončení a
-  uložení stavu. Ve stavu (`.sapistate`) je jen mechanika.
+  << 1 | stopa). Nová prázdná kazeta se vytvoří, když soubor chybí. Do souboru se zapisuje pár sekund
+  po posledním zápisu, při pauze a při přepnutí do jiného okna Windows (během záznamu až po jeho konci: uložení
+  uprostřed by záznam rozdělilo), při vysunutí, ukončení a uložení stavu. Ve stavu (`.sapistate`) je jen
+  mechanika.
 - **Parametry DPP-1:** `kzd1_channel` (1 = X2 jako MIKOS/K, 2 = X3) a sekce `kzd1` s `cassette`. Kanál nesmí
   sdílet s PMD32-SD ani tiskárnou. Při portu A jako vstup (po resetu 8255) jsou řídicí vstupy v H = vše stojí.
 - **Okno Média:** kreslená kazeta s cívkami (navinutí podle polohy, otáčející se náboje, hlava při záznamu

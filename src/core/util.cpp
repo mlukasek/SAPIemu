@@ -10,6 +10,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <io.h>
 #else
 #include <unistd.h>
 #endif
@@ -67,6 +68,31 @@ bool file_write_all(const std::string& utf8_path, const void* data, size_t size)
     bool ok = fwrite(data, 1, size, f) == size;
     if (fclose(f) != 0) ok = false;
     return ok;
+}
+
+bool file_write_safe(const std::string& utf8_path, const void* data, size_t size)
+{
+    fs::path dst = u8_to_path(utf8_path);
+    fs::path tmp = dst;   // a name of its own: two processes saving the same image never share it
+    tmp += ".tmp" + std::to_string((unsigned long long)std::random_device()());
+    FILE* f = file_open(path_to_u8(tmp), "wb");
+    if (!f) return file_write_all(utf8_path, data, size);   // no new file there (a long path...): as before
+    bool ok = fwrite(data, 1, size, f) == size && fflush(f) == 0;
+#ifdef _WIN32
+    if (ok && _commit(_fileno(f)) != 0) ok = false;   // on the disk before the rename (a power cut)
+#else
+    if (ok && fsync(fileno(f)) != 0) ok = false;
+#endif
+    if (fclose(f) != 0) ok = false;
+    std::error_code ec;
+    if (!ok) {   // the disk full: the old image stays as it was
+        fs::remove(tmp, ec);
+        return false;
+    }
+    fs::rename(tmp, dst, ec);
+    if (!ec) return true;
+    fs::remove(tmp, ec);
+    return file_write_all(utf8_path, data, size);
 }
 
 bool file_write_text(const std::string& utf8_path, const std::string& text)
@@ -277,6 +303,18 @@ void battery_files_enable(bool on)
 bool battery_files_enabled(void)
 {
     return g_battery_files;
+}
+
+static uint64_t g_media_writes = 0;   // the emulation thread only
+
+void media_written(void)
+{
+    g_media_writes++;
+}
+
+uint64_t media_writes(void)
+{
+    return g_media_writes;
 }
 
 std::string data_relative(const std::string& path)

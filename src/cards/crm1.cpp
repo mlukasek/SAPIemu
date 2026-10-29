@@ -94,7 +94,7 @@ void Crm1::flush()
     if (!battery || file.empty() || !battery_files_enabled() || probe) return;
     std::string path = data_path(file);
     make_dirs(path_dir(path));
-    if (!file_write_all(path, ram.data(), ram.size())) LOGW("%s: cannot save the RAM to %s", name.c_str(), path.c_str());
+    if (!file_write_safe(path, ram.data(), ram.size())) LOGW("%s: cannot save the RAM to %s", name.c_str(), path.c_str());
 }
 
 int Crm1::decode_mem(uint16_t addr, int, const char** what)

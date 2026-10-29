@@ -16,8 +16,6 @@ static const uint32_t CHIP_SIZE = 512 * 1024;
 // MAX187 conversion time.
 static const double WINDOW_SECONDS = 0.020;
 static const double ADC_CONVERT_SECONDS = 8.5e-6;
-// Autosave of a modified RAM disk after this much emulated time.
-static const double AUTOSAVE_SECONDS = 5.0;
 
 Zrmd1::Zrmd1(bool zrd1v) : Card(zrd1v ? "ZRD-1V" : "ZRMD-1"), is_zrd1v(zrd1v)
 {
@@ -159,11 +157,6 @@ uint8_t Zrmd1::adc_dout(void) const
     return (uint8_t)((adc_code >> (12 - adc_clocks)) & 1);
 }
 
-void Zrmd1::advance(uint64_t now)
-{
-    if (dirty && mode == MODE_RW && now - dirty_since > (uint64_t)(AUTOSAVE_SECONDS * bus->cpu_hz)) save();
-}
-
 bool Zrmd1::writable(uint32_t addr) const
 {
     if (mode == MODE_READONLY) return false;
@@ -230,8 +223,8 @@ bool Zrmd1::set_live_param(const char* path, const json& v, std::string& err)
     if (m == MODE_RW && !battery_files_enabled()) m = MODE_NOSAVE;   // tests: work/ stays untouched
     if (mode == MODE_RW && m != MODE_RW) save();   // what was written so far is kept
     if (m == MODE_RW && mode != MODE_RW) {        // from now on the file follows the memory
-        if (!dirty) dirty_since = bus ? bus->now : 0;
         dirty = true;
+        media_written();
     }
     mode = m;
     return true;
@@ -297,8 +290,8 @@ bool Zrmd1::io_write(uint8_t port, uint8_t data)
         }
         if (a < mem.size() && writable(a) && mem[a] != data) {
             mem[a] = data;
-            if (!dirty) dirty_since = bus->now;
             dirty = true;
+            media_written();
         }
         a_lo++;
         return true;
@@ -337,10 +330,15 @@ int Zrmd1::map_lines()
     return ((a_hi & 0x40) ? MAP_1 : 0) | ((a_hi & 0x80) ? MAP_2 : 0);
 }
 
+bool Zrmd1::unsaved()
+{
+    return dirty && mode == MODE_RW && !image_path.empty();
+}
+
 bool Zrmd1::save(void)
 {
-    if (!dirty || mode != MODE_RW || image_path.empty()) return true;
-    bool ok = file_write_all(image_path, mem.data(), mem.size());
+    if (!unsaved()) return true;
+    bool ok = file_write_safe(image_path, mem.data(), mem.size());
     if (ok) {
         dirty = false;
         LOGI("%s: saved %s", name.c_str(), image_path.c_str());
@@ -398,6 +396,6 @@ void Zrmd1::state(StateIO& io)
     io.v(adc_code);
     if (io.loading && mem != before) {   // saved to the working copy like any change (mode rw)
         dirty = true;
-        dirty_since = bus ? bus->now : 0;
+        media_written();
     }
 }

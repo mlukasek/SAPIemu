@@ -191,18 +191,23 @@ void editor_apply(UiState& ui)
     std::string err;
     if (!ui.host->load_config(r.cfg, r.path, err)) {
         set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
+        // Machine -> Switch on with the configurator closed: its message is not seen, the Error window says it
+        if (!ui.show_rack) ui_notice(ui, false, std::string(tr("The machine cannot be started")) + ":\n" + err);
+        else LOGE("%s", err.c_str());
         return;
     }
     r.machine_gen = ui.host->machine_generation();
     set_message(r, tr("Machine switched off and on with this configuration."), false);
 }
 
-// Start a machine file (File -> Open machine, File -> Open file...).
+// Start a machine file (File -> Open machine, File -> Open file...). The user started it: its guide may open itself.
 void start_machine(UiState& ui, const std::string& rel)
 {
     RackEditor& r = ui.rack;
     std::string err;
-    if (!ui.host->load(rel, err)) {
+    if (ui.host->load(rel, err)) {
+        ui.guide_start_gen = ui.host->machine_generation();
+    } else {
         // show it in the configurator anyway (e.g. a CPU card not emulated yet)
         editor_open(ui, rel, false);
         set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
@@ -528,15 +533,18 @@ void follow_now(UiState& ui)
 
 // Follow the running machine. Machines opened from the GUI ask before they start; a
 // machine started by MCP asks afterwards when the editor holds unsaved changes of another
-// description. The same machine started again (power cycle) keeps the changes.
+// description. The same machine started again (power cycle) keeps the changes, also the ones
+// saved in its file but waiting for a restart (Ctrl+F12 brings the machine back as it ran).
 void follow_machine(UiState& ui)
 {
     RackEditor& r = ui.rack;
     Machine* m = ui.host->machine();
     if (!m || r.machine_gen == ui.host->machine_generation()) return;
     r.machine_gen = ui.host->machine_generation();
-    if (!editor_dirty(r)) follow_now(ui);
-    else if (r.path != ui.host->machine_file() && r.pending == RackEditor::PEND_NONE) {
+    bool saved_changes = !r.path.empty() && r.path == ui.host->machine_file() && r.cfg != m->config;
+    if (!editor_dirty(r)) {
+        if (!saved_changes) follow_now(ui);
+    } else if (r.path != ui.host->machine_file() && r.pending == RackEditor::PEND_NONE) {
         r.pending = RackEditor::PEND_FOLLOW;
         r.ask_unsaved = true;
     }
@@ -991,18 +999,28 @@ void draw_card_panel(const Panel& P, const CardInfo* ci, const std::string& type
             cx = 46.6f;   // between the cut-outs (FRB x 12.5-35.2, D-sub 15 to 38.0) and the edge
             cy = 245.9f;
         }
+        // shrink the type to the free gap along the panel and to the free strip across it; a type that would
+        // be smaller than readable is left out (a font size of 0 asserts in ImGui, and a full-size one would
+        // cover the neighbouring panels)
         ImFont* f = panel_font();
-        float px = ImGui::GetFontSize() * 0.85f;
+        float u = ImGui::GetFontSize();
+        float px = u * 0.85f;
         ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
         float room = (best_b - best_a) * P.k - 8.0f;
-        if (ts.x > room && room > 0) {
-            px *= room / ts.x;
-            ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
+        float across = (left ? 2.0f * (PANEL_W - cx) : PANEL_W) * P.k - 4.0f;   // the box adds 4 px
+        float s = 1.0f;
+        if (ts.x > room) s = room / ts.x;
+        if (ts.y * s > across) s = across / ts.y;
+        if (s < 1.0f) {
+            px = s > 0.0f ? px * s : 0.0f;
+            if (px >= 0.6f * u) ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, type.c_str());
         }
-        ImVec2 c = P.p(cx, cy);
-        float hw = ts.y * 0.5f + 2.0f, hh = ts.x * 0.5f + 4.0f;
-        P.dl->AddRectFilled(ImVec2(c.x - hw, c.y - hh), ImVec2(c.x + hw, c.y + hh), IM_COL32(20, 24, 30, 205), 3.0f);
-        text_vertical(P.dl, c, px, IM_COL32(240, 240, 240, 255), type.c_str());
+        if (px >= 0.6f * u) {
+            ImVec2 c = P.p(cx, cy);
+            float hw = ts.y * 0.5f + 2.0f, hh = ts.x * 0.5f + 4.0f;
+            P.dl->AddRectFilled(ImVec2(c.x - hw, c.y - hh), ImVec2(c.x + hw, c.y + hh), IM_COL32(20, 24, 30, 205), 3.0f);
+            text_vertical(P.dl, c, px, IM_COL32(240, 240, 240, 255), type.c_str());
+        }
     }
     if (error) P.dl->AddCircleFilled(P.p(PANEL_W - 9.0f, 24.0f), 6.0f * P.k + 1.5f, COL_ERROR);
 }
@@ -1070,14 +1088,18 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     const json& cfg = r.cfg;
     int n = machine_cfg_slots(cfg);
 
-    // scale: fit the window width, within readable limits
+    // scale: fit the window width, within readable limits, and the height: the frame with its checkbox takes at most
+    // a little over half of the room under the toolbar, the settings of the selected card stay in sight below it
     float u = ImGui::GetFontSize();
     const float margin = 16.0f, gap = 4.0f, label_band = 26.0f;
     float total_w = margin + n * PITCH + gap + SPN_W + 1.0f + ZDR_W + margin;
     float total_h = margin + PANEL_H + label_band + margin * 0.5f;
-    float avail = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize;
+    ImVec2 room = ImGui::GetContentRegionAvail();
+    float avail = room.x - ImGui::GetStyle().ScrollbarSize;
     float k = avail / total_w;
-    float kmin = 0.034f * u, kmax = 0.075f * u;
+    float k_h = (0.55f * room.y - ImGui::GetFrameHeightWithSpacing() - ImGui::GetStyle().ScrollbarSize - 4) / total_h;
+    if (k > k_h) k = k_h;
+    float kmin = 0.022f * u, kmax = 0.075f * u;
     if (k < kmin) k = kmin;
     if (k > kmax) k = kmax;
     float w = total_w * k, h = total_h * k;
@@ -1253,7 +1275,10 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             r.drag_from = 0;
         }
     }
-    if (clicked > 0) r.sel = clicked;
+    if (clicked > 0) {
+        r.sel = clicked;
+        r.scroll_props = true;   // its settings into view
+    }
     if (ctx > 0) {
         r.sel = ctx;
         ImGui::OpenPopup("slotmenu");
@@ -1322,7 +1347,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 rack_power_switch(ui);
                 m = host.machine();   // the old machine is gone
             }
-            else if (i == 1 && m) m->reset();
+            else if (i == 1 && m) request_reset(ui);   // the APS-5 unit asks first
             else if (i == 2 && has_turbo) rack_set_live_param(ui, cpu, "turbo", !turbo_on);
             else if (i == 3 && has_bios) rack_set_live_param(ui, cpu, "bios", bank1 ? "fitted" : "open");
         }
@@ -1533,7 +1558,10 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
         snprintf(buf, sizeof(buf), "%s", s.c_str());
         bool file = p->kind != PK_TEXT;
         if (file) ImGui::SetNextItemWidth(16.0f * u - 2.0f * ImGui::GetFrameHeight() - 2 * ImGui::GetStyle().ItemInnerSpacing.x);
-        if (ImGui::InputText(file ? "##v" : label, buf, sizeof(buf))) {
+        // taken on Enter or when the field is left, as PK_HEX: a medium is never loaded or made from a name half
+        // typed (every key reloaded it before); Esc gives the old text back
+        ImGui::InputText(file ? "##v" : label, buf, sizeof(buf));
+        if (ImGui::IsItemDeactivated() && s != buf) {
             if (buf[0]) card_set_param(card, ci, p, std::string(buf));
             else card_set_param(card, ci, p, p->kind == PK_TEXT ? json() : json(""));
         }
@@ -2094,9 +2122,10 @@ void rack_power_switch(UiState& ui)
     }
 }
 
+// The browser's "Open in the configurator", --ui-open: asks first when the configurator holds unsaved changes.
 void rack_open_in_editor(UiState& ui, const std::string& path)
 {
-    editor_open(ui, path, false);
+    request(ui, RackEditor::PEND_OPEN, path);
     ui.show_rack = true;
 }
 
@@ -2242,13 +2271,21 @@ void draw_rack(UiState& ui)
 
     draw_frame(ui, problems);
 
-    ImGui::BeginChild("props", ImVec2(0, 0), ImGuiChildFlags_None);
+    // the settings get what is left, at least some lines (a very short window scrolls as a whole)
+    float line = ImGui::GetTextLineHeightWithSpacing();
+    float props_h = ImGui::GetContentRegionAvail().y < 8.0f * line ? 8.0f * line : 0.0f;
+    ImGui::BeginChild("props", ImVec2(0, props_h), ImGuiChildFlags_None);
     for (const CfgProblem& p : problems)
         ImGui::TextColored(p.error ? theme().error : theme().warn, "%s", loc(p.en.c_str(), p.cs.c_str()));
     if (!problems.empty()) ImGui::Separator();
     if (r.sel > machine_cfg_slots(r.cfg)) r.sel = 0;
+    // a slot clicked: when the messages above push its settings down, the tabs go to the top
+    if (r.scroll_props && ImGui::GetCursorPosY() - ImGui::GetScrollY() + 6.0f * line > ImGui::GetWindowHeight())
+        ImGui::SetScrollHereY(0.0f);
     if (ImGui::BeginTabBar("props_tabs")) {
-        if (ImGui::BeginTabItem(r.sel == 0 ? tr("Machine and bus") : tr("Card settings"))) {
+        // a slot clicked shows its settings, also when the map tab was open
+        if (ImGui::BeginTabItem(r.sel == 0 ? tr("Machine and bus") : tr("Card settings"), nullptr,
+                                r.scroll_props && !r.open_map_tab ? ImGuiTabItemFlags_SetSelected : 0)) {
             if (r.sel == 0) draw_bus_props(r);
             else draw_slot_props(ui, r.sel);
             ImGui::EndTabItem();
@@ -2261,5 +2298,7 @@ void draw_rack(UiState& ui)
         ImGui::EndTabBar();
     }
     ImGui::EndChild();
+    if (r.scroll_props && ImGui::GetScrollMaxY() > 0) ImGui::SetScrollHereY(1.0f);   // the settings in the window
+    r.scroll_props = false;
     ImGui::End();
 }

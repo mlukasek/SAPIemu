@@ -276,6 +276,18 @@ Windows mezi světlým a tmavým za běhu, přesun okna mezi monitory s různým
 
 ### Etapa 4: první dojem a ovládání · M
 
+**Stav 2026-10-29: hotová** (workflow, autor spal: 3 agenti, oponentura, nálezy opravené; rozhodnutí 2026-10-29 –
+etapa 4 plánu vzhledu: ovládání). Body 1–9 jsou hotové, s těmito rozdíly:
+- Vypnout a zapnout nenačítá soubor jako Restartovat, zapne sestavu, jak běžela (jako skutečný vypínač).
+- Vracení klávesnice platí jen pro akce z bodu 1, ne po každém použití menu (Reset, Snímek…).
+- Média se ukládají průběžně všechna, i pásky a kazety; Vysunout bez uložení pak zahodí jen posledních pár sekund
+  (na rozhodnutí autora).
+
+Zbývá:
+- Martin ručně: psaní a návrat klávesnice, průvodci, „[pauza]“ v titulku, uložení média při přepnutí do jiného
+  okna, okno Chyba u odmítnutého média.
+- Technický popis v souborech `cpm_zrmd.sapi` a `cpm_ide.sapi` (`docs/vydani/sestavy.md`).
+
 1. **Klávesnice:**
    - fokus se vrátí na naposled použitý displej (vzor `focus_screen_window` v `app.cpp`), a to po těchto akcích:
      - „Napsat do SAPI“;

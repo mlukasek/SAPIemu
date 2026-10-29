@@ -124,7 +124,8 @@ XY 4130 a plotter z AR 1990 přešly 2026-10-28 do Přístrojů a technologie. R
 ### 5b. CP/M s ECMONem (RAM disk ZRMD-1)
 
 `cpm_zrmd`, `cpm_ide`, `cpm_zrmd_fdc1`, `cpm_zrmd_mfc1a`, `cpm_zrmd_dpp1`, `cpm_zrmd_rtc_dsp`, `cpm_ec1045`
-(7 sestav). `cpm_zrmd` a `cpm_ide` nemají popis, doplnit.
+(7 sestav). Souhrny pro výběr sestav (co sestava je a kterou volbu po zapnutí stisknout) jsou v
+`machines/_vyber.json` od 2026-10-29. `cpm_zrmd` a `cpm_ide` nemají technický popis v souboru sestavy, doplnit.
 
 ### 5c. CP/M J. Bíby (SAPIMAN)
 

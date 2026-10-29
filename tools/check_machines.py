@@ -60,7 +60,10 @@ def plotter(action, arg=None):
 MACHINES = {
     'mikromon': (run(1500) + t('?\\r') + run(1500), ['M adr']),
     'aps5': (w('ZOBRAZENI TABULKY PORUCH', 20000) + t('11\\r') + run(6000), ['VYVOLANI MENU', 'I    0:00']),
-    'cpm_zrmd': (ecmon('3') + cpm_dir(), ['WM1Z']),
+    # a file saved on the RAM disk, the power switch off and on (Ctrl+F12, --power-cycle): ECMON asks again (the
+    # memory is lost), the file stays (the RAM disk saved and read again)
+    'cpm_zrmd': (ecmon('3') + t('SAVE 1 PCYC.COM\\r') + run(3000) + ['--power-cycle'] + ecmon('3') + cpm_dir() +
+                 t('DIR PCYC.COM\\r') + run(3000), ['WM1Z', 'PCYC    .COM']),
     'cpm_ide': (ecmon('3') + cpm_dir('B:'), ['.COM']),
     'cpm_zrmd_fdc1': (ecmon('0') + cpm_dir('B:'), ['.']),
     'cpm_zrmd_mfc1a': (ecmon('2') + cpm_dir('B:'), ['.']),
@@ -174,6 +177,14 @@ def problems(out):
     return bad, '\n'.join(l for l in lines if not l.startswith('timeout waiting'))
 
 
+def leftover_tmp(sb):
+    """Temporary files of a save through a temporary file (file_write_safe, media_path) left in work/: a save broke."""
+    out = []
+    for root, _, files in os.walk(os.path.join(sb, 'work')):
+        out += [os.path.relpath(os.path.join(root, f), sb) for f in files if re.search(r'\.tmp\d+$', f)]
+    return out
+
+
 def make_sandbox(debug):
     stamp = time.strftime('%Y%m%d-%H%M%S')
     sb = os.path.join(ROOT, 'out', 'check', stamp)
@@ -196,6 +207,7 @@ def check_machines(cli, sb, filt):
     os.makedirs(out_dir, exist_ok=True)
     files = sorted(glob.glob(os.path.join(sb, 'machines', '*.sapi')) + glob.glob(os.path.join(sb, 'machines', 'zps', '*.sapi')))
     ok = bad = 0
+    seen_tmp = set()   # temporary files reported already (by the machine that left them)
     for f in files:
         rel = os.path.relpath(f, sb).replace('\\', '/')
         name = rel.replace('machines/', '').replace('/', '_').replace('.sapi', '')
@@ -215,6 +227,10 @@ def check_machines(cli, sb, filt):
             acts += ['--print-plotter', '--plotter-png', os.path.join(out_dir, name + '_plotter.png')]
         out = cli_run(cli, sb, rel, acts + ['--print-screen'], os.path.join(out_dir, name + '.txt'))
         fails, text = problems(out)
+        left = [f for f in leftover_tmp(sb) if f not in seen_tmp]   # media are saved through temporary files
+        if left:
+            seen_tmp.update(left)
+            fails.append('temporary files left: ' + ', '.join(left[:3]))
         for e in exp:
             if e.startswith('shot:'):
                 n = png_colours(png) if os.path.exists(png) else 0
