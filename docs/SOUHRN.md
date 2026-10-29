@@ -2,8 +2,13 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-29) a co dál
+## Kde jsme skončili (2026-10-30) a co dál
 
+- **Stav 2026-10-30:** etapy 1–8 plánu vzhledu hotové a pushnuté (repo je zatím soukromé), README je koncept podle
+  autorova článku na 8bity.cz (autor ho kontroluje). **Dál:** autor projde README a vyzkouší GUI; zip `0.7.0-beta`
+  pro Libora, Petra a Michala až na jeho pokyn; po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
+  (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Zbytek etapy 9: GIF, video,
+  `README.en.md`, úklid repa.
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
   (Windows 11, Windows klasický, SAPI průmyslový; světlá i tmavá) a galerie ke srovnání → 2 výběr sestav a texty
