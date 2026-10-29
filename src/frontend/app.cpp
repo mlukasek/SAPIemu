@@ -240,7 +240,8 @@ nlohmann::json settings_json(App& app)
                      { "configuration_auto", ui.show_rack && ui.rack_by_layout }, { "diag", ui.show_diag },
                      { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter }, { "ims2", ui.show_ims2 } };
     j["screen"] = { { "integer_scale", app.integer_scale },
-                    { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
+                    { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types },
+                    { "rack_black", ui.rack.black } };
     j["terminal"] = { { "channel", ui.terminal_channel }, { "emulation", ui.term_emulation },
                       { "cr_newline", ui.term_cr_newline }, { "local_echo", ui.term_local_echo },
                       { "copy_on_select", ui.term_copy_on_select }, { "tcp_port", ui.tcp_port }, { "tcp_protocol", ui.tcp_protocol },
@@ -319,6 +320,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(s, "tv_aspect", app.tv_aspect);
     get_opt(s, "smooth", app.smooth);
     get_opt(s, "card_types", ui.rack.show_types);
+    get_opt(s, "rack_black", ui.rack.black);
     get_opt(j.value("browser", nlohmann::json::object()), "recent", ui.recent);
     if (j.contains("kept_machines") && j["kept_machines"].is_object()) ui.rack.kept = j["kept_machines"];
     const nlohmann::json& gd = j.value("guides", nlohmann::json::object());
@@ -1853,6 +1855,15 @@ static void draw_settings(App& app)
     if (app.layout_override)
         settings_note(f, tr("The window layout of this run comes from --ui-layout; a choice here replaces it and is "
                             "saved."));
+    // the rack of the configurator in its own colours, whatever the mode above (also the check box in the configurator)
+    const char* rack_tip = tr("The frame and the front panels in the configurator: aluminium as on the modernised "
+                              "cabinet, or black with white lettering. Independent of the mode above.");
+    settings_row(f, tr("Configurator"));
+    if (ImGui::RadioButton(tr("Aluminium frame"), !app.ui.rack.black)) app.ui.rack.black = false;
+    if (ImGui::IsItemHovered()) tip(rack_tip);
+    ImGui::SameLine();
+    if (ImGui::RadioButton(tr("Black frame"), app.ui.rack.black)) app.ui.rack.black = true;
+    if (ImGui::IsItemHovered()) tip(rack_tip);
 
     theme_section(tr("Picture"));   // as in the menu View
     settings_row(f, nullptr);

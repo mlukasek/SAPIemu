@@ -57,6 +57,7 @@ struct RackEditor {
     float geo_x0 = 0, geo_pitch = 0, geo_y0 = 0, geo_y1 = 0;
     int geo_n = 0;
     bool show_types = true;        // exact card type across the panels
+    bool black = false;            // the frame and the panels black with white lettering, else aluminium (saved)
     // port and memory map of `cfg`, rebuilt when it changes
     nlohmann::json map_cfg;
     MachineMap map;

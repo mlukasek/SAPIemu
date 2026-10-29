@@ -113,6 +113,11 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
       20 ms po přístupu na 60h–63h; rev 1.1 LED nemá);
     - bez konektoru (autor): ZRMD-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V, REM-1. Ostatní karty se projdou postupně.
   - Volba „Typy karet na panelech“ ukáže přesný typ karty ve volném místě panelu.
+  - **Černý rám** (od 2026-10-29, přání autora; zaškrtávátko vedle ní a Zobrazení → Nastavení → Vzhled, v nastavení
+    `"screen": { "rack_black": true }`): rám a čelní panely černé s bílými popisky a světlými linkami místo
+    hliníkových, nezávisle na světlém nebo tmavém vzhledu programu. Barvy jsou dvě sady `RackLook` v `rack.cpp`
+    (`k_rack_alu`, `k_rack_black`), `draw_frame` vybere tu svou na začátku kreslení. Kov konektorů a šroubů,
+    LED, tlačítka a displej panelu ZDR a kabely mezi deskami jsou v obou stejné.
   - Sériové karty (DMR-1, DSM-1, DSM-1V) bývají v sestavě víckrát, proto je **port u každého sériového
     konektoru** („K3 #10“, u DSM-1V „#10“ nad K3 „A“ a „#14“ pod K2 „B“). Typ karty na panelu je bez portu.
     V seznamech, bublinách a v okně Sériový terminál zůstává jméno s portem („DMR-1 #10“).

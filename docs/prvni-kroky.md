@@ -174,7 +174,8 @@ s Liborovými deskami.
   a sběrnice** (název, popis, typ sběrnice), **karta vybraného slotu** (třeba „X7 CGA-1V“: propojky, ROM, obrazy)
   a **Mapa portů a paměti**. Panely jsou
   nakreslené podle modernizované skříně Libora Lasoty s popsanými panely, původní Tesla SAPI-1 měl holé karty za
-  krycím panelem. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí).
+  krycím panelem. Zaškrtávátko **Černý rám** (také Zobrazení → Nastavení → Vzhled) nakreslí rám a panely černé
+  s bílými popisky, ať má program světlý nebo tmavý vzhled. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí).
   Nová ▸ nabídne prázdnou sestavu nebo kopii jiné, po skupinách jako ve výběru sestav.
   Některé propojky platí hned („platí hned“), ostatní změny se projeví až tlačítkem „Restartovat s touto
   sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo nahoře v hlavním okně). Při odchodu s neuloženými
@@ -287,7 +288,8 @@ s Liborovými deskami.
   neuloženou (Uložit, Ponechat pro příští spuštění) a vypnutí a zapnutí ji nechá.
 - **Nastavení** (Zobrazení → Nastavení…), po sekcích:
   - **Obecné:** Jazyk / Language, velikost písma, průvodci sestavami (otevírají se sami, znovu ukazovat skryté);
-  - **Vzhled:** režim (podle systému, světlý, tmavý), okna plovoucí nebo zadokovaná;
+  - **Vzhled:** režim (podle systému, světlý, tmavý), okna plovoucí nebo zadokovaná, rám konfigurátoru hliníkový
+    nebo černý;
   - **Obraz:** celočíselné zvětšení, poměr stran TV, vyhlazování (totéž co v menu Zobrazení);
   - **Zvuk:** zvuk zapnutý, hlasitost;
   - **Ovládání:** citlivost myši, myš PC jako myš SAPI (jen do ukončení);

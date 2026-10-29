@@ -3276,6 +3276,21 @@ nezvětšoval screeny nad 200 % … už jsou jemné nuance.“
   přidal jen řádek textu a u Prince of Persia a BomberNetu zakryl výzvu `A>` konzole AND-1V, kam se píše.
   Průvodce jde zvětšit tažením nebo otevřít z menu Nápověda.
 
+## 2026-10-29 – černý rám v konfigurátoru
+
+Autor: „udělat černou variantu sestavy v Machine configurator. Co je teď světle šedé jako hliník udělat černě
+a černé texty pak bíle. Rám asi taky nějak tmavý. A to celé přepínatelné nezávisle na tom, jestli aplikace je ve
+světlém nebo tmavém režimu.“
+
+- **Volba Černý rám** vedle „Typy karet na panelech“ v konfigurátoru a v Zobrazení → Nastavení → Vzhled
+  (Konfigurátor: Hliníkový rám / Černý rám), uložená jako `"screen": { "rack_black": … }`. Výchozí je hliníkový.
+- **Co se mění:** rám (tmavě grafitový), prázdné sloty (tmavší), vodítka karet, čelní panely (černé, panel karty bez
+  emulace tmavě šedý), jejich okraje, popisky (bílé, u karty bez emulace světle šedé), linky natištěné na panelu
+  (rámečky panelu SPN světlé), otvory v panelech (tmavší než panel, aby byly vidět). Kov konektorů a šroubů, LED,
+  tlačítka a displej panelu ZDR, kabely mezi deskami a štítky typů karet zůstávají.
+- **Rám je odchylka už dnes** (kreslený podle modernizované skříně Libora Lasoty), černá varianta je jen jeho barva,
+  ne jiný hardware; chování sestavy nemění.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`
