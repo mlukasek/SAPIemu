@@ -82,7 +82,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   (ikona `src/res/sapiemu.ico` a logo `docs/img/logo.png` pro README a O programu; VERSIONINFO z `src/res/sapiemu.rc.in`).
 - **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy,
   `plan-vzhled.md` plán vzhledu a použitelnosti GUI, `beta-testeri.md` dopis a úkoly pro testery bety).
-  Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`). Slovníček pojmů
+  Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`). README je krátké (text
+  autora, AI, měření, stažení), úplný seznam funkcí je `docs/funkce.md`, obrázky README v `docs/img/readme/`. Slovníček pojmů
   `docs/slovnicek.md` a `docs/glossary.md` (stejné oddíly a řádky, hlídá `test_markdown`); s prvními kroky je
   ukazuje okno Nápověda v programu, `package.py` je chce v gitu.
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).

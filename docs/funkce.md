@@ -1,0 +1,115 @@
+# SAPIemu: co umí
+
+Úplný seznam toho, co emulátor umí, po oblastech. Krátký přehled je v [README](../README.md), jak začít
+v [prvni-kroky.md](prvni-kroky.md).
+
+- **Procesorové karty:** JPR-1, JPR-1A a JPR-1S (8080), JPR-1X (8085: takty, RIM/SIM, nedokumentované instrukce,
+  ověřeno testem 8085EXM s CRC skutečného čipu), JPR-1Z, JPR-1ZI a JPR-1V (Z80) a PKT-1 ze SAPI-1.5 (Z80, klávesnice
+  a tiskárna na 8255), včetně BOOT logiky a čekacích stavů.
+  Na K3 JPR-1S / JPR-1X deska diagnostiky (dvě sedmisegmentovky, tlačítka) s ukázkovým čítačem.
+- **Paměti:** REM-1, RAM-1, RAM-1A, RAM-1Z, RAM-1V (mapování MAP1/MAP2), DMR-1, RSW-1 (SAPI-1.5: RAM, 8251, watchdog), CRM-1 (4 KB CMOS zálohovaná bateriemi). RAM disky RMD-1, ZRMD-1
+  (s RTC) a ZRD-1V (rev 1.1 i 2.1 se softwarovým zámkem zápisu).
+- **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
+  (Bt476; kreslí se po řádcích s paprskem, takže přepnutí stránky nebo palety uprostřed snímku trhá obraz jako na
+  monitoru; čekací stavy podle schématu, zpoždění změřená sondami a programem ZRDBENCH na skutečném SAPI-1 V) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845, znakový
+  generátor z dumpu EPROM od EC1045).
+- **Komunikace a disky:**
+  - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3, program HEX/BIN se převede na kazetu MIKOS nebo
+    MIKROBASIC a jde uložit jako WAV pro skutečné SAPI), DSM-1V;
+  - řadiče disket RPD-1, FDC-1 a MFC-1A: 8" SS SD i diskety PC 3,5"/5,25" HD a DD (MFM, dvě strany), obrazy
+    `.img` i ImageDisk `.imd` (libovolná geometrie, čtení i zápis, nová disketa `.imd` přijme jakýkoli formát),
+    motory mechanik PC s rozběhem; formátování ověřené originálními programy J. Bíby a výpisy z reálných MFC-1A;
+  - IDE-1 s IDE diskem a PMD32-SD, deska paralelních portů DPP-1 (PMD32-SD, tiskárna, KZD-1);
+  - řadič kazetového disku RKD-1 s mechanikou CM 5403 (Zbrojovka Brno: kazeta a pevný disk, 2 × 2,4 MB) a
+    původním CP/M 2.2 Tesla Elstroj 1987: boot EPROM, CBIOS, shell, formátovač; systémová kazeta vyrobená
+    originálními programy, nová systémová kazeta tlačítkem Systém… (originální SYSGEN chybí); i bulharská
+    mechanika CM 5400 s formátovačem FORMRKD J. Bíby a CP/M s disky D: až G: (BIOS vznikl v emulátoru, není
+    dobový) ([docs/desky/RKD-1.md](desky/RKD-1.md), návod k obsluze
+    [docs/navod-rkd1.md](navod-rkd1.md));
+  - řadič magnetické pásky RMP-1 s mechanikou IZOT SM 5300 (9 stop, 800 bpi, cívky s 350 m pásky): okno Média
+    s nakreslenou mechanikou, cívkami, kontrolkami a mapou pásky, obraz pásky SIMH `.tap`; běží na ní původní
+    ovladač Tesly Elstroj a programy J. Bíby pro výměnu souborů s počítači JSEP (MTDAT, DIRMT, MTCOPY a jeho
+    opravená kopie MTCOPYO), ukázková páska ([docs/desky/RMP-1.md](desky/RMP-1.md), návod k obsluze
+    [docs/navod-rmp1.md](navod-rmp1.md));
+  - zapisovač ARITMA Minigraf 0507 s původním ovladačem z EPROM: okno s papírem, vozíkem a perem, kresba do PNG
+    a SVG, ukázka z IQ 151 vyjde stejně jako skutečná kresba ze SAPI-1 na sapi.cz; BASIC EXP V5.0/G+SZ s příkazem
+    `KRES` kreslí v milimetrech (kružnice, šrafování, text);
+  - grafická jednotka XY 4130 (Laboratorní přístroje Praha) na konektoru X3 desky JPR-1 s ovladačem TESLA DIZ
+    z EPROM za MIKOSem V5: Monitor ho spustí sám, vozík najede na levý doraz (READY), výpisy na tiskárnu L: se
+    kreslí písmem; logika READY a tlačítka PEN podle schématu XY 4140, krok 0,1 mm, i pro `KRES` na DPP-1
+    ([docs/desky/XY4130.md](desky/XY4130.md), návod [docs/navod-xy4130.md](navod-xy4130.md));
+  - deska přístrojové sběrnice DPS-1 (IMS-2, IEEE 488) s měřicím pracovištěm: voltmetr Metra M1T 330 a zdroj
+    Tesla BS 525 nakreslené v okně, knoflíky zdroje se točí myší, zátěž s omezením proudu, monitor sběrnice;
+    BASIMS V4.0 (BASIC s `IMS#`) z kazety měří napětí, na kazetě jsou za ním ukázkové programy `PRIKLAD`
+    a `SMYCKA` (`LOAD`) ([docs/desky/DPS-1.md](desky/DPS-1.md), návod [docs/navod-dps1.md](navod-dps1.md));
+  - plotter z Amatérského radia 1990: deska JPR-1 jako řadič zapisovače Minigraf s programem přepsaným z výpisu
+    v AR, povely Sharp MZ-1P16 posílané z okna Minigraf (soubor, řádek povelů, ukázka), tlačítka STOP, TEST,
+    READY a přepínače panelu ([docs/desky/AR1990.md](desky/AR1990.md), návod
+    [docs/navod-ar1990.md](navod-ar1990.md));
+  - kazetopáskový záznamník dat KZD-1 s MIKOSem/K V5.0: model mechaniky a dvou stop, kazety `.kzd` s oběma
+    stranami a zoubky proti zápisu, kreslená kazeta s cívkami v okně Média, kopírovací program CKM magnetofon ↔
+    KZD-1 v originále i v opravené kopii (`media/mikos/CKM_opraveny.hex`, originál po čtení z KZD-1 nastaví
+    nulovou délku bloku). Návody k obsluze KZD-1 a Minigrafu:
+    [docs/navod-kzd1.md](navod-kzd1.md), [docs/navod-minigraf.md](navod-minigraf.md),
+    [docs/navod-xy4130.md](navod-xy4130.md);
+  - DSP-1 se dvěma sériovými kanály 8251 (programy XMODEM J. Bíby ověřené oběma směry);
+  - deska reálného času RTC-1 (čítač ve dvousekundách podle hodin PC, 8253, přerušení, watchdog);
+  - tiskárna Centronics na X3 procesorové karty nebo na DPP-1: soubor s bajty a okno s vytištěným textem;
+  - okno Média: mechaniky podle jednotek řadiče s písmenem v CP/M (ze sestavy, nebo zjištěné za chodu); výměna
+    média se zapíše do sestavy, média z `media/` se používají přes pracovní kopii, kterou jde vrátit („Obnovit
+    z originálu“); zápisy se do souborů ukládají průběžně (pár sekund po posledním zápisu, při pauze a přepnutí
+    do jiného okna) přes dočasný soubor, takže pád nenechá napůl zapsaný obraz;
+  - sériové linky do PC přes TCP nebo COM port, okno terminálu s odesíláním a příjmem souborů (i XMODEM) a schránkou (výběr myší rovnou do schránky).
+- **Měření a regulace: měřicí jednotka APS-5** s původním firmwarem Tesla (regulace osmi pecí adaptivním PSD):
+  - desky A/D převodníku ADP-1, měřicího zesilovače DMT-1 a relé DRV-1A, panel HRK-1 s klávesnicí, zámkem
+    a watchdogem;
+  - simulace pecí s termočlánky (Fe-Ko, ch-a, ch-k, PtRh) a okno, kde pece žhnou podle teploty, s grafem
+    a tlačítkem DEMO, které ukázku odťuká na panelu samo;
+  - výpadek sítě s varováním, jak ho firmware čeká ([docs/desky/APS-5.md](desky/APS-5.md), ukázka krok za
+    krokem [docs/aps5-ukazka.md](aps5-ukazka.md)).
+- **Zvuk a hry:** MPH-1V (YM3812 přes Nuked-OPL3, 82C54, joystick a myš Atari ST/Amiga), bzučák klávesnice.
+  Joystick z gamepadu nebo z klávesnice, myš PC.
+- **Karta DPI-1L (Repository API na B0h/B1h), bajt po bajtu podle záznamů ze skutečné karty:**
+  - síťové hry: příkazy NET A0h–A9h hrají přes relay `ws://api.mzpico.com/net` v jedné místnosti s MZ-800, ZX
+    Spectrem, CPC a PC (BomberNet, sestava `sapi1v_BomberNet.sapi`);
+  - SD karta nad složkou PC (`work/dpi-1l/sdcard`): soubory a adresáře, české názvy v KOI-8čs2, `DPI.COM` v CP/M
+    funguje;
+  - TCP a DNS do sítě PC, nastavení v `/DPI/DPI.INI`, RTC, BOOT;
+  - verzi hlásí jako skutečná karta s firmwarem 0.5.3 (REV `DPI-1L v0.5.3`, REVD `00 05 44 01`)
+    ([docs/desky/DPI-1L.md](desky/DPI-1L.md)).
+- **Klávesnice:** EKL-1, Consul 262.3, Consul 259.11, membránová ANK-1 a Liborova ANK-1M2 s konektorem
+  joysticku (joystick z šipek a mezerníku nebo gamepadu, myš). Matice ANK-1 drží klávesu, dokud ji držíš na PC
+  (bez fronty a autorepeatu), a má režim pro hry (Ctrl+F7: klávesy podle polohy, Shift = SHIFT). Text ze schránky
+  se dá napsat na klávesnici SAPI (Ctrl+Shift+V), třeba program v BASICu.
+- **Software:** MikroMon, MIKROBASIC, MIKOS V4/V5 a MIKOS/D, CP/M 2.2/P (R. Peřina) pro ZPS-3/4 s RPD-1
+  i FDC-1, originální CP/M Tesla IMA 48K a 64K pro ZPS-3, ELIS, MikroBIOS, ECMON a CP/M 2.2 J. Bíby a EC1045 z RAM
+  disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. MIKROBIOS
+  a Falcon Monitor pro JPR-1S s BGP-1S a hry z PMD-85 (Manic Miner), nahrávané i příkazem BOOT po sériové lince. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
+  Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky. CP/M 2.2 62K pro SAPI-1.5 (ZPS-6, ROM PKT-1
+  MON-V100690, diskety Melsoft 5,25" s M80, MBASIC, COBOL, Pascal MT+; [docs/software/SAPI-1.5.md](software/SAPI-1.5.md)).
+- **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,
+  L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
+  ([docs/software/ECMON.md](software/ECMON.md)).
+- **Konfigurátor sestavy:**
+  - panely karet podle modernizované skříně Libora Lasoty s popsanými panely (původní Tesla SAPI-1 měl holé karty
+    za krycím panelem), LED podle emulace, konektory podle fotografií desek;
+  - sběrnice ARB-1, ARB-1A/Au, ARB-1B, ARB-1C (14 i 8 pozic) a ImBUS9/ImBUS12 Libora Lasoty;
+  - propojky, některé i za chodu; karty jde myší přetáhnout do jiného slotu;
+  - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
+  - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2;
+  - Uložit dodanou sestavu nepřepíše, zapíše kopii do Mých sestav (`work/machines`).
+- **Ladění:** debugger (registry podle procesoru 8080, 8085 nebo Z80, disassembler, paměť, breakpointy
+  a watchpointy, I/O log), ukládání stavu (i
+  rychlé checkpointy), záznam přerušení (MCP `int_log`, varování, když se vektor IM 2 čte z videopaměti),
+  volba sestavy „náhodný obsah pamětí po zapnutí“ (RAM, videopaměti, palety jako na železe), počty zápisů do
+  palety CGA-1V během zobrazování a přepnutí uprostřed snímku, nahrávání programů (Intel HEX i `.txt`, binární
+  soubory), nahrávání zvuku do WAV,
+  snímky obrazovek do PNG nebo schránky (Ctrl+F5, pravé tlačítko na obraz), video se zvukem do MP4 přes ffmpeg
+  (Ctrl+Alt+F5).
+- **Windows 11, sestaví se i na Linuxu** (ověřeno ve WSL, `docs/build.md`).
+- **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
+- **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
+  `--joystick`, `--save-state` …).
+- **MCP server** (`http://127.0.0.1:8580/mcp`, v GUI se zapíná v Zobrazení → Nastavení → Pokročilé): Claude Code může emulátor
+  ovládat, psát a ladit programy
+  a nakonec ho i ukončit (`quit`, média se uloží) ([docs/mcp.md](mcp.md)).

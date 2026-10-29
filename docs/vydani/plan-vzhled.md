@@ -559,6 +559,11 @@ návody k obsluze s obrázky v okně Nápověda.
 
 ### Etapa 9: prezentace a zveřejnění · M + Martin
 
+**Stav 2026-10-29: README rozpracované.** Koncept nového README podle článku autora na 8bity.cz (jeho text redakčně
+upravený: proč vznikl, AI a měření s fotkami a třemi výsledky měření), stažení ve třech krocích, co vyzkoušet,
+krátké „Co umí“ (celé přesunuté do `docs/funkce.md`), pro vývojáře, anglický souhrn s odstavcem o AI. Fotky
+a snímky autora v `docs/img/readme/`. Čeká na autorovu kontrolu; GIF, video, `README.en.md` a úklid repa zbývají.
+
 **README**
 - Zhruba 110 řádků.
 - Odstavec tvým hlasem (napíšeš sám).

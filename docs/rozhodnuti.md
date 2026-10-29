@@ -3291,6 +3291,24 @@ světlém nebo tmavém režimu.“
 - **Rám je odchylka už dnes** (kreslený podle modernizované skříně Libora Lasoty), černá varianta je jen jeho barva,
   ne jiný hardware; chování sestavy nemění.
 
+## 2026-10-29 – README podle článku na 8bity.cz (etapa 9, koncept)
+
+Autor připravuje článek o emulátoru na 8bity.cz a dal ho jako podklad pro README („vem co chceš, nějak to redakčně
+uprav … a samozřejmě tam doplň vše ostatní, co patří do readme“), fotky a snímky ve `foto/moje/` (mimo git).
+
+- **Kostra podle plánu etapy 9 a hodnocení UX (kapitola 6):** jedna věta, co to je, dva snímky (světlý a tmavý
+  vzhled), „Proč vznikl“ (text autora z článku, redakčně upravený, podepsaný), „Jak se vyvíjí: AI a měření na
+  skutečném SAPI-1 V“ (přiznání AI: Claude Code, `Co-Authored-By`, kdo co dělá, co je ověřené; měření s PicoROM
+  a Saleae Logic Pro 16 slovy autora, dvě fotky, tři výsledky měření z `docs/zmeny-podle-hw.md`, jádra CPU a testy),
+  stažení ve třech krocích se SmartScreenem, co vyzkoušet (okno Vybrat sestavu a čtyři starší snímky, které autor
+  chválí, protože ukazují jednoduché sestavy), krátké „Co umí“, pro vývojáře (debugger, `sapiemu-cli`, MCP, `cpmrun`,
+  sestavení), dokumentace, soukromí, přístupnost, licence a poděkování, anglický souhrn s odstavcem o AI.
+- **Celé dřívější „Co umí“ beze změny v `docs/funkce.md`** (odkazy přepsané relativně k `docs/`).
+- **Fotky v `docs/img/readme/`** (8 souborů, asi 3,2 MB), fotky z telefonu bez EXIF (bez polohy). Složka `foto/`
+  zůstává mimo git.
+- **Počty v README ověřené:** 51 typů karet v katalogu, 48 emulovaných (AND-30C, RAM-64 a RPD-1Z jen v katalogu).
+- Kontakt na autora v README není (jen odkaz na 8bity.cz), chyby přes Issues.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`

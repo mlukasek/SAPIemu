@@ -97,6 +97,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     okno Nápověda ukazuje každý `.md`, který program otevírá (První kroky, Slovníček, Návody k obsluze, odkazy
     z průvodců a dokumentů), s obrázky, citacemi, historií Zpět/Vpřed a dokumentem v titulku; dlouhé dokumenty
     rozvrhuje jen v pohledu (`MdCache`). Udělané v hlavním proudu, jeden oponent.
+  - **README podle článku autora na 8bity.cz** (2026-10-29, etapa 9, koncept k autorově kontrole): jeho text, AI
+    a měření s fotkami, kratší struktura, celé „Co umí“ v `docs/funkce.md`, fotky v `docs/img/readme/`.
   - **Černý rám v konfigurátoru** (2026-10-29, přání autora): rám a panely černé s bílými popisky, volba v konfigurátoru
     a v Nastavení → Vzhled, nezávislá na světlém nebo tmavém vzhledu (`RackLook` v `rack.cpp`).
   - **Sestava bez displeje** (2026-10-29, připomínka autora k AR 1990): žádné prázdné okno obrazovky, hlavní výstup je
