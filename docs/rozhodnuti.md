@@ -2078,11 +2078,12 @@ Co má autor ještě posoudit a vyzkoušet ručně, je na konci oddílu.
 
 - **Průběžné ukládání a Vysunout bez uložení.** Doporučení: nechat, jak je (ukládat všechna média). Další možnosti:
   volba média „neukládat průběžně“ pro starý postup „zahodit celé sezení“, nebo pásky a kazety (DSM-1, KZD-1,
-  RMP-1) průběžně neukládat a nechat jim Vysunout bez uložení v plné síle.
+  RMP-1) průběžně neukládat a nechat jim Vysunout bez uložení v plné síle. **Rozhodnuto 2026-10-29:** ukládat
+  všechna média potvrdil autor, Vysunout bez uložení zmizelo (ráno: připomínky autora).
 - **Vypnout a zapnout nenačítá soubor sestavy znovu** (odchylka od plánu, důvod výše). Doporučení: nechat. Kdo chce
   sestavu ze souboru, má Restartovat ve výběru sestav.
 - **Názvy sestav s ECMONem v Ostatních** zůstaly technické (jména souborů), dostaly jen souhrny. Kratší titulky
-  by šly doplnit do `_vyber.json`.
+  by šly doplnit do `_vyber.json`. **Rozhodnuto 2026-10-29:** krátké titulky doplněné (autor souhlasil).
 
 ### Ruční zkouška autora a známá omezení
 
@@ -2248,6 +2249,8 @@ autor rozhodnout a vyzkoušet ručně, je na konci oddílu.
 - **Výchozí rozložení (checkpoint C):** plovoucí (doporučení, teď výchozí), nebo zadokované. Podle galerie výše.
 - **Okna mimo plochu se při startu ani po zmenšení okna nevracejí dovnitř** (ImGui nechá vidět aspoň 19 px,
   `DisplayWindowPadding`). Návrh: zvětšit na asi 3 em. Posune to ale okna z `imgui.ini`, proto to čeká na autora.
+  Rozhodnuto 2026-10-29 (autor souhlasil): okno víc než napůl mimo plochu se vrátí dovnitř (ráno: připomínky
+  autora níže).
 - **RMP-1 s plovoucími okny při 1280 × 720 a 100 %:** Média zakryjí pravý okraj konzole 200 % (sloupce BLSIZ a db).
   Druhá možnost je konzole 100 % bez překryvu. Doporučení: nechat 200 %.
 
@@ -2473,6 +2476,10 @@ pokyn. Změny po oponentuře jsou označené. Co má autor rozhodnout a vyzkouš
   vrátí sestavu, `back_out`). Celá debug sada prošla (59/59).
 
 ### Na rozhodnutí autora
+
+Rozhodnuto 2026-10-29 (autor), podrobně v oddílu „2026-10-29 – ráno: připomínky autora“:
+F9 = breakpoint zůstává, verze `0.7.0-beta`, testeři hlásí odpovědí na zprávu a Issues přijdou se zveřejněním
+repa (věta „do zveřejnění …“ sedí).
 
 - **F9 = breakpoint, reset jen F12** (rozhodl vedoucí workflow). Doporučení: nechat. Možnost z hodnocení UX:
   v debug buildu F9 bez otevřeného debuggeru = reset (pod Visual Studiem je teď reset jen z menu nebo tlačítkem
@@ -2714,6 +2721,88 @@ K plovoucím oknům měl čtyři připomínky a se změnami souhlasil. Udělal j
 - **Průvodce na malé obrazovce** (1280 × 720 až 1600 × 900, i 1920 × 1080 při 150 %) zůstane pod displeji jako úzký
   pruh. Bylo to tak i před změnou. Doporučení: nechat. Druhá možnost je dát dalšímu displeji menší zvětšení, když
   by průvodce měl méně než 12 výšek písma.
+
+## 2026-10-29 – ráno: připomínky autora
+
+Autor ráno program vyzkoušel a měl šest připomínek: tři k oknům, titulky, média a verzi. Se změnami souhlasil.
+Technicky `docs/build.md` (rozmístění oken), pro testery `docs/release-notes/v0.7.0-beta.md`.
+
+1. **Okno Vybrat sestavu větší ve větším okně** (autor: „mohlo by být větší, když je okno emulátoru větší; otevře se
+   dost malé s posuvníky, i když by klidně mohlo být větší a přehlednější“): poprvé asi 75 % šířky a 80 % výšky
+   plochy, aspoň dosavadních 58 × 38 výšek písma, nejvýš celá plocha, uprostřed jako dosud. Uložená velikost
+   vyhrává, kdo má okno uložené z dřívějška, uvidí větší až po Zobrazení → Výchozí rozložení oken. Seznam sestav
+   vlevo zůstává 24 výšek písma (dá se rozšířit tažením), náhled nejvýš 35 × 22.
+2. **Okno displeje po změně sestavy podle nového obrazu** (autor: „po výběru sestavy se AND-1Z ukázal na 100 % a jeho
+   okno bylo mnohem větší než obraz; okno by mělo sedět s malým okrajem jako po volbě 200 % pravým tlačítkem“):
+   okno konzole `###screen` a grafická okna `###gfxN` jsou stejná okna pro všechny sestavy. Po změně sestavy si okno
+   nechá místo a dostane velikost nového obrazu ve zvětšení, které by mu dalo rozložení (strop, malý okraj, další
+   displej nejvýš 1,5× hlavního výstupu), posunuté dovnitř plochy. Okno se zvětšením zvoleným v menu dostane
+   velikost nového obrazu v tomto zvětšení (nevejde-li se na plochu, přizpůsobí se oknu). Výjimky:
+   - okno, které uživatel v tomto běhu zvětšil tažením (jeho velikost platí; další volba zvětšení, Výchozí
+     rozložení oken a Přeskládat otevřená okna to zruší);
+   - první sestava po startu programu (velikosti z `imgui.ini` vyhrávají jako dosud);
+   - restart stejné sestavy a vypnutí a zapnutí (stejný soubor a stejné karty displejů, nic se nemění);
+   - zadokované okno (velikost řídí dok).
+
+   První verze zvolené zvětšení po změně sestavy nedržela (okno zůstalo velké podle staré sestavy, AND-1Z pak
+   rozmazaně na 69 % s pruhy); oponentura to našla, opraveno.
+3. **Okna mimo plochu zpět dovnitř** (autor souhlasil): okno víc než napůl mimo plochu (po zmenšení okna emulátoru,
+   přesunu na menší monitor, uložené místo z větší obrazovky) se vrátí dovnitř při startu a po změně velikosti okna
+   emulátoru. Dialog (Vybrat sestavu, Nastavení…) už když je venku jen částečně: větší uložený výběr sestav by na
+   menší ploše skryl křížek. Posune se co nejméně (k nejbližšímu kraji, s mezerou rozložení), velikost zůstane, jen
+   když se nevejde, zmenší se. Platí i pro zavřená okna a uložená místa oken, která se teprve otevřou (ne pro
+   podřízená okna, třeba seznam ve Vybrat sestavu). Kontroluje se až velikost plochy, která vydrží 3 snímky (ne
+   mezikroky ani první snímky před maximalizací okna). Okno napůl venku zůstane, kde je. Víc oken venku na stejné
+   straně se sejde u kraje přes sebe. Volné místo se nehledá, posun je předvídatelný a okno jde najít i přes
+   Zobrazení → Okna.
+4. **Krátké titulky sestav s ECMONem** (autor souhlasil, ve výběru byla dlouhá jména ze `.sapi`, třeba „CP/M 2.2
+   z RAM disku + FDC-1 (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, FDC-1)“): sedm sestav kategorie „CP/M s ECMONem“
+   má `title` a `title_en` v `machines/_vyber.json` ve stylu základních sestav: CP/M z RAM disku, CP/M s IDE diskem
+   a PMD32-SD, CP/M s disketami 8" (FDC-1), CP/M s disketami 8" (MFC-1A), CP/M s PMD32-SD přes DPP-1, CP/M
+   s hodinami RTC-1 a sériovou deskou DSP-1, CP/M EC1045 s disketami 3,5" a 5,25" HD (tabulka
+   `docs/vydani/sestavy.md`, 5b). „ECMON“ ani „RAM disk ZRMD-1“ v titulcích není, říká to nadpis kategorie a dlouhé
+   jméno pod titulkem. Řadič je v závorce tam, kde odlišuje dvě jinak stejné sestavy (FDC-1 a MFC-1A). Každý titulek
+   je ověřený proti kartám sestavy a během bez okna nad vlastní kopií `work/` (menu ECMONu, `DIR` disků, RTCZ,
+   `STAT B:` u EC1045). Titulek platí i v titulku okna a v Posledních sestavách (`machine_title()`). Dlouhé jméno
+   pod titulkem je v angličtině z nového `name_en` v rejstříku (dřívější anglické titulky s výčtem karet).
+5. **Vysunout bez uložení zmizelo** z nabídky „…“ u média v okně Média. Média se od etapy 4 ukládají průběžně (pár
+   sekund po posledním zápisu, při pauze, při přepnutí okna), položka by tak zahodila jen posledních pár sekund
+   a mátla. Zůstává Vysunout a „…“ → Obnovit z originálu (s potvrzením). Tlačítko „…“ je aktivní jen u média
+   z `media/` (jinak by nabízelo jen zašedlou položku). `Card::media_discard` zůstává, používá ho Obnovit
+   z originálu. Průběžné ukládání všech médií, i pásek a kazet, autor potvrdil.
+6. **Verze 0.7.0-beta** (`SAPIEMU_VERSION_SUFFIX` = `-beta`, poznámky `docs/release-notes/v0.7.0-beta.md` s úvodem,
+   co beta je, „betaverze“ v README, Prvních krocích a Getting started, verze v textu pro testery). „Alfa“ zůstává
+   tam, kde jde o starší verze (stavy z alf, „Kdo měl alfu“, F9 v alfách). **F9 = breakpoint** (reset jen F12)
+   autor potvrdil.
+
+**Cesta vydání** (autor), zapsaná i v `docs/vydani/plan-vzhled.md` pod „→ BETA zip“:
+
+1. 0.7.0-beta jen třem testerům alf (Libor, Petr, Michal): zpětná vazba, souhlasy (`docs/vydani/souhlasy.md`)
+   a aktuální verze Liborova softwaru; hlásí odpovědí na zprávu;
+2. úprava podle nich;
+3. 0.7.1-beta: nejdřív hotový zip v Releases na GitHubu, pak repozitář veřejně s GitHub Issues pro hlášení chyb,
+   nakonec oznámení na fóru OldComp.cz.
+
+**Snímky:** nová volba `--ui-switch SESTAVA` (víc po sobě) spustí sestavu za běhu jako Spustit v okně Vybrat
+sestavu, aby šla změna sestavy ověřit snímkem.
+
+### Na rozhodnutí autora
+
+- **Displej víc než z poloviny uvnitř zůstane uříznutý** (pravidlo „víc než napůl venku“ z bodu 3): s místy
+  uloženými na větší obrazovce přijde CGA-1V her při 1600 × 900 o spodních 138 bodů obrazu. Doporučení: okna
+  displejů vracet celá jako dialogy, když se na plochu vejdou (uříznutý obraz je k ničemu). Druhá možnost je nechat.
+- **Obsah většího okna Vybrat sestavu:** náhled a seznam mají pevnou velikost, větší okno přidá hlavně prázdné místo
+  vpravo a seznam se při 2252 × 1198 pořád posouvá. Doporučení: náhled zvětšovat s oknem (do poloviny šířky
+  podrobností, celočíselně, náhledy mají 288–480 bodů) a seznam rozšířit podle šířky okna. Druhá možnost je nechat.
+
+### Ruční zkouška autora
+
+- Jednou Zobrazení → Výchozí rozložení oken (jinak zůstane velikost Vybrat sestavu uložená dnes ráno), pak Soubor →
+  Vybrat sestavu….
+- Zmenšit okno emulátoru tažením za okraj (okna vpravo dole se vrátí dovnitř, jakmile se velikost ustálí), přesun
+  na menší monitor.
+- Změnit sestavu bez zásahu (okno podle obrazu), po volbě 100 % v menu (zůstane 100 %, okno podle nového obrazu)
+  a po ručním zvětšení okna displeje (velikost zůstane).
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

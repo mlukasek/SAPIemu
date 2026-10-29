@@ -3,7 +3,7 @@
 Emulátor počítače Tesla SAPI-1. SAPI-1 (1983–1990) byl průmyslový řídicí počítač do racku.
 Začněte základní sestavou ZPS-1, pak zkuste přístroje. Hry a dema jsou novodobý doplněk na nových deskách.
 
-Testovací verze: hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje: Nápověda →
+Betaverze (testovací verze): hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje: Nápověda →
 Nahlásit chybu… (do zveřejnění cestou, kterou jste program dostali, potom přes GitHub Issues:
 https://github.com/mlukasek/SAPIemu/issues). Anglicky: `GETTING-STARTED.md` (`docs/getting-started.md`).
 
@@ -22,7 +22,8 @@ Potřebujete Windows 10 nebo 11, 64 bit.
 
 ## Sestavy
 
-Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám. Za ním už běží nejjednodušší
+Soubor → **Vybrat sestavu…** otevře výběr sestav, při prvním spuštění se otevře sám, poprvé přes většinu hlavního
+okna (asi 75 × 80 %; velikost, kterou mu dáte, si pamatuje). Za ním už běží nejjednodušší
 sestava ZPS-1 s MIKROBASICem a ve výběru je vybraná. Nahoře je krátký úvod o SAPI-1 a sestavy jsou rozdělené do
 skupin v tomto pořadí: **Základ: historické sestavy Tesla**, **Přístroje a technologie**, **Desky Libora Lasoty
 (moderní)**, **Hry a dema (novodobé)** a **Ostatní**. U každé je náhled, krátký popis, karty po slotech
@@ -179,7 +180,11 @@ s Liborovými deskami.
   uprostřed. Když zbude dost místa (asi 704 × 704 bodů při 100 %, na notebooku ne), otevře se při prvním spuštění
   i **Konfigurátor sestavy**. Nebere klávesnici a okna otevřená později ho mohou zakrýt. Okna si pamatují, kam jste
   je dali; výchozí místa vrátí Zobrazení → Výchozí rozložení oken (konfigurátor, který otevřelo samo rozložení
-  a vy jste ho nepoužili, se přitom znovu otevře, jen když je místo).
+  a vy jste ho nepoužili, se přitom znovu otevře, jen když je místo). Po spuštění jiné sestavy si okna displejů
+  nechají místo a dostanou velikost nového obrazu s malým okrajem; zvětšení zvolené v menu zůstane, okno zvětšené
+  v tomto běhu tažením za okraj si nechá velikost. Okno víc než napůl mimo hlavní okno (po jeho zmenšení, na menším
+  monitoru) a dialog (Vybrat sestavu, Nastavení…) i jen částečně mimo se při startu a po změně velikosti hlavního
+  okna vrátí dovnitř.
 - **Okno schované za jiným:** Zobrazení → **Okna** vypíše všechna otevřená okna (displeje, přístroje, Média,
   průvodce, ladicí okna, konfigurátor…). U zakrytého je vpravo „zakryté“ a kliknutí ho dá dopředu (s klávesnicí; okno
   částečně mimo hlavní okno se posune dovnitř). Stejně fungují položky oken v Zobrazení a Ladění: zavřené okno
@@ -206,11 +211,11 @@ s Liborovými deskami.
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
   Výměna média v okně Média se zapíše do sestavy (konfigurátor ji ukáže, sestava je pak neuložená). Tlačítko
-  „…“ u média nabízí **Vysunout bez uložení** a **Obnovit z originálu**: médium z `media\` se používá přes
-  pracovní kopii ve `work\`, která se dá kdykoli vrátit do původního stavu. Změny na páskách, kazetách,
-  disketách a RAM discích se do souboru zapisují průběžně: pár sekund po posledním zápisu, hned při pauze (F5)
-  a při přepnutí do jiného okna Windows, jinak při vysunutí, vypnutí a ukončení. Vysunout bez uložení proto zahodí
-  jen posledních pár sekund. Soubor se přepisuje přes dočasný soubor, takže ani pád nenechá napůl zapsaný obraz.
+  „…“ u média nabízí **Obnovit z originálu** (jen u média z `media\`): médium z `media\` se používá přes pracovní
+  kopii ve `work\`, která se
+  dá kdykoli vrátit do původního stavu. Změny na páskách, kazetách, disketách a RAM discích se do souboru zapisují
+  průběžně: pár sekund po posledním zápisu, hned při pauze (F5) a při přepnutí do jiného okna Windows, jinak při
+  vysunutí, vypnutí a ukončení. Soubor se přepisuje přes dočasný soubor, takže ani pád nenechá napůl zapsaný obraz.
   Špatný obraz se do mechaniky nevloží, zůstane v ní původní médium. První Vložit… nebo Nahrát program začne ve
   složce `media\`, pak v naposledy použité.
 - **Chyby:** odmítnuté médium, nepovedená nová disketa nebo kazeta, nepovedené nahrání programu a nepovedené

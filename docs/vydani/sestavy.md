@@ -127,6 +127,20 @@ XY 4130 a plotter z AR 1990 přešly 2026-10-28 do Přístrojů a technologie. R
 (7 sestav). Souhrny pro výběr sestav (co sestava je a kterou volbu po zapnutí stisknout) jsou v
 `machines/_vyber.json` od 2026-10-29. `cpm_zrmd` a `cpm_ide` nemají technický popis v souboru sestavy, doplnit.
 
+Krátké titulky (autor souhlasil 2026-10-29, ve stylu základních sestav; dlouhé jméno ze `.sapi` s kartami je ve
+výběru pod titulkem, v angličtině z `name_en` v rejstříku). Ověřené proti kartám sestav a během bez okna (menu
+ECMONu, `DIR` disků):
+
+| Soubor | Titulek | Anglicky |
+|---|---|---|
+| `cpm_zrmd` | CP/M z RAM disku | CP/M from the RAM disk |
+| `cpm_ide` | CP/M s IDE diskem a PMD32-SD | CP/M with an IDE disk and PMD32-SD |
+| `cpm_zrmd_fdc1` | CP/M s disketami 8" (FDC-1) | CP/M with 8" floppies (FDC-1) |
+| `cpm_zrmd_mfc1a` | CP/M s disketami 8" (MFC-1A) | CP/M with 8" floppies (MFC-1A) |
+| `cpm_zrmd_dpp1` | CP/M s PMD32-SD přes DPP-1 | CP/M with PMD32-SD through DPP-1 |
+| `cpm_zrmd_rtc_dsp` | CP/M s hodinami RTC-1 a sériovou deskou DSP-1 | CP/M with the RTC-1 clock and the DSP-1 serial board |
+| `cpm_ec1045` | CP/M EC1045 s disketami 3,5" a 5,25" HD | CP/M EC1045 with 3.5" and 5.25" HD floppies |
+
 ### 5c. CP/M J. Bíby (SAPIMAN)
 
 `cpm_boot_fdc1`, `cpm_boot_fdc1_irmd`, `cpm_boot_fdc1_rmd`, `cpm_boot_fdc1_ss256`, `cpm_boot_mfc1a`,

@@ -21,7 +21,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     klávesnice se vrací displeji a nápis „Klikněte sem a pište“, Stroj → Vypnout a zapnout (Ctrl+F12, i MCP
     a `--power-cycle`), průvodci her s volbou `3` a ovládáním, reset APS-5 s otázkou, konfigurátor podle výšky
     okna, chyby v okně Chyba a „✖ Chyby: N“, média se ukládají průběžně přes dočasný soubor, stavový řádek bez
-    překryvu menu, pauza a rychlost přes obraz. Na rozhodnutí autora: průběžné ukládání a Vysunout bez uložení.
+    překryvu menu, pauza a rychlost přes obraz. Průběžné ukládání autor potvrdil 2026-10-29, Vysunout bez uložení
+    zmizelo.
     Autor ručně vyzkouší psaní a průvodce.
   - **Etapa 5 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 5 plánu vzhledu: okna): jeden
     pomocník rozmístění `src/frontend/layout.cpp` (hlavní výstup vlevo nahoře v největším celočíselném zvětšení,
@@ -64,6 +65,16 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     jen když je místo (44 × 44 em, s nejnižší prioritou, `windows.configuration_auto`), Zobrazení → Okna, položky oken
     dají zakryté okno nejdřív dopředu, Zobrazení → Přeskládat otevřená okna. Na rozhodnutí autora: konfigurátor
     při 1920 × 1080, strop v doku, průvodce na malé obrazovce.
+  - **Po autorově vyzkoušení** (2026-10-29, rozhodnutí 2026-10-29 – ráno: připomínky autora): Vybrat sestavu větší
+    (asi 75 × 80 % plochy; autor ho uvidí po Výchozím rozložení oken), okna displejů po změně sestavy podle nového
+    obrazu (zvolené zvětšení zůstane), okna víc než napůl mimo plochu a dialogy i jen částečně venku zpět dovnitř,
+    krátké titulky sedmi sestav s ECMONem (anglické dlouhé jméno `name_en`), pryč Vysunout bez uložení („…“ jen
+    u média z `media/`), **verze 0.7.0-beta** (poznámky `docs/release-notes/v0.7.0-beta.md`). Na rozhodnutí
+    autora: okna displejů s uříznutým obrazem vracet celá, náhled a seznam výběru zvětšovat s oknem. Autor
+    potvrdil F9 = breakpoint a průběžné ukládání. **Cesta vydání:** 0.7.0-beta jen Liborovi, Petrovi a Michalovi (zpětná vazba,
+    souhlasy, Liborův aktuální software) → úprava → 0.7.1-beta: zip v Releases na GitHubu, pak repo veřejně
+    s GitHub Issues, oznámení na OldComp.cz (`docs/vydani/plan-vzhled.md` pod „→ BETA zip“). Beta zip až na
+    Martinův pokyn.
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

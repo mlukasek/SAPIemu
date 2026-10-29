@@ -11,7 +11,11 @@
 //   displays, never over an instrument or Media nor under one: beside it, below it or wherever there is room, rather
 //   smaller than over the main output; Media not over the main output either when it fits elsewhere;
 // - the configurator, when the layout opens it (layout_window_if_room), only in the free room at a readable size;
-// - the dialogs (Choose a machine, Settings...) in the middle of the work area, never over the menu bar.
+// - the dialogs (Choose a machine, Settings...) in the middle of the work area, never over the menu bar; Choose a
+//   machine about 75 % x 80 % of it (at least 58 x 38 font heights);
+// - a window more than half outside the work area (the main window got smaller, a saved place from a larger screen),
+//   a dialog any part outside it, back inside it at the start and after the main window changes its size, smaller only
+//   when it does not fit (layout_keep_inside).
 // Where there is no room (a small window, a big instrument), a window goes where it covers the least of what matters:
 // the instruments and Media most, then the main output, the console screen, the other displays, the tools.
 // The docked layout (View -> Settings -> Windows: docked, layout_dock at the end) puts the windows into the dock space
@@ -374,6 +378,62 @@ Box place(ImGuiID self, int role, Want want, int cascade, const Box& wa, float u
     return { wa.x1 - want.w, wa.y0, wa.x1, wa.y0 + want.h };
 }
 
+// The box moved the least into the work area wa, smaller where it does not fit.
+Box inside(const Box& b, const Box& wa)
+{
+    float w = minf(b.x1 - b.x0, wa.x1 - wa.x0), h = minf(b.y1 - b.y0, wa.y1 - wa.y0);
+    float x = maxf(wa.x0, minf(b.x0, wa.x1 - w)), y = maxf(wa.y0, minf(b.y0, wa.y1 - h));
+    return { x, y, x + w, y + h };
+}
+
+// The window `id` there is to come back into the work area wa (layout_keep_inside): more than half of it outside, a
+// dialog (Choose a machine, Settings...: its close button and its buttons in sight) any part of it.
+bool to_bring_inside(ImGuiID id, const Box& b, const Box& wa)
+{
+    float a = (b.x1 - b.x0) * (b.y1 - b.y0);
+    if (a <= 0) return false;
+    if (role_of(id) == ROLE_DIALOG)
+        return b.x0 < wa.x0 - 0.5f || b.y0 < wa.y0 - 0.5f || b.x1 > wa.x1 + 0.5f || b.y1 > wa.y1 + 0.5f;
+    return overlap_area(b, wa) < 0.5f * a;
+}
+
+// A floating window not taking its first place now: not docked, not the menu bar, a popup, a child, a dock node host.
+bool floating_placed(ImGuiWindow* w)
+{
+    if (w->IsFallbackWindow || w->DockNodeAsHost || w->DockId || w->DockIsActive) return false;
+    if (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
+                    ImGuiWindowFlags_NoTitleBar))
+        return false;
+    return (w->SetWindowPosAllowFlags & ImGuiCond_FirstUseEver) == 0;
+}
+
+// The window to box b now (the windows taking their first places in this frame see it: obstacles).
+void window_to(ImGuiWindow* w, const Box& b)
+{
+    ImGui::SetWindowPos(w, ImVec2(b.x0, b.y0));
+    ImGui::SetWindowSize(w, ImVec2(b.x1 - b.x0, b.y1 - b.y0));
+    w->Size = w->SizeFull;
+}
+
+// The saved place of a window not created yet to box b (imgui.ini keeps it relative to the main window).
+void settings_to(ImGuiWindowSettings* s, const Box& b)
+{
+    ImVec2 vp = ImGui::GetMainViewport()->Pos;
+    s->Pos = ImVec2ih((short)(b.x0 - vp.x), (short)(b.y0 - vp.y));
+    s->Size = ImVec2ih((short)(b.x1 - b.x0), (short)(b.y1 - b.y0));
+    ImGui::MarkIniSettingsDirty();
+}
+
+Box settings_box(const ImGuiWindowSettings* s)
+{
+    ImVec2 vp = ImGui::GetMainViewport()->Pos;
+    return { vp.x + s->Pos.x, vp.y + s->Pos.y, vp.x + s->Pos.x + s->Size.x, vp.y + s->Pos.y + s->Size.y };
+}
+
+// layout_keep_inside: the work area size seen in the last frames, for how many frames, and the one checked last
+float s_seen_w = 0, s_seen_h = 0, s_kept_w = 0, s_kept_h = 0;
+int s_seen_frames = 0;
+
 void set_next(const Box& b)
 {
     ImGui::SetNextWindowPos(ImVec2(b.x0, b.y0), ImGuiCond_FirstUseEver);
@@ -416,7 +476,12 @@ void layout_window(int which)
     if (held(wa, u)) return;
     float ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
     if (d.role == ROLE_DIALOG) {   // the middle of the work area, at most its size
-        if (d.w > 0) ImGui::SetNextWindowSize(ImVec2(minf(d.w * u, ww), minf(d.h * u, wh)), ImGuiCond_FirstUseEver);
+        float w = d.w * u, h = d.h * u;
+        if (which == LW_BROWSER) {   // Choose a machine larger in a larger main window (author 2026-10-29): no scrolling
+            w = maxf(w, 0.75f * ww);
+            h = maxf(h, 0.8f * wh);
+        }
+        if (d.w > 0) ImGui::SetNextWindowSize(ImVec2(minf(w, ww), minf(h, wh)), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowPos(ImVec2((wa.x0 + wa.x1) * 0.5f, (wa.y0 + wa.y1) * 0.5f), ImGuiCond_FirstUseEver,
                                 ImVec2(0.5f, 0.5f));
         return;
@@ -550,6 +615,54 @@ void layout_display(const char* id, float zero_w, float zero_h, float step_w, fl
     set_next(place(self, ROLE_DISPLAY, want, 0, wa, u));
 }
 
+void layout_refit(const char* id, float w, float h)
+{
+    ImGuiID self = ImHashStr(id);
+    if (first_use(self)) return;   // it takes its first place in this frame, or it was never created nor saved
+    float u = ImGui::GetFontSize();
+    Box wa = work_area(0.5f * u);
+    if (held(wa, u)) return;
+    if (ImGuiWindow* win = ImGui::FindWindowByID(self)) {
+        if (!floating_placed(win)) return;
+        window_to(win, inside({ win->Pos.x, win->Pos.y, win->Pos.x + w, win->Pos.y + h }, wa));
+        return;
+    }
+    ImGuiWindowSettings* s = ImGui::FindWindowSettingsByID(self);   // saved, not created in this run yet
+    if (!s || s->DockId) return;
+    Box b = settings_box(s);
+    settings_to(s, inside({ b.x0, b.y0, b.x0 + w, b.y0 + h }, wa));
+}
+
+void layout_keep_inside(void)
+{
+    float u = ImGui::GetFontSize(), gap = 0.5f * u;
+    Box wa = work_area(0.0f);
+    if (held(wa, u)) return;   // full screen, minimized: the size it comes back with is checked
+    float ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
+    if (ww != s_seen_w || wh != s_seen_h) {   // a new size: checked when it stays (not the steps of a resize, nor the
+        s_seen_w = ww;                        // size of the first frames before the system maximizes the window)
+        s_seen_h = wh;
+        s_seen_frames = 0;
+    }
+    if (++s_seen_frames < 3 || (ww == s_kept_w && wh == s_kept_h)) return;
+    s_kept_w = ww;
+    s_kept_h = wh;
+    Box in = work_area(gap);
+    ImGuiContext& g = *GImGui;
+    for (ImGuiWindow* w : g.Windows) {   // open or closed in this run
+        if (!floating_placed(w)) continue;
+        Box b = { w->Pos.x, w->Pos.y, w->Pos.x + w->SizeFull.x, w->Pos.y + w->SizeFull.y };
+        if (to_bring_inside(w->ID, b, wa)) window_to(w, inside(b, in));
+    }
+    for (ImGuiWindowSettings* s = g.SettingsWindows.begin(); s != nullptr; s = g.SettingsWindows.next_chunk(s)) {
+        // not the child windows (the resizable list of Choose a machine: its size only, no place)
+        if (s->WantDelete || s->IsChild || s->DockId || s->Size.x <= 0 || s->Size.y <= 0 || ImGui::FindWindowByID(s->ID))
+            continue;
+        Box b = settings_box(s);
+        if (to_bring_inside(s->ID, b, wa)) settings_to(s, inside(b, in));
+    }
+}
+
 void layout_forget_closed(void)
 {
     ImGuiContext& g = *GImGui;
@@ -559,6 +672,7 @@ void layout_forget_closed(void)
 
 void layout_take_default_unsaved(void)
 {
+    s_kept_w = s_kept_h = 0;   // the places just loaded are checked against the work area too (layout_keep_inside)
     ImGuiContext& g = *GImGui;
     for (ImGuiWindow* w : g.Windows) {
         if (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |

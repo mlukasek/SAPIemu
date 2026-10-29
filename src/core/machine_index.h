@@ -8,7 +8,8 @@
 // machines/_vyber.json: "intro", "intro_en" (the text over the list), "categories" (in the order shown: "id", "name",
 // "name_en", "text", "text_en", "group", "group_en", "guides", "machines": files relative to machines/, "titles":
 // { "<file>": { "title", "title_en" } } = the title of a machine in this category only) and "machines"
-// ({ "<file>": { "title", "title_en", "summary", "summary_en" } }).
+// ({ "<file>": { "title", "title_en", "summary", "summary_en", "name_en" } }; name_en = the name of the .sapi file in
+// English, shown under the title in English).
 #include <string>
 #include <vector>
 
@@ -17,6 +18,7 @@ struct MachineEntry {
     std::string id;                // zps_ZPS-1
     std::string name, description; // from the .sapi file
     std::string title, title_en, summary, summary_en;   // from the index: a short name, a text for newcomers
+    std::string name_en;           // from the index: the name in English (the ECMON machines: the cards in it), or empty
     std::string preview;           // machines/previews/<id>.png if it exists
     std::string guide, guide_en;   // machines/guides/<id>.md, .en.md if they exist
     int category = -1;             // index into MachineIndex::categories

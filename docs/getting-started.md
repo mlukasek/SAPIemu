@@ -1,7 +1,8 @@
 # SAPIemu – getting started
 
 SAPIemu is an emulator of the Czechoslovak computer **Tesla SAPI-1** for Windows 10 and 11 (64 bit). This is the
-short English guide; the full Czech one is `PRVNI-KROKY.md` (`docs/prvni-kroky.md`).
+short English guide; the full Czech one is `PRVNI-KROKY.md` (`docs/prvni-kroky.md`). It is a beta version: most
+things work, but expect bugs (see "Reporting a bug" below).
 
 ## What SAPI-1 was
 

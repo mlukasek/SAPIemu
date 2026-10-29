@@ -63,6 +63,9 @@ struct UiSnapshot {
     float mouse_x = -1, mouse_y = -1;   // the mouse there (points) from the frame the keys start (F9 on a row)
     bool exit = false;           // File -> Exit before the picture: the question about unsaved changes of the
                                  // configurator (with --ui-set); without changes the program ends with no picture
+    // machines started one after another in the run (as Start in the window Choose a machine), 4 frames apart from the
+    // ninth; the picture 4 frames after the last
+    std::vector<std::string> switches;
 };
 
 // --ui-layout floating|docked: the window layout of this run (View -> Settings -> Windows), not saved; other than the

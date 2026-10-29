@@ -34,7 +34,7 @@ v konfigurátoru vypnout.
 > readers do not see it; the text of the SAPI screen can be copied (View → Copy screen text) or printed by
 > `sapiemu-cli --print-screen`, see "Přístupnost" (accessibility) below. Prince of Persia (machine `sapi1v_PoP`) is an
 > unofficial, non-commercial port shown as a demonstration of historic technology; at the request of the copyright
-> holders it will be changed or removed. Alpha version.*
+> holders it will be changed or removed. Beta version.*
 
 ![Sestava V: CP/M na AND-1V a obrázek na barevné grafice CGA-1V](docs/img/sapi1v-cpm-cga.png)
 
@@ -53,8 +53,8 @@ v konfigurátoru vypnout.
 Hotová verze pro Windows 10/11 (64 bit) je v [Releases](https://github.com/mlukasek/SAPIemu/releases). Rozbalit,
 spustit `sapiemu.exe`, nic se neinstaluje. Jak začít: [docs/prvni-kroky.md](docs/prvni-kroky.md).
 
-Jde o **alfa verzi** (poslední je 0.6.0-alpha, novinky v
-[docs/release-notes/v0.6.0-alpha.md](docs/release-notes/v0.6.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
+Jde o **betaverzi** (0.7.0-beta, novinky v
+[docs/release-notes/v0.7.0-beta.md](docs/release-notes/v0.7.0-beta.md)). Hlavní věci fungují, ale chyby čekejte.
 Hlaste je přes Nápověda → Nahlásit chybu… (zkopíruje diagnostiku a konec logu): do zveřejnění cestou, kterou jste
 program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 

@@ -1,16 +1,19 @@
 # Beta: text pro testery
 
-Podklad pro Martina k rozeslání bety (Libor, Petr, Michal) spolu se zipem z `python tools\package.py --public`
-a souborem `.sha256` vedle něj (`package.py` ho píše, až zip projde kontrolami). Text pod čarou jde poslat, jak je,
-jen se doplní hranaté závorky: verze a termín. E-mail ani jiný kontakt do repa nepíšeme, testeři odpoví na zprávu,
-se kterou betu dostanou. Liborovi a Petrovi přidat žádost o souhlasy podle `docs/vydani/souhlasy.md`. Soubor je
-v `docs/vydani/`, do veřejného zipu proto nejde.
+Podklad pro Martina k rozeslání bety 0.7.0-beta třem testerům alf (Libor, Petr, Michal) spolu se zipem z `python
+tools\package.py --public` a souborem `.sha256` vedle něj (`package.py` ho píše, až zip projde kontrolami). Text pod
+čarou jde poslat, jak je, jen se doplní termín v hranatých závorkách. E-mail ani jiný kontakt do repa nepíšeme,
+testeři odpoví na zprávu, se kterou betu dostanou. Liborovi a Petrovi přidat žádost o souhlasy podle
+`docs/vydani/souhlasy.md`, Liborovi i prosbu o aktuální verze jeho softwaru (MikroMon, MIKROBIOS, dema a programy
+v `docs/vydani/sestavy.md`). Po jejich odpovědích přijde úprava a 0.7.1-beta jako první veřejná verze (cesta vydání:
+`docs/vydani/plan-vzhled.md`, etapa 6 pod „→ BETA zip“). Soubor je v `docs/vydani/`, do veřejného zipu proto nejde.
 
 ---
 
 ## SAPIemu beta: prosba o vyzkoušení
 
-Posílám betaverzi SAPIemu [0.x.0-beta], emulátoru Tesla SAPI-1. Je to poslední testovací verze před zveřejněním.
+Posílám betaverzi SAPIemu 0.7.0-beta, emulátoru Tesla SAPI-1. Po úpravách podle vašich připomínek z ní bude
+0.7.1-beta, první veřejná verze na GitHubu.
 Novinky: vzhled (Windows 11, světlý i tmavý), výběr sestav s náhledy, průvodci sestavami a bezpečnější ukládání.
 Nejde mi o pochvalu, ale o to, kde se člověk, který program vidí poprvé, zasekne. Zabere to asi půl hodiny,
 odpověď prosím do [datum].

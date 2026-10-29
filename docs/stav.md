@@ -51,7 +51,7 @@ sériové kanály. Hodí se při ladění (zastavit těsně před chybou a vrace
 ## Formát
 
 Binární soubor: `SAPISTAT`, formát (32 bitů), od formátu 2 verze SAPIemu, která stav uložila (řetězec, např.
-`0.7.0-alpha`), pak popis sestavy a soubor sestavy (řetězce). Pak pojmenované bloky s délkou: `bus`,
+`0.7.0-beta`), pak popis sestavy a soubor sestavy (řetězce). Pak pojmenované bloky s délkou: `bus`,
 `card X<slot> <typ>` po slotech, `keyboard`, `serial <n>`, `plant` (technologie APS-5: teploty pecí, poruchy, vstupy,
 graf; měřicí pracoviště IMS-2: zdroj, voltmetr, vodiče sběrnice a její monitor). Čísla jsou little endian.
 
@@ -64,10 +64,10 @@ graf; měřicí pracoviště IMS-2: zdroj, voltmetr, vodiče sběrnice a její m
 - **Stavy z alf:** načtou se stavy od alfy 0.3.0 (ověřeno stavem z 2026-10-17). Alfy 0.1.0 a 0.2.0 mají formát 1
   také, ale `state()` klávesnice a DSM-1V se 2026-10-06 změnilo (blok klávesnice 70 → 124 B, DSM-1V 292 → 342 B).
   Takový stav projde hlavičkou a selže až v kartách: běžící sestava se vrátí (níže) a GUI řekne „Stav uložila jiná
-  verze SAPIemu (starší alfa), toto je verze 0.7.0-alpha.“ Je to známé omezení, ne chyba.
+  verze SAPIemu (starší alfa), toto je verze 0.7.0-beta.“ Je to známé omezení, ne chyba.
 - **Stav jiného formátu** (novější verze SAPIemu, nebo tak stará, že ji tato už nečte) se odmítne hned po hlavičce,
   ještě před `load_config`: běžící sestava se nedotkne. GUI to řekne česky („Uložila ho novější verze SAPIemu
-  (0.9.0). Tato verze (0.7.0-alpha) ho neumí přečíst.“), MCP a `sapiemu-cli` anglicky.
+  (0.9.0). Tato verze (0.7.0-beta) ho neumí přečíst.“), MCP a `sapiemu-cli` anglicky.
 - **Stav, který nesedí až v kartách** (karta jiné verze čte jiná data, popis se tu nedá postavit, poškozený
   soubor): `EmuHost::load_state` si před přepnutím uloží stav běžící sestavy do paměti a po chybě ji z něj postaví
   znovu, jak byla (paměti, obrazovka, breakpointy, pauza). Vypnutý stroj zůstane vypnutý. GUI k chybě připíše, že

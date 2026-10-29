@@ -69,6 +69,8 @@ static void print_help(void)
            "                     --ui-window-item KEY: the item of the window ###KEY in View or Debug clicked (Media,\n"
            "                     Debugger, rack...; repeated: one after another), --ui-front KEY: View -> Windows, that\n"
            "                     window (with --ui-window-item in the order given),\n"
+           "                     --ui-switch MACHINE: that machine started in the run (as from Choose a machine;\n"
+           "                     repeated: one after another),\n"
            "                     --ui-layout-switch: View -> Settings -> Windows, the other layout (its own places),\n"
            "                     --ui-fullscreen: Alt+Enter, the display used last alone in the window (the right click\n"
            "                     menu with --ui-screen-menu; given twice: on and off again),\n"
@@ -259,6 +261,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-arrange") snap.arrange = true;
         else if (a == "--ui-window-item" && i + 1 < argc) snap.window_clicks.push_back(argv[++i]);
         else if (a == "--ui-front" && i + 1 < argc) snap.window_clicks.push_back("front:" + argv[++i]);
+        else if (a == "--ui-switch" && i + 1 < argc) snap.switches.push_back(argv[++i]);
         else if (a == "--ui-layout-switch") snap.layout_switch = true;
         else if (a == "--ui-fullscreen") snap.fullscreen++;
         else if (a == "--ui-pause") snap.pause = true;

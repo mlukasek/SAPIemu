@@ -73,7 +73,8 @@ std::string machine_index_fold(const std::string& s)
 // The texts of a machine the search looks in, one per line: a filter does not match across two of them.
 static std::string search_text(const MachineEntry& e)
 {
-    return e.file + "\n" + e.name + "\n" + e.title + "\n" + e.title_en + "\n" + e.summary + "\n" + e.summary_en;
+    return e.file + "\n" + e.name + "\n" + e.name_en + "\n" + e.title + "\n" + e.title_en + "\n" + e.summary + "\n" +
+           e.summary_en;
 }
 
 bool machine_index_matches(const MachineEntry& e, const char* filter)
@@ -131,6 +132,7 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
         e.title_en = jstr(t, "title_en");
         e.summary = jstr(t, "summary");
         e.summary_en = jstr(t, "summary_en");
+        e.name_en = jstr(t, "name_en");
     }
     std::vector<bool> placed(out.machines.size(), false);
     std::vector<std::string> titles(out.machines.size());   // the titles of categories, for the search

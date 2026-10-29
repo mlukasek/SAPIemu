@@ -242,13 +242,21 @@ static std::string media_image(Machine* m, Card* c, int u)
     return std::string();
 }
 
-static bool media_original(Machine* m, Card* c, int u, std::string& orig, std::string& work)
+// The medium of unit `u` is a file of media/ used through a working copy (the description only, no look at the disk:
+// asked every frame by the "..." button).
+static bool media_copied(Machine* m, Card* c, int u, std::string& img)
 {
-    std::string img = media_image(m, c, u);
+    img = media_image(m, c, u);
     for (char& ch : img) if (ch == '\\') ch = '/';
     nlohmann::json* cc = m ? m->card_config(c) : nullptr;
     bool copies = !cc || cc->value("working_copy", true);
-    if (!copies || img.rfind("media/", 0) != 0) return false;
+    return copies && img.rfind("media/", 0) == 0;
+}
+
+static bool media_original(Machine* m, Card* c, int u, std::string& orig, std::string& work)
+{
+    std::string img;
+    if (!media_copied(m, c, u, img)) return false;
     orig = data_path(img);
     work = data_path("work/" + img.substr(6));
     return file_exists(orig);
@@ -258,23 +266,25 @@ static std::string s_restore_card;   // Restore from the original: asked in a mo
 static int s_restore_unit = -1;
 static bool s_restore_open = false;
 
-// The "..." button after Eject: Eject without saving (the changes still in memory are thrown away),
-// Restore from the original (the working copy in work/ gets the file of media/ again).
-static void media_more(UiState& ui, Card* c, int u, bool has)
+// The "..." button after Eject: Restore from the original (the working copy in work/ gets the file of media/
+// again). No "Eject without saving": the media are saved while running (a few seconds after the last write), it
+// would throw away only the last seconds (decided 2026-10-29). Disabled when the medium is not from media/ (an empty
+// drive, an own file): its only item could not be used.
+static void media_more(UiState& ui, Card* c, int u)
 {
     Machine* m = ui.host->machine();
+    std::string img;
+    bool copied = media_copied(m, c, u, img);
     ImGui::SameLine();
+    ImGui::BeginDisabled(!copied);
     if (ImGui::Button("...##more")) ImGui::OpenPopup("more");
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Eject without saving, restore from the original"));
-    if (!ImGui::BeginPopup("more")) return;
-    if (ImGui::MenuItem(tr("Eject without saving"), nullptr, false, has)) {
-        c->media_discard(u);
-        media_set(ui, c, u, "");
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        if (copied) ImGui::SetTooltip("%s", tr("Restore from the original"));
+        else ImGui::SetTooltip("%s\n%s", tr("Restore from the original"),
+                               tr("Only for media of media/ used through a working copy."));
     }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("What was written on it and is not saved yet is thrown away (the media are saved a few "
-                                   "seconds after the last write). A medium of media/ comes back with Restore from the "
-                                   "original."));
+    if (!ImGui::BeginPopup("more")) return;
     std::string orig, work;
     bool can = media_original(m, c, u, orig, work);
     if (ImGui::MenuItem(tr("Restore from the original..."), nullptr, false, can)) {
@@ -484,7 +494,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     ImGui::BeginDisabled(!t->loaded());
     if (ImGui::Button(tr("Eject"))) media_set(ui, dsm, 0, "");
     ImGui::EndDisabled();
-    media_more(ui, dsm, 0, t->loaded());
+    media_more(ui, dsm, 0);
     ImGui::BeginDisabled(!t->loaded());
     ImGui::SameLine();
     if (ImGui::Button(tr("Save as WAV..."))) tape_dialog(ui, 9, dsm->name);
@@ -627,7 +637,7 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
     ImGui::BeginDisabled(!has);
     if (ImGui::Button(tr("Eject"))) media_set(ui, card, 0, "");
     ImGui::EndDisabled();
-    media_more(ui, card, 0, has);
+    media_more(ui, card, 0);
     ImGui::BeginDisabled(!has);
     ImGui::SameLine();
     if (ImGui::Button(tr("Turn over"))) k->flip();
@@ -967,7 +977,7 @@ static void draw_floppies(UiState& ui, Card* r)
         ImGui::BeginDisabled(!d.present());
         if (ImGui::Button(tr("Eject"))) media_set(ui, r, i, "");
         ImGui::EndDisabled();
-        media_more(ui, r, i, d.present());
+        media_more(ui, r, i);
         ImGui::BeginDisabled(!d.present());
         ImGui::SameLine();
         ImGui::Checkbox(tr("Write protect"), &d.write_protect);
@@ -1064,7 +1074,7 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         ImGui::BeginDisabled(!c.loaded);
         if (ImGui::Button(tr("Eject"))) media_set(ui, r, i, "");
         ImGui::EndDisabled();
-        media_more(ui, r, i, c.loaded);
+        media_more(ui, r, i);
         ImGui::BeginDisabled(!c.loaded);
         ImGui::SameLine();
         ImGui::Checkbox(tr("Write protect"), &c.write_protect);
@@ -1369,7 +1379,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && u.online)
         ImGui::SetTooltip("%s", tr("Switch the drive OFF-LINE first."));
     ImGui::BeginDisabled(u.online);
-    media_more(ui, r, i, t.loaded);
+    media_more(ui, r, i);
     ImGui::EndDisabled();
     ImGui::SameLine();
     ImGui::BeginDisabled(u.loaded);

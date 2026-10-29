@@ -28,7 +28,7 @@ enum { STATE_FORMAT = 2, STATE_FORMAT_MIN = 1 };
 
 struct StateOrigin {
     uint32_t format = 0;
-    std::string app;   // the version of SAPIemu that saved it ("0.7.0-alpha"); empty in format 1 (the alphas before)
+    std::string app;   // the version of SAPIemu that saved it ("0.7.0-beta"); empty in format 1 (the alphas before)
 };
 
 class Machine {

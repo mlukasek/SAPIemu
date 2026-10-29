@@ -444,12 +444,6 @@ static const Translation k_table[] = {
     { "Shows the exact card type on each panel. The panels are drawn after Libor Lasota's modernised cabinet with labelled panels; the original Tesla SAPI-1 had bare cards behind a cover panel.",
       "Ukáže na každém panelu přesný typ karty. Panely jsou nakreslené podle modernizované skříně Libora Lasoty s popsanými panely, původní Tesla SAPI-1 měl holé karty za krycím panelem." },
     { "Machine configurator...", "Konfigurátor sestavy…" },
-    { "Eject without saving, restore from the original", "Vysunout bez uložení, obnovit z originálu" },
-    { "Eject without saving", "Vysunout bez uložení" },
-    { "What was written on it and is not saved yet is thrown away (the media are saved a few seconds after the last "
-      "write). A medium of media/ comes back with Restore from the original.",
-      "Co se na médium zapsalo a ještě se neuložilo, se zahodí (média se ukládají pár sekund po posledním zápisu). "
-      "Médium z media/ vrátí Obnovit z originálu." },
     { "Restore from the original...", "Obnovit z originálu…" },
     { "The working copy in work/ is replaced by the original in media/.", "Pracovní kopie ve work/ se nahradí originálem z media/." },
     { "Only for media of media/ used through a working copy.", "Jen u médií z media/, se kterými se pracuje přes pracovní kopii." },

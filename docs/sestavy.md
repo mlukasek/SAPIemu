@@ -26,7 +26,8 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
     (vlastní), jsou na konci v „Nezařazené a vlastní sestavy“. Titulek (`title`, v angličtině `title_en`, jinak
     jméno ze `.sapi`) je i v titulku okna, v Soubor → Poslední sestavy a v konfigurátoru (`machine_title()`, od
     etapy 7 plánu vzhledu). `title_en` proto potřebuje každá sestava, jejíž jméno má česká slova; sestava s čistě
-    technickým jménem ne.
+    technickým jménem ne. Pod titulkem ukazuje okno Vybrat sestavu dlouhé jméno ze `.sapi`, když se liší; `name_en`
+    je jeho anglická podoba (sestavy ECMON s výčtem karet, od 2026-10-29).
 - **Náhledy** `machines/previews/<id>.png`, kde `<id>` je cesta v `machines/` bez `.sapi` a s `_` místo `/`
   (`zps_ZPS-1`). Vyrábí je `python tools/make_previews.py [--debug] [--instruments] [filtr…]`: sestavu spustí
   scénářem z `tools/check_machines.py` (nebo z `PREVIEWS` ve skriptu) nad čistou kopií dat a obrazovku zmenší na
@@ -159,8 +160,9 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
     označí jako neuloženou;
   - u pásky, kazety RKD-1 a kazety KZD-1 je vedle „…“ tlačítko **Nová…** (nový soubor = prázdné médium) a nabídka
     obrazů ukazuje i soubory, které leží ve složkách navržených obrazů (třeba `work/rmp-1`);
-  - v okně Média je u každého média tlačítko „…“ s položkami **Vysunout bez uložení** a **Obnovit
-    z originálu** (pracovní kopii ve `work/` přepíše originál z `media/`, s potvrzením). Uložit je potřeba
+  - v okně Média je u každého média tlačítko „…“ s položkou **Obnovit z originálu** (pracovní kopii ve `work/`
+    přepíše originál z `media/`, s potvrzením; „…“ je aktivní jen u média z `media/`; Vysunout bez uložení zmizelo
+    2026-10-29, média se ukládají průběžně). Uložit je potřeba
   jako každou změnu sestavy. Při přepnutí z `rw` se RAM disk nejdřív uloží, po přepnutí na `rw` se uloží jeho
   aktuální obsah.
 - **Nová:** prázdná sestava, nebo kopie šablony či jiné sestavy (uloží se přes „Uložit jako…“).
@@ -462,6 +464,8 @@ dvakrát zapne a zase vypne), `--ui-reset-layout` Zobrazení → Výchozí rozlo
 Přeskládat otevřená okna, `--ui-window-item KLÍČ` klikne na položku okna `###KLÍČ` v menu Zobrazení nebo Ladění
 (`Media`, `Debugger`, `rack`…: zakryté okno dá dopředu, okno vpředu zavře; víc jich po sobě), `--ui-front KLÍČ`
 klikne na to okno v Zobrazení → Okna (s `--ui-window-item` v zadaném pořadí),
+`--ui-switch SESTAVA` spustí za běhu další sestavu jako Spustit v okně Vybrat sestavu (víc jich po sobě, po čtyřech
+snímcích; okna displejů se přizpůsobí novému obrazu),
 `--ui-layout docked` (nebo `floating`) okna zadokovaná či plovoucí jen pro toto spuštění, `--ui-layout-switch`
 přepne rozložení jako volba v Zobrazení → Nastavení → Okna (se stejným `--settings` mezi spuštěními ukáže, že se
 vrátí místa oken druhého rozložení),

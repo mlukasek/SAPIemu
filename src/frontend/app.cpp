@@ -45,6 +45,7 @@ struct ZoomState {
     float fixed = 0;   // chosen zoom, 0 = fit the window
     int request = 0;   // percent chosen: resize the window before its next Begin
     ImVec2 size;       // window size set for `fixed`
+    bool user = false;   // sized by hand in this run (after the last zoom chosen): a machine change keeps its size
 };
 const int k_zoom_steps[] = { 100, 200, 300, 400 };
 const float k_display_pad = 4.0f;   // window padding of the display windows
@@ -77,6 +78,9 @@ struct App {
     float plan_key[5] = {};       // the framebuffer scale, the zoom chosen for the output and the windows beside it do
                                   // not change
     unsigned plan_flags = 0;
+    // refit_displays: the machine generation seen, the machine file and its displays whose sizes the windows have
+    uint64_t fit_gen = ~0ull;
+    std::string fit_sig;
     std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
     // the display used last (Ctrl+F5, View -> Screen zoom, Alt+Enter): the display window focused last, at a machine start
     // its main output; -1 the console screen, k = gfx[k]
@@ -869,6 +873,7 @@ void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
     ImGui::SetNextWindowSize(s);
     zs.fixed = k;
     zs.size = s;
+    zs.user = false;   // the size of the zoom chosen: a machine change gives the new picture that zoom (refit_displays)
 }
 
 // The graphic displays of the machine that have a window (draw_screens): the window ###gfx<k> shows out[k].
@@ -1043,13 +1048,12 @@ static void plan_layout(App& app)
 // display not much larger than the main output: its picture at most 1.5 x as wide and as high as that of the main output
 // (down to 1:1; a game's CGA-1V at 200 % stays the largest, the AND-1V of its console menu goes to 100 %, DGD-1 beside
 // AND-1 keeps 200 %). A zoom chosen from the menu (zs.fixed, kept by View -> Arrange open windows) stays.
-static void place_display(App& app, DisplayDevice* d, const char* id, const ZoomState& zs)
+// The zoom the layout gives the display d of window `id` by itself (place_display, refit_displays): the main output that
+// of plan_layout; another display the largest integer zoom up to display_zoom_cap that fits the work area (half its
+// height when the machine opens an instrument or Media beside it), its picture at most 1.5 x as wide and as high as that
+// of the main output (down to 1:1).
+static float display_layout_zoom(App& app, DisplayDevice* d, const char* id)
 {
-    if (!layout_first_use(id)) return;
-    if (!d) {
-        layout_display(id, app.main_w, app.main_w * 0.75f, 0, 0, 0);
-        return;
-    }
     Machine* m = app.host.machine();
     DisplayDevice* gfx[MAX_GFX_VIEWS];
     int n = graphic_displays(m, gfx);
@@ -1057,28 +1061,85 @@ static void place_display(App& app, DisplayDevice* d, const char* id, const Zoom
     char main_id[16];
     if (app.main_output >= 0) snprintf(main_id, sizeof(main_id), "###gfx%d", app.main_output);
     else snprintf(main_id, sizeof(main_id), "###screen");
-    float k;
-    if (zs.fixed > 0) {
-        k = zs.fixed;
-    } else if (!strcmp(id, main_id) && app.main_k > 0) {
-        k = app.main_k;   // the main output where another window is already: its zoom, or less where there is room
-    } else {
-        float w, h, gap;
-        layout_work_size(&w, &h, &gap);
-        if (machine_side_width(app, m) > 0) h = (h - gap) * 0.5f;
-        k = display_fit_zoom(app, d, w, h);
-        if (k > display_zoom_cap(app)) k = display_zoom_cap(app);
-        if (md && md != d && app.main_k > 0) {
-            ImVec2 mz = display_window_size(app, md, 0.0f), ms = display_window_size(app, md, app.main_k);
-            ImVec2 z = display_window_size(app, d, 0.0f);
-            for (; k > 1.0f; k -= 1.0f) {
-                ImVec2 s = display_window_size(app, d, k);
-                if (s.x - z.x <= 1.5f * (ms.x - mz.x) + 0.5f && s.y - z.y <= 1.5f * (ms.y - mz.y) + 0.5f) break;
-            }
+    if (!strcmp(id, main_id) && app.main_k > 0) return app.main_k;
+    float w, h, gap;
+    layout_work_size(&w, &h, &gap);
+    if (machine_side_width(app, m) > 0) h = (h - gap) * 0.5f;
+    float k = display_fit_zoom(app, d, w, h);
+    if (k > display_zoom_cap(app)) k = display_zoom_cap(app);
+    if (md && md != d && app.main_k > 0) {
+        ImVec2 mz = display_window_size(app, md, 0.0f), ms = display_window_size(app, md, app.main_k);
+        ImVec2 z = display_window_size(app, d, 0.0f);
+        for (; k > 1.0f; k -= 1.0f) {
+            ImVec2 s = display_window_size(app, d, k);
+            if (s.x - z.x <= 1.5f * (ms.x - mz.x) + 0.5f && s.y - z.y <= 1.5f * (ms.y - mz.y) + 0.5f) break;
         }
     }
+    return k;
+}
+
+static void place_display(App& app, DisplayDevice* d, const char* id, const ZoomState& zs)
+{
+    if (!layout_first_use(id)) return;
+    if (!d) {
+        layout_display(id, app.main_w, app.main_w * 0.75f, 0, 0, 0);
+        return;
+    }
+    // a zoom chosen from the menu; the main output where another window is already: its zoom, or less where there is room
+    float k = zs.fixed > 0 ? zs.fixed : display_layout_zoom(app, d, id);
     ImVec2 zero = display_window_size(app, d, 0.0f), one = display_window_size(app, d, 1.0f);
     layout_display(id, zero.x, zero.y, one.x - zero.x, one.y - zero.y, k, zs.fixed > 0);
+}
+
+// A machine change (author 2026-10-29: after choosing a machine its AND-1Z showed at 100 % in a window much larger than
+// the picture): every display window of the new machine keeps its place and takes the size of its new picture at the
+// zoom the layout gives it (display_layout_zoom: the cap, the small border), as at the first start and after View ->
+// Default window layout; inside the work area, a lower zoom when it does not fit (layout_refit). A window given a zoom
+// from the menu (zs.fixed) takes the size of its new picture at that zoom (fit to the window again when it does not fit
+// the work area). Not a window sized by hand in this run (ZoomState::user), docked, or taking its first place now. The
+// first machine of the run keeps the saved sizes (imgui.ini); a restart of the same machine (the same file, the same
+// display cards) and switching off and on change nothing. Before the windows of the frame, after plan_layout (main_k):
+// the windows opening now see the new sizes.
+static void refit_displays(App& app)
+{
+    Machine* m = app.host.machine();
+    uint64_t gen = app.host.machine_generation();
+    // switched off, full screen, minimized: later; a machine loaded in this frame (a menu): after its windows open
+    // (open_machine_windows at the next frame, machine_side_width)
+    if (gen == app.fit_gen || gen != app.title_gen || !m || layout_held()) return;
+    app.fit_gen = gen;
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    std::string sig = app.host.machine_file();
+    for (int k = -1; k < n; k++) {
+        DisplayDevice* d = k < 0 ? m->display : gfx[k];
+        char part[96];
+        if (d) snprintf(part, sizeof(part), "|%s %dx%d", display_name(d, "?"), d->screen_width(), d->screen_height());
+        else snprintf(part, sizeof(part), "|-");
+        sig += part;
+    }
+    bool first = app.fit_sig.empty();
+    if (sig == app.fit_sig) return;
+    app.fit_sig = sig;
+    if (first) return;
+    float w, h, gap;
+    layout_work_size(&w, &h, &gap);
+    for (int k = -1; k < n; k++) {
+        DisplayDevice* d = k < 0 ? m->display : gfx[k];
+        ZoomState& zs = display_zoom(app, k);
+        if (!d || zs.user) continue;
+        char id[16];
+        if (k >= 0) snprintf(id, sizeof(id), "###gfx%d", k);
+        else snprintf(id, sizeof(id), "###screen");
+        float z = zs.fixed > 0 ? zs.fixed : display_layout_zoom(app, d, id), fit = display_fit_zoom(app, d, w, h);
+        if (z > fit) {
+            z = fit;
+            zs.fixed = 0;   // the zoom chosen does not fit the work area: the picture fits its window
+        }
+        ImVec2 s = display_window_size(app, d, z);
+        if (zs.fixed > 0) zs.size = s;   // zoom_track: the window keeps the zoom chosen
+        layout_refit(id, s.x, s.y);
+    }
 }
 
 static const MachineWindow k_machine_windows[] = {
@@ -1292,6 +1353,15 @@ static void reset_window_layout(App& app, bool open_only)
             v.zs.request = 0;
         }
     }
+    // the displays have the sizes of the layout again (Arrange: the open ones; a zoom chosen stays): not sized by hand
+    for (int k = -1; k < MAX_GFX_VIEWS; k++) {
+        char id[16];
+        if (k >= 0) snprintf(id, sizeof(id), "###gfx%d", k);
+        else snprintf(id, sizeof(id), "###screen");
+        ImGuiWindow* w = ImGui::FindWindowByName(id);
+        ZoomState& zs = display_zoom(app, k);
+        if (!open_only || (w && (w->Active || w->WasActive))) zs.user = false;
+    }
     if (layout_docked(app)) {
         dock_layout(app);
         return;
@@ -1302,9 +1372,17 @@ static void reset_window_layout(App& app, bool open_only)
     app.ui.rack_auto = !app.ui.show_rack;
 }
 
-// After Begin: resizing the window by hand (or docking it) goes back to fitting.
+// After Begin: resizing the window by hand (or docking it) goes back to fitting. A resize grip or border of the window
+// held: it is sized by hand (zs.user; not the sizes the program gives it: the layout, a machine change, the work area).
 void zoom_track(ZoomState& zs)
 {
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* w = g.CurrentWindow;
+    if (!zs.user && g.ActiveId && g.ActiveIdWindow == w && !w->DockIsActive)
+        for (int n = 0; n < 4; n++)
+            if (g.ActiveId == ImGui::GetWindowResizeCornerID(w, n) ||
+                g.ActiveId == ImGui::GetWindowResizeBorderID(w, (ImGuiDir)n))
+                zs.user = true;
     if (!zs.fixed) return;
     ImVec2 s = ImGui::GetWindowSize();
     if (s.x < zs.size.x - 1.5f || s.x > zs.size.x + 1.5f || s.y < zs.size.y - 1.5f || s.y > zs.size.y + 1.5f)
@@ -2901,7 +2979,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                                                                         ImGuiDockNodeFlags_NoCloseButton);
         IM_ASSERT(app.dockspace_id == layout_dockspace_id());   // the docked layout is built into this one
         draw_menu(app);   // the menu bar first: the work area of the windows is below it
+        layout_keep_inside();   // the windows outside a work area that got smaller come back into it
         plan_layout(app);
+        refit_displays(app);   // a machine change: the display windows the size of their new pictures
         // The order is the order in which the windows take their first places (layout.cpp): the displays, the
         // instruments and Media (the machine opens them), the guide beside them, the tools, the dialogs.
         draw_screens(app);
@@ -3012,6 +3092,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (snap && snap_frames >= 9 && (snap_frames - 9) % 2 == 0 && (snap_frames - 9) / 2 < clicks)
             app.snap_click = snap->window_clicks[(size_t)(snap_frames - 9) / 2];
         int clicks_end = 10 + 2 * clicks;
+        // --ui-switch: a machine started every fourth frame from the ninth, the picture four frames after the last
+        int switches = snap ? (int)snap->switches.size() : 0;
+        if (snap && snap_frames >= 9 && (snap_frames - 9) % 4 == 0 && (snap_frames - 9) / 4 < switches)
+            rack_start_machine(app.ui, data_relative(data_path(snap->switches[(size_t)(snap_frames - 9) / 4])));
         if (snap && snap_frames >= 8 && snap->mouse_x >= 0) io.AddMousePosEvent(snap->mouse_x, snap->mouse_y);
         if (snap && snap_frames >= 10 && snap_frames < keys_end)
             snap_key(app, snap->keys[(size_t)(snap_frames - 10) / 2], (snap_frames - 10) % 2 == 0);
@@ -3047,7 +3131,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (snap_frames == 10 && snap->drag_drop) io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
         }
         if (snap && snap_frames >= 12 && snap_frames >= keys_end + 2 && snap_frames >= clicks_end + 2 &&
-            !(snap->video > 0 && video_busy(app.ui))) {
+            snap_frames >= 9 + 4 * switches && !(snap->video > 0 && video_busy(app.ui))) {
             // window content as PNG (our own renderer, not the screen)
             SDL_Rect crop, *rect = nullptr;   // --ui-crop: only that window (previews of machines)
             if (!snap->crop.empty()) {

@@ -166,6 +166,7 @@ vzhledu: okna):
     má obraz nejvýš 1,5× širší a vyšší než hlavní výstup (`place_display`; konzole AND-1V her 100 % vedle CGA-1V
     200 %, DGD-1 vedle AND-1 200 %). Displej se zoomem zvoleným v menu (`zs.fixed`, po Přeskládat otevřená okna)
     dostane místo přesně v tom zvětšení (`layout_display(..., exact)`, hlavní výstup i v plánu, klíč plánu ho má).
+    Zvětšení dalšího displeje počítá `display_layout_zoom` (i pro změnu sestavy).
   - Pořadí míst stejně dobrých (`Want.order`): displeje vlevo, pak nahoře (pod hlavní výstup, jinak vedle něj),
     průvodce nahoře, pak vlevo (vedle displejů), ostatní vpravo, pak nahoře. Pravý kraj tak zůstane přístrojům,
     Médiím a nástrojům.
@@ -181,6 +182,28 @@ vzhledu: okna):
     neotevírá.
   - Pořadí kreslení v `app_run`: hlavní výstup, další displeje, přístroje, Média, průvodce, nástroje, dialogy.
     Okno dostane místo až po oknech, kterým se má vyhnout.
+  - Okno Vybrat sestavu má poprvé asi 75 × 80 % plochy, aspoň 58 × 38 výšek písma (od 2026-10-29). Uložená velikost
+    platí dál.
+  - **Změna sestavy** (`refit_displays` v `app.cpp`, po `plan_layout`, před okny; od 2026-10-29, autor: AND-1Z
+    100 % v okně mnohem větším než obraz): okna displejů nové sestavy (`###screen` a `###gfxN` jsou stejná okna pro
+    všechny sestavy) si nechají místo a dostanou velikost nového obrazu ve zvětšení, které by dalo rozložení
+    (`display_layout_zoom`: hlavní výstup `main_k`, další displej podle stropu, plochy a 1,5× hlavního výstupu),
+    s malým okrajem, uvnitř plochy (`layout_refit`, nevejde-li se, menší zvětšení). Okno se zvětšením zvoleným v menu
+    (`ZoomState::fixed`) dostane velikost nového obrazu v tomto zvětšení (`zs.size` pro `zoom_track`); nevejde-li se
+    na plochu, přizpůsobí se oknu (`fixed` = 0). Ne okno, které uživatel v tomto běhu zvětšil rukou
+    (`ZoomState::user`: držený úchyt nebo okraj okna po `Begin` v `zoom_track`; volba zvětšení `zoom_resize`, Výchozí
+    rozložení oken a Přeskládat otevřená okna příznak smažou), zadokované okno a okno, které teď dostává první místo.
+    První sestava běhu nechá
+    velikosti z `imgui.ini`. Restart stejné sestavy a vypnutí a zapnutí nic nemění (podpis `app.fit_sig` = soubor
+    a karty displejů s rozměry obrazu). Sestava spuštěná v menu uprostřed snímku se přizpůsobí až v dalším snímku,
+    po otevření jejích oken (`machine_side_width`).
+  - **Okna mimo plochu** (`layout_keep_inside` po liště menu, od 2026-10-29): když má plocha novou velikost (start,
+    zmenšené okno, menší monitor) a vydrží ji 3 snímky, každé plovoucí okno (otevřené i zavřené v tomto běhu)
+    a každé uložené místo okna, které ještě nevzniklo (`ImGuiWindowSettings`), víc než napůl mimo plochu se vrátí
+    dovnitř s mezerou rozložení, posunuté co nejméně; dialog (`ROLE_DIALOG`: Vybrat sestavu, Nastavení…) i jen
+    částečně mimo (`to_bring_inside`; uložený velký výběr sestav by na menší ploše skryl křížek). Velikost zůstane,
+    jen co se nevejde, se zmenší. Ne zadokovaná okna, záznamy podřízených oken (`IsChild`, seznam ve Vybrat sestavu
+    má jen velikost), okna s prvním místem a za celé obrazovky nebo minimalizace (rozhodne se po návratu).
   - Plán se přepočítá jen po změně sestavy, plochy, písma nebo měřítka. `layout_hold` za celé obrazovky
     a minimalizace první místa odloží.
   - Zobrazení → Výchozí rozložení oken smaže i záznamy oken, která ještě nevznikla (`WantDelete`).
@@ -225,8 +248,8 @@ vzhledu: okna):
   z výchozích míst a soubory míst nečte ani nezapisuje. Pro snímky jsou `--ui-layout-switch` (přepne jako volba
   v Nastavení), `--ui-fullscreen` (Alt+Enter, okno zůstane velikosti `--ui-size`), `--ui-zoom`, `--ui-reset-layout`,
   `--ui-arrange` (Přeskládat otevřená okna), `--ui-window-item KLÍČ` (kliknutí na položku okna `###KLÍČ` v menu
-  Zobrazení nebo Ladění, opakovaně po sobě), `--ui-front KLÍČ` (to okno v Zobrazení → Okna) a `--ui-menu View/Windows`
-  (otevřená podnabídka). Popis voleb `--ui-*` je v `docs/sestavy.md`.
+  Zobrazení nebo Ladění, opakovaně po sobě), `--ui-front KLÍČ` (to okno v Zobrazení → Okna), `--ui-switch SESTAVA`
+  (spuštění další sestavy za běhu, opakovaně po sobě) a `--ui-menu View/Windows` (otevřená podnabídka). Popis voleb `--ui-*` je v `docs/sestavy.md`.
 
 ## Linux (ověřeno ve WSL 2, 2026-10-06)
 
@@ -345,7 +368,7 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 
 ## Vydání (release)
 
-1. **Verze:** `project(SAPIemu VERSION ...)` a `SAPIEMU_VERSION_SUFFIX` (`-alpha`) v `CMakeLists.txt`.
+1. **Verze:** `project(SAPIemu VERSION ...)` a `SAPIEMU_VERSION_SUFFIX` (`-beta`, dřív `-alpha`) v `CMakeLists.txt`.
    `sapiemu --version` ji ukáže, na Windows je i ve vlastnostech exe (VERSIONINFO z `src/res/sapiemu.rc.in`, ikona
    `src/res/sapiemu.ico` z `tools/make_icon.py`).
 2. **Build:** `tools\build.cmd release test`. Runtime MSVC je přilinkovaný (`CMAKE_MSVC_RUNTIME_LIBRARY`), takže exe

@@ -352,6 +352,16 @@ void layout_main(const char* id, float w, float h, int gfx_count);
 // from the menu, View -> Arrange open windows): in the free room, else clear of the other displays covering the least.
 void layout_display(const char* id, float zero_w, float zero_h, float step_w, float step_h, float k_max,
                     bool exact = false);
+// A machine change (app.cpp, before the windows): the display window `id` keeps its place and takes the size w x h
+// (pixels), moved into the work area (smaller only when it does not fit). Not a window that takes its first place now
+// (nor one neither created nor saved) or a docked one. Before the windows: those opening later see the new size.
+void layout_refit(const char* id, float w, float h);
+// Every frame after the menu bar, before the windows (app.cpp): when the work area has a new size (the start, the main
+// window resized, moved to a smaller monitor) for a few frames, every floating window and every saved place of a window
+// not created yet that is more than half outside it (a dialog: any part) comes back inside with the gap of the layout,
+// the least move, its size kept unless it does not fit (then smaller). Not while the windows take no first places (full
+// screen, minimized).
+void layout_keep_inside(void);
 // View -> Default window layout: the saved places of the windows not created in this run are forgotten too.
 void layout_forget_closed(void);
 // The window places of the other layout just loaded (View -> Settings -> Windows): the windows that have none in it take

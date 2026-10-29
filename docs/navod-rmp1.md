@@ -66,9 +66,8 @@ Vpravo jsou tlačítka:
 - **Vložit…**;
 - **Nová páska…** (prázdná páska, nový soubor `.tap`);
 - **Vysunout** (jen OFF-LINE);
-- **…** s položkami:
-  - **Vysunout bez uložení**: co se na pásku zapsalo a ještě neuložilo (posledních pár sekund), se zahodí;
-  - **Obnovit z originálu**: pracovní kopie pásky z `media\` se přepíše originálem.
+- **…** s položkou **Obnovit z originálu**: pracovní kopie pásky z `media\` se přepíše originálem. Co se na pásku
+  zapíše, se do souboru uloží pár sekund po posledním zápisu.
 
 Zaškrtávátko **Kroužek zápisu** povoluje zápis. Bez kroužku jednotka hlásí WPT a nezapíše. Kroužek jde změnit,
 jen když páska není zavedená.

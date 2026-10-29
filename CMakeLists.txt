@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(SAPIemu VERSION 0.7.0 LANGUAGES C CXX)
-set(SAPIEMU_VERSION_SUFFIX "-alpha")   # release stage, shown with the version
+set(SAPIEMU_VERSION_SUFFIX "-beta")    # release stage, shown with the version
 
 # MSVC: the C runtime linked in (no Visual C++ redistributable needed on other PCs);
 # set before any target, SDL3 from FetchContent follows it

@@ -269,7 +269,8 @@ static void details(UiState& ui, const MachineEntry& e)
     std::string title = ui.browser_sel_title.empty() || ui.browser_sel != e.file ? entry_name(e) : ui.browser_sel_title;
     theme_heading(title.c_str());
     if (title != entry_name(e)) text_dim_wrapped(entry_name(e));
-    if (entry_name(e) != e.name) text_dim_wrapped(e.name);
+    const std::string& name = pick(e.name, e.name_en);   // the long name of the file (in English from the index)
+    if (entry_name(e) != name) text_dim_wrapped(name);
     const std::string& sum = pick(e.summary, e.summary_en);
     if (!sum.empty()) ImGui::TextWrapped("%s", sum.c_str());
     if (rack_has_kept(ui, e.file)) {   // the preview and the cards below show the file, the start does not

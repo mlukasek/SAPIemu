@@ -280,8 +280,8 @@ Windows mezi světlým a tmavým za běhu, přesun okna mezi monitory s různým
 etapa 4 plánu vzhledu: ovládání). Body 1–9 jsou hotové, s těmito rozdíly:
 - Vypnout a zapnout nenačítá soubor jako Restartovat, zapne sestavu, jak běžela (jako skutečný vypínač).
 - Vracení klávesnice platí jen pro akce z bodu 1, ne po každém použití menu (Reset, Snímek…).
-- Média se ukládají průběžně všechna, i pásky a kazety; Vysunout bez uložení pak zahodí jen posledních pár sekund
-  (na rozhodnutí autora).
+- Média se ukládají průběžně všechna, i pásky a kazety (autor potvrdil 2026-10-29). Vysunout bez uložení by pak
+  zahodilo jen posledních pár sekund, proto 2026-10-29 zmizelo, v „…“ u média zůstává Obnovit z originálu.
 
 Zbývá:
 - Martin ručně: psaní a návrat klávesnice, průvodci, „[pauza]“ v titulku, uložení média při přepnutí do jiného
@@ -349,8 +349,11 @@ Zbývá:
 - ~~Checkpoint C~~: rozhodnuto 2026-10-29, plovoucí okna (galerii jde zopakovat `python tools\ui_gallery.py
   --layouts`).
 - Na rozhodnutí autora: konfigurátor při 1920 × 1080, strop zvětšení i v doku, průvodce na malé obrazovce (rozhodnutí
-  2026-10-29 – rozložení oken podle autora); vracet okna mimo plochu dovnitř (větší `DisplayWindowPadding`), RMP-1
-  při 1280 × 720 s konzolí 200 % pod Médii, nebo 100 %.
+  2026-10-29 – rozložení oken podle autora); ~~vracet okna mimo plochu dovnitř~~ (hotovo 2026-10-29 po autorově
+  vyzkoušení: okno víc než napůl venku a dialog i jen částečně venku se vrátí, okna displejů po změně sestavy podle
+  nového obrazu, větší Vybrat sestavu; rozhodnutí 2026-10-29 – ráno: připomínky autora), RMP-1
+  při 1280 × 720 s konzolí 200 % pod Médii, nebo 100 %. Z rána navíc: vracet celá i okna displejů s uříznutým
+  obrazem, náhled a seznam ve větším Vybrat sestavu zvětšovat s oknem.
 - Martin ručně:
   - notebook (okno při prvním startu, 125 a 150 %);
   - dva monitory (okno a celá obrazovka na druhém, uložená velikost na menším);
@@ -415,14 +418,14 @@ rozdíly a doplňky:
 Čeká na autora:
 - **Beta zip** (`package.py --public`) až na jeho pokyn. Předtím přidat do gitu nové `docs/getting-started.md`
   a `docs/vydani/beta-testeri.md` (`package.py` bez nich odmítne zabalit).
-- **Otázky před zipem:**
-  - jméno verze bety: `0.7.0-beta`, nebo dál `0.7.0-alpha` (přípona `SAPIEMU_VERSION_SUFFIX` v `CMakeLists.txt`,
-    poznámky k vydání, „alfa“ v README);
-  - kam testeři hlásí: odpovědí na zprávu (tak to teď říkají texty), nebo je přidat do soukromého repa na GitHubu
-    (Issues); sedí věta „do zveřejnění cestou, kterou jste program dostali, potom přes GitHub Issues“?
-  - F9 = breakpoint nechat (doporučení), nebo v debug buildu F9 bez otevřeného debuggeru = reset.
-- V `docs/vydani/beta-testeri.md` doplnit verzi a termín, Liborovi a Petrovi přidat žádost o souhlasy
-  (`docs/vydani/souhlasy.md`).
+- ~~**Otázky před zipem**~~ (rozhodl autor 2026-10-29, cesta vydání níže pod „→ BETA zip“):
+  - jméno verze bety: **`0.7.0-beta`** (přípona, poznámky k vydání `v0.7.0-beta.md`, README a první kroky
+    upravené);
+  - kam testeři hlásí: odpovědí na zprávu, GitHub Issues až po zveřejnění repa s 0.7.1-beta (věta „do zveřejnění
+    cestou, kterou jste program dostali, potom přes GitHub Issues“ sedí);
+  - F9 = breakpoint: autor potvrdil.
+- V `docs/vydani/beta-testeri.md` doplnit termín (verze je doplněná), Liborovi a Petrovi přidat žádost o souhlasy
+  (`docs/vydani/souhlasy.md`), Liborovi prosbu o aktuální verze jeho softwaru.
 - Martin ručně: Ponechat pro příští spuštění (kliknutí, start s hlášením, `*` ve výběru, Vrátit změny), stav z alfy
   0.6.0, F9 v debuggeru, Ctrl+Shift+C do Poznámkového bloku, Enter a Esc v oknech Neuložené změny a Nahrát program,
   Nahlásit chybu po pádu (`sapiemu.prev.log`).
@@ -451,6 +454,20 @@ rozdíly a doplňky:
 - SHA-256 k zipu.
 
 **→ BETA zip** (`package.py --public`) až na Martinův pokyn.
+
+**Cesta vydání bety (autor, 2026-10-29; rozhodnutí 2026-10-29 – ráno: připomínky autora):**
+1. **0.7.0-beta** jen třem testerům alf (Libor, Petr, Michal): zpětná vazba (pět úkolů a otázky
+   v `docs/vydani/beta-testeri.md`), souhlasy (`docs/vydani/souhlasy.md`) a aktuální verze Liborova softwaru.
+   Chyby hlásí odpovědí na zprávu, se kterou betu dostali. Verze je `0.7.0-beta` (`SAPIEMU_VERSION_SUFFIX`
+   v `CMakeLists.txt`), poznámky `docs/release-notes/v0.7.0-beta.md`.
+2. **Úprava** podle jejich odpovědí (a Liborův software do sestav).
+3. **0.7.1-beta**, první veřejná verze:
+   - nejdřív hotový zip v Releases na GitHubu;
+   - pak se repozitář zveřejní a chyby se hlásí přes GitHub Issues (texty „do zveřejnění“ z etapy 9);
+   - oznámení na fóru OldComp.cz.
+
+Autor potvrdil F9 = breakpoint (reset jen F12) a průběžné ukládání všech médií, i pásek a kazet (Vysunout bez
+uložení proto zmizelo).
 
 ### Etapa 7: přístupnost a jazyky · M
 
