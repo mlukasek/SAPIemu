@@ -71,9 +71,11 @@ struct App {
     // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
     int focus_screen = 3;
     int main_output = -1;         // the display with the big place (plan_layout): -1 the console screen, k = gfx[k]
-    float main_w = 0;             // the width planned for it (the other displays get the room right of it)
+    float main_w = 0;             // the width planned for it
+    float main_k = 0;             // and its zoom (0: no display)
     uint64_t plan_gen = ~0ull;    // plan_layout keeps its plan while the machine, the work area (width, height, gap),
-    float plan_key[4] = {};       // the framebuffer scale and the windows beside the output do not change
+    float plan_key[5] = {};       // the framebuffer scale, the zoom chosen for the output and the windows beside it do
+                                  // not change
     unsigned plan_flags = 0;
     std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
     // the display used last (Ctrl+F5, View -> Screen zoom, Alt+Enter): the display window focused last, at a machine start
@@ -154,6 +156,7 @@ struct App {
     bool dpi_fixed = false;       // --ui-scale: the scale of a snapshot, not of the display
     bool style_editor = false;    // Debug -> Style editor (debug builds)
     std::string snap_menu;        // UI snapshot (--ui-menu): the menu kept open, its English name
+    std::string snap_click;       // UI snapshot (--ui-window-item, --ui-front): a window item clicked in this frame
 };
 
 // ---------------------------------------------------------------- settings
@@ -199,7 +202,8 @@ nlohmann::json settings_json(App& app)
                     { "position", app.win_pos_known }, { "maximized", maximized } };
     j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
                      { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
-                     { "printer", ui.show_printer }, { "configuration", ui.show_rack }, { "diag", ui.show_diag },
+                     { "printer", ui.show_printer }, { "configuration", ui.show_rack },
+                     { "configuration_auto", ui.show_rack && ui.rack_by_layout }, { "diag", ui.show_diag },
                      { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter }, { "ims2", ui.show_ims2 } };
     j["screen"] = { { "integer_scale", app.integer_scale },
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types } };
@@ -264,6 +268,8 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(w, "minigraf", ui.show_plotter);
     get_opt(w, "ims2", ui.show_ims2);
     get_opt(w, "configuration", ui.show_rack);
+    get_opt(w, "configuration_auto", ui.rack_by_layout);   // opened by the layout (ui.h)
+    if (!ui.show_rack) ui.rack_by_layout = false;
     const nlohmann::json& s = j.value("screen", nlohmann::json::object());
     get_opt(s, "integer_scale", app.integer_scale);
     get_opt(s, "tv_aspect", app.tv_aspect);
@@ -825,6 +831,15 @@ static ImVec2 display_window_size(App& app, DisplayDevice* d, float k)
                   d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
 }
 
+// The largest zoom the layout gives a display by itself (author 2026-10-29: 200 % at the Windows scale 100 % looks
+// good, 400 % monstrous and blocky): about 200 % of the picture as large on any display, so proportionally more at a
+// higher scale (125 % and 150 %: 300 %). A zoom chosen from the menu and a saved layout are not limited.
+static float display_zoom_cap(App& app)
+{
+    int cap = (int)(2.0f * app.dpi + 0.5f);
+    return (float)(cap < 1 ? 1 : cap);
+}
+
 // The largest integer zoom whose window fits w x h; below 1:1 the largest zoom that fits.
 static float display_fit_zoom(App& app, DisplayDevice* d, float w, float h)
 {
@@ -964,31 +979,41 @@ static void fullscreen_toggle(App& app)
 }
 
 // The first size of the main output d of machine m in a work area w x h: the largest integer zoom whose window fits
-// about 65 % of the width and the height; when a window the machine opens beside it (APS-5...) would not fit next to
-// it, the zoom goes down, to 2 at least. No display (switched off): a dark screen of 65 % of the width.
-static ImVec2 main_output_size(App& app, Machine* m, DisplayDevice* d, float w, float h, float gap)
+// about 65 % of the width and the height, at most display_zoom_cap; when a window the machine opens beside it
+// (APS-5...) would not fit next to it, the zoom goes down, to 2 at least. No display (switched off): a dark screen of
+// 65 % of the width. *zoom: the zoom (0 without a display).
+static ImVec2 main_output_size(App& app, Machine* m, DisplayDevice* d, float w, float h, float gap, float* zoom = nullptr)
 {
     ImVec2 s(0.65f * w, 0.65f * w * 0.75f);
+    float k = 0;
     if (d) {
-        float k = display_fit_zoom(app, d, 0.65f * w, h);
+        k = display_fit_zoom(app, d, 0.65f * w, h);
+        if (k > display_zoom_cap(app)) k = display_zoom_cap(app);
         float side = machine_side_width(app, m);
         while (k > 2.0f && display_window_size(app, d, k).x + gap + side > w) k -= 1.0f;
         s = display_window_size(app, d, k);
     }
     if (s.y > h) s.y = h;
+    if (zoom) *zoom = k;
     return s;
 }
 
 // Before the windows of a frame: the main output of the machine and its first place (layout.cpp). It is the display
 // named by "main_display" in the machine description (the games: CGA-1V, BGP-1S), else the console screen; at the top
-// left, in the size of main_output_size. Not while the windows take no first places (full screen, minimized).
+// left, in the size of main_output_size, or at the zoom chosen for it from the menu (kept by View -> Arrange open
+// windows). Not while the windows take no first places (full screen, minimized).
 static void plan_layout(App& app)
 {
     UiState& ui = app.ui;
     if (layout_held()) return;
     float w, h, gap;
     layout_work_size(&w, &h, &gap);
-    float key[4] = { w, h, gap, ImGui::GetIO().DisplayFramebufferScale.x };
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    int main = main_output(m, gfx, n);
+    float fixed = display_zoom(app, main).fixed;
+    float key[5] = { w, h, gap, ImGui::GetIO().DisplayFramebufferScale.x, fixed };
     unsigned flags = (ui.show_aps5 ? 1u : 0u) | (ui.show_ims2 ? 2u : 0u) | (ui.show_plotter ? 4u : 0u) |
                      (ui.show_media ? 8u : 0u) | (app.tv_aspect ? 16u : 0u);
     uint64_t gen = app.host.machine_generation();
@@ -996,39 +1021,64 @@ static void plan_layout(App& app)
     app.plan_gen = gen;
     app.plan_flags = flags;
     memcpy(app.plan_key, key, sizeof(key));
-    Machine* m = app.host.machine();
-    DisplayDevice* gfx[MAX_GFX_VIEWS];
-    int n = graphic_displays(m, gfx);
-    app.main_output = main_output(m, gfx, n);
-    DisplayDevice* d = app.main_output >= 0 ? gfx[app.main_output] : (m ? m->display : nullptr);
+    app.main_output = main;
+    DisplayDevice* d = main >= 0 ? gfx[main] : (m ? m->display : nullptr);
     char id[16];
-    if (app.main_output >= 0) snprintf(id, sizeof(id), "###gfx%d", app.main_output);
+    if (main >= 0) snprintf(id, sizeof(id), "###gfx%d", main);
     else snprintf(id, sizeof(id), "###screen");
-    ImVec2 s = main_output_size(app, m, d, w, h, gap);
+    ImVec2 s = main_output_size(app, m, d, w, h, gap, &app.main_k);
+    if (d && fixed > 0) {
+        s = display_window_size(app, d, fixed);
+        app.main_k = fixed;
+    }
     app.main_w = s.x;
     layout_main(id, s.x, s.y, n);
 }
 
 // Before Begin of a display window: its first place (layout.cpp). The main output where plan_layout put it; another
-// display right of it at the largest integer zoom that fits there, in half the height when the machine opens an
-// instrument or Media beside it; at 1:1 at least where that is free, else down to 3/4 of 1:1 where that is free (drawn
-// smooth below 1:1, draw_display: the letters keep their strokes), else at 1:1 over the windows that matter least.
-static void place_display(App& app, DisplayDevice* d, const char* id)
+// display next to it (below it, else right of it) at the largest integer zoom up to display_zoom_cap that has free room
+// (that fits half the height when the machine opens an instrument or Media beside it), down to 1:1, then 3/4 of 1:1
+// (drawn smooth below 1:1, draw_display: the letters keep their strokes), else at 1:1 over the windows that matter
+// least. The window is as large as the picture at that zoom with the small border (display_window_size). Another
+// display not much larger than the main output: its picture at most 1.5 x as wide and as high as that of the main output
+// (down to 1:1; a game's CGA-1V at 200 % stays the largest, the AND-1V of its console menu goes to 100 %, DGD-1 beside
+// AND-1 keeps 200 %). A zoom chosen from the menu (zs.fixed, kept by View -> Arrange open windows) stays.
+static void place_display(App& app, DisplayDevice* d, const char* id, const ZoomState& zs)
 {
     if (!layout_first_use(id)) return;
     if (!d) {
-        layout_display(id, app.main_w, app.main_w * 0.75f, 0, 0, 0, 0);
+        layout_display(id, app.main_w, app.main_w * 0.75f, 0, 0, 0);
         return;
     }
-    float w, h, gap;
-    layout_work_size(&w, &h, &gap);
-    float col = w - gap - app.main_w;   // right of the main output
-    if (machine_side_width(app, app.host.machine()) > 0) h = (h - gap) * 0.5f;
-    float k = display_fit_zoom(app, d, col, h);
-    if (k < 1.0f) k = 1.0f;
-    ImVec2 s = display_window_size(app, d, k), one = display_window_size(app, d, 1.0f);
-    ImVec2 small = display_window_size(app, d, 0.75f);
-    layout_display(id, s.x, s.y, one.x, one.y, small.x, small.y);
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    DisplayDevice* md = app.main_output >= 0 && app.main_output < n ? gfx[app.main_output] : (m ? m->display : nullptr);
+    char main_id[16];
+    if (app.main_output >= 0) snprintf(main_id, sizeof(main_id), "###gfx%d", app.main_output);
+    else snprintf(main_id, sizeof(main_id), "###screen");
+    float k;
+    if (zs.fixed > 0) {
+        k = zs.fixed;
+    } else if (!strcmp(id, main_id) && app.main_k > 0) {
+        k = app.main_k;   // the main output where another window is already: its zoom, or less where there is room
+    } else {
+        float w, h, gap;
+        layout_work_size(&w, &h, &gap);
+        if (machine_side_width(app, m) > 0) h = (h - gap) * 0.5f;
+        k = display_fit_zoom(app, d, w, h);
+        if (k > display_zoom_cap(app)) k = display_zoom_cap(app);
+        if (md && md != d && app.main_k > 0) {
+            ImVec2 mz = display_window_size(app, md, 0.0f), ms = display_window_size(app, md, app.main_k);
+            ImVec2 z = display_window_size(app, d, 0.0f);
+            for (; k > 1.0f; k -= 1.0f) {
+                ImVec2 s = display_window_size(app, d, k);
+                if (s.x - z.x <= 1.5f * (ms.x - mz.x) + 0.5f && s.y - z.y <= 1.5f * (ms.y - mz.y) + 0.5f) break;
+            }
+        }
+    }
+    ImVec2 zero = display_window_size(app, d, 0.0f), one = display_window_size(app, d, 1.0f);
+    layout_display(id, zero.x, zero.y, one.x - zero.x, one.y - zero.y, k, zs.fixed > 0);
 }
 
 static const MachineWindow k_machine_windows[] = {
@@ -1208,17 +1258,24 @@ static void dock_follow(App& app)
 // the windows that give none go to the top left), not collapsed; the screen fits its window again. The windows not
 // created in this run lose their saved places too (imgui.ini): they take the default ones when they open. In the docked
 // layout (View -> Settings -> Windows) the windows then go into the dock space (dock_layout).
-static void reset_window_layout(App& app)
+// open_only (View -> Arrange open windows): only the windows open now take their default places; the closed ones keep
+// theirs (saved or of this run), a zoom chosen from the menu stays (place_display), the configurator is neither opened
+// nor closed by it. Docked: the dock is built again as by Default window layout (the closed windows go into it too).
+static void reset_window_layout(App& app, bool open_only)
 {
-    layout_forget_closed();
+    if (!open_only) layout_forget_closed();
     ImGuiContext& g = *GImGui;
-    ImGui::DockBuilderRemoveNode(layout_dockspace_id());   // the windows undocked, the dock space comes back empty
     ImGuiViewport* vp = ImGui::GetMainViewport();
+    // the windows undocked, the dock space comes back empty; arranging the floating layout undocks the open windows only
+    if (!open_only || layout_docked(app)) ImGui::DockBuilderRemoveNode(layout_dockspace_id());
     for (ImGuiWindow* w : g.Windows) {
+        // an open docked window (a child of its dock node until it is undocked)
+        if (open_only && w->DockNode && (w->Active || w->WasActive)) ImGui::SetWindowDock(w, 0, ImGuiCond_Always);
         if (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
                         ImGuiWindowFlags_NoTitleBar))
             continue;   // the menu bar, the dock space host, popups
         if (w->DockNodeAsHost) continue;
+        if (open_only && !(w->Active || w->WasActive)) continue;
         if (w->DockId) ImGui::SetWindowDock(w, 0, ImGuiCond_Always);
         ImGui::SetWindowCollapsed(w, false);
         ImGui::SetWindowPos(w, ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 10.0f));
@@ -1227,13 +1284,22 @@ static void reset_window_layout(App& app)
         w->SetWindowSizeAllowFlags |= ImGuiCond_FirstUseEver;
         w->SetWindowCollapsedAllowFlags |= ImGuiCond_FirstUseEver;
     }
-    app.screen_zs.fixed = 0;
-    app.screen_zs.request = 0;
-    for (GfxView& v : app.gfx) {
-        v.zs.fixed = 0;
-        v.zs.request = 0;
+    if (!open_only) {
+        app.screen_zs.fixed = 0;
+        app.screen_zs.request = 0;
+        for (GfxView& v : app.gfx) {
+            v.zs.fixed = 0;
+            v.zs.request = 0;
+        }
     }
-    if (layout_docked(app)) dock_layout(app);
+    if (layout_docked(app)) {
+        dock_layout(app);
+        return;
+    }
+    if (open_only) return;
+    // the configurator is part of the floating layout where it fits (draw_rack); one the layout opened is decided again
+    if (app.ui.show_rack && app.ui.rack_by_layout) app.ui.show_rack = false;
+    app.ui.rack_auto = !app.ui.show_rack;
 }
 
 // After Begin: resizing the window by hand (or docking it) goes back to fitting.
@@ -1573,15 +1639,77 @@ static std::string status_text(App& app, Machine* m, const std::string& notice, 
     return s;
 }
 
-// A menu of the menu bar by its English name; a UI snapshot (--ui-menu) keeps the one it names open.
-static bool begin_menu(App& app, const char* key)
+// A menu by its English name (parent: the menu of the menu bar it is in, else null); a UI snapshot (--ui-menu) keeps
+// the one it names open ("View", "View/Windows": the submenu in it too).
+static bool begin_menu(App& app, const char* key, const char* parent = nullptr)
 {
-    if (!app.snap_menu.empty() && app.snap_menu == key && !ImGui::IsPopupOpen(tr(key))) ImGui::OpenPopup(tr(key));
+    if (!app.snap_menu.empty()) {
+        std::string path = parent ? std::string(parent) + "/" + key : std::string(key);
+        bool want = app.snap_menu == path || (!parent && app.snap_menu.compare(0, path.size() + 1, path + "/") == 0);
+        if (want && !ImGui::IsPopupOpen(tr(key))) ImGui::OpenPopup(tr(key));
+    }
     return ImGui::BeginMenu(tr(key));
+}
+
+// The windows of the items of the menus View and Debug: the window id after ### and its open flag (also the UI snapshot
+// --ui-window-item).
+static bool* menu_window_open(App& app, const std::string& key)
+{
+    UiState& ui = app.ui;
+    const struct {
+        const char* key;
+        bool* open;
+    } k[] = {
+        { "rack", &ui.show_rack }, { "Serial terminal", &ui.show_terminal }, { "Media", &ui.show_media },
+        { "Printer", &ui.show_printer }, { "Minigraf", &ui.show_plotter }, { "IMS-2 measuring bench", &ui.show_ims2 },
+        { "Diagnostic board (K3)", &ui.show_diag }, { "APS-5: panel and furnaces", &ui.show_aps5 },
+        { "Debugger", &ui.show_debugger }, { "Memory", &ui.show_memory }, { "I/O log", &ui.show_iolog },
+        { "Log", &ui.show_log },
+    };
+    for (const auto& e : k)
+        if (key == e.key) return e.open;
+    return nullptr;
+}
+
+// A window item of the menus View and Debug clicked (author 2026-10-29: a window hides behind another one and is then
+// searched for): a closed window opens; an open one that is covered (layout_covered) comes to the front with the
+// keyboard; one in front closes.
+static void window_item_click(App& app, const char* key)
+{
+    bool* open = menu_window_open(app, key);
+    if (!open) return;
+    std::string id = std::string("###") + key;
+    if (*open && layout_covered(id.c_str())) layout_to_front(id.c_str());
+    else *open = !*open;
+    if (open == &app.ui.show_rack) app.ui.rack_by_layout = false;   // the configurator wanted: the user's window now
+}
+
+// The item itself: the check mark says open, "covered" on the right that a click brings it to the front.
+static void window_item(App& app, const char* label, const char* key, bool enabled = true)
+{
+    bool* open = menu_window_open(app, key);
+    std::string id = std::string("###") + key;
+    bool covered = *open && layout_covered(id.c_str());
+    if (ImGui::MenuItem(label, covered ? tr("covered") : nullptr, *open, enabled)) window_item_click(app, key);
+    if (covered && ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("The window is covered by another one: a click brings it to the front, the next "
+                                   "click closes it."));
+}
+
+// An item that only opens a window (Settings, Keyboard shortcuts, About): an open one comes to the front.
+static void open_window(bool* open, const char* id)
+{
+    if (*open) layout_to_front(id);
+    *open = true;
 }
 
 void draw_menu(App& app)
 {
+    if (!app.snap_click.empty()) {   // UI snapshot: as a click on the item in the menu
+        if (app.snap_click.compare(0, 6, "front:") == 0) layout_to_front(("###" + app.snap_click.substr(6)).c_str());
+        else window_item_click(app, app.snap_click.c_str());
+        app.snap_click.clear();
+    }
     if (!ImGui::BeginMainMenuBar()) return;
     Machine* m = app.host.machine();
     if (begin_menu(app, "File")) {
@@ -1703,10 +1831,10 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (begin_menu(app, "Debug")) {
-        ImGui::MenuItem(tr("Debugger"), nullptr, &app.ui.show_debugger);
-        ImGui::MenuItem(tr("Memory"), nullptr, &app.ui.show_memory);
-        ImGui::MenuItem(tr("I/O log"), nullptr, &app.ui.show_iolog);
-        ImGui::MenuItem(tr("Log"), nullptr, &app.ui.show_log);
+        window_item(app, tr("Debugger"), "Debugger");
+        window_item(app, tr("Memory"), "Memory");
+        window_item(app, tr("I/O log"), "I/O log");
+        window_item(app, tr("Log"), "Log");
         ImGui::Separator();
         bool stepping = m && app.host.paused;   // the steps are for a paused machine (F5)
         if (ImGui::MenuItem(tr("Step"), "F11", false, stepping)) debug_step(app, false);
@@ -1724,20 +1852,20 @@ void draw_menu(App& app)
         ImGui::EndMenu();
     }
     if (begin_menu(app, "View")) {
-        ImGui::MenuItem(tr("Machine configurator..."), nullptr, &app.ui.show_rack);
-        ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
-        ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
+        window_item(app, tr("Machine configurator..."), "rack");
+        window_item(app, tr("Serial terminal"), "Serial terminal");
+        window_item(app, tr("Media"), "Media");
         bool has_printer = false, has_plotter = false;   // windows of devices the machine has
         if (m)
             for (auto& c : m->cards) {
                 if (c->printer()) has_printer = true;
                 if (c->plotter()) has_plotter = true;
             }
-        ImGui::MenuItem(tr("Printer"), nullptr, &app.ui.show_printer, has_printer || app.ui.show_printer);
-        ImGui::MenuItem(tr("Plotter (Minigraf, XY 4130)"), nullptr, &app.ui.show_plotter, has_plotter || app.ui.show_plotter);
-        ImGui::MenuItem(tr("IMS-2 measuring bench"), nullptr, &app.ui.show_ims2, (m && m->plant) || app.ui.show_ims2);
-        ImGui::MenuItem(tr("Diagnostic board (K3)"), nullptr, &app.ui.show_diag, m && m->cpu && m->cpu->k3_diag());
-        ImGui::MenuItem(tr("APS-5: panel and furnaces"), nullptr, &app.ui.show_aps5, m && m->plant);
+        window_item(app, tr("Printer"), "Printer", has_printer || app.ui.show_printer);
+        window_item(app, tr("Plotter (Minigraf, XY 4130)"), "Minigraf", has_plotter || app.ui.show_plotter);
+        window_item(app, tr("IMS-2 measuring bench"), "IMS-2 measuring bench", (m && m->plant) || app.ui.show_ims2);
+        window_item(app, tr("Diagnostic board (K3)"), "Diagnostic board (K3)", m && m->cpu && m->cpu->k3_diag());
+        window_item(app, tr("APS-5: panel and furnaces"), "APS-5: panel and furnaces", m && m->plant);
         ImGui::Separator();
         ink_menu(app, m);
         DisplayDevice* ud = nullptr;   // the display used last: the zoom and the full screen are its
@@ -1765,6 +1893,27 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
         ImGui::Separator();
+        if (begin_menu(app, "Windows", "View")) {   // the open windows: a click brings one to the front
+            std::vector<LayoutOpenWindow> wins;
+            layout_open_windows(wins);
+            for (size_t i = 0; i < wins.size(); i++) {
+                ImGui::PushID((int)i);
+                if (ImGui::MenuItem(wins[i].title.c_str(), wins[i].covered ? tr("covered") : nullptr))
+                    layout_to_front(wins[i].id.c_str());
+                ImGui::PopID();
+            }
+            ImGui::Separator();
+            ImGui::TextDisabled("%s", tr("A click brings the window to the front."));
+            ImGui::EndMenu();
+        }
+        if (ImGui::MenuItem(tr("Arrange open windows"))) app.ui.layout_arrange = true;
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", layout_docked(app)
+                                        ? tr("The dock is built again as by Default window layout (the closed windows "
+                                             "go back into it too).")
+                                        : tr("The open windows go to the places of the default layout, a zoom chosen "
+                                             "from the menu stays; the closed ones keep their places (Default window "
+                                             "layout forgets them)."));
         if (ImGui::MenuItem(tr("Default window layout"))) app.ui.layout_reset = true;
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("%s", layout_docked(app)
@@ -1779,7 +1928,7 @@ void draw_menu(App& app)
             if (ImGui::MenuItem("English", nullptr, cur == LANG_EN)) set_ui_language(app, LANG_EN);
             ImGui::EndMenu();
         }
-        if (ImGui::MenuItem(tr("Settings..."))) app.ui.show_settings = true;
+        if (ImGui::MenuItem(tr("Settings..."))) open_window(&app.ui.show_settings, "###Settings");
         ImGui::EndMenu();
     }
     if (begin_menu(app, "Help")) {
@@ -1791,14 +1940,14 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
         ImGui::Separator();
         help_docs_menu(app.ui);
-        if (ImGui::MenuItem(tr("Keyboard shortcuts"))) app.ui.show_shortcuts = true;
+        if (ImGui::MenuItem(tr("Keyboard shortcuts"))) open_window(&app.ui.show_shortcuts, "###Keyboard shortcuts");
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Report a bug..."))) {
             app.ui.show_report = true;
             app.ui.report_status.clear();
             ImGui::SetWindowFocus(tr_id("Report a bug"));   // in front when it is open already
         }
-        if (ImGui::MenuItem(tr("About SAPIemu"))) app.ui.show_about = true;
+        if (ImGui::MenuItem(tr("About SAPIemu"))) open_window(&app.ui.show_about, "###About SAPIemu");
         ImGui::EndMenu();
     }
 
@@ -1855,7 +2004,10 @@ void draw_menu(App& app)
         if (!pend.empty()) {
             ImGui::PushStyleColor(ImGuiCol_Text, theme().pending);
             ImVec2 sz = ImGui::CalcTextSize(pend.c_str());
-            if (ImGui::Selectable((pend + "##pending").c_str(), false, ImGuiSelectableFlags_None, sz)) app.ui.show_rack = true;
+            if (ImGui::Selectable((pend + "##pending").c_str(), false, ImGuiSelectableFlags_None, sz)) {
+                open_window(&app.ui.show_rack, "###rack");
+                app.ui.rack_by_layout = false;
+            }
             ImGui::PopStyleColor();
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("%s\n%s", tr("Configuration changed: restart"),
@@ -1979,7 +2131,7 @@ void draw_screen(App& app)
     if (app.start_focus && app.main_output < 0) ImGui::SetNextWindowFocus();   // type right after start
     Machine* m = app.host.machine();
     DisplayDevice* d = m ? m->display : nullptr;
-    place_display(app, d, "###screen");
+    place_display(app, d, "###screen", app.screen_zs);
     Card* c = dynamic_cast<Card*>(d);
     char title[96];   // named after the display card, the same window for every machine
     display_title(title, sizeof(title), c ? c->name.c_str() : tr("Screen"), d ? app.screen_zs.zoom : 0, "screen");
@@ -2028,7 +2180,7 @@ static void draw_graphic_screen(App& app, Machine* m, int k, DisplayDevice* d)
     snprintf(id, sizeof(id), "gfx%d", k);
     snprintf(wid, sizeof(wid), "###%s", id);
     display_title(title, sizeof(title), c ? c->name.c_str() : tr("Graphics"), v.zs.zoom, id);
-    place_display(app, d, wid);
+    place_display(app, d, wid, v.zs);
     zoom_resize(app, d, v.zs);
     if (app.start_focus && k == app.main_output) ImGui::SetNextWindowFocus();   // the main output: type right after start
     ImGui::SetNextWindowCollapsed(false);
@@ -2572,6 +2724,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.layout_fresh = true;
     }
     if (layout_docked(app) && app.ui.layout_fresh) app.ui.layout_reset = true;   // no saved layout: dock the windows
+    // no saved window places and the configurator never opened or closed (the first start): it opens where it fits
+    // (draw_rack), as View -> Default window layout opens it
+    if (!layout_docked(app) && app.ui.layout_fresh && !app.ui.show_rack &&
+        !settings.value("windows", nlohmann::json::object()).contains("configuration"))
+        app.ui.rack_auto = true;
     if (first_start) {   // closed without starting a machine, it opens the guide of the running one (browser.cpp)
         app.ui.show_browser = true;
         app.ui.browser_first = true;
@@ -2730,9 +2887,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         if (!SDL_TextInputActive(app.window)) SDL_StartTextInput(app.window);
         // full screen: the windows opening take their first places in the main window after it (layout.cpp)
         layout_hold(app.fullscreen != FS_OFF);
-        if (app.ui.layout_reset) {   // before the dock space and the windows of this frame
-            reset_window_layout(app);
-            app.ui.layout_reset = false;
+        layout_rack_low(app.ui.show_rack && app.ui.rack_by_layout);   // the windows opening later may cover it
+        if (app.ui.layout_reset || app.ui.layout_arrange) {   // before the dock space and the windows of this frame
+            reset_window_layout(app, !app.ui.layout_reset);
+            app.ui.layout_reset = app.ui.layout_arrange = false;
             app.dock_follow = false;   // the dock is built for the machine
         } else if (app.dock_follow) {
             if (layout_docked(app)) dock_follow(app);
@@ -2795,6 +2953,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.renderer);
         if (snap && snap_frames == 3) {   // the menu items, after the windows have their places
             if (snap->reset_layout) app.ui.layout_reset = true;
+            if (snap->arrange) app.ui.layout_arrange = true;
             if (snap->layout_switch) set_layout(app, !layout_docked(app));
             if (snap->zoom) {   // View -> Screen zoom: the display used last
                 DisplayDevice* zd = nullptr;
@@ -2848,6 +3007,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         // --ui-mouse, --ui-key: the mouse placed (two frames before the keys: what it hovers is known when they come),
         // then each key down and up in two frames, through the event queue as typed (handle_key and ImGui see them)
         int keys_end = 10 + 2 * (int)snap_keys(snap);
+        // --ui-window-item, --ui-front: one click every second frame from the ninth, the picture two frames after the last
+        int clicks = snap ? (int)snap->window_clicks.size() : 0;
+        if (snap && snap_frames >= 9 && (snap_frames - 9) % 2 == 0 && (snap_frames - 9) / 2 < clicks)
+            app.snap_click = snap->window_clicks[(size_t)(snap_frames - 9) / 2];
+        int clicks_end = 10 + 2 * clicks;
         if (snap && snap_frames >= 8 && snap->mouse_x >= 0) io.AddMousePosEvent(snap->mouse_x, snap->mouse_y);
         if (snap && snap_frames >= 10 && snap_frames < keys_end)
             snap_key(app, snap->keys[(size_t)(snap_frames - 10) / 2], (snap_frames - 10) % 2 == 0);
@@ -2882,7 +3046,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (snap_frames == 5) io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
             if (snap_frames == 10 && snap->drag_drop) io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
         }
-        if (snap && snap_frames >= 12 && snap_frames >= keys_end + 2 && !(snap->video > 0 && video_busy(app.ui))) {
+        if (snap && snap_frames >= 12 && snap_frames >= keys_end + 2 && snap_frames >= clicks_end + 2 &&
+            !(snap->video > 0 && video_busy(app.ui))) {
             // window content as PNG (our own renderer, not the screen)
             SDL_Rect crop, *rect = nullptr;   // --ui-crop: only that window (previews of machines)
             if (!snap->crop.empty()) {

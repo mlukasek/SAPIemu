@@ -276,7 +276,8 @@ static const Translation k_table[] = {
       "click of the mouse hides the frame",
       "V oknech emulátoru (ne na obrazovce SAPI ani v terminálu): Tab ukáže rámeček na prvku a posouvá ho na další, "
       "posouvají ho i šipky; mezerník nebo Enter stiskne prvek v rámečku, kliknutí myší rámeček skryje" },
-    { "Switch between the windows", "Přepínání mezi okny" },
+    { "Switch between the windows (all the open windows also in View -> Windows)",
+      "Přepínání mezi okny (všechna otevřená okna jsou i v Zobrazení → Okna)" },
     // the texts of Dear ImGui itself (app.cpp imgui_localize): the list of Ctrl+Tab, a link, the docked layout
     { "(Main menu bar)", "(Hlavní menu)" },
     { "(Popup)", "(Vyskakovací okno)" },
@@ -462,6 +463,18 @@ static const Translation k_table[] = {
     { "New...", "Nová…" },
     { "A new file: a blank medium (while running it goes in at once).", "Nový soubor: prázdné médium (za chodu se hned vloží)." },
     { "Default window layout", "Výchozí rozložení oken" },
+    { "Windows", "Okna" },
+    { "A click brings the window to the front.", "Kliknutí dá okno dopředu." },
+    { "covered", "zakryté" },
+    { "The window is covered by another one: a click brings it to the front, the next click closes it.",
+      "Okno je zakryté jiným oknem: kliknutí ho dá dopředu, další kliknutí ho zavře." },
+    { "Arrange open windows", "Přeskládat otevřená okna" },
+    { "The open windows go to the places of the default layout, a zoom chosen from the menu stays; the closed ones keep "
+      "their places (Default window layout forgets them).",
+      "Otevřená okna půjdou na místa výchozího rozložení, zvětšení zvolené v menu zůstane; zavřená si svá místa nechají "
+      "(Výchozí rozložení oken je zapomene)." },
+    { "The dock is built again as by Default window layout (the closed windows go back into it too).",
+      "Dok se postaví znovu jako u Výchozího rozložení oken (vrátí se do něj i zavřená okna)." },
     { "Undocks all windows (a window dragged to an edge sticks there) and puts them back at their first places and sizes.",
       "Odlepí všechna okna (okno přetažené ke kraji se tam přilepí) a vrátí je na výchozí místa a velikosti." },
     { "Machine configurator", "Konfigurátor sestavy" },

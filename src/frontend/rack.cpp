@@ -263,8 +263,10 @@ void editor_apply(UiState& ui)
     std::string err;
     if (!ui.host->load_config(r.cfg, r.path, err)) {
         set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
-        // Machine -> Switch on with the configurator closed: its message is not seen, the Error window says it
-        if (!ui.show_rack) ui_notice(ui, false, std::string(tr("The machine cannot be started")) + ":\n" + err);
+        // Machine -> Switch on with the configurator closed, opened by the layout (not used) or covered: its message is
+        // not seen, the Error window says it
+        if (!ui.show_rack || ui.rack_by_layout || layout_covered("###rack"))
+            ui_notice(ui, false, std::string(tr("The machine cannot be started")) + ":\n" + err);
         else LOGE("%s", err.c_str());
         return;
     }
@@ -2286,6 +2288,7 @@ void rack_open_in_editor(UiState& ui, const std::string& path)
 {
     request(ui, RackEditor::PEND_OPEN, path);
     ui.show_rack = true;
+    ui.rack_by_layout = false;   // the user's window now
 }
 
 void rack_set_live_param(UiState& ui, Card* c, const char* path, const json& v)
@@ -2367,15 +2370,47 @@ void draw_rack(UiState& ui)
     follow_machine(ui);
     sync_live_params(ui);
     draw_unsaved_question(ui);
-    if (!ui.show_rack) return;
+    // the default layout (ui.h, rack_auto): drawn after the other windows, they have their places now; it opens only in
+    // the free room (not while the layout waits: full screen, minimized)
+    bool by_layout = false;
+    if (ui.rack_auto && (ui.show_rack || !layout_held())) {
+        ui.rack_auto = false;
+        if (!ui.show_rack && layout_window_if_room(LW_RACK)) {
+            ui.show_rack = true;
+            ui.rack_by_layout = true;
+            by_layout = true;
+        }
+    }
+    if (!ui.show_rack) {
+        ui.rack_by_layout = false;
+        return;
+    }
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();
-    layout_window(LW_RACK);   // first use: the whole height at the right edge (over the screen when there is no room)
+    // opened by the user: at the first use the whole height at the right edge (over the screen when there is no room)
+    if (!by_layout) layout_window(LW_RACK);
     bool dirty = editor_dirty(r);
     char title[300];
     snprintf(title, sizeof(title), "%s - %s%s###rack", tr("Machine configurator"),
              machine_title(ui, r.path, r.cfg.value("name", std::string("?"))).c_str(), dirty ? " *" : "");
-    if (!ImGui::Begin(title, &ui.show_rack)) {
+    // opened by the layout (also restored so at the next start): the keyboard stays where it is, and the other windows
+    // and the dialogs (Choose a machine at the first start) stay in front of it when it appears
+    bool open = ImGui::Begin(title, &ui.show_rack, ui.rack_by_layout ? ImGuiWindowFlags_NoFocusOnAppearing : 0);
+    if (ui.rack_by_layout) {
+        if (by_layout || ImGui::IsWindowAppearing()) layout_to_back();
+        // used (a click into it, a key while it has the keyboard): the user's window now. Not having the focus alone:
+        // ImGui may give it without the user (a window closed before it).
+        bool click = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) &&
+                     (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right));
+        bool key = false;
+        if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+            key = ImGui::GetIO().InputQueueCharacters.Size > 0;
+            for (int k = ImGuiKey_NamedKey_BEGIN; k < ImGuiKey_GamepadStart && !key; k++)   // the keyboard keys
+                if (ImGui::IsKeyPressed((ImGuiKey)k, false)) key = true;
+        }
+        if (click || key) ui.rack_by_layout = false;
+    }
+    if (!open) {
         ImGui::End();
         return;
     }

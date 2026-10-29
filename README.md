@@ -247,8 +247,8 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   terminál, TCP pro jiný program, [docs/seriova-linka.md](docs/seriova-linka.md)).
 - **Klávesnice:** v oknech emulátoru ukáže Tab rámeček na prvku a přechází na další, pak rámeček posouvají
   i šipky, mezerník a Enter stisknou prvek v rámečku, kliknutí myší rámeček skryje. Esc zavře dialog, Ctrl+Tab
-  přepíná okna. V okně obrazovky SAPI a v sériovém terminálu patří šipky, mezerník, Enter, Esc
-  a Alt počítači SAPI.
+  přepíná okna, Zobrazení → Okna vypíše otevřená okna a dá vybrané dopředu (i okno schované za jiným).
+  V okně obrazovky SAPI a v sériovém terminálu patří šipky, mezerník, Enter, Esc a Alt počítači SAPI.
 - **Stav není jen barvou:** chyby mají ✖ a slovo, varování ⚠, rozsvícené tlačítko magnetofonu značku (▶, ●, ■),
   čáry v grafu APS-5 čísla pecí a kontrolky přístrojů řeknou svůj stav v bublině.
 - **Velikost písma** 100–200 % je v Zobrazení → Nastavení.

@@ -122,6 +122,14 @@ struct UiState {
     bool ask_reset = false;        // request_reset: open the question "Reset the APS-5 unit?" in the next frame
     uint64_t ask_reset_gen = 0;    // the machine it asks about (another one closes the question)
     bool show_rack = false;
+    // The configurator in the default layout (author 2026-10-29): View -> Default window layout and the first start
+    // (no saved window places, its open state never saved) open it only where it fits clear of the other windows
+    // (layout_window_if_room, draw_rack decides after the other windows took their places). rack_by_layout: open
+    // because the layout opened it, not used yet (no click or key in it, not asked for from a menu; settings
+    // "configuration_auto"): the lowest priority (layout_rack_low), behind the other windows when it appears, and the
+    // next Default window layout decides again.
+    bool rack_auto = false;
+    bool rack_by_layout = false;
     // the window "Choose a machine" and the guide of a machine (frontend/browser.cpp)
     bool show_browser = false;
     bool browser_loaded = false;   // the index is read when the window opens
@@ -152,6 +160,7 @@ struct UiState {
     bool guides_auto = true;       // guides open themselves for the basic, Libor's and the games machines (settings)
     std::vector<std::string> guides_hidden;   // machines whose guide does not open itself (settings)
     bool layout_reset = false;     // View -> Default window layout: done before the windows of the next frame (app.cpp)
+    bool layout_arrange = false;   // View -> Arrange open windows: the same for the open windows only
     bool layout_fresh = false;     // no imgui.ini at the start: the first machine started from the window Choose a
                                    // machine of the first start lays the windows out for itself (browser.cpp)
     bool quit = false;             // exit confirmed (no unsaved machine description)
@@ -319,6 +328,15 @@ enum LayoutWin {
     LW_COUNT
 };
 void layout_window(int which);
+// A window the layout opens itself (the configurator: View -> Default window layout, the first start): its first place
+// only in the free room clear of every window, at a readable size (font heights). False: no
+// such room (or it has a saved place, or no first places now), it stays closed. (The configurator: 44 x 44.)
+bool layout_window_if_room(int which);
+// After Begin of a window that just opened by itself: behind the other windows (the dialogs stay in front of it).
+void layout_to_back(void);
+// Every frame before the windows (app.cpp): the configurator is open because the layout opened it (ui.rack_by_layout),
+// the lowest priority: the windows opening later take their places as if it was not there (they cover it).
+void layout_rack_low(bool low);
 float layout_width(int which);           // the width it asks for (pixels): the main output leaves room for it
 // The work area of this frame (the main window below the menu bar, after draw_menu) less the gap kept at its edges and
 // between the windows (pixels).
@@ -327,14 +345,32 @@ bool layout_first_use(const char* id);   // the window ("###screen") takes its f
 // The main output planned for this frame (app.cpp, before the windows): its window id, its first size (pixels) and the
 // number of graphic display windows (###gfx0...) drawn with it.
 void layout_main(const char* id, float w, float h, int gfx_count);
-// A display window ("###gfx0"): the main output where it was planned, another display in the free room (up to w x h,
-// at least min_w x min_h, pixels; down to small_w x small_h rather than over another window, 0 = not smaller).
-void layout_display(const char* id, float w, float h, float min_w, float min_h, float small_w, float small_h);
+// A display window ("###gfx0"), its size at zoom k zero + k * step (pixels: the frame with the small border, and the
+// picture at 1:1; step 0 = zero is its size). The main output where it was planned; another display (or the main output
+// when another window is there) in the free room next to the main output at the largest zoom from k_max down to 1:1,
+// then 3/4; else at 1:1 clear of the other displays, covering the least of the rest. exact: only at k_max (a zoom chosen
+// from the menu, View -> Arrange open windows): in the free room, else clear of the other displays covering the least.
+void layout_display(const char* id, float zero_w, float zero_h, float step_w, float step_h, float k_max,
+                    bool exact = false);
 // View -> Default window layout: the saved places of the windows not created in this run are forgotten too.
 void layout_forget_closed(void);
 // The window places of the other layout just loaded (View -> Settings -> Windows): the windows that have none in it take
 // their default places.
 void layout_take_default_unsaved(void);
+// Finding a window (author 2026-10-29: "a window easily hides behind another"). A window is covered when it is open and
+// collapsed, a tab of a dock that is not selected, or another window in front of it overlaps it (not a menu or popup;
+// a window docked into the dock space over the main window only by the first two: it cannot come in front of a
+// floating window). id: the part of the title from ### on ("###Media"). layout_to_front: an open window to the front with the keyboard,
+// its tab selected in a dock, a floating one moved into the work area when it is partly outside.
+bool layout_covered(const char* id);
+void layout_to_front(const char* id);
+// View -> Windows: the open windows (docked or floating, not the menus and popups), the displays first, then in the
+// order of LayoutWin, the others last. title: as shown (a display without its zoom).
+struct LayoutOpenWindow {
+    std::string id, title;
+    bool covered = false;
+};
+void layout_open_windows(std::vector<LayoutOpenWindow>& out);
 // No first places while the display is in full screen (app.cpp, every frame): a window opening then takes its place in
 // the main window at the first frame after it. layout_held: that, or the main window too small (minimized).
 void layout_hold(bool hold);

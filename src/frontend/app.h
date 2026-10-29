@@ -45,6 +45,10 @@ struct UiSnapshot {
     float scale = 0;         // the display scale instead of the one of the system (0 = the system's)
     int zoom = 0;            // the zoom of the screen chosen from the menu (100, 200...; 0 = none)
     bool reset_layout = false;   // View -> Default window layout
+    bool arrange = false;        // View -> Arrange open windows
+    // clicks one after another (after the windows took their places): "KEY" the item of the window ###KEY in the menu
+    // View or Debug (Media, Debugger, rack...), "front:KEY" that window in View -> Windows
+    std::vector<std::string> window_clicks;
     bool layout_switch = false;  // View -> Settings -> Windows: the other layout
     bool pause = false;          // F5 before the picture: the text over the picture, "[paused]" in the title
     bool log = false;            // show the Log window (errors and warnings in their colours)

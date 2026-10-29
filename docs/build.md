@@ -159,11 +159,50 @@ vzhledu: okna):
   - Hlavní výstup (konzole, nebo displej z klíče sestavy `main_display`, `docs/sestavy.md`) plánuje `app.cpp`
     (`layout_main`) vlevo nahoře v největším celočíselném zvětšení do 65 % šířky. Ostatní displeje umisťuje
     `layout_display`, ostatní okna `layout_window` do volného místa (`find_place`, váhy rolí `weight_of`).
+  - Samo rozmístění dá displeji nejvýš `display_zoom_cap` = round(2 × měřítko Windows): 200 % při 100 %, 300 % při
+    125 a 150 % (od 2026-10-29, autor: 400 % je obludné a kostičkované). Zoom zvolený v menu a uložená místa platí
+    dál. Ostatní displeje zkouší zvětšení od stropu dolů po 1:1 (`layout_display`), okno má vždy velikost obrazu
+    s malým okrajem (`display_window_size`), bez černé plochy. Pod 1:1 největší volné místo do 3/4. Další displej
+    má obraz nejvýš 1,5× širší a vyšší než hlavní výstup (`place_display`; konzole AND-1V her 100 % vedle CGA-1V
+    200 %, DGD-1 vedle AND-1 200 %). Displej se zoomem zvoleným v menu (`zs.fixed`, po Přeskládat otevřená okna)
+    dostane místo přesně v tom zvětšení (`layout_display(..., exact)`, hlavní výstup i v plánu, klíč plánu ho má).
+  - Pořadí míst stejně dobrých (`Want.order`): displeje vlevo, pak nahoře (pod hlavní výstup, jinak vedle něj),
+    průvodce nahoře, pak vlevo (vedle displejů), ostatní vpravo, pak nahoře. Pravý kraj tak zůstane přístrojům,
+    Médiím a nástrojům.
+  - Konfigurátor patří do výchozího rozložení s nejnižší prioritou: Výchozí rozložení oken a první start (bez
+    `imgui.ini` a bez uloženého `windows.configuration`) ho otevřou jen do volného místa aspoň 44 × 44 výšek písma
+    (`layout_window_if_room`, rozhoduje `draw_rack` po ostatních oknech). Při 1280 × 720 se nevejde. Otevřený
+    rozložením (`ui.rack_by_layout`, uložený `windows.configuration_auto`) se příštím Výchozím rozložením rozhodne
+    znovu. Za „použitý“ ho mají jen kliknutí do něj, klávesa, když má fokus, nebo vyžádání z menu (položka okna,
+    změny čekající na restart, Otevřít v konfigurátoru); samotný fokus ne, ten ImGui dává i bez uživatele. Do té
+    doby: `NoFocusOnAppearing`, při objevení (i obnovený při dalším startu) za ostatní okna (`layout_to_back`),
+    nejnižší priorita (`layout_rack_low` každý snímek: `obstacles` ho vynechá, okna otevřená později ho zakryjí)
+    a chyba Zapnout jde i do okna Chyba (`editor_apply`, také když je zakrytý). Zadokované rozložení ho samo
+    neotevírá.
   - Pořadí kreslení v `app_run`: hlavní výstup, další displeje, přístroje, Média, průvodce, nástroje, dialogy.
     Okno dostane místo až po oknech, kterým se má vyhnout.
   - Plán se přepočítá jen po změně sestavy, plochy, písma nebo měřítka. `layout_hold` za celé obrazovky
     a minimalizace první místa odloží.
   - Zobrazení → Výchozí rozložení oken smaže i záznamy oken, která ještě nevznikla (`WantDelete`).
+  - Zobrazení → Přeskládat otevřená okna (`reset_window_layout(app, true)`, příznak `layout_arrange`): totéž jen pro
+    otevřená okna (`Active || WasActive`). Nic nezapomíná, zoom zvolený v menu nechá, konfigurátor neotevírá ani
+    nezavírá. Otevřené okno přilepené v plovoucím rozložení odlepí jen ono (`SetWindowDock(w, 0)`), ne celý dok.
+    V zadokovaném rozložení postaví dok znovu jako Výchozí rozložení, i se zavřenými okny (tooltip to říká).
+- **Hledání oken** (od 2026-10-29, autor: „okno se snadno schová za jiné“; `layout.cpp`): okno je **zakryté**, když
+  je sbalené, je to nevybraná záložka doku, nebo ho překrývá okno před ním (`g.Windows` je pořadí odzadu dopředu,
+  počítají se jen kořenová okna za kořenem toho okna, ne nabídky, popupy, lišta menu, celá obrazovka, plocha doku
+  a skryté okno ImGui „Debug“). Okno zadokované do plochy doku (kořen `RootWindowDockTree` má
+  `NoBringToFrontOnFocus`) je zakryté jen sbalené nebo jako nevybraná záložka: plovoucí okno před ním nejde dát
+  dozadu a položka menu by ho jinak nikdy nezavřela. Zadokované okno se pozná podle `DockNode` a příznaku
+  `ChildWindow` z minulého snímku: `DockIsActive` ImGui jedinému oknu uzlu maže od aktualizace uzlu do jeho `Begin`,
+  a menu se kreslí mezi tím.
+  `layout_to_front` okno rozbalí, v doku vybere jeho záložku, plovoucí okno částečně mimo plochu posune dovnitř
+  a dá mu fokus (`FocusWindow` až po `MenuItem`, které při zavření menu vrací fokus předchozímu oknu).
+  - Zobrazení → Okna (`layout_open_windows`): otevřená okna v pevném pořadí (displeje, pak podle `LayoutWin`,
+    ostatní), displej bez zvětšení v názvu, u zakrytého „zakryté“. Kliknutí: `layout_to_front`.
+  - Položky oken v menu Zobrazení a Ladění (`window_item`): zavřené okno otevřou, zakryté dají dopředu (vpravo
+    „zakryté“ a tooltip), okno vpředu zavřou. Fajfka dál znamená otevřené. Nastavení…, Klávesové zkratky
+    a O programu otevřené okno dají dopředu (`open_window`).
 - **Zadokované rozložení:** Zobrazení → Nastavení → Vzhled → Okna, uloží se jako `"appearance": { "layout":
   "docked" }`. Staví ho `layout_dock()` v `layout.cpp` přes DockBuilder: hlavní výstup uprostřed, sloupec u pravého
   kraje (nahoře ostatní displeje, pod nimi okna stroje, dole průvodce a ladicí okna jako záložky). Postaví se jen bez
@@ -184,8 +223,10 @@ vzhledu: okna):
 - **Displej menší než 1:1** se kreslí s lineárním filtrem, od 1:1 ostře (pokud není zapnuté Vyhlazování).
 - **Volby:** `--ui-layout floating|docked` vybere rozložení jen pro jedno spuštění. Když se liší od uloženého, začne
   z výchozích míst a soubory míst nečte ani nezapisuje. Pro snímky jsou `--ui-layout-switch` (přepne jako volba
-  v Nastavení), `--ui-fullscreen` (Alt+Enter, okno zůstane velikosti `--ui-size`), `--ui-zoom` a `--ui-reset-layout`.
-  Popis voleb `--ui-*` je v `docs/sestavy.md`.
+  v Nastavení), `--ui-fullscreen` (Alt+Enter, okno zůstane velikosti `--ui-size`), `--ui-zoom`, `--ui-reset-layout`,
+  `--ui-arrange` (Přeskládat otevřená okna), `--ui-window-item KLÍČ` (kliknutí na položku okna `###KLÍČ` v menu
+  Zobrazení nebo Ladění, opakovaně po sobě), `--ui-front KLÍČ` (to okno v Zobrazení → Okna) a `--ui-menu View/Windows`
+  (otevřená podnabídka). Popis voleb `--ui-*` je v `docs/sestavy.md`.
 
 ## Linux (ověřeno ve WSL 2, 2026-10-06)
 

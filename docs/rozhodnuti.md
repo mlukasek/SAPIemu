@@ -2103,7 +2103,7 @@ mají vždy přednost, výchozí místo okno dostane jen při prvním použití 
 Výchozí rozložení oken. Docking ani F9 nejsou dogma (2026-10-28). Rozměry oken jsou ve výškách písma (em). Co má
 autor rozhodnout a vyzkoušet ručně, je na konci oddílu.
 
-### Checkpoint C (rozhodl vedoucí agent)
+### Checkpoint C (rozhodl vedoucí agent, autor potvrdil 2026-10-29: plovoucí okna)
 
 - **Výchozí zůstávají plovoucí okna s chytrým rozmístěním, zadokované rozložení je volba** v Zobrazení → Nastavení
   → Vzhled → Okna: Plovoucí / Zadokovaná (uloží se jako `appearance.layout`). Důvod: plán chtěl obě rozložení
@@ -2667,6 +2667,53 @@ Známá omezení:
 - Hry (Prince of Persia, BomberNet, Manic Miner) a ostatní dema se na blikání snímek po snímku nezkoumaly.
 - Náhled Minigrafu se novým ořezem nezměnil, kresba asi zabírá celý viditelný papír (neověřeno).
 - Testy `release` a překlad ve WSL se nespouštěly, podle plánu jsou před pushem.
+
+## 2026-10-29 – rozložení oken podle autora
+
+Autor ráno potvrdil checkpoint C: **výchozí zůstávají plovoucí okna**, zadokované rozložení je dál volba v Nastavení.
+K plovoucím oknům měl čtyři připomínky a se změnami souhlasil. Udělal je workflow (agent, 2 oponenti, opravy).
+
+- **Strop automatického zvětšení displeje** (autor: „v praxi se mi osvědčilo zhruba 200 % (to je moje rozlišení),
+  400 % vypadá monstrózně a kostičkovatě“): samo rozmístění dá displeji nejvýš round(2 × měřítko Windows), tedy
+  200 % při 100 % a 300 % při 125 a 150 %. Fyzická velikost obrazu tak zůstane zhruba stejná. Když se nevejde,
+  zvětšení klesne až na 100 %. Zoom zvolený v menu a uložená místa oken strop nemají.
+- **Další displej ne větší než hlavní výstup** (nález oponenta): jeho obraz nejvýš 1,5× širší a vyšší než obraz
+  hlavního výstupu, jinak menší zvětšení, nejníž 100 %. U her (Hry a dema, BomberNet, Prince of Persia) zůstane
+  hra na CGA-1V 200 % a konzole AND-1V s nabídkou ECMONu jde na 100 %. Bez toho měla konzole 1312 × 1018 bodů a hra
+  byla nejmenší okno. DGD-1 vedle AND-1 v MIKOSu si 200 % nechá.
+- **Displej s malým okrajem** (autor: „líbí se mi displeje s malým okrajem“): okno displeje, které umístilo
+  rozložení, má velikost obrazu ve zvoleném celočíselném zvětšení a 16 bodů okraje, bez černé plochy kolem. Je to
+  stejné jako po volbě zvětšení v menu.
+- **Konfigurátor ve výchozím rozložení, když je místo** (autor: „kde je na obrazovce místo, je škoda, že není vidět
+  Konfigurátor sestavy… pěkné okno, které ukazuje široké možnosti emulátoru“; jeho snímek 2000 × 1128: AND-1
+  a DGD-1 po 200 % vlevo pod sebou, průvodce uprostřed nahoře, konfigurátor vpravo přes celou výšku). Má nejnižší
+  prioritu: první start a Výchozí rozložení oken ho otevřou jen do volného místa aspoň 44 × 44 výšek písma (704 ×
+  704 bodů při 100 %, na tolik potřebuje kresba racku), mimo displeje, průvodce a přístroje. Na notebooku (1280 × 720)
+  zůstane zavřený. Nebere klávesnici a zůstane za ostatními okny i za dialogy. Okna otevřená později se mu
+  nevyhýbají a mohou ho zakrýt. Dokud v něm uživatel neklikne, nestiskne klávesu nebo si ho nevyžádá z menu, platí
+  za otevřený rozložením (`windows.configuration_auto`, i po dalším startu). Příští Výchozí rozložení oken pak
+  rozhodne znovu. Chyba Zapnout ho za tu dobu neschová, jde i do okna Chyba.
+- **Hledání oken** (autor: „okno se snadno schová za jiné a pak ho hledám, běžný uživatel ani neví, že existuje“):
+  - Zobrazení → Okna vypíše otevřená okna, kliknutí dá okno dopředu a s klávesnicí.
+  - Položky oken v Zobrazení a Ladění zakryté okno nejdřív dají dopředu a zavřou ho až další kliknutí, když je
+    vpředu. Zaškrtnutí dál znamená otevřené.
+  - Okno zadokované do plochy doku je zakryté jen jako sbalené nebo nevybraná záložka: dok zůstává vzadu a plovoucí
+    okno před ním nejde dát dozadu (jinak by šlo okno z menu jen dávat „dopředu“ a nikdy zavřít).
+  - Zobrazení → Přeskládat otevřená okna dá na výchozí místa jen otevřená okna. Zavřená si místa nechají, zvětšení
+    zvolené v menu zůstane. V zadokovaném rozložení se dok postaví znovu jako u Výchozího rozložení oken.
+  - Ctrl+Tab se nepoužije, Ctrl+klávesy patří SAPI jako řídicí kódy (seznam oken ImGui na Ctrl+Tab od etapy 7
+    zůstává).
+
+### Na rozhodnutí autora
+
+- **Konfigurátor při 1920 × 1080:** s průvodcem se u MIKOSu nevejde, spodní polovina obrazovky zůstane volná.
+  Vešel by se, kdyby průvodce šel pod hlavní výstup a DGD-1 vpravo od něj (autorovo uspořádání otočené). Doporučení:
+  nechat, Full HD je „bez místa“. Druhá možnost je to udělat.
+- **Strop i v zadokovaném rozložení:** tam hlavní výstup vyplní střed doku (AND-1 300 % při 1600 × 900). Doporučení:
+  nechat, dok řídí velikost (rozhodnutí 2026-10-10). Druhá možnost je zvětšení omezit a nechat černý okraj.
+- **Průvodce na malé obrazovce** (1280 × 720 až 1600 × 900, i 1920 × 1080 při 150 %) zůstane pod displeji jako úzký
+  pruh. Bylo to tak i před změnou. Doporučení: nechat. Druhá možnost je dát dalšímu displeji menší zvětšení, když
+  by průvodce měl méně než 12 výšek písma.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

@@ -28,8 +28,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     u her podle klíče sestavy `main_display`, ostatní okna do volného místa vpravo, dialogy uprostřed, okno programu
     88 % plochy), zadokované rozložení jako volba v Zobrazení → Nastavení → Vzhled → Okna (každé rozložení má svůj
     soubor míst oken), celá obrazovka Alt+Enter, „Přizpůsobit oknu“ v menu zvětšení, displej menší než 1:1 hladce.
-    **Checkpoint C:** výchozí zůstávají plovoucí okna (rozhodl vedoucí agent), autor vybere podle galerie
-    `out\ui-gallery\20261029-044908-layouts\` (`tools/ui_gallery.py --layouts`). Autor ručně vyzkouší notebook, dva
+    **Checkpoint C:** výchozí zůstávají plovoucí okna (potvrdil autor 2026-10-29). Autor ručně vyzkouší notebook, dva
     monitory a celou obrazovku.
   - **Etapa 6 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 6 plánu vzhledu: před betou):
     Nápověda → Nahlásit chybu… (diagnostika a konec logu do schránky, složka logu, po pádu log předchozího spuštění
@@ -58,7 +57,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (`--ui-picture`), všech 7 přegenerovaných. MCP `keyboard_status` u APS-5 je anglicky. Chyby jádra (anglicky
     i v češtině) jsou přesunuté do etapy 8. **Dál:** otázky na autora (jméno verze bety, kam testeři hlásí, F9;
     z etapy 7 štítek „Pec 1“, `keyboard_status`, navigace), beta zip (`package.py --public`) až na Martinův pokyn,
-    checkpoint C, ruční zkoušky autora (plán, etapy 4–7), pak etapa 8.
+    ruční zkoušky autora (plán, etapy 4–7), pak etapa 8.
+  - **Rozložení oken podle autora** (2026-10-29, rozhodnutí 2026-10-29 – rozložení oken podle autora): plovoucí
+    okna potvrzená, automatické zvětšení displeje nejvýš round(2 × měřítko) (200 % při 100 %), další displej nejvýš
+    1,5× větší než hlavní výstup, okna displejů velikosti obrazu s malým okrajem, konfigurátor ve výchozím rozložení
+    jen když je místo (44 × 44 em, s nejnižší prioritou, `windows.configuration_auto`), Zobrazení → Okna, položky oken
+    dají zakryté okno nejdřív dopředu, Zobrazení → Přeskládat otevřená okna. Na rozhodnutí autora: konfigurátor
+    při 1920 × 1080, strop v doku, průvodce na malé obrazovce.
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

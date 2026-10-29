@@ -3,10 +3,14 @@
 // Default window layout lets every window take its default place again. The work area is the main window without
 // the menu bar and nothing goes outside it:
 // - the main output (the console screen, or the display named by "main_display" in the machine description) at the
-//   top left, at the largest integer zoom that fits about 65 % of the width (planned by app.cpp, layout_main);
-// - the other displays, the instruments, Media and the tools in the free room, the column at the right edge first;
-// - the guide never over an instrument or Media nor under one: beside it, below it or wherever there is room, rather
+//   top left, at the largest integer zoom that fits about 65 % of the width, at most about 200 % (planned by app.cpp,
+//   layout_main);
+// - the other displays next to it (below it, else right of it) at the largest integer zoom up to that cap that has free
+//   room, each window as large as its picture with a small border;
+// - the instruments, Media and the tools in the free room, the column at the right edge first; the guide next to the
+//   displays, never over an instrument or Media nor under one: beside it, below it or wherever there is room, rather
 //   smaller than over the main output; Media not over the main output either when it fits elsewhere;
+// - the configurator, when the layout opens it (layout_window_if_room), only in the free room at a readable size;
 // - the dialogs (Choose a machine, Settings...) in the middle of the work area, never over the menu bar.
 // Where there is no room (a small window, a big instrument), a window goes where it covers the least of what matters:
 // the instruments and Media most, then the main output, the console screen, the other displays, the tools.
@@ -15,6 +19,7 @@
 #include "frontend/ui.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "imgui.h"
 #include "imgui_internal.h"   // the windows of this frame and their saved settings
 
@@ -65,6 +70,7 @@ ImGuiID s_main_id = 0;
 float s_main_w = 0, s_main_h = 0;
 int s_gfx_count = 0;   // the graphic display windows of the machine (###gfx0...)
 bool s_hold = false;   // no first places now (layout_hold: full screen, a minimized window)
+bool s_rack_low = false;   // the configurator opened by the layout: no obstacle (layout_rack_low)
 
 // A bit of the masks of find_place beside the roles: the main output (the guide and Media keep clear of it first).
 const unsigned MASK_MAIN = 1u << 8;
@@ -159,6 +165,7 @@ int obstacles(ImGuiID self, const Box& wa, Obstacle* out)
         if (w->SetWindowPosAllowFlags & ImGuiCond_FirstUseEver) continue;
         int role = role_of(w->ID);
         if (role == ROLE_DIALOG) continue;
+        if (s_rack_low && w->ID == s_ids[LW_RACK]) continue;   // the lowest priority: the windows opening later cover it
         for (int i = 0; i < MAX_DISPLAY_IDS; i++)
             if (w->ID == s_display_ids[i]) seen[i] = true;
         out[n++] = { { w->Pos.x, w->Pos.y, w->Pos.x + w->Size.x, w->Pos.y + w->Size.y }, role, weight_of(w->ID, role),
@@ -207,21 +214,27 @@ float overlap_area(const Box& a, const Box& b)
     return w > 0 && h > 0 ? w * h : 0.0f;
 }
 
+// Which place first of those equally good: the right, then the top (the instruments, Media, the tools); the displays the
+// left, then the top (next to the main output, below it before right of it), the guide the top, then the left (next to
+// the displays): the right edge stays free for the instruments, Media and the tools (the configurator).
+enum { ORDER_RIGHT, ORDER_LEFT, ORDER_TOP };
+
 struct Want {
     float w, h, min_w, min_h, max_w;
     bool size_first;   // an instrument, Media: its size before covering less (an APS-5 cut in half is no use)
+    int order;         // which of the places as good: ORDER_RIGHT, ORDER_LEFT, ORDER_TOP
 };
 
 struct Pick {
     bool found = false, full = false;
-    float cost = 0, area = 0, r = 0, t = 0;
+    float cost = 0, area = 0, l = 0, r = 0, t = 0;
     Box b = {};
 };
 
 // Is the place c (whole: it has the size asked for) better than the best one so far? The guide and the displays
 // prefer covering less of the other windows (weighted) to their size, the instruments and Media the other way round;
-// then the right, then the top.
-bool better(const Pick& p, const Want& want, bool full, float cost, float area, float r, float t)
+// then by want.order.
+bool better(const Pick& p, const Want& want, bool full, float cost, float area, const Box& c)
 {
     if (!p.found) return true;
     bool cheaper = cost < p.cost - 1.0f, same_cost = cost < p.cost + 1.0f;
@@ -231,7 +244,9 @@ bool better(const Pick& p, const Want& want, bool full, float cost, float area, 
     if (!(want.size_first ? same_size : same_cost)) return false;
     if (want.size_first ? cheaper : larger) return true;
     if (!(want.size_first ? same_cost : same_size)) return false;
-    return r > p.r + 0.5f || (r > p.r - 0.5f && t < p.t - 0.5f);
+    if (want.order == ORDER_LEFT) return c.x0 < p.l - 0.5f || (c.x0 < p.l + 0.5f && c.y0 < p.t - 0.5f);
+    if (want.order == ORDER_TOP) return c.y0 < p.t - 0.5f || (c.y0 < p.t + 0.5f && c.x0 < p.l - 0.5f);
+    return c.x1 > p.r + 0.5f || (c.x1 > p.r - 0.5f && c.y0 < p.t - 0.5f);
 }
 
 // The best place in the work area clear of the obstacles whose role is in `mask` (with the gap), covering the least
@@ -288,11 +303,12 @@ bool find_place(const Box& wa, const Obstacle* ob, int n, unsigned mask, const W
                         }
                         if (!clear) continue;
                         bool full = cw >= want.w - 0.5f && ch >= want.h - 0.5f;
-                        if (!better(best, want, full, cost, cw * ch, r, t)) continue;
+                        if (!better(best, want, full, cost, cw * ch, c)) continue;
                         best.found = true;
                         best.full = full;
                         best.cost = cost;
                         best.area = cw * ch;
+                        best.l = c.x0;
                         best.r = r;
                         best.t = t;
                         best.b = c;
@@ -314,13 +330,13 @@ unsigned hard_roles(int role)
     }
 }
 
-// The place of a window at its first use: the free room (the guide and a display also smaller: the guide down to 0.6
-// of its least size, a display down to small_w x small_h); else clear of the windows that matter for it, covering the
-// least of the others (the guide and Media clear of the main output first, the guide also narrower and shorter rather
-// than over an instrument; another display at least clear of the main output); else a tool window at the right edge: the first one at the top, the others from the middle
-// of the height a step lower each (the top of the first one, the registers and buttons of the Debugger, stays in sight,
-// and every title too); any other window where it covers the least.
-Box place(ImGuiID self, int role, Want want, int cascade, const Box& wa, float u, float small_w = 0, float small_h = 0)
+// The place of a window at its first use: the free room (the guide also smaller, down to 0.6 of its least size); else
+// clear of the windows that matter for it, covering the least of the others (the guide and Media clear of the main
+// output first, the guide also narrower and shorter rather than over an instrument; another display at least clear of
+// the main output); else a tool window at the right edge: the first one at the top, the others from the middle of the
+// height a step lower each (the top of the first one, the registers and buttons of the Debugger, stays in sight, and
+// every title too); any other window where it covers the least. (The displays try their zooms first, layout_display.)
+Box place(ImGuiID self, int role, Want want, int cascade, const Box& wa, float u)
 {
     float gap = 0.5f * u, ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
     want.w = minf(want.w, ww);
@@ -333,11 +349,11 @@ Box place(ImGuiID self, int role, Want want, int cascade, const Box& wa, float u
     unsigned hard = hard_roles(role);
     bool guide = role == ROLE_GUIDE;
     Want small = want;
-    small.min_w = small_w > 0 ? minf(small_w, want.min_w) : 0.6f * want.min_w;
-    small.min_h = small_h > 0 ? minf(small_h, want.min_h) : 0.6f * want.min_h;
+    small.min_w = 0.6f * want.min_w;
+    small.min_h = 0.6f * want.min_h;
     Box b;
     if (find_place(wa, ob, n, ~0u, want, gap, &b)) return b;
-    if ((guide || small_w > 0) && find_place(wa, ob, n, ~0u, small, gap, &b)) return b;
+    if (guide && find_place(wa, ob, n, ~0u, small, gap, &b)) return b;
     if (hard) {
         if (guide || role == ROLE_MEDIA) {
             if (find_place(wa, ob, n, hard | MASK_MAIN, want, gap, &b)) return b;
@@ -378,6 +394,11 @@ void layout_hold(bool hold)
     s_hold = hold;
 }
 
+void layout_rack_low(bool low)
+{
+    s_rack_low = low;
+}
+
 bool layout_held(void)
 {
     float u = ImGui::GetFontSize();
@@ -401,8 +422,49 @@ void layout_window(int which)
         return;
     }
     Want want = { d.w * u, d.h > 0 ? d.h * u : wh, d.min_w * u, d.min_h * u, d.max_w * u,
-                  d.role == ROLE_INSTRUMENT || d.role == ROLE_MEDIA };
+                  d.role == ROLE_INSTRUMENT || d.role == ROLE_MEDIA, d.role == ROLE_GUIDE ? ORDER_TOP : ORDER_RIGHT };
     set_next(place(s_ids[which], d.role, want, d.cascade, wa, u));
+}
+
+bool layout_window_if_room(int which)
+{
+    if (which < 0 || which >= LW_COUNT) return false;
+    ids_init();
+    if (!first_use(s_ids[which])) return false;
+    const WinDef& d = k_wins[which];
+    float u = ImGui::GetFontSize(), gap = 0.5f * u;
+    Box wa = work_area(gap);
+    if (held(wa, u)) return false;
+    float ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
+    // the least size: the configurator its toolbar in one row, the drawing of the rack and the settings of a card under
+    // it without scrolling much (44 x 44 font heights: 704 x 704 pixels at 100 %, higher than the work area of a window
+    // of 1280 x 720: not on a notebook)
+    float min_w = (which == LW_RACK ? 44.0f : d.min_w) * u, min_h = (which == LW_RACK ? 44.0f : d.min_h) * u;
+    if (min_w > ww || min_h > wh) return false;
+    Want want = { maxf(minf(d.w * u, ww), min_w), d.h > 0 ? maxf(minf(d.h * u, wh), min_h) : wh, min_w, min_h, 0, false,
+                  ORDER_RIGHT };
+    want.max_w = want.w;
+    Obstacle ob[MAX_OBSTACLES];
+    int n = obstacles(s_ids[which], wa, ob);
+    Box b;
+    if (!find_place(wa, ob, n, ~0u, want, gap, &b)) return false;
+    set_next(b);
+    return true;
+}
+
+void layout_to_back(void)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* self = ImGui::GetCurrentWindow();
+    for (ImGuiWindow* w : g.Windows) {   // back to front: behind the first ordinary window (not the dock space host)
+        if (w == self) return;
+        if (w->RootWindow != w || !(w->Active || w->WasActive) ||
+            (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
+                         ImGuiWindowFlags_NoBringToFrontOnFocus)))
+            continue;
+        ImGui::BringWindowToDisplayBehind(self, w);
+        return;
+    }
 }
 
 float layout_width(int which)
@@ -432,18 +494,19 @@ void layout_main(const char* id, float w, float h, int gfx_count)
     s_main_h = h;
 }
 
-void layout_display(const char* id, float w, float h, float min_w, float min_h, float small_w, float small_h)
+void layout_display(const char* id, float zero_w, float zero_h, float step_w, float step_h, float k_max, bool exact)
 {
     ImGuiID self = ImHashStr(id);
     if (!first_use(self)) return;
     ids_init();
-    float u = ImGui::GetFontSize();
-    Box wa = work_area(0.5f * u);
+    float u = ImGui::GetFontSize(), gap = 0.5f * u;
+    Box wa = work_area(gap);
     if (held(wa, u)) return;
+    float ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
+    Obstacle ob[MAX_OBSTACLES];
+    int n = obstacles(self, wa, ob);
     if (self == s_main_id) {   // the main output at the top left, unless another window is there already
         Box b = main_box(wa);
-        Obstacle ob[MAX_OBSTACLES];
-        int n = obstacles(self, wa, ob);
         bool clear = true;
         for (int i = 0; i < n && clear; i++)
             if (overlaps(b, ob[i].b, 0.0f)) clear = false;
@@ -451,11 +514,40 @@ void layout_display(const char* id, float w, float h, float min_w, float min_h, 
             set_next(b);
             return;
         }
-        w = s_main_w;
-        h = s_main_h;
     }
-    Want want = { w, h, min_w, min_h, w, false };
-    set_next(place(self, ROLE_DISPLAY, want, 0, wa, u, small_w, small_h));
+    Box b;
+    if (step_w <= 0 || step_h <= 0 || exact) {   // no picture (switched off): its size; a zoom chosen: that one
+        float w = zero_w + (step_w > 0 ? k_max * step_w : 0), h = zero_h + (step_h > 0 ? k_max * step_h : 0);
+        Want want = { w, h, w, h, w, false, ORDER_LEFT };
+        set_next(place(self, ROLE_DISPLAY, want, 0, wa, u));
+        return;
+    }
+    // the integer zooms from k_max down to 1:1, each as large as its picture
+    for (float k = k_max; k > 0.99f; k -= 1.0f) {
+        float w = zero_w + k * step_w, h = zero_h + k * step_h;
+        if (w > ww + 0.5f || h > wh + 0.5f) continue;
+        Want want = { w, h, w, h, w, false, ORDER_LEFT };
+        if (find_place(wa, ob, n, ~0u, want, gap, &b)) {
+            set_next(b);
+            return;
+        }
+    }
+    // below 1:1 (drawn smooth there, the letters keep their strokes) down to 3/4: the largest free room, the window
+    // shrunk to the zoom that fits it
+    float hi = minf(1.0f, maxf(k_max, 0.1f)), lo = minf(0.75f, hi);
+    Want want = { zero_w + hi * step_w, zero_h + hi * step_h, zero_w + lo * step_w, zero_h + lo * step_h,
+                  zero_w + hi * step_w, false, ORDER_LEFT };
+    if (find_place(wa, ob, n, ~0u, want, gap, &b)) {
+        float k = minf((b.x1 - b.x0 - zero_w) / step_w, (b.y1 - b.y0 - zero_h) / step_h);
+        k = maxf(lo, minf(hi, k));
+        set_next({ b.x0, b.y0, b.x0 + zero_w + k * step_w, b.y0 + zero_h + k * step_h });
+        return;
+    }
+    // no free room: at 1:1 (k_max when smaller) clear of the other displays (another display at least of the main
+    // output), covering the least of the rest
+    want.min_w = want.w;
+    want.min_h = want.h;
+    set_next(place(self, ROLE_DISPLAY, want, 0, wa, u));
 }
 
 void layout_forget_closed(void)
@@ -476,6 +568,132 @@ void layout_take_default_unsaved(void)
         w->SetWindowPosAllowFlags |= ImGuiCond_FirstUseEver;
         w->SetWindowSizeAllowFlags |= ImGuiCond_FirstUseEver;
         w->SetWindowCollapsedAllowFlags |= ImGuiCond_FirstUseEver;
+    }
+}
+
+// ---------------------------------------------------------------- finding a window (View -> Windows)
+
+namespace {
+
+// Docked into a dock node that is drawn: a child of the node (its flags of the last frame). Not DockIsActive alone: ImGui
+// clears it for the only window of a node from the update of the node until the Begin of the window, and the menus are
+// drawn in between.
+bool docked(ImGuiWindow* w)
+{
+    return w->DockIsActive || (w->DockNode && (w->Flags & ImGuiWindowFlags_ChildWindow));
+}
+
+// A window the user sees as one: open (drawn in the last frame or in this one), docked or floating; not a menu, a popup,
+// a tooltip, the menu bar, the full screen, the dock space or the host of a dock node.
+bool user_window(ImGuiWindow* w)
+{
+    if (w->IsFallbackWindow || !(w->Active || w->WasActive)) return false;
+    if (w->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip)) return false;
+    if (docked(w)) return true;   // a child of its dock node, without a title bar when the node hides its tab bar
+    return !(w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_NoTitleBar)) && !w->DockNodeAsHost;
+}
+
+// A window drawn in front of others that can cover them: a floating window or the host of a floating dock node, open.
+// Not the dock space over the main window (always at the back), the menu bar or the full screen (no title bar).
+bool front_window(ImGuiWindow* o)
+{
+    if (o->RootWindowDockTree != o || !(o->Active || o->WasActive)) return false;   // children, docked windows
+    if (o->IsFallbackWindow || o->Hidden) return false;   // ImGui's implicit "Debug" window: begun every frame, not shown
+    if (o->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip)) return false;
+    if (o->DockNodeAsHost) return !o->DockNodeAsHost->IsDockSpace();
+    return !(o->Flags & ImGuiWindowFlags_NoTitleBar);
+}
+
+// Collapsed, a tab of a dock node that is not selected, or a window in front of it (g.Windows is back to front: the
+// root windows after the root of this one) overlaps it by more than a border. A window docked into the dock space over
+// the main window only by the first two: the dock space stays at the back (NoBringToFrontOnFocus), a floating window
+// over it cannot be put behind it (FocusWindow would do nothing, and the window could never be closed from the menu).
+bool covered(ImGuiWindow* w)
+{
+    if (w->Collapsed || (docked(w) && !w->DockTabIsVisible)) return true;
+    if (w->RootWindowDockTree && (w->RootWindowDockTree->Flags & ImGuiWindowFlags_NoBringToFrontOnFocus)) return false;
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow** root = g.Windows.find(w->RootWindowDockTree);
+    if (root == g.Windows.end()) return false;
+    for (ImGuiWindow** it = root + 1; it != g.Windows.end(); ++it) {
+        ImGuiWindow* o = *it;
+        if (!front_window(o)) continue;
+        float ow = minf(w->Pos.x + w->Size.x, o->Pos.x + o->Size.x) - maxf(w->Pos.x, o->Pos.x);
+        float oh = minf(w->Pos.y + w->Size.y, o->Pos.y + o->Size.y) - maxf(w->Pos.y, o->Pos.y);
+        if (ow > 2.0f && oh > 2.0f) return true;
+    }
+    return false;
+}
+
+ImGuiWindow* open_window(const char* id)
+{
+    ImGuiWindow* w = id ? ImGui::FindWindowByName(id) : nullptr;
+    return w && user_window(w) ? w : nullptr;
+}
+
+// The order of the list: the displays (###screen, ###gfx0...), then the windows in the order of LayoutWin, the others last.
+int list_rank(ImGuiID id)
+{
+    ids_init();
+    for (int i = 0; i < MAX_DISPLAY_IDS; i++)
+        if (s_display_ids[i] == id) return i;
+    for (int i = 0; i < LW_COUNT; i++)
+        if (s_ids[i] == id) return MAX_DISPLAY_IDS + i;
+    return MAX_DISPLAY_IDS + LW_COUNT;
+}
+
+} // namespace
+
+bool layout_covered(const char* id)
+{
+    ImGuiWindow* w = open_window(id);
+    return w && covered(w);
+}
+
+void layout_to_front(const char* id)
+{
+    ImGuiWindow* w = open_window(id);
+    if (!w) return;
+    if (w->Collapsed) ImGui::SetWindowCollapsed(w, false);
+    bool in_dock = docked(w);
+    if (in_dock && w->DockNode->TabBar) w->DockNode->TabBar->NextSelectedTabId = w->TabId;
+    // a floating window partly outside the work area (the main window got smaller) comes into it with the gap of the
+    // layout, its title bar first (the work area of the last frame: the menu bar of this one may not be drawn yet)
+    if (!in_dock && !(w->SetWindowPosAllowFlags & ImGuiCond_FirstUseEver)) {
+        ImGuiViewport* vp = ImGui::GetMainViewport();
+        float gap = 0.5f * ImGui::GetFontSize();
+        ImVec2 p = w->Pos, a = vp->WorkPos, b(vp->WorkPos.x + vp->WorkSize.x, vp->WorkPos.y + vp->WorkSize.y);
+        if (p.x < a.x || p.y < a.y || p.x + w->Size.x > b.x || p.y + w->Size.y > b.y) {
+            p.x = maxf(a.x + gap, minf(p.x, b.x - gap - w->Size.x));
+            p.y = maxf(a.y + gap, minf(p.y, b.y - gap - w->Size.y));
+            ImGui::SetWindowPos(w, p);
+        }
+    }
+    ImGui::FocusWindow(w);
+}
+
+void layout_open_windows(std::vector<LayoutOpenWindow>& out)
+{
+    out.clear();
+    std::vector<int> rank;
+    for (ImGuiWindow* w : GImGui->Windows) {
+        if (!user_window(w)) continue;
+        const char* name = w->Name;
+        const char* hash = strstr(name, "###");
+        LayoutOpenWindow e;
+        e.id = hash ? hash : name;
+        e.title.assign(name, ImGui::FindRenderedTextEnd(name));
+        int r = list_rank(w->ID);
+        if (r < MAX_DISPLAY_IDS) {   // a display: its card without the zoom ("AND-1  200 %", app.cpp display_title)
+            size_t z = e.title.rfind("  ");
+            if (z != std::string::npos && z > 0) e.title.erase(z);
+        }
+        if (e.title.empty()) e.title = hash ? hash + 3 : name;
+        e.covered = covered(w);
+        size_t at = out.size();   // sorted by the rank, then by the title
+        while (at > 0 && (rank[at - 1] > r || (rank[at - 1] == r && out[at - 1].title > e.title))) at--;
+        out.insert(out.begin() + (std::ptrdiff_t)at, e);
+        rank.insert(rank.begin() + (std::ptrdiff_t)at, r);
     }
 }
 

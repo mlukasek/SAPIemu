@@ -65,13 +65,18 @@ static void print_help(void)
            "                     --ui-copy: the screenshot to the clipboard (View -> Copy screenshot),\n"
            "                     --ui-zoom PCT: the zoom from View -> Screen zoom (the display used last),\n"
            "                     --ui-reset-layout: View -> Default window layout,\n"
+           "                     --ui-arrange: View -> Arrange open windows,\n"
+           "                     --ui-window-item KEY: the item of the window ###KEY in View or Debug clicked (Media,\n"
+           "                     Debugger, rack...; repeated: one after another), --ui-front KEY: View -> Windows, that\n"
+           "                     window (with --ui-window-item in the order given),\n"
            "                     --ui-layout-switch: View -> Settings -> Windows, the other layout (its own places),\n"
            "                     --ui-fullscreen: Alt+Enter, the display used last alone in the window (the right click\n"
            "                     menu with --ui-screen-menu; given twice: on and off again),\n"
            "                     --ui-pause: pause the machine (F5) just before the picture, --ui-log: the Log window,\n"
            "                     --ui-reset: F12 just before the picture (APS-5: the question first),\n"
            "                     --ui-report: Help -> Report a bug, --ui-debugger: the Debugger window,\n"
-           "                     --ui-menu NAME: the menu NAME open (File, Machine, Debug, View, Help),\n"
+           "                     --ui-menu NAME: the menu NAME open (File, Machine, Debug, View, Help; View/Windows:\n"
+           "                     with its submenu Windows),\n"
            "                     --ui-key KEY: a key pressed before the picture (F9, Ctrl+Shift+C, Enter, Esc...;\n"
            "                     repeated: one after another), --ui-mouse X,Y: the mouse there (points),\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
@@ -251,6 +256,9 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-media") snap.media = true;
         else if (a == "--ui-zoom" && i + 1 < argc) snap.zoom = atoi(argv[++i].c_str());
         else if (a == "--ui-reset-layout") snap.reset_layout = true;
+        else if (a == "--ui-arrange") snap.arrange = true;
+        else if (a == "--ui-window-item" && i + 1 < argc) snap.window_clicks.push_back(argv[++i]);
+        else if (a == "--ui-front" && i + 1 < argc) snap.window_clicks.push_back("front:" + argv[++i]);
         else if (a == "--ui-layout-switch") snap.layout_switch = true;
         else if (a == "--ui-fullscreen") snap.fullscreen++;
         else if (a == "--ui-pause") snap.pause = true;

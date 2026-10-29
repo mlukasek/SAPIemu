@@ -150,7 +150,8 @@ s Liborovými deskami.
   - **Tab a šipky** přecházejí v oknech emulátoru (dialogy, Nastavení, konfigurátor, přístroje) mezi prvky: rámeček
     ukáže až Tab, pak ho posouvají i šipky, mezerník a Enter stisknou prvek v rámečku a kliknutí myší rámeček skryje
     (šipky a mezerník bez rámečku nic nestisknou, třeba když hrajete a okno obrazovky zrovna nemá fokus); v okně
-    s otázkou začíná Tab na bezpečném tlačítku (Zrušit). Ctrl+Tab přepíná okna. V okně obrazovky SAPI a v sériovém
+    s otázkou začíná Tab na bezpečném tlačítku (Zrušit). Ctrl+Tab přepíná okna (seznam otevřených oken je
+    i v Zobrazení → Okna). V okně obrazovky SAPI a v sériovém
     terminálu patří šipky, mezerník, Enter, Esc i Alt počítači SAPI;
   - **Ctrl+F2 / Ctrl+F3** rychlé uložení a načtení stavu;
   - Ctrl+F7 režim pro hry u klávesnice ANK-1 / ANK-1M2 (klávesy podle polohy, Shift = SHIFT; Manic Miner);
@@ -171,9 +172,22 @@ s Liborovými deskami.
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows). Okna displejů nejdou sbalit a všechna okna se
   posouvají jen za titulek (tažení po obrazu nebo panelu okno nehne).
 - **Rozmístění oken:** při prvním spuštění zabere okno programu 88 % obrazovky. Hlavní výstup sestavy (konzole,
-  u her CGA-1V nebo BGP-1S) je vlevo nahoře v největším celočíselném zvětšení, ostatní okna (přístroje, Média,
-  průvodce, debugger) si najdou volné místo vpravo, dialogy jsou uprostřed. Okna si pamatují, kam jste je dali;
-  výchozí místa vrátí Zobrazení → Výchozí rozložení oken.
+  u her CGA-1V nebo BGP-1S) je vlevo nahoře, další displeje pod ním nebo vedle něj. Samo rozmístění jim dá
+  celočíselné zvětšení nejvýš asi 200 % (při měřítku Windows 125 a 150 % až 300 %, aby byl obraz zhruba stejně
+  velký) a okno velikosti obrazu s malým okrajem. Další displej nebude o moc větší než hlavní výstup. Jiné zvětšení
+  si zvolíte v menu. Průvodce je vedle displejů, přístroje, Média a debugger si najdou volné místo, dialogy jsou
+  uprostřed. Když zbude dost místa (asi 704 × 704 bodů při 100 %, na notebooku ne), otevře se při prvním spuštění
+  i **Konfigurátor sestavy**. Nebere klávesnici a okna otevřená později ho mohou zakrýt. Okna si pamatují, kam jste
+  je dali; výchozí místa vrátí Zobrazení → Výchozí rozložení oken (konfigurátor, který otevřelo samo rozložení
+  a vy jste ho nepoužili, se přitom znovu otevře, jen když je místo).
+- **Okno schované za jiným:** Zobrazení → **Okna** vypíše všechna otevřená okna (displeje, přístroje, Média,
+  průvodce, ladicí okna, konfigurátor…). U zakrytého je vpravo „zakryté“ a kliknutí ho dá dopředu (s klávesnicí; okno
+  částečně mimo hlavní okno se posune dovnitř). Stejně fungují položky oken v Zobrazení a Ladění: zavřené okno
+  otevřou, zakryté (zakryté jiným oknem, sbalené nebo nevybraná záložka) dají dopředu a teprve okno vpředu zavřou.
+  Zaškrtnutí dál znamená, že je okno otevřené. Okno přilepené do zadokované plochy plovoucí okno před sebou
+  nepřeskočí, zakryté je proto jen sbalené nebo jako nevybraná záložka. **Zobrazení → Přeskládat otevřená okna** dá
+  otevřená okna na místa výchozího rozložení a zvětšení zvolené v menu nechá, zavřená okna si svá místa nechají
+  (Výchozí rozložení oken je zapomene). V zadokovaném rozložení postaví dok znovu, i se zavřenými okny.
 - **Okno přilepené ke kraji:** okno přetažené ke kraji hlavního okna se přilepí (zadokuje) a jeho velikost pak
   určuje přilepená plocha. Odlepí se tažením **za název** v záložce titulku, volbou zvětšení (100–400 %) nebo
   **Zobrazení → Výchozí rozložení oken**, které vrátí všechna okna na výchozí místa a velikosti. S podrženým

@@ -412,9 +412,12 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   měřicí pracoviště, `rmp1_jb_izot`,
   `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky).
 - **Hlavní výstup** (`main_display`, jméno nebo typ karty displeje): okno tohoto displeje dostane při prvním
-  použití (a po Zobrazení → Výchozí rozložení oken) velké místo vlevo nahoře, v největším celočíselném zvětšení do
-  asi 65 % šířky. Bez klíče je hlavním výstupem konzole (obrazovka sestavy). Ostatní displeje, přístroje a průvodce
-  jdou do volného místa vpravo (`src/frontend/layout.cpp`). Se zadokovanými okny (Zobrazení → Nastavení → Okna) je
+  použití (a po Zobrazení → Výchozí rozložení oken) místo vlevo nahoře, v největším celočíselném zvětšení do asi
+  65 % šířky, nejvýš asi 200 % (při měřítku Windows 125 a 150 % 300 %). Bez klíče je hlavním výstupem konzole
+  (obrazovka sestavy). Ostatní displeje jdou pod něj nebo vedle něj, do stejného stropu a nejvýš 1,5× větší než
+  hlavní výstup (konzole AND-1V her tak 100 %), každé okno velikosti obrazu s malým okrajem. Průvodce, přístroje
+  a Média jdou do volného místa, konfigurátor jen když zbude místo (`src/frontend/layout.cpp`, rozhodnutí
+  2026-10-29 – rozložení oken podle autora). Se zadokovanými okny (Zobrazení → Nastavení → Okna) je
   hlavní výstup uprostřed a ostatní displeje nahoře ve sloupci vpravo; po spuštění jiné sestavy jde doprostřed její
   hlavní výstup. Sestavy v repu: `sapi1v_hry`, `sapi1v_PoP`,
   `sapi1v_BomberNet` (CGA-1V) a `jpr1s_bgp1s` (BGP-1S). Konfigurátor klíč zachová, ale needituje ho.
@@ -455,7 +458,10 @@ s `--ui-picture` jen nakreslený přístroj v něm (bez ovládacích prvků emul
 `--ui-copy` zkopíruje snímek do schránky (Zobrazení → Kopírovat snímek; přepíše schránku),
 `--ui-zoom 200` zvolí zoom jako Zobrazení → Zvětšení obrazovky (displej použitý naposledy),
 `--ui-fullscreen` stiskne Alt+Enter (celá obrazovka v okně velikosti `--ui-size`; s `--ui-screen-menu` i její menu,
-dvakrát zapne a zase vypne), `--ui-reset-layout` Zobrazení → Výchozí rozložení oken,
+dvakrát zapne a zase vypne), `--ui-reset-layout` Zobrazení → Výchozí rozložení oken, `--ui-arrange` Zobrazení →
+Přeskládat otevřená okna, `--ui-window-item KLÍČ` klikne na položku okna `###KLÍČ` v menu Zobrazení nebo Ladění
+(`Media`, `Debugger`, `rack`…: zakryté okno dá dopředu, okno vpředu zavře; víc jich po sobě), `--ui-front KLÍČ`
+klikne na to okno v Zobrazení → Okna (s `--ui-window-item` v zadaném pořadí),
 `--ui-layout docked` (nebo `floating`) okna zadokovaná či plovoucí jen pro toto spuštění, `--ui-layout-switch`
 přepne rozložení jako volba v Zobrazení → Nastavení → Okna (se stejným `--settings` mezi spuštěními ukáže, že se
 vrátí místa oken druhého rozložení),
@@ -464,7 +470,7 @@ vrátí místa oken druhého rozložení),
 stiskne F12 (u APS-5 ukáže otázku „Resetovat jednotku APS-5?“), `--ui-rack SLOT` vybere slot jako kliknutím
 (záložka Nastavení karty, posunutá do pohledu),
 `--ui-report` okno Nápověda → Nahlásit chybu, `--ui-debugger` okno Debugger, `--ui-menu JMÉNO` nechá otevřené menu
-(anglicky: `File`, `Machine`, `Debug`, `View`, `Help`), `--ui-key KLÁVESA` stiskne klávesu přes frontu událostí jako
+(anglicky: `File`, `Machine`, `Debug`, `View`, `Help`; `View/Windows` i s podnabídkou Okna), `--ui-key KLÁVESA` stiskne klávesu přes frontu událostí jako
 z klávesnice (`F9`, `Ctrl+Shift+C`, `Enter`, `Esc`…; víc `--ui-key` jedna po druhé, např. `--ui-reset --ui-key Esc`
 zavře otázku APS-5), `--ui-mouse X,Y` postaví myš (body okna; s `--ui-debugger --ui-pause --ui-key F9` breakpoint
 na řádku pod myší). Ctrl+Shift+C přepíše schránku jako `--ui-copy`,

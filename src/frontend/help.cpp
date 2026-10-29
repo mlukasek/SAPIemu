@@ -92,7 +92,7 @@ static const struct {
     { "Tab, arrows", "In the windows of the emulator (not on the screen of SAPI, not in the terminal): Tab shows the "
                      "frame on a control and moves it to the next one, the arrows move it too; Space or Enter "
                      "presses the one in the frame, a click of the mouse hides the frame" },
-    { "Ctrl+Tab", "Switch between the windows" },
+    { "Ctrl+Tab", "Switch between the windows (all the open windows also in View -> Windows)" },
 };
 
 void draw_shortcuts(UiState& ui)
