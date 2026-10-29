@@ -158,6 +158,8 @@ struct UiState {
     // the View items while it is switched off; devices_known: a machine ran in this run
     unsigned devices_last = 0;
     bool devices_known = false;
+    bool console_last = true;      // it had a console display (else no screen window, also while switched off)
+    float plotter_head = 0;        // the height of the plotter window above its paper when drawn last (pixels, 0 = not yet)
     bool show_settings = false;    // View -> Settings
     bool show_about = false;       // Help -> About SAPIemu
     bool show_shortcuts = false;   // Help -> Keyboard shortcuts
@@ -399,9 +401,13 @@ float layout_width(int which);           // the width it asks for (pixels): the 
 // between the windows (pixels).
 void layout_work_size(float* w, float* h, float* gap);
 bool layout_first_use(const char* id);   // the window ("###screen") takes its first place in this frame
-// The main output planned for this frame (app.cpp, before the windows): its window id, its first size (pixels) and the
-// number of graphic display windows (###gfx0...) drawn with it.
-void layout_main(const char* id, float w, float h, int gfx_count);
+// The main output planned for this frame (app.cpp, before the windows): its window id, its first size (pixels), the
+// number of graphic display windows (###gfx0...) drawn with it and whether the console screen window is drawn.
+void layout_main(const char* id, float w, float h, int gfx_count, bool screen);
+// A machine without a display: its main output is the window `which` (LayoutWin, -1 = none), at the top left at its
+// first use in the size w x h (0 = its own default size); no display window is drawn.
+void layout_main_window(int which, float w, float h);
+const char* layout_id(int which);   // the window id of a LayoutWin ("###Minigraf")
 // A display window ("###gfx0"), its size at zoom k zero + k * step (pixels: the frame with the small border, and the
 // picture at 1:1; step 0 = zero is its size). The main output where it was planned; another display (or the main output
 // when another window is there) in the free room next to the main output at the largest zoom from k_max down to 1:1,

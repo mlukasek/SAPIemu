@@ -97,6 +97,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     okno Nápověda ukazuje každý `.md`, který program otevírá (První kroky, Slovníček, Návody k obsluze, odkazy
     z průvodců a dokumentů), s obrázky, citacemi, historií Zpět/Vpřed a dokumentem v titulku; dlouhé dokumenty
     rozvrhuje jen v pohledu (`MdCache`). Udělané v hlavním proudu, jeden oponent.
+  - **Sestava bez displeje** (2026-10-29, připomínka autora k AR 1990): žádné prázdné okno obrazovky, hlavní výstup je
+    první okno z `windows` (zapisovač na celou výšku s celým listem A4, terminál u `cpm_term64k_fdc1`, která dostala
+    `windows`), konfigurátor se vedle vejde.
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

@@ -3234,6 +3234,32 @@ v hlavním proudu, s jedním oponentem.
 Ruční zkouška autora: Nápověda → Návody k obsluze (obrázky, klik na obrázek), odkaz z průvodce sestavy (AR 1990 →
 návod k plotteru), Alt+šipky a boční tlačítka myši, přepnutí jazyka s otevřeným oknem.
 
+## 2026-10-29 – sestava bez displeje: hlavní okno místo prázdné obrazovky
+
+Autor: „sestava AR1990 … udělá velký screen, přesto, že sestava screen nemá. Naproti tomu okno plotteru, které je
+zásadní je malé a chybí rack, který by se vešel.“ Snímek při jeho velikosti okna: černé okno „Sestava nemá kartu
+displeje“ 1450 × 1088, zapisovač 600 × 840 vpravo, konfigurátor se nevešel.
+
+- **Bez displeje konzole žádné okno obrazovky.** Platí i pro vypnutou sestavu (podle té, která běžela naposledy).
+  Hláška „Sestava nemá kartu displeje.“ zmizela. Týká se dvou sestav: `plotter_ar1990` a `cpm_term64k_fdc1` (CP/M
+  jen s terminálem). ZPS-6 má displej DBS-1A.
+- **Hlavní výstup sestavy bez displeje je první okno jejího `windows`**, vlevo nahoře při prvním použití:
+  - zapisovač na celou výšku plochy, široký tak, aby se vešel celý list A4 (stůl 230 × 297 mm pod ovládáním),
+    nejvýš 65 % šířky; širší okno by jen přidalo okraje nebo posouvání;
+  - jiné okno (terminál) ve své velikosti.
+  Uložené místo z `imgui.ini` má přednost jako u ostatních oken.
+- **`cpm_term64k_fdc1` dostala `"windows": [ "terminal" ]`:** bez displeje a bez otevřeného terminálu by po startu
+  nebylo vidět nic.
+- **Okno displeje, které nová sestava nekreslí, není překážkou** ani v prvním snímku po změně sestavy. Dřív se
+  zapisovač po přepnutí ze ZPS-1 vyhnul místu, kde byla obrazovka ZPS-1.
+- **Konfigurátor** se při 2252 × 1214 vejde vedle zapisovače (vpravo, s nejnižší prioritou jako vždy), při
+  1280 × 720 ne (potřebuje 44 × 44 výšek písma).
+- **V doku** je zapisovač uprostřed. Když ve sloupci nic není, dok mu dá celou šířku (list se pak posouvá); plovoucí
+  rozložení je výchozí.
+
+Ověřeno snímky při 2252 × 1214 (125 %) a 1280 × 720: AR 1990 přímo i po ZPS-1, CP/M s terminálem, ZPS-1 beze změny,
+dok.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`

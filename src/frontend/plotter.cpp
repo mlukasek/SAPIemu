@@ -268,7 +268,7 @@ void draw_plotter(UiState& ui)
             if (c->plotter()) ui.show_plotter = true;
     }
     if (!ui.show_plotter) return;
-    layout_window(LW_PLOTTER);   // on the right: the screen of SAPI stays in sight
+    layout_window(LW_PLOTTER);   // on the right: the screen of SAPI stays in sight (AR 1990: the main output)
     Plotter* g = nullptr;
     if (m)
         for (auto& c : m->cards)
@@ -318,6 +318,8 @@ void draw_plotter(UiState& ui)
         if (ImGui::IsItemHovered())
             tip(tr("The code skipped a phase: the motor may have lost steps."));
     }
+    // the height above the paper: the first size of the window as the main output of AR 1990 (app.cpp)
+    ui.plotter_head = ImGui::GetCursorScreenPos().y - ImGui::GetWindowPos().y;
     draw_sheet(g);
     ImGui::End();
 }

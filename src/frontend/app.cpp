@@ -73,6 +73,7 @@ struct App {
     // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
     int focus_screen = 3;
     int main_output = -1;         // the display with the big place (plan_layout): -1 the console screen, k = gfx[k]
+    int main_win = -1;            // a machine without a display: the window with the big place (LayoutWin), else -1
     float main_w = 0;             // the width planned for it
     float main_k = 0;             // and its zoom (0: no display)
     uint64_t plan_gen = ~0ull;    // plan_layout keeps its plan while the machine, the work area (width, height, gap),
@@ -1105,10 +1106,53 @@ static ImVec2 main_output_size(App& app, Machine* m, DisplayDevice* d, float w, 
     return s;
 }
 
+// The console screen window is drawn: the machine has a console display (switched off: the machine as it ran last).
+// Without one (the plotter of AR 1990, CP/M on a terminal) there is no screen window (author 2026-10-29: a big empty
+// screen for a machine without one, its plotter small).
+static bool screen_shown(App& app)
+{
+    Machine* m = app.host.machine();
+    return m ? m->display != nullptr : app.ui.console_last;
+}
+
+// The main window of a machine without any display: the first window of its "windows" (LayoutWin), -1 = none (or a
+// machine with a display).
+static int machine_main_window(Machine* m)
+{
+    if (!m || !m->displays.empty() || !m->config.contains("windows") || !m->config["windows"].is_array()) return -1;
+    static const struct {
+        const char* key;
+        int which;
+    } k_main[] = { { "minigraf", LW_PLOTTER }, { "terminal", LW_TERMINAL }, { "aps5", LW_APS5 }, { "ims2", LW_IMS2 },
+                   { "diag", LW_DIAG }, { "printer", LW_PRINTER }, { "media", LW_MEDIA } };
+    for (const nlohmann::json& k : m->config["windows"]) {
+        if (!k.is_string()) continue;
+        for (const auto& e : k_main)
+            if (k.get<std::string>() == e.key) return e.which;
+    }
+    return -1;
+}
+
+// The first size of that main window in a work area w x h: the plotter as high as the work area and as wide as its
+// table of A4 needs there (plotter.cpp draw_sheet: 230 x 297 mm under the controls), at most 65 % of the width; another
+// window its own default size (0 x 0).
+static ImVec2 main_window_size(App& app, int which, float w, float h)
+{
+    if (which != LW_PLOTTER) return ImVec2(0, 0);
+    const ImGuiStyle& st = ImGui::GetStyle();
+    float head = app.ui.plotter_head > 0 ? app.ui.plotter_head : 19.0f * ImGui::GetFontSize();   // until it is drawn
+    float sheet = h - head - st.WindowPadding.y;
+    float pw = sheet * 230.0f / 297.0f + st.ScrollbarSize + 2.0f * st.WindowPadding.x;
+    if (pw > 0.65f * w) pw = 0.65f * w;
+    if (pw < layout_width(LW_PLOTTER)) pw = layout_width(LW_PLOTTER);
+    return ImVec2(pw, h);
+}
+
 // Before the windows of a frame: the main output of the machine and its first place (layout.cpp). It is the display
 // named by "main_display" in the machine description (the games: CGA-1V, BGP-1S), else the console screen; at the top
 // left, in the size of main_output_size, or at the zoom chosen for it from the menu (kept by View -> Arrange open
-// windows). Not while the windows take no first places (full screen, minimized).
+// windows). A machine without a display: its main window (machine_main_window). Not while the windows take no first
+// places (full screen, minimized).
 static void plan_layout(App& app)
 {
     UiState& ui = app.ui;
@@ -1129,6 +1173,14 @@ static void plan_layout(App& app)
     app.plan_flags = flags;
     memcpy(app.plan_key, key, sizeof(key));
     app.main_output = main;
+    app.main_win = machine_main_window(m);
+    if (app.main_win >= 0) {   // no display: its main window has the big place
+        ImVec2 s = main_window_size(app, app.main_win, w, h);
+        app.main_w = s.x;
+        app.main_k = 0;
+        layout_main_window(app.main_win, s.x, s.y);
+        return;
+    }
     DisplayDevice* d = main >= 0 ? gfx[main] : (m ? m->display : nullptr);
     char id[16];
     if (main >= 0) snprintf(id, sizeof(id), "###gfx%d", main);
@@ -1139,7 +1191,7 @@ static void plan_layout(App& app)
         app.main_k = fixed;
     }
     app.main_w = s.x;
-    layout_main(id, s.x, s.y, n);
+    layout_main(id, s.x, s.y, n, screen_shown(app));
 }
 
 // Before Begin of a display window: its first place (layout.cpp). The main output where plan_layout put it; another
@@ -1319,13 +1371,17 @@ static void focus_keeping_order(ImGuiWindow* target, const ImVector<ImGuiWindow*
 static ImGuiWindow* main_output_window(App& app)
 {
     ImGuiWindow* w = nullptr;
+    if (app.main_win >= 0) {   // a machine without a display: its main window (the plotter)
+        w = ImGui::FindWindowByName(layout_id(app.main_win));
+        return w && (w->Active || w->WasActive) ? w : nullptr;
+    }
     if (app.main_output >= 0) {
         char id[16];
         snprintf(id, sizeof(id), "###gfx%d", app.main_output);
         w = ImGui::FindWindowByName(id);
         if (w && !(w->Active || w->WasActive)) w = nullptr;
     }
-    if (!w) w = ImGui::FindWindowByName("###screen");
+    if (!w && screen_shown(app)) w = ImGui::FindWindowByName("###screen");
     return w && (w->Active || w->WasActive) ? w : nullptr;
 }
 
@@ -1363,7 +1419,7 @@ static void focus_display_window(App& app)
         w = ImGui::FindWindowByName(id);
         if (w && !(w->Active || w->WasActive)) w = nullptr;
     }
-    if (!w) w = ImGui::FindWindowByName("###screen");
+    if (!w) w = screen_shown(app) ? ImGui::FindWindowByName("###screen") : main_output_window(app);
     if (!w || !(w->Active || w->WasActive)) return;
     ImGuiWindow* nav = GImGui->NavWindow;
     if (nav && nav->RootWindow == w) return;   // it has the keyboard
@@ -1394,17 +1450,24 @@ static void dock_layout(App& app)
             if (w > p.display_w) p.display_w = w;
         }
     };
+    int main_win = machine_main_window(m);
+    if (main_win >= 0) {   // no display: its main window in the middle, the screen of other machines in the column
+        p.displays[p.n_displays++] = layout_id(main_win);
+        p.machine_displays = 1;
+    }
     if (main >= 0) add(main, gfx[main]);
     add(-1, m ? m->display : nullptr);
     for (int k = 0; k < n; k++) add(k, gfx[k]);
-    p.machine_displays = p.n_displays;
+    if (main_win < 0) p.machine_displays = p.n_displays;
     for (int k = n; k < MAX_GFX_VIEWS; k++) add(k, nullptr);   // other machines
     p.side_w = machine_side_width(app, m);
     {   // the width the main output has in the floating layout (the work area of the last frame, as layout_dock)
         ImGuiViewport* vp = ImGui::GetMainViewport();
         float gap = 0.5f * ImGui::GetFontSize();
+        float ww = vp->WorkSize.x - 2.0f * gap, wh = vp->WorkSize.y - 2.0f * gap;
         DisplayDevice* md = main >= 0 ? gfx[main] : (m ? m->display : nullptr);
-        if (md) p.main_w = main_output_size(app, m, md, vp->WorkSize.x - 2.0f * gap, vp->WorkSize.y - 2.0f * gap, gap).x;
+        if (main_win >= 0) p.main_w = main_window_size(app, main_win, ww, wh).x;
+        else if (md) p.main_w = main_output_size(app, m, md, ww, wh, gap).x;
     }
     std::string tab;
     for (const char* t : app.top_windows) {
@@ -1423,8 +1486,10 @@ static void dock_follow(App& app)
     Machine* m = app.host.machine();
     DisplayDevice* gfx[MAX_GFX_VIEWS];
     int main = main_output(m, gfx, graphic_displays(m, gfx));
-    char id[16];
-    if (main >= 0) snprintf(id, sizeof(id), "###gfx%d", main);
+    char id[48];
+    int main_win = machine_main_window(m);   // no display: its main window
+    if (main_win >= 0) snprintf(id, sizeof(id), "%s", layout_id(main_win));
+    else if (main >= 0) snprintf(id, sizeof(id), "###gfx%d", main);
     else snprintf(id, sizeof(id), "###screen");
     layout_dock_main(layout_dockspace_id(), id);
 }
@@ -2488,7 +2553,7 @@ const ImGuiWindowFlags k_display_flags = ImGuiWindowFlags_NoCollapse | ImGuiWind
 
 void draw_screen(App& app)
 {
-    if (display_hidden(app, -1)) return;   // View -> Displays
+    if (display_hidden(app, -1) || !screen_shown(app)) return;   // View -> Displays; no console display
     if (app.start_focus && app.main_output < 0) ImGui::SetNextWindowFocus();   // type right after start
     Machine* m = app.host.machine();
     DisplayDevice* d = m ? m->display : nullptr;
@@ -2518,8 +2583,7 @@ void draw_screen(App& app)
         ImVec2 a = ImGui::GetCursorScreenPos(), av = ImGui::GetContentRegionAvail();
         ImGui::GetWindowDrawList()->AddRectFilled(a, ImVec2(a.x + av.x, a.y + av.y), IM_COL32(8, 8, 8, 255));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.0f));
-        ImGui::TextUnformatted(!m ? tr("Switched off (POWER on the ZDR panel, Machine -> Switch on)")
-                                  : tr("No display card in this machine."));
+        ImGui::TextUnformatted(tr("Switched off (POWER on the ZDR panel, Machine -> Switch on)"));
         ImGui::PopStyleColor();
         ImGui::End();
         return;
@@ -2945,6 +3009,7 @@ void machine_devices_seen(UiState& ui)
     for (int i = 0; i < k_device_count; i++)
         if (running_has_device(ui, m, k_devices[i])) ui.devices_last |= 1u << i;
     ui.devices_known = true;
+    ui.console_last = m->display != nullptr;   // the screen window while it is switched off (screen_shown)
 }
 
 bool machine_has_device(UiState& ui, const char* key)

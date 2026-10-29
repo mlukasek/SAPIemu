@@ -272,6 +272,16 @@ vzhledu: okna):
   - Pořadí míst stejně dobrých (`Want.order`): displeje vlevo, pak nahoře (pod hlavní výstup, jinak vedle něj),
     průvodce nahoře, pak vlevo (vedle displejů), ostatní vpravo, pak nahoře. Pravý kraj tak zůstane přístrojům,
     Médiím a nástrojům.
+  - **Sestava bez displeje** (od 2026-10-29, autor: AR 1990 dostala velké prázdné okno obrazovky, zapisovač byl malý
+    a konfigurátor se nevešel): okno `###screen` se kreslí jen u sestavy s displejem konzole (`screen_shown`; vypnutá
+    sestava podle té, která běžela naposledy, `UiState::console_last`). Sestava bez jakéhokoli displeje má hlavní
+    výstup v prvním okně svého `windows` (`machine_main_window`): `plan_layout` ho ohlásí `layout_main_window`, okno
+    dostane při prvním použití místo vlevo nahoře (`layout_window`), zapisovač na výšku plochy a tak široký, aby se
+    vešel list A4 (`main_window_size`: 230 × 297 mm pod ovládáním, jehož výšku okno změří při kreslení,
+    `UiState::plotter_head`, do té doby 19 výšek písma), jiné okno ve své velikosti. Okna displejů, která sestava
+    nekreslí (`###screen` bez displeje konzole, `###gfxN` nad počet jejích grafických displejů), nejsou překážkou
+    (`obstacles`), ani když v minulém snímku ještě byla (změna sestavy). Fokus po startu jde do hlavního okna. V doku
+    je hlavní okno uprostřed (`dock_layout`, `dock_follow`).
   - Konfigurátor patří do výchozího rozložení s nejnižší prioritou: Výchozí rozložení oken a první start (bez
     `imgui.ini` a bez uloženého `windows.configuration`) ho otevřou jen do volného místa aspoň 44 × 44 výšek písma
     (`layout_window_if_room`, rozhoduje `draw_rack` po ostatních oknech). Při 1280 × 720 se nevejde. Otevřený

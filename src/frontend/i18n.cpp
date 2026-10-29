@@ -640,7 +640,6 @@ static const Translation k_table[] = {
     { "Paused", "Pozastaveno" },
     { "Error", "Chyba" },
     { "Close", "Zavřít" },
-    { "No display card in this machine.", "Sestava nemá kartu displeje." },
     { "Cannot load machine", "Sestavu nelze načíst" },
     { "Clear", "Vymazat" },
     { "Debug", "Ladění" },

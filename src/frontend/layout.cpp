@@ -4,7 +4,8 @@
 // the menu bar and nothing goes outside it:
 // - the main output (the console screen, or the display named by "main_display" in the machine description) at the
 //   top left, at the largest integer zoom that fits about 65 % of the width, at most about 200 % (planned by app.cpp,
-//   layout_main);
+//   layout_main); a machine without a display (the plotter of AR 1990, CP/M on a terminal) has no screen window, its
+//   main window there instead (layout_main_window: the plotter as high as the work area);
 // - the other displays next to it (below it, else right of it) at the largest integer zoom up to that cap that has free
 //   room, each window as large as its picture with a small border;
 // - the instruments, Media and the tools in the free room, the column at the right edge first; the guide next to the
@@ -75,6 +76,8 @@ bool s_ids_ready = false;
 ImGuiID s_main_id = 0;
 float s_main_w = 0, s_main_h = 0;
 int s_gfx_count = 0;   // the graphic display windows of the machine (###gfx0...)
+bool s_screen = true;  // the console screen window is drawn (a machine without a console display: not an obstacle)
+int s_main_win = -1;   // a machine without a display: its main output is this window (LayoutWin), -1 = a display
 bool s_hold = false;   // no first places now (layout_hold: full screen, a minimized window)
 bool s_rack_low = false;   // the configurator opened by the layout: no obstacle (layout_rack_low)
 
@@ -172,13 +175,18 @@ int obstacles(ImGuiID self, const Box& wa, Obstacle* out)
         int role = role_of(w->ID);
         if (role == ROLE_DIALOG) continue;
         if (s_rack_low && w->ID == s_ids[LW_RACK]) continue;   // the lowest priority: the windows opening later cover it
+        bool undrawn = false;   // a display window this machine does not draw (of the machine before): no obstacle
         for (int i = 0; i < MAX_DISPLAY_IDS; i++)
-            if (w->ID == s_display_ids[i]) seen[i] = true;
+            if (w->ID == s_display_ids[i]) {
+                seen[i] = true;
+                undrawn = i == 0 ? !s_screen : i > s_gfx_count;
+            }
+        if (undrawn) continue;
         out[n++] = { { w->Pos.x, w->Pos.y, w->Pos.x + w->Size.x, w->Pos.y + w->Size.y }, role, weight_of(w->ID, role),
                      w->ID == s_main_id };
     }
     ImVec2 vp = ImGui::GetMainViewport()->Pos;
-    for (int i = 0; i <= s_gfx_count && i < MAX_DISPLAY_IDS; i++) {
+    for (int i = s_screen ? 0 : 1; i <= s_gfx_count && i < MAX_DISPLAY_IDS; i++) {
         ImGuiID id = s_display_ids[i];
         if (seen[i] || id == self) continue;
         Box b;
@@ -512,6 +520,19 @@ void layout_window(int which)
         return;
     }
     float ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
+    if (which == s_main_win) {   // the main output of a machine without a display: at the top left, unless taken
+        float w = s_main_w > 0 ? s_main_w : d.w * u, h = s_main_h > 0 ? s_main_h : (d.h > 0 ? d.h * u : wh);
+        Box b = { wa.x0, wa.y0, wa.x0 + minf(w, ww), wa.y0 + minf(h, wh) };
+        Obstacle ob[MAX_OBSTACLES];
+        int n = obstacles(s_ids[which], wa, ob);
+        bool clear = true;
+        for (int i = 0; i < n && clear; i++)
+            if (overlaps(b, ob[i].b, 0.0f)) clear = false;
+        if (clear) {
+            set_next(b);
+            return;
+        }
+    }
     if (d.role == ROLE_DIALOG) {   // the middle of the work area, at most its size
         float w = d.w * u, h = d.h * u;
         if (which == LW_BROWSER) {   // Choose a machine larger in a larger main window (author 2026-10-29): no scrolling
@@ -587,13 +608,32 @@ bool layout_first_use(const char* id)
     return first_use(ImHashStr(id));
 }
 
-void layout_main(const char* id, float w, float h, int gfx_count)
+void layout_main(const char* id, float w, float h, int gfx_count, bool screen)
 {
     ids_init();
     s_main_id = id ? ImHashStr(id) : 0;
     s_gfx_count = gfx_count;
     s_main_w = w;
     s_main_h = h;
+    s_screen = screen;
+    s_main_win = -1;
+}
+
+void layout_main_window(int which, float w, float h)
+{
+    ids_init();
+    bool ok = which >= 0 && which < LW_COUNT;
+    s_main_win = ok ? which : -1;
+    s_main_id = ok ? s_ids[which] : 0;
+    s_main_w = w;
+    s_main_h = h;
+    s_gfx_count = 0;
+    s_screen = false;
+}
+
+const char* layout_id(int which)
+{
+    return which >= 0 && which < LW_COUNT ? k_wins[which].id : "";
 }
 
 void layout_display(const char* id, float zero_w, float zero_h, float step_w, float step_h, float k_max, bool exact)
@@ -948,8 +988,9 @@ void layout_dock(unsigned dockspace, const DockPlan& p)
         dock_window(p.displays[i], i == 0 ? center : (i % 2 ? d1 : d2), dw, dh);
     static const int k_side[] = { LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG, LW_TERMINAL, LW_PRINTER };
     static const int k_tools[] = { LW_GUIDE, LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_LOG };
-    for (int which : k_side)
-        dock_window(k_wins[which].id, side, minf(k_wins[which].w * u, W), minf(k_wins[which].h * u, size.y));
+    for (int which : k_side)   // not the main output of a machine without a display (in the middle)
+        if (p.n_displays == 0 || strcmp(k_wins[which].id, p.displays[0]) != 0)
+            dock_window(k_wins[which].id, side, minf(k_wins[which].w * u, W), minf(k_wins[which].h * u, size.y));
     for (int which : k_tools)
         dock_window(k_wins[which].id, tools, minf(k_wins[which].w * u, W), minf(k_wins[which].h * u, size.y));
     s_sel_node[0] = s_sel_node[1] = 0;

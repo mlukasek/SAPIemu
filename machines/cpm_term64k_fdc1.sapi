@@ -3,6 +3,7 @@
 {
     "name": "CP/M 2.2 64K jen s terminálem: FDC-1, RMD-1 (J. Bíba, MON 151111)",
     "description": "CP/M 2.2 J. Bíby s RAM 64K (CCP DE00, BDOS E600, BIOS F400), jen terminál přes sériový port DSM-1/1 na 10h (DMR-1), bez klávesnice a AND-1Z. EPROM MON 151111 64K se po startu odpojí (OUT 0). A: = disketa Z8 (zdroje tohoto systému, bootovací), B: = Z4 (základní programy), C: = RAM disk RMD-1 1 MB (po zapnutí náhodný obsah, inicializuje ho IRMD40 nebo INIRMD5 z B:). Terminál: okno Terminál, nebo TeraTerm na 127.0.0.1:2323. Zdroj SAPI_DOKU_FTP\\...\\PETR\\SAPI_SYS. docs/software/CPM_SAPIMAN.md.",
+    "windows": [ "terminal" ],              // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)

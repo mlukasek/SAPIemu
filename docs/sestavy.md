@@ -441,9 +441,12 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad konfigurátor. Klávesnice
   zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač: Minigraf, XY 4130), `aps5` (panel APS-5), `diag`
   (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2). Okno v doku dostane vybranou
-  záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `zps/ZPS-2_DPS-1_IMS-2`
-  měřicí pracoviště, `rmp1_jb_izot`,
+  záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `cpm_term64k_fdc1` terminál, `aps5` panel,
+  `zps/ZPS-2_DPS-1_IMS-2` měřicí pracoviště, `rmp1_jb_izot`,
   `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky).
+  - **Sestava bez displeje** (od 2026-10-29: `plotter_ar1990`, `cpm_term64k_fdc1`) nemá okno obrazovky; první okno
+    z `windows` je její hlavní výstup a dostane velké místo vlevo nahoře (zapisovač na celou výšku plochy, tak široký,
+    aby se vešel celý list A4; jiné okno ve své velikosti). Bez `windows` by po startu nebylo vidět nic.
 - **Hlavní výstup** (`main_display`, jméno nebo typ karty displeje): okno tohoto displeje dostane při prvním
   použití (a po Zobrazení → Výchozí rozložení oken) místo vlevo nahoře, v největším celočíselném zvětšení do asi
   65 % šířky, nejvýš asi 200 % (při měřítku Windows 125 a 150 % 300 %). Bez klíče je hlavním výstupem konzole
