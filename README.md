@@ -25,16 +25,24 @@ si ale člověk může vzít k ruce AI pomocníka, nebo dva, tři, deset, a výv
 emulátor SAPI-1 konečně dal dohromady tak, aby splňoval moje představy. I tak to stálo hodně času i tokenů. Jestli
 výsledek stojí za to, posuďte sami.
 
-Představy jsem měl od začátku jasné. Emulátor má běžet pod Windows i Linuxem, podporovat všechny karty SAPI, které
-jsou k dispozici, a mít co nejpřesnější časování, tedy chovat se co nejvíc jako skutečný hardware. Pro vývoj
+Představy jsem měl od začátku jasné. Emulátor má běžet pod Windows i Linuxem, podporovat téměř všechny karty SAPI,
+které jsou k dispozici, a mít co nejpřesnější časování, tedy chovat se co nejvíc jako skutečný hardware. Pro vývoj
 softwaru nesměl chybět debugger a pro práci s AI příkazová řádka a MCP server.
 
-První verze byla hotová rychle díky skvělým podkladům, které na [sapi.cz](https://www.sapi.cz/) shromáždil Petr
-Všijanský (EC1045), a díky obrovskému množství práce, kterou věnoval překreslování schémat karet. Emulátor proto
+První verze byla hotová rychle nejen díky Claude Code, ale hlavně díky skvělým podkladům, které na
+[sapi.cz](https://www.sapi.cz/) shromáždil Petr Všijanský (EC1045), a díky obrovskému množství práce, kterou
+věnoval překreslování schémat karet. Emulátor proto
 jde do takových detailů, jako jsou originální PROM, které nastavují mapování karet. Kromě původních karet umí
 i nové desky Libora Lasoty, protože na vývoj a převádění her se emulátor hodí nejvíc. Karet je ale obrovské
 množství a všechno bylo nepřehledné a složité na nastavení, proto má emulátor přednastavené sestavy, které jde
 upravovat a ukládat.
+
+Jen tak skládat karty k sobě je relativně jednoduché, ale ne úplně zábavné. Proto v emulátoru najdete třeba
+i měřicí jednotku APS-5 s původním firmwarem a emulovanými pecemi, měřicí pracoviště IMS-2 s voltmetrem a zdrojem
+napětí, zapisovače a dnes už raritní záznamník KZD-1, kazetový disk RKD-1 nebo magnetickou pásku RMP-1, u většiny
+sestav s návodem, jak to všechno ovládat. Kde to šlo, oprášil jsem původní software, případně ho doplnil vlastním,
+aby se to všechno dalo používat. A věřím, že když někde vyhrabete skutečný hardware, máte tu software, se kterým ho
+oživíte.
 
 Největší práce byla paradoxně emulátor vyleštit: menu a ovládání, aby s ním mohl pracovat kdokoli. Složité je to
 pořád jako mlátička, ale to je vlastně SAPI. Zkuste sami.
@@ -43,7 +51,9 @@ pořád jako mlátička, ale to je vlastně SAPI. Zkuste sami.
 
 ## Jak se vyvíjí: AI a měření na skutečném SAPI-1 V
 
-**S AI asistentem.** Emulátor vyvíjím od října 2026 s AI asistentem Claude Code (Anthropic). Kód a většinu poznámek
+**S AI asistentem.** Nebýt Claude Code (Anthropic), tenhle emulátor by nevznikl. Většinu kódu napsal Claude a nestydím
+se za to: nápady, architektura a vedení celého vývoje byly na mně a bylo to hodně práce. Emulátor proto neberu jako
+AI slop, ale jako svoje dílo, na kterém jsem měl pomocníky. Vyvíjím ho od října 2026. Kód a většinu poznámek
 v `docs/` píše Claude podle mého zadání a pod mou kontrolou, proto má každý commit řádek `Co-Authored-By: Claude`.
 Já rozhoduji, co a jak se emuluje, stavím a měřím desky SAPI-1 a chování desek V ověřuji na svém SAPI-1 V. Původní
 desky Tesla vycházejí z dokumentace, schémat a dumpů PROM a EPROM ze sapi.cz a od Libora Lasoty. Co ještě nebylo
