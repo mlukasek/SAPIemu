@@ -4,9 +4,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Kde jsme skončili (2026-10-30) a co dál
 
-- **Stav 2026-10-30:** etapy 1–8 plánu vzhledu hotové a pushnuté (repo je zatím soukromé), README je koncept podle
-  autorova článku na 8bity.cz (autor ho kontroluje). **Dál:** autor projde README a vyzkouší GUI; zip `0.7.0-beta`
-  pro Libora, Petra a Michala až na jeho pokyn; po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
+- **Stav 2026-10-30:** etapy 1–8 plánu vzhledu hotové a pushnuté (repo je zatím soukromé), README podle autorova
+  článku na 8bity.cz. **Beta 0.7.0 zabalená** (autor: „připrav mi release pro kamarády a přeplácni ho i v
+  SAPIemu-release“): `out\package\SAPIemu-0.7.0-beta-win64.zip` (`package.py --public`, 550 souborů, 34,9 MB,
+  SHA-256 `bec249fb…`) po `release full` 66/66 a `check_machines.py --games` 60 sestav a 12 her a dem; rozbalená do
+  `..\SAPIemu-release` s autorovým `work/`, `imgui.ini` a nastavením, stará 0.6.0 je v `..\SAPIemu-release-0.6.0`.
+  **Dál:** autor ji pošle Liborovi, Petrovi a Michalovi (dopis `docs/vydani/beta-testeri.md`); po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
   (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Zbytek etapy 9: GIF, video,
   `README.en.md`, úklid repa.
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
