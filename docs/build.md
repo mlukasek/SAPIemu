@@ -190,19 +190,28 @@ vzhledu: okna):
     (`display_layout_zoom`: hlavní výstup `main_k`, další displej podle stropu, plochy a 1,5× hlavního výstupu),
     s malým okrajem, uvnitř plochy (`layout_refit`, nevejde-li se, menší zvětšení). Okno se zvětšením zvoleným v menu
     (`ZoomState::fixed`) dostane velikost nového obrazu v tomto zvětšení (`zs.size` pro `zoom_track`); nevejde-li se
-    na plochu, přizpůsobí se oknu (`fixed` = 0). Ne okno, které uživatel v tomto běhu zvětšil rukou
+    na plochu, přizpůsobí se oknu (`fixed` = 0). Ne okno, které uživatel zvětšil rukou
     (`ZoomState::user`: držený úchyt nebo okraj okna po `Begin` v `zoom_track`; volba zvětšení `zoom_resize`, Výchozí
     rozložení oken a Přeskládat otevřená okna příznak smažou), zadokované okno a okno, které teď dostává první místo.
-    První sestava běhu nechá
-    velikosti z `imgui.ini`. Restart stejné sestavy a vypnutí a zapnutí nic nemění (podpis `app.fit_sig` = soubor
+    První sestava běhu nechá velikosti z `imgui.ini`.
+  - **Co uživatel nastaví, zůstane** (od 2026-10-29, autor: „když si to někdo nějak nastaví, tak bych mu to
+    dovolil“): nastavení ukládá u každého okna displeje (`"displays": { "screen": { "zoom": 200, "by_hand": false },
+    "gfx0": … }`) zvětšení zvolené v menu (0 = žádné) a příznak ručně zvětšeného okna. Při startu (`settings_apply`,
+    jen plovoucí rozložení, zadokovaný displej řídí dok) dostane okno se zvoleným zvětšením v prvním snímku přesně
+    velikost obrazu v něm (`zs.request` → `zoom_resize`, místo z `imgui.ini`), ručně zvětšené okno si velikost
+    nechá i při změně sestavy. Ručně roztažené okno se k obrazu nedorovnává (autor nechce uživatele omezovat).
+    Přepnutí rozložení stav displejů smaže (druhé rozložení má své velikosti). Restart stejné sestavy a vypnutí a zapnutí nic nemění (podpis `app.fit_sig` = soubor
     a karty displejů s rozměry obrazu). Sestava spuštěná v menu uprostřed snímku se přizpůsobí až v dalším snímku,
     po otevření jejích oken (`machine_side_width`).
   - **Okna mimo plochu** (`layout_keep_inside` po liště menu, od 2026-10-29): když má plocha novou velikost (start,
     zmenšené okno, menší monitor) a vydrží ji 3 snímky, každé plovoucí okno (otevřené i zavřené v tomto běhu)
     a každé uložené místo okna, které ještě nevzniklo (`ImGuiWindowSettings`), víc než napůl mimo plochu se vrátí
     dovnitř s mezerou rozložení, posunuté co nejméně; dialog (`ROLE_DIALOG`: Vybrat sestavu, Nastavení…) i jen
-    částečně mimo (`to_bring_inside`; uložený velký výběr sestav by na menší ploše skryl křížek). Velikost zůstane,
-    jen co se nevejde, se zmenší. Ne zadokovaná okna, záznamy podřízených oken (`IsChild`, seznam ve Vybrat sestavu
+    částečně mimo (`to_bring_inside`; uložený velký výběr sestav by na menší ploše skryl křížek), displej i jen
+    částečně mimo, když se vejde celý (uříznutý obraz). Velikost zůstane, jen co se nevejde, se zmenší; displej,
+    který se vejde jen bez mezery, jde na kraj plochy ve své velikosti (`back_inside`, obraz si nechá zvětšení).
+    Dialog částečně mimo plochu se vrátí dovnitř i při každém otevření (`dialog_inside` v `layout_window`; autor:
+    dolní hrana výběru sestav mimo okno, nešel chytit a zvětšit). Ne zadokovaná okna, záznamy podřízených oken (`IsChild`, seznam ve Vybrat sestavu
     má jen velikost), okna s prvním místem a za celé obrazovky nebo minimalizace (rozhodne se po návratu).
   - Plán se přepočítá jen po změně sestavy, plochy, písma nebo měřítka. `layout_hold` za celé obrazovky
     a minimalizace první místa odloží.

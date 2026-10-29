@@ -14,8 +14,9 @@
 // - the dialogs (Choose a machine, Settings...) in the middle of the work area, never over the menu bar; Choose a
 //   machine about 75 % x 80 % of it (at least 58 x 38 font heights);
 // - a window more than half outside the work area (the main window got smaller, a saved place from a larger screen),
-//   a dialog any part outside it, back inside it at the start and after the main window changes its size, smaller only
-//   when it does not fit (layout_keep_inside).
+//   a dialog any part outside it, a display any part when it fits whole, back inside it at the start and after the main
+//   window changes its size, smaller only when it does not fit (layout_keep_inside); a dialog partly outside also when
+//   it opens (layout_window).
 // Where there is no room (a small window, a big instrument), a window goes where it covers the least of what matters:
 // the instruments and Media most, then the main output, the console screen, the other displays, the tools.
 // The docked layout (View -> Settings -> Windows: docked, layout_dock at the end) puts the windows into the dock space
@@ -387,14 +388,26 @@ Box inside(const Box& b, const Box& wa)
 }
 
 // The window `id` there is to come back into the work area wa (layout_keep_inside): more than half of it outside, a
-// dialog (Choose a machine, Settings...: its close button and its buttons in sight) any part of it.
+// dialog (Choose a machine, Settings...: its close button and its edges in reach) any part of it, a display any part
+// when it fits whole (author 2026-10-29: no cut picture).
 bool to_bring_inside(ImGuiID id, const Box& b, const Box& wa)
 {
     float a = (b.x1 - b.x0) * (b.y1 - b.y0);
     if (a <= 0) return false;
-    if (role_of(id) == ROLE_DIALOG)
-        return b.x0 < wa.x0 - 0.5f || b.y0 < wa.y0 - 0.5f || b.x1 > wa.x1 + 0.5f || b.y1 > wa.y1 + 0.5f;
+    int role = role_of(id);
+    bool out = b.x0 < wa.x0 - 0.5f || b.y0 < wa.y0 - 0.5f || b.x1 > wa.x1 + 0.5f || b.y1 > wa.y1 + 0.5f;
+    if (role == ROLE_DIALOG) return out;
+    if (role == ROLE_DISPLAY && out && b.x1 - b.x0 <= wa.x1 - wa.x0 + 0.5f && b.y1 - b.y0 <= wa.y1 - wa.y0 + 0.5f)
+        return true;
     return overlap_area(b, wa) < 0.5f * a;
+}
+
+// Where such a window goes: moved the least into the work area with the gap of the layout (in), smaller only when it
+// does not fit; a display that fits only without the gap into the whole work area wa (its picture keeps its zoom).
+Box back_inside(ImGuiID id, const Box& b, const Box& wa, const Box& in)
+{
+    bool fits = b.x1 - b.x0 <= in.x1 - in.x0 + 0.5f && b.y1 - b.y0 <= in.y1 - in.y0 + 0.5f;
+    return inside(b, role_of(id) == ROLE_DISPLAY && !fits ? wa : in);
 }
 
 // A floating window not taking its first place now: not docked, not the menu bar, a popup, a child, a dock node host.
@@ -447,6 +460,26 @@ bool held(const Box& wa, float u)
     return s_hold || wa.x1 - wa.x0 < 8.0f * u || wa.y1 - wa.y0 < 8.0f * u;
 }
 
+// A dialog opening now at a place partly outside the work area (author 2026-10-29: the lower edge of Choose a machine
+// out of reach, it could not be resized): back inside with the gap `in` of the layout, smaller only when it does not
+// fit (sized: not one that takes its own size). Not one open already (moved out by hand) or docked.
+void dialog_inside(ImGuiID id, bool sized, const Box& in)
+{
+    Box b;
+    if (ImGuiWindow* w = ImGui::FindWindowByID(id)) {
+        if (w->WasActive || !floating_placed(w)) return;
+        b = { w->Pos.x, w->Pos.y, w->Pos.x + w->SizeFull.x, w->Pos.y + w->SizeFull.y };
+    } else {
+        ImGuiWindowSettings* s = ImGui::FindWindowSettingsByID(id);
+        if (!s || s->DockId || s->Size.x <= 0 || s->Size.y <= 0) return;
+        b = settings_box(s);
+    }
+    if (!to_bring_inside(id, b, work_area(0.0f))) return;
+    Box n = inside(b, in);
+    ImGui::SetNextWindowPos(ImVec2(n.x0, n.y0));
+    if (sized) ImGui::SetNextWindowSize(ImVec2(n.x1 - n.x0, n.y1 - n.y0));
+}
+
 } // namespace
 
 void layout_hold(bool hold)
@@ -469,11 +502,14 @@ void layout_window(int which)
 {
     if (which < 0 || which >= LW_COUNT) return;
     ids_init();
-    if (!first_use(s_ids[which])) return;
     const WinDef& d = k_wins[which];
     float u = ImGui::GetFontSize();
     Box wa = work_area(0.5f * u);
     if (held(wa, u)) return;
+    if (!first_use(s_ids[which])) {
+        if (d.role == ROLE_DIALOG) dialog_inside(s_ids[which], d.w > 0, wa);
+        return;
+    }
     float ww = wa.x1 - wa.x0, wh = wa.y1 - wa.y0;
     if (d.role == ROLE_DIALOG) {   // the middle of the work area, at most its size
         float w = d.w * u, h = d.h * u;
@@ -652,14 +688,14 @@ void layout_keep_inside(void)
     for (ImGuiWindow* w : g.Windows) {   // open or closed in this run
         if (!floating_placed(w)) continue;
         Box b = { w->Pos.x, w->Pos.y, w->Pos.x + w->SizeFull.x, w->Pos.y + w->SizeFull.y };
-        if (to_bring_inside(w->ID, b, wa)) window_to(w, inside(b, in));
+        if (to_bring_inside(w->ID, b, wa)) window_to(w, back_inside(w->ID, b, wa, in));
     }
     for (ImGuiWindowSettings* s = g.SettingsWindows.begin(); s != nullptr; s = g.SettingsWindows.next_chunk(s)) {
         // not the child windows (the resizable list of Choose a machine: its size only, no place)
         if (s->WantDelete || s->IsChild || s->DockId || s->Size.x <= 0 || s->Size.y <= 0 || ImGui::FindWindowByID(s->ID))
             continue;
         Box b = settings_box(s);
-        if (to_bring_inside(s->ID, b, wa)) settings_to(s, inside(b, in));
+        if (to_bring_inside(s->ID, b, wa)) settings_to(s, back_inside(s->ID, b, wa, in));
     }
 }
 

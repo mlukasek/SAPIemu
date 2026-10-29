@@ -242,7 +242,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 
 - **Umístění (rozhodnutí autora):** `sapiemu-settings.json` a `imgui.ini` ve složce s exe, aby emulátor zůstal
   přenosný. Když tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Rozložení oken ze starších verzí
-  (jen v AppData) se při prvním spuštění zkopíruje k exe. Každé sestavení (debug, release) má tedy své nastavení.
+  (jen v AppData) se při prvním spuštění zkopírovalo k exe; od 2026-10-29 už ne (viz tam). Každé sestavení (debug,
+  release) má tedy své nastavení.
 - **Co se pamatuje (rozhodnutí autora, vše):** poslední sestava, velikost, poloha a maximalizace okna, otevřená
   okna, luminofor, škálování, poměr TV, vyhlazování, typy karet, volby terminálu (emulace, CR, echo, TCP port
   a protokol, COM) a rychlost.
@@ -2803,6 +2804,25 @@ sestavu, aby šla změna sestavy ověřit snímkem.
   na menší monitor.
 - Změnit sestavu bez zásahu (okno podle obrazu), po volbě 100 % v menu (zůstane 100 %, okno podle nového obrazu)
   a po ručním zvětšení okna displeje (velikost zůstane).
+
+## 2026-10-29 – okna displejů podle obrazu, co uživatel nastaví, zůstane
+
+Autor po startu viděl AND-1 na 200 % v okně mnohem širším než obraz a konfigurátor se neotevřel, i když `imgui.ini`
+a `sapiemu-settings.json` před startem smazal.
+
+- **Příčina:** program při chybějícím `imgui.ini` zkopíroval rozložení starších verzí z `%APPDATA%\SAPIemu\SAPIemu\imgui.ini`
+  (z 2026-10-03, okno obrazovky 816 × 549). Smazané rozložení se tak pokaždé vrátilo. **Kopírování je pryč:** verze
+  před 2026-10-03 měl jen autor a staré rozložení se k novému vzhledu stejně nehodí. Soubor v AppData program
+  nečte, autor ho může smazat (nečte ho jen tehdy, když jde o složku nastavení, protože vedle exe nejde zapisovat).
+- **Co uživatel nastaví, zůstane** (autor: „když si to někdo nějak nastaví, tak bych mu to dovolil a tohle už se
+  zapamatuje“): nastavení ukládá u každého okna displeje zvětšení zvolené v menu a ručně zvětšené okno. Okno se
+  zvoleným zvětšením má po startu přesně velikost obrazu v něm, ručně zvětšené okno si velikost nechá i po změně
+  sestavy. Ručně roztažené okno se k obrazu **nedorovnává** (autor nechce uživatele omezovat).
+- **Displej částečně mimo plochu** (uříznutý obraz) se po startu a po zmenšení okna vrátí celý dovnitř, když se
+  vejde (autor schválil). Ostatní okna až víc než napůl venku, dialogy při jakékoli části venku.
+- **Dialog při otevření** (autor: dolní hrana Vybrat sestavu mimo hlavní okno, nešla chytit): částečně mimo plochu
+  se vrátí dovnitř i při každém otevření, nejen po změně velikosti plochy.
+- **Náhled ve výběru sestav** se dál nezvětšuje (autor: je dobré, když jsou vidět i položky pod náhledem).
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

@@ -69,12 +69,16 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     (asi 75 × 80 % plochy; autor ho uvidí po Výchozím rozložení oken), okna displejů po změně sestavy podle nového
     obrazu (zvolené zvětšení zůstane), okna víc než napůl mimo plochu a dialogy i jen částečně venku zpět dovnitř,
     krátké titulky sedmi sestav s ECMONem (anglické dlouhé jméno `name_en`), pryč Vysunout bez uložení („…“ jen
-    u média z `media/`), **verze 0.7.0-beta** (poznámky `docs/release-notes/v0.7.0-beta.md`). Na rozhodnutí
-    autora: okna displejů s uříznutým obrazem vracet celá, náhled a seznam výběru zvětšovat s oknem. Autor
+    u média z `media/`), **verze 0.7.0-beta** (poznámky `docs/release-notes/v0.7.0-beta.md`). Autor
     potvrdil F9 = breakpoint a průběžné ukládání. **Cesta vydání:** 0.7.0-beta jen Liborovi, Petrovi a Michalovi (zpětná vazba,
     souhlasy, Liborův aktuální software) → úprava → 0.7.1-beta: zip v Releases na GitHubu, pak repo veřejně
     s GitHub Issues, oznámení na OldComp.cz (`docs/vydani/plan-vzhled.md` pod „→ BETA zip“). Beta zip až na
     Martinův pokyn.
+  - **Odpoledne** (2026-10-29, rozhodnutí 2026-10-29 – okna displejů podle obrazu…): smazané `imgui.ini` už
+    nenahradí staré rozložení z `%APPDATA%\SAPIemu\SAPIemu` (proto autor viděl AND-1 200 % v širokém okně a žádný
+    konfigurátor); zvětšení zvolené v menu a ručně zvětšené okno displeje se pamatují v nastavení (`displays`),
+    ručně roztažené okno se nedorovnává; displej s uříznutým obrazem a dialog částečně mimo plochu se vrátí dovnitř
+    (dialog i při otevření). Náhled ve výběru se nezvětšuje (autor).
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

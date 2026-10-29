@@ -45,7 +45,7 @@ struct ZoomState {
     float fixed = 0;   // chosen zoom, 0 = fit the window
     int request = 0;   // percent chosen: resize the window before its next Begin
     ImVec2 size;       // window size set for `fixed`
-    bool user = false;   // sized by hand in this run (after the last zoom chosen): a machine change keeps its size
+    bool user = false;   // sized by hand (after the last zoom chosen): a machine change keeps its size
 };
 const int k_zoom_steps[] = { 100, 200, 300, 400 };
 const float k_display_pad = 4.0f;   // window padding of the display windows
@@ -188,6 +188,13 @@ std::string settings_dir(void)
     return dir;
 }
 
+// The key of a display window in the settings, its id after "###": "screen" (k -1), "gfx0"... (k: gfx[k]).
+static void display_key(char* out, size_t n, int k)
+{
+    if (k < 0) snprintf(out, n, "screen");
+    else snprintf(out, n, "gfx%d", k);
+}
+
 nlohmann::json settings_json(App& app)
 {
     UiState& ui = app.ui;
@@ -217,6 +224,16 @@ nlohmann::json settings_json(App& app)
                       { "tcp_dcd_follows", ui.tcp_dcd_follows }, { "com_port", ui.com_port } };
     j["speed"] = { { "max", app.host.max_speed }, { "percent", app.host.pace_percent } };
     j["sound"] = { { "enabled", app.audio.enabled }, { "volume", app.audio.volume } };
+    // each display window: the zoom chosen from its menu (0 = none) and whether it was sized by hand (settings_apply)
+    nlohmann::json disp = nlohmann::json::object();
+    for (int k = -1; k < MAX_GFX_VIEWS; k++) {
+        const ZoomState& zs = k < 0 ? app.screen_zs : app.gfx[k].zs;
+        char key[8];
+        display_key(key, sizeof(key), k);
+        int zoom = zs.request ? zs.request : (int)(zs.fixed * 100.0f + 0.5f);
+        disp[key] = { { "zoom", zoom }, { "by_hand", zs.user } };
+    }
+    j["displays"] = disp;
     j["screenshot"] = { { "enlarged", ui.shot_enlarged } };
     if (!ui.ffmpeg_path.empty()) j["video"] = { { "ffmpeg", ui.ffmpeg_path } };
     // the joystick from the keyboard and the PC mouse are off at every start (author): not saved
@@ -333,6 +350,24 @@ void settings_apply(App& app, const nlohmann::json& j)
     if (app.text_percent < 100 || app.text_percent > 200) app.text_percent = 100;
     app.look_override = theme_override(&v, &md);
     app.restyle = true;
+    // the display windows as they were left (author 2026-10-29: what one sets stays): the zoom chosen, the window
+    // exactly that size at its first frame (zoom_resize; its place from imgui.ini), or sized by hand (a machine change
+    // keeps its size). The floating layout only: a docked display fits its dock.
+    const nlohmann::json& dz = j.value("displays", nlohmann::json::object());
+    for (int k = -1; k < MAX_GFX_VIEWS && !app.docked; k++) {
+        ZoomState& zs = k < 0 ? app.screen_zs : app.gfx[k].zs;
+        char key[8];
+        display_key(key, sizeof(key), k);
+        const nlohmann::json& e = dz.value(key, nlohmann::json::object());
+        int zoom = 0;
+        get_opt(e, "zoom", zoom);
+        get_opt(e, "by_hand", zs.user);
+        for (int p : k_zoom_steps)
+            if (zoom == p) {
+                zs.fixed = p / 100.0f;   // the layout plans with it (plan_layout, place_display)
+                zs.request = p;
+            }
+    }
 }
 
 void set_title(App& app);
@@ -434,6 +469,12 @@ static void switch_layout(App& app)
     app.layout_override = false;
     const std::string& ini = layout_ini(app, app.docked);
     ImGui::ClearIniSettings();   // every window undocked, no saved place
+    for (int k = -1; k < MAX_GFX_VIEWS; k++) {   // the display windows of that layout have the sizes saved in it
+        ZoomState& zs = k < 0 ? app.screen_zs : app.gfx[k].zs;
+        zs.fixed = 0;
+        zs.request = 0;
+        zs.user = false;
+    }
     io.IniFilename = ini.empty() ? nullptr : ini.c_str();
     if (!ini.empty() && file_exists(ini)) {
         ImGui::LoadIniSettingsFromDisk(ini.c_str());   // the windows take their places (and docks) from it
@@ -1096,8 +1137,9 @@ static void place_display(App& app, DisplayDevice* d, const char* id, const Zoom
 // zoom the layout gives it (display_layout_zoom: the cap, the small border), as at the first start and after View ->
 // Default window layout; inside the work area, a lower zoom when it does not fit (layout_refit). A window given a zoom
 // from the menu (zs.fixed) takes the size of its new picture at that zoom (fit to the window again when it does not fit
-// the work area). Not a window sized by hand in this run (ZoomState::user), docked, or taking its first place now. The
-// first machine of the run keeps the saved sizes (imgui.ini); a restart of the same machine (the same file, the same
+// the work area). Not a window sized by hand (ZoomState::user, kept for the next start), docked, or taking its first
+// place now. The first machine of the run keeps the saved sizes (imgui.ini; a zoom chosen saved in the settings sizes its
+// window at the first frame, settings_apply); a restart of the same machine (the same file, the same
 // display cards) and switching off and on change nothing. Before the windows of the frame, after plan_layout (main_k):
 // the windows opening now see the new sizes.
 static void refit_displays(App& app)
@@ -2664,14 +2706,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         std::string dir = settings_dir();
         if (!dir.empty()) {
             app.settings_path = dir + "sapiemu-settings.json";
+            // (the layout of the versions before 2026-10-03 in AppData is no longer copied here: a deleted imgui.ini
+            // brought back a stale layout, decision 2026-10-29)
             app.ini_path = dir + "imgui.ini";
-            // window layout of older versions lived in AppData only
-            char* pref = SDL_GetPrefPath("SAPIemu", "SAPIemu");
-            if (pref && !file_exists(app.ini_path)) {
-                std::vector<uint8_t> ini;
-                if (file_read_all(std::string(pref) + "imgui.ini", ini)) file_write_all(app.ini_path, ini.data(), ini.size());
-            }
-            if (pref) SDL_free(pref);
         }
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given

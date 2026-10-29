@@ -321,6 +321,7 @@ void help_docs_menu(UiState& ui);
 void open_doc(const char* rel);   // a file of docs/ in the program of the system
 // Default places of the windows (frontend/layout.cpp), called before Begin: the place and the size at the first use
 // of a window (ImGuiCond_FirstUseEver: a place saved in imgui.ini wins, View -> Default window layout takes them again).
+// A dialog opening at a place partly outside the work area comes back inside it.
 enum LayoutWin {
     LW_GUIDE, LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG,
     LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_TERMINAL, LW_PRINTER, LW_LOG, LW_RACK,
@@ -358,9 +359,9 @@ void layout_display(const char* id, float zero_w, float zero_h, float step_w, fl
 void layout_refit(const char* id, float w, float h);
 // Every frame after the menu bar, before the windows (app.cpp): when the work area has a new size (the start, the main
 // window resized, moved to a smaller monitor) for a few frames, every floating window and every saved place of a window
-// not created yet that is more than half outside it (a dialog: any part) comes back inside with the gap of the layout,
-// the least move, its size kept unless it does not fit (then smaller). Not while the windows take no first places (full
-// screen, minimized).
+// not created yet that is more than half outside it (a dialog: any part; a display: any part when it fits whole) comes
+// back inside with the gap of the layout, the least move, its size kept unless it does not fit (then smaller; a display
+// that fits only without the gap keeps its size). Not while the windows take no first places (full screen, minimized).
 void layout_keep_inside(void);
 // View -> Default window layout: the saved places of the windows not created in this run are forgotten too.
 void layout_forget_closed(void);
