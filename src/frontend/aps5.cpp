@@ -367,9 +367,7 @@ void draw_aps5(UiState& ui)
     }
     if (!ui.show_aps5) return;
     float u = ImGui::GetFontSize();
-    ImGui::SetNextWindowSize(ImVec2(62 * u, 50 * u), ImGuiCond_FirstUseEver);
-    ImGuiIO& io = ImGui::GetIO();   // on the right: the screen of the unit (AND-1) stays in sight
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 62 * u - 0.5f * u, 2.0f * u), ImGuiCond_FirstUseEver);
+    layout_window(LW_APS5);   // on the right: the screen of the unit (AND-1) stays in sight
     if (!ImGui::Begin(tr_id("APS-5: panel and furnaces"), &ui.show_aps5)) {
         ImGui::End();
         return;

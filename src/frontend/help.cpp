@@ -60,6 +60,7 @@ static const struct {
     { "F11, F10", "Step, step over (when paused)" },
     { "Ctrl+F5", "Screenshot of the picture focused last" },
     { "Ctrl+Alt+F5", "Video with sound on / off (MP4 through ffmpeg)" },
+    { "Alt+Enter", "Full screen of the display used last, Alt+Enter again leaves it (Esc goes to SAPI)" },
     { "Ctrl+F2, Ctrl+F3", "Quick save, quick load of the state" },
     { "Ctrl+F7", "Game mode of the ANK-1 keyboard (keys by position, Shift = SHIFT)" },
     { "Ctrl+F8", "Joystick from the keyboard (arrows, space = fire)" },
@@ -72,9 +73,7 @@ void draw_shortcuts(UiState& ui)
 {
     if (!ui.show_shortcuts) return;
     float u = ImGui::GetFontSize();
-    ImGui::SetNextWindowSize(ImVec2(36 * u, 24 * u), ImGuiCond_FirstUseEver);
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+    layout_window(LW_SHORTCUTS);
     if (!ImGui::Begin(tr_id("Keyboard shortcuts"), &ui.show_shortcuts)) {
         ImGui::End();
         return;
@@ -193,9 +192,10 @@ void draw_about(UiState& ui)
     float u = ImGui::GetFontSize();
     ImGuiIO& io = ImGui::GetIO();
     // the width fixed, the height that of the content (whatever imgui.ini says): no scroll bar for a few pixels; at most
-    // the height of the main window
-    ImGui::SetNextWindowSizeConstraints(ImVec2(42 * u, 0), ImVec2(42 * u, io.DisplaySize.y * 0.95f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+    // the height of the work area (not over the menu bar)
+    float most = ImGui::GetMainViewport()->WorkSize.y - u;
+    ImGui::SetNextWindowSizeConstraints(ImVec2(42 * u, 0), ImVec2(42 * u, most > 10 * u ? most : 10 * u));
+    layout_window(LW_ABOUT);
     if (!ImGui::Begin(tr_id("About SAPIemu"), &ui.show_about, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
@@ -262,13 +262,4 @@ void draw_about(UiState& ui)
                              "(zlib), i8080 (MIT), Nuked-OPL3 (LGPL 2.1+), minimp3 (CC0), DejaVu fonts.");
     ImGui::TextDisabled("%s", tr("Their licences are in the file THIRD-PARTY-NOTICES.txt."));
     ImGui::End();
-}
-
-void first_use_right(float w, float h, int k)
-{
-    (void)h;
-    ImGuiIO& io = ImGui::GetIO();
-    float x = io.DisplaySize.x - w - 10.0f;
-    if (x < 10.0f) x = 10.0f;
-    ImGui::SetNextWindowPos(ImVec2(x, 30.0f + (float)k * 28.0f), ImGuiCond_FirstUseEver);
 }

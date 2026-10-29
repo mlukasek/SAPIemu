@@ -94,6 +94,15 @@ static void test_windows(void)
     CHECK(d != std::string::npos && w != std::string::npos && b != std::string::npos && d < w && w < b);
     CHECK(out.find("// Windows opened on top at the start", w) < b);
     CHECK(json::parse(out, nullptr, false, true) == cfg);
+    // "main_display" (the display with the big place, frontend/layout.cpp) right after it, with its comment
+    cfg["main_display"] = "CGA-1V";
+    out = machine_cfg_to_jsonc(cfg);
+    size_t md = out.find("\"main_display\": \"CGA-1V\",");
+    w = out.find("\"windows\"");
+    b = out.find("\"bus\"");
+    CHECK(md != std::string::npos && w < md && md < b);
+    CHECK(out.find("// Main output:", md) < b);
+    CHECK(json::parse(out, nullptr, false, true) == cfg);
 }
 
 static void test_edit(void)

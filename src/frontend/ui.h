@@ -135,6 +135,9 @@ struct UiState {
     uint64_t guide_start_gen = ~0ull;
     bool guides_auto = true;       // guides open themselves for the basic, Libor's and the games machines (settings)
     std::vector<std::string> guides_hidden;   // machines whose guide does not open itself (settings)
+    bool layout_reset = false;     // View -> Default window layout: done before the windows of the next frame (app.cpp)
+    bool layout_fresh = false;     // no imgui.ini at the start: the first machine started from the window Choose a
+                                   // machine of the first start lays the windows out for itself (browser.cpp)
     bool quit = false;             // exit confirmed (no unsaved machine description)
     std::string error;             // error for the message box of the main window
     SDL_Window* window = nullptr;
@@ -264,8 +267,57 @@ void draw_about(UiState& ui);
 void draw_shortcuts(UiState& ui);
 void help_docs_menu(UiState& ui);
 void open_doc(const char* rel);   // a file of docs/ in the program of the system
-// The first place of a tool window: at the right edge, k-th of a cascade (the screen stays visible)
-void first_use_right(float w, float h, int k);
+// Default places of the windows (frontend/layout.cpp), called before Begin: the place and the size at the first use
+// of a window (ImGuiCond_FirstUseEver: a place saved in imgui.ini wins, View -> Default window layout takes them again).
+enum LayoutWin {
+    LW_GUIDE, LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG,
+    LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_TERMINAL, LW_PRINTER, LW_LOG, LW_RACK,
+    LW_BROWSER, LW_SETTINGS, LW_SHORTCUTS, LW_ABOUT,
+    LW_COUNT
+};
+void layout_window(int which);
+float layout_width(int which);           // the width it asks for (pixels): the main output leaves room for it
+// The work area of this frame (the main window below the menu bar, after draw_menu) less the gap kept at its edges and
+// between the windows (pixels).
+void layout_work_size(float* w, float* h, float* gap);
+bool layout_first_use(const char* id);   // the window ("###screen") takes its first place in this frame
+// The main output planned for this frame (app.cpp, before the windows): its window id, its first size (pixels) and the
+// number of graphic display windows (###gfx0...) drawn with it.
+void layout_main(const char* id, float w, float h, int gfx_count);
+// A display window ("###gfx0"): the main output where it was planned, another display in the free room (up to w x h,
+// at least min_w x min_h, pixels; down to small_w x small_h rather than over another window, 0 = not smaller).
+void layout_display(const char* id, float w, float h, float min_w, float min_h, float small_w, float small_h);
+// View -> Default window layout: the saved places of the windows not created in this run are forgotten too.
+void layout_forget_closed(void);
+// The window places of the other layout just loaded (View -> Settings -> Windows): the windows that have none in it take
+// their default places.
+void layout_take_default_unsaved(void);
+// No first places while the display is in full screen (app.cpp, every frame): a window opening then takes its place in
+// the main window at the first frame after it. layout_held: that, or the main window too small (minimized).
+void layout_hold(bool hold);
+bool layout_held(void);
+// The docked layout (View -> Settings -> Windows: docked), built before the dock space of the frame: the main output in
+// the middle; a column at the right edge with the other displays at its top, under them the windows of the machine
+// (instruments, Media, terminal, printer) as tabs, at its bottom the guide and the debugging tools as tabs. A part with
+// no window open takes no room. The dialogs and the configurator stay floating.
+struct DockPlan {
+    const char* displays[5];   // display window ids ("###screen", "###gfx0"...): the main output first, then the other
+    int n_displays;            // displays of the machine, then those of other machines (they dock there when they come)
+    int machine_displays;      // the displays of the machine (the first ones of `displays`)
+    float side_w;              // the widest window the machine opens beside its output (pixels), 0 = none
+    float display_w;           // the widest other display of the machine at 1:1 (pixels), 0 = none
+    float main_w;              // the width of the main output in the floating layout (pixels): the middle keeps it
+    const char* machine_tab;   // the window id whose tab is selected among the windows of the machine, or null
+    bool guide;                // the guide is open: its tab selected among the tools
+};
+unsigned layout_dockspace_id(void);   // the dock space over the main window (DockSpaceOverViewport with id 0)
+void layout_dock(unsigned dockspace, const DockPlan& p);
+// After a machine change in the docked layout: its main output ("###gfx1") into the middle when it is elsewhere in the
+// dock; the displays in the middle go where it was. The other windows and the sizes of the parts stay.
+void layout_dock_main(unsigned dockspace, const char* main_id);
+// After the windows of a frame: for a few frames after layout_dock its chosen tabs stay selected (a window that opens
+// takes the keyboard, and with it its tab would come in front).
+void layout_dock_frame(void);
 void draw_ims2(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);

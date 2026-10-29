@@ -51,7 +51,7 @@ Testy smějí běžet souběžně: každý zapisuje jen do vlastních souborů v
 pracovní kopie médií ve `work/` jen čte. Pracovní kopie vzniká pod dočasným jménem a přejmenuje se, takže
 ji souběžně nevytvoří dva procesy napůl (dřív na čistém `work/` padaly `test_zps3`, `test_state`).
 
-Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9), Ctrl+F12 vypnout a zapnout.
+Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9), Ctrl+F12 vypnout a zapnout, Alt+Enter celá obrazovka.
 
 **Rychlost a takt** jsou dvě různé věci:
 - **Takt CPU** je vlastnost karty: u JPR-1ZI propojky JP2/JP3 v sestavě, u JPR-1V přepínač TURBO (2/4 MHz) i za
@@ -61,8 +61,9 @@ Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % �
 - Stavový řádek ukazuje obojí („CPU 4.00 MHz  rychlost 100 %“), displej FREKVENCE CPU na panelu ZDR jejich součin,
   tedy efektivní takt CPU (od 100 MHz bez desetin).
 
-Nastavení GUI se ukládá do `sapiemu-settings.json` a rozložení oken do `imgui.ini` ve složce s exe (přenosné). Když
-tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se poslední sestava (spustí se bez
+Nastavení GUI se ukládá do `sapiemu-settings.json` a místa oken do `imgui.ini` (zadokovaná okna do `imgui-docked.ini`)
+ve složce s exe (přenosné). Když tam nejde zapisovat, použije se `%APPDATA%\SAPIemu\SAPIemu`. Pamatuje se poslední
+sestava (spustí se bez
 `--machine`), velikost a poloha okna, otevřená okna, zobrazení obrazovky, nastavení terminálu, rychlost a jazyk
 (`"language": "cs"` nebo `"en"`, jen když si ho uživatel zvolil v menu). Jiný soubor nastavení:
 `sapiemu --settings soubor.json`.
@@ -86,9 +87,9 @@ v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled j
 - **Písma:** Segoe UI se bere ze systému (`%WINDIR%\Fonts`, nesmí se přibalit), bez něj a na Linuxu je to DejaVu Sans.
 - **Volba:** Zobrazení → Nastavení → Vzhled (Podle systému / Světlý / Tmavý, velikost písma), uloží se jako
   `"appearance"`. `sapiemu --ui-theme light|dark` (také `win11-light`, `win11-dark`) vybere režim jen pro jedno
-  spuštění.
-  `--ui-snapshot` bez něj kreslí světlý, aby obrázky nezávisely na nastavení Windows. `--ui-scale 1.25` napodobí
-  měřítko monitoru.
+  spuštění. `--ui-snapshot` bez něj kreslí světlý, aby obrázky nezávisely na nastavení Windows. `--ui-scale 1.25`
+  napodobí měřítko monitoru.
+- **Okna:** plovoucí (výchozí) nebo zadokovaná, popis níže v Oknech GUI.
 - **Titulek okna Windows** (`theme_titlebar()` v `theme.cpp`, jen `_WIN32`, na Linuxu ho kreslí správce oken):
   - `DwmSetWindowAttribute`: 20 = světlý nebo tmavý režim (před Windows 10 20H1 číslo 19), ve Windows 11 navíc
     35 = barva titulku jako lišta menu (#F3F3F3 / #202020) a 36 = barva textu. Titulek a lišta menu tak tvoří jeden
@@ -115,7 +116,50 @@ v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled j
   světlém okně, bílé na tmavém. `docs/img/logo.png` s černým pruhem zůstává pro README.
 - **Galerie vzhledů:** `python tools\ui_gallery.py [--themes win11-light,win11-dark] [--screens 01,16]
   [--ref out\ux-review-20261028]` udělá 16 obrazovek v každém vzhledu (stavy z `sapiemu-cli`, každý snímek s novým
-  nastavením). Výsledek je v `out\ui-gallery\<čas>\index.html`.
+  nastavením). Výsledek je v `out\ui-gallery\<čas>\index.html`. Data jsou z HEAD, sestavy, písma a obrázky
+  z pracovního stromu (nové klíče sestav, např. `main_display`).
+- **Galerie rozložení oken:** `python tools\ui_gallery.py --layouts [floating,docked] [--sizes 1280x720,1920x1080]
+  [--scale 1] [--debug]` udělá 8 obrazovek (první start, ZPS-1 s průvodcem, hry, APS-5, IMS-2, XY 4130 s průvodcem,
+  RMP-1 s Médii, ZPS-1 s debuggerem a pamětí) ve světlém vzhledu Windows 11. Sloupce jsou velikost × rozložení,
+  rozložení je v nastavení snímku (`appearance.layout`) i v `--ui-layout`. Výsledek je
+  v `out\ui-gallery\<čas>-layouts\index.html`.
+
+**Okna GUI** (od 2026-10-29, etapa 5 plánu vzhledu; důvody v `docs/rozhodnuti.md`, 2026-10-29 – etapa 5 plánu
+vzhledu: okna):
+- **Plovoucí rozmístění** (`src/frontend/layout.cpp`, výchozí): jeden pomocník pro všechna okna. Okno dostane místo
+  a velikost jen při prvním použití (`ImGuiCond_FirstUseEver`), takže místo z `imgui.ini` má vždy přednost.
+  - Tabulka `k_wins`: velikost, nejmenší velikost a role každého okna ve výškách písma.
+  - Plocha je `GetBuildWorkRect` po kreslení lišty menu (`WorkPos` ji v prvním snímku ještě nemá).
+  - Hlavní výstup (konzole, nebo displej z klíče sestavy `main_display`, `docs/sestavy.md`) plánuje `app.cpp`
+    (`layout_main`) vlevo nahoře v největším celočíselném zvětšení do 65 % šířky. Ostatní displeje umisťuje
+    `layout_display`, ostatní okna `layout_window` do volného místa (`find_place`, váhy rolí `weight_of`).
+  - Pořadí kreslení v `app_run`: hlavní výstup, další displeje, přístroje, Média, průvodce, nástroje, dialogy.
+    Okno dostane místo až po oknech, kterým se má vyhnout.
+  - Plán se přepočítá jen po změně sestavy, plochy, písma nebo měřítka. `layout_hold` za celé obrazovky
+    a minimalizace první místa odloží.
+  - Zobrazení → Výchozí rozložení oken smaže i záznamy oken, která ještě nevznikla (`WantDelete`).
+- **Zadokované rozložení:** Zobrazení → Nastavení → Vzhled → Okna, uloží se jako `"appearance": { "layout":
+  "docked" }`. Staví ho `layout_dock()` v `layout.cpp` přes DockBuilder: hlavní výstup uprostřed, sloupec u pravého
+  kraje (nahoře ostatní displeje, pod nimi okna stroje, dole průvodce a ladicí okna jako záložky). Postaví se jen bez
+  svého souboru míst, volbou a Výchozím rozložením oken. Po změně sestavy jen `layout_dock_main()` vymění hlavní
+  výstup nové sestavy s displejem uprostřed, ostatní okna a velikosti částí zůstanou. Sloupec nevezme hlavnímu
+  výstupu šířku, kterou má v plovoucím rozložení; otevřený průvodce má aspoň 12 výšek písma.
+- **Soubory míst oken:** plovoucí `imgui.ini`, zadokované `imgui-docked.ini` (u `--settings SOUBOR` je to
+  `SOUBOR.imgui.ini` a `SOUBOR.imgui-docked.ini`). Volba v Nastavení mezi dvěma snímky uloží místa opouštěného
+  rozložení do jeho souboru, smaže nastavení ImGui (`ClearIniSettings`) a načte soubor zvoleného
+  (`LoadIniSettingsFromDisk`, okna bez místa v něm dostanou výchozí). Bez souboru se rozložení postaví jako
+  Zobrazení → Výchozí rozložení oken.
+- **Okno programu:** při prvním startu 88 % použitelné plochy hlavního monitoru (`usable_area` v `app.cpp`), uložená
+  velikost se zmenší do použitelné plochy svého monitoru.
+- **Celá obrazovka** (Alt+Enter, zachycený v `handle_key` dřív, než Enter dojde do SAPI): `SDL_SetWindowFullscreen`
+  (okno bez rámu přes plochu). `draw_fullscreen` kreslí displej použitý naposledy. Ostatní okna i lišta menu se dál
+  kreslí a před `Render` dostanou příznak Hidden: jejich práce před `Begin` běží dál, místa a dok zůstanou. Neukládá
+  se.
+- **Displej menší než 1:1** se kreslí s lineárním filtrem, od 1:1 ostře (pokud není zapnuté Vyhlazování).
+- **Volby:** `--ui-layout floating|docked` vybere rozložení jen pro jedno spuštění. Když se liší od uloženého, začne
+  z výchozích míst a soubory míst nečte ani nezapisuje. Pro snímky jsou `--ui-layout-switch` (přepne jako volba
+  v Nastavení), `--ui-fullscreen` (Alt+Enter, okno zůstane velikosti `--ui-size`), `--ui-zoom` a `--ui-reset-layout`.
+  Popis voleb `--ui-*` je v `docs/sestavy.md`.
 
 ## Linux (ověřeno ve WSL 2, 2026-10-06)
 

@@ -81,6 +81,9 @@ static void remember_recent(UiState& ui, const std::string& file)
 static void start(UiState& ui, const std::string& file)
 {
     remember_recent(ui, file);
+    // the first machine chosen at the first start, no saved layout yet: the windows take the default places of this
+    // machine (its main output, its instruments), not those of the machine running before it
+    if (ui.browser_first && ui.layout_fresh) ui.layout_reset = true;
     rack_start_machine(ui, file);
     ui.show_browser = false;
     ui.browser_first = false;
@@ -293,9 +296,7 @@ void draw_browser(UiState& ui)
         select_first_row(ui, ui.machine_index);
     }
     float u = ImGui::GetFontSize();
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(58 * u, 38 * u), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+    layout_window(LW_BROWSER);   // in the middle, never over the menu bar
     bool visible = ImGui::Begin(tr_id("Choose a machine"), &ui.show_browser);
     if (!ui.show_browser) ui.focus_display = 2;   // closed: the keyboard back to the display
     if (!ui.show_browser && ui.browser_first) {   // the first start: closed without starting a machine from it
@@ -572,9 +573,7 @@ void draw_guide(UiState& ui)
     }
     if (!ui.show_guide) return;
     float u = ImGui::GetFontSize();
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(30 * u, 36 * u), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 30.5f * u, 2.0f * u), ImGuiCond_FirstUseEver);
+    layout_window(LW_GUIDE);   // beside the instruments and Media, not over them
     if (ui.guide_focus) {   // asked for: in front of the windows that hide it (an instrument at the same place)
         ImGui::SetNextWindowFocus();
         ui.guide_focus = false;

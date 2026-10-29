@@ -208,6 +208,21 @@ static const Translation k_table[] = {
     { "Style editor (development)", "Editor stylu (vývoj)" },
     { "The look of this run comes from --ui-theme; a choice here replaces it and is saved.",
       "Vzhled tohoto spuštění určuje --ui-theme; volba tady ho nahradí a uloží se." },
+    { "Windows:", "Okna:" },
+    { "Floating", "Plovoucí" },
+    { "Docked", "Zadokovaná" },
+    { "Floating: every window where you put it. Docked: the main display in the middle, the other windows in a column at "
+      "the right edge, as tabs (a tab can be dragged out). Each keeps its own window places: a choice brings back the "
+      "places you left in it (the first time its default ones).",
+      "Plovoucí: každé okno tam, kam ho dáte. Zadokovaná: hlavní displej uprostřed, ostatní okna ve sloupci u pravého "
+      "kraje jako záložky (záložku jde vytáhnout ven). Každé si pamatuje svá místa oken: volba vrátí okna tam, kde jste "
+      "je v něm nechali (poprvé na jeho výchozí místa)." },
+    { "The window layout of this run comes from --ui-layout; a choice here replaces it and is saved.",
+      "Rozložení oken tohoto spuštění určuje --ui-layout; volba tady ho nahradí a uloží se." },
+    { "Docks the windows again: the main display in the middle, the other windows in the column at the right edge (View "
+      "-> Settings -> Windows).",
+      "Znovu zadokuje okna: hlavní displej uprostřed, ostatní okna ve sloupci u pravého kraje (Zobrazení → Nastavení → "
+      "Okna)." },
     { "Show the hidden guides again", "Znovu ukazovat skryté průvodce" },
     { "Thanks", "Poděkování" },
     { "The guides are in Czech, they open in the program for .md files.", "Návody jsou česky, otevřou se v programu pro soubory .md." },
@@ -508,6 +523,20 @@ static const Translation k_table[] = {
     { "Zoom", "Zvětšení" },
     { "Screen zoom", "Zvětšení obrazovky" },
     { "Right click on a picture: the zoom of its window.", "Pravé tlačítko na obraz: zvětšení jeho okna." },
+    { "Fit to window", "Přizpůsobit oknu" },
+    { "The picture as large as its window allows (with integer scaling in whole multiples). Resizing the window by hand "
+      "fits it again.",
+      "Obraz tak velký, jak okno dovolí (s celočíselným zvětšením v celých násobcích). Změna velikosti okna rukou ho "
+      "přizpůsobí znovu." },
+    { "Display:", "Displej:" },
+    { "Full screen", "Celá obrazovka" },
+    { "Full screen: Alt+Enter leaves it", "Celá obrazovka: Alt+Enter ji ukončí" },
+    { "The display used last alone over the whole monitor, without the menu and the other windows. Alt+Enter or its "
+      "right click menu leaves it; Esc goes to SAPI.",
+      "Displej použitý naposledy sám přes celý monitor, bez menu a ostatních oken. Ukončí ji Alt+Enter nebo menu "
+      "pravého tlačítka, Esc patří SAPI." },
+    { "Full screen of the display used last, Alt+Enter again leaves it (Esc goes to SAPI)",
+      "Celá obrazovka s displejem použitým naposledy, Alt+Enter ji zase ukončí (Esc patří SAPI)" },
     { "Integer scaling", "Celočíselné zvětšení" },
     { "TV aspect ratio", "Poměr stran jako na TV" },
     { "Smoothing (linear filtering)", "Vyhlazování (lineární filtrování)" },

@@ -467,9 +467,7 @@ void draw_ims2(UiState& ui)
     }
     if (!ui.show_ims2) return;
     float u = ImGui::GetFontSize();
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(40 * u, 56 * u), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 41 * u, 2.0f * u), ImGuiCond_FirstUseEver);
+    layout_window(LW_IMS2);   // on the right, at most the height of the work area
     if (!ImGui::Begin(tr_id("IMS-2 measuring bench"), &ui.show_ims2) || !m) {
         ImGui::End();
         return;

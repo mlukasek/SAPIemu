@@ -244,10 +244,7 @@ void draw_plotter(UiState& ui)
             if (c->plotter()) ui.show_plotter = true;
     }
     if (!ui.show_plotter) return;
-    float u = ImGui::GetFontSize();   // on the right: the screen of SAPI stays in sight
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(30 * u, 42 * u), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 30.5f * u, 2.0f * u), ImGuiCond_FirstUseEver);
+    layout_window(LW_PLOTTER);   // on the right: the screen of SAPI stays in sight
     Plotter* g = nullptr;
     if (m)
         for (auto& c : m->cards)

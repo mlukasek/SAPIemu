@@ -3,6 +3,7 @@
 {
     "name": "SAPI-1 V: Prince of Persia (grafika a hudba DOS, CGA-1V, MPH-1V, RAM disk ZRD-1V)",
     "description": "Sestava V jako sapi1v.sapi (JPR-1V TURBO 4 MHz, RAM-1V, AND-1V, DSM-1V, ZRD-1V rev 1.1, IDE-1, CGA-1V, MPH-1V), jen s jiným obsahem RAM disku. Po startu ECMONu volba 3 (CP/M z RAM disku A:, volby 0–2 čekají na řadič, který v sestavě není), pak POP. RAM disk media/zrmd-1/pop-ramdisk.bin: POP.COM, POP.DAT (data hry, 3,2 MB), POP.SAV, ZRDBENCH.COM. Port hry Prince of Persia (Jordan Mechner) z repa SAPI-Prince-of-Persia, verze s grafikou a hudbou DOS verze (větev dos-graphics, 2026-10-25): logika převedená z Apple II, obrázky CGA z DOS 1.1, hudba AdLib na YM3812. Úvod přeskočí klávesa, Ctrl-Q vrátí do CP/M. Ukázka historické technologie: neoficiální nekomerční port hry na 40 let starý československý počítač. Prince of Persia © Jordan Mechner, grafika a hudba DOS verze © Brøderbund Software, práva vydávat hry Prince of Persia má Ubisoft. Licence SAPIemu (GPLv3) se na data hry nevztahuje. Na žádost nositelů autorských práv cokoli upravím nebo odstraním.",
+    "main_display": "CGA-1V",               // Main output: the display window with the big place at the top left (else the console screen)
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)

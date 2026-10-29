@@ -3,6 +3,7 @@
 {
     "name": "JPR-1S + BGP-1S + ANK-1M2 (Libor Lasota): MIKROBIOS 1.02, grafika PMD-85",
     "description": "Sestava Libora Lasoty pro hry převedené z PMD-85: procesorová deska JPR-1S rev 2.2 s MIKROBIOSem 1.02 a Falcon Monitorem 6.1L v EEPROM 28C64, RAM 2000h a tři banky 4000-FFFF, grafická karta BGP-1S rev 4.2 na C000h v režimu Colorace (videoram jen pro zápis, čte se banka RAM pod ní), klávesnice ANK-1M2 s joystickem (šipky + mezerník po Ctrl+F8, nebo gamepad) a redukce Redukce34KB01 se sériovou linkou na P1-IN7 pro příkaz BOOT (Intel HEX 19200 Bd, TCP 2325). Hry v media/jpr-1s: Soubor → Nahrát program (Intel HEX), např. manic_miner.hex nebo auto.hex (joystick vlevo/vpravo), pak JUMP 4400. docs/desky/JPR-1S.md, BGP-1S.md.",
+    "main_display": "BGP-1S",               // Main output: the display window with the big place at the top left (else the console screen)
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },

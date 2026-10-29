@@ -44,10 +44,17 @@ struct UiSnapshot {
     float scale = 0;         // the display scale instead of the one of the system (0 = the system's)
     int zoom = 0;            // the zoom of the screen chosen from the menu (100, 200...; 0 = none)
     bool reset_layout = false;   // View -> Default window layout
+    bool layout_switch = false;  // View -> Settings -> Windows: the other layout
     bool pause = false;          // F5 before the picture: the text over the picture, "[paused]" in the title
     bool log = false;            // show the Log window (errors and warnings in their colours)
     bool reset = false;          // F12 before the picture (the APS-5 unit asks first)
+    int fullscreen = 0;          // Alt+Enter so many times: 1 the display used last over the whole window (the window
+                                 // keeps its size), 2 on and off again (the windows as they were)
 };
+
+// --ui-layout floating|docked: the window layout of this run (View -> Settings -> Windows), not saved; other than the
+// saved one it starts from its default places and leaves imgui.ini alone.
+void app_layout_override(bool docked);
 
 // Runs the SDL3/ImGui frontend; returns the process exit code. An empty
 // machine_file starts the machine used last (settings), else GUI_FIRST_MACHINE_FILE.

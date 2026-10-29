@@ -168,10 +168,19 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
   (první textový displej) je hlavní okno, grafické karty mají další. Při vypnutém stroji se hlavní okno jmenuje
   „Obrazovka“. Za jménem je aktuální zvětšení v celých procentech („CGA-1V  200 %“): body obrazovky PC na bod
   emulovaného obrazu, svisle (s poměrem TV se vodorovně liší).
-- **Rychlé zvětšení:** pravé tlačítko na obraz nabídne 100 %, 200 %, 300 % a 400 %, okno se nastaví kolem
-  obrazu s malým okrajem. Pro
-  hlavní obrazovku je totéž v menu Zobrazení → Zvětšení obrazovky. Změna velikosti okna rukou vrátí přizpůsobení
-  oknu (a celočíselné zvětšení, je-li zapnuté).
+- **Rychlé zvětšení:** pravé tlačítko na obraz nabídne „Přizpůsobit oknu“ (zaškrtnuté, když není zvolené pevné
+  zvětšení) a 100 %, 200 %, 300 % a 400 %, okno se pak nastaví kolem obrazu s malým okrajem. Totéž je v menu
+  Zobrazení → Zvětšení obrazovky pro displej použitý naposledy (jeho jméno je v menu nahoře; po startu sestavy
+  hlavní výstup). Změna velikosti okna rukou vrátí přizpůsobení oknu (a celočíselné zvětšení, je-li zapnuté).
+- **Celá obrazovka (Alt+Enter):** displej použitý naposledy sám přes celý monitor (`SDL_SetWindowFullscreen`, okno
+  bez rámu), bez menu a ostatních oken, obraz podle celočíselného zvětšení a poměru TV. Ostatní okna se dál kreslí,
+  jen skrytá, takže jejich místa i dok zůstanou a dialogy (chyba, otázka) se ukážou přes obraz. Ukončí ji Alt+Enter,
+  menu pravého tlačítka (přepne i na jiný displej) nebo Zobrazení → Celá obrazovka; Esc jde do SAPI, F11 zůstává
+  krokem debuggeru. Neukládá se, každé spuštění začne v okně.
+- **Okna displejů nejdou sbalit** a okna se posouvají jen za titulek (`io.ConfigWindowsMoveFromTitleBarOnly`):
+  tažení po obrazu okno nehne, klik do obrazu dál zachytí myš SAPI.
+- **Displej menší než 1:1** (obraz zmenšený do malého okna) se kreslí hladce, aby písmena neztrácela řádky bodů. Od
+  1:1 jsou body ostré, pokud není zapnuté Vyhlazování.
 - **Barva jednobarevného obrazu je parametr karty v sestavě:**
   - AND-1V: propojky S1 (`color`: white, green, amber, red, blue, cyan, yellow, magenta), jako na desce;
   - AND-1, AND-1A, AND-1Z, AND-1Z-89 a DGD-1 barvu nemají, ta je dána luminoforem monitoru: parametr `monitor`
@@ -354,6 +363,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
     "name": "…",                      // název v titulku a v menu
     "description": "…",               // volitelný popis
     "windows": [ "minigraf" ],        // volitelné: okna nahoře po spuštění
+    "main_display": "CGA-1V",         // volitelné: displej s velkým místem vlevo nahoře (výchozí konzole)
     "power_on_memory": "random",      // volitelné: náhodný obsah pamětí po zapnutí (výchozí "zero")
     "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
     "cards": [
@@ -375,6 +385,13 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `zps/ZPS-2_DPS-1_IMS-2`
   měřicí pracoviště, `rmp1_jb_izot`,
   `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky).
+- **Hlavní výstup** (`main_display`, jméno nebo typ karty displeje): okno tohoto displeje dostane při prvním
+  použití (a po Zobrazení → Výchozí rozložení oken) velké místo vlevo nahoře, v největším celočíselném zvětšení do
+  asi 65 % šířky. Bez klíče je hlavním výstupem konzole (obrazovka sestavy). Ostatní displeje, přístroje a průvodce
+  jdou do volného místa vpravo (`src/frontend/layout.cpp`). Se zadokovanými okny (Zobrazení → Nastavení → Okna) je
+  hlavní výstup uprostřed a ostatní displeje nahoře ve sloupci vpravo; po spuštění jiné sestavy jde doprostřed její
+  hlavní výstup. Sestavy v repu: `sapi1v_hry`, `sapi1v_PoP`,
+  `sapi1v_BomberNet` (CGA-1V) a `jpr1s_bgp1s` (BGP-1S). Konfigurátor klíč zachová, ale needituje ho.
 - **Sběrnice:**
 
   | Typ | Pozic | JP3 |
@@ -409,7 +426,12 @@ se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou)
 okna O programu, Nastavení a Klávesové zkratky, `--ui-crop KLÍČ` uloží jen okno s ID `###KLÍČ` (náhledy přístrojů),
 `--ui-screen-menu` otevře menu pravého tlačítka obrazovky, `--ui-shot` uloží snímek (Ctrl+F5) do `work/snimky`,
 `--ui-copy` zkopíruje snímek do schránky (Zobrazení → Kopírovat snímek; přepíše schránku),
-`--ui-zoom 200` zvolí zoom obrazovky jako z menu, `--ui-reset-layout` Zobrazení → Výchozí rozložení oken,
+`--ui-zoom 200` zvolí zoom jako Zobrazení → Zvětšení obrazovky (displej použitý naposledy),
+`--ui-fullscreen` stiskne Alt+Enter (celá obrazovka v okně velikosti `--ui-size`; s `--ui-screen-menu` i její menu,
+dvakrát zapne a zase vypne), `--ui-reset-layout` Zobrazení → Výchozí rozložení oken,
+`--ui-layout docked` (nebo `floating`) okna zadokovaná či plovoucí jen pro toto spuštění, `--ui-layout-switch`
+přepne rozložení jako volba v Zobrazení → Nastavení → Okna (se stejným `--settings` mezi spuštěními ukáže, že se
+vrátí místa oken druhého rozložení),
 `--ui-pause` těsně před obrázkem pozastaví stroj (F5: nápis přes obraz), `--ui-log` otevře okno Log (chyby
 červeně, varování žlutě; „Chyby: N“ ve stavovém řádku je vidět jen bez něj), `--ui-reset` těsně před obrázkem
 stiskne F12 (u APS-5 ukáže otázku „Resetovat jednotku APS-5?“), `--ui-rack SLOT` vybere slot jako kliknutím

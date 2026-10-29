@@ -11,7 +11,8 @@ Issues: https://github.com/mlukasek/SAPIemu/issues).
 1. Rozbalte zip kamkoli (třeba `C:\SAPIemu`). Exe najde ROM, média a sestavy ve složkách vedle sebe.
 2. Spusťte **`sapiemu.exe`**. Windows u nepodepsaného programu ukážou varování SmartScreen: „Další informace“
    → „Přesto spustit“.
-3. Nic se neinstaluje. Nastavení se ukládá vedle exe (`sapiemu-settings.json`, `imgui.ini`), stejně jako log
+3. Nic se neinstaluje. Nastavení se ukládá vedle exe (`sapiemu-settings.json`, místa oken `imgui.ini`
+   a `imgui-docked.ini`), stejně jako log
    posledního spuštění `sapiemu.log` (hodí se k hlášení chyby). Pracovní kopie disků a RAM disků vznikají ve složce
    `work\`. Originály v `media\` zůstávají netknuté. Když do složky programu nejde zapisovat (např. `Program Files`),
    ukládá se nastavení do `%APPDATA%\SAPIemu\SAPIemu` a `work` do `%LOCALAPPDATA%\SAPIemu\work`.
@@ -118,7 +119,7 @@ s Liborovými deskami.
   obrazovka klávesnici nemá a nic jste nenapsali (nebo se psaný znak právě zahodil), je dole na obrazu nápis
   „Klikněte sem a pište“. Zahozený znak ohlásí i stavový řádek. Po „Napsat do SAPI“ v průvodci, Spustit, Nahrát
   program, vložení média, Vložit text a po zavření průvodce nebo výběru sestavy dostane klávesnici zpět displej
-  použitý naposledy.
+  použitý naposledy. Po startu sestavy je to její hlavní výstup (u her CGA-1V nebo BGP-1S).
 - **Klávesy emulátoru** (přehled v Nápověda → Klávesové zkratky; při psaní do textového pole se neuplatní):
   - F5 pauza;
   - **Ctrl+F5 snímek obrazovky** okna, které má fokus (konzole nebo grafika CGA-1V, BGP-1S, DGD…), do
@@ -129,6 +130,10 @@ s Liborovými deskami.
     `"video": { "ffmpeg": "…" }`). Snímky se berou podle času emulace, takže video odpovídá skutečné rychlosti
     SAPI i při turbu; pauza video pozastaví. Body jsou zvětšené 4× (u VGA 2×), nejostřejší je přehrání v nativní
     velikosti. Ve stavovém řádku běží „● REC m:ss“;
+  - **Alt+Enter celá obrazovka** (také Zobrazení → Celá obrazovka a pravé tlačítko na obraz): displej použitý
+    naposledy sám přes celý monitor, bez menu a ostatních oken. Ukončí ji zase Alt+Enter nebo menu pravého
+    tlačítka, Esc patří SAPI. V menu pravého tlačítka jde přepnout na jiný displej sestavy, celočíselné zvětšení
+    a poměr TV, pauza zůstane napsaná přes obraz;
   - F8 rychlost (100 / 200 / 400 % / maximum); pauza i nová rychlost se na chvíli ukážou přes obraz, při pauze
     je v titulku okna „[pauza]“;
   - F9 nebo F12 reset (paměť zůstane; u APS-5, která reset nemá, se emulátor nejdřív zeptá);
@@ -147,12 +152,27 @@ s Liborovými deskami.
   krycím panelem. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí).
   Některé propojky platí hned („platí hned“), ostatní změny se projeví až tlačítkem „Restartovat s touto
   sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo nahoře v hlavním okně).
-- **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz), celočíselné škálování, poměr stran TV,
-  **Jazyk / Language** (čeština, angličtina; poprvé podle Windows).
+- **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz; Zobrazení → Zvětšení obrazovky platí pro displej
+  použitý naposledy, první volba „Přizpůsobit oknu“), celá obrazovka, celočíselné škálování, poměr stran TV,
+  **Jazyk / Language** (čeština, angličtina; poprvé podle Windows). Okna displejů nejdou sbalit a všechna okna se
+  posouvají jen za titulek (tažení po obrazu nebo panelu okno nehne).
+- **Rozmístění oken:** při prvním spuštění zabere okno programu 88 % obrazovky. Hlavní výstup sestavy (konzole,
+  u her CGA-1V nebo BGP-1S) je vlevo nahoře v největším celočíselném zvětšení, ostatní okna (přístroje, Média,
+  průvodce, debugger) si najdou volné místo vpravo, dialogy jsou uprostřed. Okna si pamatují, kam jste je dali;
+  výchozí místa vrátí Zobrazení → Výchozí rozložení oken.
 - **Okno přilepené ke kraji:** okno přetažené ke kraji hlavního okna se přilepí (zadokuje) a jeho velikost pak
   určuje přilepená plocha. Odlepí se tažením **za název** v záložce titulku, volbou zvětšení (100–400 %) nebo
   **Zobrazení → Výchozí rozložení oken**, které vrátí všechna okna na výchozí místa a velikosti. S podrženým
   Shiftem se okno při tažení nepřilepí.
+- **Zadokovaná okna:** Zobrazení → Nastavení → Vzhled → **Okna: Zadokovaná** dá hlavní displej doprostřed a ostatní
+  okna do sloupce u pravého kraje: nahoře další displeje, pod nimi okna sestavy (přístroje, Média, terminál,
+  tiskárna), dole průvodce a ladicí okna, každá skupina jako záložky. Část bez otevřeného okna místo nezabírá. Dělicí
+  čáry jde posouvat, záložku jde vytáhnout ven. Po spuštění jiné sestavy jde doprostřed její hlavní displej (displej,
+  který tam byl, si s ním vymění místo), zbytek rozložení zůstane. Výchozí rozložení oken vrátí zadokované rozložení
+  pro běžící sestavu.
+- **Každé rozložení si pamatuje svá místa oken** (plovoucí v `imgui.ini`, zadokované v `imgui-docked.ini` vedle
+  nastavení). Volba Plovoucí nebo Zadokovaná vrátí okna tam, kde jste je v tom rozložení nechali; poprvé dostanou
+  jeho výchozí místa.
 - **Média:** mechaniky jsou očíslované podle řadiče (0–3) a za číslem je jejich písmeno v CP/M (ze sestavy,
   nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3, nebo program HEX/BIN, který se převede na kazetu MIKOS či MIKROBASIC; „Uložit jako WAV…“ pro skutečné SAPI) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
@@ -185,8 +205,8 @@ s Liborovými deskami.
   `SAVE n JMENO.COM` (okno počet stránek napoví).
 - **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš; hlasitost a citlivost myši v Zobrazení → Nastavení. Zvuk
   hraje jen při rychlosti 100 %.
-- **Nastavení** (Zobrazení → Nastavení…): jazyk, zvuk, myš, průvodci sestavami, server MCP pro vývoj s Claude, cesta
-  k ffmpeg. **Nápověda:** Průvodce sestavou, První kroky a Návody k obsluze (otevřou se v programu pro soubory .md),
+- **Nastavení** (Zobrazení → Nastavení…): vzhled (světlý nebo tmavý, velikost písma, okna plovoucí nebo
+  zadokovaná), jazyk, zvuk, myš, průvodci sestavami, server MCP pro vývoj s Claude, cesta k ffmpeg. **Nápověda:** Průvodce sestavou, První kroky a Návody k obsluze (otevřou se v programu pro soubory .md),
   Klávesové zkratky (všechny na jednom místě) a O programu.
 - **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků.
 

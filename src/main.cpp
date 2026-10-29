@@ -48,6 +48,8 @@ static void print_help(void)
            "  --lang cs|en       GUI: language of the user interface for this run (not saved)\n"
            "  --ui-theme MODE    GUI: light or dark for this run (not saved; also win11-light, win11-dark);\n"
            "                     without it as the system says\n"
+           "  --ui-layout MODE   GUI: floating or docked windows for this run (not saved; other than the saved\n"
+           "                     layout: its default places, imgui.ini neither read nor written)\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
            "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2: those windows (--ui-aps5-demo: and its DEMO),\n"
@@ -59,7 +61,11 @@ static void print_help(void)
            "                     --ui-drag FROM:TO[:drop]: drag a card in the configurator (and drop it),\n"
            "                     --ui-screen-menu: the right click menu of the screen, --ui-shot: a screenshot (Ctrl+F5),\n"
            "                     --ui-copy: the screenshot to the clipboard (View -> Copy screenshot),\n"
-           "                     --ui-zoom PCT: the screen zoom from the menu, --ui-reset-layout: View -> Default window layout,\n"
+           "                     --ui-zoom PCT: the zoom from View -> Screen zoom (the display used last),\n"
+           "                     --ui-reset-layout: View -> Default window layout,\n"
+           "                     --ui-layout-switch: View -> Settings -> Windows, the other layout (its own places),\n"
+           "                     --ui-fullscreen: Alt+Enter, the display used last alone in the window (the right click\n"
+           "                     menu with --ui-screen-menu; given twice: on and off again),\n"
            "                     --ui-pause: pause the machine (F5) just before the picture, --ui-log: the Log window,\n"
            "                     --ui-reset: F12 just before the picture (APS-5: the question first),\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
@@ -237,6 +243,8 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-media") snap.media = true;
         else if (a == "--ui-zoom" && i + 1 < argc) snap.zoom = atoi(argv[++i].c_str());
         else if (a == "--ui-reset-layout") snap.reset_layout = true;
+        else if (a == "--ui-layout-switch") snap.layout_switch = true;
+        else if (a == "--ui-fullscreen") snap.fullscreen++;
         else if (a == "--ui-pause") snap.pause = true;
         else if (a == "--ui-log") snap.log = true;
         else if (a == "--ui-reset") snap.reset = true;
@@ -282,6 +290,16 @@ int main(int argc_ansi, char** argv_ansi)
                 return 2;
             }
             theme_set_override(v, md);
+#endif
+        }
+        else if (a == "--ui-layout" && i + 1 < argc) {
+            std::string layout = argv[++i];
+            if (layout != "floating" && layout != "docked") {
+                fprintf(stderr, "--ui-layout: floating or docked\n");
+                return 2;
+            }
+#ifdef SAPIEMU_GUI
+            app_layout_override(layout == "docked");
 #endif
         }
         else if (a == "--settings" && i + 1 < argc) settings_file = argv[++i];

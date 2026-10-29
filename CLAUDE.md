@@ -69,7 +69,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   a `rkd5400_bios.py` (vlastní BIOS CP/M J. Bíby pro RKD-1 s CM 5400 a jeho bootovací disketa, `docs/desky/RKD-1.md`),
   `ar1990_rom.py` (EPROM plotteru z AR 1990 z výpisu `roms/ar1990/PLOTTER.MAC`, `docs/desky/AR1990.md`),
   `dps1_kazeta.py` (kazeta BASIMS s programy BASIC nahraná v emulátoru přes MCP, `docs/navod-dps1.md`),
-  `ui_gallery.py` (galerie obrazovek GUI ve všech vzhledech `--ui-theme`, `docs/vydani/plan-vzhled.md`),
+  `ui_gallery.py` (galerie obrazovek GUI ve všech vzhledech `--ui-theme`, s `--layouts` plovoucí a zadokovaná
+  okna, `docs/vydani/plan-vzhled.md`),
   `check_machines.py` (před vydáním: v každé sestavě něco spustí a zkontroluje, `--games` hry a dema sestavy
   `sapi1v_hry`; nad čistou kopií dat v `out/check/`, `docs/build.md`), `make_previews.py` (náhledy sestav pro
   okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích

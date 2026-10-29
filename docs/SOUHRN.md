@@ -22,7 +22,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     a `--power-cycle`), průvodci her s volbou `3` a ovládáním, reset APS-5 s otázkou, konfigurátor podle výšky
     okna, chyby v okně Chyba a „✖ Chyby: N“, média se ukládají průběžně přes dočasný soubor, stavový řádek bez
     překryvu menu, pauza a rychlost přes obraz. Na rozhodnutí autora: průběžné ukládání a Vysunout bez uložení.
-    Autor ručně vyzkouší psaní a průvodce. Další je etapa 5 (okna).
+    Autor ručně vyzkouší psaní a průvodce.
+  - **Etapa 5 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 5 plánu vzhledu: okna): jeden
+    pomocník rozmístění `src/frontend/layout.cpp` (hlavní výstup vlevo nahoře v největším celočíselném zvětšení,
+    u her podle klíče sestavy `main_display`, ostatní okna do volného místa vpravo, dialogy uprostřed, okno programu
+    88 % plochy), zadokované rozložení jako volba v Zobrazení → Nastavení → Vzhled → Okna (každé rozložení má svůj
+    soubor míst oken), celá obrazovka Alt+Enter, „Přizpůsobit oknu“ v menu zvětšení, displej menší než 1:1 hladce.
+    **Checkpoint C:** výchozí zůstávají plovoucí okna (rozhodl vedoucí agent), autor vybere podle galerie
+    `out\ui-gallery\20261029-044908-layouts\` (`tools/ui_gallery.py --layouts`). Autor ručně vyzkouší notebook, dva
+    monitory a celou obrazovku. Další je etapa 6 (zbytek před betou).
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

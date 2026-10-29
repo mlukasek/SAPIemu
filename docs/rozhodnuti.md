@@ -2093,6 +2093,184 @@ Snímek skrytého okna tyto věci neukáže:
 - Známé omezení: po jiných akcích z menu (Reset, Snímek…) si klávesnici dál nechá menu, obecné vracení fokusu
   zatím není. Nápis „Klikněte sem a pište“ a hláška o zahozeném znaku to zatím pokryjí.
 
+## 2026-10-29 – etapa 5 plánu vzhledu: okna
+
+Etapu udělal workflow (3 agenti: plovoucí rozmístění, zadokované rozložení, celá obrazovka a zvětšení; galerie
+s oponenturou, opravy nálezů), autor spal a rozhodnutí nechal na Claudovi. Platí dál: uložená místa oken (`imgui.ini`)
+mají vždy přednost, výchozí místo okno dostane jen při prvním použití (`ImGuiCond_FirstUseEver`) nebo po Zobrazení →
+Výchozí rozložení oken. Docking ani F9 nejsou dogma (2026-10-28). Rozměry oken jsou ve výškách písma (em). Co má
+autor rozhodnout a vyzkoušet ručně, je na konci oddílu.
+
+### Checkpoint C (rozhodl vedoucí agent)
+
+- **Výchozí zůstávají plovoucí okna s chytrým rozmístěním, zadokované rozložení je volba** v Zobrazení → Nastavení
+  → Vzhled → Okna: Plovoucí / Zadokovaná (uloží se jako `appearance.layout`). Důvod: plán chtěl obě rozložení
+  porovnat na snímcích a vybrat má autor. Plovoucí okna jsou dosavadní chování a místa uložená dřívějšími verzemi
+  platí dál. Zadokované má při 1280 × 720 kompromisy (menší displeje ve sloupci, Debugger a Paměť jako záložky,
+  vidět je jedna).
+- **Galerie obou rozložení pro autora:** `python tools\ui_gallery.py --layouts` (8 obrazovek, 1280 × 720
+  a 1920 × 1080, plovoucí vedle zadokovaného). Po opravách `out\ui-gallery\20261029-044908-layouts\index.html`
+  (100 %), `out\ui-gallery\20261029-044925-layouts\` (125 %) a `out\ui-gallery\20261029-044940-layouts\` (150 %,
+  i 1100 × 760). Skript místo jednorázových: galerie jde zopakovat po každé změně. Výchozí měřítko 1, aby obrázky
+  nezávisely na PC. Přístroje a Média otevírá sestava sama jako uživateli, průvodce je jen u ZPS-1 a XY 4130.
+
+### Plovoucí okna
+
+- **Jeden pomocník rozmístění** `src/frontend/layout.cpp` nahradil `first_use_right` a všechna volání
+  `SetNextWindowPos/Size` při prvním použití (obrazovka, grafika, diagnostika, IMS-2, APS-5, zapisovač, průvodce,
+  konfigurátor, Média, terminál, tiskárna, debugger, paměť, log I/O, Log, výběr sestav, Nastavení, zkratky,
+  O programu). Mrtvý kód `rack_behind` je pryč.
+- **Tabulka `k_wins`:** velikost, nejmenší velikost a role každého okna v em. Dřívější pixely jsou přepočtené při
+  16 px: při 100 % vypadají okna stejně, s měřítkem rostou. Média mají nově 48 × 28 em.
+- **Hlavní výstup vlevo nahoře** v největším celočíselném zvětšení, které se vejde do 65 % šířky a celé výšky
+  plochy. Hlavní výstup je konzole, nebo displej z nového klíče sestavy `main_display` (jméno nebo typ karty):
+  CGA-1V v `sapi1v_hry`, `sapi1v_PoP` a `sapi1v_BomberNet`, BGP-1S v `jpr1s_bgp1s`. Konfigurátor klíč zachová
+  a okomentuje (`test_machine_cfg`). Důvod: u her je hra na grafické kartě, konzole s ECMONem je vedlejší.
+- **Zvětšení hlavního výstupu klesne** (ne pod 200 %), když by se vedle něj nevešel přístroj nebo Média, které
+  sestava otevírá. APS-5 při 1920 × 1080 tak má konzoli 300 % a nic se nepřekrývá. Kvůli průvodci se nezmenšuje,
+  ten je dočasný.
+- **Ostatní okna do volného místa**, nejdřív do sloupce u pravého kraje:
+  1. volné místo mimo všechna okna;
+  2. mimo okna, na kterých mu záleží, a přes ostatní co nejméně. Váhy: přístroje a Média 16, hlavní výstup 4,
+     konzole 3, další displeje a průvodce 2, nástroje 1;
+  3. jen průvodce: zmenší se až na 0,6 své nejmenší velikosti, než by šel přes přístroj;
+  4. nástroje bez místa k pravému kraji: první nahoře, další od poloviny výšky dolů, každý o krok níž. Registry
+     a tlačítka Debuggeru tak zůstanou vidět (Paměť je zakrývala). Ostatní okna tam, kde zakryjí nejméně.
+- **Pořadí:** displeje, přístroje a Média dostanou místo před průvodcem, nástroji a dialogy. Proto se změnilo pořadí
+  kreslení v `app_run`: hlavní výstup (může to být okno grafiky), další displeje, zapisovač, IMS-2, diagnostika,
+  APS-5, Média, průvodce, nástroje, dialogy. Průvodce tak leží před přístroji.
+- **Přístroje a Média drží velikost, průvodce a displeje raději zakryjí méně.** Důvod: APS-5 stlačené na polovinu
+  výšky bylo k ničemu, průvodce jde posunout. APS-5 se raději zúží až na 40 em, než by zakrylo obrazovku jednotky.
+  Při 1280 × 720 jsou pak pece 4 a 8 uříznuté (ukáže je větší okno), což je lepší než schovaná polovina AND-1.
+- **Průvodce a Média nezakrývají hlavní výstup**, když se vejdou jinam (průvodce i menší, než chce). Průvodce nejde
+  přes přístroj ani Média, je-li kdekoli místo (dřív je při prvním použití zakrýval, rozhodnutí 2026-10-28).
+- **Další displeje** v tomto pořadí: 1:1 a víc ve volném místě (největší celočíselné zvětšení do pravého sloupce,
+  poloviční výška, když sestava otevírá přístroj); 3/4 až 1:1 ve volném místě; 1:1 mimo jiné displeje; 1:1 mimo
+  hlavní výstup; jinak kde zakryjí nejméně. Nejmenší 1:1 natvrdo není: při 1280 × 720 by AND-1V 1:1 zakryl hru.
+- **Displej menší než 1:1 se kreslí hladce** (lineární filtr), od 1:1 ostré body, pokud uživatel nezvolil
+  Vyhlazování. Důvod: nejbližší bod vynechával celé řádky bodů písmen („DOOT SS25G“ místo „BOOT SS256“).
+- **Dialogy uprostřed plochy** (výběr sestav, Nastavení…), nikdy přes lištu menu: výběr sestav ji dřív zakrýval.
+- **První start s výběrem sestav:** když se první sestava spustí z výběru a `imgui.ini` ještě neexistovalo, dostanou
+  okna výchozí místa pro tuto sestavu (`ui.layout_reset`, dřív `App.reset_layout`). Jinak by obrazovka zůstala na
+  místě naplánovaném pro ZPS-1.
+- **Výchozí rozložení oken smaže i záznamy oken, která ještě nevznikla** (`ImGuiWindowSettings::WantDelete`, stejně
+  jako `ClearWindowSettings`). Jinak by okno otevřené později přišlo na staré místo.
+- **Plocha je `GetBuildWorkRect` po kreslení lišty menu:** `WorkPos` v prvním snímku lištu ještě nemá. Neviditelné
+  náhradní okno ImGui `Debug##Default` se nepočítá. Displeje, které jsou zatím jen v `imgui.ini`, se počítají na
+  svých uložených místech.
+- **Plán se počítá jen po změně** (generace sestavy, plocha, písmo, měřítko, okna otevíraná sestavou), ne v každém
+  snímku.
+- **Bez prvních míst za celé obrazovky a minimalizace** (`layout_hold`): okno otevřené v tu chvíli by dostalo místo
+  podle monitoru nebo velikost 1 px a ta by se uložila. Místo dostane v prvním snímku po návratu.
+- **Okno programu** zabere při prvním startu 88 % použitelné plochy hlavního monitoru (bez hlavního panelu). Uložená
+  velikost se zmenší do použitelné plochy svého monitoru (rám odhadnutý na 16 × 40 px krát měřítko) a okno se
+  posune jen tehdy, když se muselo zmenšit. Důvod: velikost uložená na velkém monitoru by na notebooku přesahovala.
+
+### Zadokované rozložení
+
+- **`layout_dock()` přes DockBuilder:** hlavní výstup ve středovém uzlu (zadokované okno řídí dok, displej jede
+  v režimu Přizpůsobit oknu, rozhodnutí 2026-10-10). Sloupec u pravého kraje má shora tři části: další displeje;
+  okna sestavy jako záložky (přístroje, Média, terminál, tiskárna); průvodce a ladicí okna jako záložky. Část bez
+  otevřeného okna místo nezabírá.
+- **Ve středu je jen hlavní výstup:** dva displeje vedle sebe by mu vzaly polovinu zvětšení.
+- **Přístroje jsou zadokované ve sloupci**, ne plovoucí: plovoucí APS-5 nad dokem by zakrylo hlavní výstup nebo
+  sloupec, což má dok právě odstranit. Sloupec se místo toho rozšíří na šířku přístroje (nejvýš 55 %) a přístroj
+  dostane 70 % jeho výšky. Záložku jde vytáhnout ven.
+- **Průvodce a ladicí okna mají vlastní část**, oddělenou od oken sestavy: průvodce i přístroj nebo Média jsou
+  vidět zároveň, jako u plovoucích oken.
+- **Šířka sloupce** je 36 % okna (26–48 em), pro přístroj nebo Média až 55 %, pro další displeje 1:1 až 45 %.
+  Hlavnímu výstupu ale nevezme šířku, kterou má v plovoucím rozložení (sloupec aspoň 25 %): při 1280 × 720 mají
+  hry 300 % místo 200 % a RMP-1 200 % místo 100 %. Výšky ve sloupci: další displeje 65 % (se dvěma 70 %, 35 %, když
+  sestava otevírá přístroj nebo Média), okna sestavy 60 % zbytku (s přístrojem 70 %), průvodce a ladicí okna zbytek.
+  Otevřený průvodce má aspoň 12 em, jinak by byl vidět jen nadpis. Při změně velikosti okna drží sloupec šířku
+  v pixelech (pravidlo středového uzlu ImGui), displej dostane zbytek.
+- **Všech 5 oken displejů je ve sloupci předem**, takže displej sestavy spuštěné později nikdy neplave nad dokem.
+- **Vybrané záložky:** průvodce mezi ladicími okny, když je otevřený, a první okno sestavy mezi jejími okny. Drží se
+  4 snímky, protože nové okno si s fokusem vezme i svou záložku.
+- **Lišta záložek zůstává i u jediné záložky** (ne `AutoHideTabBar`): nese jméno karty a zvětšení a je to úchyt
+  k vytažení okna. Uzly nemají vlastní křížek (`NoCloseButton`), jen zdvojoval křížek záložky.
+- **Rozložení se postaví** jen bez svého souboru míst, volbou v Nastavení a Výchozím rozložením oken, jinak nikdy
+  (uložená místa mají přednost). Výchozí rozložení odstraní dok přes `DockBuilderRemoveNode`, i s prázdnými děleními.
+- **Po změně sestavy** jde doprostřed hlavní výstup nové sestavy (`layout_dock_main`) a displej, který tam byl, na
+  jeho místo ve sloupci. Ostatní okna a velikosti částí zůstanou (uživatelovo rozložení), okno, které uživatel z doku
+  vytáhl, zůstane venku. Důvod: bez toho zůstala po ZPS-1 → hry uprostřed konzole a CGA-1V ve sloupci. Uzel, který
+  zůstane prázdný, se drží (`DockContextProcessUndockWindow` s ponecháním ID), jinak by ho ImGui smazalo a vyměněný
+  displej by skončil v novém plovoucím uzlu.
+- **Každé rozložení má svůj soubor míst oken** (`imgui.ini` plovoucí, `imgui-docked.ini` zadokované; u `--settings
+  SOUBOR` `SOUBOR.imgui.ini` a `SOUBOR.imgui-docked.ini`). Volba uloží místa opouštěného rozložení a načte druhé,
+  výchozí místa jen při jeho prvním použití. Důvod: první verze volby spustila celé Výchozí rozložení a smazala
+  uložená místa opouštěného rozložení, tedy výchozí místa bez pokynu uživatele. Potvrzovací dialog by byl horší,
+  takhle je přepnutí vratné.
+- **ID dokovací plochy** se počítá jako výchozí ID ImGui (`WindowOverViewport_%08X` / `DockSpace`), takže dok
+  uložený v `imgui.ini` dřívějšími verzemi platí dál (debug build to hlídá `IM_ASSERT`).
+- **`focus_screen_window`** zadokovanému oknu sestavy vybere záložku a hostitelské okno doku nikdy nevytáhne
+  dopředu: zakrylo by plovoucí okna.
+- **`--ui-layout floating|docked`** vybere rozložení jen pro jedno spuštění, jako `--ui-theme`. Když se liší od
+  uloženého, začne z výchozích míst a soubory míst nečte ani nezapisuje (ověřeno hashem souboru). Volba v Nastavení
+  přepsání ukončí a místa se zase ukládají. `--ui-layout-switch` přepne rozložení jako volba v Nastavení (pro snímky).
+
+### Celá obrazovka a zvětšení
+
+- **Alt+Enter** se zachytí v `handle_key` dřív, než Enter dojde do SAPI (AltGr ne; při psaní do textového pole se
+  neuplatní jako ostatní zkratky). Přepne celou obrazovku displeje použitého naposledy (`SDL_SetWindowFullscreen`,
+  okno bez rámu přes plochu). Esc dál patří SAPI, F11 zůstává krokem debuggeru.
+- **`draw_fullscreen` kreslí jen ten displej** přes celou obrazovku, s celočíselným zvětšením a poměrem TV. Okna
+  displejů v tu chvíli svůj obraz nekreslí, aby se nekreslil dvakrát.
+- **Ostatní okna se skryjí, nevynechají:** kreslí se v každém snímku a před `Render` dostanou příznak Hidden. Po
+  návratu se tak neobjeví jinde, nevezmou fokus a nezmění pořadí. Vynechání by zastavilo i práci, kterou okna dělají
+  před `Begin` (otázka konfigurátoru při ukončení, otázky Médií, XMODEM, DEMO APS-5). Dialogy a otázky se ukážou
+  přes obraz.
+- **Lišta menu se dál kreslí, jen skrytá:** plocha zůstane stejná, dok ani plán oken se nepřestaví.
+- **Po startu sestavy je displejem použitým naposledy hlavní výstup** a dostane klávesnici (u her CGA-1V):
+  Alt+Enter, Ctrl+F5 i Zobrazení → Zvětšení obrazovky pak platí pro hru. Konzole má `NoFocusOnAppearing`, aby si
+  klávesnici nebrala jen tím, že se objeví.
+- **Celá obrazovka se neukládá**, každé spuštění začne v okně; jako „maximalizované“ se uloží stav před celou
+  obrazovkou. Při změně sestavy zůstane zapnutá a ukáže nový hlavní výstup. Když ji ukončí systém
+  (`SDL_EVENT_WINDOW_LEAVE_FULLSCREEN`), skončí i naše.
+- **Nápis** „Celá obrazovka: Alt+Enter ji ukončí“ na 2,5 s po zapnutí. Při pauze zůstane přes obraz malý nápis,
+  protože titulek ani stavový řádek nejsou vidět.
+- **Menu pravého tlačítka** v celé obrazovce: Celá obrazovka (Alt+Enter), výběr displeje sestavy, celočíselné
+  zvětšení, poměr TV, snímek a video. Položka Celá obrazovka je i v Zobrazení a v menu pravého tlačítka každého
+  displeje, Alt+Enter v tabulce zkratek.
+- **Zvětšení:** „Přizpůsobit oknu“ je první položka, zaškrtnutá, když není zvolené pevné zvětšení. Zobrazení →
+  Zvětšení obrazovky platí pro displej použitý naposledy a jmenuje ho (dřív jen pro konzoli).
+- **Okna displejů nejdou sbalit** (`NoCollapse`) a okna se posouvají jen za titulek
+  (`ConfigWindowsMoveFromTitleBarOnly`): tažení po obrazu nebo panelu přístroje okno neposune, klik do obrazu
+  zachytí myš SAPI.
+- **Snímky** (`--ui-snapshot`) `SDL_SetWindowFullscreen` nevolají, obrázek má velikost `--ui-size`. `--ui-fullscreen`
+  stiskne Alt+Enter, dvakrát zapne a zase vypne (obrázky pak jsou shodné s obrázky bez celé obrazovky). `--ui-zoom`
+  platí pro displej použitý naposledy, stejně jako menu.
+
+### Na rozhodnutí autora
+
+- **Výchozí rozložení (checkpoint C):** plovoucí (doporučení, teď výchozí), nebo zadokované. Podle galerie výše.
+- **Okna mimo plochu se při startu ani po zmenšení okna nevracejí dovnitř** (ImGui nechá vidět aspoň 19 px,
+  `DisplayWindowPadding`). Návrh: zvětšit na asi 3 em. Posune to ale okna z `imgui.ini`, proto to čeká na autora.
+- **RMP-1 s plovoucími okny při 1280 × 720 a 100 %:** Média zakryjí pravý okraj konzole 200 % (sloupce BLSIZ a db).
+  Druhá možnost je konzole 100 % bez překryvu. Doporučení: nechat 200 %.
+
+### Ruční zkouška autora a známá omezení
+
+Snímek skrytého okna tyto věci neukáže:
+
+- Celá obrazovka na skutečném monitoru: Alt+Enter tam a zpět, ukončení systémem (Alt+Tab, klávesa Windows).
+- Dva monitory: okno a celá obrazovka na druhém monitoru, zmenšení uložené velikosti na menší monitor.
+- Notebook: velikost okna při prvním startu (88 %), rozmístění při 125 a 150 %.
+- Zadokované rozložení v tmavém vzhledu a změna sestavy za běhu (výběr sestav, MCP) se zadokovanými okny.
+
+Známá omezení:
+
+- V malém okně se překryvu nejde vyhnout: při 1100 × 760 zakryje APS-5 většinu obrazovky a průvodce část APS-5;
+  při 1280 × 720 se tři displeje `sapi1v_hry` vejdou jen se zmenšeným DGD-1V; s IMS-2 při 1600 a 1920 zakryje
+  průvodce roh hlavní obrazovky; Debugger při 1100 × 760 a 150 % zakryje pravý okraj konzole 400 % (nejmenší šířka
+  26 em). APS-5 a IMS-2 se při 1280 × 720 celé nevejdou v žádném rozložení.
+- APS-5 nemá vodorovný posuvník: uříznuté pece při 1280 × 720 ukáže jen větší okno.
+- Plovoucí okna po změně sestavy: hlavní okno zůstává na místě první sestavy (uložená místa mají přednost),
+  pomůže Výchozí rozložení oken.
+- Průvodce má nejvýš 36 em a Média jsou při 1920 × 1080 nízká (pod nimi je volno).
+- Zadokované: Debugger a Paměť jsou záložky, vidět je jedna. Prázdné okno DGD-1 sestavy s XY 4130 zabírá horní část
+  sloupce; je to skutečný displej sestavy, proto zůstal.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`

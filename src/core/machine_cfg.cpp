@@ -538,6 +538,8 @@ std::string comment_for(const Writer& w, const std::string& path, const json& v)
     if (!w.ci) {
         if (path == "windows")
             return "Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2";
+        if (path == "main_display")
+            return "Main output: the display window with the big place at the top left (else the console screen)";
         return std::string();
     }
     if (path == "type") return w.ci->en;
@@ -584,7 +586,7 @@ std::vector<std::string> key_order(const Writer& w, const std::string& path, con
         if (obj.contains(k) && std::find(keys.begin(), keys.end(), k) == keys.end()) keys.push_back(k);
     };
     if (path.empty() && !w.ci && !w.bus) {
-        add("name"); add("description"); add("windows"); add("bus"); add("cards");
+        add("name"); add("description"); add("windows"); add("main_display"); add("bus"); add("cards");
     } else if (w.bus) {
         add("type"); add("slots"); add("jp3");
     } else if (path.empty()) {

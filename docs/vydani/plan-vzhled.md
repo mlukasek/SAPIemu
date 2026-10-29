@@ -334,6 +334,25 @@ Zbývá:
 
 ### Etapa 5: okna, celá obrazovka, obraz podle okna · L
 
+**Stav 2026-10-29: hotová, čeká na checkpoint C** (workflow, autor spal: 3 agenti, galerie s oponenturou, nálezy
+opravené; rozhodnutí 2026-10-29 – etapa 5 plánu vzhledu: okna). Vedoucí agent nechal výchozí plovoucí okna,
+zadokovaná jsou volba v Zobrazení → Nastavení → Vzhled → Okna. Rozdíly od plánu a doplňky:
+- přístroje jsou v zadokovaném rozložení zadokované ve sloupci (plovoucí by zakryly hlavní výstup);
+- po změně sestavy se zadokované rozložení nepřestaví, jen hlavní výstup nové sestavy se vymění do středu;
+- každé rozložení má svůj soubor míst oken (`imgui.ini`, `imgui-docked.ini`), přepnutí je vratné;
+- displej menší než 1:1 se kreslí hladce (jinak se ztrácely řádky bodů písmen).
+
+Zbývá:
+- **Checkpoint C:** autor vybere výchozí rozložení podle galerie `out\ui-gallery\20261029-044908-layouts\index.html`
+  (125 % `20261029-044925-layouts`, 150 % `20261029-044940-layouts`; znovu `python tools\ui_gallery.py --layouts`).
+- Na rozhodnutí autora: vracet okna mimo plochu dovnitř (větší `DisplayWindowPadding`), RMP-1 při 1280 × 720 s konzolí
+  200 % pod Médii, nebo 100 %.
+- Martin ručně:
+  - notebook (okno při prvním startu, 125 a 150 %);
+  - dva monitory (okno a celá obrazovka na druhém, uložená velikost na menším);
+  - celá obrazovka na skutečném monitoru (Alt+Enter tam a zpět, ukončení přes Alt+Tab nebo klávesu Windows);
+  - zadokované rozložení v tmavém vzhledu a změna sestavy za běhu.
+
 **Dvě výchozí rozložení k porovnání (checkpoint C)**
 - **Plovoucí okna** s chytrým rozmístěním, popsaná níže.
 - **Zadokované rozložení:**

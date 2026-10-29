@@ -55,6 +55,7 @@ struct GfxView {
     ZoomState zs;
 };
 const int MAX_GFX_VIEWS = 4;
+const int FS_OFF = -2;   // App::fullscreen: no full screen
 
 struct App {
     SDL_Window* window = nullptr;
@@ -64,16 +65,24 @@ struct App {
     std::vector<uint32_t> pixels;
     ZoomState screen_zs;          // of the console screen
     ImGuiID dockspace_id = 0;     // the dock space over the main window
-    bool reset_layout = false;    // View -> Default window layout: done before the next frame's windows
     // frames in which the screen window takes the focus back: after the start of the program and of a machine
     // the windows opening with it (Media, plotter...) would take it, typing goes to the SAPI right away
     int focus_screen = 3;
-    bool rack_behind = false;   // the first start: the machine configuration opens behind the screen window
-    bool rack_placed = false;
-    bool rack_in_ini = false;   // imgui.ini has a place for the configuration (then it is used)
+    int main_output = -1;         // the display with the big place (plan_layout): -1 the console screen, k = gfx[k]
+    float main_w = 0;             // the width planned for it (the other displays get the room right of it)
+    uint64_t plan_gen = ~0ull;    // plan_layout keeps its plan while the machine, the work area (width, height, gap),
+    float plan_key[4] = {};       // the framebuffer scale and the windows beside the output do not change
+    unsigned plan_flags = 0;
     std::vector<const char*> top_windows;   // titles of the windows the machine puts on top ("windows")
-    int shot_target = -1;         // output window focused last (Ctrl+F5): -1 the console screen, k = gfx[k]
-    bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen
+    // the display used last (Ctrl+F5, View -> Screen zoom, Alt+Enter): the display window focused last, at a machine start
+    // its main output; -1 the console screen, k = gfx[k]
+    int shot_target = -1;
+    bool start_focus = true;      // the first frame: the main output takes the keyboard (type right after the start)
+    // Full screen (Alt+Enter, draw_fullscreen): the display shown alone over the whole OS window, -1 the console screen,
+    // k = gfx[k], FS_OFF = none. fs_maximized: the OS window was maximized before (saved so in the meantime).
+    int fullscreen = FS_OFF;
+    bool fs_maximized = false;
+    bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen (full screen: its menu)
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
     EmuHost host;
@@ -127,6 +136,16 @@ struct App {
     ThemeMode look_mode = THEME_SYSTEM;
     int text_percent = 100;       // the size of the text
     bool look_override = false;   // --ui-theme in use (not saved) until a look is chosen in the settings
+    // View -> Settings -> Windows: floating (default) or docked (layout.cpp, layout_dock); --ui-layout takes its place
+    // for one run, and then imgui.ini is neither read nor written (the places of the saved layout stay). Each layout
+    // has its own file: imgui.ini (floating), imgui-docked.ini (ini_docked_path); a choice in the settings switches the
+    // files between two frames (layout_switch).
+    bool docked = false;
+    bool layout_override = false;
+    bool override_docked = false;
+    std::string ini_docked_path;
+    bool layout_switch = false;
+    bool dock_follow = false;     // a machine changed: its main output into the middle of the dock (layout_dock_main)
     bool restyle = true;          // build the style before the next frame
     bool snapshot = false;        // a self-check: "as the system says" is light, the pictures do not depend on the PC
     float dpi = 1.0f;             // the scale of the display of the window (View -> Settings: text size on top)
@@ -172,6 +191,7 @@ nlohmann::json settings_json(App& app)
     j["version"] = 1;
     j["machine"] = app.host.machine_file();
     bool maximized = (SDL_GetWindowFlags(app.window) & SDL_WINDOW_MAXIMIZED) != 0;
+    if (app.fullscreen != FS_OFF) maximized = app.fs_maximized;   // as it comes back when the full screen ends
     j["window"] = { { "x", app.win_x }, { "y", app.win_y }, { "w", app.win_w }, { "h", app.win_h },
                     { "position", app.win_pos_known }, { "maximized", maximized } };
     j["windows"] = { { "debugger", ui.show_debugger }, { "memory", ui.show_memory }, { "terminal", ui.show_terminal },
@@ -194,7 +214,7 @@ nlohmann::json settings_json(App& app)
     j["load"] = { { "binary_address", std::string(ui.bin_addr) } };
     if (!app.language.empty()) j["language"] = app.language;
     j["appearance"] = { { "theme", k_themes[app.look].key }, { "mode", theme_mode_key(app.look_mode) },
-                        { "text_percent", app.text_percent } };
+                        { "text_percent", app.text_percent }, { "layout", app.docked ? "docked" : "floating" } };
     j["browser"] = { { "recent", ui.recent } };
     j["mcp"] = { { "enabled", app.mcp_pref }, { "port", app.mcp_pref_port } };
     j["guides"] = { { "auto", ui.guides_auto }, { "hidden", ui.guides_hidden } };
@@ -287,6 +307,9 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(ap, "theme", look);
     get_opt(ap, "mode", mode);
     get_opt(ap, "text_percent", app.text_percent);
+    std::string layout;
+    get_opt(ap, "layout", layout);
+    app.docked = layout == "docked";
     ThemeVariant v;
     ThemeMode md;
     if (theme_parse(look.c_str(), &v, &md)) app.look = v;   // a look no longer offered: the default one
@@ -351,6 +374,58 @@ static void set_look(App& app, ThemeVariant v, ThemeMode md)
     app.restyle = true;
 }
 
+int g_layout_override = -1;   // --ui-layout: 0 floating, 1 docked, -1 as the settings say
+
+// The window layout in use: --ui-layout until one is chosen in the settings, else the saved one.
+static bool layout_docked(const App& app)
+{
+    return app.layout_override ? app.override_docked : app.docked;
+}
+
+// The file of the window places of a layout: imgui.ini of the floating windows, imgui-docked.ini of the docked ones
+// (FILE.imgui-docked.ini beside FILE.imgui.ini for --settings FILE); empty: none (a self-check).
+static const std::string& layout_ini(const App& app, bool docked)
+{
+    return docked ? app.ini_docked_path : app.ini_path;
+}
+
+static std::string ini_docked_name(const std::string& ini)
+{
+    const char* tail = "imgui.ini";
+    size_t n = strlen(tail);
+    if (ini.empty()) return std::string();
+    if (ini.size() >= n && ini.compare(ini.size() - n, n, tail) == 0) return ini.substr(0, ini.size() - n) + "imgui-docked.ini";
+    return ini + ".docked";
+}
+
+// View -> Settings -> Windows: saved, it replaces --ui-layout. Each layout keeps its own window places (layout_ini):
+// between two frames (switch_layout) the places of the layout left go into its file and those of the chosen one come
+// from its file; the first time (no file yet) the windows take its default places, as View -> Default window layout.
+static void set_layout(App& app, bool docked)
+{
+    if (layout_docked(app) == docked) return;
+    app.docked = docked;
+    app.layout_switch = true;
+}
+
+static void switch_layout(App& app)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.IniFilename) ImGui::SaveIniSettingsToDisk(io.IniFilename);   // not for --ui-layout: the saved ones stay
+    app.layout_override = false;
+    const std::string& ini = layout_ini(app, app.docked);
+    ImGui::ClearIniSettings();   // every window undocked, no saved place
+    io.IniFilename = ini.empty() ? nullptr : ini.c_str();
+    if (!ini.empty() && file_exists(ini)) {
+        ImGui::LoadIniSettingsFromDisk(ini.c_str());   // the windows take their places (and docks) from it
+        layout_take_default_unsaved();                 // those with none in it their default places
+        app.dock_follow = app.docked;                  // saved with another machine: its main output in the middle
+    } else {
+        app.ui.layout_reset = true;
+    }
+    LOGI("window layout: %s (%s)", app.docked ? "docked" : "floating", ini.empty() ? "not saved" : ini.c_str());
+}
+
 // Replaces the section "[Window][old]" (a whole line) by "[Window][now]"; false when missing.
 static bool ini_rename(std::string& text, const std::string& old, const std::string& now)
 {
@@ -382,6 +457,16 @@ void ini_rename_windows(const std::string& path)
         if (ini_rename(text, cs, key)) changed = true;
     }
     if (changed) file_write_all(path, text.data(), text.size());
+}
+
+// The usable area of a display (without the task bar) and its scale: of the display under `at` when its place is
+// known, else of the primary display.
+static bool usable_area(const SDL_Rect* at, SDL_Rect* out, float* scale)
+{
+    SDL_DisplayID id = at ? SDL_GetDisplayForRect(at) : 0;
+    if (!id) id = SDL_GetPrimaryDisplay();
+    *scale = display_scale(id);
+    return id && SDL_GetDisplayUsableBounds(id, out) && out->w > 0 && out->h > 0;
 }
 
 // The restored window must lie (at least partly) on a connected display.
@@ -538,6 +623,7 @@ void handle_key_up(App& app, const SDL_KeyboardEvent& ev)
 
 void shot_now(App& app);
 void video_toggle(App& app);
+static void fullscreen_toggle(App& app);
 
 static void paste_keyboard(App& app, Machine* m);
 
@@ -545,6 +631,13 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
     if (ImGui::GetIO().WantTextInput) return;   // typing into a text field: no shortcuts, nothing for SAPI
+    // Alt+Enter: full screen on / off, before Enter goes to SAPI (AltGr = Ctrl+Alt is not it). Esc stays the key of SAPI
+    // and F11 the step of the debugger.
+    if ((ev.key == SDLK_RETURN || ev.key == SDLK_KP_ENTER) && (ev.mod & SDL_KMOD_ALT) &&
+        !(ev.mod & (SDL_KMOD_CTRL | SDL_KMOD_GUI))) {
+        if (!ev.repeat) fullscreen_toggle(app);
+        return;
+    }
     switch (ev.key) {
     case SDLK_F5:   // Ctrl+F5: a screenshot of the focused output (as in DOSBox); F5 run/pause
         if ((ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_ALT)) video_toggle(app);   // Ctrl+Alt+F5: video
@@ -697,21 +790,221 @@ void display_title(char* out, size_t n, const char* name, float zoom, const char
 
 float display_px_aspect(App& app, DisplayDevice* d);
 
+// The size of a display window that shows its picture at zoom k (screen pixels per emulated pixel), with a small
+// border around the picture.
+static ImVec2 display_window_size(App& app, DisplayDevice* d, float k)
+{
+    float fb = ImGui::GetIO().DisplayFramebufferScale.x;
+    if (fb <= 0) fb = 1.0f;
+    float pad = 2.0f * (k_display_pad + k_zoom_margin);
+    return ImVec2(d->screen_width() * display_px_aspect(app, d) * k / fb + pad,
+                  d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
+}
+
+// The largest integer zoom whose window fits w x h; below 1:1 the largest zoom that fits.
+static float display_fit_zoom(App& app, DisplayDevice* d, float w, float h)
+{
+    ImVec2 one = display_window_size(app, d, 1.0f), zero = display_window_size(app, d, 0.0f);
+    if (one.x > w || one.y > h) {
+        float kx = (w - zero.x) / (one.x - zero.x), ky = (h - zero.y) / (one.y - zero.y);
+        float k = kx < ky ? kx : ky;
+        return k > 0.1f ? k : 0.1f;
+    }
+    int k = 1;
+    while (k < 16) {
+        ImVec2 s = display_window_size(app, d, (float)(k + 1));
+        if (s.x > w || s.y > h) break;
+        k++;
+    }
+    return (float)k;
+}
+
 // Before Begin: a zoom chosen from the menu resizes the window to fit the picture at it.
 void zoom_resize(App& app, DisplayDevice* d, ZoomState& zs)
 {
     if (!zs.request || !d) return;
     float k = zs.request / 100.0f;
     zs.request = 0;
-    float fb = ImGui::GetIO().DisplayFramebufferScale.x;
-    if (fb <= 0) fb = 1.0f;
-    float pad = 2.0f * (k_display_pad + k_zoom_margin);   // a small border around the picture
-    ImVec2 s(d->screen_width() * display_px_aspect(app, d) * k / fb + pad,
-             d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
+    ImVec2 s = display_window_size(app, d, k);
     ImGui::SetNextWindowDockID(0, ImGuiCond_Always);   // a docked window takes the size of its dock: undock it
     ImGui::SetNextWindowSize(s);
     zs.fixed = k;
     zs.size = s;
+}
+
+// The graphic displays of the machine that have a window (draw_screens): the window ###gfx<k> shows out[k].
+static int graphic_displays(Machine* m, DisplayDevice** out)
+{
+    int n = 0;
+    for (DisplayDevice* d : m ? m->displays : std::vector<DisplayDevice*>())
+        if (d != m->display && n < MAX_GFX_VIEWS) out[n++] = d;
+    return n;
+}
+
+// The widest window the machine opens beside its output (APS-5, IMS-2, a plotter, Media of "windows"), 0 = none.
+static float machine_side_width(App& app, Machine* m)
+{
+    UiState& ui = app.ui;
+    std::string plant;
+    if (m) {
+        auto p = m->config.find("plant");
+        if (p != m->config.end() && p->is_object()) plant = p->value("type", std::string());
+    }
+    bool plotter = ui.show_plotter;
+    for (size_t i = 0; m && !plotter && i < m->cards.size(); i++) plotter = m->cards[i]->plotter() != nullptr;
+    float w = 0;
+    auto take = [&](bool open, int lw) {
+        float x = open ? layout_width(lw) : 0.0f;
+        if (x > w) w = x;
+    };
+    take(ui.show_aps5 || plant == "APS-5", LW_APS5);
+    take(ui.show_ims2 || plant == "IMS-2", LW_IMS2);
+    take(plotter, LW_PLOTTER);
+    take(ui.show_media, LW_MEDIA);
+    return w;
+}
+
+// The display named by "main_display" in the machine description (its card name or type): k = gfx[k], -1 = none
+// (the console screen is the main output).
+static int main_output(Machine* m, DisplayDevice** gfx, int n)
+{
+    if (!m) return -1;
+    auto md = m->config.find("main_display");
+    if (md == m->config.end() || !md->is_string()) return -1;
+    const std::string& want = md->get_ref<const std::string&>();
+    for (int k = 0; k < n; k++) {
+        Card* c = dynamic_cast<Card*>(gfx[k]);
+        if (c && (c->name == want || c->type == want)) return k;
+    }
+    return -1;
+}
+
+// The display used last (app.shot_target): k = gfx[k], -1 = the console screen. When it is gone, the console screen;
+// a machine without one: its main output or its first graphic display. *d = its device, nullptr when there is none.
+static int used_display(App& app, DisplayDevice** d)
+{
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    int k = app.shot_target < n ? app.shot_target : -1;
+    if (k < 0 && !(m && m->display) && n > 0) {
+        k = main_output(m, gfx, n);
+        if (k < 0) k = 0;
+    }
+    *d = k >= 0 ? gfx[k] : (m ? m->display : nullptr);
+    return k;
+}
+
+static ZoomState& display_zoom(App& app, int k)
+{
+    return k >= 0 && k < MAX_GFX_VIEWS ? app.gfx[k].zs : app.screen_zs;
+}
+
+static const char* display_name(DisplayDevice* d, const char* none)
+{
+    Card* c = dynamic_cast<Card*>(d);
+    return c ? c->name.c_str() : none;
+}
+
+// Full screen on (k: the display, -1 the console screen, k = gfx[k]) or off (FS_OFF): the OS window over the whole
+// monitor (SDL_SetWindowFullscreen: borderless, the desktop mode), the display alone in it (draw_fullscreen). A short
+// text over the picture says how to leave it. Off: the keyboard back to the window of that display. A self-check keeps
+// its hidden window at --ui-size (the picture does not depend on the monitor of the PC).
+static void fullscreen_set(App& app, int k)
+{
+    bool on = k != FS_OFF, was = app.fullscreen != FS_OFF;
+    app.fullscreen = k;
+    if (on) app.shot_target = k;   // it is the display used last
+    if (on == was) return;   // another display: only the picture changes
+    if (on) {
+        app.fs_maximized = (SDL_GetWindowFlags(app.window) & SDL_WINDOW_MAXIMIZED) != 0;
+        app.osd = tr("Full screen: Alt+Enter leaves it");
+        app.osd_ns = SDL_GetTicksNS();
+    } else {
+        app.ui.focus_display = 2;
+        app.osd.clear();   // its text would come over every display window
+    }
+    if (!app.snapshot && !SDL_SetWindowFullscreen(app.window, on)) LOGW("full screen: %s", SDL_GetError());
+}
+
+// Alt+Enter, View -> Full screen: the display used last over the whole monitor, or back.
+static void fullscreen_toggle(App& app)
+{
+    if (app.fullscreen != FS_OFF) {
+        fullscreen_set(app, FS_OFF);
+        return;
+    }
+    DisplayDevice* d = nullptr;
+    int k = used_display(app, &d);
+    if (d) fullscreen_set(app, k);
+}
+
+// The first size of the main output d of machine m in a work area w x h: the largest integer zoom whose window fits
+// about 65 % of the width and the height; when a window the machine opens beside it (APS-5...) would not fit next to
+// it, the zoom goes down, to 2 at least. No display (switched off): a dark screen of 65 % of the width.
+static ImVec2 main_output_size(App& app, Machine* m, DisplayDevice* d, float w, float h, float gap)
+{
+    ImVec2 s(0.65f * w, 0.65f * w * 0.75f);
+    if (d) {
+        float k = display_fit_zoom(app, d, 0.65f * w, h);
+        float side = machine_side_width(app, m);
+        while (k > 2.0f && display_window_size(app, d, k).x + gap + side > w) k -= 1.0f;
+        s = display_window_size(app, d, k);
+    }
+    if (s.y > h) s.y = h;
+    return s;
+}
+
+// Before the windows of a frame: the main output of the machine and its first place (layout.cpp). It is the display
+// named by "main_display" in the machine description (the games: CGA-1V, BGP-1S), else the console screen; at the top
+// left, in the size of main_output_size. Not while the windows take no first places (full screen, minimized).
+static void plan_layout(App& app)
+{
+    UiState& ui = app.ui;
+    if (layout_held()) return;
+    float w, h, gap;
+    layout_work_size(&w, &h, &gap);
+    float key[4] = { w, h, gap, ImGui::GetIO().DisplayFramebufferScale.x };
+    unsigned flags = (ui.show_aps5 ? 1u : 0u) | (ui.show_ims2 ? 2u : 0u) | (ui.show_plotter ? 4u : 0u) |
+                     (ui.show_media ? 8u : 0u) | (app.tv_aspect ? 16u : 0u);
+    uint64_t gen = app.host.machine_generation();
+    if (gen == app.plan_gen && flags == app.plan_flags && !memcmp(key, app.plan_key, sizeof(key))) return;
+    app.plan_gen = gen;
+    app.plan_flags = flags;
+    memcpy(app.plan_key, key, sizeof(key));
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    app.main_output = main_output(m, gfx, n);
+    DisplayDevice* d = app.main_output >= 0 ? gfx[app.main_output] : (m ? m->display : nullptr);
+    char id[16];
+    if (app.main_output >= 0) snprintf(id, sizeof(id), "###gfx%d", app.main_output);
+    else snprintf(id, sizeof(id), "###screen");
+    ImVec2 s = main_output_size(app, m, d, w, h, gap);
+    app.main_w = s.x;
+    layout_main(id, s.x, s.y, n);
+}
+
+// Before Begin of a display window: its first place (layout.cpp). The main output where plan_layout put it; another
+// display right of it at the largest integer zoom that fits there, in half the height when the machine opens an
+// instrument or Media beside it; at 1:1 at least where that is free, else down to 3/4 of 1:1 where that is free (drawn
+// smooth below 1:1, draw_display: the letters keep their strokes), else at 1:1 over the windows that matter least.
+static void place_display(App& app, DisplayDevice* d, const char* id)
+{
+    if (!layout_first_use(id)) return;
+    if (!d) {
+        layout_display(id, app.main_w, app.main_w * 0.75f, 0, 0, 0, 0);
+        return;
+    }
+    float w, h, gap;
+    layout_work_size(&w, &h, &gap);
+    float col = w - gap - app.main_w;   // right of the main output
+    if (machine_side_width(app, app.host.machine()) > 0) h = (h - gap) * 0.5f;
+    float k = display_fit_zoom(app, d, col, h);
+    if (k < 1.0f) k = 1.0f;
+    ImVec2 s = display_window_size(app, d, k), one = display_window_size(app, d, 1.0f);
+    ImVec2 small = display_window_size(app, d, 0.75f);
+    layout_display(id, s.x, s.y, one.x, one.y, small.x, small.y);
 }
 
 static const MachineWindow k_machine_windows[] = {
@@ -773,18 +1066,37 @@ static void focus_keeping_order(ImGuiWindow* target, const ImVector<ImGuiWindow*
     for (ImGuiWindow* w : top) ImGui::BringWindowToDisplayFront(w);
 }
 
-// The keyboard to the screen window after a machine starts; the windows of the machine (top_windows) come on top,
-// in a dock their tab is selected.
+// The window of the main output (plan_layout): the console screen, or the display named by "main_display" (the games:
+// CGA-1V, BGP-1S); the console screen when that one has no window (yet).
+static ImGuiWindow* main_output_window(App& app)
+{
+    ImGuiWindow* w = nullptr;
+    if (app.main_output >= 0) {
+        char id[16];
+        snprintf(id, sizeof(id), "###gfx%d", app.main_output);
+        w = ImGui::FindWindowByName(id);
+        if (w && !(w->Active || w->WasActive)) w = nullptr;
+    }
+    return w ? w : ImGui::FindWindowByName("###screen");
+}
+
+// The keyboard to the main output after a machine starts (it is the display used last then, app.shot_target); the
+// windows of the machine (top_windows) come on top, in a dock their tab is selected.
 static void focus_screen_window(App& app)
 {
-    ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
+    ImGuiWindow* screen = main_output_window(app);
     if (!screen) return;
     ImVector<ImGuiWindow*> top;
     for (const char* t : app.top_windows) {
         ImGuiWindow* w = ImGui::FindWindowByName(tr_id(t));
-        if (w && (w->Active || w->WasActive) && w->RootWindowDockTree != screen->RootWindowDockTree) {
+        if (!w || !(w->Active || w->WasActive)) continue;
+        if (w->DockIsActive && w->DockNode && w->DockNode->TabBar)   // in a dock: its tab selected
+            w->DockNode->TabBar->NextSelectedTabId = w->TabId;
+        // not the dock space over the main window (it would cover the floating windows)
+        ImGuiWindow* root = w->RootWindowDockTree;
+        if (root != screen->RootWindowDockTree && !(root->Flags & ImGuiWindowFlags_NoBringToFrontOnFocus)) {
             ImGui::FocusWindow(w);
-            top.push_back(w->RootWindowDockTree);
+            top.push_back(root);
         }
     }
     focus_keeping_order(screen, top);
@@ -809,12 +1121,74 @@ static void focus_display_window(App& app)
     focus_keeping_order(w, ImVector<ImGuiWindow*>());
 }
 
-// View -> Default window layout: every window undocked, at the place and size it gets at its first use
-// (the windows that give none go to the top left), not collapsed; the screen fits its window again.
+// The docked layout for the running machine (layout.cpp, layout_dock): its main output in the middle, its other displays
+// and the display windows of other machines in the column at the right edge, the tab of its first window ("windows")
+// selected, and of the guide when it is open.
+static void dock_layout(App& app)
+{
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    int main = main_output(m, gfx, n);
+    char ids[1 + MAX_GFX_VIEWS][16];
+    DockPlan p = {};
+    auto add = [&](int k, DisplayDevice* d) {   // k = gfx[k], -1 = the console screen
+        if (p.n_displays >= 1 + MAX_GFX_VIEWS) return;
+        char* id = ids[p.n_displays];
+        if (k >= 0) snprintf(id, sizeof(ids[0]), "###gfx%d", k);
+        else snprintf(id, sizeof(ids[0]), "###screen");
+        for (int i = 0; i < p.n_displays; i++)
+            if (!strcmp(p.displays[i], id)) return;
+        p.displays[p.n_displays++] = id;
+        if (d && p.n_displays > 1) {   // another display of the machine
+            float w = display_window_size(app, d, 1.0f).x;
+            if (w > p.display_w) p.display_w = w;
+        }
+    };
+    if (main >= 0) add(main, gfx[main]);
+    add(-1, m ? m->display : nullptr);
+    for (int k = 0; k < n; k++) add(k, gfx[k]);
+    p.machine_displays = p.n_displays;
+    for (int k = n; k < MAX_GFX_VIEWS; k++) add(k, nullptr);   // other machines
+    p.side_w = machine_side_width(app, m);
+    {   // the width the main output has in the floating layout (the work area of the last frame, as layout_dock)
+        ImGuiViewport* vp = ImGui::GetMainViewport();
+        float gap = 0.5f * ImGui::GetFontSize();
+        DisplayDevice* md = main >= 0 ? gfx[main] : (m ? m->display : nullptr);
+        if (md) p.main_w = main_output_size(app, m, md, vp->WorkSize.x - 2.0f * gap, vp->WorkSize.y - 2.0f * gap, gap).x;
+    }
+    std::string tab;
+    for (const char* t : app.top_windows) {
+        if (!tab.empty()) break;
+        tab = std::string("###") + t;
+    }
+    p.machine_tab = tab.empty() ? nullptr : tab.c_str();
+    p.guide = app.ui.show_guide;
+    layout_dock(layout_dockspace_id(), p);
+}
+
+// The docked layout after a machine change (or a docked layout loaded): the main output of the machine into the
+// middle, the display there to its place in the column (layout_dock_main); the rest as the user left it.
+static void dock_follow(App& app)
+{
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int main = main_output(m, gfx, graphic_displays(m, gfx));
+    char id[16];
+    if (main >= 0) snprintf(id, sizeof(id), "###gfx%d", main);
+    else snprintf(id, sizeof(id), "###screen");
+    layout_dock_main(layout_dockspace_id(), id);
+}
+
+// View -> Default window layout: every window undocked, at the place and size it gets at its first use (layout.cpp;
+// the windows that give none go to the top left), not collapsed; the screen fits its window again. The windows not
+// created in this run lose their saved places too (imgui.ini): they take the default ones when they open. In the docked
+// layout (View -> Settings -> Windows) the windows then go into the dock space (dock_layout).
 static void reset_window_layout(App& app)
 {
+    layout_forget_closed();
     ImGuiContext& g = *GImGui;
-    if (app.dockspace_id) ImGui::DockBuilderRemoveNodeDockedWindows(app.dockspace_id, true);
+    ImGui::DockBuilderRemoveNode(layout_dockspace_id());   // the windows undocked, the dock space comes back empty
     ImGuiViewport* vp = ImGui::GetMainViewport();
     for (ImGuiWindow* w : g.Windows) {
         if (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
@@ -835,6 +1209,7 @@ static void reset_window_layout(App& app)
         v.zs.fixed = 0;
         v.zs.request = 0;
     }
+    if (layout_docked(app)) dock_layout(app);
 }
 
 // After Begin: resizing the window by hand (or docking it) goes back to fitting.
@@ -846,8 +1221,16 @@ void zoom_track(ZoomState& zs)
         zs.fixed = 0;
 }
 
+// Fit to window (the picture as large as the window lets it be), then the fixed zooms that size the window.
 void zoom_items(ZoomState& zs)
 {
+    if (ImGui::MenuItem(tr("Fit to window"), nullptr, zs.fixed <= 0)) {
+        zs.fixed = 0;
+        zs.request = 0;
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tr("The picture as large as its window allows (with integer scaling in whole multiples). "
+                                   "Resizing the window by hand fits it again."));
     for (int p : k_zoom_steps) {
         char label[16];
         snprintf(label, sizeof(label), "%d %%", p);
@@ -885,33 +1268,34 @@ void shot_items(App& app, DisplayDevice* d, const char* name)
     video_item(app, d, name);
 }
 
-// Right click on the picture: the zoom of this window and its screenshot.
-void display_context_menu(App& app, DisplayDevice* d, const char* name, ZoomState& zs)
+// Full screen (Alt+Enter) of the display k (-1 the console screen, k = gfx[k]); checked in full screen: leaves it.
+static void fullscreen_item(App& app, int k)
+{
+    bool on = app.fullscreen != FS_OFF;
+    if (ImGui::MenuItem(tr("Full screen"), "Alt+Enter", on)) fullscreen_set(app, on ? FS_OFF : k);
+}
+
+// Right click on the picture of the display k: the zoom of this window, full screen and its screenshot.
+void display_context_menu(App& app, DisplayDevice* d, const char* name, ZoomState& zs, int k)
 {
     if (ImGui::BeginPopupContextWindow("zoommenu")) {
         ImGui::TextDisabled("%s", tr("Zoom"));
         zoom_items(zs);
+        ImGui::Separator();
+        fullscreen_item(app, k);
         ImGui::Separator();
         shot_items(app, d, name);
         ImGui::EndPopup();
     }
 }
 
-// The output of the window focused last (the console screen if there is no such window): Ctrl+F5,
-// View -> Screenshot.
+// The output of the display used last (used_display): Ctrl+F5, View -> Screenshot.
 DisplayDevice* shot_display(App& app, std::string& name)
 {
-    Machine* m = app.host.machine();
-    if (!m) return nullptr;
-    DisplayDevice* found = m->display;
-    int n = 0;
-    for (DisplayDevice* d : m->displays) {
-        if (d == m->display || n >= MAX_GFX_VIEWS) continue;
-        if (n++ == app.shot_target) found = d;
-    }
-    Card* c = dynamic_cast<Card*>(found);
-    name = c ? c->name : std::string("screen");
-    return found;
+    DisplayDevice* d = nullptr;
+    used_display(app, &d);
+    name = display_name(d, "screen");
+    return d;
 }
 
 void shot_now(App& app)
@@ -995,9 +1379,7 @@ static void draw_settings(App& app)
     UiState& ui = app.ui;
     if (!ui.show_settings) return;
     float u = ImGui::GetFontSize();
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(34 * u, 30 * u), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+    layout_window(LW_SETTINGS);
     if (!ImGui::Begin(tr_id("Settings"), &ui.show_settings)) {
         ImGui::End();
         return;
@@ -1034,6 +1416,22 @@ static void draw_settings(App& app)
     }
     if (app.look_override)
         ImGui::TextDisabled("%s", tr("The look of this run comes from --ui-theme; a choice here replaces it and is saved."));
+    bool docked = layout_docked(app);
+    const char* layout_tip = tr("Floating: every window where you put it. Docked: the main display in the middle, the "
+                                "other windows in a column at the right edge, as tabs (a tab can be dragged out). Each "
+                                "keeps its own window places: a choice brings back the places you left in it (the first "
+                                "time its default ones).");
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("Windows:"));
+    ImGui::SameLine();
+    if (ImGui::RadioButton(tr("Floating"), !docked)) set_layout(app, false);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", layout_tip);
+    ImGui::SameLine();
+    if (ImGui::RadioButton(tr("Docked"), docked)) set_layout(app, true);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", layout_tip);
+    if (app.layout_override)
+        ImGui::TextDisabled("%s", tr("The window layout of this run comes from --ui-layout; a choice here replaces it and is "
+                                     "saved."));
 
     theme_section(tr("Sound"));
     ImGui::Checkbox(tr("Sound"), &app.audio.enabled);
@@ -1304,12 +1702,19 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("APS-5: panel and furnaces"), nullptr, &app.ui.show_aps5, m && m->plant);
         ImGui::Separator();
         ink_menu(app, m);
-        if (ImGui::BeginMenu(tr("Screen zoom"), m && m->display)) {
-            zoom_items(app.screen_zs);
+        DisplayDevice* ud = nullptr;   // the display used last: the zoom and the full screen are its
+        int uk = used_display(app, &ud);
+        if (ImGui::BeginMenu(tr("Screen zoom"), ud != nullptr)) {
+            ImGui::TextDisabled("%s %s", tr("Display:"), display_name(ud, ""));
+            zoom_items(display_zoom(app, uk));
             ImGui::Separator();
             ImGui::TextDisabled("%s", tr("Right click on a picture: the zoom of its window."));
             ImGui::EndMenu();
         }
+        if (ImGui::MenuItem(tr("Full screen"), "Alt+Enter", false, ud != nullptr)) fullscreen_set(app, uk);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("%s", tr("The display used last alone over the whole monitor, without the menu and the other "
+                                       "windows. Alt+Enter or its right click menu leaves it; Esc goes to SAPI."));
         if (ImGui::MenuItem(tr("Screenshot"), "Ctrl+F5", false, m && m->display)) shot_now(app);
         if (ImGui::MenuItem(video_recording(app.ui) ? tr("Stop the video") : tr("Record video with sound"), "Ctrl+Alt+F5",
                             false, m && m->display))
@@ -1318,10 +1723,13 @@ void draw_menu(App& app)
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
         ImGui::Separator();
-        if (ImGui::MenuItem(tr("Default window layout"))) app.reset_layout = true;
+        if (ImGui::MenuItem(tr("Default window layout"))) app.ui.layout_reset = true;
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("Undocks all windows (a window dragged to an edge sticks there) and puts them "
-                                       "back at their first places and sizes."));
+            ImGui::SetTooltip("%s", layout_docked(app)
+                                        ? tr("Docks the windows again: the main display in the middle, the other windows "
+                                             "in the column at the right edge (View -> Settings -> Windows).")
+                                        : tr("Undocks all windows (a window dragged to an edge sticks there) and puts them "
+                                             "back at their first places and sizes."));
         ImGui::Separator();
         if (ImGui::BeginMenu("Jazyk / Language")) {   // in both languages: findable in either
             UiLanguage cur = i18n_language();
@@ -1438,22 +1846,26 @@ static void picture_label(ImVec2 a, ImVec2 b, const char* text, float size, bool
 }
 
 // Over the picture: the pause or the speed just changed (2.5 s, the last 0.5 s fading), and "Click here and type"
-// (type_hint).
-static void picture_labels(App& app, ImVec2 a, ImVec2 b, bool hint)
+// (type_hint). pause: the pause stays said while it lasts (full screen: no title and no status bar tell it).
+static void picture_labels(App& app, ImVec2 a, ImVec2 b, bool hint, bool pause)
 {
     uint64_t age = SDL_GetTicksNS() - app.osd_ns;
     if (!app.osd.empty() && age < 2500000000ull) {
         float alpha = age < 2000000000ull ? 1.0f : (float)(2500000000ull - age) / 5e8f;
         picture_label(a, b, app.osd.c_str(), ImGui::GetFontSize() * 1.5f, true, alpha);
+    } else if (pause && app.host.paused && app.host.machine()) {
+        picture_label(a, b, app.host.status.empty() ? tr("Pause (F5)") : app.host.status.c_str(), ImGui::GetFontSize(),
+                      true, 0.7f);
     }
     if (hint) picture_label(a, b, tr("Click here and type"), ImGui::GetFontSize(), false, 0.85f);
 }
 
 // Draw display output `d` into the current window, scaled to fit (or at the zoom chosen
 // for the window), through its own texture. Returns the zoom: screen pixels per emulated
-// pixel (vertically, with the TV aspect). hint: "Click here and type" over the picture.
+// pixel (vertically, with the TV aspect). hint: "Click here and type" over the picture; pause: the pause said over it
+// while it lasts (full screen).
 float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, int& tex_h, std::vector<uint32_t>& pixels,
-                   const ZoomState& zs, bool hint)
+                   const ZoomState& zs, bool hint, bool pause = false)
 {
     int w = d->screen_width(), h = d->screen_height();
     if (!tex || w != tex_w || h != tex_h) {
@@ -1487,13 +1899,15 @@ float draw_display(App& app, DisplayDevice* d, SDL_Texture*& tex, int& tex_w, in
     pos.y = (float)(int)(pos.y * fb + 0.5f) / fb;
     ImGui::SetCursorScreenPos(pos);
     // The SDL renderer backend applies the sampler state per draw command and
-    // defaults to linear filtering; switch to nearest for the emulated screen.
+    // defaults to linear filtering; switch to nearest for the emulated screen. Below 1:1 (a small docked window) linear:
+    // nearest would drop whole lines of dots from the letters.
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
+    bool nearest = !app.smooth && scale >= 0.999f;
+    if (nearest) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
     ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)tex), size);
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) app.mouse.click = true;   // captures the mouse when the machine has one
-    if (!app.smooth) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
-    picture_labels(app, pos, ImVec2(pos.x + size.x, pos.y + size.y), hint);
+    if (nearest) dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+    picture_labels(app, pos, ImVec2(pos.x + size.x, pos.y + size.y), hint, pause);
     return scale;
 }
 
@@ -1508,25 +1922,34 @@ static bool type_hint(App& app, Machine* m, int target)
     return want && app.shot_target == target && !app.ui.screen_focused && kb && strcmp(kb->type_name(), "AR 1990") != 0;
 }
 
+// The display windows cannot be collapsed (one saved collapsed by an older version opens again); a drag on the picture
+// does not move them (io.ConfigWindowsMoveFromTitleBarOnly), a click there captures the mouse of SAPI.
+const ImGuiWindowFlags k_display_flags = ImGuiWindowFlags_NoCollapse;
+
 void draw_screen(App& app)
 {
-    ImGui::SetNextWindowSize(ImVec2(820, 560), ImGuiCond_FirstUseEver);
-    static bool first = true;
-    if (first) { ImGui::SetNextWindowFocus(); first = false; }   // type right after start
+    if (app.start_focus && app.main_output < 0) ImGui::SetNextWindowFocus();   // type right after start
     Machine* m = app.host.machine();
     DisplayDevice* d = m ? m->display : nullptr;
+    place_display(app, d, "###screen");
     Card* c = dynamic_cast<Card*>(d);
     char title[96];   // named after the display card, the same window for every machine
     display_title(title, sizeof(title), c ? c->name.c_str() : tr("Screen"), d ? app.screen_zs.zoom : 0, "screen");
     zoom_resize(app, d, app.screen_zs);
+    ImGui::SetNextWindowCollapsed(false);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertU32ToFloat4(k_background));   // a monitor in every look
-    ImGui::Begin(title);
+    // not focused by appearing: at the start the main output takes the keyboard (start_focus), it may be another display
+    ImGui::Begin(title, nullptr, k_display_flags | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     zoom_track(app.screen_zs);
     app.ui.screen_focused = ImGui::IsWindowFocused();
     if (app.ui.screen_focused) app.shot_target = -1;
+    if (app.fullscreen != FS_OFF) {   // hidden: the full screen window draws the picture (draw_fullscreen)
+        ImGui::End();
+        return;
+    }
 
     if (!m || !d) {   // switched off: a dark screen; the text light on it in every look
         ImVec2 a = ImGui::GetCursorScreenPos(), av = ImGui::GetContentRegionAvail();
@@ -1544,54 +1967,147 @@ void draw_screen(App& app)
         ImGui::OpenPopup("zoommenu");
         app.open_screen_menu = false;
     }
-    display_context_menu(app, d, c ? c->name.c_str() : "screen", app.screen_zs);
+    display_context_menu(app, d, c ? c->name.c_str() : "screen", app.screen_zs, -1);
     ImGui::End();
 }
 
-// Graphic display cards (DGD-1): their own video output, so their own window.
-void draw_graphic_screens(App& app)
+// The window of the graphic display k (DGD-1...): its own video output, so its own window.
+static void draw_graphic_screen(App& app, Machine* m, int k, DisplayDevice* d)
+{
+    GfxView& v = app.gfx[k];
+    Card* c = dynamic_cast<Card*>(d);
+    char title[96], id[16], wid[20];
+    snprintf(id, sizeof(id), "gfx%d", k);
+    snprintf(wid, sizeof(wid), "###%s", id);
+    display_title(title, sizeof(title), c ? c->name.c_str() : tr("Graphics"), v.zs.zoom, id);
+    place_display(app, d, wid);
+    zoom_resize(app, d, v.zs);
+    if (app.start_focus && k == app.main_output) ImGui::SetNextWindowFocus();   // the main output: type right after start
+    ImGui::SetNextWindowCollapsed(false);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertU32ToFloat4(k_background));
+    bool open = ImGui::Begin(title, nullptr, k_display_flags | ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
+    if (open) {
+        zoom_track(v.zs);
+        if (ImGui::IsWindowFocused()) {
+            app.ui.screen_focused = true;   // typing goes to the machine too
+            app.shot_target = k;
+        }
+        if (app.fullscreen == FS_OFF) {   // else hidden: the full screen window draws the picture
+            v.zs.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels, v.zs, type_hint(app, m, k));
+            display_context_menu(app, d, c ? c->name.c_str() : "graphics", v.zs, k);
+        }
+    }
+    ImGui::End();
+}
+
+// All display windows. The main output first: it takes its place before the others (layout.cpp).
+void draw_screens(App& app)
 {
     Machine* m = app.host.machine();
-    if (!m) return;
-    int n = 0;
-    for (DisplayDevice* d : m->displays) {
-        if (d == m->display || n >= MAX_GFX_VIEWS) continue;
-        int k = n++;
-        GfxView& v = app.gfx[k];
-        Card* c = dynamic_cast<Card*>(d);
-        char title[96], id[16];
-        snprintf(id, sizeof(id), "gfx%d", k);
-        display_title(title, sizeof(title), c ? c->name.c_str() : tr("Graphics"), v.zs.zoom, id);
-        // first use: right of the console screen (820 wide from x 60), below it on a narrow desktop
-        ImVec2 vp = ImGui::GetMainViewport()->WorkSize;
-        ImVec2 at = vp.x >= 60 + 820 + 10 + 500 ? ImVec2(890.0f + 30.0f * k, 60.0f + 30.0f * k)
-                                                 : ImVec2(60.0f + 30.0f * k, 630.0f + 30.0f * k);
-        ImGui::SetNextWindowPos(at, ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-        zoom_resize(app, d, v.zs);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(k_display_pad, k_display_pad));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertU32ToFloat4(k_background));
-        bool open = ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar();
-        if (open) {
-            zoom_track(v.zs);
-            if (ImGui::IsWindowFocused()) {
-                app.ui.screen_focused = true;   // typing goes to the machine too
-                app.shot_target = k;
-            }
-            v.zs.zoom = draw_display(app, d, v.tex, v.w, v.h, v.pixels, v.zs, type_hint(app, m, k));
-            display_context_menu(app, d, c ? c->name.c_str() : "graphics", v.zs);
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    if (app.main_output >= 0 && app.main_output < n) draw_graphic_screen(app, m, app.main_output, gfx[app.main_output]);
+    draw_screen(app);
+    for (int k = 0; k < n; k++)
+        if (k != app.main_output) draw_graphic_screen(app, m, k, gfx[k]);
+    app.start_focus = false;
+}
+
+// Full screen (Alt+Enter, fullscreen_set): the display alone over the whole OS window, without the menu bar and the
+// other windows. They are drawn as always (their work goes on, their places and the dock stay as they are), only
+// hidden: not drawn and not under the mouse. The dialogs (an error, a question) come over the picture. The picture
+// fits the monitor (integer scaling and the TV aspect apply); the right click menu leaves it, switches to another
+// display of the machine, sets the scaling and takes screenshots. Called after the other windows.
+static void draw_fullscreen(App& app)
+{
+    if (app.fullscreen == FS_OFF) return;
+    ImGuiContext& g = *GImGui;
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    int k = app.fullscreen;
+    DisplayDevice* d = k >= 0 ? (k < n ? gfx[k] : nullptr) : (m ? m->display : nullptr);
+    if (!d) {   // that display is gone (another machine): the display used last
+        k = used_display(app, &d);
+        app.fullscreen = k;
+    }
+    app.shot_target = k;
+
+    ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(vp->Pos);   // over the menu bar too (it stays, hidden: the work area does not change)
+    ImGui::SetNextWindowSize(vp->Size);
+    // the keyboard to it, unless a dialog or its menu is open (another window may have taken it: a machine started...)
+    ImGuiWindow* fw = ImGui::FindWindowByName("###fullscreen");
+    if (!ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId) && !(fw && g.NavWindow && g.NavWindow->RootWindow == fw))
+        ImGui::SetNextWindowFocus();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertU32ToFloat4(k_background));
+    // behind all others (created at the back, never raised): the dialogs come over it, the other windows are hidden
+    ImGui::Begin("###fullscreen", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+                                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
+                                               ImGuiWindowFlags_NoBringToFrontOnFocus);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(3);
+    fw = ImGui::GetCurrentWindow();
+    app.ui.screen_focused = ImGui::IsWindowFocused();   // the keys go to SAPI (Esc too), not with a dialog open
+    if (d) {
+        ZoomState fit;   // the picture as large as the monitor allows
+        if (k >= 0) {
+            GfxView& v = app.gfx[k];
+            draw_display(app, d, v.tex, v.w, v.h, v.pixels, fit, false, true);
+        } else {
+            draw_display(app, d, app.screen_tex, app.tex_w, app.tex_h, app.pixels, fit, false, true);
         }
-        ImGui::End();
+    } else {   // switched off
+        ImGui::SetCursorPos(ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.0f));
+        ImGui::TextUnformatted(tr("Switched off (POWER on the ZDR panel, Machine -> Switch on)"));
+        ImGui::PopStyleColor();
+    }
+    if (app.open_screen_menu) {   // UI snapshot
+        ImGui::OpenPopup("fsmenu");
+        app.open_screen_menu = false;
+    }
+    if (ImGui::BeginPopupContextWindow("fsmenu")) {
+        fullscreen_item(app, k);
+        if (m && (m->display ? 1 : 0) + n > 1) {   // more displays: which one fills the screen
+            ImGui::Separator();
+            ImGui::TextDisabled("%s", tr("Display:"));
+            if (m->display && ImGui::MenuItem(display_name(m->display, tr("Screen")), nullptr, k == -1))
+                fullscreen_set(app, -1);
+            for (int i = 0; i < n; i++) {
+                ImGui::PushID(i);   // two cards of one type may have the same name
+                if (ImGui::MenuItem(display_name(gfx[i], tr("Graphics")), nullptr, k == i)) fullscreen_set(app, i);
+                ImGui::PopID();
+            }
+        }
+        ImGui::Separator();
+        ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
+        ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
+        ImGui::Separator();
+        shot_items(app, d, display_name(d, "screen"));
+        ImGui::EndPopup();
+    }
+    ImGui::End();
+    // every other window hidden in this frame (drawn, not shown, not under the mouse in the next one), the dialogs,
+    // menus and tooltips not; the menu bar too, but it keeps its place (the work area and the dock stay as they are)
+    for (ImGuiWindow* w : g.Windows) {
+        if (!w->Active) continue;
+        ImGuiWindow* r = w->RootWindow ? w->RootWindow : w;
+        if (r == fw || (r->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip))) continue;
+        w->Hidden = true;
     }
 }
 
 void draw_log(App& app)
 {
     if (!app.ui.show_log) return;
-    first_use_right(600, 250, 5);
-    ImGui::SetNextWindowSize(ImVec2(600, 250), ImGuiCond_FirstUseEver);
+    layout_window(LW_LOG);
     if (app.log_focus) {
         ImGui::SetNextWindowFocus();
         app.log_focus = false;
@@ -1645,6 +2161,11 @@ void ui_notice(UiState& ui, bool ok, const std::string& text)
     ui.notice_ns = SDL_GetTicksNS();
     if (ok) LOGI("%s", text.c_str());
     else LOGE("%s", text.c_str());
+}
+
+void app_layout_override(bool docked)
+{
+    g_layout_override = docked ? 1 : 0;
 }
 
 const MachineWindow* machine_windows(int* count)
@@ -1704,6 +2225,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
+    app.ini_docked_path = ini_docked_name(app.ini_path);
     // the log of this run next to the settings (sapiemu.log; FILE.log for --settings FILE), for error reports
     if (!app.settings_path.empty()) {
         std::string log_file = !settings_file.empty() ? settings_file + ".log"
@@ -1715,10 +2237,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     // 2026-10-17; before it was the configuration behind the screen)
     bool first_start = !app.settings_path.empty() && !file_exists(app.settings_path);
     ini_rename_windows(app.ini_path);
-    if (!app.ini_path.empty()) {   // the layout knows the configuration: its place is kept at a first start too
-        std::string ini;
-        app.rack_in_ini = file_read_text(app.ini_path, ini) && ini.find("###rack]") != std::string::npos;
-    }
+    app.ui.layout_fresh = app.ini_path.empty() || !file_exists(app.ini_path);   // no window has a saved place
     if (!app.settings_path.empty()) {
         std::string text;
         if (file_read_text(app.settings_path, text)) {
@@ -1742,9 +2261,34 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     get_opt(sw, "h", swh);
     get_opt(sw, "position", spos);
     get_opt(sw, "maximized", smax);
-    if (sww >= 320 && swh >= 240) {
+    bool sized = sww >= 320 && swh >= 240;
+    if (sized) {
         win_w = sww;
         win_h = swh;
+    }
+    SDL_Rect ua;
+    float ds = 1.0f;
+    SDL_Rect at = { sx, sy, win_w, win_h };
+    if (!snap && usable_area(spos ? &at : nullptr, &ua, &ds)) {
+        // the first start: 88 % of the usable area of the primary display (without the task bar); a saved size no
+        // larger than the usable area of its display (a smaller display or a larger scale than before), and then the
+        // window moved into it. fw, fh: the frame and the title bar of the system around the client area.
+        if (!sized) {
+            win_w = (int)(ua.w * 0.88f);
+            win_h = (int)(ua.h * 0.88f);
+        }
+        int fw = (int)(16 * ds), fh = (int)(40 * ds);
+        bool clamped = win_w > ua.w - fw || win_h > ua.h - fh;
+        if (win_w > ua.w - fw) win_w = ua.w - fw;
+        if (win_h > ua.h - fh) win_h = ua.h - fh;
+        if (win_w < 320) win_w = 320;
+        if (win_h < 240) win_h = 240;
+        if (clamped && spos) {
+            if (sx + win_w + fw / 2 > ua.x + ua.w) sx = ua.x + ua.w - win_w - fw / 2;
+            if (sx - fw / 2 < ua.x) sx = ua.x + fw / 2;
+            if (sy + win_h + fw / 2 > ua.y + ua.h) sy = ua.y + ua.h - win_h - fw / 2;
+            if (sy - (fh - fw / 2) < ua.y) sy = ua.y + fh - fw / 2;
+        }
     }
     app.window = SDL_CreateWindow("SAPIemu", win_w, win_h,
                                   SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
@@ -1771,6 +2315,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigWindowsMoveFromTitleBarOnly = true;   // a drag on a picture or a panel does not move its window
     io.IniFilename = app.ini_path.empty() ? nullptr : app.ini_path.c_str();   // none for a self-check
     // the fonts of all looks (baked on demand); the style is built before the first frame (app.restyle)
     theme_fonts_load(io);
@@ -1779,6 +2324,19 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui_ImplSDLRenderer3_Init(app.renderer);
 
     settings_apply(app, settings);
+    {   // the window places of the saved layout (read at the first frame)
+        const std::string& ini = layout_ini(app, app.docked);
+        io.IniFilename = ini.empty() ? nullptr : ini.c_str();
+        app.ui.layout_fresh = ini.empty() || !file_exists(ini);
+    }
+    if (g_layout_override >= 0 && (g_layout_override == 1) != app.docked) {
+        // --ui-layout other than the saved layout: its default places for this run, the saved ones untouched
+        app.layout_override = true;
+        app.override_docked = g_layout_override == 1;
+        io.IniFilename = nullptr;
+        app.ui.layout_fresh = true;
+    }
+    if (layout_docked(app) && app.ui.layout_fresh) app.ui.layout_reset = true;   // no saved layout: dock the windows
     if (first_start) {   // closed without starting a machine, it opens the guide of the running one (browser.cpp)
         app.ui.show_browser = true;
         app.ui.browser_first = true;
@@ -1856,6 +2414,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 app.host.save_media_new();   // the disks and RAM disks written so far into their files (autosave)
             }
             else if (ev.type == SDL_EVENT_WINDOW_FOCUS_GAINED) theme_titlebar(app.window);
+            else if (ev.type == SDL_EVENT_WINDOW_LEAVE_FULLSCREEN && app.fullscreen != FS_OFF && !app.snapshot)
+                fullscreen_set(app, FS_OFF);   // the system took the full screen away
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
             else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
             else if (ev.type == SDL_EVENT_SYSTEM_THEME_CHANGED) app.restyle = true;   // Windows light / dark
@@ -1869,6 +2429,13 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             set_title(app);
             open_machine_windows(app);
             app.focus_screen = 3;
+            // the main output is the display used last now (it takes the keyboard, focus_screen_window); a full
+            // screen shows it
+            Machine* nm = app.host.machine();
+            DisplayDevice* gfx[MAX_GFX_VIEWS];
+            app.shot_target = main_output(nm, gfx, graphic_displays(nm, gfx));
+            if (app.fullscreen != FS_OFF) app.fullscreen = app.shot_target;
+            app.dock_follow = layout_docked(app);   // docked: its main output into the middle (dock_follow)
         }
         osd_follow(app);
         if (app.ui.quit || app.host.quit_requested) app.quit = true;
@@ -1903,6 +2470,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             apply_look(app);
             app.restyle = false;
         }
+        if (app.layout_switch) {   // View -> Settings -> Windows: the window places of the other layout
+            switch_layout(app);
+            app.layout_switch = false;
+        }
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
@@ -1910,31 +2481,42 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         // loses focus (debugger, configurator...); the SAPI keyboard and the serial
         // terminal need it all the time, otherwise no characters arrive.
         if (!SDL_TextInputActive(app.window)) SDL_StartTextInput(app.window);
-        if (app.reset_layout) {   // before the dock space and the windows of this frame
+        // full screen: the windows opening take their first places in the main window after it (layout.cpp)
+        layout_hold(app.fullscreen != FS_OFF);
+        if (app.ui.layout_reset) {   // before the dock space and the windows of this frame
             reset_window_layout(app);
-            app.reset_layout = false;
+            app.ui.layout_reset = false;
+            app.dock_follow = false;   // the dock is built for the machine
+        } else if (app.dock_follow) {
+            if (layout_docked(app)) dock_follow(app);
+            app.dock_follow = false;
         }
-        app.dockspace_id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
-        draw_menu(app);
-        draw_screen(app);
-        draw_graphic_screens(app);
+        // without the close button at the right end of a dock (it closed the tab shown, whose tab has its own close button)
+        app.dockspace_id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode |
+                                                                        ImGuiDockNodeFlags_NoCloseButton);
+        IM_ASSERT(app.dockspace_id == layout_dockspace_id());   // the docked layout is built into this one
+        draw_menu(app);   // the menu bar first: the work area of the windows is below it
+        plan_layout(app);
+        // The order is the order in which the windows take their first places (layout.cpp): the displays, the
+        // instruments and Media (the machine opens them), the guide beside them, the tools, the dialogs.
+        draw_screens(app);
         shot_poll(app.ui);
         video_poll(app.ui);
+        draw_plotter(app.ui);
+        draw_ims2(app.ui);
+        draw_diag(app.ui);
+        draw_aps5(app.ui);
+        draw_media(app.ui);
+        draw_guide(app.ui);
         draw_debugger(app.ui);
         draw_memory(app.ui);
         draw_iolog(app.ui);
         draw_terminal(app.ui);
-        draw_media(app.ui);
         draw_printer(app.ui);
-        draw_plotter(app.ui);
         draw_browser(app.ui);
         draw_settings(app);
         draw_about(app.ui);
         draw_shortcuts(app.ui);
-        draw_guide(app.ui);
-        draw_ims2(app.ui);
-        draw_diag(app.ui);
-        draw_aps5(app.ui);
         draw_reset_question(app.ui);
         draw_rack(app.ui);
         draw_log(app);
@@ -1945,6 +2527,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             ImGui::End();
         }
 #endif
+        layout_dock_frame();   // the tabs chosen by the docked layout stay in front while its windows open
         if (app.focus_screen > 0) {   // after the windows that opened with the machine
             app.focus_screen--;
             if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_screen_window(app);
@@ -1952,27 +2535,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             app.ui.focus_display--;
             if (!snap && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) focus_display_window(app);
         }
-        if (app.rack_behind) {   // the first start: the configuration behind the screen, the keyboard stays there
-            ImGuiWindow* rack = ImGui::FindWindowByName("###rack");
-            ImGuiWindow* screen = ImGui::FindWindowByName("###screen");
-            if (rack && screen && rack->WasActive && rack->RootWindowDockTree != screen->RootWindowDockTree) {
-                if (!app.rack_placed && !app.rack_in_ini) {   // no place in imgui.ini: at the right, at the top
-                    ImGuiViewport* vp = ImGui::GetMainViewport();
-                    float u = ImGui::GetFontSize();
-                    ImVec2 size(vp->WorkSize.x * 0.92f < 62.0f * u ? vp->WorkSize.x * 0.92f : 62.0f * u,
-                                vp->WorkSize.y * 0.9f);
-                    if (!rack->DockId) {
-                        ImGui::SetWindowSize(rack, size, ImGuiCond_Always);
-                        ImGui::SetWindowPos(rack, ImVec2(vp->WorkPos.x + vp->WorkSize.x - size.x - 0.5f * u,
-                                                         vp->WorkPos.y + 0.5f * u), ImGuiCond_Always);
-                        ImGui::SetWindowCollapsed(rack, false, ImGuiCond_Always);
-                    }
-                    app.rack_placed = true;
-                }
-                ImGui::BringWindowToDisplayBehind(rack->RootWindowDockTree, screen->RootWindowDockTree);
-                if (app.focus_screen == 0) app.rack_behind = false;
-            }
-        }
+        draw_fullscreen(app);   // last: it takes the keyboard back and hides the other windows
         theme_focus_frame();
         ImGui::Render();
 
@@ -1983,8 +2546,16 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         SDL_RenderClear(app.renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.renderer);
         if (snap && snap_frames == 3) {   // the menu items, after the windows have their places
-            if (snap->reset_layout) app.reset_layout = true;
-            if (snap->zoom) app.screen_zs.request = snap->zoom;
+            if (snap->reset_layout) app.ui.layout_reset = true;
+            if (snap->layout_switch) set_layout(app, !layout_docked(app));
+            if (snap->zoom) {   // View -> Screen zoom: the display used last
+                DisplayDevice* zd = nullptr;
+                display_zoom(app, used_display(app, &zd)).request = snap->zoom;
+            }
+            if (snap->fullscreen > 0) fullscreen_toggle(app);   // Alt+Enter
+        }
+        if (snap && snap_frames == 6 && snap->fullscreen > 1) {   // and again: the windows come back as they were
+            fullscreen_toggle(app);
         }
         if (snap && ++snap_frames == 2) {
             // follow_machine() has run: open the requested description, select the slot

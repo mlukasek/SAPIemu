@@ -51,7 +51,7 @@ void draw_diag(UiState& ui)
         if (!ui.show_diag) return;
     }
     float u = ImGui::GetFontSize();
-    ImGui::SetNextWindowSize(ImVec2(17 * u, 16 * u), ImGuiCond_FirstUseEver);
+    layout_window(LW_DIAG);
     if (!ImGui::Begin(tr_id("Diagnostic board (K3)"), &ui.show_diag)) {
         ImGui::End();
         return;

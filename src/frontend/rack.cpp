@@ -2178,8 +2178,7 @@ void draw_rack(UiState& ui)
     if (!ui.show_rack) return;
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();
-    ImVec2 vp = ImGui::GetMainViewport()->WorkSize;   // first use: most of the main window
-    ImGui::SetNextWindowSize(ImVec2(vp.x * 0.92f < 62.0f * u ? vp.x * 0.92f : 62.0f * u, vp.y * 0.9f), ImGuiCond_FirstUseEver);
+    layout_window(LW_RACK);   // first use: the whole height at the right edge (over the screen when there is no room)
     bool dirty = r.cfg != r.saved;
     char title[300];
     snprintf(title, sizeof(title), "%s - %s%s###rack", tr("Machine configuration"),

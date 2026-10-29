@@ -3,6 +3,7 @@
 {
     "name": "SAPI-1 V: BomberNet (síťová hra; CGA-1V, MPH-1V, DPI-1L, RAM disk ZRD-1V)",
     "description": "Síťový Bomberman BomberNet 0.3.0 (port M. Lukáška z BomberNetu Martina Matyáše, MZPico; originál Bomber Man © 1983 Hudson Soft) pro sestavu V. Po startu ECMONu volba 3 (CP/M z RAM disku A:, volby 0–2 čekají na řadič, který v sestavě není), pak BOMBNET. Hraje se proti počítači, ve více hráčích na jednom SAPI, nebo po síti: v menu NETWORK HOST založí místnost a ukáže její kód, druhý hráč ho zadá v JOIN, pak READY mezerou nebo palbou. V jedné místnosti hrají SAPI, MZ-800 (i web mzpico.com), ZX Spectrum, CPC, PC a další. Do sítě se karta DPI-1L připojí, až ve hře zvolíte HOST nebo JOIN: relay ws://api.mzpico.com/net (nešifrovaný WebSocket; relay vidí IP adresu a kód místnosti). Ovládání: šipky a mezera (sada A), W A S D a E (sada B), joystick na MPH-1V (Ctrl+F8 = joystick z klávesnice PC), ESC opustí zápas, Ctrl+C vrátí do CP/M. Potřebuje TURBO 4 MHz. JPR-1V (TURBO), RAM-1V, AND-1V, DSM-1V, ZRD-1V rev 1.1 (media/zrmd-1/bombernet.bin z tools/make_hry_disk.py --bombernet, neukládá se), DPI-1L (docs/desky/DPI-1L.md), CGA-1V, MPH-1V.",
+    "main_display": "CGA-1V",               // Main output: the display window with the big place at the top left (else the console screen)
     "bus": {
         "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
         "jp3": "2-3"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
