@@ -8,7 +8,8 @@ sériové kanály. Hodí se při ladění (zastavit těsně před chybou a vrace
 - **GUI:**
   - Soubor → Uložit stav… / Načíst stav… (soubor `.sapistate`, výchozí složka `work/state/`).
   - Rychlý slot: Soubor → Rychle uložit / Rychle načíst, **Ctrl+F2** / **Ctrl+F3**. Jeden slot na sestavu:
-    `work/state/<jméno souboru sestavy>.sapistate`. F2 a F3 bez Ctrl zůstávají klávesnici SAPI.
+    `work/state/<jméno souboru sestavy>.sapistate`, kopie v Mých sestavách (`work/machines/`, stejné jméno souboru
+    jako originál) má vlastní `work/state/mine_<jméno>.sapistate`. F2 a F3 bez Ctrl zůstávají klávesnici SAPI.
   - Úspěch ukáže stavový řádek (7 s, zůstane v Logu), chyba otevře okno Chyba.
   - **Stav jiné verze SAPIemu:** stavy alf od 0.3.0 se načtou. Stav, který tato verze neumí přečíst, se odmítne
     s hláškou, kterou verzí byl uložený, a běžící sestava zůstane, jak byla (podrobnosti v oddílu Formát).
@@ -63,19 +64,26 @@ graf; měřicí pracoviště IMS-2: zdroj, voltmetr, vodiče sběrnice a její m
   SAPIemu) zůstane stejný i v dalších formátech, takže každá verze pozná, kdo stav uložil, i když ho neumí přečíst.
 - **Stavy z alf:** načtou se stavy od alfy 0.3.0 (ověřeno stavem z 2026-10-17). Alfy 0.1.0 a 0.2.0 mají formát 1
   také, ale `state()` klávesnice a DSM-1V se 2026-10-06 změnilo (blok klávesnice 70 → 124 B, DSM-1V 292 → 342 B).
-  Takový stav projde hlavičkou a selže až v kartách: běžící sestava se vrátí (níže) a GUI řekne „Stav uložila jiná
+  Takový stav projde hlavičkou a selže až v kartách: běžící sestava zůstane (níže) a GUI řekne „Stav uložila jiná
   verze SAPIemu (starší alfa), toto je verze 0.7.0-beta.“ Je to známé omezení, ne chyba.
 - **Stav jiného formátu** (novější verze SAPIemu, nebo tak stará, že ji tato už nečte) se odmítne hned po hlavičce,
   ještě před `load_config`: běžící sestava se nedotkne. GUI to řekne česky („Uložila ho novější verze SAPIemu
   (0.9.0). Tato verze (0.7.0-beta) ho neumí přečíst.“), MCP a `sapiemu-cli` anglicky.
 - **Stav, který nesedí až v kartách** (karta jiné verze čte jiná data, popis se tu nedá postavit, poškozený
-  soubor): `EmuHost::load_state` si před přepnutím uloží stav běžící sestavy do paměti a po chybě ji z něj postaví
-  znovu, jak byla (paměti, obrazovka, breakpointy, pauza). Vypnutý stroj zůstane vypnutý. GUI k chybě připíše, že
-  stav uložila jiná verze („starší alfa“), když to tak je; anglický důvod jádra pak dá až na konec („Podrobnosti:“).
-  Co se stalo s běžící sestavou, vrací `load_state` v `back_out` (`StateBack` v `src/core/host.h`) a GUI i MCP
-  podle toho volí větu: „Sestava běží dál, jak běžela.“ (`STATE_BACK_SAME`, i u odmítnuté hlavičky), „vypnula se
-  a zapnula, obsah její paměti je ztracený“ (`STATE_BACK_RESTARTED`: její stav se předem nepodařilo uložit, postaví
-  se znovu z popisu), „nevrátila se … proběhl reset“ (`STATE_BACK_RESET`, důvod v Logu).
+  soubor): od etapy 8 plánu vzhledu (2026-10-29) ho najde zkušební sestavení (`EmuHost::trial`: sestava stavu se
+  postaví nanečisto a stav se do ní načte, běžící stroj zatím běží). Běžící sestava se pak nedotkne: tentýž objekt
+  a generace, paměti, obrazovka, breakpointy, pauza, okna displejů se nepřizpůsobují. Zkušební stroj nic nezapíše
+  (`Machine::trial`), jinak by stav načtený napůl zapsal RAM disk do souboru běžící sestavy.
+  - Po dobré zkoušce se může stavba nepovést jen tehdy, když se mezitím změnily soubory. Pro ten případ si
+    `EmuHost::load_state` dál uloží stav běžící sestavy do paměti a po chybě ji z něj postaví znovu (dřív to byla
+    jediná cesta). Vypnutý stroj zůstane vypnutý.
+  - GUI k chybě připíše, že stav uložila jiná verze („starší alfa“), když to tak je; anglický důvod jádra (v českém
+    rozhraní přeložený přes `tr_core`) pak dá až na konec („Podrobnosti:“).
+  - Co se stalo s běžící sestavou, vrací `load_state` v `back_out` (`StateBack` v `src/core/host.h`) a GUI i MCP
+    podle toho volí větu: „Sestava běží dál, jak běžela.“ (`STATE_BACK_SAME`: odmítnutá hlavička, nepovedená
+    zkouška, nebo návrat ze stavu v paměti), „vypnula se a zapnula, obsah její paměti je ztracený“
+    (`STATE_BACK_RESTARTED`: její stav se předem nepodařilo uložit, postaví se znovu z popisu), „nevrátila se …
+    proběhl reset“ (`STATE_BACK_RESET`, důvod v Logu).
 - **Změna dat karty:** když `state()` nějaké karty začne zapisovat nebo číst něco jiného, zvýšit `STATE_FORMAT`.
   Když nová verze starý blok přečíst neumí, posunout na nový formát i `STATE_FORMAT_MIN`: starý stav se pak odmítne
   srozumitelně před přepnutím sestavy místo chyby v půlce bloků. Stav je vázaný na verzi emulátoru, ne na skutečný
@@ -95,8 +103,10 @@ Proměnná, kterou karta zapomene uložit, se projeví rozdílem a test vypíše
 jedné proměnné MPH-1V. Navíc stejný test se zaměstnanou MPH-1V (tón YM, 82C54, myš), soubor přes EmuHost,
 stav jiné sestavy a poškozená data. `state_formats`: verze SAPIemu v hlavičce, novější a příliš starý formát
 odmítnuté bez dotyku běžící sestavy (tentýž objekt stroje, tatáž generace, paměť i obrazovka), formát 1 se načte,
-useknutý stav vrátí běžící sestavu i s pamětí, breakpointem a pauzou, vypnutý stroj zůstane vypnutý. Hodiny RTC
-čtou v testu pevný čas (`host_time_fix`).
+useknutý stav nechá běžící sestavu netknutou (tentýž objekt a generace, paměť, breakpoint, pauza; zkušební
+sestavení), vypnutý stroj zůstane vypnutý. `host_copy`: kopie v Mých sestavách (`EmuHost::set_file`) má vlastní
+rychlý slot a vydrží vypnutí a zapnutí. `test_host` zkouší, že useknutý stav nezmění soubor RAM disku RMD-1. Hodiny
+RTC čtou v testu pevný čas (`host_time_fix`).
 
 **Nová karta:** přidat `void state(StateIO& io) override` se vším, co se za chodu mění. `test_state` to ověří,
 jakmile je karta v některé sestavě v `machines/`.

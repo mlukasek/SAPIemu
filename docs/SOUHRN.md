@@ -79,6 +79,20 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     konfigurátor); zvětšení zvolené v menu a ručně zvětšené okno displeje se pamatují v nastavení (`displays`),
     ručně roztažené okno se nedorovnává; displej s uříznutým obrazem a dialog částečně mimo plochu se vrátí dovnitř
     (dialog i při otevření). Náhled ve výběru se nezvětšuje (autor).
+  - **Etapa 8 hotová** (2026-10-29, autor ji pustil, rozhodnutí 2026-10-29 – etapa 8 plánu vzhledu: menu, nastavení
+    a chování): Stroj → Média…, Zobrazení → Obrazovky (skrýt displej), Zobrazení → Otevřít složku snímků a videí,
+    okna přístrojů povolená jen u sestavy s přístrojem (bublina řekne, kde ho najít); Nastavení po sekcích (Obecné,
+    Vzhled, Obraz, Zvuk, Ovládání, Záznam, Pokročilé s MCP); okno Nápověda s Prvními kroky a Slovníčkem
+    (`docs/slovnicek.md`, `docs/glossary.md`, Markdown `markdown.cpp` a `mdview.cpp`), bubliny `tip()` zalomené;
+    debugger podle CPU, port 63h desek V šedě jako záměr, jména souborů místo cest, konfigurátor se třemi pevnými
+    záložkami a Nová ▸ podle rejstříku; starý stroj se vypne až po zkušebním postavení nového (nepovedené přepnutí
+    nechá sestavu běžet), Poslední sestavy po každém startu, Stroj → Klávesnice do popisu sestavy, varování při
+    druhém okně (zámky, do odpovědi nic nezapíše), chyby jádra česky (`tr_core`); **Moje sestavy** (autor: build pro
+    vydání uloží dodanou sestavu jako kopii do `work/machines`, ladicí přepisuje), přetažení souborů na okno. Oprava
+    psaní do CGA-1V her (chyba z etapy 5). Debug testy 62/62 (nové `test_host`, `test_markdown`), release a WSL
+    nespuštěné. Nehoda: snímek přepsal `work/aps-5/crm.bin` a `rtc.bin`. **Dál:** přidat
+    nové soubory do gitu (`markdown.*`, `mdview.cpp`, `test_markdown.cpp`, `test_host.cpp`, slovníčky), volby
+    a ruční zkoušky autora (rozhodnutí), `release test`, pak etapa 9 (prezentace a zveřejnění).
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

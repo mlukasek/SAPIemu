@@ -27,7 +27,7 @@ static uint16_t crc_update(uint16_t crc, uint8_t b)
 
 Rpd1::~Rpd1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 bool Rpd1::configure(const json& cfg, std::string& err)

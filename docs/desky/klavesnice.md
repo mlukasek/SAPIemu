@@ -5,6 +5,8 @@ Všechny klávesnice se připojují na porty 3212 desky JPR-1ZI: P0 je port 01h,
 Emulátor umí **EKL-1**, **Consul 262.3** (s úpravou 7474 i bez ní), **Consul 259.11** (KOI-7 i KOI-8 cs),
 **ANK-1** a **ANK-1M2** (Libor Lasota, s konektorem joysticku). Klávesnice se volí v sestavě (`"keyboard": { "type": ... }` u JPR-1ZI), za běhu v menu
 Stroj → Klávesnice, v MCP nástrojem `set_keyboard` a v `sapiemu-cli` volbou `--keyboard NAME`.
+Stroj → Klávesnice od 2026-10-29 mění popis sestavy (konfigurátor ukáže neuloženou změnu, vypnutí a zapnutí ji
+nechá; klávesnici, kterou karta CPU nevezme, nahradí ta z popisu). MCP `set_keyboard` mění jen běžící klávesnici.
 Vnitřek klávesnic (AT89C2051 v EKL-1, logika Consulů) se neemuluje, jen chování na portech.
 
 ## Přehled emulace

@@ -180,7 +180,7 @@ static void host_file(void)
     CHECK(!other.load_state(st, err));
     CHECK(other.load_state(st, err, true));
     CHECK(other.name == h.machine()->name);
-    // damaged: the old machine stays (built again from its own state, state_formats)
+    // damaged: the old machine stays (the trial build, state_formats)
     std::vector<uint8_t> bad = st;
     bad.resize(bad.size() / 2);
     CHECK(!h.load_state(bad, err));
@@ -214,7 +214,8 @@ static std::vector<uint8_t> with_format(const std::vector<uint8_t>& st, uint32_t
 
 // The format of the state: the version of SAPIemu in the header (format 2); a format this SAPIemu does not read (a
 // newer or a too old version) is refused before the running machine is touched; format 1 of the alphas still loads;
-// a state that does not fit after all (a card block cut short) brings the running machine back as it was.
+// a state that does not fit after all (a card block cut short) leaves the running machine as it was (the trial build
+// of EmuHost, test_host).
 static void state_formats(void)
 {
     const char* file = "machines/sapi1v.sapi";
@@ -273,21 +274,23 @@ static void state_formats(void)
     CHECK(h.machine_generation() != gen);
     CHECK(screen_text(*h.machine()) == screen_st);
     CHECK(h.machine()->peek(A) != 0xA5);
-    // does not fit after all (the header is good, a card block is cut short): the machine comes back as it was
+    // does not fit after all (the header is good, a card block is cut short): the trial build finds it, the machine
+    // runs on as it was (not built again)
     h.machine()->type_text("1");
     h.machine()->run_seconds(2.0);
     h.machine()->poke(A, 0x5A);
     screen = screen_text(*h.machine());
     h.paused = true;
     gen = h.machine_generation();
+    mp = h.machine();
     std::vector<uint8_t> cut = st;
     cut.resize(cut.size() / 2);
     back = -1;
     CHECK(!h.load_state(cut, err, &back));
-    CHECK_EQ(back, (int)STATE_BACK_SAME);   // brought back from its own state: the GUI says "runs on as it was"
+    CHECK_EQ(back, (int)STATE_BACK_SAME);   // the GUI says "runs on as it was"
     printf("a state that does not fit: %s\n", err.c_str());
-    CHECK(h.machine() != nullptr);
-    CHECK(h.machine_generation() != gen);   // built again
+    CHECK(h.machine() == mp);
+    CHECK_EQ(h.machine_generation(), gen);
     CHECK(h.machine_file() == file);
     CHECK(screen_text(*h.machine()) == screen);
     CHECK_EQ(h.machine()->peek(A), 0x5A);
@@ -348,6 +351,26 @@ static void moved_cards(void)
     printf("moved cards: %s\n", screen_text(m1) == screen_text(m0) ? "runs as before" : "DIFFERENT");
 }
 
+// EmuHost::set_file: the running machine described by its copy in My machines (the configurator's Save of a supplied
+// machine in a release build): the file, the name and "based_on" in its description, its own quick slot; it is not
+// built again, a power cycle keeps the copy.
+static void host_copy(void)
+{
+    EmuHost h;
+    std::string err;
+    CHECK(h.load("machines/mikromon.sapi", err));
+    uint64_t gen = h.machine_generation();
+    std::string slot = h.quick_state_path();
+    h.set_file("work/machines/mikromon.sapi", "MikroMon (moje)", "machines/mikromon.sapi");
+    CHECK(h.machine_generation() == gen);
+    CHECK(h.machine_file() == "work/machines/mikromon.sapi");
+    CHECK(h.machine()->name == "MikroMon (moje)");
+    CHECK(h.machine()->config.value("based_on", std::string()) == "machines/mikromon.sapi");
+    CHECK(h.quick_state_path() != slot && h.quick_state_path().find("mine_mikromon.sapistate") != std::string::npos);
+    CHECK(h.power_cycle(err));
+    CHECK(h.machine_file() == "work/machines/mikromon.sapi" && h.machine()->name == "MikroMon (moje)");
+}
+
 int main(int argc, char** argv)
 {
     test_init();
@@ -360,6 +383,7 @@ int main(int argc, char** argv)
     roundtrip_mph();
     moved_cards();
     host_file();
+    host_copy();
     state_formats();
     return TEST_RESULT();
 }

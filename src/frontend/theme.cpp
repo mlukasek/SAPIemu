@@ -4,6 +4,8 @@
 #include "frontend/i18n.h"
 
 #include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
@@ -420,14 +422,39 @@ ImVec2 panel_text_size(const char* text, float scale)
     return panel_font(false)->CalcTextSizeA(ImGui::GetFontSize() * scale, FLT_MAX, 0.0f, text);
 }
 
+static void tip_text(const char* b, const char* e)
+{
+    if (!ImGui::BeginTooltipEx(ImGuiTooltipFlags_OverridePrevious, ImGuiWindowFlags_None)) return;
+    ImGui::PushTextWrapPos(35.0f * ImGui::GetFontSize());
+    ImGui::TextUnformatted(b, e);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+}
+
+void tip(const char* text)
+{
+    tip_text(text, nullptr);
+}
+
+void tipf(const char* fmt, ...)
+{
+    char b[2048];
+    va_list a;
+    va_start(a, fmt);
+    int n = vsnprintf(b, sizeof(b), fmt, a);
+    va_end(a);
+    if (n < 0) return;
+    tip_text(b, b + (n < (int)sizeof(b) ? n : (int)sizeof(b) - 1));
+}
+
 void lamp_tooltip(const ImVec2& c, float r, const char* name, bool on)
 {
     float hit = r < 0.4f * ImGui::GetFontSize() ? 0.4f * ImGui::GetFontSize() : r;   // small lamps: a larger target
     if (!ImGui::IsWindowHovered() || !ImGui::IsMouseHoveringRect(ImVec2(c.x - hit, c.y - hit), ImVec2(c.x + hit, c.y + hit)))
         return;
     const char* state = on ? tr("lit") : tr("not lit");
-    if (name) ImGui::SetTooltip("%s: %s", name, state);
-    else ImGui::SetTooltip("%s", state);
+    if (name) tipf("%s: %s", name, state);
+    else tip(state);
 }
 
 float combo_width(const char* const* items, int count)

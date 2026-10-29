@@ -690,6 +690,10 @@ void Jpr1::get_regs(CpuRegs& r)
     r.pc = at_boundary ? instr_pc : cpu.pc;
     r.iff1 = r.iff2 = cpu.iff;
     r.halted = cpu.halted;
+    if (cpu.i8085) {   // as RIM reads it (without the IE of the first RIM after a TRAP)
+        r.rim = (uint8_t)(cpu.sid << 7 | cpu.r75_ff << 6 | cpu.rst65 << 5 | cpu.rst55 << 4 | cpu.iff << 3 | (cpu.masks & 7));
+        r.sod = cpu.sod;
+    }
 }
 
 void Jpr1::set_regs(const CpuRegs& r)

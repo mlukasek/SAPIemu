@@ -54,7 +54,10 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap, `theme` = vzhledy GUI a jejich data `theme_data`, diag = okno desky diagnostiky na K3, `plotter` = okno
     zapisovače (Minigraf, XY 4130), `shot` = snímky obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg,
     `browser` = okno Vybrat sestavu a Průvodce sestavou; rejstřík sestav je `core/machine_index` nad
-    `machines/_vyber.json`, náhledy `machines/previews`, průvodci `machines/guides`, `docs/sestavy.md`);
+    `machines/_vyber.json` (s kategorií Moje sestavy = kopie ve `work/machines`), náhledy `machines/previews`,
+    průvodci `machines/guides`, `docs/sestavy.md`; `help` = okno Nápověda (První kroky, Slovníček), Nahlásit chybu,
+    O programu; `markdown` = parser Markdownu bez ImGui a `mdview` = jeho kreslení pro průvodce a okno Nápověda;
+    `layout` = rozmístění oken; bubliny jen přes `tip()` z `theme.h`);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `plant/`: technologie mimo počítač (`core/plant.h`, `Bus::plant`): pece a termočlánky APS-5
@@ -78,11 +81,13 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   (ikona `src/res/sapiemu.ico` a logo `docs/img/logo.png` pro README a O programu; VERSIONINFO z `src/res/sapiemu.rc.in`).
 - **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy,
   `plan-vzhled.md` plán vzhledu a použitelnosti GUI, `beta-testeri.md` dopis a úkoly pro testery bety).
-  Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`).
+  Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`). Slovníček pojmů
+  `docs/slovnicek.md` a `docs/glossary.md` (stejné oddíly a řádky, hlídá `test_markdown`); s prvními kroky je
+  ukazuje okno Nápověda v programu, `package.py` je chce v gitu.
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`. V GUI podle
-  Zobrazení → Nastavení (nová instalace vypnutý, starší nastavení zapnutý; `--mcp-port` ho zapne vždy).
+  Zobrazení → Nastavení → Pokročilé (nová instalace vypnutý, starší nastavení zapnutý; `--mcp-port` ho zapne vždy).
   Projektový `.mcp.json` ho nabídne Claude Code. Při ladění softwaru pro SAPI ho používat.
 - **Ověřování:** stav emulace si Claude ověřuje přes `sapiemu-cli` (`--print-screen`, `--screenshot`), ne snímky
   plochy uživatele. Vzhled GUI ověřuje přes `sapiemu --ui-snapshot soubor.png` (skryté okno, viz `docs/sestavy.md`;

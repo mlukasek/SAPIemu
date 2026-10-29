@@ -172,39 +172,39 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ar_lamp("PWR", true, IM_COL32(240, 60, 50, 255));
     ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
     ar_lamp("RDY", p->led_ready(), IM_COL32(80, 220, 90, 255));
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Lit: the plotter waits for the READY button."));
+    if (ImGui::IsItemHovered()) tip(tr("Lit: the plotter waits for the READY button."));
     ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
     ar_lamp("BUFF", p->led_buff(), IM_COL32(240, 200, 60, 255));
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Lit all the time: the buffer is empty."));
+    if (ImGui::IsItemHovered()) tip(tr("Lit all the time: the buffer is empty."));
     ImGui::SameLine(0, 1.5f * ImGui::GetFontSize());
     if (ImGui::Button("STOP")) p->press(Ar1990Plotter::BTN_STOP);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Stops the plotter; it beeps and waits for READY."));
+    if (ImGui::IsItemHovered()) tip(tr("Stops the plotter; it beeps and waits for READY."));
     ImGui::SameLine();
     if (ImGui::Button("TEST")) p->press(Ar1990Plotter::BTN_TEST);
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("The test of the pens (as code 04H). Held at power on: the whole character set."));
+        tip(tr("The test of the pens (as code 04H). Held at power on: the whole character set."));
     ImGui::SameLine();
     if (ImGui::Button("READY")) p->press(Ar1990Plotter::BTN_READY);
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Goes on after a beep: after power on, STOP, a pen change or a stop."));
+        tip(tr("Goes on after a beep: after power on, STOP, a pen change or a stop."));
     const char* whole = tr("Whole test");
     ImGui::SameLine();   // on the next line when the window is narrow (English is longer)
     if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(whole).x + 2.0f * ImGui::GetStyle().FramePadding.x)
         ImGui::NewLine();
     std::string err;
     if (ImGui::Button(whole) && !plotter_action(*m, "whole-test", "", err))   // TEST held while the JPR-1 starts
-        ui_notice(ui, false, err);
+        ui_notice(ui, false, tr_core(err));
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Reset with TEST held: the whole character set (then READY)."));
+        tip(tr("Reset with TEST held: the whole character set (then READY)."));
     bool mz = !p->ascii, roll = !p->a4, crlf = !p->cr_only, lfcr = !p->lf_only;
     ImGui::Checkbox("COLOR", &p->color);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Colour commands stop the plotter and beep for a pen change."));
+    if (ImGui::IsItemHovered()) tip(tr("Colour commands stop the plotter and beep for a pen change."));
     ImGui::SameLine();
     if (ImGui::Checkbox("MZ800", &mz)) p->ascii = !mz;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Codes of the Sharp MZ-800 converted to ASCII (switch ASCII/MZ800)."));
+    if (ImGui::IsItemHovered()) tip(tr("Codes of the Sharp MZ-800 converted to ASCII (switch ASCII/MZ800)."));
     ImGui::SameLine();
     if (ImGui::Checkbox(tr("Roll"), &roll)) p->a4 = !roll;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("A4/ROLE: a new page skips a few lines (roll) or goes to a new sheet (A4)."));
+    if (ImGui::IsItemHovered()) tip(tr("A4/ROLE: a new page skips a few lines (roll) or goes to a new sheet (A4)."));
     ImGui::SameLine();
     if (ImGui::Checkbox("CR+LF", &crlf)) p->cr_only = !crlf;
     ImGui::SameLine();
@@ -219,8 +219,8 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Demo")) && !plotter_action(*m, "demo", "", err)) ui_notice(ui, false, err);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Sends media/ar1990/ukazka.txt (graphics and text mode)."));
+    if (ImGui::Button(tr("Demo")) && !plotter_action(*m, "demo", "", err)) ui_notice(ui, false, tr_core(err));
+    if (ImGui::IsItemHovered()) tip(tr("Sends media/ar1990/ukazka.txt (graphics and text mode)."));
     ImGui::SetNextItemWidth(-8.0f * ImGui::GetFontSize());
     bool go = ImGui::InputTextWithHint("##arline", tr("commands, e.g. D400,0"), line, sizeof(line),
                                        ImGuiInputTextFlags_EnterReturnsTrue);
@@ -228,10 +228,10 @@ static void draw_ar1990(UiState& ui, Machine* m, Ar1990Plotter* p)
     ImGui::SameLine();
     if (ImGui::Button(tr("Send")) || go) {   // \xNN = a control code, CR at the end
         if (plotter_action(*m, "send", line, err)) line[0] = 0;
-        else ui_notice(ui, false, err);
+        else ui_notice(ui, false, tr_core(err));
     }
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Sends the line and CR. Codes: 02H graphics mode (type \\x02), 01H text mode."));
+        tip(tr("Sends the line and CR. Codes: 02H graphics mode (type \\x02), 01H text mode."));
     ImGui::TextDisabled("%s %zu B, %s %llu B", tr("waiting"), p->pending(), tr("taken"), (unsigned long long)p->sent);
     ImGui::Separator();
 }
@@ -244,13 +244,13 @@ static void draw_xy4130(Xy4130* p)
     ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
     ar_lamp("READY", p->ready(), IM_COL32(80, 220, 90, 255));
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Lit after the carriage has reached the left stop (the driver does it); off after a new sheet."));
+        tip(tr("Lit after the carriage has reached the left stop (the driver does it); off after a new sheet."));
     ImGui::SameLine(0, 1.0f * ImGui::GetFontSize());
     ar_lamp("PEN", p->pen_enabled(), IM_COL32(240, 200, 60, 255));
     ImGui::SameLine(0, 1.5f * ImGui::GetFontSize());
     if (ImGui::Button("PEN")) p->pen_button();
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Ready to write: the pen goes down only with the PEN lamp lit (off after power on)."));
+        tip(tr("Ready to write: the pen goes down only with the PEN lamp lit (off after power on)."));
     if (!p->pen_enabled() || !p->ready()) {
         ImGui::SameLine();
         ImGui::TextColored(theme().warn, "%s", !p->pen_enabled() ? tr("press PEN") : tr("the pen waits for READY"));
@@ -276,12 +276,12 @@ void draw_plotter(UiState& ui)
     Xy4130* xy = dynamic_cast<Xy4130*>(g);
     // the title names the plotter, the ID stays (the saved layout)
     std::string title = std::string(xy ? tr("Plotter XY 4130") : tr("Minigraf")) + "###Minigraf";
-    if (!ImGui::Begin(title.c_str(), &ui.show_plotter) || !m) {
+    if (!ImGui::Begin(title.c_str(), &ui.show_plotter) || device_window_off(ui)) {
         ImGui::End();
         return;
     }
     if (!g) {
-        ImGui::TextDisabled("%s", tr("No plotter. Configurator: DPP-1 (Minigraf 0507, XY 4130) or JPR-1 (XY 4130 on X3)."));
+        ImGui::TextWrapped("%s", device_missing(ui, "minigraf").c_str());
         ImGui::End();
         return;
     }
@@ -289,20 +289,20 @@ void draw_plotter(UiState& ui)
     if (xy) draw_xy4130(xy);
     if (ImGui::Button(tr("New sheet"))) g->new_sheet();
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", xy ? tr("Clean paper is put in under the pen (the drawing is cleared); READY goes off.")
-                                   : tr("Clean paper is put in under the pen (the drawing is cleared)."));
+        tip(xy ? tr("Clean paper is put in under the pen (the drawing is cleared); READY goes off.")
+               : tr("Clean paper is put in under the pen (the drawing is cleared)."));
     ImGui::SameLine();
     std::string err;
     if (ImGui::Button(tr("Save PNG"))) {
         std::string p = plot_path(".png");
         if (g->save_png(p, 8, false, err)) ui_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
-        else ui_notice(ui, false, err);
+        else ui_notice(ui, false, tr_core(err));
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Save SVG"))) {
         std::string p = plot_path(".svg");
         if (g->save_svg(p, false, err)) ui_notice(ui, true, std::string(tr("Drawing saved")) + ": " + p);
-        else ui_notice(ui, false, err);
+        else ui_notice(ui, false, tr_core(err));
     }
     ImGui::Text("X %.1f  Y %.1f mm   %s   %s %llu", g->x() / (double)g->spm, g->y() / (double)g->spm, g->pen_down() ? tr("pen down") : tr("pen up"), tr("steps"),
                 (unsigned long long)g->steps);
@@ -310,13 +310,13 @@ void draw_plotter(UiState& ui)
         ImGui::SameLine();
         ImGui::TextDisabled("  %s %llu", tr("at the stop"), (unsigned long long)g->stopped);
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("Steps of the carriage against its stop: the driver sets its origin so."));
+            tip(tr("Steps of the carriage against its stop: the driver sets its origin so."));
     }
     if (g->lost) {
         ImGui::SameLine();
         ImGui::TextColored(theme().warn, "  %s %llu", tr("lost"), (unsigned long long)g->lost);
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("The code skipped a phase: the motor may have lost steps."));
+            tip(tr("The code skipped a phase: the motor may have lost steps."));
     }
     draw_sheet(g);
     ImGui::End();

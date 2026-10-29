@@ -26,7 +26,13 @@ Machine::Machine()
 Machine::~Machine()
 {
     stop_bridges();   // bridge threads use channels owned by the cards
-    flush();
+    if (!trial) flush();
+}
+
+void Machine::discard(void)
+{
+    trial = true;
+    for (auto& c : cards) c->trial = true;
 }
 
 bool Machine::start_bridges(std::string& err)
@@ -38,6 +44,13 @@ bool Machine::start_bridges(std::string& err)
         for (SerialBridge* b : created) bridges.emplace_back(b);
         if (!ok) return false;
     }
+    return true;
+}
+
+bool Machine::check_bridges(std::string& err)
+{
+    for (SerialChannel* ch : serials)
+        if (!serial_bridges_check(ch->bridge_cfg, err)) return false;
     return true;
 }
 
@@ -142,6 +155,7 @@ bool Machine::load_json(const json& cfg, std::string& err)
         }
         cards.emplace_back(card);
         card->bus = &bus;
+        card->trial = trial;
         card->name = cc.value("name", type);
         for (auto& other : cards)   // two cards of a type: tell them apart by the slot
             if (other.get() != card && other->name == card->name && !cc.contains("name"))
@@ -426,6 +440,35 @@ bool Machine::set_keyboard(const std::string& preset, std::string& err)
     return true;
 }
 
+// The keyboard of the description `v` (the "keyboard" of the CPU card, null = none) plugged in while running. A card
+// that does not take it (PKT-1 takes keyboards with a code and a strobe only) gets the one of its description back.
+bool Machine::plug_keyboard(const json& v, std::string& err)
+{
+    if (!cpu) { err = "no CPU card"; return false; }
+    KeyboardDevice* k = nullptr;
+    if (!v.is_null()) {
+        k = keyboard_from_config(v, bus.cpu_hz, err);
+        if (!k) return false;
+    }
+    KeyboardDevice* old = cpu->keyboard();
+    cpu->set_keyboard(k);
+    if (cpu->keyboard() == k) {
+        LOGI("keyboard: %s", k ? k->type_name() : "none");
+        return true;
+    }
+    if (cpu->keyboard() == old) {
+        err = "this CPU card has no keyboard connector";
+        return false;
+    }
+    err = "this CPU card does not take this keyboard";
+    json* cc = card_config(cpu);
+    std::string e;
+    KeyboardDevice* back = cc && cc->contains("keyboard") && !(*cc)["keyboard"].is_null()
+                               ? keyboard_from_config((*cc)["keyboard"], bus.cpu_hz, e) : nullptr;
+    if (back) cpu->set_keyboard(back);
+    return false;
+}
+
 void Machine::flush(void)
 {
     for (auto& c : cards) c->flush();
@@ -589,6 +632,8 @@ bool Machine::set_live_param(Card* c, const char* path, const nlohmann::json& v,
             ok = false;
             err = std::string(path) + " must be a file name";
         }
+    } else if (c == cpu && !strcmp(path, "keyboard")) {   // Machine -> Keyboard (not a live_param: the configurator
+        ok = plug_keyboard(v, err);                       // changes it with the next power cycle)
     } else {
         ok = c->set_live_param(path, v, err);
     }

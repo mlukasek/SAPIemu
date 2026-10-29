@@ -250,6 +250,7 @@ json t_list_machines(EmuHost&, const json&)
         if (e.category >= 0) j["category"] = idx.categories[(size_t)e.category].name;
         if (!e.summary.empty()) j["summary"] = e.summary;
         if (!e.guide.empty()) j["guide"] = e.guide;
+        if (!e.based_on.empty()) j["based_on"] = e.based_on;   // a copy of My machines (work/machines)
         entries.push_back(j);
     }
     json r = { { "machines", list }, { "entries", entries } };
@@ -348,6 +349,7 @@ json t_machine_map(EmuHost& h, const json& a)
             json jr = { { "from", lo }, { "to", hi }, { "users", users } };
             if (r.conflict) jr["conflict"] = true;
             if (r.shared_write) jr["shared_write"] = true;
+            if (r.by_design) jr["by_design"] = r.by_design->en;   // meant so: not in the conflicts
             out.push_back(jr);
         }
         return out;
@@ -1538,7 +1540,7 @@ const char* const S_NONE = R"({"type":"object","properties":{}})";
 const Tool k_tools[] = {
     { "machine_info", "Emulator and machine overview: machine name, run state, CPU clock and cycles, cards in slots with their jumper settings, serial channels, registers.",
       S_NONE, t_machine_info },
-    { "list_machines", "List machine description files (machines/*.sapi including subfolders such as machines/zps/) that can be loaded with load_machine.",
+    { "list_machines", "List machine description files (machines/*.sapi including subfolders such as machines/zps/, and the user's copies saved by the GUI in work/machines/, 'My machines', with 'based_on' = the supplied machine) that can be loaded with load_machine.",
       S_NONE, t_list_machines },
     { "card_catalog", "Catalog of SAPI-1 cards and buses for machine descriptions: card types (emulated or placeholder), slots they take and every configuration parameter (jumpers, ROM files, options with meaning, defaults). Optionally only one card type.",
       R"({"type":"object","properties":{"type":{"type":"string"}}})", t_card_catalog },

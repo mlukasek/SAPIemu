@@ -44,14 +44,17 @@ static void test_index(void)
         CHECK(machine_index_matches(e, machine_index_fold(t).c_str()));
     }
     // the categories in the order of the author (2026-10-28), the first four on their own (not in the group
-    // Ostatní) and with guides; every machine of a category with guides has a short text and a guide
+    // Ostatní) and with guides; every machine of a category with guides has a short text and a guide. My machines
+    // before them when work/machines of this data root has copies (a release build ran here).
     static const char* const order[] = { "zaklad", "pristroje", "libor", "hry" };
+    size_t first = !idx.categories.empty() && idx.categories[0].id == MACHINE_MINE ? 1 : 0;
     for (size_t i = 0; i < sizeof(order) / sizeof(order[0]); i++) {
-        bool ok = i < idx.categories.size() && idx.categories[i].id == order[i] && idx.categories[i].group.empty() &&
-                  idx.categories[i].guides;
+        size_t c = first + i;
+        bool ok = c < idx.categories.size() && idx.categories[c].id == order[i] && idx.categories[c].group.empty() &&
+                  idx.categories[c].guides;
         if (!ok)
-            fprintf(stderr, "category %zu: '%s', expected '%s' on its own with guides\n", i,
-                    i < idx.categories.size() ? idx.categories[i].id.c_str() : "", order[i]);
+            fprintf(stderr, "category %zu: '%s', expected '%s' on its own with guides\n", c,
+                    c < idx.categories.size() ? idx.categories[c].id.c_str() : "", order[i]);
         CHECK(ok);
     }
     for (size_t i = 0; i < idx.categories.size(); i++)   // the ids of the headers and the items (browser.cpp)
@@ -89,6 +92,14 @@ static void test_index(void)
     CHECK(manic);
     CHECK(machine_id("machines/zps/ZPS-1.sapi") == "zps_ZPS-1");
     CHECK(machine_id("machines/mikromon.sapi") == "mikromon");
+    // every machine of machines/ is named by the index: supplied, so Save of a release build never overwrites it (a
+    // machine missing there would count as the user's own, machine_supplied)
+    CHECK(idx.listed);
+    for (const MachineEntry& e : idx.machines) {
+        if (e.file.rfind("machines/", 0) != 0) continue;
+        if (!machine_supplied(idx, e.file)) fprintf(stderr, "%s: not in machines/_vyber.json\n", e.file.c_str());
+        CHECK(machine_supplied(idx, e.file));
+    }
 }
 
 static void test_fold(void)
@@ -184,11 +195,121 @@ static void test_titles_and_search(void)
     CHECK(idx.categories.size() == 1 && idx.categories[0].id == "unsorted" && idx.intro.empty());
 }
 
+// My machines (author 2026-10-29) in a data root of the test (work/test/mine_root): which files are supplied, the file
+// and the name of a copy, the category at the top with the preview, the guide and the titles of the original.
+static const char* k_mine_index = R"json(
+{
+    "categories": [ { "id": "zaklad", "name": "Základ", "name_en": "Basics", "guides": true, "machines": [ "zps/A.sapi" ] } ],
+    "machines": { "zps/A.sapi": { "title": "Stroj A s BASICem", "title_en": "Machine A with BASIC" } }
+}
+)json";
+
+static void test_mine(void)
+{
+    std::string repo = data_root();
+    std::string root = path_join(repo, "work/test/mine_root");
+    CHECK(make_dirs(path_join(root, "roms")));
+    CHECK(make_dirs(path_join(root, "machines/zps")));
+    CHECK(make_dirs(path_join(root, "machines/previews")));
+    CHECK(make_dirs(path_join(root, "machines/guides")));
+    CHECK(file_write_text(path_join(root, "machines/zps/A.sapi"), "{ \"name\": \"Stroj A\" }\n"));
+    CHECK(file_write_text(path_join(root, "machines/previews/zps_A.png"), "not a picture"));
+    CHECK(file_write_text(path_join(root, "machines/guides/zps_A.md"), "# A\n"));
+    data_root_set(root);
+    CHECK(work_root() == path_join(root, "work"));
+    std::string mine = data_path(MACHINE_MINE_DIR);
+    CHECK(make_dirs(mine));
+    static const char* const copies[] = { "A.sapi", "A-2.sapi", "_skryta.sapi", nullptr };
+    for (int i = 0; copies[i]; i++) file_remove(path_join(mine, copies[i]));   // of a run before
+
+    // supplied: under machines/ of the data root and named by the index, however the path is written; a file of the
+    // user saved there is the user's own; without an index every file under machines/
+    CHECK(file_write_text(path_join(root, "machines/zps/Vlastni.sapi"), "{ \"name\": \"Můj vlastní\" }\n"));
+    MachineIndex idx;
+    std::string err;
+    machine_index_load_text(idx, k_mine_index, err);
+    CHECK(err.empty());
+    CHECK(idx.listed);
+    CHECK(machine_supplied(idx, "machines/zps/A.sapi"));
+    CHECK(machine_supplied(idx, "machines\\zps\\A.sapi"));
+    CHECK(machine_supplied(idx, data_path("machines/zps/A.sapi")));
+    CHECK(!machine_supplied(idx, "machines/zps/Vlastni.sapi"));
+    CHECK(!machine_supplied(idx, "work/machines/A.sapi"));
+    CHECK(!machine_supplied(idx, data_path("work/machines/A.sapi")));
+    CHECK(!machine_supplied(idx, "roms/x.bin"));
+    CHECK(!machine_supplied(idx, ""));
+    MachineIndex none;   // no index read
+    CHECK(!none.listed);
+    CHECK(machine_supplied(none, "machines/zps/Vlastni.sapi"));
+    CHECK(!machine_supplied(none, "work/machines/A.sapi"));
+    file_remove(path_join(root, "machines/zps/Vlastni.sapi"));
+
+    // no copies: no category My machines
+    machine_index_load_text(idx, k_mine_index, err);
+    CHECK(err.empty());
+    CHECK(!idx.categories.empty() && idx.categories[0].id == "zaklad");
+
+    // the file of a copy: named after the original, the next one numbered; an older suffix becomes .sapi
+    int n = 0;
+    CHECK(machine_copy_file("machines/zps/A.sapi", &n) == "work/machines/A.sapi");
+    CHECK_EQ(n, 1);
+    CHECK(file_write_text(path_join(mine, "A.sapi"),
+                          "{ \"name\": \"Stroj A (moje)\", \"based_on\": \"machines/zps/A.sapi\" }\n"));
+    CHECK(machine_copy_file("machines/zps/A.sapi", &n) == "work/machines/A-2.sapi");
+    CHECK_EQ(n, 2);
+    CHECK(machine_copy_file("machines/A.jsonc") == "work/machines/A-2.sapi");
+    // the name: marked in the language of the UI, numbered from the second; a name the user changed stays
+    CHECK(machine_copy_name("Stroj A", "Stroj A", 1, true) == "Stroj A (moje)");
+    CHECK(machine_copy_name("Stroj A", "Stroj A", 2, false) == "Stroj A (mine 2)");
+    CHECK(machine_copy_name("Můj stroj", "Stroj A", 1, true) == "Můj stroj");
+
+    // My machines at the top: the copy with the preview and the guide of its original, found by the original's title,
+    // its short title with the mark in each language (not renamed; a renamed one keeps its name); a file starting with
+    // "_" is no machine
+    CHECK(file_write_text(path_join(mine, "A-2.sapi"),
+                          "{ \"name\": \"Můj stroj\", \"based_on\": \"machines/zps/A.sapi\" }\n"));
+    CHECK(file_write_text(path_join(mine, "_skryta.sapi"), "{}"));
+    machine_index_load_text(idx, k_mine_index, err);
+    CHECK(err.empty());
+    CHECK(idx.categories.size() == 2);
+    if (idx.categories.size() == 2) {
+        const MachineCategory& m = idx.categories[0];
+        CHECK(m.id == MACHINE_MINE && !m.name.empty() && !m.name_en.empty() && !m.text.empty() && !m.text_en.empty());
+        CHECK(m.group.empty() && !m.guides);   // on its own; a guide does not open itself for the user's machines
+        CHECK(m.machines.size() == 2 && m.titles.size() == 2 && m.titles_en.size() == 2);
+        CHECK(idx.categories[1].id == "zaklad" && idx.categories[1].machines.size() == 1);
+    }
+    const MachineEntry* c = machine_index_find(idx, "work/machines/A.sapi");
+    const MachineEntry* r = machine_index_find(idx, "work/machines/A-2.sapi");
+    const MachineEntry* o = machine_index_find(idx, "machines/zps/A.sapi");
+    CHECK(c && r && o);
+    if (c && r && o) {
+        CHECK(c->category == 0 && r->category == 0 && o->category == 1);
+        CHECK(c->based_on == "machines/zps/A.sapi" && o->based_on.empty());
+        CHECK(c->name == "Stroj A (moje)");
+        CHECK(c->copy == 1 && r->copy == 0 && o->copy == 0);   // r renamed by the user
+        CHECK(o->listed && !c->listed && !r->listed);
+        CHECK(c->title == "Stroj A s BASICem (moje)" && c->title_en == "Machine A with BASIC (mine)");
+        CHECK(r->name == "Můj stroj" && r->title.empty() && r->title_en.empty());
+        CHECK(c->preview == "machines/previews/zps_A.png" && c->preview == o->preview && r->preview == o->preview);
+        CHECK(c->guide == "machines/guides/zps_A.md" && c->guide_en.empty());
+        CHECK(machine_index_matches(*c, "s basicem"));   // the title of the original
+        CHECK(machine_index_matches(*r, "machine a with"));
+        CHECK(machine_index_matches(*c, "moje"));
+        CHECK(!machine_index_matches(*o, "moje"));
+    }
+    CHECK(!machine_index_find(idx, "work/machines/_skryta.sapi"));
+
+    for (int i = 0; copies[i]; i++) file_remove(path_join(mine, copies[i]));
+    data_root_set(repo);
+}
+
 int main(void)
 {
     test_init();
     test_index();
     test_fold();
     test_titles_and_search();
+    test_mine();
     return TEST_RESULT();
 }

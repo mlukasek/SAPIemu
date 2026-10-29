@@ -21,6 +21,16 @@ void log_recent(std::vector<std::string>& out, int max);
 // Errors logged since the start (the GUI status bar shows the ones not seen in the Log window yet).
 int log_errors(void);
 
+// A message held back by log_hold.
+struct LogHeld {
+    LogLevel level;
+    std::string text;
+};
+// The messages of this thread go into `into` instead of the log until log_hold(nullptr) (EmuHost builds a new machine
+// as a trial first: its messages are logged once, not twice); log_replay logs them then.
+void log_hold(std::vector<LogHeld>* into);
+void log_replay(const std::vector<LogHeld>& held);
+
 #define LOGD(...) log_msg(LOG_DEBUG, __VA_ARGS__)
 #define LOGI(...) log_msg(LOG_INFO, __VA_ARGS__)
 #define LOGW(...) log_msg(LOG_WARN, __VA_ARGS__)

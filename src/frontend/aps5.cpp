@@ -127,7 +127,7 @@ static void draw_panel(Hrk1* p, float u)
             ImGui::SetCursorScreenPos(ImVec2(o.x + pad + c * (kw + gap), ky + r * (kw * 0.86f + gap) + (r >= 4 ? 0.5f * u : 0)));
             if (ImGui::Button(lbl, ImVec2(kw, kw * 0.86f))) p->press((uint8_t)code);
             if (code == Hrk1::KEY_R && ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", tr("R: reserved commands, only with the key in position 2"));
+                tip(tr("R: reserved commands, only with the key in position 2"));
         }
     }
     ImGui::PopStyleColor(5);
@@ -145,7 +145,7 @@ static void draw_panel(Hrk1* p, float u)
     ImGui::SetCursorScreenPos(ImVec2(kc.x - kr, kc.y - kr));
     if (ImGui::InvisibleButton("##lock", ImVec2(2 * kr, 2 * kr))) p->lock = p->lock == 1 ? 2 : 1;
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Key switch: 1 = operator (view, start, stop), 2 = programming (R commands). Click to turn."));
+        tip(tr("Key switch: 1 = operator (view, start, stop), 2 = programming (R commands). Click to turn."));
     ImGui::SetCursorScreenPos(o);
     ImGui::Dummy(ImVec2(w, h));
 }
@@ -221,15 +221,15 @@ static void draw_furnace(FurnacePlant* pl, Hrk1* panel, int i, float u, float tw
     dl->AddText(ImVec2(lp.x + 3.9f * u, lp.y), ImGui::GetColorU32(ImGuiCol_Text), "LO2");
     ImGui::Dummy(ImVec2(tw, 1.1f * u));
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s\nLO1: %s, LO2: %s", tr("Logic outputs LO n1 (fault of the measurement), LO n2 (held at L)"),
-                          lo1 ? tr("lit") : tr("not lit"), lo2 ? tr("lit") : tr("not lit"));
+        tipf("%s\nLO1: %s, LO2: %s", tr("Logic outputs LO n1 (fault of the measurement), LO n2 (held at L)"),
+             lo1 ? tr("lit") : tr("not lit"), lo2 ? tr("lit") : tr("not lit"));
     if (picture_only()) return;   // a preview of the machine: the furnaces without the switches of the simulation
     bool la = !f.li[0], lb = !f.li[1];
     if (ImGui::Checkbox("LI a##a", &la)) f.li[0] = !la;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Logic input closed = L (open = H, as the cold start expects)"));
+    if (ImGui::IsItemHovered()) tip(tr("Logic input closed = L (open = H, as the cold start expects)"));
     ImGui::SameLine();
     if (ImGui::Checkbox("LI b##b", &lb)) f.li[1] = !lb;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Logic input closed = L (open = H, as the cold start expects)"));
+    if (ImGui::IsItemHovered()) tip(tr("Logic input closed = L (open = H, as the cold start expects)"));
     ImGui::Checkbox(tr("TC broken"), &f.tc_broken);
     ImGui::Checkbox(tr("Heater broken"), &f.heater_broken);
 }
@@ -462,13 +462,13 @@ static void demo_controls(UiState& ui, Machine* m, float u)
     if (!d.running()) {
         if (theme_accent_button(tr("DEMO"), ImVec2(5.5f * u, 0))) ImGui::OpenPopup("##aps5demo");
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("Types the example of docs/aps5-ukazka.md on the panel: calibration, program 1, "
-                                       "furnaces 1, 2, 5 regulated to 700 degC, 4 and 6 by hand."));
+            tip(tr("Types the example of docs/aps5-ukazka.md on the panel: calibration, program 1, "
+                   "furnaces 1, 2, 5 regulated to 700 degC, 4 and 6 by hand."));
         if (d.phase == Aps5Demo::DONE) {
             ImGui::SameLine();
             ImGui::TextColored(theme().ok, "%s", tr("Demo done"));
         } else if (d.phase == Aps5Demo::FAILED) {
-            ImGui::TextColored(theme().error, "%s %s", tr("Demo stopped:"), tr(d.error.c_str()));
+            ImGui::TextColored(theme().error, "%s %s", tr("Demo stopped:"), tr_core(d.error).c_str());
         }
     } else {
         if (ImGui::Button(tr("Stop the demo"))) {
@@ -499,6 +499,12 @@ static void demo_controls(UiState& ui, Machine* m, float u)
     }
 }
 
+bool aps5_in_machine(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    return m && (dynamic_cast<FurnacePlant*>(m->plant.get()) || dynamic_cast<Hrk1*>(m->keyboard()));
+}
+
 void draw_aps5(UiState& ui)
 {
     Machine* m = ui.host->machine();
@@ -513,12 +519,12 @@ void draw_aps5(UiState& ui)
     if (!ui.show_aps5) return;
     float u = ImGui::GetFontSize();
     layout_window(LW_APS5);   // on the right: the screen of the unit (AND-1) stays in sight
-    if (!ImGui::Begin(tr_id("APS-5: panel and furnaces"), &ui.show_aps5)) {
+    if (!ImGui::Begin(tr_id("APS-5: panel and furnaces"), &ui.show_aps5) || device_window_off(ui)) {
         ImGui::End();
         return;
     }
     if (!pl && !panel) {
-        ImGui::TextWrapped("%s", tr("No APS-5. Open machines/aps5.sapi (the plant of the machine and the HRK-1 panel)."));
+        ImGui::TextWrapped("%s", device_missing(ui, "aps5").c_str());
         ImGui::End();
         return;
     }
@@ -542,8 +548,8 @@ void draw_aps5(UiState& ui)
         } else {
             if (ImGui::Button(tr("Mains failure"))) panel->outage(ui.aps5_outage_s);
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", tr("The supply warns the program (/PFAIL), the unit is without power for the given time, "
-                                           "then starts again; the batteries keep CRM-1 and RTC-1."));
+                tip(tr("The supply warns the program (/PFAIL), the unit is without power for the given time, "
+                       "then starts again; the batteries keep CRM-1 and RTC-1."));
             ImGui::SameLine();
             ImGui::DragFloat("##outage", &ui.aps5_outage_s, 1.0f, 1.0f, 36000.0f, "%.0f s");
         }
@@ -551,11 +557,11 @@ void draw_aps5(UiState& ui)
         if (pl) {
             float bat = (float)pl->battery;
             if (ImGui::SliderFloat(tr("Battery"), &bat, 3.0f, 5.0f, "%.2f V")) pl->battery = bat;
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Flat battery 4.5 V in the front panel; below 4.1 V the unit warns"));
+            if (ImGui::IsItemHovered()) tip(tr("Flat battery 4.5 V in the front panel; below 4.1 V the unit warns"));
             float amb = (float)pl->ambient, blk = (float)pl->block_c;
             if (ImGui::DragFloat(tr("Surroundings"), &amb, 0.2f, -20.0f, 50.0f, "%.1f °C")) pl->ambient = amb;
             if (ImGui::DragFloat(tr("Terminal block"), &blk, 0.2f, 0.0f, 50.0f, "%.1f °C")) pl->block_c = blk;
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The isothermal terminal block (cold junctions, the thermometer of DMT-1)"));
+            if (ImGui::IsItemHovered()) tip(tr("The isothermal terminal block (cold junctions, the thermometer of DMT-1)"));
             if (ImGui::Button(tr("Cool all furnaces"))) pl->reset_process();
         }
         ImGui::PopItemWidth();

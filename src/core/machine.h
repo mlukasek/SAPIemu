@@ -76,10 +76,19 @@ public:
     // or key presses), keys without text (HostKey, HostMod).
     bool type_text(const std::string& utf8);
     bool host_key(int key, int mods);
-    // Plug another keyboard (name from keyboard_presets()) into the CPU card.
+    // Plug another keyboard (name from keyboard_presets()) into the CPU card (MCP; the description stays).
     bool set_keyboard(const std::string& preset, std::string& err);
+    // The same from a description of a keyboard (set_live_param of the CPU card's "keyboard": Machine -> Keyboard in
+    // the GUI, the description changes with it).
+    bool plug_keyboard(const nlohmann::json& v, std::string& err);
 
     void flush(void);   // persist RAM disks etc.
+    // Dropped without saving anything (EmuHost builds a new machine as a trial before it switches the old one off; a
+    // machine that did not build): its end writes no medium and no battery memory (Card::trial), they stay as the
+    // running machine has them. `trial` set before load_json does the same for a machine built only to see that it
+    // builds.
+    void discard(void);
+    bool trial = false;
     // Media with writes not saved yet (Card::unsaved), and saving just those (EmuHost::autosave); returns how many
     // cards saved.
     bool unsaved(void);
@@ -108,6 +117,7 @@ public:
 
     // Host side serial connections (TCP server, COM port).
     bool start_bridges(std::string& err);   // from the channels' configuration
+    bool check_bridges(std::string& err);   // the same configuration checked, nothing opened (a trial build)
     void stop_bridges(void);
     void add_bridge(SerialBridge* b) { bridges.emplace_back(b); }
     void remove_bridges(SerialChannel* ch, const char* kind);

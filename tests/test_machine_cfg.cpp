@@ -306,6 +306,56 @@ static void test_map(void)
     }
 }
 
+// The V boards write port 63h together by design: RAM-1V its MAP register (bits 6-7), ZRD-1V the RAM disk address
+// A16-A21 (bits 0-5). The map marks it (information, no warning); the MAP register on another port of the RAM disk,
+// or a ZRMD-1 driving MAP itself (JP2), stay warnings.
+static void test_shared_by_design(void)
+{
+    std::string text;
+    for (const char* f : { "machines/sapi1v.sapi", "machines/sapi1v_hry.sapi", "machines/sapi1v_PoP.sapi",
+                           "machines/sapi1v_BomberNet.sapi" }) {
+        CHECK(file_read_text(data_path(f), text));
+        json cfg = json::parse(text, nullptr, false, true);
+        MachineMap m;
+        machine_map_build(cfg, m);
+        const MapRange* r = find_range(m.io, 0x63);
+        CHECK(r && r->lo == 0x63 && r->hi == 0x63 && r->shared_write && r->by_design != nullptr);
+        std::vector<CfgProblem> p = machine_all_problems(cfg);
+        for (const CfgProblem& q : p) fprintf(stderr, "%s: %s\n", f, q.en.c_str());
+        CHECK(p.empty());
+    }
+    CHECK(file_read_text(data_path("machines/sapi1v.sapi"), text));
+    json cfg = json::parse(text, nullptr, false, true);
+    for (json& c : cfg["cards"])
+        if (c["type"] == "RAM-1V") c["map_port"] = "62h";   // the middle byte of the RAM disk address
+    MachineMap m;
+    machine_map_build(cfg, m);
+    const MapRange* r = find_range(m.io, 0x62);
+    CHECK(r && r->shared_write && !r->by_design);
+    std::vector<CfgProblem> p = machine_map_problems(m);
+    CHECK(p.size() == 1 && !p[0].error && p[0].en.find("ports 62h") != std::string::npos);
+    r = find_range(m.io, 0x63);
+    CHECK(r && !r->shared_write);
+
+    // RAM-1V next to a ZRMD-1: by design while the ZRMD-1 leaves MAP alone, a warning when its JP2 drives MAP too
+    CHECK(file_read_text(data_path("machines/cpm_zrmd.sapi"), text));
+    cfg = json::parse(text, nullptr, false, true);
+    json ram = card_new_config(card_info("RAM-1V"), 5);
+    ram["sram_a"] = false;   // its memory off: only the MAP register on the bus
+    ram["sram_b"] = false;
+    cfg["cards"].push_back(ram);
+    machine_map_build(cfg, m);
+    r = find_range(m.io, 0x63);
+    CHECK(r && r->shared_write && r->by_design);
+    CHECK(machine_map_problems(m).empty());
+    for (json& c : cfg["cards"])
+        if (c["type"] == "ZRMD-1") c["map_jp2"] = true;
+    machine_map_build(cfg, m);
+    r = find_range(m.io, 0x63);
+    CHECK(r && r->shared_write && !r->by_design);
+    CHECK(machine_map_problems(m).size() == 1);
+}
+
 // A machine written by the configurator has the line ends of a git checkout (CRLF on
 // Windows), so saving it unchanged leaves no change in git.
 static void test_line_ends(void)
@@ -467,6 +517,7 @@ int main(int argc, char** argv)
     test_battery();
     test_two_dmr();
     test_map();
+    test_shared_by_design();
     test_line_ends();
     test_parts();
     test_changes();

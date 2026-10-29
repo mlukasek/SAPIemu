@@ -52,12 +52,12 @@ void draw_diag(UiState& ui)
     }
     float u = ImGui::GetFontSize();
     layout_window(LW_DIAG);
-    if (!ImGui::Begin(tr_id("Diagnostic board (K3)"), &ui.show_diag)) {
+    if (!ImGui::Begin(tr_id("Diagnostic board (K3)"), &ui.show_diag) || device_window_off(ui)) {
         ImGui::End();
         return;
     }
     if (!has) {
-        ImGui::TextWrapped("%s", tr("No diagnostic board. Configurator: K3 of JPR-1S or JPR-1X = diagnostic board."));
+        ImGui::TextWrapped("%s", device_missing(ui, "diag").c_str());
         ImGui::End();
         return;
     }
@@ -76,11 +76,11 @@ void draw_diag(UiState& ui)
     ImVec2 sz(bw * 0.5f - ImGui::GetStyle().ItemSpacing.x * 0.5f, 2.2f * u);
     ImGui::Button("-##minus", sz);
     bool minus = ImGui::IsItemActive();
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("S2 \"-\": P2-IN7 (JPR-1X: interrupt request R7)"));
+    if (ImGui::IsItemHovered()) tip(tr("S2 \"-\": P2-IN7 (JPR-1X: interrupt request R7)"));
     ImGui::SameLine();
     ImGui::Button("+##plus", sz);
     bool plus = ImGui::IsItemActive();
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("S1 \"+\": P2-IN0 (JPR-1X: interrupt request R0 = /INT0)"));
+    if (ImGui::IsItemHovered()) tip(tr("S1 \"+\": P2-IN0 (JPR-1X: interrupt request R0 = /INT0)"));
     cpu->k3_button(0, plus);
     cpu->k3_button(1, minus);
     ImGui::TextDisabled("P2-OUT %02Xh  P1-OUT %02Xh", cpu->k3_display(0), cpu->k3_display(1));

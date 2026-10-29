@@ -7,6 +7,7 @@
 #include "frontend/theme.h"
 #include "frontend/ui.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
@@ -90,6 +91,16 @@ struct App {
     // k = gfx[k], FS_OFF = none. fs_maximized: the OS window was maximized before (saved so in the meantime).
     int fullscreen = FS_OFF;
     bool fs_maximized = false;
+    // View -> Displays: the display windows hidden by the user (index k + 1: 0 the console screen, 1 + k gfx[k]), not
+    // drawn while the machine runs on. A machine with other displays (another file, other display cards) shows them
+    // all again, a restart or a power cycle of the same one not (hidden_sig: its displays_sig). display_front: a
+    // display just shown again comes to the front with the keyboard once its window is drawn (FS_OFF = none).
+    bool display_hidden[1 + MAX_GFX_VIEWS] = {};
+    std::string hidden_sig;
+    int display_front = FS_OFF;
+    // a display had the keyboard (ui.screen_focused) in the last frame without a popup: an open menu has the focus, so
+    // View -> Displays asks this one whether the display it hides had the keyboard
+    bool screen_keys = false;
     bool open_screen_menu = false;   // UI snapshot: open the right click menu of the console screen (full screen: its menu)
     GfxView gfx[MAX_GFX_VIEWS];   // graphic display cards (DGD-1)
 
@@ -104,10 +115,21 @@ struct App {
     UiState ui;
     std::string error_text;
     bool show_error = false;
+    // another GUI runs over the same settings or work folder (file_lock_try at the start): the warning shows until
+    // answered (instance_paths: which of them). Until then this window writes nothing there: the machine does not run
+    // (no autosave of the media, MCP commands wait), the window layout is not saved (ini_held: io.IniFilename, read at
+    // the first frame, back after Continue). Quit leaves without saving the settings, the window layout and the machine
+    // (EmuHost::drop: no power fail, the battery memories and RAM disks stay as the other window has them).
+    bool instance_warn = false;
+    std::string instance_paths;
+    const char* ini_held = nullptr;
+    bool quit_nosave = false;
     int errors_seen = 0;          // log_errors() when the Log window was shown last ("Errors: N" counts the rest)
     bool log_focus = false;       // "Errors: N" clicked: the Log in front
     bool quit = false;
     uint64_t title_gen = ~0ull;   // machine generation shown in the window title
+    std::string title_file;       // and its file (the configurator's Save of a supplied machine: the copy in My machines)
+    std::vector<std::string> drops;   // files dropped on the window, one taken in each frame (drop_frame)
     bool integer_scale = true;
     bool tv_aspect = false;
     bool smooth = false;          // linear filtering of the screen texture
@@ -573,8 +595,9 @@ void set_title(App& app)
 static void power_cycle(App& app)
 {
     std::string err;
-    if (!app.host.power_cycle(err)) {
-        app.error_text = std::string(tr("The machine cannot be started")) + ":\n" + err;
+    if (!app.host.power_cycle(err)) {   // the old machine was not switched off (EmuHost::load_config)
+        app.error_text = std::string(tr("The machine cannot be started")) + ":\n" + tr_core(err) + "\n\n" +
+                         tr("The machine runs on as it was.");
         app.show_error = true;
         LOGE("%s", err.c_str());
     }
@@ -613,7 +636,7 @@ void load_machine(App& app, const std::string& file)
 {
     std::string err;
     if (!rack_load_machine(app.ui, file, err)) {   // with the changes kept for the next start
-        app.error_text = std::string(tr("Cannot load machine")) + ":\n" + err;
+        app.error_text = std::string(tr("Cannot load machine")) + ":\n" + tr_core(err);
         app.show_error = true;
         LOGE("%s", err.c_str());
         return;
@@ -991,6 +1014,42 @@ static const char* display_name(DisplayDevice* d, const char* none)
     return c ? c->name.c_str() : none;
 }
 
+// View -> Displays: the display window k (-1 the console screen, k = gfx[k]) is hidden.
+static bool& display_hidden(App& app, int k)
+{
+    return app.display_hidden[k + 1];
+}
+
+// The display used last after it was hidden (View -> Displays, full screen left): the main output when it is shown,
+// else the console screen, else the first graphic display shown; -1 when every one is hidden.
+static int shown_display(App& app)
+{
+    Machine* m = app.host.machine();
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    int main = main_output(m, gfx, n);
+    if (main >= 0 && !display_hidden(app, main)) return main;
+    if (!display_hidden(app, -1)) return -1;
+    for (int k = 0; k < n; k++)
+        if (!display_hidden(app, k)) return k;
+    return -1;
+}
+
+// View -> Displays: the window of the display k shown or hidden. A hidden one is not drawn (the emulation goes on); the
+// display used last moves to one shown. One shown again comes to the front with the keyboard (draw_screens).
+static void display_show(App& app, int k, bool show)
+{
+    display_hidden(app, k) = !show;
+    if (show) {
+        app.display_front = k;
+    } else if (app.shot_target == k) {
+        // it had the keyboard before the menu opened: the display used now takes it (else ImGui gives the focus to
+        // the window on top, maybe Media: typing would not reach SAPI)
+        if (app.screen_keys) app.ui.focus_display = 2;
+        app.shot_target = shown_display(app);
+    }
+}
+
 // Full screen on (k: the display, -1 the console screen, k = gfx[k]) or off (FS_OFF): the OS window over the whole
 // monitor (SDL_SetWindowFullscreen: borderless, the desktop mode), the display alone in it (draw_fullscreen). A short
 // text over the picture says how to leave it. Off: the keyboard back to the window of that display. A self-check keeps
@@ -1006,6 +1065,8 @@ static void fullscreen_set(App& app, int k)
         app.osd = tr("Full screen: Alt+Enter leaves it");
         app.osd_ns = SDL_GetTicksNS();
     } else {
+        // the keyboard back to the window of that display; one hidden in View -> Displays stays hidden
+        if (display_hidden(app, app.shot_target)) app.shot_target = shown_display(app);
         app.ui.focus_display = 2;
         app.osd.clear();   // its text would come over every display window
     }
@@ -1142,14 +1203,9 @@ static void place_display(App& app, DisplayDevice* d, const char* id, const Zoom
 // window at the first frame, settings_apply); a restart of the same machine (the same file, the same
 // display cards) and switching off and on change nothing. Before the windows of the frame, after plan_layout (main_k):
 // the windows opening now see the new sizes.
-static void refit_displays(App& app)
+// The machine file and its displays (the card names, the picture sizes): another machine when it changes.
+static std::string displays_sig(App& app, Machine* m)
 {
-    Machine* m = app.host.machine();
-    uint64_t gen = app.host.machine_generation();
-    // switched off, full screen, minimized: later; a machine loaded in this frame (a menu): after its windows open
-    // (open_machine_windows at the next frame, machine_side_width)
-    if (gen == app.fit_gen || gen != app.title_gen || !m || layout_held()) return;
-    app.fit_gen = gen;
     DisplayDevice* gfx[MAX_GFX_VIEWS];
     int n = graphic_displays(m, gfx);
     std::string sig = app.host.machine_file();
@@ -1160,6 +1216,20 @@ static void refit_displays(App& app)
         else snprintf(part, sizeof(part), "|-");
         sig += part;
     }
+    return sig;
+}
+
+static void refit_displays(App& app)
+{
+    Machine* m = app.host.machine();
+    uint64_t gen = app.host.machine_generation();
+    // switched off, full screen, minimized: later; a machine loaded in this frame (a menu): after its windows open
+    // (open_machine_windows at the next frame, machine_side_width)
+    if (gen == app.fit_gen || gen != app.title_gen || !m || layout_held()) return;
+    app.fit_gen = gen;
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    std::string sig = displays_sig(app, m);
     bool first = app.fit_sig.empty();
     if (sig == app.fit_sig) return;
     app.fit_sig = sig;
@@ -1244,7 +1314,8 @@ static void focus_keeping_order(ImGuiWindow* target, const ImVector<ImGuiWindow*
 }
 
 // The window of the main output (plan_layout): the console screen, or the display named by "main_display" (the games:
-// CGA-1V, BGP-1S); the console screen when that one has no window (yet).
+// CGA-1V, BGP-1S); the console screen when that one has no window (yet, or hidden in View -> Displays); nullptr when
+// that is hidden too.
 static ImGuiWindow* main_output_window(App& app)
 {
     ImGuiWindow* w = nullptr;
@@ -1254,7 +1325,8 @@ static ImGuiWindow* main_output_window(App& app)
         w = ImGui::FindWindowByName(id);
         if (w && !(w->Active || w->WasActive)) w = nullptr;
     }
-    return w ? w : ImGui::FindWindowByName("###screen");
+    if (!w) w = ImGui::FindWindowByName("###screen");
+    return w && (w->Active || w->WasActive) ? w : nullptr;
 }
 
 // The keyboard to the main output after a machine starts (it is the display used last then, app.shot_target); the
@@ -1439,8 +1511,8 @@ void zoom_items(ZoomState& zs)
         zs.request = 0;
     }
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("The picture as large as its window allows (with integer scaling in whole multiples). "
-                                   "Resizing the window by hand fits it again."));
+        tip(tr("The picture as large as its window allows (with integer scaling in whole multiples). "
+               "Resizing the window by hand fits it again."));
     for (int p : k_zoom_steps) {
         char label[16];
         snprintf(label, sizeof(label), "%d %%", p);
@@ -1461,8 +1533,8 @@ void video_item(App& app, DisplayDevice* d, const char* name)
     if (ImGui::MenuItem(tr("Record video with sound"), "Ctrl+Alt+F5", false, d != nullptr))
         video_start(app.ui, d, name, display_px_aspect(app, d));
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("MP4 (H.264 + AAC) into work/videa through ffmpeg: 50 frames per second of emulated time, "
-                                   "enlarged 3x as shown, the sound of the machine."));
+        tip(tr("MP4 (H.264 + AAC) into work/videa through ffmpeg: 50 frames per second of emulated time, "
+               "enlarged 3x as shown, the sound of the machine."));
 }
 
 void shot_items(App& app, DisplayDevice* d, const char* name)
@@ -1475,7 +1547,7 @@ void shot_items(App& app, DisplayDevice* d, const char* name)
     if (d && m && d == m->display && ImGui::MenuItem(tr("Copy screen text"), "Ctrl+Shift+C")) copy_screen_text(app.ui);
     ImGui::MenuItem(tr("Screenshot enlarged 3x (as shown)"), nullptr, &app.ui.shot_enlarged);
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the screen (TV aspect)."));
+        tip(tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the screen (TV aspect)."));
     ImGui::Separator();
     video_item(app, d, name);
 }
@@ -1584,8 +1656,64 @@ static void mcp_set(App& app, bool on, int port)
     app.ui.mcp = app.mcp;
 }
 
-// View -> Settings: what used to be scattered in the menus (language, sound, mouse) and what had no place (MCP,
-// ffmpeg, the guides).
+// View -> Settings by sections (UX review 5.1): General, Appearance, Picture, Sound, Controls, Recording, and Advanced
+// (for developers: the MCP server; collapsed while the server is off). A form: the label of a row in the left column
+// (as wide as the widest label in the UI language), its control right of it; a check box sits in the right column with
+// its own text. Everything applies at once and is saved as before (the keys of the settings file are the same).
+struct SettingsForm {
+    float x;       // the column of the controls (window coordinates, as SameLine)
+    float right;   // the right edge of the content (screen)
+};
+
+// the labels of the rows (their widest sets the column of the controls), besides "Jazyk / Language" and "ffmpeg"
+static const char* const k_settings_labels[] = { "Text size", "Look", "Mode", "Windows", "Volume", "Mouse sensitivity",
+                                                 "Screenshots", "Videos" };
+
+// A row of the form: its label (nullptr: none) in the left column, the control next at f.x.
+static void settings_row(const SettingsForm& f, const char* label)
+{
+    if (label) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+        ImGui::SameLine(f.x);
+    } else {
+        ImGui::SetCursorPosX(f.x);
+    }
+}
+
+// The next control (w wide) on the same row when it fits, else on the next one in the column of the controls.
+static void settings_next(const SettingsForm& f, float w)
+{
+    if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + w <= f.right) ImGui::SameLine();
+    else ImGui::SetCursorPosX(f.x);
+}
+
+static float checkbox_width(const char* label)
+{
+    return ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize(label).x;
+}
+
+// A line of explanation under a control, in the column of the controls, wrapped; warn: in the colour of a warning.
+static void settings_note(const SettingsForm& f, const char* text, bool warn = false)
+{
+    ImGui::SetCursorPosX(f.x);
+    ImGui::PushStyleColor(ImGuiCol_Text, warn ? theme().warn : theme().text_dim);
+    ImGui::TextWrapped("%s", text);
+    ImGui::PopStyleColor();
+}
+
+// A folder the program writes into: Open folder (made when missing), its path (in the work root as work/...; the
+// whole path in the tooltip).
+static void settings_folder(const std::string& dir)
+{
+    ImGui::PushID(dir.c_str());
+    if (ImGui::Button(tr("Open folder"))) open_folder(dir);
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGui::TextUnformatted(data_relative(dir).c_str());
+    if (ImGui::IsItemHovered()) tip(dir.c_str());
+}
+
 static void draw_settings(App& app)
 {
     UiState& ui = app.ui;
@@ -1596,109 +1724,172 @@ static void draw_settings(App& app)
         ImGui::End();
         return;
     }
-    theme_section("Jazyk / Language");
+    SettingsForm f;
+    float lw = std::max(ImGui::CalcTextSize("Jazyk / Language").x, ImGui::CalcTextSize("ffmpeg").x);
+    for (const char* l : k_settings_labels) lw = std::max(lw, ImGui::CalcTextSize(tr(l)).x);
+    f.x = ImGui::GetCursorPosX() + lw + 1.5f * u;
+    f.right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    float slider_w = 12.0f * u;
+
+    theme_section(tr("General"));
+    settings_row(f, "Jazyk / Language");   // in both languages: findable in either
     UiLanguage cur = i18n_language();
     if (ImGui::RadioButton("Čeština", cur == LANG_CS)) set_ui_language(app, LANG_CS);
     ImGui::SameLine();
     if (ImGui::RadioButton("English", cur == LANG_EN)) set_ui_language(app, LANG_EN);
-
-    theme_section(tr("Look"));
-    ThemeVariant cv = app.look;
-    ThemeMode cm = app.look_mode;
-    if (app.look_override) theme_override(&cv, &cm);
-    for (int i = 0; i < THEME_VARIANTS && THEME_VARIANTS > 1; i++) {   // one look now: no choice
-        if (i) ImGui::SameLine();
-        if (ImGui::RadioButton(cur == LANG_CS ? k_themes[i].name_cs : k_themes[i].name_en, cv == i))
-            set_look(app, (ThemeVariant)i, cm);
-    }
-    static const char* const k_modes[] = { "As the system", "Light", "Dark" };
-    for (int i = 0; i < 3; i++) {
-        if (i) ImGui::SameLine();
-        if (ImGui::RadioButton(tr(k_modes[i]), cm == i)) set_look(app, cv, (ThemeMode)i);
-    }
+    settings_row(f, tr("Text size"));
     static int text_edit = 100;   // dragged: the size changes when the slider is released, not under the mouse
     static bool text_drag = false;
     if (!text_drag) text_edit = app.text_percent;
-    ImGui::SetNextItemWidth(12 * u);
-    ImGui::SliderInt(tr("Text size"), &text_edit, 100, 200, "%d %%");
+    ImGui::SetNextItemWidth(slider_w);
+    ImGui::SliderInt("##textsize", &text_edit, 100, 200, "%d %%");
     text_drag = ImGui::IsItemActive();
     if (ImGui::IsItemDeactivatedAfterEdit()) {
         app.text_percent = (text_edit + 5) / 10 * 10;
         app.restyle = true;
     }
+    settings_row(f, nullptr);
+    ImGui::Checkbox(tr("Guides open by themselves"), &ui.guides_auto);
+    const char* show_guides = tr("Show the hidden guides again");
+    settings_next(f, ImGui::CalcTextSize(show_guides).x + 2.0f * ImGui::GetStyle().FramePadding.x);
+    ImGui::BeginDisabled(ui.guides_hidden.empty());
+    if (ImGui::Button(show_guides)) ui.guides_hidden.clear();
+    ImGui::EndDisabled();
+
+    theme_section(tr("Appearance"));
+    ThemeVariant cv = app.look;
+    ThemeMode cm = app.look_mode;
+    if (app.look_override) theme_override(&cv, &cm);
+    for (int i = 0; i < THEME_VARIANTS && THEME_VARIANTS > 1; i++) {   // one look now: no choice
+        if (i) ImGui::SameLine();
+        else settings_row(f, tr("Look"));
+        if (ImGui::RadioButton(cur == LANG_CS ? k_themes[i].name_cs : k_themes[i].name_en, cv == i))
+            set_look(app, (ThemeVariant)i, cm);
+    }
+    settings_row(f, tr("Mode"));
+    static const char* const k_modes[] = { "As the system", "Light", "Dark" };
+    for (int i = 0; i < 3; i++) {
+        if (i) ImGui::SameLine();
+        if (ImGui::RadioButton(tr(k_modes[i]), cm == i)) set_look(app, cv, (ThemeMode)i);
+    }
     if (app.look_override)
-        ImGui::TextDisabled("%s", tr("The look of this run comes from --ui-theme; a choice here replaces it and is saved."));
+        settings_note(f, tr("The look of this run comes from --ui-theme; a choice here replaces it and is saved."));
     bool docked = layout_docked(app);
     const char* layout_tip = tr("Floating: every window where you put it. Docked: the main display in the middle, the "
                                 "other windows in a column at the right edge, as tabs (a tab can be dragged out). Each "
                                 "keeps its own window places: a choice brings back the places you left in it (the first "
                                 "time its default ones).");
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(tr("Windows:"));
-    ImGui::SameLine();
+    settings_row(f, tr("Windows"));
     if (ImGui::RadioButton(tr("Floating"), !docked)) set_layout(app, false);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", layout_tip);
+    if (ImGui::IsItemHovered()) tip(layout_tip);
     ImGui::SameLine();
     if (ImGui::RadioButton(tr("Docked"), docked)) set_layout(app, true);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", layout_tip);
+    if (ImGui::IsItemHovered()) tip(layout_tip);
     if (app.layout_override)
-        ImGui::TextDisabled("%s", tr("The window layout of this run comes from --ui-layout; a choice here replaces it and is "
-                                     "saved."));
+        settings_note(f, tr("The window layout of this run comes from --ui-layout; a choice here replaces it and is "
+                            "saved."));
+
+    theme_section(tr("Picture"));   // as in the menu View
+    settings_row(f, nullptr);
+    ImGui::Checkbox(tr("Integer scaling"), &app.integer_scale);
+    settings_next(f, checkbox_width(tr("TV aspect ratio")));
+    ImGui::Checkbox(tr("TV aspect ratio"), &app.tv_aspect);
+    settings_next(f, checkbox_width(tr("Smoothing (linear filtering)")));
+    ImGui::Checkbox(tr("Smoothing (linear filtering)"), &app.smooth);
 
     theme_section(tr("Sound"));
-    ImGui::Checkbox(tr("Sound"), &app.audio.enabled);
+    settings_row(f, nullptr);
+    ImGui::Checkbox(tr("Sound on"), &app.audio.enabled);
+    settings_row(f, tr("Volume"));
+    ImGui::SetNextItemWidth(slider_w);
+    ImGui::SliderInt("##volume", &app.audio.volume, 0, 100, "%d %%");
+    if (app.audio.failed) settings_note(f, tr("No sound device."), true);
+    settings_note(f, tr("Sound plays only at the emulation speed 100 %."));
+
+    theme_section(tr("Controls"));
+    settings_row(f, tr("Mouse sensitivity"));
+    ImGui::SetNextItemWidth(slider_w);
+    ImGui::SliderFloat("##mouse", &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
+    settings_row(f, nullptr);
+    ImGui::Checkbox(tr("PC mouse as the SAPI mouse"), &app.mouse.enabled);   // not saved (author): said by its label
+    if (ImGui::IsItemHovered())
+        tip(tr("A click into a screen of SAPI captures the PC mouse, it then moves the mouse of SAPI; the middle "
+               "button or Ctrl+F10 releases it. Not saved: off again at the next start."));
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(12 * u);
-    ImGui::SliderInt(tr("Volume"), &app.audio.volume, 0, 100, "%d %%");
-    if (app.audio.failed) ImGui::TextDisabled("%s", tr("No sound device."));
-    ImGui::TextDisabled("%s", tr("Sound plays only at the emulation speed 100 %."));
+    ImGui::TextDisabled("%s", tr("(until exit)"));
 
-    theme_section(tr("Mouse"));
-    ImGui::Checkbox(tr("PC mouse as the SAPI mouse (a click into a screen captures it)"), &app.mouse.enabled);
-    ImGui::SetNextItemWidth(12 * u);
-    ImGui::SliderFloat(tr("Mouse sensitivity"), &app.mouse.sensitivity, 0.25f, 4.0f, "%.2f");
-
-    theme_section(tr("Machine guides"));
-    ImGui::Checkbox(tr("Guides open by themselves"), &ui.guides_auto);
-    ImGui::BeginDisabled(ui.guides_hidden.empty());
-    if (ImGui::Button(tr("Show the hidden guides again"))) ui.guides_hidden.clear();
-    ImGui::EndDisabled();
-
-    theme_section(tr("MCP server (development with Claude)"));
-    bool on = app.mcp_pref;
-    if (ImGui::Checkbox(tr("MCP server on"), &on)) {
-        app.mcp_pref = on;
-        mcp_set(app, on, app.mcp_pref_port);
-    }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(7 * u);
-    int port = app.mcp_pref_port;
-    if (ImGui::InputInt(tr("Port"), &port, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue) && port > 0 && port < 65536) {
-        app.mcp_pref_port = port;
-        if (app.mcp_pref) mcp_set(app, true, port);
-    }
-    if (app.mcp && app.mcp->running()) {
-        ImGui::TextUnformatted(app.mcp->url().c_str());
-        ImGui::TextDisabled("claude mcp add --transport http sapiemu %s", app.mcp->url().c_str());
-    } else if (!app.mcp_error.empty()) {
-        ImGui::TextColored(theme().error, "%s", app.mcp_error.c_str());
-    } else if (app.mcp_pref) {
-        ImGui::TextDisabled("%s", tr("Not running now (started with --no-mcp)."));
-    } else {
-        ImGui::TextDisabled("%s", tr("Off. Only programs on this PC (127.0.0.1) can connect, it is for the development "
-                                     "of software for SAPI with Claude (docs/mcp.md)."));
-    }
-
-    theme_section(tr("Video"));
+    theme_section(tr("Recording"));
+    settings_row(f, nullptr);
+    ImGui::Checkbox(tr("Screenshot enlarged 3x (as shown)"), &ui.shot_enlarged);
+    if (ImGui::IsItemHovered())
+        tip(tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the "
+               "screen (TV aspect)."));
     static char ff[512];
     static bool ff_init = false;
     if (!ff_init) {
         snprintf(ff, sizeof(ff), "%s", ui.ffmpeg_path.c_str());
         ff_init = true;
     }
-    ImGui::SetNextItemWidth(-1);
+    settings_row(f, "ffmpeg");   // the name of the program
+    ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::InputTextWithHint("##ffmpeg", tr("ffmpeg.exe (empty = from PATH)"), ff, sizeof(ff))) ui.ffmpeg_path = ff;
-    ImGui::Checkbox(tr("Screenshot enlarged 3x (as shown)"), &ui.shot_enlarged);
+    // the ffmpeg the video would use: looked for when the window opens and when the field changes (PATH: many folders)
+    static std::string ff_found, ff_for;
+    static bool ff_looked = false;
+    if (!ff_looked || ImGui::IsWindowAppearing() || ff_for != ui.ffmpeg_path) {
+        ff_found = video_ffmpeg(ui);
+        ff_for = ui.ffmpeg_path;
+        ff_looked = true;
+    }
+    if (!ff_found.empty()) {
+        settings_note(f, ui.ffmpeg_path.empty() ? tr("Videos use ffmpeg from PATH.") : tr("Videos use this ffmpeg."));
+        if (ImGui::IsItemHovered()) tip(ff_found.c_str());
+    } else if (!ui.ffmpeg_path.empty()) {
+        settings_note(f, tr("No ffmpeg at this path: videos cannot be recorded."), true);
+    } else {
+        settings_note(f, tr("No ffmpeg: videos cannot be recorded (winget install ffmpeg, or its path above)."), true);
+    }
+    settings_row(f, tr("Screenshots"));
+    settings_folder(shot_dir());
+    settings_row(f, tr("Videos"));
+    settings_folder(video_dir());
+
+    ImGui::Spacing();
+    // collapsed while the server is off: a developer who turned it on sees its address
+    if (app.mcp_pref || !app.mcp_error.empty()) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::CollapsingHeader(tr("Advanced (for developers)"))) {
+        settings_row(f, nullptr);
+        bool on = app.mcp_pref;
+        if (ImGui::Checkbox(tr("MCP server on"), &on)) {
+            app.mcp_pref = on;
+            mcp_set(app, on, app.mcp_pref_port);
+        }
+        ImGui::SameLine();
+        ImGui::TextUnformatted(tr("Port"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(7 * u);
+        int port = app.mcp_pref_port;
+        if (ImGui::InputInt("##port", &port, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue) && port > 0 && port < 65536) {
+            app.mcp_pref_port = port;
+            if (app.mcp_pref) mcp_set(app, true, port);
+        }
+        if (app.mcp && app.mcp->running()) {
+            std::string add = "claude mcp add --transport http sapiemu " + app.mcp->url();
+            ImGui::SetCursorPosX(f.x);
+            ImGui::TextUnformatted(app.mcp->url().c_str());
+            settings_note(f, add.c_str());
+        } else if (!app.mcp_error.empty()) {
+            ImGui::SetCursorPosX(f.x);
+            ImGui::PushStyleColor(ImGuiCol_Text, theme().error);
+            ImGui::TextWrapped("%s", app.mcp_error.c_str());
+            ImGui::PopStyleColor();
+        } else if (app.mcp_pref) {
+            settings_note(f, tr("Not running now (started with --no-mcp)."));
+        } else {
+            settings_note(f, tr("Off. Only programs on this PC (127.0.0.1) can connect, it is for the development of "
+                                "software for SAPI with Claude (docs/mcp.md)."));
+        }
+    }
     ImGui::End();
 }
 
@@ -1812,8 +2003,8 @@ static void window_item(App& app, const char* label, const char* key, bool enabl
     bool covered = *open && layout_covered(id.c_str());
     if (ImGui::MenuItem(label, covered ? tr("covered") : nullptr, *open, enabled)) window_item_click(app, key);
     if (covered && ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("The window is covered by another one: a click brings it to the front, the next "
-                                   "click closes it."));
+        tip(tr("The window is covered by another one: a click brings it to the front, the next "
+               "click closes it."));
 }
 
 // An item that only opens a window (Settings, Keyboard shortcuts, About): an open one comes to the front.
@@ -1821,6 +2012,46 @@ static void open_window(bool* open, const char* id)
 {
     if (*open) layout_to_front(id);
     *open = true;
+}
+
+// The item of the window of a device (View; device: its key in k_machine_windows): enabled when the machine has the
+// device, or while the window is open (the item closes it); a disabled one tells why and where a machine with the
+// device is (device_missing). Otherwise as window_item.
+static void device_item(App& app, const char* label, const char* key, const char* device)
+{
+    bool has = machine_has_device(app.ui, device);
+    window_item(app, label, key, has || *menu_window_open(app, key));
+    if (!has && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        tip(device_missing(app.ui, device).c_str());
+}
+
+// View -> Displays: the display windows of the machine (the console screen, the graphic displays), named after their
+// cards; a check mark = shown. A hidden one is not drawn, the machine runs on; another machine shows them all again.
+static void displays_menu(App& app, Machine* m)
+{
+    if (!begin_menu(app, "Displays", "View")) return;
+    DisplayDevice* gfx[MAX_GFX_VIEWS];
+    int n = graphic_displays(m, gfx);
+    for (int k = -1; k < n; k++) {
+        bool shown = !display_hidden(app, k);
+        const char* name =
+            k < 0 ? display_name(m ? m->display : nullptr, tr("Screen")) : display_name(gfx[k], tr("Graphics"));
+        ImGui::PushID(k);   // two cards of one type may have the same name
+        if (ImGui::MenuItem(name, nullptr, shown)) display_show(app, k, !shown);
+        ImGui::PopID();
+    }
+    ImGui::Separator();
+    ImGui::TextDisabled("%s", tr("A hidden display goes on running."));
+    ImGui::EndMenu();
+}
+
+// View -> Open the folder of screenshots and videos: Explorer in work/snimky or work/videa (made when missing); the
+// folder on the right, the whole path in the tooltip.
+static void folder_item(const char* label, const std::string& dir)
+{
+    std::string shown = data_relative(dir);
+    if (ImGui::MenuItem(label, shown.c_str())) open_folder(dir);
+    if (ImGui::IsItemHovered()) tip(dir.c_str());
 }
 
 void draw_menu(App& app)
@@ -1870,8 +2101,8 @@ void draw_menu(App& app)
             m = app.host.machine();   // the old machine is gone
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", tr("As the power switch: the memory is lost, the cards, switches and media stay as they "
-                                       "are. Reset (F12) keeps the memory."));
+            tip(tr("As the power switch: the memory is lost, the cards, switches and media stay as they "
+                   "are. Reset (F12) keeps the memory."));
         if (ImGui::MenuItem(tr("Reset"), "F12", false, m != nullptr)) request_reset(app.ui);
         ImGui::MenuItem(tr("Pause"), "F5", &app.host.paused);
         if (ImGui::BeginMenu(tr("Emulation speed"))) {   // the whole machine against real time
@@ -1908,9 +2139,11 @@ void draw_menu(App& app)
                 if (!p.keyboard || plotter) continue;
                 bool sel = kb && strcmp(kb->type_name(), p.name) == 0;
                 if (ImGui::MenuItem(p.name, nullptr, sel) && !sel) {
+                    // through the description, as View -> Colour: a change of the machine the configurator shows (save
+                    // it or keep it for the next start), not lost at the next power cycle
                     std::string err;
-                    if (!m->set_keyboard(p.name, err)) {
-                        app.error_text = std::string(tr("Cannot change the keyboard")) + ":\n" + err;
+                    if (!rack_set_keyboard(app.ui, p.config, err)) {
+                        app.error_text = std::string(tr("Cannot change the keyboard")) + ":\n" + tr_core(err);
                         app.show_error = true;
                     }
                     kb = m->keyboard();   // the old keyboard is gone
@@ -1922,14 +2155,14 @@ void draw_menu(App& app)
                 app.ui.focus_display = 2;   // what comes next is typed on the screen
             }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("%s", tr("The text of the clipboard is typed on the keyboard of SAPI (lines end with "
-                                           "Enter), e.g. a BASIC program from a file."));
+                tip(tr("The text of the clipboard is typed on the keyboard of SAPI (lines end with "
+                       "Enter), e.g. a BASIC program from a file."));
             if (ImGui::MenuItem(tr("Game mode: keys by position, Shift = SHIFT"), "Ctrl+F7", &app.game_keys, kb && kb->held_keys()))
                 kb->release_all();
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                ImGui::SetTooltip("%s", tr("ANK-1: letters by their label, digits by position, Shift of the PC = SHIFT, keys "
-                                           "pressed together stay together. Symbols as on the ANK-1 (SHIFT + key). Off: "
-                                           "typing by characters (comma = SHIFT + N)."));
+                tip(tr("ANK-1: letters by their label, digits by position, Shift of the PC = SHIFT, keys "
+                       "pressed together stay together. Symbols as on the ANK-1 (SHIFT + key). Off: "
+                       "typing by characters (comma = SHIFT + N)."));
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(tr("Sound, joystick and mouse"))) {
@@ -1943,11 +2176,13 @@ void draw_menu(App& app)
             }
             ImGui::Separator();
             ImGui::MenuItem(tr("PC mouse as the SAPI mouse (a click into a screen captures it)"), nullptr, &app.mouse.enabled);
+            if (ImGui::IsItemHovered()) tip(tr("Not saved: off again at the next start."));
             ImGui::TextDisabled("%s", tr("Middle button or Ctrl+F10 releases the captured mouse."));
             ImGui::Separator();
-            if (ImGui::MenuItem(tr("Volume, mouse sensitivity..."))) app.ui.show_settings = true;
+            if (ImGui::MenuItem(tr("Volume, mouse sensitivity..."))) open_window(&app.ui.show_settings, "###Settings");
             ImGui::EndMenu();
         }
+        window_item(app, tr("Media..."), "Media");   // the same window as View -> Media
         ImGui::EndMenu();
     }
     if (begin_menu(app, "Debug")) {
@@ -1963,8 +2198,8 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Breakpoint on / off"), "F9", false, m && m->cpu && app.ui.show_debugger))
             debug_toggle_breakpoint(app.ui);
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", tr("In the debugger: F9 sets or removes the breakpoint at the disassembly row under "
-                                       "the mouse, else at the PC (from this menu at the PC)."));
+            tip(tr("In the debugger: F9 sets or removes the breakpoint at the disassembly row under "
+                   "the mouse, else at the PC (from this menu at the PC)."));
 #ifndef NDEBUG
         ImGui::Separator();   // tuning the look live; Export copies the values for frontend/theme_data.cpp
         ImGui::MenuItem(tr("Style editor (development)"), nullptr, &app.style_editor);
@@ -1973,19 +2208,16 @@ void draw_menu(App& app)
     }
     if (begin_menu(app, "View")) {
         window_item(app, tr("Machine configurator..."), "rack");
-        window_item(app, tr("Serial terminal"), "Serial terminal");
+        ImGui::Separator();
+        // the windows of devices: those the machine has (an open one closes)
+        device_item(app, tr("Serial terminal"), "Serial terminal", "terminal");
         window_item(app, tr("Media"), "Media");
-        bool has_printer = false, has_plotter = false;   // windows of devices the machine has
-        if (m)
-            for (auto& c : m->cards) {
-                if (c->printer()) has_printer = true;
-                if (c->plotter()) has_plotter = true;
-            }
-        window_item(app, tr("Printer"), "Printer", has_printer || app.ui.show_printer);
-        window_item(app, tr("Plotter (Minigraf, XY 4130)"), "Minigraf", has_plotter || app.ui.show_plotter);
-        window_item(app, tr("IMS-2 measuring bench"), "IMS-2 measuring bench", (m && m->plant) || app.ui.show_ims2);
-        window_item(app, tr("Diagnostic board (K3)"), "Diagnostic board (K3)", m && m->cpu && m->cpu->k3_diag());
-        window_item(app, tr("APS-5: panel and furnaces"), "APS-5: panel and furnaces", m && m->plant);
+        device_item(app, tr("Printer"), "Printer", "printer");
+        device_item(app, tr("Plotter (Minigraf, XY 4130)"), "Minigraf", "minigraf");
+        device_item(app, tr("IMS-2 measuring bench"), "IMS-2 measuring bench", "ims2");
+        device_item(app, tr("Diagnostic board (K3)"), "Diagnostic board (K3)", "diag");
+        device_item(app, tr("APS-5: panel and furnaces"), "APS-5: panel and furnaces", "aps5");
+        displays_menu(app, m);
         ImGui::Separator();
         ink_menu(app, m);
         DisplayDevice* ud = nullptr;   // the display used last: the zoom and the full screen are its
@@ -1999,19 +2231,26 @@ void draw_menu(App& app)
         }
         if (ImGui::MenuItem(tr("Full screen"), "Alt+Enter", false, ud != nullptr)) fullscreen_set(app, uk);
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", tr("The display used last alone over the whole monitor, without the menu and the other "
-                                       "windows. Alt+Enter or its right click menu leaves it; Esc goes to SAPI."));
-        if (ImGui::MenuItem(tr("Screenshot"), "Ctrl+F5", false, m && m->display)) shot_now(app);
-        if (ImGui::MenuItem(tr("Copy screen text"), "Ctrl+Shift+C", false, m && m->display)) copy_screen_text(app.ui);
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", tr("The text of the console display to the clipboard (in the serial terminal "
-                                       "Ctrl+Shift+C copies its text)."));
-        if (ImGui::MenuItem(video_recording(app.ui) ? tr("Stop the video") : tr("Record video with sound"), "Ctrl+Alt+F5",
-                            false, m && m->display))
-            video_toggle(app);
+            tip(tr("The display used last alone over the whole monitor, without the menu and the other "
+                   "windows. Alt+Enter or its right click menu leaves it; Esc goes to SAPI."));
+        // the picture (View -> Settings -> Picture has them too), then what is taken from it
         ImGui::MenuItem(tr("Integer scaling"), nullptr, &app.integer_scale);
         ImGui::MenuItem(tr("TV aspect ratio"), nullptr, &app.tv_aspect);
         ImGui::MenuItem(tr("Smoothing (linear filtering)"), nullptr, &app.smooth);
+        ImGui::Separator();
+        if (ImGui::MenuItem(tr("Screenshot"), "Ctrl+F5", false, m && m->display)) shot_now(app);
+        if (ImGui::MenuItem(tr("Copy screen text"), "Ctrl+Shift+C", false, m && m->display)) copy_screen_text(app.ui);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            tip(tr("The text of the console display to the clipboard (in the serial terminal "
+                   "Ctrl+Shift+C copies its text)."));
+        if (ImGui::MenuItem(video_recording(app.ui) ? tr("Stop the video") : tr("Record video with sound"), "Ctrl+Alt+F5",
+                            false, m && m->display))
+            video_toggle(app);
+        if (begin_menu(app, "Open the folder of screenshots and videos", "View")) {
+            folder_item(tr("Screenshots"), shot_dir());
+            folder_item(tr("Videos"), video_dir());
+            ImGui::EndMenu();
+        }
         ImGui::Separator();
         if (begin_menu(app, "Windows", "View")) {   // the open windows: a click brings one to the front
             std::vector<LayoutOpenWindow> wins;
@@ -2028,19 +2267,20 @@ void draw_menu(App& app)
         }
         if (ImGui::MenuItem(tr("Arrange open windows"))) app.ui.layout_arrange = true;
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", layout_docked(app)
-                                        ? tr("The dock is built again as by Default window layout (the closed windows "
-                                             "go back into it too).")
-                                        : tr("The open windows go to the places of the default layout, a zoom chosen "
-                                             "from the menu stays; the closed ones keep their places (Default window "
-                                             "layout forgets them)."));
+            tip(layout_docked(app)
+                    ? tr("The dock is built again as by Default window layout (the closed windows "
+                         "go back into it too).")
+                    : tr("The open windows go to the places of the default layout, a zoom chosen "
+                         "from the menu stays; the closed ones keep their places (Default window "
+                         "layout forgets them)."));
         if (ImGui::MenuItem(tr("Default window layout"))) app.ui.layout_reset = true;
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", layout_docked(app)
-                                        ? tr("Docks the windows again: the main display in the middle, the other windows "
-                                             "in the column at the right edge (View -> Settings -> Windows).")
-                                        : tr("Undocks all windows (a window dragged to an edge sticks there) and puts them "
-                                             "back at their first places and sizes."));
+            tip(layout_docked(app)
+                    ? tr("Docks the windows again: the main display in the middle, the other windows "
+                         "in the column at the right edge (View -> Settings -> Appearance -> "
+                         "Windows).")
+                    : tr("Undocks all windows (a window dragged to an edge sticks there) and puts them "
+                         "back at their first places and sizes."));
         ImGui::Separator();
         if (ImGui::BeginMenu("Jazyk / Language")) {   // in both languages: findable in either
             UiLanguage cur = i18n_language();
@@ -2118,7 +2358,7 @@ void draw_menu(App& app)
             }
             ImGui::PopStyleColor();
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", tr("Errors written into the Log since it was open last. Click: open the Log."));
+                tip(tr("Errors written into the Log since it was open last. Click: open the Log."));
             ImGui::SameLine();
         }
         if (!pend.empty()) {
@@ -2130,16 +2370,16 @@ void draw_menu(App& app)
             }
             ImGui::PopStyleColor();
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s\n%s", tr("Configuration changed: restart"),
-                                  tr("The configurator holds changes the running machine does not have yet. Click: open "
-                                     "the configurator (Restart with this configuration applies them)."));
+                tipf("%s\n%s", tr("Configuration changed: restart"),
+                     tr("The configurator holds changes the running machine does not have yet. Click: open "
+                        "the configurator (Restart with this configuration applies them)."));
             ImGui::SameLine();
         }
         ImGui::TextUnformatted(st.c_str());
         if (kb_leds && ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program "
-                                       "(P0-OUT D5, D7), not the Shift key of the PC. Programs making sound on D5 "
-                                       "(Manic Miner) light the LED SHIFT with it."));
+            tip(tr("LED SHIFT, LED ERR: the lamps on the SAPI keyboard (ANK-1), lit by the program "
+                   "(P0-OUT D5, D7), not the Shift key of the PC. Programs making sound on D5 "
+                   "(Manic Miner) light the LED SHIFT with it."));
     }
     ImGui::EndMainMenuBar();
 }
@@ -2248,6 +2488,7 @@ const ImGuiWindowFlags k_display_flags = ImGuiWindowFlags_NoCollapse | ImGuiWind
 
 void draw_screen(App& app)
 {
+    if (display_hidden(app, -1)) return;   // View -> Displays
     if (app.start_focus && app.main_output < 0) ImGui::SetNextWindowFocus();   // type right after start
     Machine* m = app.host.machine();
     DisplayDevice* d = m ? m->display : nullptr;
@@ -2264,8 +2505,10 @@ void draw_screen(App& app)
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     zoom_track(app.screen_zs);
-    app.ui.screen_focused = ImGui::IsWindowFocused();
-    if (app.ui.screen_focused) app.shot_target = -1;
+    if (ImGui::IsWindowFocused()) {   // typing goes to the machine (draw_screens)
+        app.ui.screen_focused = true;
+        app.shot_target = -1;
+    }
     if (app.fullscreen != FS_OFF) {   // hidden: the full screen window draws the picture (draw_fullscreen)
         ImGui::End();
         return;
@@ -2294,6 +2537,7 @@ void draw_screen(App& app)
 // The window of the graphic display k (DGD-1...): its own video output, so its own window.
 static void draw_graphic_screen(App& app, Machine* m, int k, DisplayDevice* d)
 {
+    if (display_hidden(app, k)) return;   // View -> Displays
     GfxView& v = app.gfx[k];
     Card* c = dynamic_cast<Card*>(d);
     char title[96], id[16], wid[20];
@@ -2323,24 +2567,39 @@ static void draw_graphic_screen(App& app, Machine* m, int k, DisplayDevice* d)
     ImGui::End();
 }
 
-// All display windows. The main output first: it takes its place before the others (layout.cpp).
+// All display windows (not those hidden in View -> Displays). The main output first: it takes its place before the
+// others (layout.cpp). The keyboard goes to the machine when one of them is focused (ui.screen_focused, for the key
+// events of the next frame; each window only sets it, so the main output drawn first keeps it).
 void draw_screens(App& app)
 {
     Machine* m = app.host.machine();
     DisplayDevice* gfx[MAX_GFX_VIEWS];
     int n = graphic_displays(m, gfx);
+    app.ui.screen_focused = false;
     if (app.main_output >= 0 && app.main_output < n) draw_graphic_screen(app, m, app.main_output, gfx[app.main_output]);
     draw_screen(app);
     for (int k = 0; k < n; k++)
         if (k != app.main_output) draw_graphic_screen(app, m, k, gfx[k]);
     app.start_focus = false;
+    if (app.display_front != FS_OFF) {   // shown again: to the front once its window was drawn in the frame before too
+        char id[16];
+        if (app.display_front >= 0) snprintf(id, sizeof(id), "###gfx%d", app.display_front);
+        else snprintf(id, sizeof(id), "###screen");
+        ImGuiWindow* w = ImGui::FindWindowByName(id);
+        if (!w || app.display_front >= n || display_hidden(app, app.display_front)) app.display_front = FS_OFF;
+        else if (w->Active && w->WasActive) {
+            layout_to_front(id);
+            app.display_front = FS_OFF;
+        }
+    }
 }
 
-// Full screen (Alt+Enter, fullscreen_set): the display alone over the whole OS window, without the menu bar and the
-// other windows. They are drawn as always (their work goes on, their places and the dock stay as they are), only
-// hidden: not drawn and not under the mouse. The dialogs (an error, a question) come over the picture. The picture
-// fits the monitor (integer scaling and the TV aspect apply); the right click menu leaves it, switches to another
-// display of the machine, sets the scaling and takes screenshots. Called after the other windows.
+// Full screen (Alt+Enter, fullscreen_set): the display alone over the whole OS window (also one hidden in View ->
+// Displays, chosen from its right click menu), without the menu bar and the other windows. They are drawn as always
+// (their work goes on, their places and the dock stay as they are), only hidden: not drawn and not under the mouse.
+// The dialogs (an error, a question) come over the picture. The picture fits the monitor (integer scaling and the TV
+// aspect apply); the right click menu leaves it, switches to another display of the machine, sets the scaling and takes
+// screenshots. Called after the other windows.
 static void draw_fullscreen(App& app)
 {
     if (app.fullscreen == FS_OFF) return;
@@ -2471,6 +2730,43 @@ void draw_error(App& app)
         if (theme_accent_button(tr("Close")) || popup_enter() || popup_escape()) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
+}
+
+// Another GUI runs over the same settings or work folder (app_run): said at the start, after an Error of the start
+// (one modal popup at a time). Continue (the default, Enter, Esc) goes on (the machine runs, the layout is saved);
+// Quit leaves without saving the settings, the window layout and the machine of this window (they stay as the other
+// one has them).
+void draw_instance_warning(App& app)
+{
+    if (!app.instance_warn) return;
+    const char* id = tr_id("Another SAPIemu is running");
+    if (!ImGui::IsPopupOpen(id) && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) ImGui::OpenPopup(id);
+    if (!ImGui::BeginPopupModal(id, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    float u = ImGui::GetFontSize();
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 34.0f * u);
+    ImGui::TextUnformatted(tr("Another window of SAPIemu already runs with the same settings or the same work folder:"));
+    ImGui::TextDisabled("%s", app.instance_paths.c_str());
+    ImGui::TextUnformatted(tr("Both write there: one window may overwrite the settings, the window layout, the RAM "
+                              "disks, disks and battery memories of the other. Use one window, or quit this one."));
+    ImGui::PopTextWrapPos();
+    ImGui::Spacing();
+    bool go = theme_accent_button(tr("Continue"));
+    ImGui::SetItemDefaultFocus();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Quit"))) {
+        app.quit_nosave = true;
+        app.quit = true;
+    }
+    if (go || app.quit || popup_enter() || popup_escape()) {
+        app.instance_warn = false;
+        if (!app.quit && app.ini_held) {   // Continue: the window layout is saved again from now on
+            ImGui::GetIO().IniFilename = app.ini_held;
+            ImGui::MarkIniSettingsDirty();   // the places taken while the warning waited
+        }
+        app.ini_held = nullptr;
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
 }
 
 } // namespace
@@ -2624,6 +2920,96 @@ const MachineWindow* machine_windows(int* count)
     return k_machine_windows;
 }
 
+// the devices of machine_has_device remembered for a switched off machine (UiState::devices_last: bit i = k_devices[i])
+static const char* const k_devices[] = { "aps5", "ims2", "diag", "terminal", "printer", "minigraf" };
+static const int k_device_count = (int)(sizeof(k_devices) / sizeof(k_devices[0]));
+
+static bool running_has_device(UiState& ui, Machine* m, const char* key)
+{
+    if (!strcmp(key, "aps5")) return aps5_in_machine(ui);
+    if (!strcmp(key, "ims2")) return ims2_in_machine(ui);
+    if (!strcmp(key, "diag")) return m->cpu && m->cpu->k3_diag();
+    if (!strcmp(key, "terminal")) return !m->serials.empty();
+    for (auto& c : m->cards) {
+        if (!strcmp(key, "printer") && c->printer()) return true;
+        if (!strcmp(key, "minigraf") && c->plotter()) return true;
+    }
+    return false;
+}
+
+void machine_devices_seen(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    if (!m) return;   // switched off: the devices of the machine as it ran stay
+    ui.devices_last = 0;
+    for (int i = 0; i < k_device_count; i++)
+        if (running_has_device(ui, m, k_devices[i])) ui.devices_last |= 1u << i;
+    ui.devices_known = true;
+}
+
+bool machine_has_device(UiState& ui, const char* key)
+{
+    if (!strcmp(key, "media")) return true;   // the window says when there is none
+    if (Machine* m = ui.host->machine()) return running_has_device(ui, m, key);
+    // switched off: the machine that ran (it comes back as it was); before any ran, its windows say it is off
+    for (int i = 0; i < k_device_count; i++)
+        if (!strcmp(key, k_devices[i])) return !ui.devices_known || (ui.devices_last >> i & 1u);
+    return false;
+}
+
+bool device_window_off(UiState& ui)
+{
+    if (ui.host->machine()) return false;
+    ImGui::TextWrapped("%s", tr("The machine is switched off (Machine -> Switch on)."));
+    return true;
+}
+
+// "File -> Choose a machine -> <category>" of a machine file in the index, "-> <its title>" after it with `title`, in
+// the language of the UI (the names of the index, so they never differ from the window); empty when it is not there.
+static std::string browser_place(UiState& ui, const char* file, bool title)
+{
+    std::string t = machine_title(ui, file, std::string());   // reads the index once
+    const MachineEntry* e = machine_index_find(ui.machine_index, file);
+    if (!e || e->category < 0 || e->category >= (int)ui.machine_index.categories.size()) return std::string();
+    const MachineCategory& c = ui.machine_index.categories[(size_t)e->category];
+    bool en = i18n_language() == LANG_EN;
+    std::string s = std::string(tr("File")) + " -> " + tr("Choose a machine") + " -> " +
+                    (en && !c.name_en.empty() ? c.name_en : c.name);
+    if (title) s += " -> " + t;
+    return s;
+}
+
+std::string device_missing(UiState& ui, const char* key)
+{
+    const struct {
+        const char* key;
+        const char* none;     // tr() key: the machine has no such device
+        const char* file;     // a machine with it in the window Choose a machine, or nullptr
+        bool title;           // name that machine (else its category only: there are more)
+        const char* config;   // tr() key: where it goes in the configurator, or nullptr
+    } k[] = {
+        { "aps5", "This machine has no APS-5 measuring unit.", "machines/aps5.sapi", true, nullptr },
+        { "ims2", "This machine has no IMS-2 measuring bench.", "machines/zps/ZPS-2_DPS-1_IMS-2.sapi", true, nullptr },
+        { "minigraf", "This machine has no plotter.", "machines/zps/ZPS-2_MIKOS_V5_Minigraf.sapi", false,
+          "In the configurator: DPP-1 (Minigraf 0507, XY 4130) or JPR-1 (XY 4130 on X3)." },
+        { "diag", "This machine has no diagnostic board.", "machines/jpr1s_bgp1s.sapi", true,
+          "In the configurator: K3 of JPR-1S or JPR-1X = diagnostic board." },
+        { "printer", "This machine has no printer.", nullptr, false,
+          "In the configurator: the printer on X3 of the CPU card, on DPP-1 or on PKT-1." },
+        { "terminal", "This machine has no serial port.", nullptr, false,
+          "In the configurator: a card with a serial port (DSM-1, DSP-1, RSW-1...)." },
+    };
+    for (const auto& d : k) {
+        if (strcmp(key, d.key) != 0) continue;
+        std::string s = tr(d.none);
+        std::string place = d.file ? browser_place(ui, d.file, d.title) : std::string();
+        if (!place.empty()) s += std::string("\n") + tr("Machines with this device:") + " " + place + ".";
+        if (d.config) s += std::string("\n") + tr(d.config);
+        return s;
+    }
+    return std::string();
+}
+
 static size_t snap_keys(const UiSnapshot* snap)
 {
     return snap ? snap->keys.size() : 0;
@@ -2664,6 +3050,40 @@ static void snap_key(App& app, const std::string& spec, bool down)
     ev.key.down = down;
     ev.key.timestamp = SDL_GetTicksNS();
     SDL_PushEvent(&ev);
+    // a character key without Ctrl and Alt types its character too, as the keyboard does (the text event after the key)
+    unsigned char c = name.size() == 1 ? (unsigned char)name[0] : 0;
+    if (down && c > ' ' && c < 127 && !(mod & (SDL_KMOD_LCTRL | SDL_KMOD_LALT))) {
+        static char text[128][2];   // the event keeps the pointer
+        text[c][0] = (char)((mod & SDL_KMOD_LSHIFT) ? toupper(c) : tolower(c));
+        text[c][1] = 0;
+        SDL_Event t;
+        SDL_zero(t);
+        t.type = SDL_EVENT_TEXT_INPUT;
+        t.text.windowID = SDL_GetWindowID(app.window);
+        t.text.text = text[c];
+        t.text.timestamp = SDL_GetTicksNS();
+        SDL_PushEvent(&t);
+    }
+}
+
+// Files dropped on the window (SDL_EVENT_DROP_FILE, --ui-drop): one in each frame, after the menu bar (file_drop does what
+// the menus do with it). Not while a modal window waits for its answer (the question of the file before, an Error): the
+// file is not taken, the status bar says so. The keyboard goes back to the display (Explorer had the mouse).
+static void drop_frame(App& app)
+{
+    if (app.drops.empty()) return;
+    UiState& ui = app.ui;
+    // a modal window opens in this frame (a question of the file before, an Error not shown yet): the next frame decides
+    if (ui.hex_ask || ui.bin_ask || ui.tprog_ask || ui.rack.ask_unsaved || app.show_error || ui.notice_error) return;
+    std::string path = app.drops.front();
+    app.drops.erase(app.drops.begin());
+    if (ImGui::GetTopMostPopupModal()) {
+        ui_notice(ui, true, std::string(tr("Close the open dialog first, then drop the file again")) + ": " + path);
+        return;
+    }
+    LOGI("file dropped on the window: %s", path.c_str());
+    file_drop(ui, path);
+    ui.focus_display = 2;
 }
 
 // A start that fails: the message on stderr, in the log and in a message box (a user who started the
@@ -2713,10 +3133,29 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     }
     if (snap && settings_file.empty()) app.ini_path.clear();   // a self-check uses a layout only when given
     app.ini_docked_path = ini_docked_name(app.ini_path);
-    // the log of this run next to the settings (sapiemu.log; FILE.log for --settings FILE), for error reports
+    // one GUI over its settings and its work folder (the RAM disks, disks and battery memories): a second one is warned
+    // (draw_instance_warning), not stopped. sapiemu-cli and the UI snapshots run beside it freely and take no lock.
+    bool settings_taken = false;
+    if (!snap) {
+        settings_taken = !app.settings_path.empty() && file_lock_try(app.settings_path + ".lock") == 0;
+        make_dirs(work_root());
+        bool work_taken = file_lock_try(path_join(work_root(), "sapiemu-gui.lock")) == 0;
+        if (settings_taken) app.instance_paths = app.settings_path;
+        if (work_taken) app.instance_paths += (settings_taken ? "\n" : "") + work_root();
+        app.instance_warn = settings_taken || work_taken;
+        if (app.instance_warn) LOGW("another SAPIemu window runs over the same settings or work folder: %s",
+                                    app.instance_paths.c_str());
+    } else if (snap->second) {   // --ui-second: the picture of the warning
+        app.instance_paths = (app.settings_path.empty() ? std::string("sapiemu-settings.json") : app.settings_path) +
+                             "\n" + work_root();
+        app.instance_warn = true;
+    }
+    // the log of this run next to the settings (sapiemu.log; FILE.log for --settings FILE), for error reports; a
+    // second GUI over the same settings does not take the log of the first one (sapiemu.2.log)
     if (!app.settings_path.empty()) {
         std::string log_file = !settings_file.empty() ? settings_file + ".log"
                                                       : path_join(path_dir(app.settings_path), "sapiemu.log");
+        if (settings_taken) log_file = log_file.substr(0, log_file.size() - 4) + ".2.log";
         // the log of the run before stays as sapiemu.prev.log (one generation): after a crash the tester starts
         // SAPIemu again to reach Report a bug, and that start must not throw the log of the crash away
         std::string prev = log_file.substr(0, log_file.size() - 4) + ".prev.log";   // log_file ends with ".log"
@@ -2887,7 +3326,18 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_settings = snap->settings;
         app.ui.show_shortcuts = snap->shortcuts;
         app.ui.show_report = snap->report;
+        if (!snap->help.empty()) {   // Help -> First steps or Glossary (not over Choose a machine of a first start)
+            help_open(app.ui, snap->help == "glossary" ? HELP_GLOSSARY : HELP_FIRST_STEPS);
+            app.ui.show_browser = snap->browser;
+            app.ui.help_set_open = snap->help_open;
+            app.ui.help_scroll = snap->help_scroll;
+        }
         if (snap->debugger) app.ui.show_debugger = true;
+        if (!snap->memory.empty()) {   // as typed into Go to with Enter
+            app.ui.show_memory = true;
+            snprintf(app.ui.mem_goto, sizeof(app.ui.mem_goto), "%s", snap->memory.c_str());
+            app.ui.mem_jump = true;
+        }
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
@@ -2900,6 +3350,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;
         g_picture_only = snap->picture && !snap->crop.empty();
+        if (snap->save_copy) rack_save_copies_set(true);   // Save as a release build does it (My machines)
     }
 
     // the MCP server: View -> Settings; settings of an older version without the key keep it on as it was, a new
@@ -2927,31 +3378,47 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             else if (ev.type == SDL_EVENT_WINDOW_FOCUS_LOST) {   // keys released elsewhere are not seen
                 if (KeyboardDevice* k = held_keyboard(app)) k->release_all();
                 theme_titlebar(app.window);   // the dimmed text of an inactive window
-                app.host.save_media_new();   // the disks and RAM disks written so far into their files (autosave)
+                // the disks and RAM disks written so far into their files (autosave); not before the answer to the
+                // warning about another window
+                if (!app.instance_warn) app.host.save_media_new();
             }
             else if (ev.type == SDL_EVENT_WINDOW_FOCUS_GAINED) theme_titlebar(app.window);
             else if (ev.type == SDL_EVENT_WINDOW_LEAVE_FULLSCREEN && app.fullscreen != FS_OFF && !app.snapshot)
                 fullscreen_set(app, FS_OFF);   // the system took the full screen away
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
+            else if (ev.type == SDL_EVENT_DROP_FILE && ev.drop.data) app.drops.push_back(ev.drop.data);   // drop_frame
             else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
             else if (ev.type == SDL_EVENT_SYSTEM_THEME_CHANGED) app.restyle = true;   // Windows light / dark
             else if (ev.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED || ev.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
                      ev.type == SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED)
                 follow_display_scale(app);   // another monitor, or its scale changed in the system
         }
-        app.host.poll();   // MCP commands
+        if (!app.instance_warn) app.host.poll();   // MCP commands (they wait for the answer to the warning)
         if (app.title_gen != app.host.machine_generation()) {   // loaded by MCP, the menu or the configurator
             app.title_gen = app.host.machine_generation();
+            app.title_file = app.host.machine_file();
             set_title(app);
             open_machine_windows(app);
             app.focus_screen = 3;
             // the main output is the display used last now (it takes the keyboard, focus_screen_window); a full
             // screen shows it
             Machine* nm = app.host.machine();
+            machine_devices_seen(app.ui);   // the View items of its devices, also once it is switched off
+            if (nm) {   // another machine shows all its displays (View -> Displays); switched off: as they were
+                std::string sig = displays_sig(app, nm);
+                if (sig != app.hidden_sig) {
+                    app.hidden_sig = sig;
+                    memset(app.display_hidden, 0, sizeof(app.display_hidden));
+                }
+            }
             DisplayDevice* gfx[MAX_GFX_VIEWS];
             app.shot_target = main_output(nm, gfx, graphic_displays(nm, gfx));
+            if (display_hidden(app, app.shot_target)) app.shot_target = shown_display(app);
             if (app.fullscreen != FS_OFF) app.fullscreen = app.shot_target;
             app.dock_follow = layout_docked(app);   // docked: its main output into the middle (dock_follow)
+        } else if (app.title_file != app.host.machine_file()) {   // saved as a copy in My machines: its name
+            app.title_file = app.host.machine_file();
+            set_title(app);
         }
         osd_follow(app);
         if (app.ui.quit || app.host.quit_requested) app.quit = true;
@@ -2977,7 +3444,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
         if (app.mouse.captured) io.ConfigFlags |= ImGuiConfigFlags_NoMouse;   // the GUI does not see it
         else io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
-        app.host.frame(now - last);
+        // not while the warning about another window waits: nothing of this one goes into the shared files before the
+        // answer (Quit drops the machine as it was loaded)
+        if (!app.instance_warn) app.host.frame(now - last);
         last = now;
         audio_frame(app.audio, app.host.machine(),
                     !snap && !app.host.paused && !app.host.max_speed && app.host.pace_percent == 100);
@@ -2994,6 +3463,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        if (app.instance_warn && io.IniFilename) {
+            // the layout read by the first NewFrame; while the warning waits, ImGui's autosave writes nothing
+            app.ini_held = io.IniFilename;
+            io.IniFilename = nullptr;
+        }
         nav_cursor_frame();
         g_picture_set = false;   // the windows mark their pictures again in this frame
         // The ImGui SDL3 backend stops SDL text input whenever an ImGui text field
@@ -3016,12 +3490,14 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                                                                         ImGuiDockNodeFlags_NoCloseButton);
         IM_ASSERT(app.dockspace_id == layout_dockspace_id());   // the docked layout is built into this one
         draw_menu(app);   // the menu bar first: the work area of the windows is below it
+        drop_frame(app);  // a file dropped on the window, before the windows that show what it did (Media, questions)
         layout_keep_inside();   // the windows outside a work area that got smaller come back into it
         plan_layout(app);
         refit_displays(app);   // a machine change: the display windows the size of their new pictures
         // The order is the order in which the windows take their first places (layout.cpp): the displays, the
         // instruments and Media (the machine opens them), the guide beside them, the tools, the dialogs.
         draw_screens(app);
+        if (!ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) app.screen_keys = app.ui.screen_focused;
         shot_poll(app.ui);
         video_poll(app.ui);
         draw_plotter(app.ui);
@@ -3037,6 +3513,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_printer(app.ui);
         draw_browser(app.ui);
         draw_settings(app);
+        draw_help(app.ui);
         draw_about(app.ui);
         draw_shortcuts(app.ui);
         draw_report(app.ui);
@@ -3044,6 +3521,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_rack(app.ui);
         draw_log(app);
         draw_error(app);
+        draw_instance_warning(app);
 #ifndef NDEBUG
         if (app.style_editor) {
             if (ImGui::Begin(tr_id("Style editor (development)"), &app.style_editor)) ImGui::ShowStyleEditor();
@@ -3077,6 +3555,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 display_zoom(app, used_display(app, &zd)).request = snap->zoom;
             }
             if (snap->fullscreen > 0) fullscreen_toggle(app);   // Alt+Enter
+            for (const std::string& h : snap->hide_displays) {   // View -> Displays
+                int k = h.compare(0, 3, "gfx") == 0 ? atoi(h.c_str() + 3) : -1;
+                if (h == "screen" || (k >= 0 && k < MAX_GFX_VIEWS)) display_show(app, k, false);
+                else fprintf(stderr, "UI snapshot: no display window %s\n", h.c_str());
+            }
         }
         if (snap && snap_frames == 6 && snap->fullscreen > 1) {   // and again: the windows come back as they were
             fullscreen_toggle(app);
@@ -3119,8 +3602,35 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             }
             if (snap->video > 0) video_toggle(app);
             app.snap_menu = snap->menu;
+            if (snap->rack_new) app.ui.rack.new_menu = true;
+            if (snap->save) app.ui.rack.save_now = true;   // Save in the configurator (after the changes of --ui-set)
             if (snap->exit) rack_request_exit(app.ui);
         }
+        // --ui-drop: a file dropped on the window every second frame from the ninth, as Explorer drops it (the begin, the
+        // file, the end); the picture three frames after the last
+        int drops = snap ? (int)snap->drops.size() : 0;
+        if (snap && snap_frames >= 9 && (snap_frames - 9) % 2 == 0 && (snap_frames - 9) / 2 < drops) {
+            SDL_Event ev;
+            const SDL_EventType types[3] = { SDL_EVENT_DROP_BEGIN, SDL_EVENT_DROP_FILE, SDL_EVENT_DROP_COMPLETE };
+            for (SDL_EventType t : types) {
+                SDL_zero(ev);
+                ev.type = t;
+                ev.drop.windowID = SDL_GetWindowID(app.window);
+                ev.drop.timestamp = SDL_GetTicksNS();
+                if (t == SDL_EVENT_DROP_FILE) ev.drop.data = snap->drops[(size_t)(snap_frames - 9) / 2].c_str();   // kept
+                SDL_PushEvent(&ev);
+            }
+        }
+        int drops_end = 10 + 2 * drops;
+        // --ui-click: the mouse at the point, the left button down in the next frame and up in the one after
+        int mclicks = snap ? (int)snap->click_xy.size() / 2 : 0;
+        if (snap && snap_frames >= 9 && (snap_frames - 9) / 3 < mclicks) {
+            size_t k = (size_t)(snap_frames - 9) / 3;
+            int phase = (snap_frames - 9) % 3;
+            io.AddMousePosEvent(snap->click_xy[2 * k], snap->click_xy[2 * k + 1]);
+            if (phase > 0) io.AddMouseButtonEvent(ImGuiMouseButton_Left, phase == 1);
+        }
+        int mclicks_end = 9 + 3 * mclicks;
         // --ui-mouse, --ui-key: the mouse placed (two frames before the keys: what it hovers is known when they come),
         // then each key down and up in two frames, through the event queue as typed (handle_key and ImGui see them)
         int keys_end = 10 + 2 * (int)snap_keys(snap);
@@ -3168,7 +3678,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (snap_frames == 10 && snap->drag_drop) io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
         }
         if (snap && snap_frames >= 12 && snap_frames >= keys_end + 2 && snap_frames >= clicks_end + 2 &&
-            snap_frames >= 9 + 4 * switches && !(snap->video > 0 && video_busy(app.ui))) {
+            snap_frames >= drops_end + 2 && snap_frames >= mclicks_end + 3 && snap_frames >= 9 + 4 * switches &&
+            !(snap->video > 0 && video_busy(app.ui))) {
             // window content as PNG (our own renderer, not the screen)
             SDL_Rect crop, *rect = nullptr;   // --ui-crop: only that window (previews of machines)
             if (!snap->crop.empty()) {
@@ -3197,13 +3708,19 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             app.quit = true;
         }
         SDL_RenderPresent(app.renderer);
-        if (now - app.settings_check_ns > 3000000000ull) {   // keep the file current (crash, kill)
+        // keep the file current (crash, kill); not while the warning about another window waits for its answer
+        if (now - app.settings_check_ns > 3000000000ull && !app.instance_warn) {
             app.settings_check_ns = now;
             settings_save(app, false);
         }
     }
 
-    settings_save(app, false);
+    if (app.quit_nosave) {   // Quit at that warning: the layout and the files of the machine of the other window stay
+        ImGui::GetIO().IniFilename = nullptr;
+        app.host.drop();
+    } else {
+        settings_save(app, false);
+    }
     audio_close(app.audio);
     joystick_close(app.joy);
     mouse_capture(app.mouse, app.window, false);

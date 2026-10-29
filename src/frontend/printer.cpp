@@ -15,7 +15,7 @@ void draw_printer(UiState& ui)
     if (!ui.show_printer) return;
     Machine* m = ui.host->machine();
     layout_window(LW_PRINTER);
-    if (!ImGui::Begin(tr_id("Printer"), &ui.show_printer) || !m) {
+    if (!ImGui::Begin(tr_id("Printer"), &ui.show_printer) || device_window_off(ui)) {
         ImGui::End();
         return;
     }
@@ -23,7 +23,7 @@ void draw_printer(UiState& ui)
     for (auto& c : m->cards)
         if (c->printer()) count++;
     if (!count) {
-        ImGui::TextDisabled("%s", tr("No printer. Configurator: the printer on X3 of the CPU card or on DPP-1."));
+        ImGui::TextWrapped("%s", device_missing(ui, "printer").c_str());
         ImGui::End();
         return;
     }
@@ -39,8 +39,9 @@ void draw_printer(UiState& ui)
         ImGui::SameLine();
         if (ImGui::Button(tr("Copy text"))) ImGui::SetClipboardText(p->text(1000000).c_str());
         ImGui::SameLine();
-        ImGui::TextDisabled("%s, %llu B%s", p->path().c_str(), (unsigned long long)p->bytes,
-                            p->busy(m->bus.now) ? ", BUSY" : "");
+        file_name_text(p->path(), true);   // the output file (work/...), the whole path in the tooltip
+        ImGui::SameLine(0, 0);
+        ImGui::TextDisabled(", %llu B%s", (unsigned long long)p->bytes, p->busy(m->bus.now) ? ", BUSY" : "");
         float h = ImGui::GetContentRegionAvail().y / (float)left - ImGui::GetFrameHeightWithSpacing() * (left > 1 ? 2.0f : 0.0f);
         if (h < 80) h = 80;
         left--;

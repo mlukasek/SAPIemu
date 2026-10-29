@@ -453,9 +453,25 @@ SerialBridge* com_bridge_start(SerialChannel* ch, const std::string& port, int b
 
 // ---------------------------------------------------------------- configuration
 
+bool serial_bridges_check(const json& cfg, std::string& err)
+{
+    if (!cfg.is_object()) return true;
+    if (cfg.contains("tcp") && !cfg["tcp"].is_null() &&
+        tcp_protocol_from_name(cfg["tcp"].value("protocol", std::string("telnet"))) < 0) {
+        err = "serial.tcp.protocol must be telnet, raw or auto";
+        return false;
+    }
+    if (cfg.contains("com") && !cfg["com"].is_null() && cfg["com"].value("port", std::string()).empty()) {
+        err = "serial.com.port missing";
+        return false;
+    }
+    return true;
+}
+
 bool serial_bridges_from_config(SerialChannel* ch, const json& cfg, int default_baud,
                                 std::vector<SerialBridge*>& out, std::string& err)
 {
+    if (!serial_bridges_check(cfg, err)) return false;
     if (!cfg.is_object()) return true;
     if (cfg.contains("tcp") && !cfg["tcp"].is_null()) {
         const json& t = cfg["tcp"];
@@ -463,7 +479,6 @@ bool serial_bridges_from_config(SerialChannel* ch, const json& cfg, int default_
         std::string bind = t.value("bind", std::string("127.0.0.1"));
         bool dcd = t.value("dcd_follows", true);
         int proto = tcp_protocol_from_name(t.value("protocol", std::string("telnet")));
-        if (proto < 0) { err = "serial.tcp.protocol must be telnet, raw or auto"; return false; }
         SerialBridge* b = tcp_bridge_start(ch, bind, port, dcd, proto, err);
         if (!b) {
             // e.g. a second emulator instance uses the port: run without it
@@ -477,7 +492,6 @@ bool serial_bridges_from_config(SerialChannel* ch, const json& cfg, int default_
         const json& c = cfg["com"];
         std::string port = c.value("port", std::string());
         int baud = c.value("baud", default_baud);
-        if (port.empty()) { err = "serial.com.port missing"; return false; }
         SerialBridge* b = com_bridge_start(ch, port, baud, err);
         if (!b) {
             // a missing host port should not prevent the machine from starting

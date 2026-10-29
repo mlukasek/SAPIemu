@@ -1,10 +1,11 @@
 // The window "Choose a machine": the machines in categories (core/machine_index.h) with a preview, a short text
 // for newcomers and the technical description, Start; and the window "Guide": what to try in a machine, a small
-// Markdown file (machines/guides/<id>.md) shown with headings, lists and code blocks that can be typed into SAPI.
+// Markdown file (machines/guides/<id>.md, drawn by mdview.cpp) with code blocks that can be typed into SAPI.
 // The guide opens itself when a machine of a category with guides starts, unless the user said no (settings).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 #include "frontend/theme.h"
+#include "frontend/markdown.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -35,13 +36,17 @@ static std::string entry_name(const MachineEntry& e)
     return e.title.empty() ? e.name : e.title;
 }
 
+void machine_index_refresh(UiState& ui)
+{
+    ui.machine_index_tried = true;
+    std::string err;
+    machine_index_load(ui.machine_index, err);
+    if (!err.empty()) LOGD("%s", err.c_str());
+}
+
 std::string machine_title(UiState& ui, const std::string& file, const std::string& name)
 {
-    if (ui.machine_index.machines.empty() && !ui.machine_index_tried) {
-        ui.machine_index_tried = true;
-        std::string err;
-        machine_index_load(ui.machine_index, err);
-    }
+    if (ui.machine_index.machines.empty() && !ui.machine_index_tried) machine_index_refresh(ui);
     const MachineEntry* e = file.empty() ? nullptr : machine_index_find(ui.machine_index, file);
     if (e && (name.empty() || name == e->name)) return entry_name(*e);
     return name.empty() ? file : name;
@@ -80,7 +85,7 @@ void browser_open(UiState& ui)
     ui.browser_loaded = false;   // read the index again, the window comes to the front
 }
 
-static void remember_recent(UiState& ui, const std::string& file)
+void recent_add(UiState& ui, const std::string& file)
 {
     ui.recent.erase(std::remove(ui.recent.begin(), ui.recent.end(), file), ui.recent.end());
     ui.recent.insert(ui.recent.begin(), file);
@@ -89,17 +94,24 @@ static void remember_recent(UiState& ui, const std::string& file)
 
 // Start (or restart: the running one is loaded again from its file) a machine; its guide may open itself (a load
 // changes the machine generation, draw_guide sees it; a start waiting for the question about unsaved changes of
-// the configurator does not open the guide of the old machine). The keyboard goes to the display.
+// the configurator does not open the guide of the old machine). The window closes when the start is done
+// (browser_started), Cancel at the question keeps it open.
 static void start(UiState& ui, const std::string& file)
 {
-    remember_recent(ui, file);
-    // the first machine chosen at the first start, no saved layout yet: the windows take the default places of this
-    // machine (its main output, its instruments), not those of the machine running before it
-    if (ui.browser_first && ui.layout_fresh) ui.layout_reset = true;
+    ui.browser_start = true;
     rack_start_machine(ui, file);
+}
+
+void browser_started(UiState& ui, bool ok)
+{
     ui.show_browser = false;
+    if (ok) {
+        // the first machine chosen at the first start, no saved layout yet: the windows take the default places of
+        // this machine (its main output, its instruments), not those of the machine running before it
+        if (ui.browser_first && ui.layout_fresh) ui.layout_reset = true;
+        ui.focus_display = 2;   // the keyboard goes to the display
+    }
     ui.browser_first = false;
-    ui.focus_display = 2;
 }
 
 static bool running(UiState& ui, const MachineEntry& e)
@@ -117,7 +129,36 @@ static std::string item_name(const MachineCategory& cat, size_t i, const Machine
     return entry_name(e);
 }
 
-// A row of the list: the machine, its category ("recent" for Recently started) and the title shown there.
+std::string machine_index_menus(UiState& ui)
+{
+    if (ui.machine_index.machines.empty() && !ui.machine_index_tried) machine_index_refresh(ui);
+    const MachineIndex& idx = ui.machine_index;
+    std::string chosen, open_group;
+    bool group_open = false;
+    for (const MachineCategory& cat : idx.categories) {
+        if (cat.group != open_group) {   // leaving a group, coming to another one: the categories of a group in its menu
+            if (group_open) ImGui::EndMenu();
+            group_open = false;
+            open_group = cat.group;
+            if (!cat.group.empty()) group_open = ImGui::BeginMenu((pick(cat.group, cat.group_en) + "##g" + cat.group).c_str());
+        }
+        if (!cat.group.empty() && !group_open) continue;
+        if (cat.machines.empty() || !ImGui::BeginMenu((pick(cat.name, cat.name_en) + "##c" + cat.id).c_str())) continue;
+        for (size_t i = 0; i < cat.machines.size(); i++) {
+            const MachineEntry& e = idx.machines[(size_t)cat.machines[i]];
+            if (ImGui::MenuItem((item_name(cat, i, e) + "##" + e.file).c_str())) chosen = e.file;
+            if (ImGui::IsItemHovered()) {   // which file it is, and what it is for a newcomer
+                const std::string& sum = pick(e.summary, e.summary_en);
+                tipf("%s%s%s", e.file.c_str(), sum.empty() ? "" : "\n\n", sum.c_str());
+            }
+        }
+        ImGui::EndMenu();
+    }
+    if (group_open) ImGui::EndMenu();
+    return chosen;
+}
+
+// A row of the list: the machine, its category ("recent" for Recent machines) and the title shown there.
 struct BrowserRow {
     const MachineEntry* e = nullptr;
     std::string cat, title;
@@ -184,12 +225,7 @@ static void category_text(const MachineCategory& cat, bool open, bool searching)
     const std::string& text = pick(cat.text, cat.text_en);
     if (text.empty()) return;
     if (!open) {
-        if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
-            ImGui::PushTextWrapPos(30.0f * ImGui::GetFontSize());
-            ImGui::TextUnformatted(text.c_str());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
+        if (ImGui::IsItemHovered()) tip(text.c_str());
         return;
     }
     if (searching) return;
@@ -236,6 +272,36 @@ static void parts(const MachineEntry& e)
     ImGui::Spacing();
 }
 
+// My machines -> Delete: the copy asked about (its file, its title, its original), the question opens in the next frame.
+static std::string s_delete_file, s_delete_title, s_delete_orig;
+static bool s_delete_ask = false;
+
+static bool is_copy(UiState& ui, const MachineEntry& e)
+{
+    const MachineIndex& idx = ui.machine_index;
+    return e.category >= 0 && e.category < (int)idx.categories.size() && idx.categories[(size_t)e.category].id == MACHINE_MINE;
+}
+
+// A copy of My machines: "Modified from <the original>" (a click selects the original in the list).
+static void copy_origin(UiState& ui, const MachineEntry& e)
+{
+    if (e.based_on.empty()) return;
+    const MachineEntry* o = machine_index_find(ui.machine_index, e.based_on);
+    ImGui::TextDisabled("%s", tr("Modified from"));
+    ImGui::SameLine();
+    if (!o) {
+        ImGui::TextDisabled("%s", e.based_on.c_str());
+        return;
+    }
+    std::string orig = entry_name(*o), file = o->file;   // the link may change the selection (and `e`)
+    if (ImGui::TextLink((orig + "##orig").c_str())) {
+        ui.browser_sel = file;
+        select_first_row(ui, ui.machine_index);
+    }
+    if (ImGui::IsItemHovered())
+        tipf("%s\n%s", file.c_str(), tr("The supplied machine as it came with SAPIemu: its category has it unchanged."));
+}
+
 static void details(UiState& ui, const MachineEntry& e)
 {
     float avail = ImGui::GetContentRegionAvail().x;
@@ -269,8 +335,15 @@ static void details(UiState& ui, const MachineEntry& e)
     std::string title = ui.browser_sel_title.empty() || ui.browser_sel != e.file ? entry_name(e) : ui.browser_sel_title;
     theme_heading(title.c_str());
     if (title != entry_name(e)) text_dim_wrapped(entry_name(e));
-    const std::string& name = pick(e.name, e.name_en);   // the long name of the file (in English from the index)
+    std::string name = pick(e.name, e.name_en);   // the long name of the file (in English from the index)
+    if (e.copy) {   // a copy not renamed: the original's name with the mark in the UI language, as its title (the
+                    // file has the mark of the language it was saved in)
+        if (const MachineEntry* o = machine_index_find(ui.machine_index, e.based_on))
+            name = pick(o->name, o->name_en) + machine_copy_name("", "", e.copy, !english());
+    }
     if (entry_name(e) != name) text_dim_wrapped(name);
+    bool copy = is_copy(ui, e);
+    if (copy) copy_origin(ui, e);
     const std::string& sum = pick(e.summary, e.summary_en);
     if (!sum.empty()) ImGui::TextWrapped("%s", sum.c_str());
     if (rack_has_kept(ui, e.file)) {   // the preview and the cards below show the file, the start does not
@@ -294,11 +367,67 @@ static void details(UiState& ui, const MachineEntry& e)
         ImGui::SameLine();
     }
     if (ImGui::Button(tr("Open in the configurator"))) rack_open_in_editor(ui, e.file);   // asks about unsaved changes
+    if (copy) {   // only this copy: the supplied machine stays in its category
+        ImGui::SameLine();
+        bool run = running(ui, e);
+        ImGui::BeginDisabled(run);
+        if (ImGui::Button(tr("Delete..."))) {
+            s_delete_file = e.file;
+            s_delete_title = entry_name(e);
+            s_delete_orig = e.based_on;
+            s_delete_ask = true;
+        }
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            tip(run ? tr("It is running: start another machine first.")
+                    : tr("Deletes this copy of My machines. The supplied machine it was modified from stays."));
+    }
     ImGui::Spacing();
     parts(e);
     if (!e.description.empty() && ImGui::CollapsingHeader(tr("Technical description"), sum.empty() ? ImGuiTreeNodeFlags_DefaultOpen : 0))
         ImGui::TextWrapped("%s", e.description.c_str());
     ImGui::TextDisabled("%s", e.file.c_str());
+}
+
+// My machines -> Delete...: the question (Cancel is the default, Enter and Esc: deleting is not undone), then the copy
+// goes and the original it was modified from is selected.
+static void delete_question(UiState& ui)
+{
+    const char* title = tr_id("Delete the machine");
+    if (s_delete_ask) {
+        ImGui::OpenPopup(title);
+        s_delete_ask = false;
+    }
+    if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    float u = ImGui::GetFontSize();
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 34.0f * u);
+    ImGui::TextUnformatted(tr("Delete this machine of My machines?"));
+    ImGui::Text("  %s", s_delete_title.c_str());
+    ImGui::TextDisabled("  %s", s_delete_file.c_str());
+    ImGui::TextUnformatted(tr("Its file is deleted, with the changes saved in it. The supplied machine it was modified "
+                              "from stays as it is."));
+    ImGui::PopTextWrapPos();
+    ImGui::Spacing();
+    if (ImGui::Button(tr("Delete"))) {
+        std::string err;
+        if (rack_delete_copy(ui, s_delete_file, err)) {
+            ui_notice(ui, true, std::string(tr("Deleted")) + ": " + s_delete_file);
+            // the original in its category, else the first row
+            ui.browser_sel = machine_index_find(ui.machine_index, s_delete_orig) ? s_delete_orig : std::string();
+            if (ui.browser_sel.empty() && !ui.machine_index.categories.empty() &&
+                !ui.machine_index.categories[0].machines.empty())
+                ui.browser_sel = ui.machine_index.machines[(size_t)ui.machine_index.categories[0].machines[0]].file;
+            select_first_row(ui, ui.machine_index);
+        } else {
+            ui_notice(ui, false, err);
+        }
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    bool cancel = theme_accent_button(tr("Cancel"));
+    ImGui::SetItemDefaultFocus();
+    if (cancel || popup_enter() || popup_escape()) ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
 }
 
 void draw_browser(UiState& ui)
@@ -348,11 +477,11 @@ void draw_browser(UiState& ui)
     ImGui::SetNextItemWidth(-1);
     ImGui::InputTextWithHint("##filter", tr("Search"), filter, sizeof(filter));
     bool searching = filter[0] != 0;
-    // recently started ones
+    // File -> Recent machines (started from the GUI, saved by Save as...), named the same here
     bool any_recent = false;
     for (const std::string& f : ui.recent)
         if (machine_index_find(idx, f)) any_recent = true;
-    if (any_recent && !searching && ImGui::CollapsingHeader(tr("Recently started"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (any_recent && !searching && ImGui::CollapsingHeader(tr("Recent machines"), ImGuiTreeNodeFlags_DefaultOpen)) {
         for (const std::string& f : std::vector<std::string>(ui.recent))   // a copy: a start reorders the list
             if (const MachineEntry* e = machine_index_find(idx, f)) machine_item(ui, *e, entry_name(*e), "recent", &first);
     }
@@ -370,7 +499,8 @@ void draw_browser(UiState& ui)
         std::string cname = pick(cat.name, cat.name_en) + "##cat" + cat.id + mode;
         bool open;
         if (cat.group.empty()) {
-            open = ImGui::CollapsingHeader(cname.c_str(), searching || cat.guides ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+            bool first_open = searching || cat.guides || cat.id == MACHINE_MINE;   // the user's own machines in sight
+            open = ImGui::CollapsingHeader(cname.c_str(), first_open ? ImGuiTreeNodeFlags_DefaultOpen : 0);
             category_text(cat, open, searching);
         } else {
             if (cat.group != open_group) {   // a new group header
@@ -410,166 +540,11 @@ void draw_browser(UiState& ui)
         }
         if (e && (!running(ui, *e) || ui.browser_first)) start(ui, e->file);
     }
+    delete_question(ui);
     ImGui::End();
 }
 
 // ---------------------------------------------------------------- the guide
-
-// inline marks of Markdown left out: **bold**, `code`; [text](link) keeps the text, the links are collected
-static std::string plain(const std::string& s, std::vector<std::pair<std::string, std::string>>* links)
-{
-    std::string o;
-    for (size_t i = 0; i < s.size(); i++) {
-        if (s.compare(i, 2, "**") == 0) {
-            i++;
-            continue;
-        }
-        if (s[i] == '`') continue;
-        if (s[i] == '[') {
-            size_t close = s.find("](", i);
-            size_t end = close == std::string::npos ? close : s.find(')', close);
-            if (end != std::string::npos) {
-                std::string text = s.substr(i + 1, close - i - 1), url = s.substr(close + 2, end - close - 2);
-                o += text;
-                if (links) links->push_back({ text, url });
-                i = end;
-                continue;
-            }
-        }
-        o += s[i];
-    }
-    return o;
-}
-
-static void open_link(const std::string& url)
-{
-    if (url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0) {
-        SDL_OpenURL(url.c_str());
-        return;
-    }
-    std::string p = data_path(url);   // a file of the documentation, relative to the data root
-    for (char& c : p)
-        if (c == '\\') c = '/';
-    SDL_OpenURL(("file:///" + p).c_str());
-}
-
-static void code_block(UiState& ui, const std::vector<std::string>& lines, int n)
-{
-    float u = ImGui::GetFontSize();
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, theme().code_bg);
-    float h = (float)lines.size() * ImGui::GetTextLineHeightWithSpacing() + 0.8f * u;
-    char id[32];
-    snprintf(id, sizeof(id), "code%d", n);
-    ImGui::BeginChild(id, ImVec2(-1, h), ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
-    if (ui.mono) ImGui::PushFont(ui.mono);
-    for (const std::string& l : lines) ImGui::TextUnformatted(l.c_str());
-    if (ui.mono) ImGui::PopFont();
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-    std::string text;
-    for (const std::string& l : lines) text += l + "\r";
-    char b[64];
-    snprintf(b, sizeof(b), "%s##type%d", tr("Type into SAPI"), n);
-    Machine* m = ui.host->machine();
-    ImGui::BeginDisabled(!m);
-    if (theme_accent_button(b, ImVec2(0, 0), true) && m) {   // the action of the block
-        m->type_text(text);
-        ui.focus_display = 2;   // the next step of the guide is typed on the screen
-    }
-    ImGui::EndDisabled();
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Types the lines on the keyboard of SAPI, each ended by Enter."));
-    ImGui::SameLine();
-    snprintf(b, sizeof(b), "%s##copy%d", tr("Copy"), n);
-    if (ImGui::SmallButton(b)) {
-        std::string c;
-        for (const std::string& l : lines) c += l + "\n";
-        SDL_SetClipboardText(c.c_str());
-    }
-}
-
-static void markdown(UiState& ui, const std::string& text)
-{
-    std::vector<std::string> lines;
-    size_t a = 0;
-    while (a <= text.size()) {
-        size_t e = text.find('\n', a);
-        if (e == std::string::npos) e = text.size();
-        std::string l = text.substr(a, e - a);
-        if (!l.empty() && l.back() == '\r') l.pop_back();
-        lines.push_back(l);
-        a = e + 1;
-    }
-    // a line that only goes on with the text of the line above (a paragraph, a list item) joins it, as in Markdown
-    auto starts_block = [](const std::string& l) {
-        size_t p = l.find_first_not_of(' ');
-        if (p == std::string::npos) return true;
-        std::string b = l.substr(p);
-        if (b[0] == '#' || b.rfind("```", 0) == 0 || b.rfind("- ", 0) == 0 || b.rfind("* ", 0) == 0) return true;
-        size_t d = 0;
-        while (d < b.size() && b[d] >= '0' && b[d] <= '9') d++;
-        return d > 0 && d + 1 < b.size() && b[d] == '.' && b[d + 1] == ' ';
-    };
-    std::vector<std::string> joined;
-    bool in_code = false;
-    for (const std::string& l : lines) {
-        if (l.rfind("```", 0) == 0) in_code = !in_code;
-        bool prev_text = !joined.empty() && !joined.back().empty() && joined.back().rfind("```", 0) != 0 &&
-                         joined.back()[0] != '#';
-        if (!in_code && l.rfind("```", 0) != 0 && prev_text && !starts_block(l)) {
-            size_t p = l.find_first_not_of(' ');
-            joined.back() += " " + l.substr(p);
-            continue;
-        }
-        joined.push_back(l);
-    }
-    lines.swap(joined);
-    int ncode = 0;
-    for (size_t i = 0; i < lines.size(); i++) {
-        const std::string& l = lines[i];
-        if (l.rfind("```", 0) == 0) {
-            std::vector<std::string> code;
-            for (i++; i < lines.size() && lines[i].rfind("```", 0) != 0; i++) code.push_back(lines[i]);
-            code_block(ui, code, ncode++);
-            continue;
-        }
-        if (l.find_first_not_of(' ') == std::string::npos) {   // empty or only spaces
-            ImGui::Spacing();
-            continue;
-        }
-        std::vector<std::pair<std::string, std::string>> links;
-        size_t lead = l.find_first_not_of(' ');
-        std::string body = l.substr(lead);
-        float indent = (float)lead * 0.5f * ImGui::GetFontSize(), bullet = 0;
-        if (indent > 0) ImGui::Indent(indent);
-        if (body.rfind("# ", 0) == 0) {
-            theme_heading(plain(body.substr(2), nullptr).c_str(), 20.0f);
-        } else if (body.rfind("## ", 0) == 0 || body.rfind("### ", 0) == 0) {
-            ImGui::Spacing();
-            theme_section(plain(body.substr(body.find(' ') + 1), nullptr).c_str());
-        } else if (body.rfind("- ", 0) == 0 || body.rfind("* ", 0) == 0) {
-            ImGui::Bullet();
-            ImGui::TextWrapped("%s", plain(body.substr(2), &links).c_str());
-            bullet = ImGui::GetTreeNodeToLabelSpacing();
-        } else {
-            ImGui::TextWrapped("%s", plain(body, &links).c_str());
-        }
-        // the links under the text (aligned with it) in the colour of links, wrapped to the width of the window
-        if (bullet > 0 && !links.empty()) ImGui::Indent(bullet);
-        for (size_t k = 0; k < links.size(); k++) {
-            char b[300];
-            snprintf(b, sizeof(b), "%s \xE2\x86\x97##link%zu_%zu", links[k].first.c_str(), i, k);
-            float w = ImGui::CalcTextSize(b, nullptr, true).x;
-            if (k > 0) {
-                ImGui::SameLine(0.0f, ImGui::GetFontSize());
-                if (ImGui::GetContentRegionAvail().x < w) ImGui::NewLine();
-            }
-            if (ImGui::TextLink(b)) open_link(links[k].second);
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", links[k].second.c_str());
-        }
-        if (bullet > 0 && !links.empty()) ImGui::Unindent(bullet);
-        if (indent > 0) ImGui::Unindent(indent);
-    }
-}
 
 void draw_guide(UiState& ui)
 {
@@ -617,19 +592,26 @@ void draw_guide(UiState& ui)
     const std::string f = ui.guide_machine.empty() ? ui.host->machine_file() : ui.guide_machine;
     const MachineEntry* e = machine_index_find(ui.machine_index, f);
     std::string path = e ? pick(e->guide, e->guide_en) : std::string();
-    static std::string s_path, s_text;
+    static std::string s_path;
+    static std::vector<MdBlock> s_doc;   // parsed when the guide changes
     if (path != s_path) {
         s_path = path;
-        s_text.clear();
-        if (!path.empty()) file_read_text(data_path(path), s_text);
+        s_doc.clear();
+        std::string text;
+        if (!path.empty() && file_read_text(data_path(path), text)) {
+            md_parse(text, s_doc);
+            md_resolve(s_doc, path);   // the guides link "docs/..." from the data root
+        }
     }
     ImGui::BeginChild("text", ImVec2(0, e && !e->guide.empty() ? -3.6f * u : 0));
     if (!e) ImGui::TextDisabled("%s", tr("No machine."));
-    else if (s_text.empty()) {
+    else if (s_doc.empty()) {
         ImGui::TextWrapped("%s", entry_name(*e).c_str());
         ImGui::TextDisabled("%s", tr("This machine has no guide yet."));
     } else {
-        markdown(ui, s_text);
+        MdView v;
+        v.type_buttons = true;
+        md_draw(ui, s_doc, v);
     }
     ImGui::EndChild();
     if (e && !e->guide.empty()) {
@@ -640,8 +622,8 @@ void draw_guide(UiState& ui)
         }
         ImGui::Checkbox(tr("Guides open by themselves"), &ui.guides_auto);
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", tr("For the machines of the first four groups: basics, instruments, boards of Libor "
-                                       "Lasota, games and demos. Help -> Machine guide opens it any time."));
+            tip(tr("For the machines of the first four groups: basics, instruments, boards of Libor "
+                   "Lasota, games and demos. Help -> Machine guide opens it any time."));
     }
     ImGui::End();
 }

@@ -13,6 +13,7 @@
 #include <mutex>
 #include <string>
 #include "json.hpp"
+#include "core/log.h"
 #include "core/machine.h"
 
 // The machine that ran, after a state that did not load (EmuHost::load_state): what the user is told.
@@ -32,6 +33,12 @@ public:
     bool load(const std::string& file, std::string& err);
     // Build a machine from a description (configurator); `file` is where it was
     // loaded from / saved to (empty for an unsaved one).
+    // The old machine is switched off only after the new one has built (UX review 5.5): a trial build first, while the
+    // old one runs on untouched; a description that does not build here (a card of a newer version, a missing ROM or
+    // medium, a wrong serial connection) leaves it exactly as it was (not switched off: an APS-5 sees no power
+    // failure, its host connections stay). Then, as switching machines is a power cycle, the old one is switched off
+    // (host connections released, the power fail warning, media and battery memories saved) and the new one is built
+    // again from the files as they are now. Exclusive host resources (TCP ports, COM ports) are taken only then.
     bool load_config(const nlohmann::json& cfg, const std::string& file, std::string& err);
     Machine* machine(void) { return m.get(); }
     // Power switch: off = the machine is gone (battery backed memories and RAM
@@ -42,11 +49,19 @@ public:
     bool powered(void) const { return m != nullptr; }
     void power_off(void);
     bool power_on(std::string& err);
+    // The machine gone without saving anything (the GUI quit at the warning about another SAPIemu over the same work
+    // folder): no power fail warning, no media, RAM disks or battery memories written (Machine::discard), the host
+    // connections closed. Its files stay as the other window has them.
+    void drop(void);
     // Off and on at once (GUI Machine -> Switch off and on, Ctrl+F12; MCP power cycle): the memory is lost, the
     // machine comes back as it ran; on error the old one is kept.
     bool power_cycle(std::string& err);
     const std::string& machine_file(void) const { return file; }
     uint64_t machine_generation(void) const { return generation; }   // changes on every load
+    // The running machine is described by another file now (the configurator saved it as a copy in My machines,
+    // core/machine_index.h): the file, and the name and "based_on" of the copy in its description (no hardware); nothing
+    // is built again, the generation stays.
+    void set_file(const std::string& f, const std::string& name, const std::string& based_on);
 
     // Advance emulation by `elapsed_ns` of wall clock time (real time or turbo).
     void frame(uint64_t elapsed_ns);
@@ -85,14 +100,17 @@ public:
 
     // Save state (docs/stav.md): into memory or a file. Loading builds the machine of the state, keeps breakpoints,
     // watchpoints and the pause. On error the old machine stays: a state of a format not read here is refused before
-    // it is touched; a state that does not fit after all (a card of another version) brings it back as it was (its
-    // state saved in memory first), a switched off machine stays off. back_out (when given): how the machine that ran
-    // is after an error (StateBack).
+    // it is touched; a state that does not fit (a card of another version, a description that does not build here) is
+    // found by the trial build with the state loaded into it (load_config) while the old machine runs on untouched.
+    // Should the real build fail after a good trial, the old machine comes back from its own state saved in memory
+    // first; a switched off machine stays off. back_out (when given): how the machine that ran is after an error
+    // (StateBack).
     bool save_state(std::vector<uint8_t>& out, std::string& err);
     bool load_state(const std::vector<uint8_t>& in, std::string& err, int* back_out = nullptr);
     bool save_state_file(const std::string& path, std::string& err);
     bool load_state_file(const std::string& path, std::string& err, int* back_out = nullptr);
-    // the quick slot of the machine: work/state/<machine file name>.sapistate
+    // the quick slot of the machine: work/state/<machine file name>.sapistate (a copy of My machines: mine_<name>, not
+    // the slot of its original)
     std::string quick_state_path(void) const;
     // named states in memory (MCP save_state / load_state without a file)
     std::map<std::string, std::vector<uint8_t>> snapshots;
@@ -112,6 +130,13 @@ private:
     void handle_stop(void);
     void run_ticked(uint64_t cycles);
     void update_speed(void);
+    // load_config, load_state: the trial build (with the state `st` loaded when given; its messages into `tlog`, logged
+    // there only when it fails) and the real one (the old machine switched off first; `tlog` logged instead of the
+    // messages of this build when given; on error the old machine stays, its bridges started again).
+    bool trial(const nlohmann::json& cfg, const std::string& file, const std::vector<uint8_t>* st,
+               std::vector<LogHeld>& tlog, std::string& err);
+    bool build(const nlohmann::json& cfg, const std::string& file, const std::vector<uint8_t>* st,
+               const std::vector<LogHeld>* tlog, std::string& err);
 
     std::unique_ptr<Machine> m;
     std::string file;

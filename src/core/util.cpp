@@ -12,6 +12,8 @@
 #include <windows.h>
 #include <io.h>
 #else
+#include <fcntl.h>
+#include <sys/file.h>
 #include <unistd.h>
 #endif
 
@@ -298,6 +300,24 @@ std::string data_path(const std::string& rel)
     std::string rest;
     if (work_relative(rel, rest)) return rest.empty() ? work_root() : path_to_u8(u8_to_path(work_root()) / u8_to_path(rest));
     return path_to_u8(u8_to_path(data_root()) / p);
+}
+
+int file_lock_try(const std::string& utf8_path)
+{
+    // the handle stays open on purpose: the system closes it (and frees the lock) when the process ends, a crash too
+#ifdef _WIN32
+    std::wstring w = u8_to_path(utf8_path).wstring();
+    HANDLE h = CreateFileW(w.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS,
+                           FILE_ATTRIBUTE_NORMAL | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
+    if (h != INVALID_HANDLE_VALUE) return 1;
+    return GetLastError() == ERROR_SHARING_VIOLATION ? 0 : -1;   // else e.g. a folder without the right to write
+#else
+    int fd = open(utf8_path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0644);
+    if (fd < 0) return -1;
+    if (flock(fd, LOCK_EX | LOCK_NB) == 0) return 1;
+    close(fd);
+    return 0;
+#endif
 }
 
 static bool g_battery_files = true;

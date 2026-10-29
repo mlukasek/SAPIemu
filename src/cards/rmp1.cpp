@@ -219,7 +219,7 @@ void MagTape::unload(void)
 
 Rmp1::~Rmp1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 bool Rmp1::configure(const json& cfg, std::string& err)

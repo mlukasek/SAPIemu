@@ -47,6 +47,24 @@ void classify(std::vector<MapRange>& ranges)
     }
 }
 
+// Shared writes of two cards the catalog knows as meant so (card_shared_write): information, not a problem.
+void mark_by_design(std::vector<MapRange>& ranges, const std::vector<MapCard>& cards)
+{
+    for (MapRange& r : ranges) {
+        if (!r.shared_write) continue;
+        const MapUser* w[2] = { nullptr, nullptr };
+        int n = 0;
+        for (const MapUser& u : r.users) {   // the writers on the bus, as classify counts them
+            if ((u.flags & DEC_ONCARD) || !(u.flags & DEC_WRITE)) continue;
+            if (n < 2) w[n] = &u;
+            n++;
+        }
+        if (n != 2) continue;
+        r.by_design = card_shared_write(cards[(size_t)w[0]->card].type, w[0]->what, cards[(size_t)w[1]->card].type,
+                                        w[1]->what);
+    }
+}
+
 std::string hex_range(int lo, int hi, int digits)
 {
     char buf[32];
@@ -68,6 +86,7 @@ void machine_map_build(const json& cfg, MachineMap& out)
             const CardInfo* ci = card_info(type);
             MapCard mc;
             mc.name = card_display_name(cc);
+            mc.type = type;
             mc.slot = cc.value("slot", 0);
             Probe p;
             p.card.reset(card_create(type));
@@ -117,6 +136,7 @@ void machine_map_build(const json& cfg, MachineMap& out)
         add_point(out.io, port, users);
     }
     classify(out.io);
+    mark_by_design(out.io, out.cards);
 
     // memory, for every state of MAP1/MAP2
     for (int map = 0; map < 4; map++) {
@@ -131,6 +151,7 @@ void machine_map_build(const json& cfg, MachineMap& out)
             add_point(out.mem[map], addr, users);
         }
         classify(out.mem[map]);
+        mark_by_design(out.mem[map], out.cards);
     }
     for (int map = 1; map < 4; map++) {
         const std::vector<MapRange>& a = out.mem[0];
@@ -162,7 +183,7 @@ std::vector<CfgProblem> machine_map_problems(const MachineMap& m, MapWhatText cs
         out.push_back({ slot, error, en, cs });
     };
     for (const MapRange& r : m.io) {
-        if (!r.conflict && !r.shared_write) continue;
+        if (!r.conflict && (!r.shared_write || r.by_design)) continue;
         std::string who = map_range_users(m, r), who_cs = map_range_users(m, r, cs_what);
         int slot = m.cards[(size_t)r.users.back().card].slot;
         if (r.conflict)
@@ -176,7 +197,7 @@ std::vector<CfgProblem> machine_map_problems(const MachineMap& m, MapWhatText cs
         char st[48] = "";
         if (m.map_matters) snprintf(st, sizeof(st), " (MAP1=%d MAP2=%d)", map & 1, (map >> 1) & 1);
         for (const MapRange& r : m.mem[map]) {
-            if (!r.conflict && !r.shared_write) continue;
+            if (!r.conflict && (!r.shared_write || r.by_design)) continue;
             std::string who = map_range_users(m, r), who_cs = map_range_users(m, r, cs_what);
             int slot = m.cards[(size_t)r.users.back().card].slot;
             if (r.conflict)

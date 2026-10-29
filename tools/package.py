@@ -20,6 +20,8 @@ Next to the zip goes <zip name>.sha256 with its SHA-256 in the format of sha256s
 check: sha256sum -c, or certutil -hashfile <zip> SHA256 on Windows); the hash is printed too. It is written
 only after the checks passed (the checksum of an older zip is removed first): a zip without it is not ready.
 The first steps (GUIDES) must be tracked by git, as the rest of docs/ (a new file not added yet is refused).
+The documents the program shows in its window Help (HELP_DOCS: First steps and the Glossary in Czech and
+English) must be tracked too and are checked to be in docs/ of the zip.
 """
 import hashlib
 import os
@@ -39,6 +41,8 @@ DEV_DOCS = ("docs/SOUHRN.md", "docs/rozhodnuti.md", "docs/vydani/")
 REPO_ONLY = set()
 # the first steps at the top of the zip: (source in the repository, name in the zip)
 GUIDES = [("docs/prvni-kroky.md", "PRVNI-KROKY.md"), ("docs/getting-started.md", "GETTING-STARTED.md")]
+# Help -> First steps and Glossary drawn in the program (src/frontend/help.cpp k_help) from docs/ of the zip
+HELP_DOCS = ["docs/prvni-kroky.md", "docs/getting-started.md", "docs/slovnicek.md", "docs/glossary.md"]
 
 
 def git_files(path):
@@ -85,7 +89,7 @@ def main():
 
     # the first steps go to the top of the zip from the working tree, docs/ from git: an untracked one would be at the
     # top but missing in docs/ (Help -> First steps in English would fall back to the Czech file)
-    untracked = [src for src, _ in GUIDES if not git_files(src)]
+    untracked = [src for src in [g for g, _ in GUIDES] + HELP_DOCS if not git_files(src)]
     if untracked:
         print("not tracked by git (git add first): " + ", ".join(untracked))
         return 1
@@ -118,6 +122,14 @@ def main():
     size = os.path.getsize(zip_path)
     print("%s: %d files, %.1f MB" % (zip_path, len(files) + 2 + len(GUIDES), size / 1e6))
     not_ready = "NOT READY: do not publish " + os.path.basename(zip_path) + " (no .sha256 written)"
+
+    with zipfile.ZipFile(zip_path) as z:   # the window Help reads them from docs/
+        names = set(z.namelist())
+    missing = [d for d in HELP_DOCS if name + "/" + d not in names]
+    if missing:
+        print("the package lacks the documents of Help: " + ", ".join(missing))
+        print(not_ready)
+        return 1
 
     if public:
         with zipfile.ZipFile(zip_path) as z:

@@ -29,7 +29,8 @@ v konfigurátoru vypnout.
 > ZPS sets, instruments, the boards of Libor Lasota, games and demos, each with a preview and a short text; the
 > machines of the first four groups have a guide in English (Help → Machine guide). The user interface is in Czech
 > and English (View → Jazyk / Language), the detailed documentation is in Czech; a short English guide is
-> [docs/getting-started.md](docs/getting-started.md) (`GETTING-STARTED.md` in the zip). The emulator sends nothing anywhere by
+> [docs/getting-started.md](docs/getting-started.md) (`GETTING-STARTED.md` in the zip, in the program Help → First
+> steps, with a glossary in Help → Glossary). The emulator sends nothing anywhere by
 > itself, see "Síť a soukromí" (network and privacy) below. The user interface is drawn by Dear ImGui, so screen
 > readers do not see it; the text of the SAPI screen can be copied (View → Copy screen text) or printed by
 > `sapiemu-cli --print-screen`, see "Přístupnost" (accessibility) below. Prince of Persia (machine `sapi1v_PoP`) is an
@@ -153,8 +154,10 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - sběrnice ARB-1, ARB-1A/Au, ARB-1B, ARB-1C (14 i 8 pozic) a ImBUS9/ImBUS12 Libora Lasoty;
   - propojky, některé i za chodu; karty jde myší přetáhnout do jiného slotu;
   - změny, které běžící stroj ještě nemá, jsou oranžové („Restartovat s touto sestavou“, „Vrátit změny“);
-  - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2.
-- **Ladění:** debugger (registry, disassembler, paměť, breakpointy a watchpointy, I/O log), ukládání stavu (i
+  - mapa portů a paměti s kolizemi pro všechny stavy MAP1/MAP2;
+  - Uložit dodanou sestavu nepřepíše, zapíše kopii do Mých sestav (`work/machines`).
+- **Ladění:** debugger (registry podle procesoru 8080, 8085 nebo Z80, disassembler, paměť, breakpointy
+  a watchpointy, I/O log), ukládání stavu (i
   rychlé checkpointy), záznam přerušení (MCP `int_log`, varování, když se vektor IM 2 čte z videopaměti),
   volba sestavy „náhodný obsah pamětí po zapnutí“ (RAM, videopaměti, palety jako na železe), počty zápisů do
   palety CGA-1V během zobrazování a přepnutí uprostřed snímku, nahrávání programů (Intel HEX i `.txt`, binární
@@ -165,7 +168,7 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **GUI česky i anglicky** (Zobrazení → Jazyk / Language, poprvé podle Windows).
 - **Bez okna:** `sapiemu-cli` pro skripty a testy (`--type`, `--wait-text`, `--screenshot`, `--audio-wav`,
   `--joystick`, `--save-state` …).
-- **MCP server** (`http://127.0.0.1:8580/mcp`, v GUI se zapíná v Zobrazení → Nastavení): Claude Code může emulátor
+- **MCP server** (`http://127.0.0.1:8580/mcp`, v GUI se zapíná v Zobrazení → Nastavení → Pokročilé): Claude Code může emulátor
   ovládat, psát a ladit programy
   a nakonec ho i ukončit (`quit`, média se uloží) ([docs/mcp.md](docs/mcp.md)).
 
@@ -173,6 +176,8 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 - [docs/prvni-kroky.md](docs/prvni-kroky.md): spuštění, sestavy, klávesy, co vyzkoušet.
 - [docs/getting-started.md](docs/getting-started.md): krátké první kroky anglicky (v zipu `GETTING-STARTED.md`).
+- [docs/slovnicek.md](docs/slovnicek.md) a [docs/glossary.md](docs/glossary.md): slovníček pojmů SAPI a SAPIemu
+  česky a anglicky (v programu Nápověda → Slovníček).
 - [docs/aps5-ukazka.md](docs/aps5-ukazka.md): měřicí jednotka APS-5 krok za krokem (nebo tlačítko DEMO).
 - [docs/navod-kzd1.md](docs/navod-kzd1.md): návod k záznamníku dat KZD-1 (příprava kazety, ukládání z BASICu
   i monitoru, adresář, kopírování z magnetofonu a zpět programem CKM, i jeho opravenou kopií).
@@ -225,7 +230,7 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 - Emulátor sám od sebe nic neodesílá: nemá telemetrii ani kontrolu aktualizací.
 - **Server MCP** (vývoj s Claude) poslouchá jen na `127.0.0.1`. V nové instalaci je vypnutý, zapíná se
-  v Zobrazení → Nastavení.
+  v Zobrazení → Nastavení → Pokročilé (pro vývojáře).
 - **Sériová linka přes TCP** (terminál, TeraTerm) poslouchá na `127.0.0.1`, jinou adresu jde nastavit
   v konfigurátoru.
 - **Karta DPI-1L** (sestava `sapi1v_BomberNet`) se připojí do sítě, až o to požádá program na SAPI:
@@ -235,7 +240,8 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 - **Kam se co ukládá:**
   - nastavení, rozložení oken (`imgui.ini`) a logy posledních dvou spuštění (`sapiemu.log`, `sapiemu.prev.log`)
     ukládá emulátor vedle `sapiemu.exe`;
-  - pracovní kopie disket, disků a kazet, obsah pamětí s baterií a výstupy tiskáren jsou ve složce `work/`;
+  - pracovní kopie disket, disků a kazet, obsah pamětí s baterií, výstupy tiskáren a vaše kopie sestav (Moje
+    sestavy, `work/machines`) jsou ve složce `work/`;
   - když do složky programu nejde zapisovat (např. `Program Files`), ukládá se nastavení do
     `%APPDATA%\SAPIemu\SAPIemu` a `work/` do `%LOCALAPPDATA%\SAPIemu\work` (Linux: `~/.local/share/SAPIemu`).
 
@@ -251,7 +257,7 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   V okně obrazovky SAPI a v sériovém terminálu patří šipky, mezerník, Enter, Esc a Alt počítači SAPI.
 - **Stav není jen barvou:** chyby mají ✖ a slovo, varování ⚠, rozsvícené tlačítko magnetofonu značku (▶, ●, ■),
   čáry v grafu APS-5 čísla pecí a kontrolky přístrojů řeknou svůj stav v bublině.
-- **Velikost písma** 100–200 % je v Zobrazení → Nastavení.
+- **Velikost písma** 100–200 % je v Zobrazení → Nastavení → Obecné. Bubliny se zalamují na rozumnou šířku.
 - **Blikání:** některá dema rychle mění obraz, Bad Apple!! místy rychle bliká (upozornění je v průvodci sestavou).
 
 ## Licence a poděkování

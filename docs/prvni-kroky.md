@@ -6,6 +6,8 @@ Začněte základní sestavou ZPS-1, pak zkuste přístroje. Hry a dema jsou nov
 Betaverze (testovací verze): hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje: Nápověda →
 Nahlásit chybu… (do zveřejnění cestou, kterou jste program dostali, potom přes GitHub Issues:
 https://github.com/mlukasek/SAPIemu/issues). Anglicky: `GETTING-STARTED.md` (`docs/getting-started.md`).
+V programu je tento text v Nápověda → První kroky, slova SAPI a emulátoru vysvětluje Nápověda → Slovníček
+(`docs/slovnicek.md`).
 
 ## Spuštění
 
@@ -17,6 +19,9 @@ https://github.com/mlukasek/SAPIemu/issues). Anglicky: `GETTING-STARTED.md` (`do
    (hodí se k hlášení chyby). Pracovní kopie disků a RAM disků vznikají ve složce `work\`. Originály v `media\`
    zůstávají netknuté. Když do složky programu nejde zapisovat (např. `Program Files`),
    ukládá se nastavení do `%APPDATA%\SAPIemu\SAPIemu` a `work` do `%LOCALAPPDATA%\SAPIemu\work`.
+4. Spouštějte jedno okno SAPIemu. Druhé okno nad stejným nastavením nebo stejnou složkou `work\` ukáže varování „Už
+   běží jiné SAPIemu“: obě okna by si přepisovala nastavení, RAM disky a diskety. Ukončit ho zavře beze změny
+   souborů, Pokračovat ho nechá běžet.
 
 Potřebujete Windows 10 nebo 11, 64 bit.
 
@@ -30,8 +35,12 @@ skupin v tomto pořadí: **Základ: historické sestavy Tesla**, **Přístroje a
 s připojeným příslušenstvím (klávesnice, mechaniky a obrazy disket, tiskárna, zapisovač, magnetofon…) a tlačítko
 Spustit; dvojklik sestavu také spustí. U sestav z prvních čtyř skupin se po spuštění otevře **Průvodce sestavou**
 s tím, co vyzkoušet (políčko dole ho vypne, Nápověda → Průvodce sestavou ho otevře kdykoli). Bloky kódu v průvodci
-napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy odjinud spustí Soubor → Spustit sestavu ze souboru…,
-konfigurátor sestavy (karty v rámu, propojky, mapa portů) je Zobrazení → Konfigurátor sestavy….
+napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy odjinud spustí Soubor → Spustit sestavu ze souboru… (nebo
+ho přetáhněte na okno), konfigurátor sestavy (karty v rámu, propojky, mapa portů) je Zobrazení → Konfigurátor
+sestavy…. Nahoře ve výběru jsou **Poslední sestavy** (jako v Soubor → Poslední sestavy: každé spuštění z programu)
+a když máte vlastní kopie sestav, i skupina **Moje sestavy** (viz Sestava a karty níže). Sestava, která nejde spustit
+(chybí ROM, poškozený soubor), běžící sestavu nezastaví: okno Chyba řekne proč a dodá „Sestava běží dál, jak
+běžela.“
 
 Sestavy po skupinách jako ve výběru (soubory jsou ve složce `machines\`):
 
@@ -127,9 +136,10 @@ s Liborovými deskami.
   - **Ctrl+F5 snímek obrazovky** okna, které má fokus (konzole nebo grafika CGA-1V, BGP-1S, DGD…), do
     `work/snimky/<karta>_<datum-čas>.png`; pravé tlačítko na obraz nabízí i „Uložit snímek jako…“, „Kopírovat
     snímek“ (do schránky jako PNG i BMP) a „Snímek zvětšený 3× (jak je vidět)“, jinak přesné body emulace;
+    složku otevře Zobrazení → Otevřít složku snímků a videí → Snímky obrazovky;
   - **Ctrl+Alt+F5 video se zvukem** (zapnout / vypnout, také pravé tlačítko na obraz a Zobrazení): MP4 do
-    `work/videa/<karta>_<datum-čas>.mp4`, potřebuje **ffmpeg** (`winget install ffmpeg`, nebo cesta v nastavení
-    `"video": { "ffmpeg": "…" }`). Snímky se berou podle času emulace, takže video odpovídá skutečné rychlosti
+    `work/videa/<karta>_<datum-čas>.mp4`, potřebuje **ffmpeg** (`winget install ffmpeg`, nebo jeho cesta
+    v Zobrazení → Nastavení → Záznam, kde je vidět i to, zda ho program našel). Snímky se berou podle času emulace, takže video odpovídá skutečné rychlosti
     SAPI i při turbu; pauza video pozastaví. Body jsou zvětšené 4× (u VGA 2×), nejostřejší je přehrání v nativní
     velikosti. Ve stavovém řádku běží „● REC m:ss“;
   - **Alt+Enter celá obrazovka** (také Zobrazení → Celá obrazovka a pravé tlačítko na obraz): displej použitý
@@ -160,18 +170,34 @@ s Liborovými deskami.
     program v BASICu;
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
-- **Sestava a karty:** Zobrazení → Konfigurátor sestavy…. Rám s panely karet, propojky karet, mapa portů a paměti. Panely jsou
+- **Sestava a karty:** Zobrazení → Konfigurátor sestavy…. Rám s panely karet a pod ním tři záložky: **Sestava
+  a sběrnice** (název, popis, typ sběrnice), **karta vybraného slotu** (třeba „X7 CGA-1V“: propojky, ROM, obrazy)
+  a **Mapa portů a paměti**. Panely jsou
   nakreslené podle modernizované skříně Libora Lasoty s popsanými panely, původní Tesla SAPI-1 měl holé karty za
   krycím panelem. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí).
+  Nová ▸ nabídne prázdnou sestavu nebo kopii jiné, po skupinách jako ve výběru sestav.
   Některé propojky platí hned („platí hned“), ostatní změny se projeví až tlačítkem „Restartovat s touto
   sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo nahoře v hlavním okně). Při odchodu s neuloženými
-  změnami se program zeptá: Uložit přepíše soubor sestavy (i dodanou v `machines\`), Ponechat pro příští spuštění
-  nechá soubor být a změny použije při **každém** dalším spuštění sestavy, dokud je neuložíte nebo v konfigurátoru
-  nestisknete Vrátit změny (stavový řádek to při startu řekne, výběr sestav ji označí `*`).
+  změnami se program zeptá: Uložit, Uložit jako…, Ponechat pro příští spuštění, Zahodit změny, Zrušit. Ponechat
+  pro příští spuštění nechá soubor být a změny použije při **každém** dalším spuštění sestavy, dokud je neuložíte
+  nebo v konfigurátoru nestisknete Vrátit změny (stavový řádek to při startu řekne, výběr sestav ji označí `*`).
+- **Moje sestavy:** Uložit u dodané sestavy (té z výběru sestav) dodaný soubor nepřepíše, zapíše **vaši kopii** do
+  `work\machines\` (bublina nad Uložit to řekne). Kopie se jmenuje jako originál se značkou „(moje)“, druhá kopie
+  téže sestavy „(moje 2)“. Běžící sestava, titulek okna a Poslední sestavy pak patří kopii a další Uložit zapisuje do
+  ní. Ve výběru sestav jsou kopie nahoře ve skupině Moje sestavy s náhledem a průvodcem originálu, „Vychází z“
+  vybere originál (ten zůstal beze změny) a **Smazat…** kopii smaže (u běžící sestavy nejde). Uložit jako… nabídne
+  také `work\machines\`. Vlastní soubor sestavy (třeba uložený jinam, nebo do `machines\` pod novým jménem) Uložit
+  přepíše jako dřív.
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz; Zobrazení → Zvětšení obrazovky platí pro displej
   použitý naposledy, první volba „Přizpůsobit oknu“), celá obrazovka, celočíselné škálování, poměr stran TV,
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows). Okna displejů nejdou sbalit a všechna okna se
   posouvají jen za titulek (tažení po obrazu nebo panelu okno nehne).
+  - **Obrazovky ▸** vypíše okna displejů sestavy podle karet (AND-1V, CGA-1V…). Odškrtnutý displej se schová
+    a sestava běží dál, zaškrtnutý se vrátí dopředu s klávesnicí. Restart a vypnutí a zapnutí téže sestavy skryté
+    nechá, jiná sestava ukáže všechny.
+  - **Otevřít složku snímků a videí ▸** otevře v Průzkumníku `work\snimky` nebo `work\videa`.
+  - Okna přístrojů (Sériový terminál, Tiskárna, Zapisovač, Měřicí pracoviště IMS-2, Deska diagnostiky, APS-5) jsou
+    šedá, když je sestava nemá. Bublina řekne, co chybí a ve které sestavě ve výběru přístroj najdete.
 - **Rozmístění oken:** při prvním spuštění zabere okno programu 88 % obrazovky. Hlavní výstup sestavy (konzole,
   u her CGA-1V nebo BGP-1S) je vlevo nahoře, další displeje pod ním nebo vedle něj. Samo rozmístění jim dá
   celočíselné zvětšení nejvýš asi 200 % (při měřítku Windows 125 a 150 % až 300 %, aby byl obraz zhruba stejně
@@ -207,7 +233,8 @@ s Liborovými deskami.
   nastavení). Volba Plovoucí nebo Zadokovaná vrátí okna tam, kde jste je v tom rozložení nechali; poprvé dostanou
   jeho výchozí místa.
 - **Média:** mechaniky jsou očíslované podle řadiče (0–3) a za číslem je jejich písmeno v CP/M (ze sestavy,
-  nebo „asi B:“ zjištěné za chodu). Zobrazení → Média: kazety (WAV, MP3, nebo program HEX/BIN, který se převede na kazetu MIKOS či MIKROBASIC; „Uložit jako WAV…“ pro skutečné SAPI) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
+  nebo „asi B:“ zjištěné za chodu). U média je jméno souboru, celá cesta je v bublině. Zobrazení → Média (také
+  Stroj → Média…): kazety (WAV, MP3, nebo program HEX/BIN, který se převede na kazetu MIKOS či MIKROBASIC; „Uložit jako WAV…“ pro skutečné SAPI) pro DSM-1, diskety RPD-1, FDC-1 a MFC-1A (obrazy `.img` a
   ImageDisk `.imd`; nová disketa v libovolném formátu: 8", PC 3,5"/5,25" HD nebo DD; s příponou `.imd` ji
   pak program pro formátování naformátuje i jinak, třeba s jiným číslováním sektorů), IDE disk a PMD32-SD.
   Výměna média v okně Média se zapíše do sestavy (konfigurátor ji ukáže, sestava je pak neuložená). Tlačítko
@@ -218,8 +245,20 @@ s Liborovými deskami.
   vysunutí, vypnutí a ukončení. Soubor se přepisuje přes dočasný soubor, takže ani pád nenechá napůl zapsaný obraz.
   Špatný obraz se do mechaniky nevloží, zůstane v ní původní médium. První Vložit… nebo Nahrát program začne ve
   složce `media\`, pak v naposledy použité.
+- **Přetažení souborů:** soubor přetažený z Průzkumníka na okno SAPIemu udělá totéž co menu:
+  - `.sapi` spustí sestavu (s otázkou na neuložené změny), `.sapistate` načte stav;
+  - `.hex`, `.ihx` (i `.txt` v Intel HEX) otevřou okno Nahrát program, `.bin` okno binárního souboru s adresou;
+  - disketa (`.img`, `.imd`, `.8sd`, `.sp2`, `.sp1`), kazeta RKD-1 (`.rkd`) a páska RMP-1 (`.tap`) jdou do první
+    prázdné mechaniky; když prázdná není, okno Chyba poradí jedno médium v okně Média vyjmout;
+  - kazeta (`.wav`, `.mp3` do magnetofonu DSM-1, `.kzd` do KZD-1) jde do prvního prázdného magnetofonu, jinak vymění
+    kazetu jako Vložit….
+
+  Stavový řádek řekne, kam soubor šel („Vloženo do RPD-1, Mechanika 1: x.img“). Víc souborů naráz se zpracuje jeden
+  po druhém (sestava a za ní disketa: disketa jde do nové sestavy). Při otevřeném dialogu nebo vypnutém stroji soubor
+  nevezme a řekne proč.
 - **Chyby:** odmítnuté médium, nepovedená nová disketa nebo kazeta, nepovedené nahrání programu a nepovedené
-  zapnutí sestavy ukáže okno Chyba, povedené nahrání stavový řádek („Nahráno 0100-1FFFh, 7936 B: …“). Upozornění
+  zapnutí sestavy ukáže okno Chyba, povedené nahrání stavový řádek („Nahráno 0100-1FFFh, 7936 B: …“). Hlášky jsou
+  v českém rozhraní česky (jen vzácné technické podrobnosti zůstávají anglicky). Upozornění
   ve stavovém řádku svítí 7 s a zůstanou v Logu. Červené **✖ Chyby: N** ve stavovém řádku znamená chyby zapsané do
   Logu od jeho posledního otevření; kliknutím se Log otevře (chyby červeně, varování žlutě).
 - **Nahlásit chybu:** Nápověda → Nahlásit chybu… řekne, co do hlášení napsat a kam ho poslat (do zveřejnění
@@ -241,14 +280,30 @@ s Liborovými deskami.
   Tiskárnu zapnete v konfigurátoru u procesorové karty (X3) nebo u DPP-1 (`docs/tiskarna.md`).
 - **Programy do paměti:** Soubor → Nahrát program do paměti (Intel HEX `.hex`, `.ihx` i `.txt`) nebo binární soubor. V CP/M pak
   `SAVE n JMENO.COM` (okno počet stránek napoví).
-- **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš; hlasitost a citlivost myši v Zobrazení → Nastavení. Zvuk
-  hraje jen při rychlosti 100 %.
-- **Nastavení** (Zobrazení → Nastavení…): vzhled (světlý nebo tmavý, velikost písma, okna plovoucí nebo
-  zadokovaná), jazyk, zvuk, myš, průvodci sestavami, server MCP pro vývoj s Claude, cesta k ffmpeg.
-- **Nápověda:** Průvodce sestavou, První kroky (s anglickým rozhraním anglické `docs/getting-started.md`), Návody
-  k obsluze (otevřou se v programu pro soubory .md), Klávesové zkratky (všechny na jednom místě), Nahlásit chybu…
-  a O programu.
-- **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků.
+- **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš; hlasitost v Zobrazení → Nastavení → Zvuk, citlivost myši
+  v Nastavení → Ovládání. Zvuk hraje jen při rychlosti 100 %. Myš PC jako myš SAPI a joystick z klávesnice se
+  neukládají, po dalším spuštění jsou vypnuté.
+- **Klávesnice:** Stroj → Klávesnice vymění klávesnici za běhu. Výměna je změna sestavy: konfigurátor ji ukáže jako
+  neuloženou (Uložit, Ponechat pro příští spuštění) a vypnutí a zapnutí ji nechá.
+- **Nastavení** (Zobrazení → Nastavení…), po sekcích:
+  - **Obecné:** Jazyk / Language, velikost písma, průvodci sestavami (otevírají se sami, znovu ukazovat skryté);
+  - **Vzhled:** režim (podle systému, světlý, tmavý), okna plovoucí nebo zadokovaná;
+  - **Obraz:** celočíselné zvětšení, poměr stran TV, vyhlazování (totéž co v menu Zobrazení);
+  - **Zvuk:** zvuk zapnutý, hlasitost;
+  - **Ovládání:** citlivost myši, myš PC jako myš SAPI (jen do ukončení);
+  - **Záznam:** snímek zvětšený 3×, cesta k ffmpeg (pod ní, zda ho program našel), složky snímků a videí
+    s tlačítkem Otevřít složku;
+  - **Pokročilé (pro vývojáře):** sbalené, server MCP pro vývoj s Claude.
+- **Nápověda:**
+  - **První kroky** a **Slovníček** se otevřou v okně Nápověda programu, každý na své záložce (s anglickým
+    rozhraním anglické `docs/getting-started.md` a `docs/glossary.md`). Kapitoly jdou sbalit a rozbalit, odkazy
+    otevřou web nebo soubor, odkaz vpravo nahoře otevře celý soubor `.md` mimo program;
+  - Průvodce sestavou, Návody k obsluze (otevřou se v programu pro soubory .md, mají obrázky), Klávesové zkratky
+    (všechny na jednom místě), Nahlásit chybu… a O programu;
+  - bubliny nad ovládacími prvky se zalamují na rozumnou šířku.
+- **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků. Rychlé
+  uložení (Ctrl+F2) má každá sestava své, kopie v Mých sestavách vlastní (`work\state\mine_<jméno>.sapistate`).
+  Stav, který nejde načíst, nechá běžící sestavu, jak je.
 
 ## Vyzkoušejte
 
@@ -397,6 +452,11 @@ Další hry: Prince of Persia (`sapi1v_PoP.sapi`), síťový BomberNet (`sapi1v_
 i MCP server pro práci s Claude, viz `docs\mcp.md`. Podrobnosti o deskách jsou v `docs\desky\`.
 
 Pomůcky při vývoji programů:
+- **Debugger** (Ladění → Debugger) ukazuje registry procesoru sestavy: u 8080 a 8085 jmény Intel (A F B C D E H L,
+  u 8085 i IE, SID/SOD a co přečte RIM), u Z80 i druhou sadu, IX, IY, I, R, IM a IFF. Příznaky jsou zaškrtávátka,
+  při pauze (F5) jdou měnit. Červená tečka v disassembleru je breakpoint (F9), šipka PC.
+- **Mapa portů a paměti** v konfigurátoru ukazuje kolize. Port 63h desek V je šedě se slovy „sdílený zápis (záměr)“:
+  RAM-1V tam bere bity MAP a RAM disk bity adresy, tak jsou desky navržené.
 - **Náhodný obsah pamětí po zapnutí** (konfigurátor, zaškrtávátko u názvu sestavy): RAM, videopaměti a palety
   nejsou po zapnutí vynulované, stejně jako na železe. Program, který spoléhá na nuly, se tak ukáže hned.
 - **CGA-1V se kreslí s paprskem:** přepnutí stránky nebo zápis do palety v nevhodnou chvíli je vidět jako trhání,

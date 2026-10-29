@@ -50,13 +50,20 @@ struct UiSnapshot {
     // View or Debug (Media, Debugger, rack...), "front:KEY" that window in View -> Windows
     std::vector<std::string> window_clicks;
     bool layout_switch = false;  // View -> Settings -> Windows: the other layout
+    std::vector<std::string> hide_displays;   // View -> Displays: these display windows hidden ("screen", "gfx0"...)
     bool pause = false;          // F5 before the picture: the text over the picture, "[paused]" in the title
     bool log = false;            // show the Log window (errors and warnings in their colours)
     bool reset = false;          // F12 before the picture (the APS-5 unit asks first)
     int fullscreen = 0;          // Alt+Enter so many times: 1 the display used last over the whole window (the window
                                  // keeps its size), 2 on and off again (the windows as they were)
     bool report = false;         // show Help -> Report a bug
+    std::string help;            // show Help -> First steps ("first") or Glossary ("glossary")
+    int help_open = 0;           // its sections: 1 all open, -1 all closed (0 = the first open)
+    float help_scroll = -1;      // its text scrolled to this part (0 = the top, 1 = the end)
+    bool second = false;         // the warning a second GUI over the same settings and work folder gets (no lock)
     bool debugger = false;       // show the Debugger window
+    std::string memory;          // show the Memory window at this address (hex, "F000"), empty = not
+    bool rack_new = false;       // the menu New of the configurator open (its submenus: with --ui-mouse)
     std::string menu;            // the menu with this English name ("Help", "View"...) open in the picture
     std::vector<std::string> keys;   // keys pressed one after another before the picture ("F9", "Ctrl+Shift+C",
                                      // "Enter", "Esc"), through the event queue as typed
@@ -66,6 +73,15 @@ struct UiSnapshot {
     // machines started one after another in the run (as Start in the window Choose a machine), 4 frames apart from the
     // ninth; the picture 4 frames after the last
     std::vector<std::string> switches;
+    // files dropped on the window one after another (SDL_EVENT_DROP_FILE, whole paths as Explorer gives them), 2 frames
+    // apart from the ninth; the picture 3 frames after the last
+    std::vector<std::string> drops;
+    // left clicks one after another at these points (x, y in points), 3 frames apart from the ninth (the mouse there, down,
+    // up); the picture 3 frames after the last
+    std::vector<float> click_xy;
+    bool save = false;           // Save in the configurator before the picture (after --ui-set)
+    bool save_copy = false;      // Save of this run as a release build does it, also in a debug build: a supplied
+                                 // machine as a copy in My machines (work/machines)
 };
 
 // --ui-layout floating|docked: the window layout of this run (View -> Settings -> Windows), not saved; other than the

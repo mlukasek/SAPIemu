@@ -23,13 +23,22 @@ modern extra on new boards: SAPI-1 was never a games machine.
    `%LOCALAPPDATA%\SAPIemu\work`.
 4. The user interface is in Czech and English: **View → Jazyk / Language**. The first start follows the language of
    Windows.
+5. Run one window of SAPIemu. A second window over the same settings or the same `work\` folder warns "Another
+   SAPIemu is running": the two would overwrite each other's settings, RAM disks and floppies. Quit closes it without
+   touching any file, Continue keeps it.
+
+This guide is also in the program: **Help → First steps**. **Help → Glossary** explains the words of SAPI and of
+SAPIemu (machine, configurator, card, slot, jumper...).
 
 ## Choose a machine
 
 **File → Choose a machine...** opens by itself at the first start; ZPS-1 already runs behind it. The machines are in
 groups: **Basics: historic Tesla sets**, **Instruments and equipment**, **Boards by Libor Lasota (modern)**, **Games
 and demos (modern)** and more groups with variants at the end. Each machine has a preview, a short text, its cards
-by slot and a Start button (a double click starts it too).
+by slot and a Start button (a double click starts it too). **Recent machines** are at the top (as in File → Recent
+machines), and **My machines** too once you have saved a copy of a machine (see Saving). A machine that cannot start
+(a missing ROM, a damaged file) does not stop the running one: the Error window says why and that the machine runs on
+as it was.
 
 After a start from the first four groups the **Machine guide** opens: what to try, in English when the user
 interface is English. The button **Type into SAPI** types a block of code for you. **Help → Machine guide** brings
@@ -75,6 +84,27 @@ The guide of each machine has the steps. The longer user guides (Help → User g
   `media\jpr-1s\manic_miner.hex`, then `JUMP 4400`; Ctrl+F7 is the game mode of the keyboard.
 - **Ctrl+F8** turns on the joystick from the PC keyboard (arrows, space = fire). The sound plays at 100 % speed only.
 
+## Menus and settings
+
+- **View → Settings...** in sections: **General** (Jazyk / Language, text size, the guides), **Appearance** (mode:
+  as the system, light or dark; windows: floating or docked), **Picture** (integer scaling, TV aspect ratio,
+  smoothing), **Sound** (on, volume), **Controls** (mouse sensitivity, the PC mouse as the SAPI mouse until exit),
+  **Recording** (enlarged screenshots, the path to ffmpeg with a line saying whether it was found, the folders of
+  screenshots and videos) and, collapsed, **Advanced (for developers)** with the MCP server.
+- **View → Displays** lists the display windows of the machine by their cards (AND-1V, CGA-1V...). Untick one to hide
+  it (the machine runs on), tick it to bring it back with the keyboard. Another machine shows all of them again.
+- **View → Open the folder of screenshots and videos** opens `work\snimky` or `work\videa` in Explorer.
+- **Machine → Media...** opens the Media window, as View → Media does. The media show their file names; the full
+  path is in the tooltip.
+- **Machine → Keyboard** swaps the keyboard while running. It is a change of the machine: the configurator shows it
+  as unsaved, and switching off and on keeps it.
+- The windows of the instruments (Serial terminal, Printer, Plotter, IMS-2, Diagnostic board, APS-5) are greyed out
+  when the machine has no such device; the tooltip says which machine in Choose a machine has it.
+- **Drag and drop:** a file dropped from Explorer on the SAPIemu window does what the menu does. A `.sapi` starts the
+  machine, a `.sapistate` loads the state, `.hex` and `.bin` open the Load program windows, a floppy image (`.img`,
+  `.imd`...), an RKD-1 cartridge (`.rkd`) or an RMP-1 tape (`.tap`) goes into the first empty drive, a cassette
+  (`.wav`, `.mp3`, `.kzd`) into the recorder. The status bar says where it went.
+
 ## Keyboard and focus
 
 - **Click the screen window** before typing: the keys then go to the SAPI keyboard. While the screen does not have
@@ -98,13 +128,22 @@ The guide of each machine has the steps. The longer user guides (Help → User g
 - **Disks, tapes and RAM disks** are saved by themselves: a few seconds after the last write, at a pause and when
   you switch to another window. The originals in `media\` stay untouched; the emulator works on copies in `work\`.
   In the Media window the button "..." of a drive offers **Restore from the original...**.
-- **File → Save state... / Load state...** stores the whole computer in a `.sapistate` file.
-- **Machine configurator...** (View menu): cards in the rack, jumpers, the port map. Changes need "Restart with
-  this configuration". When you leave with unsaved changes, SAPIemu lists them and offers Save, Save as..., **Keep
-  for the next start** or Discard changes. Save overwrites the machine file, also a supplied one in `machines\`.
-  Keep for the next start leaves the file as it is and uses the changes at **every** start of that machine until you
-  save them or press Revert in the configurator; each such start says so in the status bar, and Choose a machine
-  marks the machine with `*`.
+- **File → Save state... / Load state...** stores the whole computer in a `.sapistate` file. A state that cannot be
+  loaded leaves the running machine as it is. The quick save (Ctrl+F2) has one slot per machine; a copy in My
+  machines has its own.
+- **Machine configurator...** (View menu): the rack and three tabs below it, **Machine and bus**, the card of the
+  selected slot (for example "X7 CGA-1V": jumpers, ROMs, images) and **Port and memory map**. **New** offers an empty
+  machine or a copy of another, in the groups of Choose a machine. Changes need "Restart with this configuration".
+  When you leave with unsaved changes, SAPIemu lists them and offers Save, Save as..., **Keep for the next start** or
+  Discard changes. Keep for the next start leaves the file as it is and uses the changes at **every** start of that
+  machine until you save them or press Revert in the configurator; each such start says so in the status bar, and
+  Choose a machine marks the machine with `*`.
+- **My machines:** Save never overwrites a machine supplied with SAPIemu. It writes **your copy** into
+  `work\machines\` (the tooltip of Save says so), named as the original with "(mine)", the second copy "(mine 2)".
+  The running machine, the window title and Recent machines then follow the copy, and the next Save writes into it.
+  In Choose a machine the copies are at the top under My machines, with the preview and guide of the original;
+  "Modified from" selects the original, which is unchanged, and **Delete...** removes the copy. Your own machine
+  file (saved elsewhere, or under a new name) is saved as usual.
 
 ## Reporting a bug
 
@@ -118,7 +157,9 @@ the log of the run that crashed. The start after that replaces it, so send it ri
 
 ## Where the docs are
 
-- In the program: the Machine guides (English and Czech) and Help → Keyboard shortcuts.
+- In the program: Help → First steps (this guide) and Help → Glossary in the Help window (chapters fold, links open
+  the web or the file), the Machine guides (English and Czech) and Help → Keyboard shortcuts.
+- `docs/glossary.md`: the glossary as a file (in Czech `docs/slovnicek.md`).
 - `README.md`: an English summary at the top, then the full Czech description.
 - `PRVNI-KROKY.md`: the full first steps in Czech, with every machine and what to type.
 - `docs\`: user guides of the instruments (`navod-*.md`), notes on each board (`docs\desky\`) and on the software

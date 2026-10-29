@@ -10,7 +10,7 @@ using nlohmann::json;
 
 Rmd1::~Rmd1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 bool Rmd1::configure(const json& cfg, std::string& err)

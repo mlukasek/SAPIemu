@@ -2099,6 +2099,32 @@ const char* card_port_param(const CardInfo* ci)
     return nullptr;
 }
 
+// docs/desky/RAM-1V.md: the MAP register of RAM-1V has the port and the bits of ZRMD-1 (63h, MAP1 = bit 6, MAP2 =
+// bit 7), so one OUT 63h sets the RAM disk address A16-A21 (bits 0-5) and MAP1/MAP2 together (MikroMon's OUT 63h,3F
+// at the start). Not with a ZRMD-1 driving MAP itself (JP2): its function is another one in the map, a warning stays.
+static const SharedWrite k_shared_writes[] = {
+    { "RAM-1V", "MAP register", "ZRD-1V", "RAM disk address A16-A21",
+      "RAM-1V takes bits 6-7 (MAP1, MAP2), the RAM disk bits 0-5 (A16-A21): the port and the bits of ZRMD-1, one "
+      "OUT sets both.",
+      "RAM-1V bere bity 6-7 (MAP1, MAP2), RAM disk bity 0-5 (A16-A21): port a bity jako u ZRMD-1, jeden OUT nastaví "
+      "oboje." },
+    { "RAM-1V", "MAP register", "ZRMD-1", "RAM disk address A16-A21",
+      "RAM-1V takes bits 6-7 (MAP1, MAP2), the RAM disk bits 0-5 (A16-A21): the port and the bits of ZRMD-1, one "
+      "OUT sets both.",
+      "RAM-1V bere bity 6-7 (MAP1, MAP2), RAM disk bity 0-5 (A16-A21): port a bity jako u ZRMD-1, jeden OUT nastaví "
+      "oboje." },
+};
+
+const SharedWrite* card_shared_write(const std::string& type, const std::string& what, const std::string& type2,
+                                     const std::string& what2)
+{
+    for (const SharedWrite& s : k_shared_writes) {
+        if (type == s.type && what == s.what && type2 == s.type2 && what2 == s.what2) return &s;
+        if (type2 == s.type && what2 == s.what && type == s.type2 && what == s.what2) return &s;
+    }
+    return nullptr;
+}
+
 const char* card_class_name(int cls, bool czech)
 {
     switch (cls) {

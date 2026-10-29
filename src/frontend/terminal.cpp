@@ -229,31 +229,31 @@ static void same_line_if_fits(const char* next_label)
 static void draw_send(UiState& ui, SerialChannel* ch)
 {
     if (ImGui::Button(tr("Send file..."))) term_dialog(ui, 1);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The bytes of the file as they are (e.g. Intel HEX for BOOT of MIKROBIOS)."));
+    if (ImGui::IsItemHovered()) tip(tr("The bytes of the file as they are (e.g. Intel HEX for BOOT of MIKROBIOS)."));
     same_line_if_fits(tr("Send text file..."));
     if (ImGui::Button(tr("Send text file..."))) term_dialog(ui, 2);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("UTF-8 text: Czech letters as SAPI codes, line ends as CR (Enter)."));
+    if (ImGui::IsItemHovered()) tip(tr("UTF-8 text: Czech letters as SAPI codes, line ends as CR (Enter)."));
     same_line_if_fits(tr("Send file XMODEM..."));
     if (ImGui::Button(tr("Send file XMODEM...")) && !transfer_active(ui)) term_dialog(ui, 3);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("XMODEM (checksum or CRC) to a receiving program in SAPI, e.g. DOCPM10.COM in CP/M."));
+    if (ImGui::IsItemHovered()) tip(tr("XMODEM (checksum or CRC) to a receiving program in SAPI, e.g. DOCPM10.COM in CP/M."));
     same_line_if_fits(tr("Receive file XMODEM..."));
     if (ImGui::Button(tr("Receive file XMODEM...")) && !transfer_active(ui)) term_dialog(ui, 4);
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("XMODEM from a sending program in SAPI, e.g. DOPC10.COM in CP/M. XMODEM carries no name: choose the file first."));
+        tip(tr("XMODEM from a sending program in SAPI, e.g. DOPC10.COM in CP/M. XMODEM carries no name: choose the file first."));
     same_line_if_fits(tr("Cut 1Ah off the end"));
     ImGui::Checkbox(tr("Cut 1Ah off the end"), &ui.term_strip_sub);
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("XMODEM pads the last packet with 1Ah (CP/M text ends with it). Off for binary files that end with 1Ah."));
+        tip(tr("XMODEM pads the last packet with 1Ah (CP/M text ends with it). Off for binary files that end with 1Ah."));
     same_line_if_fits(tr("Copy"));
     if (ImGui::Button(tr("Copy"))) terminal_copy(ui);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The selection (drag with the mouse, double click = word) or all text to the clipboard (Alt+C, Ctrl+Insert)."));
+    if (ImGui::IsItemHovered()) tip(tr("The selection (drag with the mouse, double click = word) or all text to the clipboard (Alt+C, Ctrl+Insert)."));
     same_line_if_fits(tr("Paste"));
     if (ImGui::Button(tr("Paste"))) terminal_paste(ui);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The clipboard as typed text (Alt+V, Shift+Insert)."));
+    if (ImGui::IsItemHovered()) tip(tr("The clipboard as typed text (Alt+V, Shift+Insert)."));
     same_line_if_fits(tr("Selection to the clipboard"));
     ImGui::Checkbox(tr("Selection to the clipboard"), &ui.term_copy_on_select);
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("A selection goes to the clipboard when the mouse button is released (as in PuTTY or TeraTerm)."));
+        tip(tr("A selection goes to the clipboard when the mouse button is released (as in PuTTY or TeraTerm)."));
 
     char msg[256];
     const XmodemSender& x = ui.xmodem;
@@ -325,7 +325,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
             std::string err;
             SerialBridge* b = tcp_bridge_start(ch, "127.0.0.1", ui.tcp_port, ui.tcp_dcd_follows, ui.tcp_protocol, err);
             if (b) m->add_bridge(b);
-            else ui.bridge_error = err;
+            else ui.bridge_error = tr_core(err);
         }
         ImGui::SameLine();
         const char* protos[] = { "telnet", "raw", "auto" };
@@ -349,7 +349,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
             std::string err;
             SerialBridge* b = com_bridge_start(ch, ui.com_port, ch->baud, err);
             if (b) m->add_bridge(b);
-            else ui.bridge_error = err;
+            else ui.bridge_error = tr_core(err);
         }
         ImGui::SameLine();
         ImGui::TextDisabled("%d Bd", ch->baud);
@@ -427,13 +427,14 @@ void draw_terminal(UiState& ui)
         term_dialog_poll(ui, m);
     }
     // no keyboard navigation of ImGui: with the terminal focused the arrows, Space and Enter go to SAPI (handle_key)
-    if (!ImGui::Begin(tr_id("Serial terminal"), &ui.show_terminal, ImGuiWindowFlags_NoNavInputs) || !m) {
+    if (!ImGui::Begin(tr_id("Serial terminal"), &ui.show_terminal, ImGuiWindowFlags_NoNavInputs) ||
+        device_window_off(ui)) {
         ImGui::End();
         return;
     }
     sync_terms(ui, m);
     if (m->serials.empty()) {
-        ImGui::TextUnformatted(tr("This machine has no serial port."));
+        ImGui::TextWrapped("%s", device_missing(ui, "terminal").c_str());
         ImGui::End();
         return;
     }
@@ -462,11 +463,11 @@ void draw_terminal(UiState& ui)
     ImGui::SameLine();
     bool conn = ch->connected;
     if (ImGui::Checkbox(tr("Terminal connected (DCD)"), &conn)) ch->connected = conn;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("ECMON and MikroMon use the serial console at boot when DCD is active."));
+    if (ImGui::IsItemHovered()) tip(tr("ECMON and MikroMon use the serial console at boot when DCD is active."));
     ImGui::SameLine();
     bool cts = ch->cts;
     if (ImGui::Checkbox(tr("Ready (CTS)"), &cts)) ch->cts = cts;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("CTS/DSR: the terminal is ready to receive. Programs sending with RTS/CTS handshake (DOPC.COM, MikroMon USYNC) wait for it."));
+    if (ImGui::IsItemHovered()) tip(tr("CTS/DSR: the terminal is ready to receive. Programs sending with RTS/CTS handshake (DOPC.COM, MikroMon USYNC) wait for it."));
     same_line_if_fits(tr("Clear"));
     if (ImGui::Button(tr("Clear"))) terminal_clear(t);
     const char* emus[] = { tr("SAPI (ECMON/AND-1Z)"), "ANSI/VT100", tr("No emulation (^X)") };
@@ -480,7 +481,7 @@ void draw_terminal(UiState& ui)
     bool pacing = ch->pacing;
     if (ImGui::Checkbox(tr("No overrun"), &pacing)) ch->pacing = pacing;
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Send the next character only after SAPI has read the previous one."));
+        tip(tr("Send the next character only after SAPI has read the previous one."));
     draw_bridges(ui, m, ch);
     draw_send(ui, ch);
 

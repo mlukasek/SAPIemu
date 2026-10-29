@@ -46,13 +46,21 @@ kopie, baterie) zůstane netknuté; výstupy a snímky jsou tamtéž. Používá
 
 Dotčené testy podle oblasti: deska nebo sestava → testy, které ji načítají (`grep machines/… tests/*.cpp`); diskové
 řadiče → `fdc_ecmon|floppy_imd|sapi_sys|drive_letters|rpd1|zps3|zps4`; GUI texty → `i18n` (`test_i18n`
-a `test_i18n_keys`, ten i po přidání nebo smazání `tr()` kdekoli v `src/frontend`); MCP → `mcp`; stav → `state`.
+a `test_i18n_keys`, ten i po přidání nebo smazání `tr()` kdekoli v `src/frontend`); Markdown průvodců a okna Nápověda
+(`markdown.cpp`, `docs/prvni-kroky.md`, `getting-started.md`, `slovnicek.md`, `glossary.md`) → `markdown`; MCP → `mcp`;
+stav → `state`;
+přepínání sestav (`EmuHost`: nepovedené načtení, zkušební sestavení, Stroj → Klávesnice, zámek GUI) → `host`.
 
 Testy smějí běžet souběžně: každý zapisuje jen do vlastních souborů ve `work/test*` (složky vytvoří `test_init()`),
 pracovní kopie médií ve `work/` jen čte. Pracovní kopie vzniká pod dočasným jménem a přejmenuje se, takže
 ji souběžně nevytvoří dva procesy napůl (dřív na čistém `work/` padaly `test_zps3`, `test_state`).
 
 Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 reset (pod debuggerem PC si F12 bere Windows, pak Stroj → Reset nebo tlačítko Reset v debuggeru), F9 breakpoint v debuggeru (do 2026-10-29 reset), Ctrl+F12 vypnout a zapnout, Alt+Enter celá obrazovka.
+
+**Debugger** (`debugger.cpp`, od etapy 8) ukazuje registry podle `CpuCard::cpu_isa()`: 8080 a 8085 jmény Intel
+(8085 navíc `CpuRegs::rim` a `sod` jen pro čtení, plní je jen `Jpr1::get_regs`; ostatní karty je neplní, debugger
+`CpuRegs` nejdřív nuluje), Z80 s druhou sadou, IX, IY, I, R, IM, IFF. Disassembler má jen mnemoniky Zilog. Okno
+Paměť ukáže „.“ za znak, který písmo GUI nemá (`mem_char`, `IsGlyphInFont`; v jádře by to záviselo na GUI).
 
 **Rychlost a takt** jsou dvě různé věci:
 - **Takt CPU** je vlastnost karty: u JPR-1ZI propojky JP2/JP3 v sestavě, u JPR-1V přepínač TURBO (2/4 MHz) i za
@@ -69,6 +77,65 @@ sestava (spustí se bez
 (`"language": "cs"` nebo `"en"`, jen když si ho uživatel zvolil v menu). Jiný soubor nastavení:
 `sapiemu --settings soubor.json`.
 
+**Okno Nastavení** (`draw_settings` v `app.cpp`, od etapy 8 po sekcích): jedna stránka s nadpisy `theme_section`
+a formulářem (popisek ve sloupci `settings_row`, nejširší popisek z `k_settings_labels` určí sloupec): Obecné, Vzhled,
+Obraz, Zvuk, Ovládání, Záznam, sbalitelné Pokročilé (pro vývojáře) se serverem MCP (otevře se samo, když je server
+zapnutý nebo hlásí chybu). Klíče souboru nastavení se nezměnily. Výchozí velikost 40 × 56 výšek písma. ffmpeg hledá
+`video_ffmpeg()` jen při otevření okna a po změně pole. Složky snímků a videí dávají `shot_dir()` a `video_dir()`,
+otevírá je `open_folder()` (`help.cpp`, složku nejdřív vytvoří; i Nahlásit chybu a Zobrazení → Otevřít složku
+snímků a videí).
+
+**Druhé okno GUI** nad stejným nastavením nebo stejnou pracovní složkou (`work/`: RAM disky, diskety, zálohované
+paměti) se spustí, ale ukáže varování „Už běží jiné SAPIemu“ (Pokračovat / Ukončit). Dokud uživatel neodpoví, do
+sdílených souborů nic nezapíše: sestava neběží (`host.frame` ani příkazy MCP), ImGui neukládá rozložení oken
+(`io.IniFilename` po načtení v prvním snímku odložené v `App::ini_held`, Pokračovat ho vrátí). Ukončit odejde bez
+uložení nastavení, rozložení oken i sestavy (`EmuHost::drop`: bez výpadku napájení, RAM disky a zálohované paměti
+zůstanou, jak je má první okno). GUI drží po celý běh zámek `<soubor nastavení>.lock` a `work/sapiemu-gui.lock`
+(`file_lock_try` v `util.cpp`). Na Windows je to soubor otevřený bez sdílení, který systém po skončení procesu
+smaže i po pádu. Na Linuxu je to `flock`, soubor zůstane. Druhé GUI nad stejným nastavením píše log do
+`sapiemu.2.log`, aby nepřepsalo log prvního. `sapiemu-cli` a `--ui-snapshot` zámek neberou ani nehlídají, protože
+testy a galerie jich spouští mnoho najednou. Snímek varování: `--ui-second`.
+
+**Přepnutí sestavy** (od 2026-10-29, etapa 8 plánu vzhledu; `EmuHost::load_config`, `load_state` v `host.cpp`): nová
+sestava se nejdřív postaví nanečisto (`EmuHost::trial`: `Machine::trial`, `load_json`, `check_bridges` bez otevření
+portů, u stavu i `load_state`), starý stroj zatím běží. Když zkouška selže, starý stroj zůstane nedotčený (objekt,
+generace, paměť, breakpointy, pauza, spojení sériových linek, bez `power_down`). Po dobré zkoušce se starý vypne jako
+dřív a nový se postaví znovu (`build`), aby četl RAM disky a zálohované paměti až po jejich zápisu. Zkušební stroj
+a stroj, který se nepostavil, nic neukládá (`Machine::trial`, `Machine::discard()`, `Card::trial` hlídají `~Machine`
+a destruktory karet, které zapisují; nová karta, která v destruktoru zapisuje soubor, musí `trial` hlídat také).
+Hlášky zkoušky drží `log_hold` a zapíše `log_replay` (pro každé vlákno zvlášť). Výjimka JSON při stavbě je chyba,
+neuteče. Test `test_host`.
+
+**Poslední sestavy** (`ui.recent`, v nastavení `browser.recent`): `recent_add` po každém úspěšném startu z GUI
+(`start_machine` v `rack.cpp`, kudy jdou Vybrat sestavu, Poslední sestavy, Spustit ze souboru i přetažení), po
+Restartovat s touto sestavou se souborem a po Uložit jako. MCP a `sapiemu-cli` seznam nemění. Vybrat sestavu se zavře
+až po startu (`ui.browser_start`).
+
+**Stroj → Klávesnice** jde přes popis sestavy: `rack_set_keyboard` → `rack_set_live_param` → `Machine::set_live_param`
+klávesnice karty CPU (`Machine::plug_keyboard`). Popis staví `rack_keyboard_cfg` jako konfigurátor. Klávesnice
+odmítnutá kartou CPU vrátí klávesnici z popisu. MCP `set_keyboard` mění jen běžící klávesnici.
+
+**Moje sestavy** (od 2026-10-29, rozhodl autor): v buildu pro vydání (`NDEBUG`, `save_copies()` v `rack.cpp`) zapíše
+Uložit v konfigurátoru dodanou sestavu jako kopii do `work/machines/` (`MACHINE_MINE_DIR`, přes `work_root`). Dodaná =
+jmenovaná v `machines/_vyber.json` (`machine_supplied`, `MachineEntry::listed`; bez rejstříku každý soubor pod
+`machines/`). Ladicí build dodanou sestavu přepíše, `--ui-save-copy` vynutí chování vydání.
+- Kopie: jméno souboru originálu (obsazené `-2`, `-3`…), ke jménu „ (moje)“ nebo „ (mine)“ podle jazyka (druhá
+  „(moje 2)“), `based_on` = cesta originálu (`cfg_hw` ho nebere jako změnu hardwaru). Běžící sestavu na kopii
+  přejmenuje `EmuHost::set_file` bez nového sestavení. Rychlý slot kopie `work/state/mine_<jméno>.sapistate`
+  (`quick_state_path`).
+- Uložit jako v buildu pro vydání začne u nové a dodané sestavy ve `work/machines`.
+- Rejstřík (`core/machine_index`) dá kopie do kategorie `MACHINE_MINE` („Moje sestavy“) nahoru, jen když nějaké jsou
+  (soubory s `_` přeskočí). Kopie bere náhled, průvodce a titulek originálu se značkou (`MachineEntry::copy`).
+  Okno Vybrat sestavu: „Vychází z“, Smazat… (ne u běžící). MCP `list_machines` je vypíše s `based_on`.
+- Testy: `test_mine` v `test_machine_index` (vlastní kořen dat), `host_copy` v `test_state`; `test_index` hlídá, že
+  každá sestava v `machines/` je v rejstříku (jinak by ji Uložit nebralo jako dodanou).
+
+**Přetažení souborů** (`SDL_EVENT_DROP_FILE`): fronta v `App`, `drop_frame` v `app.cpp` bere jeden soubor za snímek
+po liště menu, při modálním okně (`GetTopMostPopupModal`) ho odmítne, když má otázka nebo Chyba teprve vyskočit,
+počká snímek. `file_drop` v `media.cpp` volá kód menu: `rack_start_machine` (`.sapi`, `.jsonc`), načtení stavu,
+`file_chosen` (odpověď souborového dialogu, sdílená s menu) pro programy a média. Disketa, kazeta RKD-1 a páska
+RMP-1 jen do prázdné mechaniky, kazeta DSM-1 a KZD-1 i do plného magnetofonu (jako Vložit…). Snímek: `--ui-drop`.
+
 **Jazyk GUI** (čeština, angličtina): Zobrazení → Jazyk / Language, přepne se hned. Bez uložené volby podle jazyka Windows
 (zobrazovací jazyk, ne místní formáty): čeština pro české nebo slovenské Windows, jinak angličtina. `sapiemu --lang cs|en` vybere jazyk jen pro jedno spuštění (neukládá se, hodí se pro
 `--ui-snapshot`). Texty GUI jsou v `src/frontend/i18n.cpp` (klíč = anglický text, `tr()`), popisy karet a jumperů
@@ -78,6 +145,13 @@ po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi
 měl holé karty za krycím panelem), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce,
 `test_i18n_keys` čte `src/` a hledá klíče `tr()` bez českého záznamu a záznamy, které nic nepoužívá (výjimky
 s důvodem jsou v testu).
+- **Hlášky jádra** (chyby karet, souboru sestavy, ROM, médií a stavu, důvod zastavení dema APS-5) jsou anglicky, jádro
+  je sdílené se `sapiemu-cli` a MCP. GUI je překládá až při zobrazení: `tr_core()` podle tabulky `k_core`
+  v `i18n.cpp`. Jsou v ní pevné texty a vzory s `%s` (jméno souboru, číslo, další hláška jádra, která se přeloží
+  také). Bere se první vzor, který sedí, proto jsou zvláštní vzory před obecnými („cannot create working copy %s: %s“
+  před „cannot create %s“). Pak se hledá v tabulce `tr()`. Na „<karta nebo soubor>: <text>“ se přeloží jen text.
+  Hláška, která v tabulce není, zůstane anglicky. `test_i18n_keys` hlídá, že každý pevný kus vzoru je v literálech
+  `src/` (jinak je záznam mrtvý), `test_i18n` hlídá, že každý vzor přeloží jeho vlastní záznam.
 - **Potisk přístrojů** se také nepřekládá (štítky pecí „Pec 1“ APS-5, OCHRANA, NAPĚTÍ… IMS-2). V anglickém rozhraní
   má překlad vedle: legenda grafu a bublina pece („Furnace 1“), bublina nad potiskem IMS-2. Jméno pece ze sestavy
   (`furnaces[].name`) zůstává, jak je napsané.
@@ -99,6 +173,17 @@ s důvodem jsou v testu).
   tlačítko magnetofonu značku režimu, graf APS-5 čísla pecí, problémy sestavy ✖ a ⚠. Nová okna to mají dodržet.
 - **Rozměry** oken a polí v jednotkách písma (výšky řádku, `combo_width()` podle nejdelší volby), pixely jen
   v kresbách hardwaru.
+- **Bubliny** (tooltipy) jen přes `tip(text)` a `tipf(formát, …)` z `theme.h`, ne `ImGui::SetTooltip`: zalomí text
+  na asi 35 šířek písma (dřív byla bublina až 1470 px na jednom řádku). Podmínku `IsItemHovered()` píše volající.
+- **Nápověda v programu** (etapa 8): Nápověda → První kroky a Slovníček otevřou okno Nápověda (`help.cpp`, záložky)
+  s `docs/prvni-kroky.md` a `docs/slovnicek.md`, v angličtině `docs/getting-started.md` a `docs/glossary.md`
+  (chybí-li anglický, český; v rozbaleném zipu i `PRVNI-KROKY.md` nahoře). Markdown parsuje `markdown.cpp` (bez ImGui,
+  test `test_markdown`) a kreslí `mdview.cpp`, stejně jako průvodce sestavami: odstavce s **tučným**, `kódem`
+  a odkazy uvnitř zalomeného textu, odrážky a čísla s odsazením, tabulky (sloupec nejméně tak široký jako jeho
+  nejdelší slovo), kapitoly `##` jako sbalitelné sekce (první otevřená, slovníček celý). Odkazy: http(s) v prohlížeči,
+  soubory relativně ke složce dokumentu nebo ke kořeni dat, `kód` s cestou k existujícímu `.md` je odkaz také; odkaz
+  na dokument jiné stránky okna přepne záložku. `package.py` hlídá, že tyto čtyři soubory jsou v gitu a v zipu.
+  Snímky: `--ui-help first|glossary`, `--ui-help-open all|none`, `--ui-help-scroll 0..1`.
 - **Náhled přístroje:** okno označí nakreslený hardware `picture_mark()`, `--ui-picture` s `--ui-crop` ořízne snímek
   jen na něj (`docs/sestavy.md`).
 
@@ -111,8 +196,8 @@ v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled j
   - kresby hardwaru (rám, panely, displeje, papír) mají vlastní barvy a pevné písmo `panel_font()` (DejaVu Sans)
     v každém vzhledu.
 - **Písma:** Segoe UI se bere ze systému (`%WINDIR%\Fonts`, nesmí se přibalit), bez něj a na Linuxu je to DejaVu Sans.
-- **Volba:** Zobrazení → Nastavení → Vzhled (Podle systému / Světlý / Tmavý, velikost písma), uloží se jako
-  `"appearance"`. `sapiemu --ui-theme light|dark` (také `win11-light`, `win11-dark`) vybere režim jen pro jedno
+- **Volba:** Zobrazení → Nastavení → Vzhled → Režim (Podle systému / Světlý / Tmavý; velikost písma je v sekci
+  Obecné), uloží se jako `"appearance"`. `sapiemu --ui-theme light|dark` (také `win11-light`, `win11-dark`) vybere režim jen pro jedno
   spuštění. `--ui-snapshot` bez něj kreslí světlý, aby obrázky nezávisely na nastavení Windows. `--ui-scale 1.25`
   napodobí měřítko monitoru.
 - **Okna:** plovoucí (výchozí) nebo zadokovaná, popis níže v Oknech GUI.
@@ -234,7 +319,19 @@ vzhledu: okna):
     ostatní), displej bez zvětšení v názvu, u zakrytého „zakryté“. Kliknutí: `layout_to_front`.
   - Položky oken v menu Zobrazení a Ladění (`window_item`): zavřené okno otevřou, zakryté dají dopředu (vpravo
     „zakryté“ a tooltip), okno vpředu zavřou. Fajfka dál znamená otevřené. Nastavení…, Klávesové zkratky
-    a O programu otevřené okno dají dopředu (`open_window`).
+    a O programu otevřené okno dají dopředu (`open_window`). Okna přístrojů (`device_item`) jsou povolená, jen když
+    sestava přístroj má (`machine_has_device`), nebo když je okno otevřené (položka ho zavře). Vypnutá sestava se
+    řídí přístroji sestavy, jak naposledy běžela (`machine_devices_seen` po každé změně sestavy, Zapnout postaví
+    stejný popis), před první běžící sestavou jsou povolené všechny. Zakázaná položka
+    v zalomeném tooltipu řekne, co chybí a kde je sestava s přístrojem (`device_missing`: kategorie a název
+    z rejstříku `_vyber.json`, místo v konfigurátoru). Stejnou větu ukáže i otevřené okno sestavy bez přístroje,
+    okno při vypnuté sestavě řekne „Sestava je vypnutá“ (`device_window_off`).
+  - Zobrazení → Obrazovky: okna displejů běžící sestavy (`###screen`, `###gfxN`), fajfka = ukázané. Skryté okno se
+    nekreslí (`App::display_hidden`), emulace běží dál. Displej použitý naposledy se přesune na ukázaný, a když měl
+    před otevřením menu klávesnici (`App::screen_keys`: `screen_focused` posledního snímku bez popupu), i ona. Znovu
+    ukázané okno přijde dopředu s klávesnicí. Jiná sestava (jiný soubor nebo jiné displeje, `displays_sig`) ukáže
+    všechny, restart a vypnutí a zapnutí téže ne. Neukládá se. Celá obrazovka ukáže i skrytý displej vybraný v jejím
+    menu.
 - **Zadokované rozložení:** Zobrazení → Nastavení → Vzhled → Okna, uloží se jako `"appearance": { "layout":
   "docked" }`. Staví ho `layout_dock()` v `layout.cpp` přes DockBuilder: hlavní výstup uprostřed, sloupec u pravého
   kraje (nahoře ostatní displeje, pod nimi okna stroje, dole průvodce a ladicí okna jako záložky). Postaví se jen bez
@@ -258,7 +355,15 @@ vzhledu: okna):
   v Nastavení), `--ui-fullscreen` (Alt+Enter, okno zůstane velikosti `--ui-size`), `--ui-zoom`, `--ui-reset-layout`,
   `--ui-arrange` (Přeskládat otevřená okna), `--ui-window-item KLÍČ` (kliknutí na položku okna `###KLÍČ` v menu
   Zobrazení nebo Ladění, opakovaně po sobě), `--ui-front KLÍČ` (to okno v Zobrazení → Okna), `--ui-switch SESTAVA`
-  (spuštění další sestavy za běhu, opakovaně po sobě) a `--ui-menu View/Windows` (otevřená podnabídka). Popis voleb `--ui-*` je v `docs/sestavy.md`.
+  (spuštění další sestavy za běhu, opakovaně po sobě), `--ui-hide-display KLÍČ` (Zobrazení → Obrazovky skryje okno
+  `screen`, `gfx0`…), `--ui-second` (varování druhého okna nad stejným nastavením) a `--ui-menu View/Windows`
+  (otevřená podnabídka). `--ui-key` u znakové klávesy pošle i její znak (událost textu jako klávesnice). Etapa 8:
+  `--ui-drop SOUBOR` (soubor přetažený na okno jako z Průzkumníka: `SDL_EVENT_DROP_FILE`, opakovaně po sobě),
+  `--ui-click X,Y` (kliknutí levým tlačítkem, body okna, opakovaně po sobě), `--ui-save` (Uložit v konfigurátoru po
+  `--ui-set`) a `--ui-save-copy` (Uložit jako build pro vydání i v ladicím buildu: dodaná sestava jako kopie do Mých
+  sestav, výše). Popis voleb `--ui-*` je v `docs/sestavy.md`. **Pozor:** snímek běží nad skutečným `work/`; přepnutí
+  ze sestavy se zálohovanou pamětí (APS-5, DMR-1, sestavy V) ji zapíše (2026-10-29 tak snímek přepsal
+  `work/aps-5/crm.bin`). Takové snímky dělat nad kopií dat (`--data-root`).
 
 ## Linux (ověřeno ve WSL 2, 2026-10-06)
 
@@ -388,6 +493,10 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
    - vedle zipu zapíše `SAPIemu-<verze>-win64.zip.sha256` s jeho SHA-256 ve formátu `sha256sum` (`<hex>  <jméno>`)
      a vypíše ho; ověří se `sha256sum -c …zip.sha256`, na Windows `certutil -hashfile …zip SHA256`;
    - jen soubory, které zná git, takže nové soubory nejdřív `git add`;
+   - dokumenty okna Nápověda (`HELP_DOCS`: `docs/prvni-kroky.md`, `getting-started.md`, `slovnicek.md`,
+     `glossary.md`) musí být v gitu a v `docs\` zipu, jinak zip není hotový;
+   - exe jsou vždy z `out\build\windows-release`: tam Uložit v konfigurátoru dodanou sestavu nepřepíše, ale uloží
+     kopii do Mých sestav (`work\machines`, `save_copies()`), ladicí build ji přepisuje;
    - skript zip rozbalí do čisté složky a ověří, že z ní naběhne MikroMon;
    - odmítne build se zapnutým `SAPIEMU_SOURCE_FALLBACK` (balík nesmí sahat do repa);
    - přidá i IDE disk tohoto PC (`work\ide\*.img`) jako `work\ide\`. Sestava V a

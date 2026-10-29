@@ -69,6 +69,10 @@ SCREENS = [
      False, None, 'sériový terminál'),
     ('16_settings', ZPS1, 'zps1', ['--ui-settings'], '1600x900', False, None, 'Zobrazení → Nastavení'),
     ('18_about', ZPS1, 'zps1', ['--ui-about'], '1600x900', False, None, 'Nápověda → O programu'),
+    ('19_help_first_steps', ZPS1, 'zps1', ['--ui-help', 'first'], '1600x900', False, None,
+     'Nápověda → První kroky (okno Nápověda, sbalitelné kapitoly)'),
+    ('19b_help_glossary', ZPS1, 'zps1', ['--ui-help', 'glossary', '--ui-help-scroll', '0.4'], '1600x900', False, None,
+     'Nápověda → Slovníček (tabulky)'),
     ('20_aps5', 'machines/aps5.sapi', 'aps5', ['--ui-aps5'], '1600x900', False, None, 'APS-5: panel a pece'),
     ('21_ims2', 'machines/zps/ZPS-2_DPS-1_IMS-2.sapi', 'ims2', ['--ui-ims2'], '1600x900', False, None, 'měřicí pracoviště IMS-2'),
     ('22_minigraf', 'machines/zps/ZPS-2_MIKOS_V5_Minigraf.sapi', 'minigraf', ['--ui-plotter'], '1600x900', False, None,
@@ -108,6 +112,8 @@ def sandbox(out):
     sb = mp.sandbox()
     for d in ('third_party/fonts', 'docs/img', 'machines'):
         shutil.copytree(os.path.join(ROOT, d), os.path.join(sb, d), dirs_exist_ok=True)
+    for f in ('prvni-kroky.md', 'getting-started.md', 'slovnicek.md', 'glossary.md'):   # the window Help
+        shutil.copy2(os.path.join(ROOT, 'docs', f), os.path.join(sb, 'docs', f))
     print('data', sb)
     return sb
 

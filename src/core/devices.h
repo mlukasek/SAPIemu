@@ -19,6 +19,10 @@ struct CpuRegs {
     uint16_t af2, bc2, de2, hl2;
     uint8_t i, r, im;
     bool iff1, iff2, halted;
+    // 8085 only, read only (the debugger): what RIM reads now (SID, I7.5 I6.5 I5.5 pending, IE, M7.5 M6.5 M5.5) and
+    // the SOD latch
+    uint8_t rim;
+    bool sod;
 };
 
 // A keyboard attached to the parallel ports of a CPU card (connector X2 on JPR-1ZI).

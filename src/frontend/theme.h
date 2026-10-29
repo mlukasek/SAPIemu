@@ -106,6 +106,12 @@ void theme_titlebar(SDL_Window* window);
 // After all windows, before Render: the frame of the focused window (where the keyboard goes).
 void theme_focus_frame();
 
+// The tooltip of an item, in place of ImGui::SetTooltip (the caller asks IsItemHovered): wrapped at about 35 font
+// widths, so that a long text is a short paragraph and not one line across the screen (WCAG 1.4.13); it replaces a
+// tooltip set before in the frame, as SetTooltip does. tipf: with printf arguments.
+void tip(const char* text);
+void tipf(const char* fmt, ...) IM_FMTARGS(1);
+
 // The main button of a window in the accent colour; small: without the vertical padding (as SmallButton).
 bool theme_accent_button(const char* label, const ImVec2& size = ImVec2(0, 0), bool small = false);
 // A bar at the left edge of the last item: a selected list item is not marked by its colour only.

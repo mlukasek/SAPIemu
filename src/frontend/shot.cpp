@@ -35,6 +35,11 @@ static void shot_pixels(UiState& ui, DisplayDevice* d, float px_aspect, std::vec
     }
 }
 
+std::string shot_dir(void)
+{
+    return data_path("work/snimky");
+}
+
 // work/snimky/<card>_<YYYYMMDD-HHMMSS>.png (letters, digits, - and _ of the card name)
 static std::string shot_auto_path(const char* name)
 {
@@ -49,7 +54,7 @@ static std::string shot_auto_path(const char* name)
     char stamp[32] = "";
     if (SDL_GetCurrentTime(&t) && SDL_TimeToDateTime(t, &dt, true))
         snprintf(stamp, sizeof(stamp), "%04d%02d%02d-%02d%02d%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
-    std::string dir = data_path("work/snimky");
+    std::string dir = shot_dir();
     make_dirs(dir);
     std::string base = path_join(dir, n + "_" + stamp);
     std::string path = base + ".png";

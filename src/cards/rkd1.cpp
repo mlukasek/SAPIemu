@@ -109,7 +109,7 @@ void RkdPlatter::unload(void)
 
 Rkd1::~Rkd1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 // Load an image, or make an unformatted one when the file is not there yet (not under media/).

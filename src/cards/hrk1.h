@@ -32,6 +32,8 @@ public:
     void p1_out(uint8_t value) override;
     void p2_out(uint8_t value) override;
     bool rtl() override;
+    // switched off for good (Machine::power_down): the outage lasts until the machine goes. EmuHost switches the old
+    // machine off only after the new one has built as a trial, so a failed switch does not leave it without power.
     double power_fail_warning() const override { return 0.1; }
     void power_fail() override { outage(1e9); }
     void type_char(uint32_t cp) override;

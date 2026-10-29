@@ -1,7 +1,9 @@
-// Help: the windows "About SAPIemu", "Keyboard shortcuts" (one table for the whole program) and "Report a bug", the
-// user guides of docs/ opened in the program the system has for them.
+// Help: the window "Help" (First steps and the Glossary from docs/, drawn in the program), the windows "About
+// SAPIemu", "Keyboard shortcuts" (one table for the whole program) and "Report a bug", the user guides of docs/
+// opened in the program the system has for them.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
+#include "frontend/markdown.h"
 #include "frontend/theme.h"
 
 #include <stdio.h>
@@ -25,12 +27,24 @@
 #include <sys/utsname.h>
 #endif
 
-void open_doc(const char* rel)
+// A file or a folder in the program the system has for it (a folder: Explorer).
+static void open_in_system(const std::string& path)
 {
-    std::string p = data_path(rel);
+    std::string p = path;
     for (char& c : p)
         if (c == '\\') c = '/';
     SDL_OpenURL(("file:///" + p).c_str());
+}
+
+void open_doc(const char* rel)
+{
+    open_in_system(data_path(rel));
+}
+
+void open_folder(const std::string& dir)
+{
+    make_dirs(dir);
+    open_in_system(dir);
 }
 
 // the guides of docs/ for users, in the order of the machines
@@ -48,14 +62,164 @@ static const struct {
     { "docs/aps5-ukazka.md", "APS-5 step by step" },
 };
 
+// ---------------------------------------------------------------- the window Help: first steps, glossary
+
+// The pages of the window Help (HelpPage): a document of docs/ in the language of the user interface (English: the
+// Czech one when the English one is missing), or its copy at the top of the release zip (tools/package.py GUIDES)
+// when docs/ lacks it. package.py checks that these files are in the zip.
+static const struct {
+    const char* title;   // tr() key: the tab and the item of the menu Help
+    const char* cs;
+    const char* en;
+    const char* top_cs;
+    const char* top_en;
+    bool all_open;       // all its sections open at first (one page to look things up in), else the first one
+} k_help[HELP_PAGES] = {
+    { "First steps", "docs/prvni-kroky.md", "docs/getting-started.md", "PRVNI-KROKY.md", "GETTING-STARTED.md", false },
+    { "Glossary", "docs/slovnicek.md", "docs/glossary.md", nullptr, nullptr, true },
+};
+
+// The file of a page now (from the data root), "" = none there.
+static std::string help_file(int page)
+{
+    const char* in_docs[2] = { k_help[page].cs, k_help[page].en };
+    const char* at_top[2] = { k_help[page].top_cs, k_help[page].top_en };
+    for (int k = i18n_language() == LANG_EN ? 1 : 0; k >= 0; k--) {
+        if (file_exists(data_path(in_docs[k]))) return in_docs[k];
+        if (at_top[k] && file_exists(data_path(at_top[k]))) return at_top[k];
+    }
+    return std::string();
+}
+
+void help_open(UiState& ui, int page)
+{
+    ui.show_help = true;
+    ui.help_page = page;
+    ui.help_select = true;
+    ui.help_focus = true;
+}
+
+// A link to the document of another page (the glossary from the first steps): that page instead of the file outside.
+static bool help_link(UiState& ui, const std::string& path)
+{
+    for (int p = 0; p < HELP_PAGES; p++)
+        if (path == help_file(p)) {
+            ui.help_page = p;
+            ui.help_select = true;
+            return true;
+        }
+    return false;
+}
+
+struct HelpDoc {
+    bool read = false;
+    UiLanguage lang = LANG_CS;   // read for this language of the user interface
+    std::string file;            // the file read (another one after a change of the language)
+    std::vector<MdBlock> blocks;
+    bool sections = false;       // it has ## sections (Expand all, Collapse all)
+};
+
+static void help_page(UiState& ui, int page, HelpDoc& d, int set_open)
+{
+    bool fresh = false;   // another document (the language changed): from the top
+    if (!d.read || d.lang != i18n_language()) {
+        std::string file = help_file(page);
+        fresh = d.read && file != d.file;
+        d.read = true;
+        d.lang = i18n_language();
+        d.file = file;
+        d.blocks.clear();
+        std::string text;
+        if (!file.empty() && file_read_text(data_path(file), text)) {
+            md_parse(text, d.blocks);
+            md_resolve(d.blocks, file);
+        }
+        d.sections = false;
+        for (const MdBlock& b : d.blocks)
+            if (b.kind == MD_HEADING && b.level == 2) d.sections = true;
+    }
+    float u = ImGui::GetFontSize();
+    if (d.sections) {
+        if (ImGui::SmallButton(tr("Expand all"))) set_open = 1;
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Collapse all"))) set_open = -1;
+        ImGui::SameLine();
+    }
+    if (!d.file.empty()) {   // the file itself (to print it, to search in it), at the right edge
+        const char* name = d.file.c_str();
+        float w = ImGui::CalcTextSize(name).x;
+        float x = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - w;
+        if (x > ImGui::GetCursorPosX()) ImGui::SetCursorPosX(x);
+        if (ImGui::TextLink(name)) open_doc(name);
+        if (ImGui::IsItemHovered()) tip(tr("Opens the file in the program the system has for .md files."));
+    } else {
+        ImGui::NewLine();
+    }
+    ImGui::Separator();   // the text scrolls under it
+    ImGui::BeginChild("text", ImVec2(0, 0), ImGuiChildFlags_None);
+    if (d.blocks.empty()) {
+        std::string want = i18n_language() == LANG_EN ? k_help[page].en : k_help[page].cs;
+        ImGui::TextDisabled(tr("The file %s is missing."), want.c_str());
+    } else {
+        MdView v;
+        v.fold = true;
+        v.all_open = k_help[page].all_open;
+        v.set_open = set_open;
+        v.own_link = help_link;
+        ImGui::Indent(0.4f * u);
+        md_draw(ui, d.blocks, v);
+        ImGui::Unindent(0.4f * u);
+        ImGui::Dummy(ImVec2(0, 0.5f * u));   // the end of the text clear of the edge
+        if (fresh) ImGui::SetScrollY(0);
+        if (ui.help_scroll >= 0) ImGui::SetScrollY(ui.help_scroll * ImGui::GetScrollMaxY());
+    }
+    ImGui::EndChild();
+}
+
+void draw_help(UiState& ui)
+{
+    if (!ui.show_help) return;
+    layout_window(LW_HELP);
+    if (ui.help_focus) {   // asked for from the menu: in front of the windows that hide it
+        ImGui::SetNextWindowFocus();
+        ui.help_focus = false;
+    }
+    bool visible = ImGui::Begin(tr_id("Help"), &ui.show_help);
+    if (!ui.show_help) ui.focus_display = 2;   // closed: the keyboard back to the display
+    if (!visible) {
+        ImGui::End();
+        return;
+    }
+    static HelpDoc s_docs[HELP_PAGES];   // each tab keeps its own scrolling and open sections
+    bool select = ui.help_select;        // a link may ask for another page while drawing: the next frame
+    ui.help_select = false;
+    if (ImGui::BeginTabBar("pages")) {
+        for (int p = 0; p < HELP_PAGES; p++) {
+            char label[96];
+            snprintf(label, sizeof(label), "%s###page%d", tr(k_help[p].title), p);
+            ImGuiTabItemFlags flags = select && ui.help_page == p ? ImGuiTabItemFlags_SetSelected : 0;
+            if (!ImGui::BeginTabItem(label, nullptr, flags)) continue;
+            if (!select) ui.help_page = p;
+            int set_open = 0;
+            if (ui.help_set_open && p == ui.help_page && !select) {
+                set_open = ui.help_set_open;
+                ui.help_set_open = 0;
+            }
+            help_page(ui, p, s_docs[p], set_open);
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+    ImGui::End();
+}
+
 void help_docs_menu(UiState& ui)
 {
-    (void)ui;
-    if (ImGui::MenuItem(tr("First steps"))) {   // English user interface: the short English guide (if it is there)
-        const char* en = "docs/getting-started.md";
-        bool use_en = i18n_language() == LANG_EN && file_exists(data_path(en));
-        open_doc(use_en ? en : "docs/prvni-kroky.md");
-    }
+    // in the window Help: Markdown drawn as on GitHub (tables, sections that fold), not a raw .md outside
+    if (ImGui::MenuItem(tr("First steps"))) help_open(ui, HELP_FIRST_STEPS);
+    if (ImGui::MenuItem(tr("Glossary"))) help_open(ui, HELP_GLOSSARY);
+    if (ImGui::IsItemHovered())
+        tip(tr("The words of SAPI and of SAPIemu: machine, configurator, card, slot, jumper..."));
     if (ImGui::BeginMenu(tr("User guides"))) {
         for (const auto& d : k_docs)
             if (file_exists(data_path(d.file)) && ImGui::MenuItem(tr(d.title))) open_doc(d.file);
@@ -209,7 +373,7 @@ static SDL_Texture* about_logo(UiState& ui, AboutLogo& lg, int h)
 static void url_link(const char* label, const char* url)
 {
     ImGui::TextLinkOpenURL(label, url);   // a link as in a browser; the backend opens it through SDL
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", url);
+    if (ImGui::IsItemHovered()) tip(url);
 }
 
 void draw_about(UiState& ui)
@@ -423,7 +587,7 @@ void draw_report(UiState& ui)
     if (k_issues_public) {
         ImGui::TextWrapped("%s", tr("Send the report to the author through GitHub Issues:"));
         ImGui::TextLinkOpenURL("github.com/mlukasek/SAPIemu/issues", k_issues_url);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", k_issues_url);
+        if (ImGui::IsItemHovered()) tip(k_issues_url);
     } else {
         ImGui::TextWrapped("%s", tr("Send the report to the author: until SAPIemu is public, reply the way you got the "
                                     "program. After that, use GitHub Issues (github.com/mlukasek/SAPIemu/issues)."));
@@ -451,12 +615,7 @@ void draw_report(UiState& ui)
     }
     ImGui::SameLine();
     ImGui::BeginDisabled(ui.log_file.empty());
-    if (ImGui::Button(tr("Open the log folder"))) {
-        std::string p = path_dir(ui.log_file);
-        for (char& c : p)
-            if (c == '\\') c = '/';
-        SDL_OpenURL(("file:///" + p).c_str());
-    }
+    if (ImGui::Button(tr("Open the log folder"))) open_folder(path_dir(ui.log_file));
     ImGui::EndDisabled();
     if (!ui.report_status.empty()) {
         ImGui::PushStyleColor(ImGuiCol_Text, theme().ok);

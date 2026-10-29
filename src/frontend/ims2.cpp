@@ -72,7 +72,7 @@ static void lamp(ImDrawList* dl, ImVec2 c, float r, bool lit, ImU32 col = K_LED_
 static void lettering_tip(ImVec2 p0, ImVec2 p1, const char* en)
 {
     if (en && i18n_language() == LANG_EN && ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(p0, p1))
-        ImGui::SetTooltip("%s", en);
+        tip(en);
 }
 
 static void lettering(ImDrawList* dl, ImVec2 p, ImU32 col, const char* text, const char* en)
@@ -93,7 +93,7 @@ static void text_center(ImDrawList* dl, ImVec2 c, ImU32 col, const char* s, floa
 }
 
 // a push button of the panel; true when clicked
-static bool panel_button(const char* id, ImVec2 p0, ImVec2 p1, const char* tip)
+static bool panel_button(const char* id, ImVec2 p0, ImVec2 p1, const char* hint)
 {
     ImDrawList* dl = ImGui::GetWindowDrawList();
     ImGui::SetCursorScreenPos(p0);
@@ -103,7 +103,7 @@ static bool panel_button(const char* id, ImVec2 p0, ImVec2 p1, const char* tip)
     dl->AddRectFilled(ImVec2(p0.x, p0.y + 2), ImVec2(p1.x, p1.y + 2), IM_COL32(10, 10, 10, 255), r);
     dl->AddRectFilled(ImVec2(p0.x, p0.y + (held ? 2.0f : 0.0f)), ImVec2(p1.x, p1.y + (held ? 2.0f : 0.0f)),
                       ImGui::IsItemHovered() ? IM_COL32(58, 58, 60, 255) : IM_COL32(40, 40, 42, 255), r);
-    if (tip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+    if (hint && ImGui::IsItemHovered()) tip(hint);
     return clicked;
 }
 
@@ -130,7 +130,7 @@ static bool knob(const char* id, ImVec2 c, float r, double* v, double lo, double
     if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
         char s[64];
         snprintf(s, sizeof s, fmt, *v);
-        ImGui::SetTooltip("%s: %s\n%s", label, s, tr("Drag or turn the wheel; Shift = fine."));
+        tipf("%s: %s\n%s", label, s, tr("Drag or turn the wheel; Shift = fine."));
     }
     double f = (*v - lo) / (hi - lo);
     float ang = (float)((-225.0 + 270.0 * f) * K_PI / 180.0);
@@ -224,7 +224,7 @@ static M1tTerms draw_m1t330(Ims2Bench* b, uint64_t now, ImVec2 o, float w)
     panel_text(dl, ImVec2(t0.x - u * 2.1f, t0.y + fh * 0.18f - u * 0.45f), IM_COL32(210, 210, 210, 255), "EXT.");
     lamp(dl, ImVec2(t0.x + u * 0.5f, t0.y + fh * 0.18f), u * 0.25f, v.power && v.remote);
     if (ImGui::IsMouseHoveringRect(ImVec2(t0.x - u * 2.2f, t0.y + fh * 0.1f), ImVec2(t0.x + u, t0.y + fh * 0.26f)))
-        ImGui::SetTooltip("%s", tr("EXT: remote control from the IMS-2 bus (REN and addressed)."));
+        tip(tr("EXT: remote control from the IMS-2 bus (REN and addressed)."));
     // the buttons
     float by0 = f0.y + fh * 0.66f, by1 = f0.y + fh * 0.86f, bw = fw * 0.075f;
     struct Btn {
@@ -350,7 +350,7 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
                   "MĚŘENÍ (meter): the meter shows the voltage (V) or the current (A)");
         ImGui::SetCursorScreenPos(s0);
         if (ImGui::InvisibleButton("##meas", ImVec2(s1.x - s0.x, s1.y - s0.y))) out.meter_a = !out.meter_a;
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The meter shows the voltage (V) or the current (A)."));
+        if (ImGui::IsItemHovered()) tip(tr("The meter shows the voltage (V) or the current (A)."));
         dl->AddRectFilled(s0, s1, IM_COL32(40, 40, 40, 255), 3.0f);
         float sx = out.meter_a ? s1.x - (s1.x - s0.x) * 0.3f : s0.x + (s1.x - s0.x) * 0.3f;
         dl->AddRectFilled(ImVec2(sx - u * 0.25f, s0.y + 2), ImVec2(sx + u * 0.25f, s1.y - 2), IM_COL32(210, 210, 210, 255), 2.0f);
@@ -410,7 +410,7 @@ static void draw_monitor(UiState& ui, Ims2Bench* b, Dps1* card, float u)
         ImGui::SameLine(0, u * 0.7f);
     }
     ImGui::Text("DIO %02Xh", bus.dio_lines);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The data lines DIO8-DIO1 (asserted = 1)."));
+    if (ImGui::IsItemHovered()) tip(tr("The data lines DIO8-DIO1 (asserted = 1)."));
     if (card) {
         ImGui::TextDisabled("DPS-1: %s, %s, %s", card->pon_ff() ? tr("drivers off (PON)") : tr("drivers on"),
                             card->controller() ? tr("controller (CEN)") : tr("not the controller"),
@@ -483,6 +483,12 @@ static void draw_monitor(UiState& ui, Ims2Bench* b, Dps1* card, float u)
 
 // ---------------------------------------------------------------- the window
 
+bool ims2_in_machine(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    return m && dynamic_cast<Ims2Bench*>(m->plant.get());
+}
+
 void draw_ims2(UiState& ui)
 {
     Machine* m = ui.host->machine();
@@ -494,12 +500,12 @@ void draw_ims2(UiState& ui)
     if (!ui.show_ims2) return;
     float u = ImGui::GetFontSize();
     layout_window(LW_IMS2);   // on the right, at most the height of the work area
-    if (!ImGui::Begin(tr_id("IMS-2 measuring bench"), &ui.show_ims2) || !m) {
+    if (!ImGui::Begin(tr_id("IMS-2 measuring bench"), &ui.show_ims2) || device_window_off(ui)) {
         ImGui::End();
         return;
     }
     if (!b) {
-        ImGui::TextDisabled("%s", tr("No measuring bench. Machine description: \"plant\": { \"type\": \"IMS-2\" } with DPS-1."));
+        ImGui::TextWrapped("%s", device_missing(ui, "ims2").c_str());
         ImGui::End();
         return;
     }
@@ -510,7 +516,7 @@ void draw_ims2(UiState& ui)
                                                     : tr("DPS-1 X2 -> IMS-2 cable (connected at the first access of the card)"));
     ImGui::SameLine();
     ImGui::TextDisabled("  %s %d", tr("address"), b->m1t.address);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The address switches on the back of the voltmeter (machine description: plant.m1t330.address)."));
+    if (ImGui::IsItemHovered()) tip(tr("The address switches on the back of the voltmeter (machine description: plant.m1t330.address)."));
     draw_monitor(ui, b, card, u);
     ImGui::Separator();
     float w = ImGui::GetContentRegionAvail().x;

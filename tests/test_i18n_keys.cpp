@@ -3,7 +3,8 @@
 //   (k_key_calls) in src/frontend has an entry in frontend/i18n.cpp (also when the Czech text is the same: the
 //   entry says it was looked at);
 // - unused: every entry is a literal somewhere in src/ (keys also come from the core: the function names of the
-//   decoders "BOOT off", the labels of the APS-5 demo, the motion of KZD-1...), else it is dead and goes away.
+//   decoders "BOOT off", the labels of the APS-5 demo, the motion of KZD-1...), else it is dead and goes away;
+// - the texts of the core (tr_core, the table k_core): every fixed piece of a pattern is in the literals of src/.
 // Keys passed through a variable are not checked for an entry (help.cpp's tables, the core's texts).
 // The sources are read as C++: comments, character literals and raw strings handled, adjacent literals joined,
 // escapes decoded. A short list of exceptions with their reasons is below.
@@ -256,6 +257,40 @@ int main(void)
         unused++;
     }
     CHECK_EQ(unused, 0);
+
+    // the texts of the core (tr_core, k_core): every fixed piece of a pattern is in the literals of src/ (a part of
+    // one, or the end of one and the start of another where the core joins two), else the entry is dead
+    std::string all(1, '\x01');   // every literal between two of these
+    for (const std::string& u : used) {
+        all += u;
+        all += '\x01';
+    }
+    auto in_src = [&](const std::string& piece) {
+        if (all.find(piece) != std::string::npos) return true;
+        for (size_t k = 1; k < piece.size(); k++)
+            if (all.find(piece.substr(0, k) + '\x01') != std::string::npos &&
+                all.find('\x01' + piece.substr(k)) != std::string::npos)
+                return true;
+        return false;
+    };
+    int core = 0, dead = 0;
+    for (const char* en; (en = i18n_core_at(core, nullptr)) != nullptr; core++) {
+        std::string s = en;
+        for (size_t from = 0;;) {
+            size_t at = s.find("%s", from);
+            std::string piece = s.substr(from, at == std::string::npos ? std::string::npos : at - from);
+            if (!piece.empty() && !in_src(piece)) {
+                fprintf(stderr, "src/frontend/i18n.cpp: \"%s\" of the core text \"%s\" is in no source (remove it)\n",
+                        piece.c_str(), en);
+                dead++;
+            }
+            if (at == std::string::npos) break;
+            from = at + 2;
+        }
+    }
+    CHECK(core > 50);
+    CHECK_EQ(dead, 0);
+
     for (int i = 0; k_exceptions[i].key; i++) {   // an exception no longer needed goes away too
         bool needed = !table.count(k_exceptions[i].key) || !used.count(k_exceptions[i].key);
         if (!needed) fprintf(stderr, "exception \"%s\" is not needed any more\n", k_exceptions[i].key);

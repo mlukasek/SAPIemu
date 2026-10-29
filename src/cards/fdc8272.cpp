@@ -14,7 +14,7 @@ static const uint32_t DMA_HOLD_CYCLES = 4;
 
 Fdc8272Card::~Fdc8272Card()
 {
-    flush();
+    if (!trial) flush();
 }
 
 bool Fdc8272Card::configure_common(const json& cfg, const char* default_decoder, const char* prom_name,

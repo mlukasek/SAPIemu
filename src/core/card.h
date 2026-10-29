@@ -146,6 +146,9 @@ public:
     // Configured only to inspect its decoding (configurator map): configure()
     // must not open, create or copy media files.
     bool probe = false;
+    // A card of a machine dropped without saving (Machine::discard: the trial build of EmuHost, a machine that did not
+    // build): its destructor does not flush, the media and battery memories stay as the running machine has them.
+    bool trial = false;
 };
 
 // Helpers for reading configuration values.

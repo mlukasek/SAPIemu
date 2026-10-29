@@ -64,6 +64,14 @@ struct RackEditor {
     int map_state = 0;                  // MAP1/MAP2 state shown in the map
     bool open_map_tab = false;          // select the map tab once (UI snapshot)
     bool scroll_props = false;          // a slot was clicked: its settings tab selected and scrolled into view
+    // the tabs under the frame, always the same three: Machine and bus | the card of the selected slot | the map
+    enum { TAB_BUS = 0, TAB_CARD, TAB_MAP };
+    int tab = TAB_BUS;                  // the one shown last frame
+    int tab_select = -1;                // select this one in the next frame (-1 = none)
+    int tab_sel = 0;                    // the slot the tabs had last frame: another one chosen (right click, a card
+                                        // dragged) brings its tab from the bus tab, not from the map
+    bool new_menu = false;              // open the menu New (UI snapshot --ui-rack-new)
+    bool save_now = false;              // Save as if pressed (UI snapshot --ui-save)
     std::string message;
     bool message_error = false;
     // Question "save the unsaved changes?" before the description is replaced: the
@@ -136,16 +144,32 @@ struct UiState {
     bool browser_first = false;    // opened by the first start: closed without starting a machine, it lets the
                                    // guide of the running one (ZPS-1) open itself once
     std::string browser_sel;       // the machine selected in it
-    std::string browser_sel_cat;   // the category of the row selected ("recent": Recently started): one row lit
+    std::string browser_sel_cat;   // the category of the row selected ("recent": Recent machines): one row lit
     std::string browser_sel_title; // the title of that row when the category has its own (Manic Miner), else empty
+    // its start waits for the question about unsaved changes of the configurator: the window closes when the start is
+    // done (rack.cpp start_machine), it stays open on Cancel
+    bool browser_start = false;
     MachineIndex machine_index;
     bool machine_index_tried = false;  // machine_title read it once (an empty index is not read every frame)
-    std::vector<std::string> recent;   // machines started from the window, newest first (settings)
+    // File -> Recent machines (and the same list at the top of the window): the machine files started from the GUI and
+    // saved by Save as... (UX review BEH-19), newest first (settings; recent_add)
+    std::vector<std::string> recent;
+    // the devices of the machine as it ran last (machine_devices_seen: a bit for each key of machine_has_device), for
+    // the View items while it is switched off; devices_known: a machine ran in this run
+    unsigned devices_last = 0;
+    bool devices_known = false;
     bool show_settings = false;    // View -> Settings
     bool show_about = false;       // Help -> About SAPIemu
     bool show_shortcuts = false;   // Help -> Keyboard shortcuts
     bool show_report = false;      // Help -> Report a bug
     std::string report_status;     // its last copy ("Copied..."), shown under the buttons
+    // Help -> First steps, Glossary: one window with a tab for each (help.cpp, HELP_*)
+    bool show_help = false;
+    int help_page = 0;             // the tab shown
+    bool help_select = false;      // help_page chosen from the menu or a link: its tab selected in the next frame
+    bool help_focus = false;       // the window to the front (it may be open behind others)
+    int help_set_open = 0;         // the sections: 1 all open, -1 all closed (--ui-help-open), done when drawn
+    float help_scroll = -1;        // --ui-help-scroll: the text scrolled to this part of it (0..1), -1 = as it is
     std::string settings_file;     // the settings of this run and its log (app_run), for Report a bug; empty = none
     std::string log_file;
     std::string log_prev_file;     // the log of the run before (after a crash), empty = none
@@ -232,6 +256,7 @@ struct UiState {
     int bp_kind = 0;
     uint16_t mem_addr = 0;
     char mem_goto[8] = "";
+    bool mem_jump = false;         // scroll the memory view to mem_goto in the next frame (UI snapshot --ui-memory)
     char mem_edit_addr[8] = "";
     char mem_edit_data[64] = "";
 
@@ -284,6 +309,8 @@ void shot_save(UiState& ui, DisplayDevice* d, const char* name, float px_aspect)
 void shot_save_as(UiState& ui, DisplayDevice* d, const char* name, float px_aspect);
 void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect);
 void shot_poll(UiState& ui);   // the file of "Save screenshot as", once chosen
+std::string shot_dir(void);    // the folder of the screenshots (work/snimky in the work root)
+std::string video_dir(void);   // the folder of the videos (work/videa)
 // Video of a display output with the sound (frontend/video.cpp): MP4 through ffmpeg into work/videa,
 // the frames at 50 per second of emulated time, enlarged like a screenshot "as shown".
 std::string video_ffmpeg(UiState& ui);   // the ffmpeg to use, empty if none
@@ -297,6 +324,9 @@ bool video_busy(UiState& ui);            // recording, or the last video still b
 void terminal_copy(UiState& ui);
 void terminal_paste(UiState& ui);
 
+// A file of a medium or an output as the windows show it (Media, Printer): its name, the whole path in a wrapped tooltip
+// (a relative one from the data root). disabled: in the colour of the secondary text.
+void file_name_text(const std::string& path, bool disabled = false);
 void draw_debugger(UiState& ui);
 void draw_memory(UiState& ui);
 void draw_iolog(UiState& ui);
@@ -307,25 +337,45 @@ void draw_plotter(UiState& ui);
 // File -> Choose a machine: categories, previews, short texts (docs/vydani/sestavy.md); the guide of a machine
 void browser_open(UiState& ui);
 void draw_browser(UiState& ui);
+// A start from the window is done (rack.cpp start_machine): the window closes; started (ok), the keyboard goes to the
+// display and the first machine of the first start lays the windows out for itself.
+void browser_started(UiState& ui, bool ok);
+// A machine file at the top of Recent machines: started from the GUI (not a start that failed or was cancelled, not
+// MCP or sapiemu-cli), saved by Save as... in the configurator.
+void recent_add(UiState& ui, const std::string& file);
 // The name of a machine file for the title of the OS window, File -> Recent machines and the configurator: the title
 // of the index in the UI language (title_en in English) when the file is in the index and `name` (its name now, empty
 // = any) is the name in the file (not renamed in the configurator); else `name`, or the file when it is empty.
 std::string machine_title(UiState& ui, const std::string& file, const std::string& name);
+// The machine index read again (machines saved since, the configurator's New).
+void machine_index_refresh(UiState& ui);
+// The machines of the index as menus by category, for a popup or a menu (the configurator's New): the categories of a
+// group in a menu of their group, the titles as in Choose a machine, the file and the summary in the tooltip. Returns
+// the file chosen in this frame, else empty.
+std::string machine_index_menus(UiState& ui);
 void draw_guide(UiState& ui);
-// Help (frontend/help.cpp): About, Keyboard shortcuts, Report a bug, the user guides of docs/
+// Help (frontend/help.cpp): About, Keyboard shortcuts, Report a bug, the user guides of docs/, the window Help with
+// First steps and the Glossary (docs/prvni-kroky.md, docs/slovnicek.md; English: docs/getting-started.md,
+// docs/glossary.md) drawn by mdview.cpp
+enum HelpPage { HELP_FIRST_STEPS, HELP_GLOSSARY, HELP_PAGES };
+void help_open(UiState& ui, int page);   // the window Help with that page in front
+void draw_help(UiState& ui);
 void draw_about(UiState& ui);
 void draw_shortcuts(UiState& ui);
 void draw_report(UiState& ui);
 std::string report_diagnostics(UiState& ui, int log_lines);   // the text "Copy diagnostics" puts on the clipboard
 void help_docs_menu(UiState& ui);
 void open_doc(const char* rel);   // a file of docs/ in the program of the system
+// A folder in the file manager of the system (Explorer), made first when it is not there yet (an empty folder shows
+// where the files will go): the log folder, the folders of screenshots and videos.
+void open_folder(const std::string& dir);
 // Default places of the windows (frontend/layout.cpp), called before Begin: the place and the size at the first use
 // of a window (ImGuiCond_FirstUseEver: a place saved in imgui.ini wins, View -> Default window layout takes them again).
 // A dialog opening at a place partly outside the work area comes back inside it.
 enum LayoutWin {
     LW_GUIDE, LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG,
     LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_TERMINAL, LW_PRINTER, LW_LOG, LW_RACK,
-    LW_BROWSER, LW_SETTINGS, LW_SHORTCUTS, LW_ABOUT, LW_REPORT,
+    LW_BROWSER, LW_SETTINGS, LW_SHORTCUTS, LW_ABOUT, LW_REPORT, LW_HELP,
     LW_COUNT
 };
 void layout_window(int which);
@@ -419,6 +469,14 @@ void draw_reset_question(UiState& ui);
 void hex_load_dialog(UiState& ui);
 // File -> Load binary file: native dialog, then the address; the file goes into memory as is.
 void bin_load_dialog(UiState& ui);
+// A file dropped on the main window (app.cpp: SDL_EVENT_DROP_FILE, the UI snapshot --ui-drop), by its suffix as the
+// menus take it: a machine (.sapi) starts as File -> Start a machine from a file (the question about unsaved changes
+// first), a state (.sapistate) loads, Intel HEX (.hex, .ihx, a .txt that is HEX) and a binary file (.bin) open the
+// questions of File -> Load program and Load binary file, a disk image (.img, .imd, .8sd, .sp2, .sp1), an RKD-1
+// cartridge (.rkd) and an RMP-1 tape (.tap) go into the first empty unit of the running machine (none: the Error window
+// says so), a cassette (.wav, .mp3; .kzd for KZD-1) into the first recorder (an empty one first). Anything else, a
+// switched off machine or a file dialog waiting: the status bar says so. The caller checks the modal windows.
+void file_drop(UiState& ui, const std::string& path);
 // File -> Save state / Load state (.sapistate, native dialog); quick slot of the machine
 // (Ctrl+F2 / Ctrl+F3, work/state/).
 void state_save_dialog(UiState& ui);
@@ -438,6 +496,18 @@ struct MachineWindow {
     const char* cs;
 };
 const MachineWindow* machine_windows(int* count);
+// The running machine has the device of the window with the key `key` of machine_windows() (View enables its item
+// only then); switched off: the machine as it ran last (Switch on builds the same description again), any device when
+// none ran yet. device_missing: the sentence for a machine without it, in the UI language (the disabled item's tooltip,
+// the window itself): what is missing, a machine with it in the window Choose a machine, where it goes in the
+// configurator. machine_devices_seen: the devices of the running machine remembered (after each machine change).
+bool machine_has_device(UiState& ui, const char* key);
+std::string device_missing(UiState& ui, const char* key);
+void machine_devices_seen(UiState& ui);
+// Inside the window of a device: switched off (no machine), it says so; true = nothing more to draw.
+bool device_window_off(UiState& ui);
+bool aps5_in_machine(UiState& ui);   // the plant of APS-5 or its panel HRK-1 (aps5.cpp)
+bool ims2_in_machine(UiState& ui);   // the measuring bench on the IMS-2 bus (ims2.cpp)
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);
 // File -> Open machine: start a machine file; asks first when the configurator holds
@@ -448,6 +518,14 @@ void rack_start_machine(UiState& ui, const std::string& file);
 bool rack_load_machine(UiState& ui, const std::string& file, std::string& err);
 // The machine file has changes kept for the next start (the browser marks it).
 bool rack_has_kept(UiState& ui, const std::string& file);
+// My machines (core/machine_index.h): Save of a supplied machine writes a copy into work/machines in a release build
+// (NDEBUG), into the file itself in a debug build; on = as a release build also in a debug one (UI snapshot
+// --ui-save-copy).
+void rack_save_copies_set(bool on);
+// My machines -> Delete: the file of the copy removed, and what the settings keep for it (Recent machines, the changes
+// kept for the next start); the configurator holding it keeps its changes as a machine not saved yet. False: the file
+// was not removed (err says why).
+bool rack_delete_copy(UiState& ui, const std::string& file, std::string& err);
 // The running machine runs with the changes kept for its file (Report a bug says so).
 bool rack_runs_kept(UiState& ui);
 // Exit: asks first when the configurator holds unsaved changes, then sets ui.quit.
@@ -461,8 +539,16 @@ bool rack_pending(UiState& ui);
 // the configurator follows (it is saved with the machine).
 void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value);
 // A parameter of a running card that applies at once (Machine::live_param): set it on the
-// card and in the description of the configurator (TURBO and BIOS buttons, menu).
-void rack_set_live_param(UiState& ui, Card* c, const char* path, const nlohmann::json& v);
+// card and in the description of the configurator (TURBO and BIOS buttons, menu). False: the card refused it (logged,
+// the reason into err_out when given).
+bool rack_set_live_param(UiState& ui, Card* c, const char* path, const nlohmann::json& v,
+                         std::string* err_out = nullptr);
+// Machine -> Keyboard: another keyboard (KeyboardPreset::config) plugged into the running CPU card through its
+// description, as View -> Colour: an unsaved change of the machine in the configurator (saved or kept for the next
+// start), not lost at the next power cycle. rack_keyboard_cfg: the description of that keyboard for a card whose
+// keyboard is `old` now (its own options stay).
+bool rack_set_keyboard(UiState& ui, const char* preset, std::string& err);
+nlohmann::json rack_keyboard_cfg(const nlohmann::json& old, const char* preset);
 // Open a machine description in the configurator without starting it (asks first about unsaved changes there).
 void rack_open_in_editor(UiState& ui, const std::string& path);
 // Keyboard input for the focused terminal; returns true if consumed.

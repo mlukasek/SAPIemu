@@ -242,6 +242,11 @@ void mux_job(std::string ffmpeg, std::string video, std::string wav, std::string
 }   // namespace
 
 // ffmpeg: the path of the settings, else found on PATH; empty if none
+std::string video_dir(void)
+{
+    return data_path("work/videa");
+}
+
 std::string video_ffmpeg(UiState& ui)
 {
     std::error_code ec;
@@ -295,8 +300,8 @@ void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspec
     if (s_mux_thread.joinable()) s_mux_thread.join();
     std::string ffmpeg = video_ffmpeg(ui);
     if (ffmpeg.empty()) {
-        ui_notice(ui, false, tr("Video needs ffmpeg: install it (winget install ffmpeg) or put its path into the settings "
-                                "file (\"video\": { \"ffmpeg\": \"C:/.../ffmpeg.exe\" })."));
+        ui_notice(ui, false, tr("Video needs ffmpeg: install it (winget install ffmpeg) or enter its path in View -> "
+                                "Settings -> Recording."));
         return;
     }
     Recording& r = s_rec;
@@ -323,7 +328,7 @@ void video_start(UiState& ui, DisplayDevice* d, const char* name, float px_aspec
     char stamp[32] = "";
     if (SDL_GetCurrentTime(&t) && SDL_TimeToDateTime(t, &dt, true))
         snprintf(stamp, sizeof(stamp), "%04d%02d%02d-%02d%02d%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
-    std::string dir = data_path("work/videa");
+    std::string dir = video_dir();
     make_dirs(dir);
     std::string base = path_join(dir, (n.empty() ? std::string("screen") : n) + "_" + stamp);
     r.out = base + ".mp4";

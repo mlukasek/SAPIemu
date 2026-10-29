@@ -19,6 +19,11 @@ target_link_libraries(test_i18n_keys PRIVATE sapicore)
 target_compile_definitions(test_i18n_keys PRIVATE SAPIEMU_SRC_DIR="${CMAKE_SOURCE_DIR}/src")
 add_test(NAME test_i18n_keys COMMAND test_i18n_keys)
 
+# The Markdown of the guides and of the window Help (no SDL, no ImGui): the parser and the documents it shows
+add_executable(test_markdown test_markdown.cpp ../src/frontend/markdown.cpp test_util.h)
+target_link_libraries(test_markdown PRIVATE sapicore)
+add_test(NAME test_markdown COMMAND test_markdown)
+
 # The looks of the GUI: the contrast of the palettes (WCAG 2.2), only the data (no SDL, no ImGui code)
 add_executable(test_theme test_theme.cpp ../src/frontend/theme_data.cpp test_util.h)
 target_include_directories(test_theme PRIVATE ${CMAKE_SOURCE_DIR}/third_party/imgui)
@@ -88,6 +93,7 @@ sapi_test(test_zps4)
 sapi_test(test_sapi1v)
 sapi_test(test_mph1v)
 sapi_test(test_state)
+sapi_test(test_host)
 sapi_test(test_printer)
 sapi_test(test_drive_letters)
 

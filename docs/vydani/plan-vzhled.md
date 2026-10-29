@@ -502,6 +502,33 @@ v angličtině, Poslední sestavy, Ctrl+Tab, navigace při hře s průvodcem).
 
 ### Etapa 8: zbytek menu, nastavení a chování · M–L
 
+**Stav 2026-10-29: hotová** (workflow po autorově „pokračuj další etapou“: 5 agentů, oponentura, nálezy opravené;
+rozhodnutí 2026-10-29 – etapa 8 plánu vzhledu: menu, nastavení a chování). Body níže jsou hotové, s těmito rozdíly
+a doplňky:
+- Otevřít složku snímků a videí je podnabídka se dvěma složkami (Snímky obrazovky `work/snimky`, Videa `work/videa`).
+- Obrazovky ▸ skrývají okna displejů, neukládá se (jiná sestava ukáže všechny). Okna přístrojů se u vypnuté sestavy
+  řídí sestavou, jak naposledy běžela.
+- Moje sestavy rozhodl autor: build pro vydání uloží dodanou sestavu (jmenovanou v `machines/_vyber.json`) jako kopii
+  do `work/machines`, ladicí build přepisuje. „Obnovit původní“ nahrazuje odkaz „Vychází z“ (vybere dodanou sestavu)
+  a Smazat… u kopie.
+- Debugger ukazuje registry podle CPU, mnemoniky Intel v disassembleru nejsou (odloženo).
+- Nápověda → Návody k obsluze zůstávají mimo program (mají obrázky).
+- Navíc: oprava psaní do hlavního grafického výstupu her (chyba z etapy 5), Poslední sestavy i po Uložit jako
+  a nadpis „Poslední sestavy“ ve Vybrat sestavu, slovníček (`docs/slovnicek.md`, `docs/glossary.md`), druhé okno
+  nic nezapíše, dokud uživatel neodpoví na varování.
+
+Čeká na autora:
+- Volby v rozhodnutí (dvě složky snímků a videí, skryté displeje neukládat, Nastavení na jedné stránce, RAM-1V se
+  ZRMD-1 na 63h jako záměr, Uložit jako ve `work/machines`, přetažená kazeta vymění kazetu a další).
+- Ruční zkoušky: přetažení z Průzkumníka, build pro vydání s Uložit a Smazat…, dvě okna, Stroj → Klávesnice,
+  Obrazovky a celá obrazovka, debugger podle CPU.
+- Nehoda: snímek přepsal `work/aps-5/crm.bin` a `rtc.bin` (rozhodnutí, „Nehoda s daty autora“).
+- Před commitem přidat do gitu nové soubory (`markdown.*`, `mdview.cpp`, `test_markdown.cpp`, `test_host.cpp`,
+  `slovnicek.md`, `glossary.md`), před pushem `release test`.
+
+Přesunuto na později: mnemoniky Intel pro 8080/8085, viditelné popisky místo samotné bubliny (hodnocení 5.4),
+návody k obsluze s obrázky v okně Nápověda.
+
 **Menu podle hodnocení 5.1**
 - Média… ve Stroji, Obrazovky ▸, Otevřít složku snímků a videí.
 - Okna přístrojů povolená podle typu sestavy a srozumitelná hláška místo JSONu.

@@ -24,7 +24,7 @@ Zrmd1::Zrmd1(bool zrd1v) : Card(zrd1v ? "ZRD-1V" : "ZRMD-1"), is_zrd1v(zrd1v)
 
 Zrmd1::~Zrmd1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 static bool ends_with_hex(const std::string& p)
@@ -168,11 +168,14 @@ int Zrmd1::decode_io(uint8_t port, const char** what)
 {
     uint8_t off = (uint8_t)(port - base);
     if (off == 0) { *what = "RAM disk data"; return DEC_READ | DEC_WRITE; }
+    // base+3: A16-A21 in bits 0-5, bits 6-7 drive MAP1/MAP2 through JP2 (ZRMD-1); its own name: the port map takes
+    // the MAP register of RAM-1V there for a write shared by design (card_shared_write), not with JP2
+    const char* hi = map_jp2 ? "RAM disk address A16-A21, MAP1/MAP2" : "RAM disk address A16-A21";
     if (off < 4 && is_zrd1v) {   // read: the undriven internal bus, loaded into the register too
-        *what = off == 1 && rev2 ? "RAM disk address, battery ADC" : "RAM disk address";
+        *what = off == 3 ? hi : off == 1 && rev2 ? "RAM disk address, battery ADC" : "RAM disk address";
         return DEC_READ | DEC_WRITE;
     }
-    if (off < 4) { *what = "RAM disk address"; return DEC_WRITE; }
+    if (off < 4) { *what = off == 3 ? hi : "RAM disk address"; return DEC_WRITE; }
     if (rtc_enabled && off >= 0x10 && off < 0x20) { *what = "RTC"; return DEC_READ | DEC_WRITE; }
     return 0;
 }

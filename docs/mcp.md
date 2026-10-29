@@ -5,10 +5,12 @@ na klávesnici, číst obrazovku, nahrávat programy, krokovat a nastavovat brea
 
 ## Spuštění
 
-- **GUI (`sapiemu.exe`):** server se zapíná v **Zobrazení → Nastavení** (Server MCP zapnutý, port, výchozí 8580).
+- **GUI (`sapiemu.exe`):** server se zapíná v **Zobrazení → Nastavení → Pokročilé (pro vývojáře)** (Server MCP
+  zapnutý, port, výchozí 8580). Sekce je sbalená, dokud server neběží; zapnutý nebo s chybou ji otevře sám.
   Nastavení se uloží. Nová instalace ho má vypnutý (vydání pro veřejnost). Starší soubor nastavení, který tu položku
-  ještě nemá, server nechá zapnutý jako dřív. Adresa a příkaz `claude mcp add` jsou v okně Nastavení, ve stavovém
+  ještě nemá, server nechá zapnutý jako dřív. Adresa a příkaz `claude mcp add` jsou v téže sekci, ve stavovém
   řádku je pak „MCP“.
+  - Dokud druhé okno GUI čeká na odpověď ve varování „Už běží jiné SAPIemu“, jeho příkazy MCP čekají.
   - `--mcp-port N` server spustí na portu N bez ohledu na nastavení, `--no-mcp` ho nespustí.
 - **Bez okna:** `sapiemu-cli --mcp [--machine ...] [--mcp-port N]`. Emuluje v reálném čase a obsluhuje MCP,
   dokud se nestiskne Ctrl+C.
@@ -50,15 +52,21 @@ Emulátor musí běžet dřív, než se Claude Code spustí (nebo zadejte `/mcp`
 
 Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F000h"`). Čísla v JSON jsou desítková.
 
+**Sestava, která nejde postavit** (`load_machine`, `power` `cycle`, `set_machine_config`, `load_state`): od etapy 8
+plánu vzhledu (2026-10-29) se nová sestava nejdřív postaví nanečisto vedle běžící. Když to nejde (neznámá karta,
+chybějící ROM, chyba v popisu, stav, který nesedí), nástroj vrátí chybu a běžící sestava jede dál, jak jela: tatáž
+paměť, breakpointy, pauza i spojení sériových linek, žádný výpadek napájení. Chyby jsou anglicky jako zbytek MCP
+(GUI je překládá).
+
 | Nástroj | Popis |
 |---|---|
 | `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry; `keyboard_status` = stav klávesnice nebo panelu, jak ho ukazuje stavový řádek (ANK-1 `LED SHIFT ERR`, AR 1990 `AR 1990 READY BUFF`, panel HRK-1 APS-5 `APS-5 key 2, FAULT`; HRK-1 je od etapy 7 plánu vzhledu, 2026-10-29, anglicky jako zbytek MCP, dřív `APS-5 klíč 2, PORUCHA`) |
 | `tape_status`, `tape_insert`, `tape_control` | Magnetofon DSM-1: stav, vložení kazety (WAV/MP3 odkudkoli, nebo nová, nebo program `.hex`/`.bin` převedený na kazetu MIKOS či MIKROBASIC: `format`, `name`, `address`, `entry`), tlačítka přehrát / nahrát / stop / převinout / vysunout / uložit / ochrana, `export` do WAV (`path`); vložení a vysunutí se zapíše i do popisu sestavy (jako v okně Média) |
 | `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (popis sestavy, jak běžela: vložená média a přepnuté přepínače zůstanou), `cycle` (jako Stroj → Vypnout a zapnout, Ctrl+F12) |
 | `quit` | Ukončí emulátor (`sapiemu-cli --mcp` i GUI): nejdřív stroj vypne (nahrané kazety, kazety KZD-1, SRAM s baterií a RAM disky se uloží), pak program skončí. Odpověď ještě dorazí |
-| `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/`; `list_machines` vrací cesty v `machines` a v `entries` název, titulek, kategorii, krátký text a průvodce z rejstříku `machines/_vyber.json`; kategorie je český název první, do které rejstřík sestavu dává (`aps5` Přístroje a technologie, `jpr1s_bgp1s` Desky Libora Lasoty (moderní), i když je i v Hrách a demech) |
+| `list_machines`, `load_machine` | Seznam (i podsložky, např. `machines/zps/`) a načtení sestav z `machines/`; `list_machines` vrací cesty v `machines` a v `entries` název, titulek, kategorii, krátký text a průvodce z rejstříku `machines/_vyber.json`; kategorie je český název první, do které rejstřík sestavu dává (`aps5` Přístroje a technologie, `jpr1s_bgp1s` Desky Libora Lasoty (moderní), i když je i v Hrách a demech); uživatelovy kopie dodaných sestav, které Uložit v buildu pro vydání zapsal do `work/machines/`, jsou v kategorii Moje sestavy s `based_on` = dodaná sestava (načtou se cestou `work/machines/…`) |
 | `card_catalog` | Katalog karet a sběrnic: parametry (jumpery), volby s významem, výchozí hodnoty, emulovaná/neemulovaná; `new_medium` u souborového parametru = nový soubor je prázdné médium (páska, kazeta) |
-| `machine_map` | Mapa portů a paměti z dekodérů karet (PROM, jumpery), po stavech MAP1/MAP2, s kolizemi; pro běžící sestavu, soubor nebo popis |
+| `machine_map` | Mapa portů a paměti z dekodérů karet (PROM, jumpery), po stavech MAP1/MAP2, s kolizemi (sdílený zápis podle návrhu, port 63h desek V, má `by_design` a mezi kolize nepatří); pro běžící sestavu, soubor nebo popis |
 | `get_machine_config`, `set_machine_config` | Popis sestavy (běžící nebo ze souboru) s kontrolou rozložení; použití upraveného popisu (vypnout a zapnout), volitelně uložení jako komentovaný soubor `.sapi` |
 | `reset`, `pause`, `resume` | Reset tlačítkem (nezabere, když JPR-1V zamrzl v INTA s PC v okně videokarty jako na železe: pomůže `power cycle`, `docs/desky/JPR-1V.md`), pauza (zapsaná média se hned uloží do souborů) a běh; `resume` volitelně `speed_percent` (rychlost emulace proti reálnému času, 100 = reálný čas) nebo `max_speed` (co nejrychleji) |
 | `step` | Krok (`count`), `over=true` = krok přes CALL, RST, DJNZ a LDIR |
@@ -72,13 +80,13 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 | `load_hex`, `load_binary` | Nahrání programu ze souboru nebo z inline Intel HEX (zapíše i RAM na procesorové kartě, např. banky JPR-1S) |
 | `type_text` | Psaní na připojenou klávesnici (`\r` = Enter; čeština jen u EKL-1 a Consul 259.11 KOI-8 cs), volitelně s během `run_ms` |
 | `press_key` | Klávesa bez textu (šipky, F1–F4/F6/F7, Pause = CLEAR, numerika) podle mapování v `docs/desky/klavesnice.md` |
-| `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1, ANK-1M2 |
+| `set_keyboard` | Výměna klávesnice za běhu: EKL-1, Consul 262.3 (i bez 7474), Consul 259.11 (i KOI-8 cs), ANK-1, ANK-1M2. Mění jen běžící klávesnici, popis sestavy ne (menu Stroj → Klávesnice v GUI ji od etapy 8 zapisuje do popisu) |
 | `diag_board` | Deska diagnostiky na K3 JPR-1S / JPR-1X (`k3` = `diag`): co ukazují displeje (levý P2-OUT, pravý P1-OUT, i jako číslice), `press` = `+` / `-` podrží tlačítko `hold_ms` za běhu stroje |
 | `ims2` | Měřicí pracoviště na sběrnici IMS-2 desky DPS-1 (`plant` typu `IMS-2`). Bez argumentů stav: voltmetr M1T 330 (adresa, displej, jednotka, rozsah, AUTO, filtr, REP, dálkové ovládání = EXT, poslední hodnota), zdroj BS 525 (výstupy I a II: nastavené napětí, omezení, výstup, ochrana, zátěž), který výstup je na voltmetru, a poslední přenosy na sběrnici (`log` = kolik; příkazy s ATN rozepsané jako LAD/TAD/UNL…, znaky dat, EOI). Argumenty: `u1`, `u2` (V), `i1`, `i2` (A), `load1_ohm`, `load2_ohm` (0, 1000, 220, 100, 47, 22, 10), `bs525_power`, `m1t330_power`, `input` (I, II, none), `key` (auto, filter, rep, 1x, error: tlačítka voltmetru, jen místně), `clear_log` |
 | `plant` | APS-5: technologie (pece, termočlánky, svorkovnice) a panel HRK-1. Bez argumentů stav: teploty, topení (kontakty DRV-1A), logické vstupy a výstupy, zámek, LED porucha, relé watchdogu. Argumenty: `lock` (1, 2), `outage_s` (výpadek sítě s varováním /PFAIL), `ambient_c`, `block_c`, `battery_v`, `reset` (vychladit pece) a pro `channel` 1–8: `temperature_c`, `tc_broken`, `heater_broken`, `li_a`, `li_b`. Klávesy panelu přes `type_text` (0–9, M, R, Backspace = ←, CR = →) |
 | `joystick` | Joysticky stroje (konektory MPH-1V a ANK-1M2 nastavené na joystick, ANK-1M2 sleduje první): `port` 0 = první, 1 = druhý, `pressed` = co je stisknuté (`down`, `up`, `right`, `left`, `fire1`, `fire2`), bez něj jen stav |
 | `mouse` | Myš stroje (konektor MPH-1V nebo ANK-1M2 `mouse_atari` / `mouse_amiga`): `dx`, `dy` = pohyb v krocích (+x doprava, +y dolů, karta je posílá po 1000 za sekundu), `buttons` = držená tlačítka (`left`, `right`) |
-| `save_state`, `load_state` | Stav celého stroje (`docs/stav.md`): do paměti pod `name` (rychlé checkpointy, výchozí `default`) nebo do `file` (`.sapistate`, relativní cesta od datové složky emulátoru). Načtení postaví sestavu stavu a zachová breakpointy, watchpointy a pauzu. Stav jiného formátu (jiná verze SAPIemu) odmítne dřív, než se běžící sestavy dotkne; stav, který nesedí až v kartách, vrátí běžící sestavu, jak byla. Chyba za důvodem v závorce řekne, co se s běžící sestavou stalo („the running machine runs on as it was“, výjimečně „was switched off and on, its memory is lost“ nebo „was reset“) |
+| `save_state`, `load_state` | Stav celého stroje (`docs/stav.md`): do paměti pod `name` (rychlé checkpointy, výchozí `default`) nebo do `file` (`.sapistate`, relativní cesta od datové složky emulátoru). Načtení postaví sestavu stavu a zachová breakpointy, watchpointy a pauzu. Stav jiného formátu (jiná verze SAPIemu) odmítne dřív, než se běžící sestavy dotkne; stav, který nesedí až v kartách, najde zkouška nanečisto a běžící sestavy se nedotkne. Chyba za důvodem v závorce řekne, co se s běžící sestavou stalo („the running machine runs on as it was“, výjimečně „was switched off and on, its memory is lost“ nebo „was reset“) |
 | `audio_record` | Nahrávání zvuku zvukové karty (MPH-1V, mono 49716 Hz): `start=true` začne, volání bez `start` skončí a vrátí délku, RMS a špičku (a `lost_samples`, kdyby mixér nějaké vzorky zahodil), s `file` uloží WAV. Relativní cesta se bere od datové složky emulátoru (s `roms/` a `machines/`), ne od složky volajícího. Nahrávka sleduje emulovaný čas: po `resume` obsahuje i to, co běží v reálném čase mezi voláními. Do 0.4.0 ztrácelo jedno dlouhé `run_for` (nad 4 s) zvuk, opraveno 2026-10-09 |
 | `cpu_turbo` | TURBO procesorové karty za chodu (JPR-1V, JPR-1X: CPU 2/4 MHz, sběrnice 2 MHz), zapíše se i do popisu sestavy |
 | `screen_text`, `screenshot` | Text obrazovky (UTF-8; u DBS-1A i rámečky a řecká písmena z EPROM „59“) a obrázek PNG (`display`: jméno karty jiného výstupu, např. `DGD-1`) v barvě podle sestavy (`color` u AND-1V, `monitor` u ostatních) |

@@ -108,6 +108,9 @@ static std::string param_new_folder(const CardParam* p, const json& value)
     return "work";
 }
 
+bool save_copies(void);
+bool supplied(UiState& ui, const std::string& file);
+
 void start_dialog(UiState& ui, int kind, const std::string& location, bool folder = false)
 {
     RackEditor& r = ui.rack;
@@ -118,7 +121,15 @@ void start_dialog(UiState& ui, int kind, const std::string& location, bool folde
         r.dlg_done = false;
         r.dlg_result.clear();
     }
-    std::string loc_full = dialog_location(location.empty() ? data_path("machines") : data_path(location));
+    std::string loc = location;
+    if (kind == RackEditor::DLG_SAVE && save_copies() && (loc.empty() || supplied(ui, loc))) {
+        // a release build: a new machine, and Save as... of a supplied one, among My machines (work/machines, writable
+        // also when the folder of the program is not), not among the supplied machines
+        make_dirs(data_path(MACHINE_MINE_DIR));
+        loc = loc.empty() ? std::string(MACHINE_MINE_DIR)
+                          : path_join(MACHINE_MINE_DIR, loc.substr(loc.find_last_of("/\\") + 1));   // npos + 1 = 0
+    }
+    std::string loc_full = dialog_location(loc.empty() ? data_path("machines") : data_path(loc));
     const char* where = loc_full.c_str();
     if (kind == RackEditor::DLG_SAVE)
         SDL_ShowSaveFileDialog(dialog_done, &r, ui.window, k_machine_filter, 1, where);
@@ -234,6 +245,7 @@ void editor_open(UiState& ui, const std::string& path, bool as_template)
     r.saved = as_template ? json() : cfg;
     r.path = as_template ? std::string() : data_relative(data_path(path));
     r.sel = 0;
+    if (r.tab == RackEditor::TAB_CARD) r.tab_select = RackEditor::TAB_BUS;   // no card selected now
     set_message(r, std::string(as_template ? tr("New machine from") : tr("Opened")) + " " + path +
                        (with_kept ? std::string(" ") + tr("(with the changes kept for the next start)") : std::string()),
                 false);
@@ -257,39 +269,126 @@ bool editor_save(UiState& ui, const std::string& path)
     return true;
 }
 
+// ---------------------------------------------------------------- My machines
+//
+// Save of a supplied machine (one of machines/ named by the index, machine_supplied) in a release build writes a copy
+// into work/machines (core/machine_index.h, author 2026-10-29): a user never overwrites the machines of the
+// installation, and the supplied one stays at hand as it was; the user's own files (also those saved into machines/)
+// are saved as they are. A debug build (the author's) keeps Save into the file itself. Save as... writes the file
+// chosen in both; a release build offers work/machines for a new machine and a supplied one (start_dialog).
+
+int g_save_copies = -1;   // rack_save_copies_set: 1 / 0, -1 = as the build
+
+bool editor_on_running(UiState& ui);
+
+bool save_copies(void)
+{
+    if (g_save_copies >= 0) return g_save_copies != 0;
+#ifdef NDEBUG
+    return true;
+#else
+    return false;
+#endif
+}
+
+// The copy into My machines: the description with "based_on" (the original) and its name marked, the supplied file
+// stays as it is. The editor holds the copy from now on (another Save writes into it, an ordinary save); the running
+// machine, when it is this one, is described by the copy (the title of the window, Recent machines, the next start).
+bool editor_save_copy(UiState& ui)
+{
+    RackEditor& r = ui.rack;
+    std::string orig = data_relative(data_path(r.path));
+    json file_cfg;
+    std::string e;
+    std::string orig_name = read_machine(orig, file_cfg, e) ? file_cfg.value("name", std::string())
+                                                              : r.saved.value("name", std::string());
+    int n = 1;
+    std::string copy = machine_copy_file(orig, &n);
+    bool on_running = editor_on_running(ui);
+    json before = r.cfg;   // back when the copy cannot be written
+    r.cfg["name"] = machine_copy_name(r.cfg.value("name", std::string()), orig_name, n, i18n_language() == LANG_CS);
+    r.cfg["based_on"] = orig;
+    if (!editor_save(ui, copy)) {   // its message says why
+        r.cfg = before;
+        return false;
+    }
+    if (on_running) ui.host->set_file(r.path, r.cfg.value("name", std::string()), orig);
+    recent_add(ui, r.path);
+    machine_index_refresh(ui);   // the copy in My machines and in the title of the window
+    set_message(r, std::string(tr("Saved as your copy in My machines:")) + " " + r.path, false);
+    LOGI("%s saved as a copy %s (My machines)", orig.c_str(), r.path.c_str());
+    return true;
+}
+
+// A machine supplied with SAPIemu (named by the index, machine_supplied), not one of the user's.
+bool supplied(UiState& ui, const std::string& file)
+{
+    if (ui.machine_index.machines.empty() && !ui.machine_index_tried) machine_index_refresh(ui);
+    return machine_supplied(ui.machine_index, file);
+}
+
+// Save (the button, the question about unsaved changes) of a description that has its file.
+bool editor_save_here(UiState& ui)
+{
+    RackEditor& r = ui.rack;
+    if (save_copies() && supplied(ui, r.path)) return editor_save_copy(ui);
+    return editor_save(ui, r.path);
+}
+
+// What Save does, for its tooltip (empty: no file yet, Save asks for one).
+std::string save_tip(UiState& ui)
+{
+    RackEditor& r = ui.rack;
+    if (r.path.empty()) return std::string();
+    if (!supplied(ui, r.path)) return std::string(tr("Writes the changes into")) + " " + r.path;
+    if (save_copies())
+        return std::string(tr("Writes the changes into a copy in My machines:")) + " " + machine_copy_file(r.path) + "\n" +
+               tr("The supplied machine stays as it is:") + " " + r.path;
+    return std::string(tr("Writes the changes into")) + " " + r.path + "\n" +
+           tr("A debug build overwrites the supplied machine; a release build saves a copy in My machines.");
+}
+
 void editor_apply(UiState& ui)
 {
     RackEditor& r = ui.rack;
     std::string err;
-    if (!ui.host->load_config(r.cfg, r.path, err)) {
-        set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
+    if (!ui.host->load_config(r.cfg, r.path, err)) {   // a running machine runs on (EmuHost::load_config)
+        set_message(r, std::string(tr("The machine cannot be started")) + ": " + tr_core(err), true);
         // Machine -> Switch on with the configurator closed, opened by the layout (not used) or covered: its message is
         // not seen, the Error window says it
         if (!ui.show_rack || ui.rack_by_layout || layout_covered("###rack"))
-            ui_notice(ui, false, std::string(tr("The machine cannot be started")) + ":\n" + err);
+            ui_notice(ui, false, std::string(tr("The machine cannot be started")) + ":\n" + tr_core(err) +
+                                     (ui.host->machine() ? std::string("\n\n") + tr("The machine runs on as it was.")
+                                                         : std::string()));
         else LOGE("%s", err.c_str());
         return;
     }
     r.machine_gen = ui.host->machine_generation();
+    if (!r.path.empty()) recent_add(ui, r.path);
     set_message(r, tr("Machine switched off and on with this configuration."), false);
 }
 
-// Start a machine file (File -> Recent machines, File -> Start a machine from a file...). The user started it: its
-// guide may open itself.
-void start_machine(UiState& ui, const std::string& rel)
+// Start a machine file (the window Choose a machine, File -> Recent machines, File -> Start a machine from a file...).
+// The user started it: its guide may open itself, it goes to the top of Recent machines (not a start that failed or
+// was cancelled at the question about unsaved changes). by_browser: the window Choose a machine closes now.
+void start_machine(UiState& ui, const std::string& rel, bool by_browser)
 {
     RackEditor& r = ui.rack;
     std::string err;
-    if (rack_load_machine(ui, rel, err)) {
+    bool ok = rack_load_machine(ui, rel, err);
+    if (ok) {
         ui.guide_start_gen = ui.host->machine_generation();
+        recent_add(ui, rel);
     } else {
-        // show it in the configurator anyway (e.g. a CPU card not emulated yet)
+        // show it in the configurator anyway (e.g. a CPU card not emulated yet); a running machine runs on
+        // (EmuHost::load_config)
         editor_open(ui, rel, false);
-        set_message(r, std::string(tr("The machine cannot be started")) + ": " + err, true);
+        set_message(r, std::string(tr("The machine cannot be started")) + ": " + tr_core(err), true);
         r.machine_gen = ui.host->machine_generation();
         ui.show_rack = true;
         LOGE("%s", err.c_str());
     }
+    if (by_browser) browser_started(ui, ok);
 }
 
 void follow_now(UiState& ui);
@@ -301,10 +400,12 @@ void do_pending(UiState& ui)
     RackEditor& r = ui.rack;
     int kind = r.pending;
     std::string path = r.pending_path;
+    bool by_browser = ui.browser_start;
+    ui.browser_start = false;
     r.pending = RackEditor::PEND_NONE;
     if (kind != RackEditor::PEND_EXIT) r.message.clear();   // "Saved ..." was about the replaced description
     switch (kind) {
-    case RackEditor::PEND_START: start_machine(ui, path); break;
+    case RackEditor::PEND_START: start_machine(ui, path, by_browser); break;
     case RackEditor::PEND_OPEN: editor_open(ui, path, false); break;
     case RackEditor::PEND_TEMPLATE: editor_open(ui, path, true); break;
     case RackEditor::PEND_EMPTY: new_empty(r); break;
@@ -412,14 +513,13 @@ void draw_unsaved_question(UiState& ui)
         if (r.path.empty()) {
             r.save_then_continue = true;
             start_dialog(ui, RackEditor::DLG_SAVE, std::string());
-        } else if (editor_save(ui, r.path)) {
+        } else if (editor_save_here(ui)) {   // a supplied machine in a release build: a copy in My machines
             do_pending(ui);
         } else {
             r.ask_unsaved = true;   // not saved (message in the configurator): ask again
         }
     }
-    if (ImGui::IsItemHovered() && !r.path.empty())
-        ImGui::SetTooltip("%s %s", tr("Writes the changes into"), r.path.c_str());
+    if (ImGui::IsItemHovered() && !r.path.empty()) tip(save_tip(ui).c_str());
     ImGui::SameLine();
     if (ImGui::Button(tr("Save as..."))) {
         ImGui::CloseCurrentPopup();
@@ -445,12 +545,12 @@ void draw_unsaved_question(UiState& ui)
         }
         ImGui::EndDisabled();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", runnable ? tr("The file of the machine stays as it is. SAPIemu remembers the changes "
-                                                  "and uses them at every start of this machine (also after the program "
-                                                  "starts again) until you save them or press Revert in the "
-                                                  "configurator; it does not ask about them again.")
-                                             : tr("Not with errors in the machine (the configurator shows them in red): "
-                                                  "it would not start with these changes."));
+            tip(runnable ? tr("The file of the machine stays as it is. SAPIemu remembers the changes "
+                              "and uses them at every start of this machine (also after the program "
+                              "starts again) until you save them or press Revert in the "
+                              "configurator; it does not ask about them again.")
+                         : tr("Not with errors in the machine (the configurator shows them in red): "
+                              "it would not start with these changes."));
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Discard changes"))) {
@@ -467,6 +567,7 @@ void draw_unsaved_question(UiState& ui)
     if (cancel || popup_enter() || popup_escape()) {
         ImGui::CloseCurrentPopup();
         r.pending = RackEditor::PEND_NONE;
+        ui.browser_start = false;   // the window Choose a machine stays open
     }
     ImGui::EndPopup();
 }
@@ -499,6 +600,7 @@ void handle_dialog(UiState& ui)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapi";
         bool saved = editor_save(ui, path);
+        if (saved) recent_add(ui, r.path);   // Save as...: the new file at hand in Recent machines
         if (r.save_then_continue) {
             r.save_then_continue = false;
             if (saved) do_pending(ui);
@@ -541,13 +643,14 @@ Card* running_card(UiState& ui, const json& card, int slot)
     return nullptr;
 }
 
-// The description without what does not need a power cycle (name and description).
+// The description without what does not need a power cycle (name, description, the original of a copy).
 static json cfg_hw(const json& cfg)
 {
     json c = cfg;
     if (c.is_object()) {
         c.erase("name");
         c.erase("description");
+        c.erase("based_on");
     }
     return c;
 }
@@ -696,6 +799,7 @@ void follow_now(UiState& ui)
     if (const json* k = kept_entry(ui, r.path))
         if ((*k)["cfg"] == r.cfg) r.saved = (*k)["base"];
     r.sel = 0;
+    if (r.tab == RackEditor::TAB_CARD) r.tab_select = RackEditor::TAB_BUS;   // no card selected now
     r.message.clear();   // it was about the previous description ("Saved ...")
 }
 
@@ -1273,14 +1377,9 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
     float w = total_w * k, h = total_h * k;
 
     ImGui::Checkbox(tr("Card types on the panels"), &r.show_types);
-    if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {   // wrapped: a long text
-        ImGui::PushTextWrapPos(30.0f * ImGui::GetFontSize());
-        ImGui::TextUnformatted(tr("Shows the exact card type on each panel. The panels are drawn after Libor Lasota's "
-                                  "modernised cabinet with labelled panels; the original Tesla SAPI-1 had bare cards "
-                                  "behind a cover panel."));
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+    if (ImGui::IsItemHovered())
+        tip(tr("Shows the exact card type on each panel. The panels are drawn after Libor Lasota's modernised cabinet "
+               "with labelled panels; the original Tesla SAPI-1 had bare cards behind a cover panel."));
     ImGui::BeginChild("frame", ImVec2(0, h + ImGui::GetStyle().ScrollbarSize + 4), ImGuiChildFlags_None,
                       ImGuiWindowFlags_HorizontalScrollbar);
     ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -1360,12 +1459,12 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             if (idx >= 0) {
                 const json& c = cfg["cards"][(size_t)idx];
                 const CardInfo* ci = card_info(c.value("type", std::string()));
-                ImGui::SetTooltip("X%d: %s\n%s%s%s", first, card_display_name(c).c_str(),
-                                  ci ? loc(ci->en, ci->cs) : tr("unknown card"),
-                                  ci && !ci->emulated ? tr("\n(not emulated yet)") : "",
-                                  pend.c_str());
+                tipf("X%d: %s\n%s%s%s", first, card_display_name(c).c_str(),
+                     ci ? loc(ci->en, ci->cs) : tr("unknown card"),
+                     ci && !ci->emulated ? tr("\n(not emulated yet)") : "",
+                     pend.c_str());
             } else {
-                ImGui::SetTooltip("X%d: %s%s", s, tr("empty slot"), pend.c_str());
+                tipf("X%d: %s%s", s, tr("empty slot"), pend.c_str());
             }
         }
     }
@@ -1425,10 +1524,10 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
         }
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
         std::string name =ia >= 0 ? card_display_name(cfg["cards"][(size_t)ia]) : std::string();
-        if (!inside || to == r.drag_from) ImGui::SetTooltip("%s: %s", name.c_str(), tr("drop it on another slot"));
-        else if (ok && swap) ImGui::SetTooltip(tr("%s: swap X%d and X%d"), name.c_str(), r.drag_from, to);
-        else if (ok) ImGui::SetTooltip(tr("%s: move to X%d"), name.c_str(), to);
-        else ImGui::SetTooltip("%s: %s", name.c_str(), why.c_str());
+        if (!inside || to == r.drag_from) tipf("%s: %s", name.c_str(), tr("drop it on another slot"));
+        else if (ok && swap) tipf(tr("%s: swap X%d and X%d"), name.c_str(), r.drag_from, to);
+        else if (ok) tipf(tr("%s: move to X%d"), name.c_str(), to);
+        else tipf("%s: %s", name.c_str(), why.c_str());
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) r.drag_from = 0;   // cancelled
         else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             // the slots are equal: when the running machine has the same cards there, they move
@@ -1520,20 +1619,22 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
             else if (i == 3 && has_bios) rack_set_live_param(ui, cpu, "bios", bank1 ? "fitted" : "open");
         }
         if (ImGui::IsItemHovered()) {
-            const char* tip = i == 0 ? (m ? tr("Switch off") : tr("Switch on with this configuration"))
-                            : i == 1 ? tr("Reset (F12)")
-                            : i == 2 ? (has_turbo ? tr("TURBO of the CPU card: CPU 2 / 4 MHz")
-                                                  : tr("The CPU card has no TURBO: its clock is set by jumpers. "
-                                                       "Emulation speed: F8 or Machine -> Emulation speed"))
-                                     : (has_bios ? tr("BIOS jumper of JPR-1V: EEPROM bank 0 (MikroBIOS) / bank 1 (ECMON), "
-                                                      "read after RESET")
-                                                 : tr("BIOS: the EEPROM bank of JPR-1V (this CPU card has none)"));
-            ImGui::SetTooltip("%s", tip);
+            const char* hint = i == 0 ? (m ? tr("Switch off") : tr("Switch on with this configuration"))
+                             : i == 1 ? tr("Reset (F12)")
+                             : i == 2 ? (has_turbo ? tr("TURBO of the CPU card: CPU 2 / 4 MHz")
+                                                   : tr("The CPU card has no TURBO: its clock is set by jumpers. "
+                                                        "Emulation speed: F8 or Machine -> Emulation speed"))
+                                      : (has_bios ? tr("BIOS jumper of JPR-1V: EEPROM bank 0 (MikroBIOS) / bank 1 (ECMON), "
+                                                       "read after RESET")
+                                                  : tr("BIOS: the EEPROM bank of JPR-1V (this CPU card has none)"));
+            tip(hint);
         }
     }
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && clicked < 0 &&
-        !ImGui::IsAnyItemHovered())
-        r.sel = 0;   // click on the frame itself: bus settings
+        !ImGui::IsAnyItemHovered()) {
+        r.sel = 0;   // click on the frame itself: no slot, the settings of the machine and the bus (the map stays)
+        if (r.tab == RackEditor::TAB_CARD) r.tab_select = RackEditor::TAB_BUS;
+    }
 
     ImGui::SetCursorScreenPos(o);
     ImGui::Dummy(ImVec2(w, h));
@@ -1636,7 +1737,7 @@ void card_menu_items(UiState& ui, int slot, bool combo)
             ImGui::BeginDisabled(!ok);
             if (ImGui::Selectable(label, cur == ci->type) && cur != ci->type) put_card(r, slot, ci);
             ImGui::EndDisabled();
-            if (!ok && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", why.c_str());
+            if (!ok && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(why.c_str());
         }
     }
     (void)combo;
@@ -1792,7 +1893,7 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
                     start_dialog(ui, RackEditor::DLG_PARAM_NEW, at);
                 }
                 if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("%s", tr("A new file: a blank medium (while running it goes in at once)."));
+                    tip(tr("A new file: a blank medium (while running it goes in at once)."));
             }
             ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
             ImGui::TextUnformatted(label_s.c_str());
@@ -1803,13 +1904,9 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
         const std::vector<KeyboardPreset>& kp = keyboard_presets();
         // the options with their own controls (faithful mode, beeper, joystick connector) are not
         // a part of the preset; they stay when another keyboard is chosen
-        json plain = v, own = json::object();
+        json plain = v;
         if (plain.is_object())
-            for (const char* o : { "strict", "beeper", "joyport" })
-                if (plain.contains(o)) {
-                    own[o] = plain[o];
-                    plain.erase(o);
-                }
+            for (const char* o : { "strict", "beeper", "joyport" }) plain.erase(o);
         if (plain.is_object() && plain.value("type", std::string()) == "ANK-1M5") plain["type"] = "ANK-1M2";
         int cur = -2;
         if (v.is_null()) cur = -1;
@@ -1820,12 +1917,8 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
         if (ImGui::BeginCombo(label, preview.c_str())) {
             if (ImGui::Selectable(tr("(none)"), cur == -1)) card_set_param(card, ci, p, json());
             for (size_t i = 0; i < kp.size(); i++)
-                if (ImGui::Selectable(kp[i].name, cur == (int)i)) {
-                    json k = json::parse(kp[i].config);
-                    for (auto& it : own.items())
-                        if (it.key() != "joyport" || k.value("type", std::string()) == "ANK-1M2") k[it.key()] = it.value();
-                    card_set_param(card, ci, p, k);
-                }
+                if (ImGui::Selectable(kp[i].name, cur == (int)i))
+                    card_set_param(card, ci, p, rack_keyboard_cfg(v, kp[i].config));
             ImGui::EndCombo();
         }
         break;
@@ -1836,8 +1929,8 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     if (pend) {
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s\n%s %s", tr("Changed: takes effect after a restart"), tr("The running machine has:"),
-                              run_v.is_null() ? tr("(none)") : scalar(run_v).c_str());
+            tipf("%s\n%s %s", tr("Changed: takes effect after a restart"), tr("The running machine has:"),
+                 run_v.is_null() ? tr("(none)") : scalar(run_v).c_str());
     }
     ImGui::PopID();
 }
@@ -1867,14 +1960,14 @@ void draw_bus_props(RackEditor& r)
         else r.cfg.erase("power_on_memory");
     }
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("RAM, video RAM and palettes hold random bits after power on, like the real chips. "
-                                   "Off: zeros (spaces in text displays), so programs relying on cleared memory work."));
+        tip(tr("RAM, video RAM and palettes hold random bits after power on, like the real chips. "
+               "Off: zeros (spaces in text displays), so programs relying on cleared memory work."));
     // windows the machine opens and puts on top at its start (the check boxes wrap to the next line)
     float right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
     ImGui::TextUnformatted(tr("Windows on top at the start:"));
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("They open and come on top of the other windows when the machine starts "
-                                   "(the plotter with READY, the tape drives...). The keyboard stays with the screen."));
+        tip(tr("They open and come on top of the other windows when the machine starts "
+               "(the plotter with READY, the tape drives...). The keyboard stays with the screen."));
     const json* wl = r.cfg.contains("windows") && r.cfg["windows"].is_array() ? &r.cfg["windows"] : nullptr;
     json chosen = json::array();
     bool changed = false;
@@ -2034,11 +2127,14 @@ void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>&
     ImGui::TableSetupColumn(tr("Function"));
     ImGui::TableSetupColumn(tr("Access"));
     ImGui::TableHeadersRow();
+    std::string shared = std::string("  ") + tr("shared write by design");
     for (const MapRange& rg : ranges) {
         for (size_t k = 0; k < rg.users.size(); k++) {
             const MapUser& us = rg.users[k];
             ImGui::TableNextRow();
-            ImVec4 col = rg.conflict ? theme().error : rg.shared_write ? theme().warn : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            // a write shared by design (port 63h of the V boards) is information: grey, not the warning colour
+            ImVec4 col = rg.conflict ? theme().error : rg.by_design ? theme().text_dim : rg.shared_write ? theme().warn
+                                                                                                         : theme().text;
             ImGui::TableNextColumn();
             if (k == 0) ImGui::TextColored(col, "%s", range_text(rg, digits).c_str());
             ImGui::TableNextColumn();
@@ -2055,10 +2151,23 @@ void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>&
             ImGui::TextColored(col, "%s", tr(us.what.c_str()));
             ImGui::TableNextColumn();
             ImGui::TextColored(col, "%s%s", flags_text(us.flags).c_str(),   // the word too, not the colour alone
-                               k != 0 ? "" : rg.conflict ? tr("  CONFLICT") : rg.shared_write ? tr("  SHARED WRITE") : "");
+                               k != 0             ? ""
+                               : rg.conflict      ? tr("  CONFLICT")
+                               : rg.by_design     ? shared.c_str()
+                               : rg.shared_write  ? tr("  SHARED WRITE")
+                                                  : "");
+            if (k == 0 && rg.by_design && ImGui::IsItemHovered()) tip(loc(rg.by_design->en, rg.by_design->cs));
         }
     }
     ImGui::EndTable();
+    // why the shared writes by design are no problem, in sight under the table (the problems above leave them out)
+    for (const MapRange& rg : ranges)
+        if (rg.by_design) {
+            ImGui::PushTextWrapPos(0.0f);
+            ImGui::TextDisabled("%s, %s: %s", range_text(rg, digits).c_str(), tr("shared write by design"),
+                                loc(rg.by_design->en, rg.by_design->cs));
+            ImGui::PopTextWrapPos();
+        }
 }
 
 // The address axis under a memory bar starting at x0, w wide (ticks every 4 KB, labels per 16 KB).
@@ -2115,7 +2224,7 @@ void memory_bar(const MachineMap& m, const std::vector<MapRange>& ranges, bool a
             for (const MapUser& us : rg.users)
                 who += (who.empty() ? "" : ", ") + m.cards[(size_t)us.card].name + " " + tr(us.what.c_str());
         }
-        ImGui::SetTooltip("%04Xh: %s", a, who.c_str());
+        tipf("%04Xh: %s", a, who.c_str());
     }
     if (axis) ImGui::Dummy(ImVec2(w, 1.2f * u));
 }
@@ -2171,7 +2280,7 @@ void map_state_bars(RackEditor& r)
         float row_h = chosen ? 1.8f * u : ImGui::GetFrameHeight();
         if (ImGui::InvisibleButton("state", ImVec2(label_w, row_h))) r.map_state = s;
         bool hl = ImGui::IsItemHovered();
-        if (hl && !chosen) ImGui::SetTooltip("%s", tr("Click: show this map"));
+        if (hl && !chosen) tip(tr("Click: show this map"));
         ImU32 tc = ImGui::GetColorU32(chosen ? theme().heading : hl ? theme().text : theme().text_dim);
         dl->AddText(ImVec2(p.x, p.y + (row_h - u) * 0.5f), tc, k_map_states[s]);
         ImGui::SameLine(0, 0);
@@ -2209,7 +2318,7 @@ void map_state_bars(RackEditor& r)
                 std::string who = ro ? std::string() : std::string(tr("nothing (open bus, FFh)"));
                 for (const MapUser& us : ro ? ro->users : std::vector<MapUser>())
                     who += (who.empty() ? "" : ", ") + m.cards[(size_t)us.card].name + " " + tr(us.what.c_str());
-                ImGui::SetTooltip("%s, %04Xh: %s\n%s", k_map_states[s], a, who.c_str(), tr("Click: show this map"));
+                tipf("%s, %04Xh: %s\n%s", k_map_states[s], a, who.c_str(), tr("Click: show this map"));
             }
         }
         ImGui::PopID();
@@ -2242,7 +2351,9 @@ void draw_map(RackEditor& r)
     theme_section(tr("I/O ports"));
     if (m.io.empty()) ImGui::TextDisabled("%s", tr("No card answers on the ports."));
     else map_table("iomap", m, m.io, 2);
+    ImGui::PushTextWrapPos(0.0f);
     ImGui::TextDisabled("%s", tr("Addresses nobody answers read FFh (open bus). The CPU card's EPROM is read on the card, writes go to the bus."));
+    ImGui::PopTextWrapPos();
 }
 
 void new_empty(RackEditor& r)
@@ -2254,16 +2365,18 @@ void new_empty(RackEditor& r)
     r.saved = json();
     r.path.clear();
     r.sel = 1;
+    r.tab_select = RackEditor::TAB_CARD;   // the CPU card: the first thing to set up
     set_message(r, tr("New machine: insert cards into the slots."), false);
 }
 
+// The menu New: an empty machine, or a copy of a machine by its title in the categories of Choose a machine (all the
+// machine files: those the index does not name are under Other).
 void new_menu(UiState& ui)
 {
-    if (ImGui::Selectable(tr("Empty machine"))) request(ui, RackEditor::PEND_EMPTY, std::string());
+    if (ImGui::MenuItem(tr("Empty machine"))) request(ui, RackEditor::PEND_EMPTY, std::string());
     theme_section(tr("From a template or another machine"));
-    for (const std::string& f : list_machine_files()) {
-        if (ImGui::Selectable(f.c_str())) request(ui, RackEditor::PEND_TEMPLATE, f);
-    }
+    std::string f = machine_index_menus(ui);
+    if (!f.empty()) request(ui, RackEditor::PEND_TEMPLATE, f);
 }
 
 } // namespace
@@ -2291,23 +2404,46 @@ void rack_open_in_editor(UiState& ui, const std::string& path)
     ui.rack_by_layout = false;   // the user's window now
 }
 
-void rack_set_live_param(UiState& ui, Card* c, const char* path, const json& v)
+bool rack_set_live_param(UiState& ui, Card* c, const char* path, const json& v, std::string* err_out)
 {
     Machine* m = ui.host->machine();
     std::string err;
     if (!m || !c || !m->set_live_param(c, path, v, err)) {
         if (!err.empty()) LOGW("%s", err.c_str());
-        return;
+        if (err_out) *err_out = err;
+        return false;
     }
     RackEditor& r = ui.rack;
-    if (!editor_on_running(ui)) return;
+    if (!editor_on_running(ui)) return true;
     int idx = machine_cfg_card_at(r.cfg, c->slot);
-    if (idx < 0) return;
+    if (idx < 0) return true;
     json& card = r.cfg["cards"][(size_t)idx];
     const CardInfo* ci = card_info(c->type);
-    if (card.value("type", std::string()) != c->type || !ci) return;
+    if (card.value("type", std::string()) != c->type || !ci) return true;
     for (const CardParam* p = ci->params; p && p->path; p++)
         if (!strcmp(p->path, path)) card_set_param(card, ci, p, v);
+    return true;
+}
+
+// The description of the keyboard `preset` (KeyboardPreset::config) for a CPU card whose keyboard is `old` now: the
+// options with their own controls (faithful mode, beeper, joystick connector) are not a part of the preset, they stay
+// (the joystick connector only on an ANK-1M2).
+json rack_keyboard_cfg(const json& old, const char* preset)
+{
+    json k = json::parse(preset);
+    if (old.is_object())
+        for (const char* o : { "strict", "beeper", "joyport" })
+            if (old.contains(o) && (strcmp(o, "joyport") != 0 || k.value("type", std::string()) == "ANK-1M2"))
+                k[o] = old[o];
+    return k;
+}
+
+bool rack_set_keyboard(UiState& ui, const char* preset, std::string& err)
+{
+    Machine* m = ui.host->machine();
+    json* cc = m && m->cpu ? m->card_config(m->cpu) : nullptr;
+    json old = cc && cc->contains("keyboard") ? (*cc)["keyboard"] : json();
+    return m && rack_set_live_param(ui, m->cpu, "keyboard", rack_keyboard_cfg(old, preset), &err);
 }
 
 void rack_set_display_ink(UiState& ui, DisplayDevice* d, const std::string& value)
@@ -2337,7 +2473,7 @@ bool rack_load_machine(UiState& ui, const std::string& file, std::string& err)
         // e.g. a medium of the changes is gone: the file as it is, the changes forgotten (else every start says it)
         kept_forget(ui, file);
         ui_notice(ui, false, std::string(tr("The changes kept for the next start could not be used, they are forgotten")) +
-                                 ":\n" + err + "\n" + tr("The machine starts as its file says."));
+                                 ":\n" + tr_core(err) + "\n" + tr("The machine starts as its file says."));
     }
     return ui.host->load(file, err);
 }
@@ -2345,6 +2481,38 @@ bool rack_load_machine(UiState& ui, const std::string& file, std::string& err)
 bool rack_has_kept(UiState& ui, const std::string& file)
 {
     return kept_entry(ui, file) != nullptr;
+}
+
+void rack_save_copies_set(bool on)
+{
+    g_save_copies = on ? 1 : 0;
+}
+
+bool rack_delete_copy(UiState& ui, const std::string& file, std::string& err)
+{
+    std::string full = data_path(file);
+    if (!file_remove(full)) {
+        err = std::string(tr("Cannot delete")) + " " + full;
+        return false;
+    }
+    kept_forget(ui, file);
+    ui.recent.erase(std::remove(ui.recent.begin(), ui.recent.end(), file), ui.recent.end());
+    RackEditor& r = ui.rack;
+    if (!r.path.empty() && r.path == file) {   // the configurator held it
+        if (editor_dirty(r)) {                 // the user's changes stay, as a machine not saved yet
+            r.path.clear();
+            r.saved = json();
+        } else if (ui.host->machine()) {
+            follow_now(ui);
+        } else {
+            r.cfg = json();
+            r.saved = json();
+            r.path.clear();
+        }
+    }
+    machine_index_refresh(ui);
+    LOGI("%s: deleted from My machines", file.c_str());
+    return true;
 }
 
 bool rack_runs_kept(UiState& ui)
@@ -2421,7 +2589,13 @@ void draw_rack(UiState& ui)
     }
 
     // toolbar
-    if (ImGui::Button(tr("New"))) ImGui::OpenPopup("newmenu");
+    if (ImGui::Button(tr("New")) || r.new_menu) {
+        machine_index_refresh(ui);   // also the machines saved since
+        ImGui::OpenPopup("newmenu");
+        r.new_menu = false;
+    }
+    // under the button as a drop-down menu (also when opened by the UI snapshot, the mouse elsewhere)
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y), ImGuiCond_Appearing);
     if (ImGui::BeginPopup("newmenu")) {
         new_menu(ui);
         ImGui::EndPopup();
@@ -2429,10 +2603,12 @@ void draw_rack(UiState& ui)
     ImGui::SameLine();
     if (ImGui::Button(tr("Open..."))) start_dialog(ui, RackEditor::DLG_OPEN, r.path.empty() ? std::string() : path_dir(data_path(r.path)));
     ImGui::SameLine();
-    if (ImGui::Button(tr("Save"))) {
+    if (ImGui::Button(tr("Save")) || r.save_now) {   // save_now: the UI snapshot --ui-save
+        r.save_now = false;
         if (r.path.empty()) start_dialog(ui, RackEditor::DLG_SAVE, std::string());
-        else editor_save(ui, r.path);
+        else editor_save_here(ui);   // a supplied machine in a release build: a copy in My machines
     }
+    if (ImGui::IsItemHovered() && !r.path.empty()) tip(save_tip(ui).c_str());
     ImGui::SameLine();
     if (ImGui::Button(tr("Save as..."))) start_dialog(ui, RackEditor::DLG_SAVE, r.path);
     ImGui::SameLine();
@@ -2455,8 +2631,8 @@ void draw_rack(UiState& ui)
     if (ImGui::Button(apply_s.c_str())) editor_apply(ui);
     if (pending) ImGui::PopStyleColor(4);
     if (running && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("Switches the machine off and on with this configuration. The memory is lost as on "
-                                   "the real machine."));
+        tip(tr("Switches the machine off and on with this configuration. The memory is lost as on "
+               "the real machine."));
     ImGui::EndDisabled();
     ImGui::SameLine();
     // back to what the running machine has (the orange changes), else to the saved file
@@ -2474,15 +2650,15 @@ void draw_rack(UiState& ui)
         }
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", pending ? tr("Back to the configuration of the running machine (the orange changes).")
-                                        : tr("Back to the configuration as last saved."));
+        tip(pending ? tr("Back to the configuration of the running machine (the orange changes).")
+                    : tr("Back to the configuration as last saved."));
     ImGui::EndDisabled();
     ImGui::TextDisabled("%s%s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str(),
                         !dirty ? "" : kept_current(ui) ? tr("  - unsaved changes, kept for the next start") : tr("  - unsaved changes"));
     if (dirty && !r.saved.is_null() && ImGui::IsItemHovered()) {   // what they are
-        std::string tip;
-        for (const std::string& c : editor_changes(r)) tip += (tip.empty() ? "" : "\n") + c;
-        ImGui::SetTooltip("%s", tip.c_str());
+        std::string list;
+        for (const std::string& c : editor_changes(r)) list += (list.empty() ? "" : "\n") + c;
+        tip(list.c_str());
     }
     if (!r.message.empty()) {
         ImGui::SameLine();
@@ -2507,19 +2683,42 @@ void draw_rack(UiState& ui)
     // a slot clicked: when the messages above push its settings down, the tabs go to the top
     if (r.scroll_props && ImGui::GetCursorPosY() - ImGui::GetScrollY() + 6.0f * line > ImGui::GetWindowHeight())
         ImGui::SetScrollHereY(0.0f);
+    // fixed tabs (the ids after ### keep them when their titles change): the machine and the bus always at hand, the card
+    // of the selected slot named in its tab, the map. A slot clicked shows its card, also when the map was open.
+    if (r.sel != r.tab_sel) {
+        if (r.sel > 0 && r.tab == RackEditor::TAB_BUS) r.tab_select = RackEditor::TAB_CARD;
+        r.tab_sel = r.sel;
+    }
+    if (r.scroll_props && !r.open_map_tab) r.tab_select = RackEditor::TAB_CARD;
+    if (r.open_map_tab) r.tab_select = RackEditor::TAB_MAP;
+    r.open_map_tab = false;
     if (ImGui::BeginTabBar("props_tabs")) {
-        // a slot clicked shows its settings, also when the map tab was open
-        if (ImGui::BeginTabItem(r.sel == 0 ? tr("Machine and bus") : tr("Card settings"), nullptr,
-                                r.scroll_props && !r.open_map_tab ? ImGuiTabItemFlags_SetSelected : 0)) {
-            if (r.sel == 0) draw_bus_props(r);
-            else draw_slot_props(ui, r.sel);
+        auto flags = [&](int t) { return r.tab_select == t ? ImGuiTabItemFlags_SetSelected : 0; };
+        std::string bus_s = std::string(tr("Machine and bus")) + "###bus";
+        if (ImGui::BeginTabItem(bus_s.c_str(), nullptr, flags(RackEditor::TAB_BUS))) {
+            r.tab = RackEditor::TAB_BUS;
+            draw_bus_props(r);
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem(tr("Port and memory map"), nullptr, r.open_map_tab ? ImGuiTabItemFlags_SetSelected : 0)) {
-            r.open_map_tab = false;
+        int idx = r.sel > 0 ? machine_cfg_card_at(r.cfg, r.sel) : -1;
+        std::string card_s = r.sel <= 0 ? std::string(tr("Card"))
+                           : idx < 0    ? "X" + std::to_string(r.sel) + " " + tr("(no card)")
+                                        : "X" + std::to_string(r.sel) + " " + card_display_name(r.cfg["cards"][(size_t)idx]);
+        card_s += "###card";
+        if (ImGui::BeginTabItem(card_s.c_str(), nullptr, flags(RackEditor::TAB_CARD))) {
+            r.tab = RackEditor::TAB_CARD;
+            if (r.sel > 0) draw_slot_props(ui, r.sel);
+            else ImGui::TextDisabled("%s", tr("Click a slot in the frame to insert, change or set up its card "
+                                              "(right click = card list)."));
+            ImGui::EndTabItem();
+        }
+        std::string map_s = std::string(tr("Port and memory map")) + "###map";
+        if (ImGui::BeginTabItem(map_s.c_str(), nullptr, flags(RackEditor::TAB_MAP))) {
+            r.tab = RackEditor::TAB_MAP;
             draw_map(r);
             ImGui::EndTabItem();
         }
+        r.tab_select = -1;
         ImGui::EndTabBar();
     }
     ImGui::EndChild();

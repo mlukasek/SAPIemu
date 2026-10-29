@@ -8,6 +8,8 @@ Karta `RAM-1V` (`src/cards/ram1v.*`):
   na rev 1.2):
   - **registr MAP na portu 63h**, MAP1 = bit 6, MAP2 = bit 7, oba buzené. Je to stejný port a stejné bity
     jako u ZRMD-1, MikroMonovo `OUT 63h,3F` tedy dá MAP1 = MAP2 = 0.
+    Zápis na 63h tak jde do RAM-1V (bity 6–7) i do RAM disku ZRD-1V/ZRMD-1 (bity 0–5 = A16–A21) a je to záměr:
+    katalog karet ho zná (`card_shared_write`), mapa portů v konfigurátoru ho ukáže šedě jako informaci, ne varování.
   - díra 16 KB na C000 jen při MAP1 = H (MAP2 se ignoruje);
   - díra 2 KB na F800 jen při MAP1 = L (tam je AND-1V);
   - S4 rozpojené, patice C prázdná.

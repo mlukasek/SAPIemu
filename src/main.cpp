@@ -72,21 +72,35 @@ static void print_help(void)
            "                     --ui-switch MACHINE: that machine started in the run (as from Choose a machine;\n"
            "                     repeated: one after another),\n"
            "                     --ui-layout-switch: View -> Settings -> Windows, the other layout (its own places),\n"
+           "                     --ui-hide-display KEY: View -> Displays, that display window hidden (screen,\n"
+           "                     gfx0...; repeated: more of them),\n"
            "                     --ui-fullscreen: Alt+Enter, the display used last alone in the window (the right click\n"
            "                     menu with --ui-screen-menu; given twice: on and off again),\n"
            "                     --ui-pause: pause the machine (F5) just before the picture, --ui-log: the Log window,\n"
            "                     --ui-reset: F12 just before the picture (APS-5: the question first),\n"
            "                     --ui-report: Help -> Report a bug, --ui-debugger: the Debugger window,\n"
+           "                     --ui-memory ADDR: the Memory window at ADDR (hex), --ui-rack-new: the menu New of\n"
+           "                     the configurator open (a submenu with --ui-mouse),\n"
+           "                     --ui-help PAGE: Help -> First steps (first) or Glossary (glossary),\n"
+           "                     --ui-help-open all|none: its sections all open or closed, --ui-help-scroll F:\n"
+           "                     its text scrolled to that part (0 = the top, 1 = the end),\n"
+           "                     --ui-second: the warning of a second window over the same settings and work,\n"
            "                     --ui-menu NAME: the menu NAME open (File, Machine, Debug, View, Help; View/Windows:\n"
            "                     with its submenu Windows),\n"
-           "                     --ui-key KEY: a key pressed before the picture (F9, Ctrl+Shift+C, Enter, Esc...;\n"
+           "                     --ui-key KEY: a key pressed before the picture (F9, Ctrl+Shift+C, Enter, Esc,\n"
+           "                     3...; a character key types its character too;\n"
            "                     repeated: one after another), --ui-mouse X,Y: the mouse there (points),\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
            "                     --ui-scale F: the display scale (1.25 = 125 %%) instead of the one of the system,\n"
            "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied,\n"
            "                     --ui-exit: File -> Exit before the picture (the question about unsaved changes;\n"
-           "                     without changes the program ends with no picture))\n"
+           "                     without changes the program ends with no picture),\n"
+           "                     --ui-drop FILE: the file dropped on the window (as from Explorer; repeated: one after\n"
+           "                     another), --ui-click X,Y: a left click there (points; repeated: one after another),\n"
+           "                     --ui-save: Save in the configurator before the picture (after --ui-set),\n"
+           "                     --ui-save-copy: Save of this run as a release build does it (a supplied machine as\n"
+           "                     a copy in My machines, work/machines; also in a debug build; with --ui-save: saved))\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"
@@ -263,6 +277,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-front" && i + 1 < argc) snap.window_clicks.push_back("front:" + argv[++i]);
         else if (a == "--ui-switch" && i + 1 < argc) snap.switches.push_back(argv[++i]);
         else if (a == "--ui-layout-switch") snap.layout_switch = true;
+        else if (a == "--ui-hide-display" && i + 1 < argc) snap.hide_displays.push_back(argv[++i]);
         else if (a == "--ui-fullscreen") snap.fullscreen++;
         else if (a == "--ui-pause") snap.pause = true;
         else if (a == "--ui-log") snap.log = true;
@@ -278,8 +293,26 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-settings") snap.settings = true;
         else if (a == "--ui-shortcuts") snap.shortcuts = true;
         else if (a == "--ui-report") snap.report = true;
+        else if (a == "--ui-help" && i + 1 < argc) snap.help = argv[++i];
+        else if (a == "--ui-help-open" && i + 1 < argc) snap.help_open = argv[++i] == "none" ? -1 : 1;
+        else if (a == "--ui-help-scroll" && i + 1 < argc) snap.help_scroll = (float)atof(argv[++i].c_str());
+        else if (a == "--ui-second") snap.second = true;
         else if (a == "--ui-debugger") snap.debugger = true;
+        else if (a == "--ui-memory" && i + 1 < argc) snap.memory = argv[++i];
+        else if (a == "--ui-rack-new") { snap.rack_new = true; snap.rack = true; }
         else if (a == "--ui-exit") snap.exit = true;
+        else if (a == "--ui-drop" && i + 1 < argc) snap.drops.push_back(argv[++i]);
+        else if (a == "--ui-click" && i + 1 < argc) {
+            float x = 0, y = 0;
+            if (sscanf(argv[++i].c_str(), "%f,%f", &x, &y) != 2) {
+                fprintf(stderr, "--ui-click X,Y\n");
+                return 2;
+            }
+            snap.click_xy.push_back(x);
+            snap.click_xy.push_back(y);
+        }
+        else if (a == "--ui-save") { snap.save = true; snap.rack = true; }
+        else if (a == "--ui-save-copy") snap.save_copy = true;
         else if (a == "--ui-menu" && i + 1 < argc) snap.menu = argv[++i];
         else if (a == "--ui-key" && i + 1 < argc) snap.keys.push_back(argv[++i]);
         else if (a == "--ui-mouse" && i + 1 < argc) sscanf(argv[++i].c_str(), "%f,%f", &snap.mouse_x, &snap.mouse_y);

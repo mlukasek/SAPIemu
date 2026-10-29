@@ -14,7 +14,8 @@ v `docs/vydani/sestavy.md`). Po jejich odpovědích přijde úprava a 0.7.1-beta
 
 Posílám betaverzi SAPIemu 0.7.0-beta, emulátoru Tesla SAPI-1. Po úpravách podle vašich připomínek z ní bude
 0.7.1-beta, první veřejná verze na GitHubu.
-Novinky: vzhled (Windows 11, světlý i tmavý), výběr sestav s náhledy, průvodci sestavami a bezpečnější ukládání.
+Novinky: vzhled (Windows 11, světlý i tmavý), výběr sestav s náhledy, průvodci sestavami, nápověda a slovníček
+v programu a bezpečnější ukládání (dodané sestavy se nepřepisují, změny jdou do Mých sestav).
 Nejde mi o pochvalu, ale o to, kde se člověk, který program vidí poprvé, zasekne. Zabere to asi půl hodiny,
 odpověď prosím do [datum].
 
@@ -40,8 +41,9 @@ poznamenejte si kde, i když to pak vyřešíte.
 5. **Konfigurátor.** V ZPS-1 otevřete Zobrazení → Konfigurátor sestavy…, klikněte na kartu AND-1 (slot X3)
    a přepněte Generátor znaků na „MHB 2502 azbuka“. Tlačítko „Restartovat s touto sestavou“: obrazovka píše
    azbukou. Pak program zavřete. Zeptá se na neuložené změny, vyberte, co vám dává smysl, a napište proč.
-   Kdyby pak ZPS-1 psala azbukou dál: po Uložit přepněte Generátor znaků zpět na „MHB 2501 latinka“ a znovu
-   Uložit (nebo zip rozbalte znovu), po Ponechat pro příští spuštění stiskněte v konfigurátoru Vrátit změny.
+   Uložit dodanou ZPS-1 nepřepíše, vznikne vaše kopie „ZPS-1 … (moje)“ ve skupině Moje sestavy v okně Vybrat
+   sestavu a program ji příště spustí. Původní ZPS-1 píše latinkou dál, kopii smaže tlačítko Smazat… (u jiné
+   běžící sestavy). Po Ponechat pro příští spuštění stiskněte v konfigurátoru Vrátit změny.
 
 **Na konec čtyři otázky:**
 - Co vás mátlo?
@@ -57,7 +59,7 @@ poznamenejte si kde, i když to pak vyřešíte.
 - Hodně pomůže:
   - snímek obrazovky Ctrl+F5 (uloží se do `work\snimky`);
   - stav uložený těsně před chybou (Soubor → Uložit stav…);
-  - soubor sestavy, kterou jste změnili.
+  - soubor sestavy, kterou jste změnili (vaše kopie jsou ve `work\machines`).
 - **Po pádu** spusťte SAPIemu znovu a pošlete `sapiemu.prev.log` (Nahlásit chybu → Otevřít složku logu). Je to log
   spuštění, které spadlo. Další spuštění ho přepíše, pošlete ho proto hned.
 - Odpovídejte na zprávu, se kterou jste betu dostali, česky nebo anglicky. GitHub Issues budou až po zveřejnění.

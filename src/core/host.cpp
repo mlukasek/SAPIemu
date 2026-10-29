@@ -1,4 +1,5 @@
 #include "core/host.h"
+#include "core/machine_index.h"
 #include "core/state.h"
 #include "core/util.h"
 #include "core/log.h"
@@ -53,15 +54,73 @@ bool EmuHost::load(const std::string& f, std::string& err)
 
 bool EmuHost::load_config(const nlohmann::json& cfg, const std::string& f, std::string& err)
 {
+    std::vector<LogHeld> tlog;
+    if (m && !trial(cfg, f, nullptr, tlog, err)) return false;   // the old machine as it was
+    return build(cfg, f, nullptr, m ? &tlog : nullptr, err);
+}
+
+bool EmuHost::trial(const nlohmann::json& cfg, const std::string& f, const std::vector<uint8_t>* st,
+                    std::vector<LogHeld>& tlog, std::string& err)
+{
+    // it reads the files before the old machine saved into them (the RAM disks written since the last autosave, the
+    // battery memories): enough to see that it builds, the real build reads them afterwards
+    tlog.clear();
+    log_hold(&tlog);
+    bool ok = false;
+    try {   // a value of a wrong type in the description (json): an error, the hold of the log ends
+        std::unique_ptr<Machine> t(new Machine());
+        t->trial = true;   // its end saves nothing: a state loaded into it would go into the old one's RAM disk files
+        t->config_path = f.empty() ? std::string() : data_path(f);
+        ok = t->load_json(cfg, err) && t->check_bridges(err);
+        if (ok && st && !t->load_state(*st, err)) {
+            err = "state: " + err;
+            ok = false;
+        }
+    } catch (const std::exception& e) {
+        err = e.what();
+        ok = false;
+    }
+    log_hold(nullptr);
+    if (!ok) log_replay(tlog);
+    return ok;
+}
+
+bool EmuHost::build(const nlohmann::json& cfg, const std::string& f, const std::vector<uint8_t>* st,
+                    const std::vector<LogHeld>* tlog, std::string& err)
+{
     // the old machine releases its TCP ports / COM ports first; switching
     // machines is a power cycle: the old one saves its RAM disks
     if (m) {
         m->stop_bridges();
         m->power_down();
     }
+    // after a trial its messages are logged, not the same ones of this build again (the bridges are not in the trial:
+    // a port in use is said here)
+    std::vector<LogHeld> held;
     std::unique_ptr<Machine> nm(new Machine());
     nm->config_path = f.empty() ? std::string() : data_path(f);
-    if (!nm->load_json(cfg, err) || !nm->start_bridges(err)) {
+    bool ok = false;
+    try {
+        if (tlog) log_hold(&held);
+        ok = nm->load_json(cfg, err);
+        if (tlog) log_hold(nullptr);
+        if (ok) ok = nm->start_bridges(err);
+        if (tlog) log_hold(&held);
+        if (ok && st && !nm->load_state(*st, err)) {
+            err = "state: " + err;
+            ok = false;
+        }
+    } catch (const std::exception& e) {
+        err = e.what();
+        ok = false;
+    }
+    if (!ok) nm->discard();   // nothing of it saved (a state loaded halfway)
+    if (tlog) {
+        log_hold(nullptr);
+        log_replay(ok ? *tlog : held);
+    }
+    if (!ok) {
+        nm.reset();
         if (m) {
             std::string e2;
             if (!m->start_bridges(e2)) LOGW("%s", e2.c_str());
@@ -94,6 +153,19 @@ void EmuHost::power_off(void)
     status.clear();
     speed_percent = 0;
     LOGI("machine switched off");
+}
+
+void EmuHost::drop(void)
+{
+    if (!m) return;
+    m->stop_bridges();
+    m->discard();
+    m.reset();
+    generation++;
+    paused = false;
+    status.clear();
+    speed_percent = 0;
+    LOGI("machine dropped without saving");
 }
 
 bool EmuHost::power_on(std::string& err)
@@ -301,8 +373,13 @@ bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err, int* 
     // the header first: a state of a format this SAPIemu does not read (a newer or a too old version), damaged
     // or not a state at all is refused before the running machine is touched
     if (!Machine::state_header(in, cfg, f, err)) return false;
-    // the running machine as it is: it comes back when the state does not fit after all (a card of another version
-    // reads other data, the description does not build here)
+    // the trial (load_config): the machine of the state built and the state loaded into it while the running machine
+    // goes on untouched; a state that does not fit (a card of another version reads other data, the description does
+    // not build here) leaves it as it was
+    std::vector<LogHeld> tlog;
+    if (m && !trial(cfg, f, &in, tlog, err)) return false;
+    // the running machine as it is: it comes back when the state does not load after all (after a good trial only
+    // when the files changed meanwhile)
     std::vector<uint8_t> back;
     nlohmann::json back_cfg, back_last = last_cfg;
     std::string back_file = file;
@@ -323,11 +400,7 @@ bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err, int* 
         iw.assign(m->bus.io_watch, m->bus.io_watch + 256);
     }
     bool was_paused = paused;
-    bool ok = load_config(cfg, f, err);
-    if (ok && !m->load_state(in, err)) {
-        err = "state: " + err;
-        ok = false;
-    }
+    bool ok = build(cfg, f, &in, m ? &tlog : nullptr, err);
     if (!ok) {
         std::string e;
         if (back_cfg.is_null()) {   // switched off before: off again
@@ -343,7 +416,7 @@ bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err, int* 
             status.clear();
             return false;
         }
-        if (!load_config(back_cfg, back_file, e) || (!back.empty() && !m->load_state(back, e))) {
+        if (!build(back_cfg, back_file, back.empty() ? nullptr : &back, nullptr, e)) {
             LOGE("state: the machine that ran did not come back: %s", e.c_str());
             if (m) m->reset();
             if (back_out) *back_out = STATE_BACK_RESET;
@@ -396,5 +469,21 @@ std::string EmuHost::quick_state_path(void) const
     if (slash != std::string::npos) base = base.substr(slash + 1);
     size_t dot = base.find_last_of('.');
     if (dot != std::string::npos && dot > 0) base.resize(dot);
+    if (file.rfind(MACHINE_MINE_DIR "/", 0) == 0) base = "mine_" + base;   // a copy has the file name of its original
     return data_path("work/state/" + base + ".sapistate");
+}
+
+void EmuHost::set_file(const std::string& f, const std::string& name, const std::string& based_on)
+{
+    file = f;
+    nlohmann::json* descs[2] = { &last_cfg, m ? &m->config : nullptr };
+    for (nlohmann::json* d : descs) {
+        if (!d || !d->is_object()) continue;
+        (*d)["name"] = name;
+        if (based_on.empty()) d->erase("based_on");
+        else (*d)["based_on"] = based_on;
+    }
+    if (!m) return;
+    m->name = name;
+    m->config_path = f.empty() ? std::string() : data_path(f);
 }

@@ -13,7 +13,7 @@ Dpp1::Dpp1() : Card("DPP-1") {}
 
 Dpp1::~Dpp1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 bool Dpp1::configure(const json& cfg, std::string& err)

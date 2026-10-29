@@ -2824,6 +2824,376 @@ a `sapiemu-settings.json` před startem smazal.
   se vrátí dovnitř i při každém otevření, nejen po změně velikosti plochy.
 - **Náhled ve výběru sestav** se dál nezvětšuje (autor: je dobré, když jsou vidět i položky pod náhledem).
 
+## 2026-10-29 – etapa 8 plánu vzhledu: menu, nastavení a chování
+
+Autor etapu pustil („jo, za mně dobrý, pokračuj další etapou“). Udělal ji workflow (5 agentů: menu, chování,
+nápověda, nástroje, Moje sestavy; oponentura; opravy nálezů), rozhodnutí v ní nechal autor na něm. **Moje sestavy
+rozhodl autor:** build pro vydání uloží dodanou sestavu jako kopii, ladicí build ji přepíše. Chování skutečného
+SAPI-1 se nemění. Změny po oponentuře jsou označené „po kontrole“. Technicky `docs/build.md`, pro uživatele
+`docs/prvni-kroky.md`, `docs/getting-started.md` a `docs/release-notes/v0.7.0-beta.md`. Co má autor rozhodnout
+a vyzkoušet, je na konci oddílu.
+
+### Menu (hodnocení 5.1)
+
+- **Stroj → Média…** otevře stejné okno jako Zobrazení → Média (`window_item`, klíč `Media`): otevření, přenesení
+  dopředu, zavření i fajfka se v obou menu chovají stejně.
+- **Zobrazení → Obrazovky** vypíše okna displejů běžící sestavy podle karet (konzole první), fajfka = ukázané. Skryté
+  okno se nekreslí, sestava běží dál.
+  - Neukládá se. Jiná sestava (jiný soubor nebo jiné karty displejů, `displays_sig`) ukáže všechny, restart,
+    Ctrl+F12 a Vypnout a zapnout téže sestavy je nechají skryté (co uživatel nastaví, zůstane).
+  - Displej použitý naposledy se při skrytí přesune na ukázaný (hlavní výstup, jinak konzole, jinak první grafický).
+    Když měl klávesnici, jde s ním i ona. Po kontrole: kliknutí v menu drží fokus menu, proto rozhoduje stav
+    posledního snímku bez otevřeného menu (`App::screen_keys`). Když klávesnici mělo jiné okno, třeba Média, zůstane
+    tam. Znovu ukázaný displej přijde dopředu s klávesnicí.
+  - Celá obrazovka ukáže i skrytý displej vybraný v jejím menu, menu Obrazovky se tím nemění. Po odchodu z celé
+    obrazovky jde displej použitý naposledy zase na ukázaný.
+- **Zobrazení → Otevřít složku snímků a videí** je podnabídka: Snímky obrazovky (`work/snimky`) a Videa
+  (`work/videa`), krátká cesta vpravo, celá v bublině. Plán měl jednu položku, ale jsou to dvě složky: jedna položka
+  by otevřela jen jednu z nich a `work/` má dvacet dalších složek. Pomocník `open_folder()` (`help.cpp`) složku
+  nejdřív vytvoří, takže jde otevřít i před prvním snímkem. Používá ho i Nahlásit chybu → Otevřít složku logu.
+- **Okna přístrojů** (Sériový terminál, Tiskárna, Zapisovač, IMS-2, Deska diagnostiky, APS-5) jsou v Zobrazení
+  povolená, jen když je sestava má, nebo když je okno otevřené (položka ho zavře, jako od etapy 5). Média jsou
+  povolená vždy, jejich okno řekne, že sestava média nemá. Totéž Stroj → Média….
+  - Zakázaná položka má zalomenou bublinu (`device_missing`): co chybí, kde je sestava s přístrojem (Soubor → Vybrat
+    sestavu → kategorie → titulek, z rejstříku `_vyber.json` v jazyce rozhraní, takže se nerozejde s oknem Vybrat
+    sestavu) a u některých přístrojů místo v konfigurátoru. Tiskárna a sériový port mají jen místo v konfigurátoru,
+    žádná jedna sestava není spolehlivý příklad.
+  - Stejnou větu ukáže okno přístroje v sestavě bez něj: APS-5, IMS-2 (dřív JSON), zapisovač, tiskárna, deska
+    diagnostiky, terminál.
+  - APS-5 a IMS-2 se rozlišují (`aps5_in_machine`, `ims2_in_machine`). Dřív byly obě položky povolené u každé sestavy
+    s technologií.
+  - **Vypnutá sestava** (po kontrole: všechny položky byly šedé s nepravdivou bublinou „Tato sestava nemá…“): položky
+    se řídí přístroji sestavy, jak naposledy běžela (`machine_devices_seen`), protože Zapnout postaví stejný popis.
+    Před první běžící sestavou jsou povolené všechny. Okno přístroje řekne „Sestava je vypnutá (Stroj → Zapnout).“
+    Zamítnuté: číst popis JSON (chyběla by mapa karet na přístroje) a povolit vše (šedá položka by lhala obráceně).
+- **Pořadí v Zobrazení:** Celočíselné zvětšení, Poměr stran jako na TV a Vyhlazování hned za Celou obrazovkou, za
+  oddělovačem skupina Snímek, Kopírovat text obrazovky, Video a složky, oddělovač i za Konfigurátorem sestavy. Mezi
+  menu se nic nestěhovalo.
+- **Oprava chyby z etapy 5** (`07a3116`): hlavní grafický výstup her (CGA-1V, BGP-1S) se kreslí před konzolí a kód
+  konzole mu přepsal příznak „obrazovka má klávesnici“. Psaní do kliknutého CGA-1V se v sestavách her zahodilo
+  („Psaní teď nejde do SAPI“) a nešel ani joystick z klávesnice. Příznak teď smaže `draw_screens` a každý displej ho
+  jen nastaví. Ověřeno snímkem: se starým řádkem se `3` zahodí, s opravou naběhne CP/M.
+
+### Nastavení po sekcích
+
+- **Jedna stránka s posuvníkem**, popisky ve sloupci a ovládání vedle nich, nadpisy `theme_section`, jak říká plán
+  („SeparatorText nebo nadpisy“). Seznam sekcí vlevo jako ve Windows 11 je na rozhodnutí autora.
+  - **Obecné:** Jazyk / Language, Velikost písma (hodnocení ji chce u jazyka), Průvodci se otevírají sami, Znovu
+    ukazovat skryté průvodce.
+  - **Vzhled:** Režim (Podle systému, Světlý, Tmavý) a Okna (Plovoucí, Zadokovaná). Výběr vzhledu jen při víc
+    vzhledech. Řádek Okna si nechal jméno, cesta „Zobrazení → Nastavení → Vzhled → Okna“ v dokumentaci platí.
+  - **Obraz:** celočíselné zvětšení, poměr TV, vyhlazování (tytéž příznaky jako v menu).
+  - **Zvuk:** Zvuk zapnutý, Hlasitost, věta o rychlosti 100 %.
+  - **Ovládání:** citlivost myši a „Myš PC jako myš SAPI (jen do ukončení)“ s bublinou, že se neukládá (stejná
+    bublina je u položky v menu Stroj). Joystick z klávesnice (Ctrl+F8), který se také neukládá, tam není, plán ho
+    nejmenuje.
+  - **Záznam:** zvětšený snímek, pole ffmpeg s popiskem a řádkem, zda ffmpeg našel (hledá se jen při otevření okna
+    a po změně pole, PATH má mnoho složek), složky snímků a videí s tlačítkem Otevřít složku.
+  - **Pokročilé (pro vývojáře):** sbalitelné, server MCP. Sbalené, dokud server není zapnutý nebo nehlásí chybu;
+    pak se jednou za běh samo otevře, aby vývojář viděl adresu. Starší soubory nastavení bez klíče `mcp` mají MCP
+    zapnutý, takový uživatel ho proto uvidí otevřené.
+- Klíče souboru nastavení se nemění.
+- Výchozí velikost okna 40 × 56 výšek písma (dřív 34 × 30), nejvýš plocha, při 1280 × 720 se posouvá. Velikost
+  uložená v `imgui.ini` vyhrává, novou dá Výchozí rozložení oken.
+- Hláška videa bez ffmpeg radí Zobrazení → Nastavení → Záznam místo úpravy souboru nastavení. Stroj → Zvuk, joystick
+  a myš → Hlasitost, citlivost myši… dá otevřené Nastavení dopředu.
+
+### Nápověda v programu (hodnocení 5.3, 5.4)
+
+- **Okno Nápověda** (`###Help`, dialog 50 × 44 výšek písma) má dvě záložky místo dvou oken: První kroky
+  (`docs/prvni-kroky.md`, v angličtině `docs/getting-started.md`) a Slovníček (nová položka Nápověda → Slovníček,
+  `docs/slovnicek.md`, `docs/glossary.md`). Chybí-li anglický soubor, ukáže český; chybí-li první kroky v `docs/`,
+  vezme kopii nahoře v zipu (`PRVNI-KROKY.md`, `GETTING-STARTED.md`). Soubory hledá `data_path` jako ostatní data,
+  ověřeno nad čistou kopií dat.
+  - Kapitoly `##` jsou sbalitelné: v Prvních krocích je otevřená jen první, ve Slovníčku všechny (stránka
+    k vyhledávání). Rozbalit vše a Sbalit vše platí pro otevřenou záložku, odkaz se jménem souboru otevře `.md`
+    mimo program. Záložka si drží posun i sbalené kapitoly, změna jazyka soubor přečte znovu a začne nahoře.
+- **Markdown** z `browser.cpp` je ve dvou nových souborech: `markdown.h/.cpp` (parser bez ImGui, test
+  `test_markdown`) a `mdview.cpp` (kreslení). Průvodci sestavami ho používají také.
+  - Tučné, `kód` (neproporcionální písmo na podkladu) a odkazy uvnitř zalomeného odstavce kreslí vlastní rozvržení
+    po slovech (DrawList, odkazy přes `ItemAdd` a `ButtonBehavior`): ImGui zalamuje jen text jednoho písma a jedné
+    barvy.
+  - Tabulky jsou rozvržené ručně: tabulky ImGui po prvním vytvoření pevné šířky sloupců nepřevezmou a tady se
+    sloupce řídí šířkou okna. Sloupec dostane aspoň své nejdelší slovo (nejvýš 45 % tabulky) a nejvýš celý text na
+    jednom řádku, zbytek šířky podle množství textu. Řádek záhlaví je tučně.
+  - Krátký `kód` (do 30 bajtů) se na mezerách nezalomí (`10 FOR I=1 TO 5` zůstane celé), delší ano.
+  - Odrážky a číslované body s odsazením i vnořené, odsazený odstavec patří k bodu, bloky kódu, vodorovná čára,
+    escape, komentáře HTML.
+  - Odkazy: http(s) v prohlížeči; soubor relativně ke složce dokumentu, pak ke kořeni dat (otevře ho `open_doc` mimo
+    program); `kód` se jménem existujícího `.md` je odkaz také; odkaz na soubor druhé stránky okna přepne záložku.
+    Vypadají jako `TextLink` v O programu (barva, podtržení, cíl v bublině), bez šipky ↗. V průvodcích jsou teď
+    v textu, dřív byly pod odstavcem. `GETTING-STARTED.md` je v repu jen kód, soubor existuje jen v zipu.
+- **Nápověda → Návody k obsluze** (`navod-*.md`) se dál otevírají mimo program: mají obrázky, které okno nekreslí.
+- **Bubliny `tip(text)` a `tipf(formát, …)`** (`theme.h`) zalomí text na asi 35 šířek písma (bublina měla až 1470 px
+  na řádku). Chovají se jako `SetTooltip` (`BeginTooltipEx` s `OverridePrevious`), podmínku `IsItemHovered()` píše
+  volající. Skript nahradil všech 117 volání `ImGui::SetTooltip` v `src/frontend`, `menu_tip` z `app.cpp` a dvě
+  ručně zalomené bubliny. Texty ani klíče `tr()` se nezměnily.
+- **Slovníček** jsou dva soubory, česky a anglicky, se stejnými čtyřmi oddíly a řádky (pojem, druhý jazyk, význam):
+  počítač SAPI-1, programy, média a data, program SAPIemu. Každý se tak čte přirozeně. `test_markdown` hlídá stejné
+  oddíly a počty řádků, vyplněné buňky a odkazy všech čtyř dokumentů okna Nápověda. Po kontrole přibyl řádek Moje
+  sestavy.
+- **Zip:** `package.py` hlídá, že čtyři dokumenty okna Nápověda (`HELP_DOCS`) jsou v gitu a v `docs/` zipu, jinak
+  zip není hotový. Do kořene zipu slovníček nejde.
+
+### Debugger a konfigurátor
+
+- **Debugger podle CPU** (`CpuCard::cpu_isa`):
+  - 8080 a 8085 se jmény Intel: A F B C D E H L po bajtech vedle SP a PC, INTE. 8085 navíc nedokumentované příznaky
+    K a V, IE, SID/SOD a řádek, co teď přečte RIM (nová pole `CpuRegs::rim` a `sod` jen pro čtení, plní je jen
+    `Jpr1::get_regs`; RIM sestavené jako v jádře, bez zvláštnosti prvního RIM po TRAP). Debugger `CpuRegs` nejdřív
+    nuluje, karty Z80 nová pole neplní.
+  - Z80: AF BC DE HL, druhá sada AF'…HL', IX IY SP PC, I, R, IM, IFF1 a IFF2.
+  - Příznaky jsou zaškrtávátka s písmenem (stav není jen barvou, etapa 7). Při pauze se mění hned, při běhu jsou
+    šedé jako Krok. Pole registrů dál chtějí Enter. Nedokumentované příznaky (Y a X Z80, K a V 8085) mají bublinu.
+  - Sloupec značek v disassembleru jako ve Visual Studiu: červená tečka = breakpoint, šipka = PC přes ni
+    (`theme().error`, `theme().warn`, obrys barvou textu). Liší se tvarem, barvy řádků zůstaly. Kliknutí kamkoli na
+    řádek dál přepíná breakpoint.
+  - Paměť: bajt, jehož znak písmo nemá (hlavně semigrafika 80h–BFh za 16bitovými kódy atlasu písma), je „.“ místo
+    náhradního znaku. Kontrola je ve frontendu (`mem_char`, `IsGlyphInFont`), ne v `core/charset.cpp`: záleží na
+    písmu GUI a jádro na GUI nezávisí. Řídicí kódy 00h–1Fh a 7Fh jsou „.“ jako v klasickém výpisu. Výchozí šířka
+    okna Paměť 46 výšek písma (dřív 40), vejde se celý řádek s textem.
+  - Mnemoniky Intel (MOV, MVI, LXI…) nejsou: `core/disasm.cpp` má jen mnemoniky Zilog (a jména Intel instrukcí jen
+    8085). Odloženo.
+- **Port 63h desek V šedě:** zápis, který dvě karty sdílejí podle návrhu, je tabulka v katalogu (`SharedWrite`,
+  `card_shared_write`) s páry typů karet a jmen funkcí z dekodérů. Nové pole `CardInfo` by sáhlo na každý `CARD()`.
+  - Aby pár sedl jen na správný registr, jmenuje dekodér ZRMD-1/ZRD-1V base+3 „adresa RAM disku A16-A21“, s JP2
+    ZRMD-1 „…, MAP1/MAP2“. ZRMD-1, který MAP budí sám, tak zůstává varováním.
+  - Záměr je jen tam, kde na adresu píšou na sběrnici právě dvě karty a pár je v katalogu. Rozsah zůstává
+    `shared_write` (MCP ukáže i `by_design`), ale `machine_map_problems` ho vynechá: žádné varování v konfigurátoru,
+    MCP ani testech. V mapě šedě se slovy „sdílený zápis (záměr)“, bublinou a důvodem pod tabulkou. Dodané sestavy V
+    žluté varování nemají, jiné sdílené zápisy zůstávají žluté a kolize červené. Test `test_shared_by_design`.
+  - RAM-1V vedle ZRMD-1 bez JP2 je záměr stejně jako se ZRD-1V (stejný port, ZRMD-1 tam bere jen bity 0–5);
+    potvrdit níže.
+- **Jména souborů místo cest:** pomocník `file_name_text` ukáže jméno a celou absolutní cestu (na Windows se
+  zpětnými lomítky) v zalomené bublině. Média (kazety DSM-1, diskety, kazety RKD-1, dřív s celou cestou, pásky RMP-1,
+  IDE disk, složka PMD32-SD), výstup Tiskárny a dialogy Nahrát program. Nahradil cesty relativní k datům z etapy 3.
+  Obrazy PMD32-SD ve výběru mechaniky jsou relativní k SD kartě, zůstaly.
+- **Konfigurátor, pevné záložky:** „Sestava a sběrnice | X7 CGA-1V | Mapa portů a paměti“ s pevnými ID (`###bus`,
+  `###card`, `###map`), takže výběr vydrží změnu titulku. Prostřední záložka je vždy: karta ve slotu, „X3
+  (prázdný)“, nebo „Karta“ s nápovědou, když slot není vybraný. Nastavení sběrnice už nechce klik na prázdný rám.
+  - Klik na slot vybere záložku karty, i z mapy, jako dřív.
+  - Jiný slot pravým tlačítkem nebo přetažením karty přepne na kartu jen ze záložky sběrnice, z mapy ne.
+  - Klik na prázdný rám dál zruší výběr slotu a na sběrnici přepne jen ze záložky karty.
+  - Otevření nebo následování sestavy přepne ze záložky karty na sběrnici, nová prázdná sestava ukáže kartu CPU.
+- **Nová ▸** v konfigurátoru: Prázdná sestava, pak podnabídky podle kategorií rejstříku s titulky jako ve Vybrat
+  sestavu (kategorie skupiny Ostatní ve vlastní podnabídce), soubor a krátký text v bublině. Dřív asi 60 cest. Sestavy
+  mimo rejstřík jsou v Ostatní → Nezařazené a vlastní sestavy, takže jsou dostupné všechny soubory. Rejstřík se čte
+  při každém otevření nabídky, nově uložené sestavy v ní jsou. Kód `machine_index_menus` v `browser.cpp`.
+
+### Chování (hodnocení 5.5)
+
+- **Starý stroj se vypne až po postavení nového** (`EmuHost::load_config`, `src/core/host.cpp`):
+  - Nejdřív **zkušební sestavení** (`Machine::trial`): nový stroj, kontrola popisu sériových linek
+    (`serial_bridges_check`, nic se neotevře), u stavu i načtení stavu. Starý stroj zatím běží nedotčený.
+  - Když zkouška selže, běžící sestava zůstane, jak byla: tentýž objekt a generace, paměť, breakpointy, pauza, nic
+    neodběhlo, žádné varování výpadku (APS-5 s HRK-1 už neskončí v nekonečném výpadku), spojení TCP, COM i terminálu
+    zůstanou. Okno Chyba připíše „Sestava běží dál, jak běžela.“ Platí pro Vybrat sestavu, Poslední sestavy, Spustit
+    ze souboru, restart z konfigurátoru, Ctrl+F12 i MCP.
+  - Po dobré zkoušce se starý stroj vypne jako dřív (spojení uvolní, varování výpadku, média a zálohované paměti se
+    uloží) a nový se postaví **znovu** ze souborů, jak jsou teď. „Postavit nový napřed“ v jednom kroku nejde: nový
+    stroj musí číst RAM disky, zálohované paměti a záznam výpadku APS-5 až po tom, co je starý zapsal (stejná sestava
+    po Ctrl+F12 nebo restartu). Výhradní prostředky PC (porty TCP, COM) bere až skutečná stavba, takže povedené
+    přepnutí se chová přesně jako dřív. Cena: dvě stavby (debug: MikroMon 1 ms, APS-5 4 ms, `cpm_zrmd_fdc1` 82 ms,
+    `rkd1_jb_cm5400` 66 ms).
+  - Zkušební stroj a stroj, který se nepostavil, při zrušení nic nezapíše (`Machine::trial`, `Machine::discard()`,
+    `Card::trial` v `~Machine` a devíti destruktorech karet, které ukládají). Jinak by stav načtený napůl zapsal
+    RAM disk do souboru RAM disku běžícího stroje (RMD-1 ukládá, když je změněný).
+  - Hlášky zkoušky se podrží (`log_hold`, `log_replay`, pro každé vlákno zvlášť) a zapíšou jednou: po dobré zkoušce
+    ty ze zkoušky (jen ona mohla vytvořit pracovní kopie, „working copy: added“), po špatné její.
+  - Chyba typu hodnoty v popisu (výjimka JSON) se při stavbě chytí a je chybovým textem, dřív utekla do GUI.
+  - `load_state` jde také přes zkoušku: stav, který nesedí, nechá sestavu netknutou (tatáž generace,
+    `STATE_BACK_SAME`, okna se nepřizpůsobují). Stav běžící sestavy v paměti zůstává pro vzácné selhání po dobré
+    zkoušce (soubory se mezitím změnily); ta cesta je stejná jako dřív a test ji bez podvržené chyby nevyvolá.
+  - Prověřené prostředky PC: spojení sériových linek (výše), soubory médií (otevřené se sdílením, IDE `r+b`),
+    zálohované paměti (čtou se celé, zapisují atomicky), zvuk (jeden proud SDL), vlákna relay a DPI-1L (startují,
+    až je program použije, ve zkoušce nikdy).
+  - Test `test_host`: nepovedené popisy (neznámá karta, chybějící ROM, COM bez portu, chyba typu JSON, kolize slotů,
+    chybějící soubor sestavy), useknutý stav (obraz RMD-1 beze změny), APS-5 bez výpadku, klávesnice v popisu,
+    `file_lock_try`, časy přepnutí. `test_state` čeká, že sestava po nesedícím stavu zůstane tatáž.
+- **Poslední sestavy po každém startu:** `recent_add` (přesunuté z `browser.cpp`) po každém úspěšném startu z GUI
+  (všechny jdou přes `start_machine` v `rack.cpp`: Vybrat sestavu, Poslední sestavy, Spustit sestavu ze souboru,
+  přetažení souboru), po Restartovat s touto sestavou se souborem a po Uložit jako. Nepovedený nebo zrušený start
+  seznam nemění, MCP a `sapiemu-cli` se nepřidávají.
+  - Vybrat sestavu se zavře až po startu (`ui.browser_start`) a při Zrušit v otázce na neuložené změny zůstane
+    otevřené. Fokus displeje a rozložení prvního startu jen po povedeném startu. Po nepovedeném se okno zavře také,
+    důvod ukáže konfigurátor.
+  - Po kontrole: oponent navrhl Uložit jako ze seznamu vyřadit. Zamítnuto, hodnocení (BEH-19) chce výslovně
+    „po každém úspěšném startu a po Uložit jako“. Nadpis seznamu ve Vybrat sestavu je místo „Naposledy spuštěné“
+    „Poslední sestavy“, jako v menu Soubor a jako to, co seznam drží.
+- **Stroj → Klávesnice** jde přes popis sestavy (hodnocení IA-18): `Machine::set_live_param` klávesnice karty CPU
+  (`Machine::plug_keyboard`), z menu `rack_set_keyboard` přes `rack_set_live_param` (vrací úspěch a chybu). Změna je
+  v popisu běžící sestavy a v konfigurátoru jako neuložená (Uložit, Ponechat pro příští spuštění), vydrží Ctrl+F12.
+  - Popis staví `rack_keyboard_cfg` podle pravidla konfigurátoru (vlastní volby zůstanou, joyport jen u ANK-1M2),
+    sdílený s výběrem klávesnice v konfigurátoru.
+  - Záměrně to **není** `Machine::live_param`: pole klávesnice v konfigurátoru se chová jako dřív (označené, platí po
+    vypnutí a zapnutí) a volby strict, beeper a joyport se za běhu nezapojují.
+  - Klávesnici, kterou karta CPU nevezme (PKT-1 bere jen klávesnice se strobe), nahradí klávesnice z popisu, nezůstane
+    žádná. MCP `set_keyboard` se nemění (jen běžící klávesnice).
+- **Varování při druhém okně:** GUI drží po celý běh zámky `<soubor nastavení>.lock` a `work/sapiemu-gui.lock`
+  (`file_lock_try` v `util.cpp`).
+  - Windows: `CreateFileW` bez sdílení s `FILE_FLAG_DELETE_ON_CLOSE`, po pádu nic nezůstane. Obsazené je jen
+    `ERROR_SHARING_VIOLATION`, jiná chyba (složka jen pro čtení) varování nedá. Linux: `flock`, soubor zůstane.
+  - Druhé okno nad stejným nastavením nebo stejnými daty (třeba debug a release exe jednoho repa přes `work/`) ukáže
+    modální „Už běží jiné SAPIemu“ s cestami, až po případném okně Chyba ze startu. Jen varování: Pokračovat je
+    výchozí (Enter i Esc), Ukončit odejde bez uložení nastavení a `imgui.ini`.
+  - Druhé GUI nad stejným nastavením píše log do `sapiemu.2.log`, nepřepíše log prvního.
+  - `sapiemu-cli` a `--ui-snapshot` zámek neberou ani nehlídají, testy a galerie jich pouští mnoho naráz. Snímek
+    `--ui-second`.
+  - Po kontrole: Ukončit ve varování zapsalo sdílené soubory, sestava mezitím běžela. Dokud varování čeká, okno teď
+    nezapíše nic: sestava neběží (`host.frame`, tedy ani průběžné ukládání médií), příkazy MCP čekají (`host.poll`),
+    ztráta fokusu média neukládá a ImGui neukládá rozložení (`io.IniFilename` po načtení v prvním snímku odložené
+    v `App::ini_held`). Ukončit jde přes nové `EmuHost::drop()`: zavře spojení, `Machine::discard`, bez
+    `power_down`, bez varování výpadku, RAM disky ani zálohované paměti se nezapíšou. Pokračovat vše pustí
+    a rozložení označí k uložení. Před odpovědí vzniknou jen pracovní kopie, které při načtení chyběly, jako dřív.
+    Načítat sestavu až po odpovědi by byla velká změna startu i snímků. Test `drop_saves_nothing`, snímkem ověřeno,
+    že `crm.bin` APS-5 zůstane po Ukončit bajt po bajtu stejný.
+- **Chyby jádra česky** (přesunuté z etapy 7): jádro zůstává anglicky (sdílí ho cli a MCP), GUI hlášky překládá při
+  zobrazení `tr_core()` podle tabulky `k_core` v `i18n.cpp` (asi 85 pevných textů a vzorů s `%s`).
+  - Platí první vzor, který sedí, proto jsou zvláštní vzory před obecnými. Zachycené části se přeloží také, u
+    „<karta nebo soubor>: <text>“ jen text. Co v tabulce není, zůstane anglicky.
+  - Pokryté: soubor a popis sestavy, ROM, média a pracovní kopie, formáty disket, pásek, KZD-1 a RKD-1, obrazy IDE,
+    nahrání programu a program na kazetu, klávesnice, porty terminálu, stavy (i novější a starší formát), důvod
+    zastavení DEMA APS-5. Použité v `app.cpp`, `rack.cpp`, `media.cpp`, `aps5.cpp`, `terminal.cpp`, `plotter.cpp`.
+  - `test_i18n_keys` hlídá, že každý pevný kus vzoru je v literálech `src/` (v jednom literálu, nebo kde jádro spojí
+    konec jednoho a začátek druhého), jinak je záznam mrtvý. `test_i18n` hlídá vzorky, stejný počet `%s` a že každý
+    vzor přeloží jeho vlastní záznam (našel jednu chybu pořadí).
+  - Anglicky zůstávají kontroly konfigurace („X must be …“, jen z ručně psaných popisů), podrobnosti ImageDisk, DPI-1L,
+    IMS-2 a zapisovačů.
+- **Moje sestavy** (rozhodl autor: release kopie, debug přepisuje):
+  - V buildu pro vydání (`NDEBUG`, jedna funkce `save_copies()`, oba buildy překládají stejný kód) zapíše Uložit
+    v konfigurátoru (i v otázce Neuložené změny) dodanou sestavu jako kopii do `work/machines/` (přes `work_root`,
+    jde i s datovou složkou jen pro čtení). Ladicí build dál přepisuje, `--ui-save-copy` vynutí chování vydání.
+  - **Dodaná** = jmenovaná v `machines/_vyber.json` (`MachineEntry::listed`, `machine_supplied`). Po kontrole: dřív
+    každý soubor pod `machines/`, takže i vlastní soubor uživatele by šel do kopie. Bez čitelného rejstříku platí
+    složka, aby se nic dodaného nepřepsalo. `test_index` hlídá, že každá sestava v `machines/` je v rejstříku.
+  - Kopie má jméno souboru originálu (obsazené → `-2`, `-3`…: uložit originál znovu po týdnech nesmí tiše zahodit
+    starší kopii), ke jménu „ (moje)“ nebo „ (mine)“ v jazyce rozhraní při uložení, „(moje 2)“ u druhé. Jméno změněné
+    uživatelem zůstane bez značky. Dostane `based_on` s cestou originálu: konfigurátor ho zapíše s komentářem za
+    `description`, `cfg_hw` ho za změnu hardwaru nebere.
+  - Konfigurátor pak drží kopii, další Uložit je obyčejné. Běžící sestava se na kopii přejmenuje bez nového sestavení
+    (`EmuHost::set_file`: soubor, jméno, `based_on` v `Machine::config` i `last_cfg`), paměť zůstane, titulek okna,
+    Poslední sestavy a příští start jdou za kopií.
+  - Rychlý slot kopie je `work/state/mine_<jméno>.sapistate`, nesdílí slot originálu se stejným jménem souboru.
+  - Bublina u Uložit (lišta konfigurátoru, otázka Neuložené změny) řekne, co Uložit udělá: release „Zapíše změny do
+    kopie (Moje sestavy): … Dodaná sestava zůstane, jak je: …“, debug, že dodanou přepíše a release by uložil kopii.
+  - Po kontrole: v buildu pro vydání začíná Uložit jako u nové a dodané sestavy ve `work/machines` (data mohou být jen
+    pro čtení a soubor v `machines/` by byl stejně jen uživatelův).
+  - Rejstřík (`core/machine_index`) přidá kategorii `mine` („Moje sestavy“, „My machines“) nahoru, jen když
+    `work/machines/*.sapi` existují (soubory začínající `_` přeskočí). Jména kategorie má jádro v obou jazycích jako
+    u Nezařazených, klíče `tr()` nepotřebuje. Kopie má náhled a průvodce originálu, nepřejmenovaná titulek originálu
+    se značkou v každém jazyce („ZPS-1 s MIKROBASICem 2.4 (moje)“) místo dlouhého jména souboru, hledání ji najde
+    i podle titulků originálu. Po kontrole skládá i řádek s dlouhým jménem jméno originálu a značku v jazyce rozhraní
+    (`MachineEntry::copy`). V souboru zůstává značka z doby uložení.
+  - Ve Vybrat sestavu je kategorie otevřená. Kopie má řádek „Vychází z <titulek>“ (odkaz vybere originál),
+    Spustit/Restartovat, Průvodce, Otevřít v konfigurátoru a Smazat… (šedé, dokud běží: běžící sestava by neměla
+    soubor). Smazat se zeptá (Zrušit výchozí, Enter i Esc ruší) a smaže jen soubor kopie, její řádek v Posledních
+    sestavách a ponechané změny. Konfigurátor, který ji držel s neuloženými změnami, je nechá jako novou neuloženou
+    sestavu, jinak ukáže běžící sestavu. Pak je vybraný originál.
+  - „Obnovit původní“ z plánu nahrazuje odkaz „Vychází z“ (originál je ve své kategorii beze změny) se Smazat….
+  - MCP `list_machines` vypíše i kopie s `based_on`, `load_machine` je bere cestou `work/machines/…`.
+  - Testy: `test_mine` v `test_machine_index` (vlastní kořen dat `work/test/mine_root`), `host_copy` v `test_state`.
+- **Přetažení souborů na okno** (`SDL_EVENT_DROP_FILE`): soubory jdou do fronty, `drop_frame` v `app.cpp` bere jeden
+  za snímek po liště menu (sestava a za ní disketa v jednom tahu: nejdřív se spustí sestava, disketa jde do nové).
+  `file_drop` v `media.cpp` používá kód menu: odpověď dialogu je jedna funkce `file_chosen` pro dialog i přetažení.
+  - `.sapi`, `.jsonc` jako Soubor → Spustit sestavu ze souboru (`rack_start_machine`, i s otázkou na neuložené
+    změny); `.sapistate` načte stav; `.hex`, `.ihx` a `.txt` začínající `:` otevřou otázku Nahrát program; `.bin`
+    otázku na adresu.
+  - Diskety (`.img .imd .8sd .sp2 .sp1`), kazety RKD-1 (`.rkd`) a pásky RMP-1 (`.tap`) jen do první prázdné
+    mechaniky. Žádná prázdná nebo žádná mechanika: okno Chyba (uživatel musí něco udělat; počítá se do „Chyby: N“
+    jako jiné chyby uživatele). Kazety (`.wav`, `.mp3` do DSM-1, `.kzd` do KZD-1) do prvního prázdného magnetofonu,
+    jinak prvního, kazetu vymění jako Vložit… (stará je uložená průběžně).
+  - Neznámý soubor, vypnutá sestava, otevřený dialog: krátký řádek ve stavovém řádku. Při otevřeném modálním okně
+    (`GetTopMostPopupModal`, otevřené menu nevadí) se soubor odmítne, když má v tom snímku vyskočit otázka nebo
+    Chyba, počká snímek. Otevřený souborový dialog Windows také odmítne, jeho odpověď by zabrala místo souboru.
+  - Povedené: „Vloženo do RPD-1, Mechanika 1: x.img“ a klávesnice se vrátí displeji. Okno SAPIemu se po přetažení
+    nezvedá (`SDL_RaiseWindow` by na Windows mohlo blikat na liště), fokus Windows tak může zůstat Průzkumníku.
+
+### Nehoda s daty autora
+
+- Snímek GUI agenta chování (`--ui-switch machines/aps5.sapi`, pak MikroMon, 13:52:49) sestavu APS-5 vypnul
+  a přepsal `work/aps-5/crm.bin` a `work/aps-5/rtc.bin`. `work/` není v gitu a `file_write_safe` soubory nahradil,
+  předchozí obsah se obnovit nedá. Nový obsah je dosavadní CMOS RAM po asi 0,2 s teplého startu a uložení firmwaru při
+  výpadku: programy a kalibrace by měly zůstat, změnily se záznamy výpadků a hodiny.
+- Příčina: snímky běží nad skutečným `work/`, přepnutí ze sestavy se zálohovanou pamětí ji zapíše. Opravy po
+  oponentuře už dělaly snímky nad kopií dat (`--data-root`). Pravidlo: snímky se sestavami se zálohovanou pamětí
+  (APS-5, DMR-1, sestavy V) jen nad kopií dat.
+
+### Na rozhodnutí autora
+
+Rozhodl workflow, autor to může změnit (doporučení je první):
+
+- **Snímky a videa ve dvou složkách** (podnabídka), nebo obojí do jedné složky jako záznamy v DOSBoxu (pak jedna
+  položka, jak říká plán; změna `video.cpp` a návodů).
+- **Skryté displeje se neukládají** (každý start ukáže všechny), nebo je pamatovat v nastavení `displays` vedle
+  zvětšení.
+- **Nastavení jedna stránka s posuvníkem** (při 1280 × 720 se posouvá), nebo seznam sekcí vlevo jako ve Windows 11.
+- **Joystick z klávesnice** nechat v menu Stroj a na Ctrl+F8, nebo přidat do Nastavení → Ovládání s „(jen do
+  ukončení)“.
+- **Selhání skutečné stavby po dobré zkoušce** (jen když se soubory mezi nimi změní) nechat jako dřív (`load_config`
+  nechá starý stroj vypnutý, APS-5 by byla ve výpadku; `load_state` sestavu vrátí ze stavu), nebo starý stroj postavit
+  znovu z jeho uloženého stavu.
+- **Klávesnice v konfigurátoru** dál platí po vypnutí a zapnutí, nebo hned jako Stroj → Klávesnice (skutečná
+  klávesnice jde přepojit za chodu; za běhu by se zapojily i volby strict, beeper, joyport).
+- **MCP `set_keyboard`** dál jen běžící klávesnice, nebo přes popis (konfigurátor by změnu z MCP ukázal jako
+  neuloženou).
+- **RAM-1V vedle ZRMD-1 bez JP2 na portu 63h** je záměr jako se ZRD-1V, nebo varování. Potvrdit podle skutečných
+  desek.
+- **Klik na prázdný rám** dál zruší výběr slotu, nebo jen přepne na záložku Sestava a sběrnice a slot nechá.
+- **Paměť: 00h–1Fh a 7Fh jako „.“** (klasický výpis), nebo rámečky SAPI, které písmo má.
+- **Příznaky v debuggeru platí hned** (registry po Enteru), nebo i příznaky až po potvrzení.
+- **Mnemoniky Intel** pro 8080 a 8085 později jako přepínač v debuggeru, nebo vůbec.
+- **Viditelné popisky** místo samotné bubliny (tlačítko „…“ u média, LO1/LO2, LI a/b APS-5; hodnocení 5.4) později,
+  mění vzhled oken Médií a přístrojů.
+- **Návody k obsluze** nechat mimo program, nebo později v okně Nápověda (chce obrázky `![…](img/…)` přes
+  `SDL_LoadPNG` jako náhledy).
+- **Značka kopie v souboru** v jazyce uložení (pole Jméno v konfigurátoru ji tak ukáže), nebo jméno bez značky
+  a značka jen v titulku.
+- **Uložit jako v buildu pro vydání** začíná u nové a dodané sestavy ve `work/machines`, nebo v `machines/`.
+- **Přetažená kazeta** vymění kazetu v plném magnetofonu jako Vložit…, nebo se odmítne jako disketa.
+- **Okno se po přetažení nezvedá**, nebo `SDL_RaiseWindow`.
+- **Plná nebo chybějící mechanika při přetažení** v okně Chyba (počítá se do „Chyby: N“), nebo jen stavový řádek.
+- **Fokus ve snímcích:** snímky od etapy 4 fokus displeji nevracejí, přesun klávesnice po skrytí displeje šel ověřit
+  jen dočasným buildem. Volbu `--ui-*` přidat, až bude potřeba.
+
+### Ruční zkouška autora a známá omezení
+
+Snímek skrytého okna tyto věci neukáže:
+
+- Přetažení `.sapi`, `.sapistate`, `.hex`, `.bin`, `.img` a `.wav` z Průzkumníka na skutečné okno (cesta OLE v SDL,
+  fokus potom), dvě diskety naráz do sestavy se dvěma volnými mechanikami.
+- Build pro vydání (`tools\build.cmd release`): Uložit dodané sestavy v konfigurátoru a v otázce při ukončení
+  (`work\machines\<jméno>.sapi`, titulek s „(moje)“, Poslední sestavy, příští start, `machines\` beze změny), totéž
+  podruhé (`-2`, „(moje 2)“), vlastní soubor v `machines\` (obyčejné Uložit), Uložit jako, Smazat… v Mých sestavách.
+- Dvě okna SAPIemu (stejné exe; debug a release nad jedním `work\`): varování, Ukončit nechá `crm.bin`, `rtc.bin`,
+  `work\dmr-1\sram.bin`, nastavení i `imgui.ini` prvního okna, Pokračovat; po zavření žádný `.lock`.
+- Stroj → Klávesnice → ANK-1 na MikroMonu: neuložená změna v konfigurátoru, Ctrl+F12 ji nechá, Vrátit změny, Uložit,
+  Ponechat pro příští spuštění.
+- Rozbitá sestava (kopie s neznámou kartou) za běhu APS-5: „Sestava běží dál, jak běžela.“, žádné VYPADEK NAPAJENI,
+  klient TCP sériové linky zůstane připojený. Česky: Načíst stav na soubor, který stavem není, obraz diskety špatné
+  velikosti, chybějící ROM.
+- Rychlost přepnutí a Ctrl+F12 velkých sestav (RKD-1, CP/M ZRMD s FDC-1, sestava V s IDE): každé přepnutí staví
+  sestavu dvakrát.
+- Hry a dema: klik do CGA-1V, psaní a joystick z klávesnice (oprava). Zobrazení → Obrazovky: skrýt CGA-1V a AND-1V,
+  klávesnice, Ctrl+F12, jiná sestava, Alt+Enter se skrytým displejem.
+- Debugger na ZPS-1 (8080), ZPS-1 s JPR-1X (8085, SIM a RIM) a sestavě V (Z80); Paměť nad ROM se semigrafikou.
+- Konfigurátor SAPI-1 V: 63h šedě, RAM-1V S3 na 62h žlutě; záložky (slot, pravé tlačítko, přetažení karty, prázdný
+  rám, mapa); Nová ▸.
+- Okno Nápověda: obě záložky, Rozbalit a Sbalit vše, odkazy (Issues v prohlížeči, `docs/aps5-ukazka.md`), Tab po
+  odkazech, změna jazyka, z rozbaleného zipu.
+- Nastavení s vaším `imgui.ini` (34 × 30, posouvá se), Záznam se špatnou cestou ffmpeg, Pokročilé po zapnutí MCP
+  a restartu.
+- `work\aps-5\crm.bin` a `rtc.bin` po nehodě výše.
+
+Známá omezení:
+
+- Build pro vydání, `release test` a WSL se nespouštěly (liší se jen `save_copies()` a výchozí složka Uložit jako).
+- Nové soubory je před commitem a zipem potřeba přidat do gitu: `src/frontend/markdown.h`, `markdown.cpp`,
+  `mdview.cpp`, `tests/test_markdown.cpp`, `tests/test_host.cpp`, `docs/slovnicek.md`, `docs/glossary.md`
+  (`package.py` nepřidané dokumenty okna Nápověda odmítne).
+- Třetí GUI spuštěné po ukončení prvního varování nedostane, i když druhé běží (druhé zámek nedrží). Pro varování to
+  stačí.
+- Zrušit v otázce při spuštění z Vybrat sestavu se snímkem neověřilo (klávesy snímku nedošly do pole hledání).
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`

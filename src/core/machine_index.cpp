@@ -87,31 +87,69 @@ bool machine_index_matches(const MachineEntry& e, const char* filter)
 
 // ---------------------------------------------------------------- loading
 
+// A machine file: its name, description and (a copy of My machines) the original; the preview and the guides by its id.
+static MachineEntry read_entry(const std::string& f)
+{
+    MachineEntry e;
+    e.file = f;
+    e.id = machine_id(f);
+    std::string text;
+    if (file_read_text(data_path(f), text)) {
+        json j = json::parse(text, nullptr, false, true /* comments */);
+        if (!j.is_discarded()) {
+            e.name = jstr(j, "name");
+            e.description = jstr(j, "description");
+            e.based_on = jstr(j, "based_on");
+        }
+    }
+    if (e.name.empty()) e.name = e.id;
+    std::string p = "machines/previews/" + e.id + ".png";
+    if (file_exists(data_path(p))) e.preview = p;
+    p = "machines/guides/" + e.id + ".md";
+    if (file_exists(data_path(p))) e.guide = p;
+    p = "machines/guides/" + e.id + ".en.md";
+    if (file_exists(data_path(p))) e.guide_en = p;
+    return e;
+}
+
+// The number of a copy whose name is that of its original with the mark of machine_copy_name (" (moje)" 1,
+// " (mine 2)" 2...), 0 = renamed by the user.
+static int copy_number(const std::string& name, const std::string& orig)
+{
+    if (name.size() <= orig.size() || name.compare(0, orig.size(), orig) != 0) return 0;
+    std::string mark = name.substr(orig.size());
+    for (int cz = 0; cz < 2; cz++)
+        for (int n = 1; n < 100; n++)
+            if (mark == machine_copy_name("", "", n, cz != 0)) return n;
+    return 0;
+}
+
 // index: the text of machines/_vyber.json, nullptr = there is none
 static void load(MachineIndex& out, const std::string* index, std::string& err)
 {
     out = MachineIndex();
     err.clear();
-    for (const std::string& f : list_machine_files()) {
-        MachineEntry e;
-        e.file = f;
-        e.id = machine_id(f);
-        std::string text;
-        if (file_read_text(data_path(f), text)) {
-            json j = json::parse(text, nullptr, false, true /* comments */);
-            if (!j.is_discarded()) {
-                e.name = jstr(j, "name");
-                e.description = jstr(j, "description");
-            }
+    for (const std::string& f : list_machine_files()) out.machines.push_back(read_entry(f));
+    // My machines: the copies saved in a release build, first (machine_copy_file)
+    size_t first_copy = out.machines.size();
+    for (const std::string& f : list_files(MACHINE_MINE_DIR, ".sapi"))
+        if (f.find("/_") == std::string::npos) out.machines.push_back(read_entry(f));
+    if (out.machines.size() > first_copy) {
+        MachineCategory mine;
+        mine.id = MACHINE_MINE;
+        mine.name = "Moje sestavy";
+        mine.name_en = "My machines";
+        mine.text = "Sestavy, které jste uložili: kopie dodaných sestav s vašimi změnami (složka work/machines). Dodané "
+                    "sestavy zůstávají, jak byly.";
+        mine.text_en = "Machines you saved: copies of the supplied machines with your changes (the folder work/machines). "
+                       "The supplied machines stay as they were.";
+        for (size_t k = first_copy; k < out.machines.size(); k++) {
+            out.machines[k].category = 0;
+            mine.machines.push_back((int)k);
         }
-        if (e.name.empty()) e.name = e.id;
-        std::string p = "machines/previews/" + e.id + ".png";
-        if (file_exists(data_path(p))) e.preview = p;
-        p = "machines/guides/" + e.id + ".md";
-        if (file_exists(data_path(p))) e.guide = p;
-        p = "machines/guides/" + e.id + ".en.md";
-        if (file_exists(data_path(p))) e.guide_en = p;
-        out.machines.push_back(e);
+        mine.titles.assign(mine.machines.size(), std::string());
+        mine.titles_en.assign(mine.machines.size(), std::string());
+        out.categories.push_back(mine);
     }
     json idx = json::object();
     if (index) {
@@ -119,6 +157,8 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
         if (idx.is_discarded() || !idx.is_object()) {
             err = "machines/_vyber.json: not valid JSON";
             idx = json::object();
+        } else {
+            out.listed = true;
         }
     }
     out.intro = jstr(idx, "intro");
@@ -128,6 +168,7 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
         std::string rel = e.file.rfind("machines/", 0) == 0 ? e.file.substr(9) : e.file;
         if (!texts.is_object() || !texts.contains(rel)) continue;
         const json& t = texts[rel];
+        e.listed = true;
         e.title = jstr(t, "title");
         e.title_en = jstr(t, "title_en");
         e.summary = jstr(t, "summary");
@@ -135,6 +176,7 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
         e.name_en = jstr(t, "name_en");
     }
     std::vector<bool> placed(out.machines.size(), false);
+    for (size_t k = first_copy; k < out.machines.size(); k++) placed[k] = true;   // in My machines
     std::vector<std::string> titles(out.machines.size());   // the titles of categories, for the search
     if (idx.contains("categories") && idx["categories"].is_array()) {
         for (const json& c : idx["categories"]) {
@@ -158,6 +200,7 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
                         continue;
                     }
                     cat.machines.push_back((int)k);
+                    out.machines[k].listed = true;
                     if (!placed[k]) out.machines[k].category = (int)out.categories.size();   // the first one counts
                     placed[k] = true;
                 }
@@ -198,6 +241,24 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
     rest.titles.assign(rest.machines.size(), std::string());
     rest.titles_en.assign(rest.machines.size(), std::string());
     if (!rest.machines.empty()) out.categories.push_back(rest);
+    // a copy shows the preview and the guides of its original, and the search finds it by the original's titles too;
+    // not renamed, it has the short title of the original with its mark in each language ("ZPS-1 s MIKROBASICem 2.4
+    // (moje)", "... (mine)"), not the long name of the file
+    for (size_t k = first_copy; k < out.machines.size(); k++) {
+        MachineEntry& c = out.machines[k];
+        const MachineEntry* o = c.based_on.empty() ? nullptr : machine_index_find(out, c.based_on);
+        if (!o || o->file == c.file) continue;
+        c.preview = o->preview;
+        c.guide = o->guide;
+        c.guide_en = o->guide_en;
+        titles[k] += "\n" + o->name + "\n" + o->name_en + "\n" + o->title + "\n" + o->title_en;
+        int n = copy_number(c.name, o->name);
+        c.copy = n;
+        if (n && !o->title.empty()) {
+            c.title = o->title + machine_copy_name("", "", n, true);
+            c.title_en = (o->title_en.empty() ? o->title : o->title_en) + machine_copy_name("", "", n, false);
+        }
+    }
     for (size_t k = 0; k < out.machines.size(); k++)
         out.machines[k].search = machine_index_fold(search_text(out.machines[k]) + titles[k]);
 }
@@ -219,4 +280,45 @@ const MachineEntry* machine_index_find(const MachineIndex& idx, const std::strin
     for (const MachineEntry& e : idx.machines)
         if (e.file == file) return &e;
     return nullptr;
+}
+
+// ---------------------------------------------------------------- My machines
+
+bool machine_supplied(const MachineIndex& idx, const std::string& file)
+{
+    if (file.empty()) return false;
+    std::string rel = data_relative(data_path(file));   // "work/..." for a file of the work root, also outside the data
+    for (char& c : rel) if (c == '\\') c = '/';
+    if (rel.rfind("machines/", 0) != 0) return false;
+    if (!idx.listed) return true;   // no index to tell: none of them is overwritten
+    const MachineEntry* e = machine_index_find(idx, rel);
+    return e && e->listed;
+}
+
+std::string machine_copy_file(const std::string& file, int* n_out)
+{
+    std::string base = file;
+    size_t slash = base.find_last_of("/\\");
+    if (slash != std::string::npos) base = base.substr(slash + 1);
+    std::string ext = ".sapi";
+    size_t dot = base.find_last_of('.');
+    if (dot != std::string::npos && dot > 0) {
+        ext = base.substr(dot);
+        base.resize(dot);
+    }
+    if (ext != ".sapi") ext = ".sapi";   // an older .jsonc gets the suffix of today's machine files
+    for (int n = 1;; n++) {
+        std::string f = std::string(MACHINE_MINE_DIR) + "/" + base + (n > 1 ? "-" + std::to_string(n) : std::string()) + ext;
+        if (file_exists(data_path(f))) continue;
+        if (n_out) *n_out = n;
+        return f;
+    }
+}
+
+std::string machine_copy_name(const std::string& name, const std::string& orig_name, int n, bool czech)
+{
+    if (name != orig_name) return name;   // renamed by the user: theirs as it is
+    std::string mark = czech ? "moje" : "mine";
+    if (n > 1) mark += " " + std::to_string(n);
+    return name + " (" + mark + ")";
 }

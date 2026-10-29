@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -49,7 +50,6 @@ static const Translation k_table[] = {
     { "RAM disk address", "adresa RAM disku" },
     { "RAM (write blocked)", "RAM (zápis blokován)" },
     { "(not emulated)", "(neemulovaná)" },
-    { "Card settings", "Nastavení karty" },
     { "Port and memory map", "Mapa portů a paměti" },
     { "Addresses", "Adresy" },
     { "Card", "Karta" },
@@ -132,7 +132,6 @@ static const Translation k_table[] = {
     { "not lit", "nesvítí" },
     { "porucha (fault)", "porucha" },
     { "napájení (power)", "napájení" },
-    { "No APS-5. Open machines/aps5.sapi (the plant of the machine and the HRK-1 panel).", "Žádné APS-5. Otevřete machines/aps5.sapi (technologie sestavy a panel HRK-1)." },
     { "No power,", "Bez napájení," },
     { "Mains failure", "Výpadek sítě" },
     { "The supply warns the program (/PFAIL), the unit is without power for the given time, then starts again; the batteries keep CRM-1 and RTC-1.", "Zdroj ohlásí výpadek programu (/PFAIL), jednotka je zadanou dobu bez napájení a pak znovu naběhne; baterie drží CRM-1 a RTC-1." },
@@ -183,8 +182,6 @@ static const Translation k_table[] = {
     { "The text of the clipboard is typed on the keyboard of SAPI (lines end with Enter), e.g. a BASIC program from a file.", "Text ze schránky se napíše na klávesnici SAPI (řádky končí Enterem), třeba program v BASICu ze souboru." },
     { "This machine has no keyboard to type on.", "Tato sestava nemá klávesnici, na kterou by šlo psát." },
     { "Minigraf", "Minigraf" },
-    { "No plotter. Configurator: DPP-1 (Minigraf 0507, XY 4130) or JPR-1 (XY 4130 on X3).",
-      "Žádný zapisovač. Konfigurátor: DPP-1 (Minigraf 0507, XY 4130) nebo JPR-1 (XY 4130 na X3)." },
     { "Plotter XY 4130", "Zapisovač XY 4130" },
     { "About SAPIemu", "O programu SAPIemu" },
     { "Author", "Autor" },
@@ -198,10 +195,7 @@ static const Translation k_table[] = {
     { "Keyboard shortcuts", "Klávesové zkratky" },
     { "Libor Lasota (pmd85.cz): the boards V, MikroMon, MIKROBIOS, his programs, demos and games.", "Libor Lasota (pmd85.cz): desky V, MikroMon, MIKROBIOS, jeho programy, dema a hry." },
     { "Libraries", "Knihovny" },
-    { "MCP server (development with Claude)", "Server MCP (vývoj s Claude)" },
     { "MCP server on", "Server MCP zapnutý" },
-    { "Machine guides", "Průvodci sestavami" },
-    { "Mouse", "Myš" },
     { "Off. Only programs on this PC (127.0.0.1) can connect, it is for the development of software for SAPI with Claude (docs/mcp.md).", "Vypnutý. Připojit se mohou jen programy na tomto PC (127.0.0.1), slouží k vývoji softwaru pro SAPI s Claude (docs/mcp.md)." },
     { "Petr Všijanský (EC1045, sapi.cz): dumps, documentation and disks of SAPI-1 and answers to many questions.", "Petr Všijanský (EC1045, sapi.cz): dumpy, dokumentace a diskety SAPI-1 a odpovědi na spoustu otázek." },
     { "Port", "Port" },
@@ -209,6 +203,40 @@ static const Translation k_table[] = {
     { "Recent machines", "Poslední sestavy" },
     { "Settings", "Nastavení" },
     { "Settings...", "Nastavení…" },
+    { "Media...", "Média…" },
+    { "Displays", "Obrazovky" },
+    { "A hidden display goes on running.", "Skrytá obrazovka běží dál." },
+    { "Open the folder of screenshots and videos", "Otevřít složku snímků a videí" },
+    { "Screenshots", "Snímky obrazovky" },
+    { "Videos", "Videa" },
+    { "Not saved: off again at the next start.", "Neukládá se: při dalším spuštění je zase vypnutá." },
+    { "This machine has no APS-5 measuring unit.", "Tato sestava nemá měřicí jednotku APS-5." },
+    { "This machine has no IMS-2 measuring bench.", "Tato sestava nemá měřicí pracoviště IMS-2." },
+    { "This machine has no plotter.", "Tato sestava nemá zapisovač." },
+    { "This machine has no diagnostic board.", "Tato sestava nemá desku diagnostiky." },
+    { "This machine has no printer.", "Tato sestava nemá tiskárnu." },
+    { "Machines with this device:", "Sestavy s tímto zařízením:" },
+    { "The machine is switched off (Machine -> Switch on).", "Sestava je vypnutá (Stroj → Zapnout)." },
+    { "In the configurator: DPP-1 (Minigraf 0507, XY 4130) or JPR-1 (XY 4130 on X3).", "V konfigurátoru: DPP-1 (Minigraf 0507, XY 4130) nebo JPR-1 (XY 4130 na X3)." },
+    { "In the configurator: K3 of JPR-1S or JPR-1X = diagnostic board.", "V konfigurátoru: K3 u JPR-1S nebo JPR-1X = deska diagnostiky." },
+    { "In the configurator: the printer on X3 of the CPU card, on DPP-1 or on PKT-1.", "V konfigurátoru: tiskárna na X3 procesorové karty, na DPP-1 nebo na PKT-1." },
+    { "In the configurator: a card with a serial port (DSM-1, DSP-1, RSW-1...).", "V konfigurátoru: karta se sériovým portem (DSM-1, DSP-1, RSW-1…)." },
+    { "General", "Obecné" },
+    { "Appearance", "Vzhled" },
+    { "Mode", "Režim" },
+    { "Picture", "Obraz" },
+    { "Sound on", "Zvuk zapnutý" },
+    { "Controls", "Ovládání" },
+    { "PC mouse as the SAPI mouse", "Myš PC jako myš SAPI" },
+    { "A click into a screen of SAPI captures the PC mouse, it then moves the mouse of SAPI; the middle button or Ctrl+F10 releases it. Not saved: off again at the next start.", "Kliknutím do obrazovky SAPI se myš PC zachytí a pohybuje myší SAPI, pustí ji prostřední tlačítko nebo Ctrl+F10. Neukládá se: při dalším spuštění je zase vypnutá." },
+    { "(until exit)", "(jen do ukončení)" },
+    { "Recording", "Záznam" },
+    { "Videos use ffmpeg from PATH.", "Video použije ffmpeg z PATH." },
+    { "Videos use this ffmpeg.", "Video použije tento ffmpeg." },
+    { "No ffmpeg at this path: videos cannot be recorded.", "Na této cestě ffmpeg není: video nejde nahrávat." },
+    { "No ffmpeg: videos cannot be recorded (winget install ffmpeg, or its path above).", "Chybí ffmpeg: video nejde nahrávat (winget install ffmpeg, nebo jeho cesta výše)." },
+    { "Open folder", "Otevřít složku" },
+    { "Advanced (for developers)", "Pokročilé (pro vývojáře)" },
     { "Look", "Vzhled" },
     { "As the system", "Podle systému" },
     { "Light", "Světlý" },
@@ -217,7 +245,6 @@ static const Translation k_table[] = {
     { "Style editor (development)", "Editor stylu (vývoj)" },
     { "The look of this run comes from --ui-theme; a choice here replaces it and is saved.",
       "Vzhled tohoto spuštění určuje --ui-theme; volba tady ho nahradí a uloží se." },
-    { "Windows:", "Okna:" },
     { "Floating", "Plovoucí" },
     { "Docked", "Zadokovaná" },
     { "Floating: every window where you put it. Docked: the main display in the middle, the other windows in a column at "
@@ -229,12 +256,19 @@ static const Translation k_table[] = {
     { "The window layout of this run comes from --ui-layout; a choice here replaces it and is saved.",
       "Rozložení oken tohoto spuštění určuje --ui-layout; volba tady ho nahradí a uloží se." },
     { "Docks the windows again: the main display in the middle, the other windows in the column at the right edge (View "
-      "-> Settings -> Windows).",
+      "-> Settings -> Appearance -> Windows).",
       "Znovu zadokuje okna: hlavní displej uprostřed, ostatní okna ve sloupci u pravého kraje (Zobrazení → Nastavení → "
-      "Okna)." },
+      "Vzhled → Okna)." },
     { "Show the hidden guides again", "Znovu ukazovat skryté průvodce" },
     { "Thanks", "Poděkování" },
     { "The guides are in Czech, they open in the program for .md files.", "Návody jsou česky, otevřou se v programu pro soubory .md." },
+    { "Glossary", "Slovníček" },
+    { "The words of SAPI and of SAPIemu: machine, configurator, card, slot, jumper...",
+      "Slova SAPI a SAPIemu: sestava, konfigurátor, karta, slot, propojka…" },
+    { "Expand all", "Rozbalit vše" },
+    { "Collapse all", "Sbalit vše" },
+    { "Opens the file in the program the system has for .md files.", "Otevře soubor v programu, který má systém pro soubory .md." },
+    { "The file %s is missing.", "Soubor %s chybí." },
     { "Their licences are in the file THIRD-PARTY-NOTICES.txt.", "Jejich licence jsou v souboru THIRD-PARTY-NOTICES.txt." },
     { "Cannot start the graphics (SDL)", "Nelze spustit grafiku (SDL)" },
     { "Cannot create the window", "Nelze vytvořit okno" },
@@ -243,7 +277,6 @@ static const Translation k_table[] = {
       "Data emulátoru nebyla nalezena (složky roms a machines vedle sapiemu.exe). Rozbalte celý archiv a spusťte "
       "sapiemu.exe z něj." },
     { "User guides", "Návody k obsluze" },
-    { "Video", "Video" },
     { "Volume, mouse sensitivity...", "Hlasitost, citlivost myši…" },
     { "ffmpeg.exe (empty = from PATH)", "ffmpeg.exe (prázdné = z PATH)" },
     { "Plotter Minigraf 0507", "Zapisovač Minigraf 0507" },
@@ -294,7 +327,6 @@ static const Translation k_table[] = {
     { "Guide", "Průvodce" },
     { "Open in the configurator", "Otevřít v konfigurátoru" },
     { "Technical description", "Technický popis" },
-    { "Recently started", "Naposledy spuštěné" },
     { "Search", "Hledat" },
     { "No preview", "Bez náhledu" },
     { "Choose a machine on the left.", "Vyberte sestavu vlevo." },
@@ -402,8 +434,6 @@ static const Translation k_table[] = {
     { "rewind backward", "převíjení vzad" },
     { "program 1 is assigned to a furnace and is not the demo program", "program 1 je přiřazený peci a není to program dema" },
     { "the panel is gone", "panel zmizel" },
-    { "No diagnostic board. Configurator: K3 of JPR-1S or JPR-1X = diagnostic board.",
-      "Bez desky diagnostiky. Konfigurátor: K3 u JPR-1S nebo JPR-1X = deska diagnostiky." },
     { "S2 \"-\": P2-IN7 (JPR-1X: interrupt request R7)", "S2 „-“: P2-IN7 (JPR-1X: požadavek přerušení R7)" },
     { "S1 \"+\": P2-IN0 (JPR-1X: interrupt request R0 = /INT0)",
       "S1 „+“: P2-IN0 (JPR-1X: požadavek přerušení R0 = /INT0)" },
@@ -656,8 +686,6 @@ static const Translation k_table[] = {
     { "Reset with TEST held: the whole character set (then READY).", "Reset s drženým TEST: celá znaková sada (pak READY)." },
     { "Copy text", "Kopírovat text" },
     { "- - - - - new page - - - - -", "- - - - - nová stránka - - - - -" },
-    { "No printer. Configurator: the printer on X3 of the CPU card or on DPP-1.",
-      "Žádná tiskárna. Konfigurátor: tiskárna na X3 procesorové karty nebo na DPP-1." },
     { "(no cassette)", "(bez kazety)" },
     { "Insert...", "Vložit…" },
     { "New cassette...", "Nová kazeta…" },
@@ -700,7 +728,7 @@ static const Translation k_table[] = {
     { ", read only", ", jen pro čtení" },
     { "IDE disk: none", "IDE disk: žádný" },
     { "This machine has no removable media.", "Sestava nemá výměnná média." },
-    { "This machine has no serial port.", "Sestava nemá sériový port." },
+    { "This machine has no serial port.", "Tato sestava nemá sériový port." },
     { "Run (F5)", "Běh (F5)" },
     { "Pause (F5)", "Pauza (F5)" },
     { "Step (F11)", "Krok (F11)" },
@@ -762,8 +790,8 @@ static const Translation k_table[] = {
     { "MP4 (H.264 + AAC) into work/videa through ffmpeg: 50 frames per second of emulated time, enlarged 3x as shown, the sound of the machine.",
       "MP4 (H.264 + AAC) do work/videa přes ffmpeg: 50 snímků za sekundu emulovaného času, zvětšené 3× jak je vidět, zvuk stroje." },
     { "The previous video is still being finished.", "Předchozí video se ještě dokončuje." },
-    { "Video needs ffmpeg: install it (winget install ffmpeg) or put its path into the settings file (\"video\": { \"ffmpeg\": \"C:/.../ffmpeg.exe\" }).",
-      "Video potřebuje ffmpeg: nainstalujte ho (winget install ffmpeg) nebo zapište cestu do souboru nastavení (\"video\": { \"ffmpeg\": \"C:/.../ffmpeg.exe\" })." },
+    { "Video needs ffmpeg: install it (winget install ffmpeg) or enter its path in View -> Settings -> Recording.",
+      "Video potřebuje ffmpeg: nainstalujte ho (winget install ffmpeg) nebo zadejte jeho cestu v Zobrazení → Nastavení → Záznam." },
     { "Cannot start ffmpeg", "ffmpeg nejde spustit" },
     { "The video was not recorded (ffmpeg failed)", "Video se nenahrálo (chyba ffmpeg)" },
     { "Finishing the video", "Dokončuji video" },
@@ -773,7 +801,6 @@ static const Translation k_table[] = {
       "Výběr se zkopíruje do schránky hned po puštění tlačítka myši (jako v PuTTY nebo TeraTermu)." },
     { "%s: %zu B to send", "%s: %zu B k odeslání" },
     { "IMS-2 measuring bench", "Měřicí pracoviště IMS-2" },
-    { "No measuring bench. Machine description: \"plant\": { \"type\": \"IMS-2\" } with DPS-1.", "Žádné měřicí pracoviště. Popis sestavy: \"plant\": { \"type\": \"IMS-2\" } s DPS-1." },
     { "  (current limit)", "  (omezení proudu)" },
     { "Autorange (R4); local only", "Automatická volba rozsahu (R4); jen místně" },
     { "Current limit", "Omezení proudu" },
@@ -1002,6 +1029,167 @@ static const Translation k_table[] = {
     { "unused", "nepoužito" },
     { "video RAM (write only)", "videopaměť (jen zápis)" },
     { "write data (D1B PA)", "zapisovaná data (D1B PA)" },
+    // a second GUI over the same settings or work folder (app.cpp draw_instance_warning)
+    { "Another SAPIemu is running", "Už běží jiné SAPIemu" },
+    { "Another window of SAPIemu already runs with the same settings or the same work folder:",
+      "Už běží jiné okno SAPIemu se stejným nastavením nebo se stejnou pracovní složkou:" },
+    { "Both write there: one window may overwrite the settings, the window layout, the RAM disks, disks and battery "
+      "memories of the other. Use one window, or quit this one.",
+      "Obě okna tam zapisují: jedno může druhému přepsat nastavení, rozložení oken, RAM disky, diskety a zálohované "
+      "paměti. Používejte jedno okno, nebo toto ukončete." },
+    { "Continue", "Pokračovat" },
+    { "Quit", "Ukončit" },
+    // stage 8, the tools: the debugger by the CPU, the tabs of the configurator, the port map (debugger.cpp, rack.cpp)
+    { "Flags", "Příznaky" },
+    { "Undocumented: bit 5 of the result.", "Nedokumentovaný: bit 5 výsledku." },
+    { "Undocumented: bit 3 of the result.", "Nedokumentovaný: bit 3 výsledku." },
+    { "Undocumented 8085 flag K (X5, UI): INX went over FFFFh or DCX under 0, after arithmetic V xor S; JK and JNK "
+      "test it.",
+      "Nedokumentovaný příznak K 8085 (X5, UI): INX přešlo přes FFFFh nebo DCX pod 0, po aritmetice V xor S; testují "
+      "ho JK a JNK." },
+    { "Undocumented 8085 flag V: overflow of a signed result (also DSUB); RSTV calls 40h when it is set.",
+      "Nedokumentovaný příznak V 8085: přetečení výsledku se znaménkem (i DSUB); RSTV při něm volá 40h." },
+    { "IFF1: maskable interrupts enabled (EI, DI); IFF2 keeps it during an NMI (LD A,I shows it in P/V).",
+      "IFF1: maskovatelné přerušení povolené (EI, DI); IFF2 ho drží během NMI (LD A,I ho ukáže v P/V)." },
+    { "Interrupts enabled (EI, DI).", "Přerušení povolené (EI, DI)." },
+    { "What RIM reads now: the masks of SIM (M, 1 = masked) and the interrupts waiting (I) of RST 7.5, 6.5 and 5.5.",
+      "Co teď přečte RIM: masky ze SIM (M, 1 = maskované) a čekající přerušení (I) RST 7.5, 6.5 a 5.5." },
+    { "Click a slot in the frame to insert, change or set up its card (right click = card list).",
+      "Klikněte na slot v rámu, kartu do něj vložíte, vyměníte nebo nastavíte (pravé tlačítko = seznam karet)." },
+    { "shared write by design", "sdílený zápis (záměr)" },
+    { "RAM disk address A16-A21", "adresa RAM disku A16-A21" },
+    { "RAM disk address A16-A21, MAP1/MAP2", "adresa RAM disku A16-A21, MAP1/MAP2" },
+    // stage 8, My machines (rack.cpp, browser.cpp) and files dropped on the window (app.cpp, media.cpp)
+    { "Saved as your copy in My machines:", "Uloženo jako vaše kopie (Moje sestavy):" },
+    { "Writes the changes into a copy in My machines:", "Zapíše změny do kopie (Moje sestavy):" },
+    { "The supplied machine stays as it is:", "Dodaná sestava zůstane, jak je:" },
+    { "A debug build overwrites the supplied machine; a release build saves a copy in My machines.",
+      "Ladicí build (debug) dodanou sestavu přepíše, build pro vydání (release) uloží kopii do kategorie Moje sestavy." },
+    { "Cannot delete", "Nelze smazat" },
+    { "Modified from", "Vychází z" },
+    { "The supplied machine as it came with SAPIemu: its category has it unchanged.",
+      "Dodaná sestava, jak přišla se SAPIemu: ve své kategorii je beze změn." },
+    { "Delete...", "Smazat…" },
+    { "It is running: start another machine first.", "Běží: nejdřív spusťte jinou sestavu." },
+    { "Deletes this copy of My machines. The supplied machine it was modified from stays.",
+      "Smaže tuto kopii z kategorie Moje sestavy. Dodaná sestava, ze které vychází, zůstane." },
+    { "Delete the machine", "Smazat sestavu" },
+    { "Delete this machine of My machines?", "Smazat tuto sestavu z kategorie Moje sestavy?" },
+    { "Its file is deleted, with the changes saved in it. The supplied machine it was modified from stays as it is.",
+      "Smaže se její soubor i se změnami, které jsou v něm uložené. Dodaná sestava, ze které vychází, zůstane, jak je." },
+    { "Delete", "Smazat" },
+    { "Deleted", "Smazáno" },
+    { "Close the open dialog first, then drop the file again",
+      "Nejdřív zavřete otevřené okno, pak soubor přetáhněte znovu" },
+    { "Not a file SAPIemu takes (a machine, a state, a program, a disk, a cassette)",
+      "Takový soubor SAPIemu nebere (sestava, stav, program, disketa, kazeta)" },
+    { "The machine is switched off: switch it on, then drop the file again",
+      "Stroj je vypnutý: zapněte ho a soubor přetáhněte znovu" },
+    { "This machine has no drive for this medium", "Tato sestava nemá mechaniku pro toto médium" },
+    { "Every drive for this medium is in use: eject a medium in the Media window, then drop the file again.",
+      "Všechny mechaniky pro toto médium jsou obsazené: v okně Média jedno médium vyjměte a soubor přetáhněte znovu." },
+    { "Inserted into", "Vloženo do" },
+};
+
+// Texts of the core as the GUI shows them (tr_core): the errors a user meets when a machine, a medium, a program or a
+// state does not load. "%s" = a part of the message (a file name, a number, another text of the core). Every fixed
+// piece is a literal (or a part of one) somewhere in src/, test_i18n_keys checks it.
+static const Translation k_core[] = {
+    // machine files and descriptions (EmuHost, Machine::load_json)
+    { "cannot read machine file %s", "nelze přečíst soubor sestavy %s" },
+    { "syntax error in machine file %s", "chyba syntaxe v souboru sestavy %s" },
+    { "no machine to switch on", "není co zapnout (žádná sestava)" },
+    { "the machine is switched off", "sestava je vypnutá" },
+    { "unknown bus type '%s'", "neznámý typ sběrnice „%s“" },
+    { "bus slots must be 1..32", "sběrnice má 1 až 32 slotů" },
+    { "machine has no 'cards' array", "popis sestavy nemá pole 'cards'" },
+    { "unknown card type '%s'", "neznámý typ karty „%s“" },
+    { "this CPU card is not emulated yet", "tato procesorová karta zatím není emulovaná" },
+    { "slot must be 1..%s", "slot musí být 1 až %s" },
+    { "slot %s is already occupied", "slot %s je už obsazený" },
+    { "more than one CPU card", "víc než jedna procesorová karta" },
+    { "CPU card must be in slot 1 (X1)", "procesorová karta musí být ve slotu 1 (X1)" },
+    { "slot 1 (X1) is reserved for the CPU card", "slot 1 (X1) patří procesorové kartě" },
+    { "machine has no CPU card", "sestava nemá procesorovou kartu" },
+    { "serial.com.port missing", "chybí serial.com.port (sériový port PC)" },
+    { "serial.tcp.protocol must be telnet, raw or auto", "serial.tcp.protocol musí být telnet, raw nebo auto" },
+    // files, ROMs and media (the first pattern that fits is taken: the special ones before "cannot create %s"...)
+    { "cannot create working copy %s: %s", "nelze vytvořit pracovní kopii %s: %s" },
+    { "cannot open IDE image %s", "nelze otevřít obraz IDE %s" },
+    { "cannot read %s", "nelze přečíst %s" },
+    { "cannot write %s", "nelze zapsat %s" },
+    { "cannot create %s", "nelze vytvořit %s" },
+    { "media file not found: %s", "soubor média nenalezen: %s" },
+    { "file is larger than the ROM (%s bytes)", "soubor je větší než ROM (%s bajtů)" },
+    { "%s bytes outside the ROM", "%s bajtů mimo ROM" },
+    { "malformed record at line %s", "chybný záznam na řádku %s" },
+    { "bad data at line %s", "chybná data na řádku %s" },
+    { "checksum error at line %s", "chyba kontrolního součtu na řádku %s" },
+    { "file does not fit into memory", "soubor se nevejde do paměti" },
+    { "IDE image is empty: %s", "obraz IDE je prázdný: %s" },
+    { "%s bytes; a disk image is ImageDisk (.imd) or has 256256 (8\" SS SD), 1474560 (3.5\" HD), 1228800 (5.25\" HD), "
+      "737280 or 368640 (DD), 327680 or 163840 (SAPI-1.5 DD)",
+      "%s bajtů; obraz diskety je ImageDisk (.imd) nebo má 256256 (8\" SS SD), 1474560 (3,5\" HD), 1228800 (5,25\" HD), "
+      "737280 nebo 368640 (DD), 327680 nebo 163840 (SAPI-1.5 DD) bajtů" },
+    { "RPD-1 reads 8\" SS SD disks only (this one is %s)", "RPD-1 čte jen 8\" diskety SS SD (tato je %s)" },
+    { "not an RKD-1 cartridge image (SAPIRKD1, 12 or 24 sectors, 204 tracks, 2 surfaces)",
+      "není obraz kazety RKD-1 (SAPIRKD1, 12 nebo 24 sektorů, 204 stop, 2 povrchy)" },
+    { "wrong size of an RKD-1 image", "obraz RKD-1 má špatnou velikost" },
+    { "a record goes past the end of the file", "záznam přesahuje konec souboru" },
+    { "not a KZD-1 cassette (.kzd)", "není kazeta KZD-1 (.kzd)" },
+    { "damaged cassette file", "poškozený soubor kazety" },
+    { "not a WAV file", "není soubor WAV" },
+    { "WAV without audio data", "WAV bez zvukových dat" },
+    { "WAV format not supported (PCM 8/16/24/32 bit or float)",
+      "nepodporovaný formát WAV (umí PCM 8/16/24/32 bitů a float)" },
+    { "cannot decode the MP3 file", "soubor MP3 nelze dekódovat" },
+    { "no cassette in the recorder", "v magnetofonu není kazeta" },
+    { "a new tape is a WAV file", "nová páska je soubor WAV" },
+    { "write protected", "chráněno proti zápisu" },
+    { "the cartridge is write protected", "kazeta je chráněná proti zápisu" },
+    { "no cartridge in the unit", "v jednotce není kazeta" },
+    { "no platter", "chybí disk" },
+    { "format failed", "formátování selhalo" },
+    { "the CP/M of Tesla Elstroj needs a CM 5403 with a 24 x 256 B cartridge",
+      "CP/M Tesla Elstroj potřebuje CM 5403 s kazetou 24 × 256 B" },
+    { "not a 24 x 256 B cartridge", "není kazeta 24 × 256 B" },
+    // a program made into a tape (Media)
+    { "MIKOS: no room for the jump to the start address below the program (4400h at the lowest)",
+      "MIKOS: pod programem není místo pro skok na startovací adresu (nejníž 4400h)" },
+    { "MIKROBASIC: the program does not fit into memory", "MIKROBASIC: program se nevejde do paměti" },
+    { "the program does not fit into 64 KB", "program se nevejde do 64 KB" },
+    { "the program is too long for one MIKOS/K file", "program je na jeden soubor MIKOS/K moc dlouhý" },
+    { "the file does not fit into 64 KB", "soubor se nevejde do 64 KB" },
+    { "the file holds no data", "soubor neobsahuje žádná data" },
+    { "a binary file needs its load address", "binární soubor potřebuje adresu, kam se nahraje" },
+    { "the file is empty", "soubor je prázdný" },
+    { "the file does not fit into memory at that address", "soubor se od té adresy do paměti nevejde" },
+    // the keyboard plugged in while running
+    { "this CPU card has no keyboard connector", "tato procesorová karta nemá konektor klávesnice" },
+    { "this CPU card does not take this keyboard", "tato procesorová karta tuto klávesnici nebere" },
+    { "unknown keyboard '%s'", "neznámá klávesnice „%s“" },
+    { "keyboard %s", "klávesnice %s" },
+    // serial connections of the terminal
+    { "cannot listen on %s (port in use?)", "nelze naslouchat na %s (port je obsazený?)" },
+    { "cannot open %s", "nelze otevřít %s" },
+    { "cannot configure %s", "nelze nastavit %s" },
+    // states
+    { "state", "stav" },
+    { "not a SAPIemu state file", "není to soubor stavu SAPIemu" },
+    { "the machine description in the state is damaged", "popis sestavy ve stavu je poškozený" },
+    { "the state belongs to another machine description", "stav patří k jinému popisu sestavy" },
+    { "data after the end of the state", "data za koncem stavu" },
+    { "the state ends too early", "stav předčasně končí" },
+    { "block '%s' where '%s' was expected", "blok „%s“ tam, kde se čekal „%s“" },
+    { "a block of the state has another length (another version of the emulator?)",
+      "blok stavu má jinou délku (jiná verze emulátoru?)" },
+    { "memory of another size in the state (%s B, the card has %s B)", "paměť jiné velikosti ve stavu (%s B, karta má %s B)" },
+    { "the state was saved by a newer SAPIemu (%s, state format %s); this SAPIemu %s reads state formats %s to %s",
+      "stav uložila novější verze SAPIemu (%s, formát stavu %s); tato verze SAPIemu %s čte formáty stavu %s až %s" },
+    { "the state was saved by an old SAPIemu (state format %s); this SAPIemu %s reads state formats %s to %s",
+      "stav uložila stará verze SAPIemu (formát stavu %s); tato verze SAPIemu %s čte formáty stavu %s až %s" },
+    // the APS-5 demo (the panel's own texts like CHYBA PRISTUPU stay as the firmware writes them)
+    { "no \"%s\" on the screen", "na obrazovce není „%s“" },
 };
 
 static UiLanguage g_lang = LANG_CS;
@@ -1075,4 +1263,63 @@ const char* tr_id(const char* key)
     auto it = c.find(key);
     if (it == c.end()) it = c.emplace(key, std::string(tr(key)) + "###" + key).first;
     return it->second.c_str();
+}
+
+// `s` against the pattern `p` of k_core: "%s" takes one character or more (the shortest that fits first), its text
+// goes into `caps`.
+static bool core_match(const char* p, const char* s, std::vector<std::string>& caps)
+{
+    while (*p && !(p[0] == '%' && p[1] == 's')) {
+        if (*p != *s) return false;
+        p++;
+        s++;
+    }
+    if (!*p) return !*s;
+    if (!*s) return false;
+    size_t n = caps.size();
+    for (const char* e = s + 1;; e++) {
+        caps.push_back(std::string(s, (size_t)(e - s)));
+        if (core_match(p + 2, e, caps)) return true;
+        caps.resize(n);
+        if (!*e) return false;
+    }
+}
+
+std::string tr_core_lang(const std::string& text, UiLanguage lang)
+{
+    if (lang == LANG_EN || text.empty()) return text;
+    std::vector<std::string> caps;
+    for (const Translation& t : k_core) {
+        caps.clear();
+        if (!core_match(t.key, text.c_str(), caps)) continue;
+        std::string out;
+        size_t k = 0;
+        for (const char* p = t.cs; *p; p++) {
+            if (p[0] == '%' && p[1] == 's' && k < caps.size()) {
+                out += tr_core_lang(caps[k++], lang);
+                p++;
+            } else {
+                out += *p;
+            }
+        }
+        return out;
+    }
+    const char* ui = tr_lang(text.c_str(), lang);   // a text the UI table has (the APS-5 demo...)
+    if (ui != text.c_str()) return ui;
+    size_t colon = text.find(": ");   // "<card or file>: <text>"
+    if (colon != std::string::npos && colon > 0)
+        return tr_core_lang(text.substr(0, colon), lang) + ": " + tr_core_lang(text.substr(colon + 2), lang);
+    return text;
+}
+
+std::string tr_core(const std::string& text)
+{
+    return tr_core_lang(text, g_lang);
+}
+
+const char* i18n_core_at(int i, const char** cs)
+{
+    if (i < 0 || i >= (int)(sizeof(k_core) / sizeof(k_core[0]))) return nullptr;
+    if (cs) *cs = k_core[i].cs;
+    return k_core[i].key;
 }

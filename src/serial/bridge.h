@@ -41,3 +41,6 @@ SerialBridge* com_bridge_start(SerialChannel* ch, const std::string& port, int b
 //     "com": { "port": "COM5", "baud": 9600 } }
 bool serial_bridges_from_config(SerialChannel* ch, const nlohmann::json& cfg, int default_baud,
                                 std::vector<SerialBridge*>& out, std::string& err);
+// The errors of that configuration without opening anything (a port in use or a missing COM port only warn when
+// the bridges start: the machine runs without them).
+bool serial_bridges_check(const nlohmann::json& cfg, std::string& err);

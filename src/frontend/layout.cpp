@@ -50,17 +50,18 @@ const WinDef k_wins[LW_COUNT] = {
     { "###IMS-2 measuring bench", ROLE_INSTRUMENT, 40, 56, 30, 24, 0, 0 },
     { "###Diagnostic board (K3)", ROLE_INSTRUMENT, 17, 16, 17, 16, 0, 1 },
     { "###Debugger", ROLE_TOOL, 35, 45, 26, 20, 0, 0 },
-    { "###Memory", ROLE_TOOL, 40, 30, 30, 12, 0, 1 },
+    { "###Memory", ROLE_TOOL, 46, 30, 30, 12, 0, 1 },   // a whole row of 16 bytes with their text (mono font)
     { "###I/O log", ROLE_TOOL, 26, 25, 20, 12, 0, 2 },
     { "###Serial terminal", ROLE_TOOL, 44, 29, 30, 14, 0, 3 },
     { "###Printer", ROLE_TOOL, 45, 30, 30, 14, 0, 4 },
     { "###Log", ROLE_TOOL, 38, 16, 26, 8, 0, 5 },
     { "###rack", ROLE_TOOL, 62, 0, 44, 26, 0, 0 },
     { "###Choose a machine", ROLE_DIALOG, 58, 38, 0, 0, 0, 0 },
-    { "###Settings", ROLE_DIALOG, 34, 30, 0, 0, 0, 0 },
+    { "###Settings", ROLE_DIALOG, 40, 56, 0, 0, 0, 0 },   // its sections without scrolling where there is room
     { "###Keyboard shortcuts", ROLE_DIALOG, 36, 24, 0, 0, 0, 0 },
     { "###About SAPIemu", ROLE_DIALOG, 0, 0, 0, 0, 0, 0 },   // its own size (AlwaysAutoResize)
     { "###Report a bug", ROLE_DIALOG, 0, 0, 0, 0, 0, 0 },    // the same
+    { "###Help", ROLE_DIALOG, 50, 44, 0, 0, 0, 0 },          // First steps, Glossary: text to read, wide tables
 };
 
 const int MAX_DISPLAY_IDS = 5;   // ###screen, ###gfx0..3 (app.cpp)

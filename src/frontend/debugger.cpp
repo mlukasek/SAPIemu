@@ -1,4 +1,5 @@
-// Debugger windows: CPU registers, disassembly with breakpoints, stack, memory, I/O log.
+// Debugger windows: the registers of the CPU the machine has (Z80, 8080, 8085), disassembly with breakpoints, stack,
+// memory, I/O log. The disassembly is in Zilog mnemonics for all of them (core/disasm.h).
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 #include "frontend/theme.h"
@@ -8,6 +9,7 @@
 #include <string.h>
 #include "imgui.h"
 #include "core/charset.h"
+#include "core/devices.h"
 #include "core/host.h"
 #include "core/util.h"
 
@@ -28,16 +30,78 @@ static float hex_field_width(void)
     return 4.4f * ImGui::GetFontSize();
 }
 
-static void reg_edit(Machine* m, const char* name, uint16_t& value, bool editable, bool& changed)
+// A register in the table of the registers: its name in one column, on the line of the text in the field
+// (AlignTextToFramePadding), the value in the next one; fmt "%04X" a word, "%02X" a byte, "%d" a small number (IM).
+// Editable while paused, Enter writes it.
+static void reg_cell(const char* name, void* value, const char* fmt, bool editable, bool& changed)
 {
+    ImGui::TableNextColumn();
+    ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(name);
-    ImGui::SameLine(ImGui::CalcTextSize("AF' ").x + ImGui::GetStyle().ItemSpacing.x);   // past the longest name
-    ImGui::SetNextItemWidth(ImGui::CalcTextSize("FFFFFF").x);
-    ImGuiInputTextFlags fl = ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue;
+    ImGui::TableNextColumn();
+    bool word = fmt[2] == '4';
+    ImGui::SetNextItemWidth(ImGui::CalcTextSize(word ? "FFFFFF" : "FFFF").x);
+    ImGuiInputTextFlags fl = ImGuiInputTextFlags_EnterReturnsTrue;
+    fl |= fmt[1] == 'd' ? ImGuiInputTextFlags_CharsDecimal : ImGuiInputTextFlags_CharsHexadecimal;
     if (!editable) fl |= ImGuiInputTextFlags_ReadOnly;
     char id[16];
     snprintf(id, sizeof(id), "##%s", name);
-    if (ImGui::InputScalar(id, ImGuiDataType_U16, &value, nullptr, nullptr, "%04X", fl)) changed = true;
+    if (ImGui::InputScalar(id, word ? ImGuiDataType_U16 : ImGuiDataType_U8, value, nullptr, nullptr, fmt, fl))
+        changed = true;
+}
+
+static void reg_none(void)   // a row with fewer registers
+{
+    ImGui::TableNextColumn();
+    ImGui::TableNextColumn();
+}
+
+// The flags as check boxes after a label: the state in the tick, not in a colour; a click changes the flag while
+// paused. `tip`: a tooltip key (the undocumented ones), nullptr = none.
+struct FlagBit {
+    const char* name;
+    uint8_t mask;
+    const char* tip;
+};
+static const FlagBit k_flags_z80[] = {
+    { "S", 0x80, nullptr }, { "Z", 0x40, nullptr }, { "Y", 0x20, "Undocumented: bit 5 of the result." },
+    { "H", 0x10, nullptr }, { "X", 0x08, "Undocumented: bit 3 of the result." }, { "P/V", 0x04, nullptr },
+    { "N", 0x02, nullptr }, { "C", 0x01, nullptr }, { nullptr, 0, nullptr },
+};
+static const FlagBit k_flags_8080[] = {
+    { "S", 0x80, nullptr }, { "Z", 0x40, nullptr }, { "AC", 0x10, nullptr }, { "P", 0x04, nullptr },
+    { "CY", 0x01, nullptr }, { nullptr, 0, nullptr },
+};
+static const FlagBit k_flags_8085[] = {
+    { "S", 0x80, nullptr },
+    { "Z", 0x40, nullptr },
+    { "K", 0x20, "Undocumented 8085 flag K (X5, UI): INX went over FFFFh or DCX under 0, after arithmetic V xor S; "
+                 "JK and JNK test it." },
+    { "AC", 0x10, nullptr },
+    { "P", 0x04, nullptr },
+    { "V", 0x02, "Undocumented 8085 flag V: overflow of a signed result (also DSUB); RSTV calls 40h when it is "
+                 "set." },
+    { "CY", 0x01, nullptr },
+    { nullptr, 0, nullptr },
+};
+
+static void draw_flags(const FlagBit* fb, uint16_t& af, bool editable, bool& changed)
+{
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("Flags"));
+    ImGui::PushID("flags");
+    ImGui::BeginDisabled(!editable);
+    for (; fb->name; fb++) {
+        ImGui::SameLine();
+        bool on = (af & fb->mask) != 0;
+        if (ImGui::Checkbox(fb->name, &on)) {
+            af = (uint16_t)(on ? af | fb->mask : af & ~fb->mask);
+            changed = true;
+        }
+        if (fb->tip && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(tr(fb->tip));
+    }
+    ImGui::EndDisabled();
+    ImGui::PopID();
 }
 
 static void draw_controls(UiState& ui, Machine* m)
@@ -63,34 +127,97 @@ static void draw_controls(UiState& ui, Machine* m)
     }
 }
 
+// The Z80: the main and the alternate registers, IX IY SP PC, I R IM, IFF1 IFF2 and the flags of F.
+static void draw_regs_z80(CpuRegs& r, bool editable, bool& changed)
+{
+    ImGuiTableFlags tf = ImGuiTableFlags_SizingFixedFit;
+    if (ImGui::BeginTable("regs", 6, tf)) {
+        uint16_t* left[4] = { &r.af, &r.bc, &r.de, &r.hl };
+        uint16_t* alt[4] = { &r.af2, &r.bc2, &r.de2, &r.hl2 };
+        uint16_t* right[4] = { &r.ix, &r.iy, &r.sp, &r.pc };
+        static const char* const ln[4] = { "AF", "BC", "DE", "HL" };
+        static const char* const an[4] = { "AF'", "BC'", "DE'", "HL'" };
+        static const char* const rn[4] = { "IX", "IY", "SP", "PC" };
+        for (int i = 0; i < 4; i++) {
+            reg_cell(ln[i], left[i], "%04X", editable, changed);
+            reg_cell(an[i], alt[i], "%04X", editable, changed);
+            reg_cell(rn[i], right[i], "%04X", editable, changed);
+        }
+        uint8_t im = r.im;
+        reg_cell("I", &r.i, "%02X", editable, changed);
+        reg_cell("R", &r.r, "%02X", editable, changed);
+        reg_cell("IM", &im, "%d", editable, changed);
+        r.im = im > 2 ? 2 : im;
+        ImGui::EndTable();
+    }
+    draw_flags(k_flags_z80, r.af, editable, changed);
+    const char* iff = tr("IFF1: maskable interrupts enabled (EI, DI); IFF2 keeps it during an NMI (LD A,I shows it in "
+                         "P/V).");
+    ImGui::BeginDisabled(!editable);
+    if (ImGui::Checkbox("IFF1", &r.iff1)) changed = true;
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(iff);
+    ImGui::SameLine();
+    if (ImGui::Checkbox("IFF2", &r.iff2)) changed = true;
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(iff);
+    ImGui::EndDisabled();
+}
+
+// The 8080 and the 8085 with the names of Intel: A and the flags (PSW), B C, D E, H L as bytes, SP PC; the flags
+// S Z AC P CY (the 8085 also the undocumented K and V), the interrupt enable; the 8085 what RIM reads.
+static void draw_regs_8080(CpuRegs& r, bool i8085, bool editable, bool& changed)
+{
+    uint8_t v[8] = { (uint8_t)(r.af >> 8), (uint8_t)r.af, (uint8_t)(r.bc >> 8), (uint8_t)r.bc,
+                     (uint8_t)(r.de >> 8), (uint8_t)r.de, (uint8_t)(r.hl >> 8), (uint8_t)r.hl };
+    bool bytes = false;
+    if (ImGui::BeginTable("regs", 6, ImGuiTableFlags_SizingFixedFit)) {
+        static const char* const names[8] = { "A", "F", "B", "C", "D", "E", "H", "L" };
+        for (int i = 0; i < 4; i++) {
+            reg_cell(names[2 * i], &v[2 * i], "%02X", editable, bytes);
+            reg_cell(names[2 * i + 1], &v[2 * i + 1], "%02X", editable, bytes);
+            if (i == 0) reg_cell("SP", &r.sp, "%04X", editable, changed);
+            else if (i == 1) reg_cell("PC", &r.pc, "%04X", editable, changed);
+            else reg_none();
+        }
+        ImGui::EndTable();
+    }
+    if (bytes) {
+        r.af = (uint16_t)(v[0] << 8 | v[1]);
+        r.bc = (uint16_t)(v[2] << 8 | v[3]);
+        r.de = (uint16_t)(v[4] << 8 | v[5]);
+        r.hl = (uint16_t)(v[6] << 8 | v[7]);
+        changed = true;
+    }
+    draw_flags(i8085 ? k_flags_8085 : k_flags_8080, r.af, editable, changed);
+    ImGui::BeginDisabled(!editable);
+    if (ImGui::Checkbox(i8085 ? "IE" : "INTE", &r.iff1)) changed = true;
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(tr("Interrupts enabled (EI, DI)."));
+    ImGui::EndDisabled();
+    if (!i8085) return;
+    ImGui::SameLine(0, 2.0f * ImGui::GetFontSize());   // apart from the label of the check box
+    ImGui::Text("SID=%d SOD=%d", (r.rim >> 7) & 1, r.sod ? 1 : 0);
+    ImGui::Text("RIM %02X  M7.5=%d M6.5=%d M5.5=%d  I7.5=%d I6.5=%d I5.5=%d", r.rim, (r.rim >> 2) & 1, (r.rim >> 1) & 1,
+                r.rim & 1, (r.rim >> 6) & 1, (r.rim >> 5) & 1, (r.rim >> 4) & 1);
+    if (ImGui::IsItemHovered())
+        tip(tr("What RIM reads now: the masks of SIM (M, 1 = masked) and the interrupts waiting (I) of RST 7.5, 6.5 "
+               "and 5.5."));
+}
+
+// The registers of the CPU the machine has: those of the Z80, or of the 8080 / 8085 (cpu_isa).
 static void draw_registers(UiState& ui, Machine* m)
 {
     CpuRegs r;
+    memset(&r, 0, sizeof(r));   // a CPU fills what it has
     m->cpu->get_regs(r);
     bool editable = ui.host->paused;
     bool changed = false;
+    int isa = m->cpu->cpu_isa();
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);
-    if (ImGui::BeginTable("regs", 2, ImGuiTableFlags_SizingFixedFit)) {
-        ImGui::TableNextColumn(); reg_edit(m, "AF", r.af, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "AF'", r.af2, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "BC", r.bc, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "BC'", r.bc2, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "DE", r.de, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "DE'", r.de2, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "HL", r.hl, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "HL'", r.hl2, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "IX", r.ix, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "IY", r.iy, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "SP", r.sp, editable, changed);
-        ImGui::TableNextColumn(); reg_edit(m, "PC", r.pc, editable, changed);
-        ImGui::EndTable();
+    if (isa == CpuCard::ISA_Z80) draw_regs_z80(r, editable, changed);
+    else draw_regs_8080(r, isa == CpuCard::ISA_8085, editable, changed);
+    if (r.halted) {
+        ImGui::SameLine();
+        ImGui::TextUnformatted("  HALT");
     }
-    const char* names = "SZYHXPNC";
-    char flags[9];
-    for (int i = 0; i < 8; i++) flags[i] = (r.af & (0x80 >> i)) ? names[i] : '-';
-    flags[8] = 0;
-    ImGui::Text("F: %s  I=%02X R=%02X IM%d IFF1=%d IFF2=%d%s", flags, r.i, r.r, r.im, r.iff1, r.iff2,
-                r.halted ? "  HALT" : "");
     ImGui::Text("%s %llu  (%.3f s)", tr("Cycles"), (unsigned long long)m->bus.now, m->bus.seconds());
     if (ui.mono) ImGui::PopFont();
     if (changed && editable) m->cpu->set_regs(r);
@@ -131,19 +258,27 @@ static void draw_disasm(UiState& ui, Machine* m)
         bool bp = m->has_breakpoint(a);
         bool cur = (a == r.pc);
         char line[96];
-        snprintf(line, sizeof(line), "%c%c %04X  %-12s %s", bp ? '*' : ' ', cur ? '>' : ' ', a, bytes, d.text.c_str());
-        if (cur || bp) {   // the row in the colour of the PC or of a breakpoint ('>' and '*' tell it too)
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::GetWindowDrawList()->AddRectFilled(
-                p, ImVec2(p.x + ImGui::GetContentRegionAvail().x, p.y + ImGui::GetTextLineHeightWithSpacing()),
-                ImGui::GetColorU32(cur ? theme().pc_bg : theme().bp_bg));
-        }
-        char id[16];
-        snprintf(id, sizeof(id), "##dl%d", i);
+        snprintf(line, sizeof(line), "   %04X  %-12s %s", a, bytes, d.text.c_str());   // 3 columns: the marks
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 p = ImGui::GetCursorScreenPos();   // the top left corner of the text of the row
+        if (cur || bp)   // the row in the colour of the PC or of a breakpoint (the marks tell it too)
+            dl->AddRectFilled(p, ImVec2(p.x + ImGui::GetContentRegionAvail().x, p.y + ImGui::GetTextLineHeightWithSpacing()),
+                              ImGui::GetColorU32(cur ? theme().pc_bg : theme().bp_bg));
         ImGui::PushID(i);
         if (ImGui::Selectable(line, false)) m->set_breakpoint(a, !bp);
         if (ImGui::IsItemHovered()) ui.disasm_hover = a;   // F9 (handle_key, next frame) takes this row
         ImGui::PopID();
+        // the column of the marks as in Visual Studio: a dot = a breakpoint (F9), an arrow = the PC over the dot;
+        // shapes, not colours alone
+        float lh = ImGui::GetTextLineHeight();
+        ImVec2 c(p.x + 1.3f * ImGui::CalcTextSize(" ").x, p.y + 0.5f * lh);
+        if (bp) dl->AddCircleFilled(c, 0.4f * lh, ImGui::GetColorU32(theme().error));
+        if (cur) {
+            float s = 0.26f * lh;
+            ImVec2 t0(c.x - s, c.y - s), t1(c.x + s, c.y), t2(c.x - s, c.y + s);
+            dl->AddTriangleFilled(t0, t1, t2, ImGui::GetColorU32(theme().warn));
+            dl->AddTriangle(t0, t1, t2, ImGui::GetColorU32(theme().text), 1.0f);
+        }
         a = (uint16_t)(a + d.length);
     }
     if (ui.mono) ImGui::PopFont();
@@ -234,6 +369,26 @@ void draw_debugger(UiState& ui)
     ImGui::End();
 }
 
+// The text column of the memory view: the SAPI character of a byte (core/charset.cpp) when the font in use has its
+// glyph, else "." as for the control codes. The 2x3 semigraphics 80h-BFh are Unicode sextants beyond the 16-bit code
+// points of the font atlas: they would show as the replacement character.
+static const char* mem_char(uint8_t b)
+{
+    static ImFont* s_font = nullptr;
+    static bool s_has[256];
+    ImFont* f = ImGui::GetFont();
+    if (f != s_font) {   // asked once for each font (the font of the look may change)
+        s_font = f;
+        for (int i = 0; i < 256; i++) {
+            std::string s = sapi_code_to_utf8((uint8_t)i);
+            size_t pos = 0;
+            int32_t cp = utf8_next(s, pos);
+            s_has[i] = i >= 0x20 && i != 0x7F && cp > 0 && cp <= IM_UNICODE_CODEPOINT_MAX && f->IsGlyphInFont((ImWchar)cp);
+        }
+    }
+    return s_has[b] ? sapi_code_to_utf8(b) : ".";
+}
+
 void draw_memory(UiState& ui)
 {
     if (!ui.show_memory) return;
@@ -269,6 +424,11 @@ void draw_memory(UiState& ui)
         }
     }
 
+    if (ui.mem_jump) {   // --ui-memory: as typed into Go to with Enter
+        ui.mem_jump = false;
+        jump = parse_hex16(ui.mem_goto, ui.mem_addr);
+    }
+
     ImGui::BeginChild("memview", ImVec2(0, 0), ImGuiChildFlags_Borders);
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);
     float line_h = ImGui::GetTextLineHeightWithSpacing();
@@ -284,7 +444,7 @@ void draw_memory(UiState& ui)
             for (int i = 0; i < 16; i++) {
                 uint8_t b = m->peek((uint16_t)(base + i));
                 n += snprintf(hex + n, sizeof(hex) - n, "%02X%s", b, i == 7 ? "  " : " ");
-                chars += (b >= 0x20 && b != 0x7F) ? sapi_code_to_utf8(b) : ".";
+                chars += mem_char(b);
             }
             ImGui::Text("%04X: %s %s", base, hex, chars.c_str());
         }

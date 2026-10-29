@@ -23,7 +23,7 @@ Ide1::Ide1() : Card("IDE-1")
 
 Ide1::~Ide1()
 {
-    flush();
+    if (!trial) flush();
 }
 
 bool ide_create_image(const std::string& path, int mb, std::string& err)

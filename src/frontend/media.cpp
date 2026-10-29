@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <unordered_map>
 #include <SDL3/SDL.h>
 #include "imgui.h"
 #include "cards/dsm1.h"
@@ -23,14 +22,21 @@
 #include "core/util.h"
 #include "core/version.h"
 
-// A path of a medium as shown: relative to the data root or "work/..." (data_relative), the whole path is in the
-// tooltip. Cached: data_relative asks the file system.
-static const std::string& shown_path(const std::string& path)
+// The name of a medium (ui.h): the folders of a working copy make the path long, the tooltip has it whole.
+void file_name_text(const std::string& path, bool disabled)
 {
-    static std::unordered_map<std::string, std::string> s_shown;
-    auto it = s_shown.find(path);
-    if (it == s_shown.end()) it = s_shown.emplace(path, data_relative(path)).first;
-    return it->second;
+    std::string name = path;
+    while (name.size() > 1 && (name.back() == '/' || name.back() == '\\')) name.pop_back();   // a folder
+    size_t slash = name.find_last_of("/\\");
+    if (slash != std::string::npos) name = name.substr(slash + 1);
+    if (disabled) ImGui::TextDisabled("%s", name.c_str());
+    else ImGui::TextUnformatted(name.c_str());
+    if (!ImGui::IsItemHovered()) return;
+    std::string full = data_path(path);   // a relative one from the data root ("work/..." from the work root)
+#ifdef _WIN32
+    for (char& c : full) if (c == '/') c = '\\';
+#endif
+    tip(full.c_str());
 }
 
 // ---------------------------------------------------------------- cassette recorder
@@ -143,7 +149,7 @@ static void hex_scan(UiState& ui, const std::string& path)
     std::string text, err;
     HexScan s = { 0, 0, 0 };
     if (!file_read_text(path, text)) ui.hex_error = tr("Cannot read the file.");
-    else if (!ihex_parse(text, hex_scan_byte, &s, err)) ui.hex_error = err;
+    else if (!ihex_parse(text, hex_scan_byte, &s, err)) ui.hex_error = tr_core(err);
     else if (!s.count) ui.hex_error = tr("The file holds no data.");
     else if (s.hi > 0xFFFF) ui.hex_error = tr("The file does not fit into memory there.");
     ui.hex_bytes = s.count;
@@ -176,7 +182,7 @@ std::string state_load_error(UiState& ui, const std::string& path, const std::st
         s += buf;
         detail = true;
     } else {
-        s += err;
+        s += tr_core(err);
     }
     s += "\n\n";
     if (back == STATE_BACK_RESTARTED)
@@ -185,7 +191,7 @@ std::string state_load_error(UiState& ui, const std::string& path, const std::st
         s += tr("The running machine did not come back as it was (the Log says why): it was reset.");
     else
         s += tr(ui.host->machine() ? "The machine runs on as it was." : "Nothing was changed.");
-    if (detail) s += std::string("\n\n") + tr("Details:") + " " + err;
+    if (detail) s += std::string("\n\n") + tr("Details:") + " " + tr_core(err);
     return s;
 }
 
@@ -196,7 +202,7 @@ static void state_file(UiState& ui, std::string path, bool save)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapistate";
         if (ui.host->save_state_file(path, err)) ui_notice(ui, true, std::string(tr("State saved")) + ": " + path);
-        else ui_notice(ui, false, std::string(tr("Cannot save the state")) + ":\n" + err);
+        else ui_notice(ui, false, std::string(tr("Cannot save the state")) + ":\n" + tr_core(err));
     } else {
         int back = STATE_BACK_SAME;
         if (ui.host->load_state_file(path, err, &back)) ui_notice(ui, true, std::string(tr("State loaded")) + ": " + path);
@@ -216,7 +222,8 @@ static void media_set(UiState& ui, Card* c, int u, const std::string& image)
     std::string err;
     if (!m->set_live_param(c, p, nlohmann::json(image), err))   // the Error window and the Log (a bad image: the old
         ui_notice(ui, false, c->name + ": " +                    // disk stays in, Fdc8272Card::floppy_insert)
-                                 tr(image.empty() ? "Cannot take the medium out" : "Cannot put the medium in") + ":\n" + err);
+                                 tr(image.empty() ? "Cannot take the medium out" : "Cannot put the medium in") + ":\n" +
+                                 tr_core(err));
 }
 
 // The card has the medium already (a program made into a tape here): the description only.
@@ -280,9 +287,9 @@ static void media_more(UiState& ui, Card* c, int u)
     if (ImGui::Button("...##more")) ImGui::OpenPopup("more");
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-        if (copied) ImGui::SetTooltip("%s", tr("Restore from the original"));
-        else ImGui::SetTooltip("%s\n%s", tr("Restore from the original"),
-                               tr("Only for media of media/ used through a working copy."));
+        if (copied) tip(tr("Restore from the original"));
+        else tipf("%s\n%s", tr("Restore from the original"),
+                  tr("Only for media of media/ used through a working copy."));
     }
     if (!ImGui::BeginPopup("more")) return;
     std::string orig, work;
@@ -293,8 +300,8 @@ static void media_more(UiState& ui, Card* c, int u)
         s_restore_open = true;
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", can ? tr("The working copy in work/ is replaced by the original in media/.")
-                                    : tr("Only for media of media/ used through a working copy."));
+        tip(can ? tr("The working copy in work/ is replaced by the original in media/.")
+                : tr("Only for media of media/ used through a working copy."));
     ImGui::EndPopup();
 }
 
@@ -338,21 +345,11 @@ static void media_restore_dialog(UiState& ui)
     ImGui::EndPopup();
 }
 
-static void tape_dialog_result(UiState& ui, Machine* m)
+// A file chosen for `kind` (TapeDialog::kind) of the unit `drive` of the card `card`: the answer of a file dialog of this
+// window or of the File menu (tape_dialog_result), a file dropped on the main window (file_drop). Empty = cancelled.
+static void file_chosen(UiState& ui, Machine* m, int kind, std::string path, const std::string& card, int drive)
 {
     TapeDialog& d = ui.tape_dlg;
-    int kind;
-    std::string path, card;
-    int drive;
-    {
-        std::lock_guard<std::mutex> lk(d.mtx);
-        if (!d.kind || !d.done) return;
-        kind = d.kind;
-        path = d.result;
-        card = d.card;
-        drive = d.drive;
-        d.kind = 0;
-    }
     if (kind == 7 || kind == 8) {   // save state (needs no machine for loading)
         if (path.empty()) return;
         state_file(ui, path, kind == 7);
@@ -389,7 +386,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
             if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".kzd";
             KzdCassette empty;
             if (!empty.save(path, err)) {
-                ui_notice(ui, false, std::string(tr("Cannot create the cassette")) + ":\n" + err);
+                ui_notice(ui, false, std::string(tr("Cannot create the cassette")) + ":\n" + tr_core(err));
                 return;
             }
         }
@@ -425,7 +422,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
                 path += size == 327680 ? ".sp2" : size == 163840 ? ".sp1" : ".img";
             }
             if (!FloppyDrive::create(path, floppy_geoms()[s_new_disk_fmt], err)) {
-                ui_notice(ui, false, std::string(tr("Cannot create the disk")) + ":\n" + err);
+                ui_notice(ui, false, std::string(tr("Cannot create the disk")) + ":\n" + tr_core(err));
                 return;
             }
         }
@@ -441,7 +438,7 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".wav";
         if (t->export_wav(path, err)) ui_notice(ui, true, std::string(tr("Tape saved as WAV")) + ": " + path);
-        else ui_notice(ui, false, err);
+        else ui_notice(ui, false, tr_core(err));
         return;
     }
     if (kind == 1 && tape_is_program(path)) {   // a program: the format of the tape first
@@ -459,9 +456,27 @@ static void tape_dialog_result(UiState& ui, Machine* m)
         size_t slash = path.find_last_of("/\\");
         if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".wav";
         t->eject();
-        if (!t->create(path, err)) ui_notice(ui, false, std::string(tr("Cannot create the cassette")) + ":\n" + err);
+        if (!t->create(path, err)) ui_notice(ui, false, std::string(tr("Cannot create the cassette")) + ":\n" + tr_core(err));
         else media_note(ui, dsm, 0, data_relative(path));
     }
+}
+
+static void tape_dialog_result(UiState& ui, Machine* m)
+{
+    TapeDialog& d = ui.tape_dlg;
+    int kind;
+    std::string path, card;
+    int drive;
+    {
+        std::lock_guard<std::mutex> lk(d.mtx);
+        if (!d.kind || !d.done) return;
+        kind = d.kind;
+        path = d.result;
+        card = d.card;
+        drive = d.drive;
+        d.kind = 0;
+    }
+    file_chosen(ui, m, kind, path, card, drive);
 }
 
 static std::string mmss(double s)
@@ -477,8 +492,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     TapeDeck* t = dsm->tape();
     ImGui::PushID(dsm);
     if (t->loaded()) {
-        ImGui::TextUnformatted(shown_path(t->path).c_str());
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t->path.c_str());
+        file_name_text(t->path);
         if (t->generated) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
             ImGui::TextWrapped("%s", t->program_info.c_str());
@@ -499,7 +513,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     ImGui::SameLine();
     if (ImGui::Button(tr("Save as WAV..."))) tape_dialog(ui, 9, dsm->name);
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("A copy of the tape as a WAV file, e.g. to play it into a real SAPI."));
+        tip(tr("A copy of the tape as a WAV file, e.g. to play it into a real SAPI."));
     ImGui::EndDisabled();
 
     ImGui::BeginDisabled(!t->loaded());
@@ -526,7 +540,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
         if (on) ImGui::PopStyleColor(2);
         ImGui::EndDisabled();
         if (dis && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", tr("The cassette is write protected"));
+            tip(tr("The cassette is write protected"));
     }
     ImGui::SameLine();
     bool wp = t->write_protect;
@@ -622,12 +636,12 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
         ImGui::TextColored(theme().warn, "%s %d", tr("End of tape: overload of motor"), k->overload(1) ? 1 : 2);
     if (has) {
         bool ta = k->tab(0), tb = k->tab(1);
-        const char* tip = tr("The break-out tab of the side: present = recording allowed (MIKOS/K checks it)");
+        const char* hint = tr("The break-out tab of the side: present = recording allowed (MIKOS/K checks it)");
         if (ImGui::Checkbox(tr("Tab A"), &ta)) k->set_tab(0, ta);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+        if (ImGui::IsItemHovered()) tip(hint);
         ImGui::SameLine();
         if (ImGui::Checkbox(tr("Tab B"), &tb)) k->set_tab(1, tb);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+        if (ImGui::IsItemHovered()) tip(hint);
     }
     ImGui::EndGroup();
     if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 10, card->name);
@@ -642,7 +656,7 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
     ImGui::SameLine();
     if (ImGui::Button(tr("Turn over"))) k->flip();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("The other side of the cassette faces the head (the position is mirrored)."));
+        tip(tr("The other side of the cassette faces the head (the position is mirrored)."));
     ImGui::EndDisabled();
     ImGui::PopID();
 }
@@ -658,14 +672,16 @@ static std::string cpm_suffix(char cfg, char seen)
 static void cpm_tooltip(void)
 {
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", tr("Unit of the controller. The CP/M letter is from the machine description, \"probably\" "
-                                   "= seen while running (the drive of the last BIOS SELDSK at a sector read)."));
+        tip(tr("Unit of the controller. The CP/M letter is from the machine description, \"probably\" "
+               "= seen while running (the drive of the last BIOS SELDSK at a sector read)."));
 }
 
 static void draw_pmd32(Pmd32Sd* p)
 {
     std::vector<std::string> images = p->list_images();
-    ImGui::TextDisabled("%s %s", tr("SD card:"), p->root().c_str());
+    ImGui::TextDisabled("%s", tr("SD card:"));
+    ImGui::SameLine();
+    file_name_text(p->root(), true);
     ImGui::PushID(p);   // two cards may have a PMD32-SD (IDE-1, DPP-1)
     if (!ImGui::BeginTable("pmd", 3, ImGuiTableFlags_SizingFixedFit)) {
         ImGui::PopID();
@@ -772,7 +788,7 @@ static void hex_load_question(UiState& ui, Machine* m)
     }
     if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
     bool ok = ui.hex_error.empty();
-    ImGui::TextUnformatted(ui.hex_path.c_str());
+    file_name_text(ui.hex_path);   // the whole path in the tooltip
     if (ok) {
         ImGui::Text("%s %d B", tr("Size:"), ui.hex_bytes);
         ImGui::TextDisabled("%s", tr("Address: from the records of the file"));
@@ -791,7 +807,7 @@ static void hex_load_question(UiState& ui, Machine* m)
         if (!file_read_text(ui.hex_path, text))
             ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + tr("Cannot read") + " " + ui.hex_path);
         else if (!m->load_ihex_text(text, err, &n))
-            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + ui.hex_path + ": " + err);
+            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + ui.hex_path + ": " + tr_core(err));
         else ui_notice(ui, true, done + std::to_string(n) + " B: " + ui.hex_path);
         ui.hex_path.clear();
         ui.focus_display = 2;   // the program is started on the keyboard of SAPI
@@ -826,7 +842,7 @@ static void bin_load_question(UiState& ui, Machine* m)
     }
     if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
     long long size = file_size_of(ui.bin_path);
-    ImGui::TextUnformatted(ui.bin_path.c_str());
+    file_name_text(ui.bin_path);   // the whole path in the tooltip
     ImGui::Text("%s %lld B", tr("Size:"), size);
     ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
     ImGui::InputText(tr("Address (hex)"), ui.bin_addr, sizeof(ui.bin_addr), ImGuiInputTextFlags_CharsHexadecimal);
@@ -845,7 +861,7 @@ static void bin_load_question(UiState& ui, Machine* m)
         std::string err;
         int n = 0;
         if (!m->load_binary(ui.bin_path, (uint16_t)addr, err, &n)) {
-            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + err);
+            ui_notice(ui, false, std::string(tr("Cannot load the program")) + ":\n" + tr_core(err));
         } else {
             char done[96];
             snprintf(done, sizeof(done), "%s %04llX-%04llXh, %d B: ", tr("Loaded"), addr, addr + (n > 0 ? n - 1 : 0), n);
@@ -873,7 +889,7 @@ static void tape_program_question(UiState& ui, Machine* m)
         ui.tprog_ask = false;
     }
     if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
-    ImGui::TextUnformatted(ui.tprog_path.c_str());
+    file_name_text(ui.tprog_path);   // the whole path in the tooltip
     if (ui.tprog_kzd) {   // KZD-1: a new cassette as MIKOS/K writes it
         ImGui::TextUnformatted(tr("A new KZD-1 cassette (work/kzd-1) with the program as MIKOS/K saves it."));
         ImGui::TextDisabled("%s", tr("From 4400h up; .K_Z, .K_L name, then .J starts the program at its lowest address."));
@@ -930,7 +946,7 @@ static void tape_program_question(UiState& ui, Machine* m)
             ui.focus_display = 2;   // LOAD or .K_L is typed on the keyboard of SAPI
             ImGui::CloseCurrentPopup();
         } else {
-            ui.tprog_error = err;
+            ui.tprog_error = tr_core(err);
         }
     }
     ImGui::EndDisabled();
@@ -965,8 +981,7 @@ static void draw_floppies(UiState& ui, Card* r)
         ImGui::SameLine();
         if (!d.present()) ImGui::TextDisabled("%s", tr("(no disk)"));
         else {
-            ImGui::TextUnformatted(shown_path(d.path).c_str());
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", d.path.c_str());
+            file_name_text(d.path);
             ImGui::SameLine();
             ImGui::TextDisabled("(%s)", d.format.c_str());
         }
@@ -1025,7 +1040,7 @@ static void rkd_system_dialog(Rkd1* r, bool open)
             s_rkd_sys_unit = -1;
             ImGui::CloseCurrentPopup();
         } else {
-            s_rkd_sys_error = err;
+            s_rkd_sys_error = tr_core(err);
             LOGE("RKD-1: %s", err.c_str());
         }
     }
@@ -1062,8 +1077,7 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         ImGui::SameLine();
         if (!c.loaded) ImGui::TextDisabled("%s", tr("(no cartridge)"));
         else {
-            ImGui::TextUnformatted(c.path.c_str());
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", c.path.c_str());
+            file_name_text(c.path);
             ImGui::SameLine();
             ImGui::TextDisabled("(%d x %d B)", c.sectors, c.sectors == 12 ? 512 : 256);
         }
@@ -1089,7 +1103,7 @@ static void draw_rkd(UiState& ui, Rkd1* r)
                 open_sys = true;
             }
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", tr("Write the CP/M system on the cartridge (emulator help, no original SYSGEN)"));
+                tip(tr("Write the CP/M system on the cartridge (emulator help, no original SYSGEN)"));
         }
         ImGui::EndDisabled();
         RkdPlatter& x = u.disk[Rkd1::FIXED];
@@ -1340,13 +1354,13 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     if (ImGui::Button("LOAD", ImVec2(bw[0], 1.8f * s))) r->press_load(i);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("Thread the tape and wind it to the BOT marker (RDY)."));
+        tip(tr("Thread the tape and wind it to the BOT marker (RDY)."));
     ImGui::SameLine();
     ImGui::BeginDisabled(!u.loaded);
     if (ImGui::Button(u.online ? "OFF-LINE" : "ON-LINE", ImVec2(bw[1], 1.8f * s))) r->press_online(i);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("ON-LINE: the computer controls the drive (MTDAT: \"DISTANC\")."));
+        tip(tr("ON-LINE: the computer controls the drive (MTDAT: \"DISTANC\")."));
     ImGui::SameLine();
     ImGui::BeginDisabled(!u.loaded || u.online || u.pos <= 0);
     if (ImGui::Button("REWIND", ImVec2(bw[2], 1.8f * s))) r->press_rewind(i);
@@ -1356,7 +1370,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     if (ImGui::Button("UNLOAD", ImVec2(bw[3], 1.8f * s))) r->press_unload(i);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("Rewind and unthread (OFF-LINE only)."));
+        tip(tr("Rewind and unthread (OFF-LINE only)."));
     ImGui::PopStyleVar();
     ImGui::PopStyleColor(4);
     ImGui::SetCursorScreenPos(o);
@@ -1366,8 +1380,9 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     ImGui::SameLine();
     ImGui::BeginGroup();
     if (t.loaded) {
-        ImGui::Text("%s %s", tr("Tape:"), shown_path(t.path).c_str());
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.path.c_str());
+        ImGui::TextUnformatted(tr("Tape:"));
+        ImGui::SameLine();
+        file_name_text(t.path);
     } else ImGui::TextDisabled("%s", tr("(no tape)"));
     if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 14, r->name, i);
     ImGui::SameLine();
@@ -1377,7 +1392,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     if (ImGui::Button(tr("Eject"))) media_set(ui, r, i, "");
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && u.online)
-        ImGui::SetTooltip("%s", tr("Switch the drive OFF-LINE first."));
+        tip(tr("Switch the drive OFF-LINE first."));
     ImGui::BeginDisabled(u.online);
     media_more(ui, r, i);
     ImGui::EndDisabled();
@@ -1386,7 +1401,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     ImGui::Checkbox(tr("Write ring"), &u.ring);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", tr("The ring in the reel allows writing, without it WPT. Changed only with the tape unthreaded."));
+        tip(tr("The ring in the reel allows writing, without it WPT. Changed only with the tape unthreaded."));
     // below the buttons a fixed height, loaded or not, the block at the head shown or not: the unit below
     // stays where it is while the tape moves
     float L = ImGui::GetTextLineHeightWithSpacing(), sp = ImGui::GetStyle().ItemSpacing.y;
@@ -1410,7 +1425,7 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         if (c.code) {
             ImGui::Text("%s %s   %s %c", tr("Tape name (VOL1):"), c.volume.c_str(), tr("code"), c.code);
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", tr("The name the programs ask for (MTDAT: Jmeno pasky, MTCOPY: JP)."));
+                tip(tr("The name the programs ask for (MTDAT: Jmeno pasky, MTCOPY: JP)."));
             for (const std::string& f : c.files) ImGui::TextDisabled("  %s", f.c_str());
         } else if (!t.rows.empty()) {
             ImGui::TextDisabled("%s", tr("No VOL1 label (not initialized by MTDAT or MTCOPY)."));
@@ -1451,10 +1466,10 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
             if (txt[0]) md->AddText(ImVec2(x + 0.5f * s, (y0 + y1) * 0.5f - 0.5f * s), IM_COL32(255, 255, 255, 255), txt);
             if (ImGui::IsMouseHoveringRect(ImVec2(x, y0), ImVec2(x + iw, y1))) {
                 double at = (double)it.pos / MagTape::UNIT * 0.0254;
-                if (it.kind == 2) ImGui::SetTooltip("%s, %.2f m", tr("tape mark"), at);
-                else if (it.kind == 0) ImGui::SetTooltip("%s %s, %.2f m", tr("label"), it.label, at);
-                else ImGui::SetTooltip("%d %s (%s %u B), %.2f m%s", it.count, tr("blocks"), tr("the first"),
-                                       (unsigned)it.bytes, at, it.bad ? tr(", with errors") : "");
+                if (it.kind == 2) tipf("%s, %.2f m", tr("tape mark"), at);
+                else if (it.kind == 0) tipf("%s %s, %.2f m", tr("label"), it.label, at);
+                else tipf("%d %s (%s %u B), %.2f m%s", it.count, tr("blocks"), tr("the first"),
+                          (unsigned)it.bytes, at, it.bad ? tr(", with errors") : "");
             }
             x += iw + 0.25f * s;
         }
@@ -1508,6 +1523,144 @@ static void draw_rmp(UiState& ui, Rmp1* r)
     for (int i = 0; i < Rmp1::UNITS; i++)
         if (r->units[i].fitted) draw_rmp_unit(ui, r, i);
     ImGui::PopID();
+}
+
+// ---------------------------------------------------------------- files dropped on the main window
+
+// The suffix of a file in lower case, without the dot ("" = none).
+static std::string file_suffix(const std::string& path)
+{
+    size_t slash = path.find_last_of("/\\"), dot = path.find_last_of('.');
+    if (dot == std::string::npos || (slash != std::string::npos && dot < slash)) return std::string();
+    std::string s = path.substr(dot + 1);
+    for (char& c : s)
+        if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
+    return s;
+}
+
+static bool suffix_in(const std::string& s, const char* const* list)
+{
+    for (int i = 0; list[i]; i++)
+        if (s == list[i]) return true;
+    return false;
+}
+
+// A text file that is Intel HEX: its first character other than a space is the colon of a record.
+static bool text_is_hex(const std::string& path)
+{
+    FILE* f = file_open(path, "rb");
+    if (!f) return false;
+    int c;
+    while ((c = fgetc(f)) == ' ' || c == '\t' || c == '\r' || c == '\n') {}
+    fclose(f);
+    return c == ':';
+}
+
+// The unit of the running machine a dropped medium goes into: the first empty one of the kind (TapeDialog::kind: 4
+// floppy drives, 12 cartridge units of RKD-1, 14 tape units of RMP-1, 10 KZD-1, 1 cassette recorders of DSM-1), else
+// the first one (empty = false). False: the machine has no unit of the kind.
+static bool drop_unit(Machine* m, int kind, std::string& card, int& unit, bool& empty)
+{
+    bool found = false;
+    empty = false;
+    auto consider = [&](const std::string& c, int u, bool loaded) {
+        if (found && (empty || loaded)) return;   // the first one, then the first empty one
+        card = c;
+        unit = u;
+        empty = !loaded;
+        found = true;
+    };
+    for (auto& c : m->cards) {
+        Card* p = c.get();
+        if (kind == 4)
+            for (int i = 0; p->floppy_drive(i); i++) consider(p->name, i, p->floppy_drive(i)->present());
+        if (Rkd1* r = kind == 12 ? dynamic_cast<Rkd1*>(p) : nullptr)
+            for (int i = 0; i < Rkd1::UNITS; i++)
+                if (r->units[i].fitted) consider(p->name, i, r->units[i].disk[Rkd1::CARTRIDGE].loaded);
+        if (Rmp1* r = kind == 14 ? dynamic_cast<Rmp1*>(p) : nullptr)
+            for (int i = 0; i < Rmp1::UNITS; i++)
+                if (r->units[i].fitted) consider(p->name, i, r->units[i].tape.loaded);
+        if (Kzd1* k = kind == 10 ? p->kzd1() : nullptr) consider(p->name, 0, k->loaded());
+        if (Dsm1* d = kind == 1 ? dynamic_cast<Dsm1*>(p) : nullptr) consider(p->name, 0, d->tape()->loaded());
+    }
+    return found;
+}
+
+void file_drop(UiState& ui, const std::string& path)
+{
+    Machine* m = ui.host->machine();
+    bool busy;
+    {   // a native file dialog waits for its answer: it would take the place of this file
+        std::lock_guard<std::mutex> lk(ui.tape_dlg.mtx);
+        busy = ui.tape_dlg.kind != 0;
+    }
+    {
+        std::lock_guard<std::mutex> lk(ui.rack.dlg_mtx);
+        busy = busy || ui.rack.dlg_kind != RackEditor::DLG_NONE;
+    }
+    if (busy) {
+        ui_notice(ui, true, std::string(tr("Close the open dialog first, then drop the file again")) + ": " + path);
+        return;
+    }
+    std::string s = file_suffix(path);
+    static const char* const k_machine[] = { "sapi", "jsonc", nullptr };
+    static const char* const k_hex[] = { "hex", "ihx", nullptr };
+    static const char* const k_floppy[] = { "img", "imd", "8sd", "sp2", "sp1", nullptr };   // k_img_filter
+    static const char* const k_cassette[] = { "wav", "mp3", nullptr };
+    if (suffix_in(s, k_machine)) {   // as File -> Start a machine from a file (the question about unsaved changes)
+        rack_start_machine(ui, data_relative(path));
+        return;
+    }
+    if (s == "sapistate") {   // as File -> Load state
+        file_chosen(ui, m, 8, path, std::string(), 0);
+        return;
+    }
+    // the rest goes into the running machine: what it is, as the dialogs of the File menu and of Media take it
+    int kind = 0;
+    const char* what = nullptr;   // the medium, for the messages: the name of its filter in the dialog (a tr() key)
+    if (suffix_in(s, k_hex) || (s == "txt" && text_is_hex(path))) kind = 3;
+    else if (s == "bin") kind = 6;
+    else if (suffix_in(s, k_floppy)) { kind = 4; what = "Floppy disk (IMG, IMD, 8SD, SP2, SP1)"; }
+    else if (s == "rkd") { kind = 12; what = "RKD-1 cartridge (RKD)"; }
+    else if (s == "tap") { kind = 14; what = "Magnetic tape (SIMH TAP)"; }
+    else if (s == "kzd") { kind = 10; what = "KZD-1 cassette (KZD)"; }
+    else if (suffix_in(s, k_cassette)) { kind = 1; what = "Cassette (WAV, MP3)"; }
+    if (!kind) {
+        ui_notice(ui, true, std::string(tr("Not a file SAPIemu takes (a machine, a state, a program, a disk, a "
+                                           "cassette)")) + ": " + path);
+        return;
+    }
+    if (!m) {
+        ui_notice(ui, true, std::string(tr("The machine is switched off: switch it on, then drop the file again")) + ": " +
+                                path);
+        return;
+    }
+    if (kind == 3 || kind == 6) {   // a program: the question with its addresses, as File -> Load program
+        file_chosen(ui, m, kind, path, std::string(), 0);
+        return;
+    }
+    std::string card;
+    int unit = 0;
+    bool empty = false;
+    if (!drop_unit(m, kind, card, unit, empty)) {
+        ui_notice(ui, false, std::string(tr("This machine has no drive for this medium")) + ": " + tr(what) + "\n" + path);
+        return;
+    }
+    // a disk, a cartridge, a reel: only into an empty unit (one in use is not taken from the running program); a
+    // cassette into a recorder as Insert... does (the cassette in it is saved while running)
+    bool cassette = kind == 1 || kind == 10;
+    if (!empty && !cassette) {
+        ui_notice(ui, false, std::string(tr("Every drive for this medium is in use: eject a medium in the Media window, "
+                                            "then drop the file again.")) + "\n" + path);
+        return;
+    }
+    std::string where = card;
+    if (kind == 4 || kind == 12 || kind == 14)
+        where += std::string(", ") + tr(kind == 4 ? "Drive" : "Unit") + " " + std::to_string(unit);
+    uint64_t said = ui.notice_ns;
+    file_chosen(ui, m, kind, path, card, unit);
+    if (ui.notice_ns == said)   // nothing said on the way (a bad image, a program made into a tape asks first)
+        ui_notice(ui, true, std::string(tr("Inserted into")) + " " + where + ": " + path);
 }
 
 void draw_media(UiState& ui)
@@ -1571,11 +1724,15 @@ void draw_media(UiState& ui)
         any = true;
         theme_section(c->name.c_str());
         if (IdeDisk* d = ide ? ide->disk() : nullptr) {
-            if (d->present())
-                ImGui::Text("%s %s (%u MB%s)", tr("IDE disk:"), shown_path(d->path()).c_str(), d->sector_count() / 2048,
-                            d->is_readonly() ? tr(", read only") : "");
-            else
+            if (d->present()) {
+                ImGui::TextUnformatted(tr("IDE disk:"));
+                ImGui::SameLine();
+                file_name_text(d->path());
+                ImGui::SameLine();
+                ImGui::Text("(%u MB%s)", d->sector_count() / 2048, d->is_readonly() ? tr(", read only") : "");
+            } else {
                 ImGui::TextUnformatted(tr("IDE disk: none"));
+            }
         }
         if (Pmd32Sd* p = c->pmd32sd()) {
             ImGui::TextUnformatted("PMD32-SD");

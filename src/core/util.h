@@ -58,6 +58,12 @@ std::vector<std::string> list_files(const std::string& rel_dir, const std::strin
 // use and the copy is returned. Other paths are returned resolved.
 bool media_path(const std::string& rel, bool work_copy, std::string& out, std::string& err);
 
+// An advisory lock held by this process until it ends (the GUI over its settings and its work folder, docs/build.md):
+// 1 = taken, 0 = another process holds it, -1 = the file cannot be made (no lock, no warning). Windows: the file
+// opened without sharing (deleted when the process ends); elsewhere flock (the file stays). Two calls in one process
+// conflict too (tests).
+int file_lock_try(const std::string& utf8_path);
+
 // Battery backed memories (DMR-1 SRAM...) keep their content in files under work/, printers
 // write their output there. Tests switch this off so that they never touch the user's files.
 void battery_files_enable(bool on);

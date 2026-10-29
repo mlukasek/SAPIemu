@@ -14,6 +14,7 @@ static LogLevel g_min_level = LOG_INFO;
 static bool g_stderr = true;
 static FILE* g_file = nullptr;
 static int g_errors = 0;
+static thread_local std::vector<LogHeld>* t_hold = nullptr;   // log_hold
 
 static const char* level_name(LogLevel l)
 {
@@ -32,6 +33,10 @@ void log_msg(LogLevel level, const char* fmt, ...)
     va_start(ap, fmt);
     vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
+    if (t_hold) {
+        t_hold->push_back({ level, buf });
+        return;
+    }
 
     std::lock_guard<std::mutex> lock(g_log_mutex);
     if (g_stderr && level >= g_min_level)
@@ -83,4 +88,14 @@ int log_errors(void)
 {
     std::lock_guard<std::mutex> lock(g_log_mutex);
     return g_errors;
+}
+
+void log_hold(std::vector<LogHeld>* into)
+{
+    t_hold = into;
+}
+
+void log_replay(const std::vector<LogHeld>& held)
+{
+    for (const LogHeld& h : held) log_msg(h.level, "%s", h.text.c_str());
 }

@@ -78,3 +78,18 @@ const char* card_class_name(int cls, bool czech);
 // Parameter holding the I/O base shown on the front panel ("#10") of cards that
 // often appear more than once (serial cards), nullptr if none.
 const char* card_port_param(const CardInfo* ci);
+
+// A port two cards take the same write from by design, each its own bits of the byte (RAM-1V took the MAP register
+// of ZRMD-1 over: 63h, bits 6-7, the RAM disk keeps bits 0-5 there). The port map shows such a shared write as
+// information, not as a warning. The functions are the names the decoders of the cards give in the map.
+struct SharedWrite {
+    const char* type;    // "RAM-1V"
+    const char* what;    // its function: "MAP register"
+    const char* type2;   // the other card
+    const char* what2;
+    const char* en;      // why it is meant so
+    const char* cs;
+};
+// The function `what` of card `type` and `what2` of `type2` (in either order) sharing a write by design, else nullptr.
+const SharedWrite* card_shared_write(const std::string& type, const std::string& what, const std::string& type2,
+                                     const std::string& what2);

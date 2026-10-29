@@ -54,9 +54,21 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
 - **Průvodci** `machines/guides/<id>.md` a `<id>.en.md`: krátký Markdown (nadpisy, odrážky, bloky kódu s
   tlačítkem Napsat do SAPI, odkazy na `docs/` a web). Okno Průvodce sestavou se otevře samo u kategorií s
   `guides`, dokud ho uživatel u sestavy nebo celkově nevypne (nastavení `guides`).
-- Naposledy spuštěné sestavy (z okna) jsou nahoře, ukládají se v nastavení (`browser.recent`). Běžící
+- **Poslední sestavy** jsou nahoře (nadpis jako v Soubor → Poslední sestavy, do etapy 8 „Naposledy spuštěné“),
+  ukládají se v nastavení (`browser.recent`). Plní je každý úspěšný start z GUI (výběr sestav, Poslední sestavy,
+  Spustit sestavu ze souboru, přetažení souboru, Restartovat s touto sestavou v konfigurátoru) a Uložit jako;
+  nepovedený nebo zrušený start seznam nemění, MCP a `sapiemu-cli` ho nemění (od 2026-10-29). Okno se zavře až po
+  startu, při Zrušit v otázce na neuložené změny zůstane otevřené. Běžící
   sestava je zelená a má za jménem „(běží)“, hlavní tlačítko u ní je Restartovat (jen myší: Enter spustí sestavu,
   která neběží, aby jedna klávesa nezahodila paměť běžící).
+- **Moje sestavy** (od 2026-10-29, etapa 8 plánu vzhledu): kopie dodaných sestav, které v buildu pro vydání zapsal
+  Uložit v konfigurátoru do `work/machines/` (níže u konfigurátoru). Skupina je nahoře a otevřená, jen když tam
+  nějaké `.sapi` jsou (soubory začínající `_` se přeskočí); v rejstříku je to kategorie `mine`, kterou přidá jádro
+  (`core/machine_index`), ne `_vyber.json`. Kopie má `based_on` s cestou originálu, náhled a průvodce originálu
+  a nepřejmenovaná titulek originálu se značkou v jazyce rozhraní („ZPS-1 s MIKROBASICem 2.4 (moje)“); hledání ji
+  najde i podle titulků originálu. V podrobnostech je „Vychází z <titulek>“ (odkaz vybere originál), Spustit,
+  Průvodce, Otevřít v konfigurátoru a **Smazat…** (šedé u běžící sestavy; po potvrzení smaže soubor kopie, její
+  řádek v Posledních sestavách a ponechané změny).
 - Hledání nedbá na diakritiku a velikost písmen (`machine_index_matches`, „zaznamnik“ najde „Záznamník“).
 - Svítí jen řádek, na který uživatel klikl (sestava může být ve dvou kategoriích); u titulku podle kategorie je
   v podrobnostech tento titulek a pod ním vlastní titulek sestavy.
@@ -110,11 +122,14 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
   - X1 je procesorová karta (výjimkou je ARB-1C s JP3 = 1-2 pro PKT-1).
   - Počet slotů určuje typ sběrnice.
   - Karty, které zatím nejsou emulované, jsou šedé. Červená tečka znamená chybu (např. karta mimo X1).
-- **Klik na slot** vybere kartu a pod rámem se ukáže její nastavení: výběr karty, jumpery a soubory ROM nebo
-  obrazů s nabídkou známých souborů a tlačítkem `…`. Pravé tlačítko otevře rovnou seznam karet. Klik na rám
-  mimo karty ukáže název a popis sestavy a nastavení sběrnice.
+- **Záložky pod rámem** jsou vždy tři (od 2026-10-29, etapa 8): „Sestava a sběrnice“ (název a popis sestavy,
+  okna nahoře po spuštění, typ sběrnice a JP3), karta ve vybraném slotu (záložka nese jméno, např. „X7 CGA-1V“)
+  a „Mapa portů a paměti“.
+- **Klik na slot** vybere kartu a ukáže její záložku: výběr karty, jumpery a soubory ROM nebo obrazů s nabídkou
+  známých souborů a tlačítkem `…`. Pravé tlačítko otevře rovnou seznam karet. Klik na rám mimo karty výběr slotu
+  zruší a ukáže záložku Sestava a sběrnice (z mapy nepřepne).
   - Rám se zmenšuje podle šířky i výšky okna, zabere nejvýš asi polovinu místa pod lištou, aby nastavení zůstalo
-    vidět (od 2026-10-29). Klik na slot přepne na záložku Nastavení karty a posune ji do pohledu.
+    vidět (od 2026-10-29). Klik na slot přepne na záložku karty a posune ji do pohledu.
   - Cesta k souboru a textová pole se použijí až po Enteru nebo opuštění pole, Esc vrátí původní text. Médium se
     tak nenačítá při každém napsaném znaku.
 - **Přetažení karty myší** na jiný slot (od 2026-10-07): karta se zvedne a jede za myší. Zelený cíl = přesun na
@@ -165,9 +180,20 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
     2026-10-29, média se ukládají průběžně). Uložit je potřeba
   jako každou změnu sestavy. Při přepnutí z `rw` se RAM disk nejdřív uloží, po přepnutí na `rw` se uloží jeho
   aktuální obsah.
-- **Nová:** prázdná sestava, nebo kopie šablony či jiné sestavy (uloží se přes „Uložit jako…“).
+- **Nová:** prázdná sestava, nebo kopie šablony či jiné sestavy (uloží se přes „Uložit jako…“). Sestavy jsou
+  v podnabídkách po kategoriích jako v okně Vybrat sestavu (`machines/_vyber.json`), s názvy místo cest; soubor
+  a krátký popis jsou v bublině. Sestavy, které rejstřík nejmenuje (vlastní), jsou v Ostatní → Nezařazené
+  a vlastní sestavy.
 - **Uložit** zapíše soubor s komentáři z katalogu: u každého jumperu je jeho označení a význam zvolené
   hodnoty. Ruční komentáře z původního souboru se při uložení z konfigurátoru ztratí.
+  - **Dodaná sestava** (jmenovaná v `machines/_vyber.json`) se v buildu pro vydání nepřepíše (od 2026-10-29, rozhodl
+    autor): Uložit, i v otázce Neuložené změny, zapíše kopii do `work/machines/` se jménem souboru originálu
+    (obsazené `-2`, `-3`…), se značkou „ (moje)“ nebo „ (mine)“ ve jménu (druhá „(moje 2)“; jméno změněné v
+    konfigurátoru zůstane bez značky) a s klíčem `based_on` = cesta originálu. Konfigurátor pak drží kopii a běžící
+    sestava se na ni přejmenuje bez restartu (titulek okna, Poslední sestavy, příští start). Bublina nad Uložit řekne,
+    kam se zapíše. Ladicí build dodanou sestavu přepíše jako dřív (vývoj sestav v repu).
+  - Vlastní soubor (mimo rejstřík, i v `machines/`) Uložit přepíše. Uložit jako… začne v buildu pro vydání u nové
+    a dodané sestavy ve `work/machines`.
 - **Konfigurátor ukazuje běžící sestavu.** Když má neuložené změny a má se nahradit jinou sestavou (menu
   Soubor → Vybrat sestavu…, Spustit sestavu ze souboru…, v konfigurátoru Nová a Otevřít…, i ukončení emulátoru), nejdřív
   se zeptá. Dotaz vyjmenuje skutečné změny proti souboru (nejvýš 9 řádků a „a další změny (N)“), třeba
@@ -242,6 +268,11 @@ který port a paměťovou adresu.
   stav vybere.
 - **Kolize:** dvě karty, které na čtení budí sběrnici na stejné adrese, jsou chyba a sestava se nezapne. Jsou
   červeně v pruhu i v tabulce. Zápis do dvou karet je varování. Nikým neobsazené adresy čtou FFh.
+- **Sdílený zápis jako záměr:** zápis, který dvě karty sdílejí podle návrhu (každá bere své bity), katalog karet
+  zná (`card_shared_write` v `src/cards/catalog.cpp`) a mapa ho ukáže šedě se slovy „sdílený zápis (záměr)“
+  a vysvětlením pod tabulkou, ne jako varování. Dnes je to port 63h desek V: RAM-1V tam má registr MAP (bity 6–7)
+  a RAM disk ZRD-1V nebo ZRMD-1 bity 0–5 (A16–A21), viz `docs/desky/RAM-1V.md`. ZRMD-1, který MAP budí sám (JP2),
+  zůstává varováním. MCP `machine_map` dává u takového rozsahu `by_design` a mezi kolize ho nepočítá.
 
 ## Šablony ZPS
 
@@ -419,7 +450,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   (obrazovka sestavy). Ostatní displeje jdou pod něj nebo vedle něj, do stejného stropu a nejvýš 1,5× větší než
   hlavní výstup (konzole AND-1V her tak 100 %), každé okno velikosti obrazu s malým okrajem. Průvodce, přístroje
   a Média jdou do volného místa, konfigurátor jen když zbude místo (`src/frontend/layout.cpp`, rozhodnutí
-  2026-10-29 – rozložení oken podle autora). Se zadokovanými okny (Zobrazení → Nastavení → Okna) je
+  2026-10-29 – rozložení oken podle autora). Se zadokovanými okny (Zobrazení → Nastavení → Vzhled → Okna) je
   hlavní výstup uprostřed a ostatní displeje nahoře ve sloupci vpravo; po spuštění jiné sestavy jde doprostřed její
   hlavní výstup. Sestavy v repu: `sapi1v_hry`, `sapi1v_PoP`,
   `sapi1v_BomberNet` (CGA-1V) a `jpr1s_bgp1s` (BGP-1S). Konfigurátor klíč zachová, ale needituje ho.
@@ -446,6 +477,8 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 2. V `src/cards/catalog.cpp` u karty nastavit `emulated = true` a popsat parametry (`CardParam`). Výchozí hodnota
    v katalogu musí odpovídat výchozí hodnotě v `configure()`.
 3. `test_machine_cfg` ověří, že karta s výchozím nastavením naběhne a že sestavy projdou zápisem beze změny.
+4. Karta, která v destruktoru zapisuje soubor (RAM disk, zálohovaná paměť, médium), nesmí zapisovat, když je
+   `trial` (zkušební sestavení při přepnutí sestavy, od 2026-10-29; `docs/build.md`, Přepnutí sestavy).
 
 ## Ověření vzhledu bez snímku plochy
 
@@ -467,17 +500,26 @@ klikne na to okno v Zobrazení → Okna (s `--ui-window-item` v zadaném pořad�
 `--ui-switch SESTAVA` spustí za běhu další sestavu jako Spustit v okně Vybrat sestavu (víc jich po sobě, po čtyřech
 snímcích; okna displejů se přizpůsobí novému obrazu),
 `--ui-layout docked` (nebo `floating`) okna zadokovaná či plovoucí jen pro toto spuštění, `--ui-layout-switch`
-přepne rozložení jako volba v Zobrazení → Nastavení → Okna (se stejným `--settings` mezi spuštěními ukáže, že se
+přepne rozložení jako volba v Zobrazení → Nastavení → Vzhled → Okna (se stejným `--settings` mezi spuštěními ukáže, že se
 vrátí místa oken druhého rozložení),
 `--ui-pause` těsně před obrázkem pozastaví stroj (F5: nápis přes obraz), `--ui-log` otevře okno Log (chyby
 červeně, varování žlutě; „Chyby: N“ ve stavovém řádku je vidět jen bez něj), `--ui-reset` těsně před obrázkem
 stiskne F12 (u APS-5 ukáže otázku „Resetovat jednotku APS-5?“), `--ui-rack SLOT` vybere slot jako kliknutím
-(záložka Nastavení karty, posunutá do pohledu),
-`--ui-report` okno Nápověda → Nahlásit chybu, `--ui-debugger` okno Debugger, `--ui-menu JMÉNO` nechá otevřené menu
+(záložka karty ve slotu, posunutá do pohledu), `--ui-rack-new` otevře v konfigurátoru nabídku Nová (podnabídku
+kategorie s `--ui-mouse`),
+`--ui-report` okno Nápověda → Nahlásit chybu, `--ui-debugger` okno Debugger, `--ui-memory ADRESA` okno Paměť
+na adrese (hex), `--ui-menu JMÉNO` nechá otevřené menu
 (anglicky: `File`, `Machine`, `Debug`, `View`, `Help`; `View/Windows` i s podnabídkou Okna), `--ui-key KLÁVESA` stiskne klávesu přes frontu událostí jako
 z klávesnice (`F9`, `Ctrl+Shift+C`, `Enter`, `Esc`…; víc `--ui-key` jedna po druhé, např. `--ui-reset --ui-key Esc`
-zavře otázku APS-5), `--ui-mouse X,Y` postaví myš (body okna; s `--ui-debugger --ui-pause --ui-key F9` breakpoint
-na řádku pod myší). Ctrl+Shift+C přepíše schránku jako `--ui-copy`,
+zavře otázku APS-5; jeden tisknutelný znak, třeba `3`, pošle i jako napsaný znak, jako skutečná klávesnice),
+`--ui-mouse X,Y` postaví myš (body okna; s `--ui-debugger --ui-pause --ui-key F9` breakpoint
+na řádku pod myší), `--ui-click X,Y` tam klikne levým tlačítkem (víc jich po sobě). Ctrl+Shift+C přepíše schránku jako `--ui-copy`,
+`--ui-hide-display KLÍČ` skryje okno displeje jako Zobrazení → Obrazovky (`screen`, `gfx0`…),
+`--ui-help first|glossary` otevře okno Nápověda na záložce První kroky nebo Slovníček (`--ui-help-open all|none`
+všechny kapitoly otevřené nebo sbalené, `--ui-help-scroll 0..1` posun), `--ui-second` ukáže varování druhého okna
+„Už běží jiné SAPIemu“, `--ui-drop SOUBOR` přetáhne soubor na okno jako z Průzkumníka (víc jich po sobě),
+`--ui-save` stiskne Uložit v konfigurátoru (po `--ui-set`), `--ui-save-copy` uloží jako build pro vydání i v ladicím
+buildu (dodaná sestava jako kopie do `work/machines`, Moje sestavy),
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
 v něm vybere od řádku 0, hranice 7 po řádek 4, hranici 12),
@@ -487,4 +529,6 @@ ukáže dotaz Neuložené změny se seznamem změn; bez změn program skončí b
 nejde načíst, ukáže okno Chyba jako Soubor → Načíst stav…,
 `--lang en` (nebo `cs`) vybere jazyk. Rozložení oken uživatele
 (`imgui.ini`) se nemění. Se `--settings X.json` se ale rozložení ukládá do `X.json.imgui.ini` a při dalším snímku se
-použije, proto ho před snímkem smazat.
+použije, proto ho před snímkem smazat. **Data ve `work/` snímek mění jako běžný program:** přepnutí ze sestavy se
+zálohovanou pamětí (APS-5, DMR-1, sestavy V) ji zapíše, `--ui-save-copy` zapíše do `work/machines`. Takové snímky
+pouštět nad kopií dat (`--data-root SLOŽKA`).

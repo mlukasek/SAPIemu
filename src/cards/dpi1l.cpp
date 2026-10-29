@@ -173,7 +173,7 @@ Dpi1l::~Dpi1l()
 {
     link_close();   // no 'leave': the relay sees the link end (as switching the DPI off)
     if (tcp) tcp->close();
-    flush();
+    if (!trial) flush();
 }
 
 bool Dpi1l::configure(const json& cfg, std::string& e)
