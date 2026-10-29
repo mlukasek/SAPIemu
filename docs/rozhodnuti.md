@@ -2684,7 +2684,9 @@ K plovoucím oknům měl čtyři připomínky a se změnami souhlasil. Udělal j
 - **Strop automatického zvětšení displeje** (autor: „v praxi se mi osvědčilo zhruba 200 % (to je moje rozlišení),
   400 % vypadá monstrózně a kostičkovatě“): samo rozmístění dá displeji nejvýš round(2 × měřítko Windows), tedy
   200 % při 100 % a 300 % při 125 a 150 %. Fyzická velikost obrazu tak zůstane zhruba stejná. Když se nevejde,
-  zvětšení klesne až na 100 %. Zoom zvolený v menu a uložená místa oken strop nemají.
+  zvětšení klesne až na 100 %. Zoom zvolený v menu a uložená místa oken strop nemají. **Večer změněno:** po
+  galerii všech sestav ve třech velikostech autor napsal „bych asi nezvětšoval screeny nad 200 %“, strop je 200 %
+  při každém měřítku (oddíl „galerie sestav a strop 200 %“).
 - **Další displej ne větší než hlavní výstup** (nález oponenta): jeho obraz nejvýš 1,5× širší a vyšší než obraz
   hlavního výstupu, jinak menší zvětšení, nejníž 100 %. U her (Hry a dema, BomberNet, Prince of Persia) zůstane
   hra na CGA-1V 200 % a konzole AND-1V s nabídkou ECMONu jde na 100 %. Bez toho měla konzole 1312 × 1018 bodů a hra
@@ -3259,6 +3261,20 @@ displeje“ 1450 × 1088, zapisovač 600 × 840 vpravo, konfigurátor se neveše
 
 Ověřeno snímky při 2252 × 1214 (125 %) a 1280 × 720: AR 1990 přímo i po ZPS-1, CP/M s terminálem, ZPS-1 beze změny,
 dok.
+
+## 2026-10-29 – galerie sestav a strop 200 %
+
+Autor si nechal udělat stránku se snímky všech sestav z okna Vybrat sestavu kromě Ostatních (20 sestav, spuštěných
+jako z výběru, s průvodcem) ve třech velikostech okna: jeho 2252 × 1214 při 125 %, 1920 × 1080 a 1280 × 720. Snímky
+nad čistou kopií dat (`tools/ui_gallery.py` sandbox), stavy sestav jako u náhledů. Autor: „celkem dobrý … bych asi
+nezvětšoval screeny nad 200 % … už jsou jemné nuance.“
+
+- **Strop automatického zvětšení displeje 200 % při každém měřítku Windows** (dřív round(2 × měřítko), při 125 %
+  300 %). Větší zvětšení jde zvolit pravým tlačítkem nebo v menu a pamatuje se.
+- **Průvodce při 1280 × 720 zůstává, jak je:** u sestav se třemi okny (APS-5, IMS-2, ZPS-2 s MIKOSem V5 a K,
+  hry) na něj zbude jen proužek s nadpisem. Pokus dát mu aspoň 24 × 12 výšek písma přes vedlejší displej
+  přidal jen řádek textu a u Prince of Persia a BomberNetu zakryl výzvu `A>` konzole AND-1V, kam se píše.
+  Průvodce jde zvětšit tažením nebo otevřít z menu Nápověda.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

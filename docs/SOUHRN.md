@@ -60,7 +60,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     z etapy 7 štítek „Pec 1“, `keyboard_status`, navigace), beta zip (`package.py --public`) až na Martinův pokyn,
     ruční zkoušky autora (plán, etapy 4–7), pak etapa 8.
   - **Rozložení oken podle autora** (2026-10-29, rozhodnutí 2026-10-29 – rozložení oken podle autora): plovoucí
-    okna potvrzená, automatické zvětšení displeje nejvýš round(2 × měřítko) (200 % při 100 %), další displej nejvýš
+    okna potvrzená, automatické zvětšení displeje nejvýš 200 % (od večera při každém měřítku), další displej nejvýš
     1,5× větší než hlavní výstup, okna displejů velikosti obrazu s malým okrajem, konfigurátor ve výchozím rozložení
     jen když je místo (44 × 44 em, s nejnižší prioritou, `windows.configuration_auto`), Zobrazení → Okna, položky oken
     dají zakryté okno nejdřív dopředu, Zobrazení → Přeskládat otevřená okna. Na rozhodnutí autora: konfigurátor

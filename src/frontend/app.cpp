@@ -900,13 +900,13 @@ static ImVec2 display_window_size(App& app, DisplayDevice* d, float k)
                   d->screen_height() * k / fb + pad + ImGui::GetFrameHeight());
 }
 
-// The largest zoom the layout gives a display by itself (author 2026-10-29: 200 % at the Windows scale 100 % looks
-// good, 400 % monstrous and blocky): about 200 % of the picture as large on any display, so proportionally more at a
-// higher scale (125 % and 150 %: 300 %). A zoom chosen from the menu and a saved layout are not limited.
+// The largest zoom the layout gives a display by itself: 200 % at any Windows scale (author 2026-10-29: 400 % monstrous
+// and blocky; in the evening, after the gallery of all machines at 125 %: "not above 200 %"; before it was round(2 x
+// scale), 300 % at 125 and 150 %). A zoom chosen from the menu and a saved layout are not limited.
 static float display_zoom_cap(App& app)
 {
-    int cap = (int)(2.0f * app.dpi + 0.5f);
-    return (float)(cap < 1 ? 1 : cap);
+    (void)app;
+    return 2.0f;
 }
 
 // The largest integer zoom whose window fits w x h; below 1:1 the largest zoom that fits.

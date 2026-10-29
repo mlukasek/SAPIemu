@@ -261,9 +261,9 @@ vzhledu: okna):
   - Hlavní výstup (konzole, nebo displej z klíče sestavy `main_display`, `docs/sestavy.md`) plánuje `app.cpp`
     (`layout_main`) vlevo nahoře v největším celočíselném zvětšení do 65 % šířky. Ostatní displeje umisťuje
     `layout_display`, ostatní okna `layout_window` do volného místa (`find_place`, váhy rolí `weight_of`).
-  - Samo rozmístění dá displeji nejvýš `display_zoom_cap` = round(2 × měřítko Windows): 200 % při 100 %, 300 % při
-    125 a 150 % (od 2026-10-29, autor: 400 % je obludné a kostičkované). Zoom zvolený v menu a uložená místa platí
-    dál. Ostatní displeje zkouší zvětšení od stropu dolů po 1:1 (`layout_display`), okno má vždy velikost obrazu
+  - Samo rozmístění dá displeji nejvýš `display_zoom_cap` = 200 % při každém měřítku Windows (od 2026-10-29 večer,
+    autor po galerii všech sestav; ráno round(2 × měřítko), 300 % při 125 a 150 %; 400 % je obludné a kostičkované).
+    Zoom zvolený v menu a uložená místa platí dál. Ostatní displeje zkouší zvětšení od stropu dolů po 1:1 (`layout_display`), okno má vždy velikost obrazu
     s malým okrajem (`display_window_size`), bez černé plochy. Pod 1:1 největší volné místo do 3/4. Další displej
     má obraz nejvýš 1,5× širší a vyšší než hlavní výstup (`place_display`; konzole AND-1V her 100 % vedle CGA-1V
     200 %, DGD-1 vedle AND-1 200 %). Displej se zoomem zvoleným v menu (`zs.fixed`, po Přeskládat otevřená okna)
