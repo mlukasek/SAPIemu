@@ -61,7 +61,7 @@ const WinDef k_wins[LW_COUNT] = {
     { "###Keyboard shortcuts", ROLE_DIALOG, 36, 24, 0, 0, 0, 0 },
     { "###About SAPIemu", ROLE_DIALOG, 0, 0, 0, 0, 0, 0 },   // its own size (AlwaysAutoResize)
     { "###Report a bug", ROLE_DIALOG, 0, 0, 0, 0, 0, 0 },    // the same
-    { "###Help", ROLE_DIALOG, 50, 44, 0, 0, 0, 0 },          // First steps, Glossary: text to read, wide tables
+    { "###Help", ROLE_DIALOG, 50, 44, 0, 0, 0, 0 },          // the documents: text to read, wide tables, pictures
 };
 
 const int MAX_DISPLAY_IDS = 5;   // ###screen, ###gfx0..3 (app.cpp)

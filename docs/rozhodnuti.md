@@ -2924,6 +2924,7 @@ a vyzkoušet, je na konci oddílu.
     Vypadají jako `TextLink` v O programu (barva, podtržení, cíl v bublině), bez šipky ↗. V průvodcích jsou teď
     v textu, dřív byly pod odstavcem. `GETTING-STARTED.md` je v repu jen kód, soubor existuje jen v zipu.
 - **Nápověda → Návody k obsluze** (`navod-*.md`) se dál otevírají mimo program: mají obrázky, které okno nekreslí.
+  Hned po etapě to autor změnil: okno Nápověda je prohlížeč všech `.md` (oddíl „dokumentace v okně Nápověda“).
 - **Bubliny `tip(text)` a `tipf(formát, …)`** (`theme.h`) zalomí text na asi 35 šířek písma (bublina měla až 1470 px
   na řádku). Chovají se jako `SetTooltip` (`BeginTooltipEx` s `OverridePrevious`), podmínku `IsItemHovered()` píše
   volající. Skript nahradil všech 117 volání `ImGui::SetTooltip` v `src/frontend`, `menu_tip` z `app.cpp` a dvě
@@ -3144,8 +3145,8 @@ Rozhodl workflow, autor to může změnit (doporučení je první):
 - **Mnemoniky Intel** pro 8080 a 8085 později jako přepínač v debuggeru, nebo vůbec.
 - **Viditelné popisky** místo samotné bubliny (tlačítko „…“ u média, LO1/LO2, LI a/b APS-5; hodnocení 5.4) později,
   mění vzhled oken Médií a přístrojů.
-- **Návody k obsluze** nechat mimo program, nebo později v okně Nápověda (chce obrázky `![…](img/…)` přes
-  `SDL_LoadPNG` jako náhledy).
+- ~~**Návody k obsluze** nechat mimo program, nebo později v okně Nápověda~~ Rozhodl autor hned po etapě: v okně
+  Nápověda (oddíl „dokumentace v okně Nápověda“).
 - **Značka kopie v souboru** v jazyce uložení (pole Jméno v konfigurátoru ji tak ukáže), nebo jméno bez značky
   a značka jen v titulku.
 - **Uložit jako v buildu pro vydání** začíná u nové a dodané sestavy ve `work/machines`, nebo v `machines/`.
@@ -3186,13 +3187,52 @@ Snímek skrytého okna tyto věci neukáže:
 
 Známá omezení:
 
-- Build pro vydání, `release test` a WSL se nespouštěly (liší se jen `save_copies()` a výchozí složka Uložit jako).
-- Nové soubory je před commitem a zipem potřeba přidat do gitu: `src/frontend/markdown.h`, `markdown.cpp`,
-  `mdview.cpp`, `tests/test_markdown.cpp`, `tests/test_host.cpp`, `docs/slovnicek.md`, `docs/glossary.md`
-  (`package.py` nepřidané dokumenty okna Nápověda odmítne).
+- Build pro vydání a `release test` po commitu etapy (`0d03774`) prošly 62/62, WSL se nespouštělo.
+- Nové soubory (`markdown.*`, `mdview.cpp`, `test_markdown.cpp`, `test_host.cpp`, slovníčky) jsou v gitu od `0d03774`.
 - Třetí GUI spuštěné po ukončení prvního varování nedostane, i když druhé běží (druhé zámek nedrží). Pro varování to
   stačí.
 - Zrušit v otázce při spuštění z Vybrat sestavu se snímkem neověřilo (klávesy snímku nedošly do pole hledání).
+
+## 2026-10-29 – dokumentace v okně Nápověda (prohlížeč .md)
+
+Autor: „některé ty návody a postupy odkazují na .md soubory, které se otevírají podle systému … nebylo by dobré ty
+.md otevřít do vlastního okna s vlastním jednoduchým .md prohlížečem“. Souhlasil s návrhem; udělané hned po etapě 8
+v hlavním proudu, s jedním oponentem.
+
+- **Proč:** na čistých Windows `.md` nemá rozumný program (výběr aplikace nebo holý text se značkami), odkazy mezi
+  dokumenty a obrázky v cizím programu nefungují. Okno Nápověda z etapy 8 už Markdown kreslilo.
+- **Okno Nápověda je prohlížeč** každého `.md` z dat, který program otevírá: První kroky a Slovníček (tlačítka),
+  Návody k obsluze (seznam v okně i v menu Nápověda) a dokumenty, na které vedou odkazy (popisy desek z návodů,
+  návody z průvodců sestavami). Ostatní soubory (obrázek, sestava, složka) dál otevře program systému, odkaz vpravo
+  nahoře celý `.md` také.
+- **Historie jako v prohlížeči:** Zpět a Vpřed (šipky, Alt+šipka vlevo a vpravo, boční tlačítka myši), nový
+  dokument zahodí ty, které byly před ním. Každý dokument si drží místo v textu i sbalené kapitoly. Titulek okna nese
+  nadpis dokumentu („Nápověda – KZD-1: návod k obsluze“).
+- **Stránky podle jazyka:** První kroky a Slovníček ukazují soubor v jazyce rozhraní. Odkaz na soubor druhého jazyka
+  (anglický slovníček odkazuje český) otevře právě ten soubor.
+- **Co prohlížeč umí navíc:** obrázky PNG (zmenšené na šířku okna, s rámečkem, kliknutím v plné velikosti; víc
+  obrázků pod sebou v jednom odstavci jako v `docs/sestavy.md`), citace `>` se svislou čarou (`docs/desky/MFC-1A.md`),
+  cesty s `..` (`docs/desky/Minigraf.md` → `../img`). Všechny dokumenty kromě Prvních kroků mají kapitoly otevřené,
+  Sbalit vše je sbalí. Co nezná (HTML, poznámky pod čarou), ukáže jako text.
+- **Dlouhé dokumenty** (popisy desek mají stovky řádků): výšky bloků se pamatují pro šířku a velikost písma,
+  rozvrhují se jen bloky v pohledu.
+- **Tabulky:** sloupec přesně tak široký jako jeho nejdelší slovo ho kvůli zaokrouhlení lámal („Velikos-t“
+  v JPR-1S); když se nejdelší slova nevejdou, úzké sloupce si je nechají a široké se dělí o zbytek (dřív se
+  zmenšily všechny poměrně).
+- **Dokument, který v kopii není** (zip nemá vývojářské poznámky `SOUHRN.md`, `rozhodnuti.md`, `docs/vydani/`): okno
+  řekne „Soubor … chybí.“.
+- **Ověřeno:** `test_markdown` (obrázky, citace, cesty, výzva `>RUN` v bloku kódu není citace), snímky návodu KZD-1
+  s obrázkem, MFC-1A s citací, Minigraf s `../img`, JPR-1S s tabulkou v tmavém vzhledu, anglický slovníček,
+  chybějící soubor, odkaz → Zpět → Vpřed kliknutím.
+- **Po oponentuře** (oponent porovnal starý a nový parser na všech 144 `.md` repa): citace pod bodem seznamu zůstane
+  pod ním i s textem za ní (`docs/vydani/ux-hodnoceni.md`; předzpracování nechá odsazení před `>`, přechod do
+  citace a z ní nemaže seznamy, svislá čára v úrovni citace); blok kódu v citaci skončí se svým plotem nebo s citací
+  (dřív by spolkl zbytek dokumentu); plot uvnitř komentáře HTML neskryje citace za ním; obrázek z webu sám
+  v odstavci je odkaz do prohlížeče; `md_norm_path` nechá kořen absolutní cesty (`/home/…`, UNC `//server/…`);
+  Alt+šipka vlevo a vpravo jsou v Nápověda → Klávesové zkratky. Testy na všechno v `test_markdown`.
+
+Ruční zkouška autora: Nápověda → Návody k obsluze (obrázky, klik na obrázek), odkaz z průvodce sestavy (AR 1990 →
+návod k plotteru), Alt+šipky a boční tlačítka myši, přepnutí jazyka s otevřeným oknem.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

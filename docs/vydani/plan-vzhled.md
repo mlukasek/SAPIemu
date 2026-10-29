@@ -512,7 +512,9 @@ a doplňky:
   do `work/machines`, ladicí build přepisuje. „Obnovit původní“ nahrazuje odkaz „Vychází z“ (vybere dodanou sestavu)
   a Smazat… u kopie.
 - Debugger ukazuje registry podle CPU, mnemoniky Intel v disassembleru nejsou (odloženo).
-- Nápověda → Návody k obsluze zůstávají mimo program (mají obrázky).
+- Návody k obsluze měly zůstat mimo program (mají obrázky). Hned po etapě (autor 2026-10-29: „vlastní okno
+  s vlastním jednoduchým .md prohlížečem“) je okno Nápověda prohlížeč všech `.md`, které program otevírá: obrázky,
+  citace, odkazy mezi dokumenty, Zpět a Vpřed.
 - Navíc: oprava psaní do hlavního grafického výstupu her (chyba z etapy 5), Poslední sestavy i po Uložit jako
   a nadpis „Poslední sestavy“ ve Vybrat sestavu, slovníček (`docs/slovnicek.md`, `docs/glossary.md`), druhé okno
   nic nezapíše, dokud uživatel neodpoví na varování.

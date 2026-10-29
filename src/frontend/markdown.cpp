@@ -2,6 +2,7 @@
 #include "frontend/markdown.h"
 
 #include <string.h>
+#include <utility>
 
 // ---------------------------------------------------------------- inline
 
@@ -155,6 +156,29 @@ std::string md_plain(const MdText& text)
     return s;
 }
 
+std::string md_norm_path(const std::string& path)
+{
+    // an absolute path keeps its root: "/home/..." (POSIX), "//server/share/..." or "\\server\share\..." (UNC)
+    size_t root = 0;
+    while (root < 2 && root < path.size() && (path[root] == '/' || path[root] == '\\')) root++;
+    std::vector<std::string> parts;
+    size_t a = 0;
+    while (a <= path.size()) {
+        size_t e = path.find_first_of("/\\", a);
+        if (e == std::string::npos) e = path.size();
+        std::string s = path.substr(a, e - a);
+        if (s == ".." && !parts.empty() && parts.back() != "..") parts.pop_back();
+        else if (!s.empty() && s != ".") parts.push_back(s);
+        a = e + 1;
+    }
+    std::string out(root, '/');
+    for (size_t k = 0; k < parts.size(); k++) {
+        if (k) out += '/';
+        out += parts[k];
+    }
+    return out;
+}
+
 // ---------------------------------------------------------------- blocks
 
 static size_t indent_of(const std::string& l)
@@ -262,6 +286,30 @@ struct ListLevel {
 };
 }
 
+// A paragraph of pictures and nothing else ("![text](file)", a title after the file allowed; several on the lines of
+// one paragraph): their files and texts.
+static bool images_only(const std::string& raw, std::vector<std::string>& files, std::vector<std::string>& alts)
+{
+    files.clear();
+    alts.clear();
+    size_t i = 0, n = raw.size();
+    while (true) {
+        while (i < n && (raw[i] == ' ' || raw[i] == '\t')) i++;
+        if (i == n) return !files.empty();
+        if (raw.compare(i, 2, "![") != 0) return false;
+        size_t mid = raw.find("](", i + 2);
+        size_t end = mid == std::string::npos ? mid : raw.find(')', mid + 2);
+        if (end == std::string::npos) return false;
+        std::string alt = raw.substr(i + 2, mid - i - 2), file = raw.substr(mid + 2, end - mid - 2);
+        size_t sp = file.find(' ');   // ![text](file "title")
+        if (sp != std::string::npos) file.erase(sp);
+        if (file.empty() || alt.find(']') != std::string::npos) return false;
+        files.push_back(file);
+        alts.push_back(alt);
+        i = end + 1;
+    }
+}
+
 // The list level of a block indented by `ind` (not an item): the items whose text it is indented under (a little
 // less is enough: two spaces under "1. "); not indented: out of the lists.
 static int text_level(std::vector<ListLevel>& lists, size_t ind)
@@ -284,18 +332,51 @@ void md_parse(const std::string& text, std::vector<MdBlock>& out)
         lines.push_back(l);
         a = e + 1;
     }
+    // the lines of a quote without their "> ", the indent in front kept (a quote under a list item stays under it);
+    // not inside a code block (a prompt ">RUN" there is text) unless the block itself is in the quote; not inside
+    // an HTML comment (left out by the parser below)
+    std::vector<bool> quote(lines.size(), false);
+    bool in_code = false, code_quoted = false, in_comment = false;
+    for (size_t k = 0; k < lines.size(); k++) {
+        std::string& l = lines[k];
+        size_t ind = indent_of(l);
+        if (in_comment) {
+            if (l.find("-->") != std::string::npos) in_comment = false;
+            continue;
+        }
+        if (!in_code && l.compare(ind, 4, "<!--") == 0) {
+            in_comment = l.find("-->", ind + 4) == std::string::npos;
+            continue;
+        }
+        bool q = ind < 4 && ind < l.size() && l[ind] == '>' && (!in_code || code_quoted);
+        if (q) {
+            l.erase(ind, 1);
+            if (ind < l.size() && l[ind] == ' ') l.erase(ind, 1);
+            quote[k] = true;
+        }
+        if (fence(l.substr(indent_of(l)))) {
+            if (!in_code) code_quoted = q;
+            in_code = !in_code;
+        }
+    }
     std::vector<std::string> raw;   // the text of the blocks before md_inline (joined lines)
     std::vector<ListLevel> lists;
     bool joinable = false;          // the last block is a paragraph or an item a text line may go on
+    bool quoted = false;            // the lines now are those of a quote
     auto push = [&](MdKind kind, int level, const std::string& r) {
         MdBlock b;
         b.kind = kind;
         b.level = level;
+        b.quote = quoted;
         out.push_back(b);
         raw.push_back(r);
     };
     for (size_t i = 0; i < lines.size(); i++) {
         const std::string& l = lines[i];
+        if (quote[i] != quoted) {   // into a quote or out of it: the text above ends (the lists go on by the indent)
+            quoted = quote[i];
+            joinable = false;
+        }
         size_t ind = indent_of(l);
         std::string body = l.substr(ind);
         if (body.empty()) {
@@ -312,6 +393,10 @@ void md_parse(const std::string& text, std::vector<MdBlock>& out)
             push(MD_CODEBLOCK, text_level(lists, ind), std::string());
             std::string close = body.substr(0, 3);
             for (i++; i < lines.size(); i++) {
+                if (quote[i] != quoted) {   // the quote ended before the block was closed: so did the block
+                    i--;
+                    break;
+                }
                 const std::string& c = lines[i];
                 size_t ci = indent_of(c);
                 if (c.compare(ci, 3, close) == 0) break;
@@ -375,7 +460,23 @@ void md_parse(const std::string& text, std::vector<MdBlock>& out)
         out.pop_back();
         raw.pop_back();
     }
-    for (size_t k = 0; k < out.size(); k++)
+    std::vector<MdBlock> done;   // a paragraph of pictures becomes a block for each
+    done.reserve(out.size());
+    std::vector<std::string> files, alts;
+    for (size_t k = 0; k < out.size(); k++) {
+        if (out[k].kind == MD_PARAGRAPH && images_only(raw[k], files, alts)) {
+            for (size_t i = 0; i < files.size(); i++) {
+                MdBlock b = out[k];   // its level in a list, its quote
+                b.kind = MD_IMAGE;
+                b.image = files[i];
+                md_inline(alts[i], b.text);
+                done.push_back(b);
+            }
+            continue;
+        }
         if (out[k].kind == MD_HEADING || out[k].kind == MD_PARAGRAPH || out[k].kind == MD_ITEM)
             md_inline(raw[k], out[k].text);
+        done.push_back(std::move(out[k]));
+    }
+    out.swap(done);
 }

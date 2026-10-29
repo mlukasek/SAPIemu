@@ -90,6 +90,54 @@ static void blocks(void)
     CHECK(b[17].kind == MD_HEADING && b[17].level == 3);
 }
 
+// A picture alone in its paragraph is a block (inside a text it stays a link), a quote gives marked blocks, a prompt
+// in a code block is no quote, paths without "..".
+static void pictures_quotes(void)
+{
+    const char* doc =
+        "![A plotter](../img/x.png)\n"
+        "\n"
+        "See ![this](img/y.png) here.\n"
+        "\n"
+        "> **Note:** first\n"
+        "> 1. one\n"
+        ">    goes on\n"
+        "\n"
+        "After.\n"
+        "\n"
+        "```\n"
+        ">RUN\n"
+        "```\n";
+    std::vector<MdBlock> b;
+    md_parse(doc, b);
+    CHECK_EQ(b.size(), 10);
+    if (b.size() != 10) return;
+    CHECK(b[0].kind == MD_IMAGE && b[0].image == "../img/x.png" && md_plain(b[0].text) == "A plotter");
+    CHECK(b[2].kind == MD_PARAGRAPH && b[2].text.size() == 3 && b[2].text[1].link == "img/y.png");
+    CHECK(b[4].kind == MD_PARAGRAPH && b[4].quote && md_plain(b[4].text) == "Note: first");
+    CHECK(b[5].kind == MD_ITEM && b[5].quote && b[5].marker == "1." && md_plain(b[5].text) == "one goes on");
+    CHECK(b[7].kind == MD_PARAGRAPH && !b[7].quote && md_plain(b[7].text) == "After.");
+    CHECK(b[9].kind == MD_CODEBLOCK && !b[9].quote && b[9].lines.size() == 1 && b[9].lines[0] == ">RUN");
+    md_parse("  ![A](a.png)\n  ![B](b.png \"title\")\n", b);   // two on the lines of one paragraph: two pictures
+    CHECK(b.size() == 2 && b[0].kind == MD_IMAGE && b[1].kind == MD_IMAGE && b[1].image == "b.png" &&
+          md_plain(b[1].text) == "B");
+    // a quote under a list item stays under it, so does the text after it (docs/vydani/ux-hodnoceni.md)
+    md_parse("1. Item\n\n   > Quoted\n\n   Text of the item.\n", b);
+    CHECK(b.size() == 5 && b[2].quote && b[2].level == 1 && !b[4].quote && b[4].level == 1);
+    // a code block in a quote ends with its fence or with the quote, the rest of the document stays
+    md_parse("> Note:\n> ```\n> 10 PRINT\n> ```\n\nAfter.\n\n## Section\n", b);
+    CHECK(b.size() == 6 && b[1].kind == MD_CODEBLOCK && b[1].quote && b[1].lines.size() == 1 &&
+          b[1].lines[0] == "10 PRINT" && b[3].kind == MD_PARAGRAPH && !b[3].quote && b[5].kind == MD_HEADING);
+    // a fence inside an HTML comment does not hide the quotes after it
+    md_parse("<!--\n```\n-->\n> Quoted\n", b);
+    CHECK(b.size() == 1 && b[0].quote && md_plain(b[0].text) == "Quoted");
+    CHECK(md_norm_path("/home/u/../x.md") == "/home/x.md");
+    CHECK(md_norm_path("\\\\server\\share\\a.md") == "//server/share/a.md");
+    CHECK(md_norm_path("docs/desky/../img/x.png") == "docs/img/x.png");
+    CHECK(md_norm_path("./docs\\navod-kzd1.md") == "docs/navod-kzd1.md");
+    CHECK(md_norm_path("../a/./b") == "../a/b");
+}
+
 static bool web(const std::string& l)
 {
     return l.compare(0, 7, "http://") == 0 || l.compare(0, 8, "https://") == 0;
@@ -176,6 +224,7 @@ int main()
     test_init();
     inline_marks();
     blocks();
+    pictures_quotes();
     glossaries();
     first_steps();
     return TEST_RESULT();

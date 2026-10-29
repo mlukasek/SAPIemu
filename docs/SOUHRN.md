@@ -93,6 +93,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     nespuštěné. Nehoda: snímek přepsal `work/aps-5/crm.bin` a `rtc.bin`. **Dál:** přidat
     nové soubory do gitu (`markdown.*`, `mdview.cpp`, `test_markdown.cpp`, `test_host.cpp`, slovníčky), volby
     a ruční zkoušky autora (rozhodnutí), `release test`, pak etapa 9 (prezentace a zveřejnění).
+  - **Prohlížeč `.md`** (2026-10-29 po etapě 8, přání autora; rozhodnutí 2026-10-29 – dokumentace v okně Nápověda):
+    okno Nápověda ukazuje každý `.md`, který program otevírá (První kroky, Slovníček, Návody k obsluze, odkazy
+    z průvodců a dokumentů), s obrázky, citacemi, historií Zpět/Vpřed a dokumentem v titulku; dlouhé dokumenty
+    rozvrhuje jen v pohledu (`MdCache`). Udělané v hlavním proudu, jeden oponent.
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

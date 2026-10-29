@@ -57,7 +57,7 @@ struct UiSnapshot {
     int fullscreen = 0;          // Alt+Enter so many times: 1 the display used last over the whole window (the window
                                  // keeps its size), 2 on and off again (the windows as they were)
     bool report = false;         // show Help -> Report a bug
-    std::string help;            // show Help -> First steps ("first") or Glossary ("glossary")
+    std::string help;            // the window Help: First steps ("first"), Glossary ("glossary") or a .md file
     int help_open = 0;           // its sections: 1 all open, -1 all closed (0 = the first open)
     float help_scroll = -1;      // its text scrolled to this part (0 = the top, 1 = the end)
     bool second = false;         // the warning a second GUI over the same settings and work folder gets (no lock)

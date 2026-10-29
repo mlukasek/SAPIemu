@@ -515,7 +515,8 @@ zavře otázku APS-5; jeden tisknutelný znak, třeba `3`, pošle i jako napsan�
 `--ui-mouse X,Y` postaví myš (body okna; s `--ui-debugger --ui-pause --ui-key F9` breakpoint
 na řádku pod myší), `--ui-click X,Y` tam klikne levým tlačítkem (víc jich po sobě). Ctrl+Shift+C přepíše schránku jako `--ui-copy`,
 `--ui-hide-display KLÍČ` skryje okno displeje jako Zobrazení → Obrazovky (`screen`, `gfx0`…),
-`--ui-help first|glossary` otevře okno Nápověda na záložce První kroky nebo Slovníček (`--ui-help-open all|none`
+`--ui-help first|glossary|SOUBOR.md` otevře okno Nápověda s Prvními kroky, Slovníčkem nebo dokumentem `.md` z dat
+(`docs/navod-kzd1.md`; `--ui-help-open all|none`
 všechny kapitoly otevřené nebo sbalené, `--ui-help-scroll 0..1` posun), `--ui-second` ukáže varování druhého okna
 „Už běží jiné SAPIemu“, `--ui-drop SOUBOR` přetáhne soubor na okno jako z Průzkumníka (víc jich po sobě),
 `--ui-save` stiskne Uložit v konfigurátoru (po `--ui-set`), `--ui-save-copy` uloží jako build pro vydání i v ladicím

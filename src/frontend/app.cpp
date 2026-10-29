@@ -3326,8 +3326,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_settings = snap->settings;
         app.ui.show_shortcuts = snap->shortcuts;
         app.ui.show_report = snap->report;
-        if (!snap->help.empty()) {   // Help -> First steps or Glossary (not over Choose a machine of a first start)
-            help_open(app.ui, snap->help == "glossary" ? HELP_GLOSSARY : HELP_FIRST_STEPS);
+        if (!snap->help.empty()) {   // the window Help (not over Choose a machine of a first start)
+            if (snap->help == "glossary") help_open(app.ui, HELP_GLOSSARY);
+            else if (snap->help == "first") help_open(app.ui, HELP_FIRST_STEPS);
+            else help_open_doc(app.ui, snap->help);   // a .md from the data root (docs/navod-kzd1.md)
             app.ui.show_browser = snap->browser;
             app.ui.help_set_open = snap->help_open;
             app.ui.help_scroll = snap->help_scroll;

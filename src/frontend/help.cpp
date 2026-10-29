@@ -1,6 +1,6 @@
-// Help: the window "Help" (First steps and the Glossary from docs/, drawn in the program), the windows "About
-// SAPIemu", "Keyboard shortcuts" (one table for the whole program) and "Report a bug", the user guides of docs/
-// opened in the program the system has for them.
+// Help: the window "Help" (the documents of docs/ drawn in the program: First steps, the Glossary, the user guides and
+// any .md a link leads to, with Back and Forward), the windows "About SAPIemu", "Keyboard shortcuts" (one table for
+// the whole program) and "Report a bug".
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 #include "frontend/markdown.h"
@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <map>
 #include <vector>
 #include <SDL3/SDL.h>
 #include "imgui.h"
@@ -62,21 +63,23 @@ static const struct {
     { "docs/aps5-ukazka.md", "APS-5 step by step" },
 };
 
-// ---------------------------------------------------------------- the window Help: first steps, glossary
+// ---------------------------------------------------------------- the window Help: the documents of docs/
 
-// The pages of the window Help (HelpPage): a document of docs/ in the language of the user interface (English: the
-// Czech one when the English one is missing), or its copy at the top of the release zip (tools/package.py GUIDES)
-// when docs/ lacks it. package.py checks that these files are in the zip.
+// The pages with a button at the top of the window Help (HelpPage): a document of docs/ in the language of the user
+// interface (English: the Czech one when the English one is missing), or its copy at the top of the release zip
+// (tools/package.py GUIDES) when docs/ lacks it. package.py checks that these files are in the zip.
 static const struct {
-    const char* title;   // tr() key: the tab and the item of the menu Help
+    const char* title;   // tr() key: the button and the item of the menu Help
+    const char* key;     // its entry in the history (UiState::help_history)
     const char* cs;
     const char* en;
     const char* top_cs;
     const char* top_en;
     bool all_open;       // all its sections open at first (one page to look things up in), else the first one
 } k_help[HELP_PAGES] = {
-    { "First steps", "docs/prvni-kroky.md", "docs/getting-started.md", "PRVNI-KROKY.md", "GETTING-STARTED.md", false },
-    { "Glossary", "docs/slovnicek.md", "docs/glossary.md", nullptr, nullptr, true },
+    { "First steps", "first", "docs/prvni-kroky.md", "docs/getting-started.md", "PRVNI-KROKY.md", "GETTING-STARTED.md",
+      false },
+    { "Glossary", "glossary", "docs/slovnicek.md", "docs/glossary.md", nullptr, nullptr, true },
 };
 
 // The file of a page now (from the data root), "" = none there.
@@ -91,54 +94,185 @@ static std::string help_file(int page)
     return std::string();
 }
 
-void help_open(UiState& ui, int page)
+// The page of an entry of the history, -1 = a file.
+static int entry_page(const std::string& e)
+{
+    for (int p = 0; p < HELP_PAGES; p++)
+        if (e == k_help[p].key) return p;
+    return -1;
+}
+
+// The file an entry shows now (from the data root): a page in the language of the user interface, else the entry.
+static std::string entry_file(const std::string& e)
+{
+    int p = entry_page(e);
+    return p >= 0 ? help_file(p) : e;
+}
+
+// A file as an entry: the file a page shows now (in the language of the user interface) is that page; the file of the
+// other language stays a file (the English glossary links the Czech one).
+static std::string entry_of(const std::string& file)
+{
+    for (int p = 0; p < HELP_PAGES; p++)
+        if (file == help_file(p)) return k_help[p].key;
+    return file;
+}
+
+void help_open_doc(UiState& ui, const std::string& file)
 {
     ui.show_help = true;
-    ui.help_page = page;
-    ui.help_select = true;
+    ui.help_go = entry_of(md_norm_path(file));
     ui.help_focus = true;
 }
 
-// A link to the document of another page (the glossary from the first steps): that page instead of the file outside.
-static bool help_link(UiState& ui, const std::string& path)
+void help_open(UiState& ui, int page)
 {
-    for (int p = 0; p < HELP_PAGES; p++)
-        if (path == help_file(p)) {
-            ui.help_page = p;
-            ui.help_select = true;
-            return true;
-        }
-    return false;
+    if (page < 0 || page >= HELP_PAGES) return;
+    ui.show_help = true;
+    ui.help_go = k_help[page].key;
+    ui.help_focus = true;
+}
+
+static bool is_md(const std::string& p)
+{
+    size_t n = p.size();
+    return n > 3 && p[n - 3] == '.' && (p[n - 2] | 0x20) == 'm' && (p[n - 1] | 0x20) == 'd';
+}
+
+bool help_link(UiState& ui, const std::string& path)
+{
+    if (!is_md(path)) return false;   // a picture, a machine, a folder: in the program of the system
+    help_open_doc(ui, path);
+    return true;
+}
+
+// The entry asked for (help_go) into the history after the one shown, the ones ahead of it gone (as in a web
+// browser); the one shown again changes nothing.
+static void help_navigate(UiState& ui)
+{
+    if (ui.help_go.empty()) return;
+    std::string e = ui.help_go;
+    ui.help_go.clear();
+    if (ui.help_pos >= 0 && ui.help_pos < (int)ui.help_history.size() && ui.help_history[(size_t)ui.help_pos] == e)
+        return;
+    ui.help_history.resize((size_t)(ui.help_pos + 1));
+    ui.help_history.push_back(e);
+    if (ui.help_history.size() > 50) ui.help_history.erase(ui.help_history.begin());
+    ui.help_pos = (int)ui.help_history.size() - 1;
 }
 
 struct HelpDoc {
     bool read = false;
     UiLanguage lang = LANG_CS;   // read for this language of the user interface
-    std::string file;            // the file read (another one after a change of the language)
+    std::string file;            // the file read (a page: another one after a change of the language)
     std::vector<MdBlock> blocks;
+    std::string title;           // its first heading: in the title of the window
     bool sections = false;       // it has ## sections (Expand all, Collapse all)
+    MdCache cache;               // the heights of its blocks (a long description of a board)
 };
 
-static void help_page(UiState& ui, int page, HelpDoc& d, int set_open)
+// The document of an entry: read when it is first shown and after a change of the language. fresh: another file than
+// before (the language changed): from the top.
+static HelpDoc& help_doc(const std::string& entry, bool* fresh)
 {
-    bool fresh = false;   // another document (the language changed): from the top
-    if (!d.read || d.lang != i18n_language()) {
-        std::string file = help_file(page);
-        fresh = d.read && file != d.file;
-        d.read = true;
-        d.lang = i18n_language();
-        d.file = file;
-        d.blocks.clear();
-        std::string text;
-        if (!file.empty() && file_read_text(data_path(file), text)) {
-            md_parse(text, d.blocks);
-            md_resolve(d.blocks, file);
-        }
-        d.sections = false;
-        for (const MdBlock& b : d.blocks)
-            if (b.kind == MD_HEADING && b.level == 2) d.sections = true;
+    static std::map<std::string, HelpDoc> s_docs;   // each keeps its open sections (its scrolling: its child window)
+    HelpDoc& d = s_docs[entry];
+    *fresh = false;
+    if (d.read && d.lang == i18n_language()) return d;
+    std::string file = entry_file(entry);
+    *fresh = d.read && file != d.file;
+    d.read = true;
+    d.lang = i18n_language();
+    d.file = file;
+    d.blocks.clear();
+    d.cache = MdCache();
+    std::string text;
+    if (!file.empty() && file_read_text(data_path(file), text)) {
+        md_parse(text, d.blocks);
+        md_resolve(d.blocks, file);
+    }
+    d.title.clear();
+    d.sections = false;
+    for (const MdBlock& b : d.blocks) {
+        if (b.kind == MD_HEADING && b.level == 1 && d.title.empty()) d.title = md_plain(b.text);
+        if (b.kind == MD_HEADING && b.level == 2) d.sections = true;
+    }
+    return d;
+}
+
+// Back and Forward (the arrows, Alt+Left and Alt+Right while the window has the keyboard, the side buttons of the
+// mouse over it), the pages and the user guides; then the next frame shows the entry chosen.
+static void help_toolbar(UiState& ui, const std::string& entry)
+{
+    int pos = ui.help_pos, n = (int)ui.help_history.size();
+    bool back = false, forward = false;
+    ImGui::BeginDisabled(pos <= 0);
+    if (ImGui::ArrowButton("back", ImGuiDir_Left)) back = true;
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(tr("Back (Alt+Left)"));
+    ImGui::SameLine();
+    ImGui::BeginDisabled(pos + 1 >= n);
+    if (ImGui::ArrowButton("forward", ImGuiDir_Right)) forward = true;
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) tip(tr("Forward (Alt+Right)"));
+    if (ImGui::Shortcut(ImGuiMod_Alt | ImGuiKey_LeftArrow)) back = true;
+    if (ImGui::Shortcut(ImGuiMod_Alt | ImGuiKey_RightArrow)) forward = true;
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+        if (ImGui::IsMouseClicked(3)) back = true;      // the side buttons of the mouse (X1, X2)
+        if (ImGui::IsMouseClicked(4)) forward = true;
+    }
+    if (back && pos > 0) ui.help_pos--;
+    else if (forward && pos + 1 < n) ui.help_pos++;
+    ImGui::SameLine(0, ImGui::GetFontSize());
+    for (int p = 0; p < HELP_PAGES; p++) {   // the page shown looks selected
+        bool shown = entry == k_help[p].key;
+        if (shown) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_Header));
+        if (ImGui::Button(tr(k_help[p].title))) help_open(ui, p);
+        if (shown) ImGui::PopStyleColor();
+        ImGui::SameLine();
+    }
+    const char* guide = tr("User guides");   // the guide shown names the list
+    for (const auto& g : k_docs)
+        if (entry == g.file) guide = tr(g.title);
+    if (ImGui::BeginCombo("##guides", guide, ImGuiComboFlags_WidthFitPreview | ImGuiComboFlags_HeightLargest)) {
+        for (const auto& g : k_docs)
+            if (file_exists(data_path(g.file)) && ImGui::Selectable(tr(g.title), entry == g.file))
+                help_open_doc(ui, g.file);
+        ImGui::Separator();
+        ImGui::TextDisabled("%s", tr("The guides are in Czech."));
+        ImGui::EndCombo();
+    }
+}
+
+void draw_help(UiState& ui)
+{
+    if (!ui.show_help) return;
+    help_navigate(ui);
+    if (ui.help_pos < 0) {   // open without an entry (opened by itself): the first steps
+        ui.help_go = k_help[HELP_FIRST_STEPS].key;
+        help_navigate(ui);
+    }
+    const std::string entry = ui.help_history[(size_t)ui.help_pos];
+    bool fresh = false;
+    HelpDoc& d = help_doc(entry, &fresh);
+    layout_window(LW_HELP);
+    if (ui.help_focus) {   // asked for from the menu: in front of the windows that hide it
+        ImGui::SetNextWindowFocus();
+        ui.help_focus = false;
+    }
+    char title[256];   // the document in the title, one window (and one place) for all of them
+    if (d.title.empty()) snprintf(title, sizeof(title), "%s###Help", tr("Help"));
+    else snprintf(title, sizeof(title), "%s \xE2\x80\x93 %s###Help", tr("Help"), d.title.c_str());
+    bool visible = ImGui::Begin(title, &ui.show_help);
+    if (!ui.show_help) ui.focus_display = 2;   // closed: the keyboard back to the display
+    if (!visible) {
+        ImGui::End();
+        return;
     }
     float u = ImGui::GetFontSize();
+    help_toolbar(ui, entry);
+    int set_open = ui.help_set_open;   // --ui-help-open
+    ui.help_set_open = 0;
     if (d.sections) {
         if (ImGui::SmallButton(tr("Expand all"))) set_open = 1;
         ImGui::SameLine();
@@ -156,16 +290,21 @@ static void help_page(UiState& ui, int page, HelpDoc& d, int set_open)
         ImGui::NewLine();
     }
     ImGui::Separator();   // the text scrolls under it
-    ImGui::BeginChild("text", ImVec2(0, 0), ImGuiChildFlags_None);
+    // a child window for each document: Back comes back to where it was read
+    std::string child = "text##" + entry;
+    ImGui::BeginChild(child.c_str(), ImVec2(0, 0), ImGuiChildFlags_None);
     if (d.blocks.empty()) {
-        std::string want = i18n_language() == LANG_EN ? k_help[page].en : k_help[page].cs;
+        int page = entry_page(entry);
+        std::string want = page < 0 ? entry : i18n_language() == LANG_EN ? k_help[page].en : k_help[page].cs;
         ImGui::TextDisabled(tr("The file %s is missing."), want.c_str());
     } else {
+        int page = entry_page(entry);
         MdView v;
         v.fold = true;
-        v.all_open = k_help[page].all_open;
+        v.all_open = page < 0 || k_help[page].all_open;
         v.set_open = set_open;
         v.own_link = help_link;
+        v.cache = &d.cache;
         ImGui::Indent(0.4f * u);
         md_draw(ui, d.blocks, v);
         ImGui::Unindent(0.4f * u);
@@ -174,57 +313,21 @@ static void help_page(UiState& ui, int page, HelpDoc& d, int set_open)
         if (ui.help_scroll >= 0) ImGui::SetScrollY(ui.help_scroll * ImGui::GetScrollMaxY());
     }
     ImGui::EndChild();
-}
-
-void draw_help(UiState& ui)
-{
-    if (!ui.show_help) return;
-    layout_window(LW_HELP);
-    if (ui.help_focus) {   // asked for from the menu: in front of the windows that hide it
-        ImGui::SetNextWindowFocus();
-        ui.help_focus = false;
-    }
-    bool visible = ImGui::Begin(tr_id("Help"), &ui.show_help);
-    if (!ui.show_help) ui.focus_display = 2;   // closed: the keyboard back to the display
-    if (!visible) {
-        ImGui::End();
-        return;
-    }
-    static HelpDoc s_docs[HELP_PAGES];   // each tab keeps its own scrolling and open sections
-    bool select = ui.help_select;        // a link may ask for another page while drawing: the next frame
-    ui.help_select = false;
-    if (ImGui::BeginTabBar("pages")) {
-        for (int p = 0; p < HELP_PAGES; p++) {
-            char label[96];
-            snprintf(label, sizeof(label), "%s###page%d", tr(k_help[p].title), p);
-            ImGuiTabItemFlags flags = select && ui.help_page == p ? ImGuiTabItemFlags_SetSelected : 0;
-            if (!ImGui::BeginTabItem(label, nullptr, flags)) continue;
-            if (!select) ui.help_page = p;
-            int set_open = 0;
-            if (ui.help_set_open && p == ui.help_page && !select) {
-                set_open = ui.help_set_open;
-                ui.help_set_open = 0;
-            }
-            help_page(ui, p, s_docs[p], set_open);
-            ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
-    }
     ImGui::End();
 }
 
 void help_docs_menu(UiState& ui)
 {
-    // in the window Help: Markdown drawn as on GitHub (tables, sections that fold), not a raw .md outside
+    // in the window Help: Markdown drawn as on GitHub (tables, pictures, sections that fold), not a raw .md outside
     if (ImGui::MenuItem(tr("First steps"))) help_open(ui, HELP_FIRST_STEPS);
     if (ImGui::MenuItem(tr("Glossary"))) help_open(ui, HELP_GLOSSARY);
     if (ImGui::IsItemHovered())
         tip(tr("The words of SAPI and of SAPIemu: machine, configurator, card, slot, jumper..."));
     if (ImGui::BeginMenu(tr("User guides"))) {
         for (const auto& d : k_docs)
-            if (file_exists(data_path(d.file)) && ImGui::MenuItem(tr(d.title))) open_doc(d.file);
+            if (file_exists(data_path(d.file)) && ImGui::MenuItem(tr(d.title))) help_open_doc(ui, d.file);
         ImGui::Separator();
-        ImGui::TextDisabled("%s", tr("The guides are in Czech, they open in the program for .md files."));
+        ImGui::TextDisabled("%s", tr("The guides are in Czech."));
         ImGui::EndMenu();
     }
 }
@@ -252,6 +355,7 @@ static const struct {
     { "Ctrl+F10", "Release the captured mouse (also the middle button)" },
     { "Ctrl+Shift+V", "Paste the clipboard on the SAPI keyboard (with the screen focused)" },
     { "Alt+C, Alt+V", "Copy, paste in the serial terminal (also Ctrl+Shift+C, Ctrl+Shift+V there)" },
+    { "Alt+Left, Alt+Right", "Back, forward in the window Help (also the side buttons of the mouse)" },
     { "Enter, Esc", "In a question window: Enter = the highlighted button, Esc = Cancel or Close" },
     { "Tab, arrows", "In the windows of the emulator (not on the screen of SAPI, not in the terminal): Tab shows the "
                      "frame on a control and moves it to the next one, the arrows move it too; Space or Enter "

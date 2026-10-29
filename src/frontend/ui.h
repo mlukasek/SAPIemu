@@ -163,10 +163,13 @@ struct UiState {
     bool show_shortcuts = false;   // Help -> Keyboard shortcuts
     bool show_report = false;      // Help -> Report a bug
     std::string report_status;     // its last copy ("Copied..."), shown under the buttons
-    // Help -> First steps, Glossary: one window with a tab for each (help.cpp, HELP_*)
+    // The window Help (help.cpp): the documents of docs/ drawn in the program with a history (Back, Forward). An entry
+    // is "first" or "glossary" (First steps, Glossary: the file in the language of the user interface) or a .md file
+    // from the data root (a user guide, a link).
     bool show_help = false;
-    int help_page = 0;             // the tab shown
-    bool help_select = false;      // help_page chosen from the menu or a link: its tab selected in the next frame
+    std::vector<std::string> help_history;
+    int help_pos = -1;             // the entry shown, -1 = none yet
+    std::string help_go;           // asked for by the menu or a link: shown from the next frame
     bool help_focus = false;       // the window to the front (it may be open behind others)
     int help_set_open = 0;         // the sections: 1 all open, -1 all closed (--ui-help-open), done when drawn
     float help_scroll = -1;        // --ui-help-scroll: the text scrolled to this part of it (0..1), -1 = as it is
@@ -354,11 +357,14 @@ void machine_index_refresh(UiState& ui);
 // the file chosen in this frame, else empty.
 std::string machine_index_menus(UiState& ui);
 void draw_guide(UiState& ui);
-// Help (frontend/help.cpp): About, Keyboard shortcuts, Report a bug, the user guides of docs/, the window Help with
-// First steps and the Glossary (docs/prvni-kroky.md, docs/slovnicek.md; English: docs/getting-started.md,
-// docs/glossary.md) drawn by mdview.cpp
+// Help (frontend/help.cpp): About, Keyboard shortcuts, Report a bug, the window Help with the documents of docs/ drawn
+// by mdview.cpp: First steps and the Glossary (docs/prvni-kroky.md, docs/slovnicek.md; English: docs/getting-started.md,
+// docs/glossary.md), the user guides (docs/navod-*.md) and every .md a link leads to
 enum HelpPage { HELP_FIRST_STEPS, HELP_GLOSSARY, HELP_PAGES };
 void help_open(UiState& ui, int page);   // the window Help with that page in front
+void help_open_doc(UiState& ui, const std::string& file);   // a .md from the data root in the window Help
+// MdView::own_link of the guides and the window Help: a .md in the window Help (true), anything else is not taken
+bool help_link(UiState& ui, const std::string& path);
 void draw_help(UiState& ui);
 void draw_about(UiState& ui);
 void draw_shortcuts(UiState& ui);

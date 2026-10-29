@@ -295,10 +295,13 @@ s Liborovými deskami.
     s tlačítkem Otevřít složku;
   - **Pokročilé (pro vývojáře):** sbalené, server MCP pro vývoj s Claude.
 - **Nápověda:**
-  - **První kroky** a **Slovníček** se otevřou v okně Nápověda programu, každý na své záložce (s anglickým
-    rozhraním anglické `docs/getting-started.md` a `docs/glossary.md`). Kapitoly jdou sbalit a rozbalit, odkazy
-    otevřou web nebo soubor, odkaz vpravo nahoře otevře celý soubor `.md` mimo program;
-  - Průvodce sestavou, Návody k obsluze (otevřou se v programu pro soubory .md, mají obrázky), Klávesové zkratky
+  - **Okno Nápověda** ukazuje dokumentaci přímo v programu: **První kroky**, **Slovníček** a **Návody k obsluze**
+    (tlačítka a seznam nahoře; s anglickým rozhraním anglické `docs/getting-started.md` a `docs/glossary.md`).
+    Odkaz na další dokument (popis desky, jiný návod) se otevře ve stejném okně, šipky Zpět a Vpřed (také
+    Alt+šipka vlevo a vpravo a boční tlačítka myši) vrátí předchozí. Obrázky jsou zmenšené na šířku okna, kliknutím
+    se otevřou v plné velikosti. Kapitoly jdou sbalit a rozbalit, odkazy na web otevřou prohlížeč, odkaz vpravo
+    nahoře otevře soubor `.md` v programu, který pro něj má systém;
+  - Průvodce sestavou (jeho odkazy na návody a popisy desek vedou také do okna Nápověda), Klávesové zkratky
     (všechny na jednom místě), Nahlásit chybu… a O programu;
   - bubliny nad ovládacími prvky se zalamují na rozumnou šířku.
 - **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků. Rychlé

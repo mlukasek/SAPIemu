@@ -69,7 +69,9 @@ Each instrument is drawn in its own window next to the screen.
 - **Data storage:** the cassette data recorder KZD-1, the cartridge disk RKD-1 and the magnetic tape RMP-1, with
   their mechanics drawn in the Media window.
 
-The guide of each machine has the steps. The longer user guides (Help → User guides) are in Czech.
+The guide of each machine has the steps. The longer user guides (Help → User guides) are in Czech. They open in
+the Help window of the program with their pictures, as do the links of the guides; Back and Forward (Alt+Left,
+Alt+Right) return to the page before.
 
 ## The games and demos
 

@@ -611,6 +611,7 @@ void draw_guide(UiState& ui)
     } else {
         MdView v;
         v.type_buttons = true;
+        v.own_link = help_link;   // a user guide or a description of a board: in the window Help
         md_draw(ui, s_doc, v);
     }
     ImGui::EndChild();

@@ -11,6 +11,8 @@
 #include <float.h>
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
+#include <map>
 #include <SDL3/SDL.h>
 #include "imgui.h"
 #include "imgui_internal.h"   // ItemAdd, ButtonBehavior: the links inside a wrapped text
@@ -25,6 +27,17 @@ static bool web(const std::string& u)
     return u.compare(0, 7, "http://") == 0 || u.compare(0, 8, "https://") == 0 || u.compare(0, 7, "mailto:") == 0;
 }
 
+// The file p named by a document in the folder `base`, from the data root: tried in that folder first, then from the
+// data root; "" when it is in neither.
+static std::string find_file(const std::string& p, const std::string& base)
+{
+    if (p.empty()) return std::string();
+    std::string in = md_norm_path(base + p);
+    if (file_exists(data_path(in))) return in;
+    std::string root = md_norm_path(p);
+    return file_exists(data_path(root)) ? root : std::string();
+}
+
 static void resolve_text(MdText& t, const std::string& base)
 {
     for (MdSpan& s : t) {
@@ -35,15 +48,10 @@ static void resolve_text(MdText& t, const std::string& base)
         std::string p = s.link;
         size_t hash = p.find('#');   // a place in a file: the file (a place in this page: no link)
         if (hash != std::string::npos) p.erase(hash);
-        for (char& c : p)
-            if (c == '\\') c = '/';
-        while (p.compare(0, 2, "./") == 0) p.erase(0, 2);
-        std::string found;
-        if (!p.empty() && !base.empty() && file_exists(data_path(base + p))) found = base + p;
-        else if (!p.empty() && file_exists(data_path(p))) found = p;
+        std::string found = find_file(p, base);
         if (!found.empty()) s.link = found;
         else if ((s.style & MD_PATH) || p.empty()) s.link.clear();
-        else s.link = base + p;   // as written: opening it says nothing when it is not there
+        else s.link = md_norm_path(base + p);   // as written: the window Help says it is not there
         s.style &= (uint8_t)~MD_PATH;
     }
 }
@@ -58,6 +66,10 @@ void md_resolve(std::vector<MdBlock>& doc, const std::string& file)
         resolve_text(b.text, base);
         for (std::vector<MdText>& row : b.rows)
             for (MdText& cell : row) resolve_text(cell, base);
+        if (!b.image.empty() && !web(b.image)) {   // a picture on the web: a link to it (picture_block)
+            std::string found = find_file(b.image, base);
+            b.image = found.empty() ? md_norm_path(base + b.image) : found;
+        }
     }
 }
 
@@ -149,12 +161,15 @@ float layout(const MdText& t, const Fonts& f, bool bold, float width, std::vecto
         if (frags) frags->push_back({ span, b, e, x, y, w });
         x += w;
     };
+    // half a pixel of slack: a column of a table as wide as its longest word (column_widths) is that width again only
+    // up to the rounding of its padding, the word must not be cut for that
+    const float slack = 0.5f;
     auto place = [&]() {
         if (nword == 0) return;
         if (word_w > lmax) lmax = word_w;
-        if (x > 0 && x + space + word_w > width) newline();
+        if (x > 0 && x + space + word_w > width + slack) newline();
         else if (x > 0) x += space;
-        if (word_w <= width - x) {
+        if (word_w <= width - x + slack) {
             for (int k = 0; k < nword; k++) emit(word[k].span, word[k].b, word[k].e, word[k].w);
         } else {   // longer than the line: cut at characters
             for (int k = 0; k < nword; k++) {
@@ -331,8 +346,69 @@ static void code_block(UiState& ui, const std::vector<std::string>& lines, int n
     if (indent > 0) ImGui::Unindent(indent);
 }
 
+// ---------------------------------------------------------------- pictures
+
+struct Picture {
+    SDL_Texture* tex = nullptr;
+    int w = 0, h = 0;
+};
+
+// A picture of a document (a PNG from the data root), read once; null when it cannot be read.
+static const Picture* picture(UiState& ui, const std::string& rel)
+{
+    static std::map<std::string, Picture> s_pictures;
+    auto it = s_pictures.find(rel);
+    if (it == s_pictures.end()) {
+        Picture p;
+        SDL_Renderer* r = ui.window ? SDL_GetRenderer(ui.window) : nullptr;
+        SDL_Surface* s = r ? SDL_LoadPNG(data_path(rel).c_str()) : nullptr;
+        if (s) {
+            p.tex = SDL_CreateTextureFromSurface(r, s);
+            p.w = s->w;
+            p.h = s->h;
+            SDL_DestroySurface(s);
+        }
+        it = s_pictures.emplace(rel, p).first;
+    }
+    return it->second.tex ? &it->second : nullptr;
+}
+
+// A picture alone in its paragraph: as large as it is, smaller when the window is narrower, with a thin frame; its text
+// in the bubble, a click opens it in full size in the program of the system. One that cannot be read: its text as a
+// link to the file.
+static void picture_block(UiState& ui, const MdBlock& b, float indent, const Fonts& f, const MdView& v)
+{
+    const Picture* p = picture(ui, b.image);
+    if (!p) {
+        MdText t = b.text;
+        if (t.empty()) t.push_back(MdSpan());
+        for (MdSpan& s : t) s.link = b.image;
+        if (t.size() == 1 && t[0].text.empty()) t[0].text = b.image;
+        text_block(ui, t, indent, 0.0f, f, v);
+        return;
+    }
+    float avail = ImGui::GetContentRegionAvail().x - indent;
+    float k = avail < (float)p->w ? avail / (float)p->w : 1.0f;
+    if (k <= 0) k = 0.05f;
+    ImVec2 size((float)p->w * k, (float)p->h * k);
+    if (indent > 0) ImGui::Indent(indent);
+    ImVec2 at = ImGui::GetCursorScreenPos();
+    ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)p->tex), size);
+    ImGui::GetWindowDrawList()->AddRect(at, ImVec2(at.x + size.x, at.y + size.y),
+                                        ImGui::GetColorU32(ImGuiCol_TableBorderLight));
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        std::string alt = md_plain(b.text);
+        if (alt.empty()) tip(tr("A click opens the picture in full size."));
+        else tipf("%s\n\n%s", alt.c_str(), tr("A click opens the picture in full size."));
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) open_doc(b.image.c_str());
+    if (indent > 0) ImGui::Unindent(indent);
+}
+
 // The widths of the columns of a table in `avail`: each at least its longest word (at most 45 % of the table) and at
-// most its text in one line; the room left over goes to the columns in the proportion of their text.
+// most its text in one line; the room left over goes to the columns in the proportion of their text. When even the
+// longest words do not fit, the narrow columns keep theirs ("Velikost" whole) and the wide ones share the rest.
 static void column_widths(const MdBlock& b, const Fonts& f, float avail, float pad, std::vector<float>& w)
 {
     size_t n = b.rows[0].size();
@@ -352,9 +428,21 @@ static void column_widths(const MdBlock& b, const Fonts& f, float avail, float p
         sum_hi += hi[c];
     }
     w.assign(n, 0.0f);
+    if (sum_lo >= avail) {   // from the narrowest: its longest word, or an equal share of what is left when less
+        std::vector<size_t> order(n);
+        for (size_t c = 0; c < n; c++) order[c] = c;
+        std::sort(order.begin(), order.end(), [&](size_t a, size_t b) { return lo[a] < lo[b]; });
+        float left = avail;
+        for (size_t i = 0; i < n; i++) {
+            size_t c = order[i];
+            float share = left / (float)(n - i);
+            w[c] = lo[c] < share ? lo[c] : share;
+            left -= w[c];
+        }
+        return;
+    }
     for (size_t c = 0; c < n; c++) {
         if (sum_hi <= avail) w[c] = hi[c] + (avail - sum_hi) * (sum_hi > 0 ? hi[c] / sum_hi : 1.0f / (float)n);
-        else if (sum_lo >= avail) w[c] = lo[c] * avail / sum_lo;
         else w[c] = lo[c] + (avail - sum_lo) * (hi[c] - lo[c]) / (sum_hi - sum_lo);
     }
 }
@@ -410,6 +498,18 @@ void md_draw(UiState& ui, const std::vector<MdBlock>& doc, const MdView& v)
     float u = f.size;
     // the step of a list level: the marker of an item ("10." fits) and the gap after it
     float step = width_of(f.reg, u, "00.", nullptr) + 0.5f * u;
+    float spacing = ImGui::GetStyle().ItemSpacing.y;
+    MdCache* cache = v.cache;
+    if (cache) {   // another width, font size (or document): every height laid out again
+        float width = ImGui::GetContentRegionAvail().x;
+        if (cache->width != width || cache->font != u || cache->h.size() != doc.size()) {
+            cache->width = width;
+            cache->font = u;
+            cache->h.assign(doc.size(), 0.0f);
+        }
+    }
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImU32 bar = ImGui::GetColorU32(ImGuiCol_TextDisabled);
     bool first_section = true, open = true;
     for (size_t k = 0; k < doc.size(); k++) {
         const MdBlock& b = doc[k];
@@ -424,7 +524,14 @@ void md_draw(UiState& ui, const std::vector<MdBlock>& doc, const MdView& v)
             continue;
         }
         if (!open) continue;   // the blocks of a closed section
+        ImVec2 at = ImGui::GetCursorScreenPos();
+        float known = cache ? cache->h[k] : 0.0f;
+        if (known > 0 && !ImGui::IsRectVisible(at, ImVec2(at.x + 1.0f, at.y + known))) {
+            ImGui::Dummy(ImVec2(1.0f, known > spacing ? known - spacing : 0.0f));   // out of view: only its place
+            continue;
+        }
         ImGui::PushID((int)k);
+        if (b.quote) ImGui::Indent(u);   // a quote: the text right of its bar
         switch (b.kind) {
         case MD_HEADING:
             if (b.level == 1) {
@@ -455,6 +562,9 @@ void md_draw(UiState& ui, const std::vector<MdBlock>& doc, const MdView& v)
         case MD_TABLE:
             table(ui, b, (float)b.level * step, f, v);
             break;
+        case MD_IMAGE:
+            picture_block(ui, b, (float)b.level * step, f, v);
+            break;
         case MD_RULE:
             ImGui::Separator();
             break;
@@ -462,6 +572,13 @@ void md_draw(UiState& ui, const std::vector<MdBlock>& doc, const MdView& v)
             ImGui::Spacing();
             break;
         }
+        float y1 = ImGui::GetCursorScreenPos().y;   // with the spacing after it: the bars of one quote join
+        if (b.quote) {   // the bar at the level of the quote (a quote under a list item: under its text)
+            ImGui::Unindent(u);
+            float x = at.x + (float)b.level * step;
+            dl->AddRectFilled(ImVec2(x + 0.2f * u, at.y), ImVec2(x + 0.4f * u, y1), bar, 0.1f * u);
+        }
+        if (cache) cache->h[k] = y1 - at.y;
         ImGui::PopID();
     }
 }

@@ -55,7 +55,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     zapisovače (Minigraf, XY 4130), `shot` = snímky obrazovek PNG a schránka, `video` = MP4 se zvukem přes ffmpeg,
     `browser` = okno Vybrat sestavu a Průvodce sestavou; rejstřík sestav je `core/machine_index` nad
     `machines/_vyber.json` (s kategorií Moje sestavy = kopie ve `work/machines`), náhledy `machines/previews`,
-    průvodci `machines/guides`, `docs/sestavy.md`; `help` = okno Nápověda (První kroky, Slovníček), Nahlásit chybu,
+    průvodci `machines/guides`, `docs/sestavy.md`; `help` = okno Nápověda (prohlížeč `.md`: První kroky,
+    Slovníček, návody a odkazované dokumenty s obrázky a historií Zpět/Vpřed), Nahlásit chybu,
     O programu; `markdown` = parser Markdownu bez ImGui a `mdview` = jeho kreslení pro průvodce a okno Nápověda;
     `layout` = rozmístění oken; bubliny jen přes `tip()` z `theme.h`);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);

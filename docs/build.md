@@ -175,15 +175,32 @@ s důvodem jsou v testu).
   v kresbách hardwaru.
 - **Bubliny** (tooltipy) jen přes `tip(text)` a `tipf(formát, …)` z `theme.h`, ne `ImGui::SetTooltip`: zalomí text
   na asi 35 šířek písma (dřív byla bublina až 1470 px na jednom řádku). Podmínku `IsItemHovered()` píše volající.
-- **Nápověda v programu** (etapa 8): Nápověda → První kroky a Slovníček otevřou okno Nápověda (`help.cpp`, záložky)
-  s `docs/prvni-kroky.md` a `docs/slovnicek.md`, v angličtině `docs/getting-started.md` a `docs/glossary.md`
-  (chybí-li anglický, český; v rozbaleném zipu i `PRVNI-KROKY.md` nahoře). Markdown parsuje `markdown.cpp` (bez ImGui,
-  test `test_markdown`) a kreslí `mdview.cpp`, stejně jako průvodce sestavami: odstavce s **tučným**, `kódem`
-  a odkazy uvnitř zalomeného textu, odrážky a čísla s odsazením, tabulky (sloupec nejméně tak široký jako jeho
-  nejdelší slovo), kapitoly `##` jako sbalitelné sekce (první otevřená, slovníček celý). Odkazy: http(s) v prohlížeči,
-  soubory relativně ke složce dokumentu nebo ke kořeni dat, `kód` s cestou k existujícímu `.md` je odkaz také; odkaz
-  na dokument jiné stránky okna přepne záložku. `package.py` hlídá, že tyto čtyři soubory jsou v gitu a v zipu.
-  Snímky: `--ui-help first|glossary`, `--ui-help-open all|none`, `--ui-help-scroll 0..1`.
+- **Nápověda v programu** (etapa 8, prohlížeč `.md` od 2026-10-29): okno Nápověda (`help.cpp`) ukazuje každý `.md`
+  z dat. Stránky První kroky a Slovníček (`docs/prvni-kroky.md`, `docs/slovnicek.md`, v angličtině
+  `docs/getting-started.md` a `docs/glossary.md`; chybí-li anglický, český; v rozbaleném zipu i `PRVNI-KROKY.md`
+  nahoře) mají tlačítka, Návody k obsluze (`k_docs`) seznam; ostatní dokumenty otevřou odkazy, i z průvodců sestavami
+  (`MdView::own_link` = `help_link`: `.md` do okna, ostatní soubory programem systému).
+  - Historie jako v prohlížeči (`UiState::help_history`, `help_pos`; položka je `first`, `glossary` nebo cesta `.md`
+    od kořene dat): odkaz nebo menu nastaví `help_go`, `help_navigate` ji vloží za zobrazenou a zahodí ty před ní
+    (nejvýš 50). Zpět a Vpřed: šipky, Alt+šipka vlevo a vpravo (`ImGui::Shortcut`, okno s klávesnicí), boční
+    tlačítka myši nad oknem. Každý dokument má vlastní podřízené okno (`text##<položka>`), takže Zpět vrátí i místo
+    v textu; sbalené kapitoly si drží ImGui. Stránka je soubor v jazyce rozhraní, odkaz na soubor druhého jazyka
+    (anglický slovníček → `docs/slovnicek.md`) otevře ten soubor. Titulek okna: „Nápověda – <nadpis #>“ (`###Help`).
+  - Markdown parsuje `markdown.cpp` (bez ImGui, test `test_markdown`) a kreslí `mdview.cpp`, stejně jako průvodce
+    sestavami: odstavce s **tučným**, `kódem` a odkazy uvnitř zalomeného textu, odrážky a čísla s odsazením, tabulky
+    (sloupec nejméně tak široký jako jeho nejdelší slovo; když se nevejdou, úzké sloupce si je nechají a široké se
+    dělí o zbytek; půl bodu tolerance proti zaokrouhlení), kapitoly `##` jako sbalitelné sekce (v Prvních krocích
+    první otevřená, jinde všechny), citace `>` se svislou čarou, obrázek sám v odstavci (`MD_IMAGE`, i víc pod sebou)
+    jako textura PNG (`SDL_LoadPNG`, načtená jednou) zmenšená na šířku okna, s rámečkem, klik ho otevře v plné
+    velikosti; obrázek, který nejde načíst, je odkaz. Odkazy: http(s) v prohlížeči, soubory relativně ke složce
+    dokumentu nebo ke kořeni dat (`md_norm_path`: `docs/desky/../img/x.png` → `docs/img/x.png`), `kód` s cestou
+    k existujícímu `.md` je odkaz také. Odkaz na soubor, který v kopii není (vývojářské poznámky v zipu), ukáže
+    „Soubor … chybí.“.
+  - Dlouhé dokumenty: `MdCache` si pamatuje výšky bloků pro šířku a velikost písma, bloky mimo pohled jen zaberou
+    místo (rozvrhují se jen viditelné).
+  - `package.py` hlídá, že čtyři dokumenty stránek jsou v gitu a v zipu.
+  - Snímky: `--ui-help first|glossary|SOUBOR.md`, `--ui-help-open all|none`, `--ui-help-scroll 0..1`, klik na odkaz
+    nebo šipku `--ui-click X,Y`.
 - **Náhled přístroje:** okno označí nakreslený hardware `picture_mark()`, `--ui-picture` s `--ui-crop` ořízne snímek
   jen na něj (`docs/sestavy.md`).
 
