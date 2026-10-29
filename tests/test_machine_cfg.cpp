@@ -362,6 +362,83 @@ static void test_parts(void)
     CHECK(plotter);
 }
 
+static bool has_line(const std::vector<std::string>& l, const std::string& s)
+{
+    for (const std::string& x : l)
+        if (x == s) return true;
+    fprintf(stderr, "missing change: %s\n", s.c_str());
+    return false;
+}
+
+// the question about unsaved changes of the configurator lists what really changed
+static void test_changes(void)
+{
+    std::string text;
+    CHECK(file_read_text(data_path("machines/sapi1v.sapi"), text));
+    const json a = json::parse(text, nullptr, false, true);
+    json b = a;
+    CHECK(machine_cfg_changes(a, b, true).empty());
+    CHECK(machine_cfg_changes(json(), b, true).empty());   // not saved yet: nothing to compare with
+    // written differently, the same values: no change
+    b["cards"][3]["a"]["base"] = 16;                            // DSM-1V "10h"
+    json& ram = b["cards"][1];
+    const CardInfo* rci = card_info("RAM-1V");
+    for (const CardParam* p = rci->params; p && p->path; p++)   // every default written out
+        if (p->kind != PK_SECTION && card_param_active(ram, rci, p)) card_set_param(ram, rci, p, card_param_value(ram, p));
+    CHECK(machine_cfg_changes(a, b, true).empty());
+    // the media, TURBO and the colour (what the running machine changes), a card moved and one removed, the name
+    b["cards"][0]["turbo"] = false;
+    b["cards"][2]["color"] = "white";
+    b["cards"][7]["slot"] = 6;                                  // MPH-1V from X8 to X6
+    b["cards"].erase(5);                                        // IDE-1 out of X6
+    b["name"] = "Moje SAPI";
+    b["bus"]["jp3"] = "1-2";
+    std::vector<std::string> cs = machine_cfg_changes(a, b, true);
+    for (const std::string& l : cs) printf("  %s\n", l.c_str());
+    CHECK(cs.size() == 6);
+    CHECK(!cs.empty() && cs[0] == "Název \xE2\x86\x92 Moje SAPI");
+    CHECK(has_line(cs, "Sběrnice, jp3 \xE2\x86\x92 1-2"));
+    CHECK(has_line(cs, "X1 JPR-1V: TURBO: CPU 4 MHz, sběrnice vždy 2 MHz \xE2\x86\x92 vypnuto"));
+    CHECK(has_line(cs, "X3 AND-1V: S1: barva \xE2\x86\x92 bílá"));
+    CHECK(has_line(cs, "X6 IDE-1: odebrána"));
+    CHECK(has_line(cs, "X8 MPH-1V: přesunuta do X6"));
+    std::vector<std::string> en = machine_cfg_changes(a, b, false);
+    CHECK(has_line(en, "X1 JPR-1V: TURBO: CPU 4 MHz, bus always 2 MHz \xE2\x86\x92 off"));
+    CHECK(has_line(en, "X8 MPH-1V: moved to X6"));
+    b["cards"][0]["x_note"] = "a key the catalog does not know";   // listed besides the parameters of the card
+    CHECK(has_line(machine_cfg_changes(a, b, false), "X1 JPR-1V: other settings"));
+    // a card added, a cassette put in, a section switched off (one line, not its parameters)
+    json c = a;
+    c["cards"].erase(7);
+    json dsm = card_new_config(card_info("DSM-1"), 8);
+    c["cards"].push_back(dsm);
+    json d = c;
+    d["cards"][7]["tape"] = "work/tapes/hra.wav";
+    std::string dsm_ref = "X8 " + card_display_name(dsm);
+    std::vector<std::string> l = machine_cfg_changes(c, d, true);
+    for (const std::string& x : l) printf("  %s\n", x.c_str());
+    CHECK(l.size() == 1 && has_line(l, dsm_ref + ": Kazeta v magnetofonu \xE2\x86\x92 hra.wav"));
+    l = machine_cfg_changes(a, c, false);
+    CHECK(has_line(l, "X8 MPH-1V: removed") && has_line(l, dsm_ref + ": added"));
+    // a section switched on and off: one line, its parameters are not listed
+    const CardInfo* dci = card_info("DMR-1");
+    const CardParam* tcp = nullptr;
+    for (const CardParam* p = dci->params; p && p->path; p++)
+        if (!strcmp(p->path, "serial.tcp")) tcp = p;
+    CHECK(tcp != nullptr);
+    if (!tcp) return;
+    json d0 = { { "cards", json::array({ card_new_config(dci, 2) }) } }, d1 = d0;
+    card_set_param(d1["cards"][0], dci, tcp, true);
+    std::string dmr_ref = "X2 " + card_display_name(d0["cards"][0]) + ": ";
+    for (int on = 1; on >= 0; on--) {
+        l = on ? machine_cfg_changes(d0, d1, true) : machine_cfg_changes(d1, d0, true);
+        for (const std::string& x : l) printf("  %s\n", x.c_str());
+        CHECK(l.size() == 1 && l[0].rfind(dmr_ref, 0) == 0 &&
+              l[0].find(on ? "TCP" : "") != std::string::npos &&
+              l[0].find(on ? "\xE2\x86\x92 zapnuto" : "\xE2\x86\x92 vypnuto") != std::string::npos);
+    }
+}
+
 int main(int argc, char** argv)
 {
     test_init();
@@ -392,5 +469,6 @@ int main(int argc, char** argv)
     test_map();
     test_line_ends();
     test_parts();
+    test_changes();
     return TEST_RESULT();
 }

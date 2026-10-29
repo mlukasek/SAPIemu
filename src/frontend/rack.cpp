@@ -1,4 +1,4 @@
-// Machine configurator ("Sestava"): front view of the SAPI-1 frame with the cards
+// Machine configurator ("Konfigurátor sestavy"): front view of the SAPI-1 frame with the cards
 // in their slots (X1 = CPU card on the right, next to the SPN and ZDR panels),
 // card and jumper settings from the card catalog, opening and saving machine
 // descriptions, power cycle with the edited description.
@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
+#include <map>
 
 #include <SDL3/SDL.h>
 #include "imgui.h"
@@ -152,6 +153,71 @@ bool read_machine(const std::string& path, json& cfg, std::string& err)
     return true;
 }
 
+// ---------------------------------------------------------------- changes kept for the next start
+//
+// The question about unsaved changes offers "Keep for the next start": the file stays as it is, the edited
+// description goes into the settings (RackEditor::kept) with the file as it was then. The next start of the file
+// from the GUI (also the machine of the last session at the program start) and the configurator opening it take the
+// description, as long as the file did not change since (a new version of the supplied machines/ file wins, the kept
+// changes are forgotten and the Error window says so). They stay for every start until Save or Revert: each start
+// with them says so in the status bar, the machine browser and Report a bug mark them. The configurator shows them as
+// unsaved changes of the file; the question does not come again for them until something else changes. Save, Revert
+// and Discard changes forget them.
+
+// The key of a machine file in the settings: data relative. data_relative resolves the path (weakly_canonical, slow
+// on a network drive) and the browser asks for every row in every frame: once per path.
+std::string kept_key(const std::string& path)
+{
+    static std::map<std::string, std::string> s_keys;
+    if (path.empty()) return std::string();
+    auto it = s_keys.find(path);
+    if (it != s_keys.end()) return it->second;
+    std::string key = data_relative(data_path(path));
+    s_keys[path] = key;
+    return key;
+}
+
+const json* kept_entry(UiState& ui, const std::string& path)
+{
+    const json& k = ui.rack.kept;
+    if (!k.is_object() || k.empty()) return nullptr;   // the usual case: no path to resolve
+    std::string key = kept_key(path);
+    if (key.empty()) return nullptr;
+    auto it = k.find(key);
+    if (it == k.end() || !it->is_object() || !it->contains("base") || !it->contains("cfg")) return nullptr;
+    return &*it;
+}
+
+void kept_forget(UiState& ui, const std::string& path)
+{
+    std::string key = kept_key(path);
+    if (!key.empty() && ui.rack.kept.is_object()) ui.rack.kept.erase(key);
+}
+
+// The editor holds just the changes kept for its file: nothing new to ask about.
+bool kept_current(UiState& ui)
+{
+    const json* k = kept_entry(ui, ui.rack.path);
+    return k && (*k)["cfg"] == ui.rack.cfg && (*k)["base"] == ui.rack.saved;
+}
+
+// The description of a machine file with the changes kept for it, `file_cfg` = the file now. False: none, or the file
+// changed since (then they are forgotten).
+bool kept_cfg(UiState& ui, const std::string& path, const json& file_cfg, json& out)
+{
+    const json* k = kept_entry(ui, path);
+    if (!k) return false;
+    if ((*k)["base"] != file_cfg) {   // the user's changes are gone: said in the Error window, not just in the Log
+        kept_forget(ui, path);
+        ui_notice(ui, false, std::string(tr("The changes kept for the next start are forgotten: the file of the machine "
+                                            "changed since they were kept.")) +
+                                 "\n" + path);
+        return false;
+    }
+    out = (*k)["cfg"];
+    return true;
+}
+
 // Open a description in the editor; as_template = a copy that is not saved yet.
 void editor_open(UiState& ui, const std::string& path, bool as_template)
 {
@@ -162,11 +228,15 @@ void editor_open(UiState& ui, const std::string& path, bool as_template)
         set_message(r, err, true);
         return;
     }
-    r.cfg = cfg;
+    json kept;
+    bool with_kept = !as_template && kept_cfg(ui, path, cfg, kept);
+    r.cfg = with_kept ? kept : cfg;
     r.saved = as_template ? json() : cfg;
     r.path = as_template ? std::string() : data_relative(data_path(path));
     r.sel = 0;
-    set_message(r, std::string(as_template ? tr("New machine from") : tr("Opened")) + " " + path, false);
+    set_message(r, std::string(as_template ? tr("New machine from") : tr("Opened")) + " " + path +
+                       (with_kept ? std::string(" ") + tr("(with the changes kept for the next start)") : std::string()),
+                false);
 }
 
 bool editor_save(UiState& ui, const std::string& path)
@@ -179,7 +249,9 @@ bool editor_save(UiState& ui, const std::string& path)
         set_message(r, std::string(tr("Cannot write")) + " " + full, true);
         return false;
     }
+    kept_forget(ui, r.path);   // the changes are in a file now (Save as: in another one, the old file is left as it is)
     r.path = data_relative(full);
+    kept_forget(ui, r.path);
     r.saved = r.cfg;
     set_message(r, std::string(tr("Saved")) + " " + r.path, false);
     return true;
@@ -200,12 +272,13 @@ void editor_apply(UiState& ui)
     set_message(r, tr("Machine switched off and on with this configuration."), false);
 }
 
-// Start a machine file (File -> Open machine, File -> Open file...). The user started it: its guide may open itself.
+// Start a machine file (File -> Recent machines, File -> Start a machine from a file...). The user started it: its
+// guide may open itself.
 void start_machine(UiState& ui, const std::string& rel)
 {
     RackEditor& r = ui.rack;
     std::string err;
-    if (ui.host->load(rel, err)) {
+    if (rack_load_machine(ui, rel, err)) {
         ui.guide_start_gen = ui.host->machine_generation();
     } else {
         // show it in the configurator anyway (e.g. a CPU card not emulated yet)
@@ -239,24 +312,60 @@ void do_pending(UiState& ui)
     }
 }
 
-bool editor_dirty(const RackEditor& r)
+// What changed against the saved description (machine_cfg_changes), computed again only when one of them changes.
+const std::vector<std::string>& editor_changes(RackEditor& r)
 {
-    return !r.cfg.is_null() && r.cfg != r.saved;
+    if (r.changes_cfg != r.cfg || r.changes_saved != r.saved || r.changes_lang != (int)i18n_language()) {
+        r.changes_cfg = r.cfg;
+        r.changes_saved = r.saved;
+        r.changes_lang = (int)i18n_language();
+        r.changes = machine_cfg_changes(r.saved, r.cfg, i18n_language() == LANG_CS);
+    }
+    return r.changes;
+}
+
+// The problems of the description in the editor (machine_cfg_problems and those of the port map), computed again only
+// when it changes (the map needs the cards built). Also for the question while the configurator is hidden.
+const std::vector<CfgProblem>& editor_problems(RackEditor& r)
+{
+    if (r.map_cfg != r.cfg) {
+        r.map_cfg = r.cfg;
+        machine_map_build(r.cfg, r.map);
+        r.problems = machine_cfg_problems(r.cfg);
+        std::vector<CfgProblem> mp = machine_map_problems(r.map);
+        r.problems.insert(r.problems.end(), mp.begin(), mp.end());
+    }
+    return r.problems;
+}
+
+bool editor_runnable(RackEditor& r)
+{
+    for (const CfgProblem& p : editor_problems(r))
+        if (p.error) return false;
+    return true;
+}
+
+// Unsaved changes: a description not saved yet, or one that really differs from its file (a value written out
+// differently but equal, the default of a parameter set again, is no change).
+bool editor_dirty(RackEditor& r)
+{
+    if (r.cfg.is_null() || r.cfg == r.saved) return false;
+    return r.saved.is_null() || !editor_changes(r).empty();
 }
 
 // An action that replaces the description in the editor: at once, or after the
-// question when there are unsaved changes.
+// question when there are unsaved changes (not for the changes already kept for the next start).
 void request(UiState& ui, int kind, const std::string& path)
 {
     RackEditor& r = ui.rack;
     r.pending = kind;
     r.pending_path = path;
-    if (editor_dirty(r)) r.ask_unsaved = true;
+    if (editor_dirty(r) && !kept_current(ui)) r.ask_unsaved = true;
     else do_pending(ui);
 }
 
-// The question: Save, Save as, Discard, Cancel. A modal popup of the main window, also
-// while the configurator is hidden.
+// The question: Save, Save as, Keep for the next start, Discard changes, Cancel, with the list of the changes. A modal
+// popup of the main window, also while the configurator is hidden.
 void draw_unsaved_question(UiState& ui)
 {
     RackEditor& r = ui.rack;
@@ -268,12 +377,32 @@ void draw_unsaved_question(UiState& ui)
         ImGui::OpenPopup(title);
     }
     if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+    float u = ImGui::GetFontSize();
     std::string name = r.cfg.value("name", std::string("?"));
     ImGui::Text("%s", tr("The machine in the configurator has unsaved changes:"));
     ImGui::Text("  %s", name.c_str());
     ImGui::TextDisabled("  %s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str());
-    if (r.pending == RackEditor::PEND_FOLLOW)
-        ImGui::TextWrapped("%s", tr("Another machine was started (MCP). Cancel keeps the changes in the configurator."));
+    // what changed, at most 10 lines (the window stays on the screen)
+    const std::vector<std::string>& ch = editor_changes(r);
+    if (!r.saved.is_null() && !ch.empty()) {
+        ImGui::Spacing();
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 36.0f * u);
+        size_t shown = ch.size() > 10 ? 9 : ch.size();
+        char more[96];
+        snprintf(more, sizeof(more), tr("and %d more"), (int)(ch.size() - shown));
+        for (size_t i = 0; i <= shown && i < ch.size(); i++) {   // wrapped (BulletText does not wrap)
+            ImGui::Bullet();   // stays on the line
+            ImGui::TextUnformatted(i < shown ? ch[i].c_str() : more);
+        }
+        ImGui::PopTextWrapPos();
+    }
+    if (r.pending == RackEditor::PEND_FOLLOW) {
+        ImGui::Spacing();
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 36.0f * u);
+        ImGui::TextWrapped("%s", tr("Meanwhile another machine was started (a loaded state or MCP). Cancel keeps the "
+                                    "changes in the configurator."));
+        ImGui::PopTextWrapPos();
+    }
     ImGui::Spacing();
     if (ImGui::Button(tr("Save"))) {
         ImGui::CloseCurrentPopup();
@@ -286,20 +415,50 @@ void draw_unsaved_question(UiState& ui)
             r.ask_unsaved = true;   // not saved (message in the configurator): ask again
         }
     }
+    if (ImGui::IsItemHovered() && !r.path.empty())
+        ImGui::SetTooltip("%s %s", tr("Writes the changes into"), r.path.c_str());
     ImGui::SameLine();
     if (ImGui::Button(tr("Save as..."))) {
         ImGui::CloseCurrentPopup();
         r.save_then_continue = true;
         start_dialog(ui, RackEditor::DLG_SAVE, r.path);
     }
+    // a description with a file: its changes can wait in the settings for the next start. Not with errors (a card
+    // that does not fit): that start would fail and forget all of them.
+    if (!r.path.empty() && !r.saved.is_null()) {
+        ImGui::SameLine();
+        bool runnable = editor_runnable(r);
+        ImGui::BeginDisabled(!runnable);
+        if (ImGui::Button(tr("Keep for the next start"))) {
+            ImGui::CloseCurrentPopup();
+            // the file as it is on the disk now: the editor may hold the description of a loaded state instead
+            json base;
+            std::string e;
+            if (!read_machine(r.path, base, e)) base = r.saved;
+            if (!r.kept.is_object()) r.kept = json::object();
+            r.kept[kept_key(r.path)] = { { "base", base }, { "cfg", r.cfg } };
+            LOGI("%s: the changes kept for the next start", r.path.c_str());
+            do_pending(ui);
+        }
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("%s", runnable ? tr("The file of the machine stays as it is. SAPIemu remembers the changes "
+                                                  "and uses them at every start of this machine (also after the program "
+                                                  "starts again) until you save them or press Revert in the "
+                                                  "configurator; it does not ask about them again.")
+                                             : tr("Not with errors in the machine (the configurator shows them in red): "
+                                                  "it would not start with these changes."));
+    }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Discard"))) {
+    if (ImGui::Button(tr("Discard changes"))) {
         ImGui::CloseCurrentPopup();
+        kept_forget(ui, r.path);
         r.saved = r.cfg;   // nothing unsaved any more
         do_pending(ui);
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"))) {
+    // Cancel is the default (Enter) and Esc: neither writes nor throws away anything (UX review, 5.x)
+    if (theme_accent_button(tr("Cancel")) || popup_enter() || popup_escape()) {
         ImGui::CloseCurrentPopup();
         r.pending = RackEditor::PEND_NONE;
     }
@@ -527,6 +686,9 @@ void follow_now(UiState& ui)
     r.cfg = m->config;
     r.saved = r.cfg;
     r.path = ui.host->machine_file();
+    // started with the changes kept for its file: they stay unsaved changes of the file
+    if (const json* k = kept_entry(ui, r.path))
+        if ((*k)["cfg"] == r.cfg) r.saved = (*k)["base"];
     r.sel = 0;
     r.message.clear();   // it was about the previous description ("Saved ...")
 }
@@ -542,7 +704,7 @@ void follow_machine(UiState& ui)
     if (!m || r.machine_gen == ui.host->machine_generation()) return;
     r.machine_gen = ui.host->machine_generation();
     bool saved_changes = !r.path.empty() && r.path == ui.host->machine_file() && r.cfg != m->config;
-    if (!editor_dirty(r)) {
+    if (!editor_dirty(r) || (kept_current(ui) && r.path != ui.host->machine_file())) {   // kept changes stay kept
         if (!saved_changes) follow_now(ui);
     } else if (r.path != ui.host->machine_file() && r.pending == RackEditor::PEND_NONE) {
         r.pending = RackEditor::PEND_FOLLOW;
@@ -2159,6 +2321,39 @@ void rack_start_machine(UiState& ui, const std::string& file)
     request(ui, RackEditor::PEND_START, file);
 }
 
+bool rack_load_machine(UiState& ui, const std::string& file, std::string& err)
+{
+    json cfg, kept;
+    std::string e;
+    if (kept_entry(ui, file) && read_machine(file, cfg, e) && kept_cfg(ui, file, cfg, kept)) {
+        if (ui.host->load_config(kept, file, err)) {
+            LOGI("%s: started with the changes kept for the next start", file.c_str());
+            // at every such start: the machine is not what its file (and the browser) says. Short: the status bar
+            // shows a notice only when it fits next to the rest.
+            ui_notice(ui, true, tr("Runs with the changes kept from the configurator, not saved in the machine file "
+                                   "(Revert in the configurator forgets them)."));
+            return true;
+        }
+        // e.g. a medium of the changes is gone: the file as it is, the changes forgotten (else every start says it)
+        kept_forget(ui, file);
+        ui_notice(ui, false, std::string(tr("The changes kept for the next start could not be used, they are forgotten")) +
+                                 ":\n" + err + "\n" + tr("The machine starts as its file says."));
+    }
+    return ui.host->load(file, err);
+}
+
+bool rack_has_kept(UiState& ui, const std::string& file)
+{
+    return kept_entry(ui, file) != nullptr;
+}
+
+bool rack_runs_kept(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    const json* k = m ? kept_entry(ui, ui.host->machine_file()) : nullptr;
+    return k && (*k)["cfg"] == m->config;
+}
+
 void rack_request_exit(UiState& ui)
 {
     request(ui, RackEditor::PEND_EXIT, std::string());
@@ -2179,9 +2374,9 @@ void draw_rack(UiState& ui)
     RackEditor& r = ui.rack;
     float u = ImGui::GetFontSize();
     layout_window(LW_RACK);   // first use: the whole height at the right edge (over the screen when there is no room)
-    bool dirty = r.cfg != r.saved;
+    bool dirty = editor_dirty(r);
     char title[300];
-    snprintf(title, sizeof(title), "%s - %s%s###rack", tr("Machine configuration"),
+    snprintf(title, sizeof(title), "%s - %s%s###rack", tr("Machine configurator"),
              r.cfg.value("name", std::string("?")).c_str(), dirty ? " *" : "");
     if (!ImGui::Begin(title, &ui.show_rack)) {
         ImGui::End();
@@ -2211,16 +2406,8 @@ void draw_rack(UiState& ui)
     ImGui::SameLine();
     ImGui::TextDisabled("|");
     ImGui::SameLine();
-    if (r.map_cfg != r.cfg) {   // the map needs the cards built: only when something changed
-        r.map_cfg = r.cfg;
-        machine_map_build(r.cfg, r.map);
-        r.problems = machine_cfg_problems(r.cfg);
-        std::vector<CfgProblem> mp = machine_map_problems(r.map);
-        r.problems.insert(r.problems.end(), mp.begin(), mp.end());
-    }
-    const std::vector<CfgProblem>& problems = r.problems;
-    bool runnable = true;
-    for (const CfgProblem& p : problems) if (p.error) runnable = false;
+    const std::vector<CfgProblem>& problems = editor_problems(r);   // the map needs the cards built: only on a change
+    bool runnable = editor_runnable(r);
     // while a machine runs the button restarts it; changes waiting for that make it orange
     bool running = ui.host->machine() != nullptr;
     bool pending = rack_pending(ui);
@@ -2249,6 +2436,7 @@ void draw_rack(UiState& ui)
             set_message(r, tr("Changes reverted to the running machine."), false);
         } else {
             r.cfg = r.saved;
+            kept_forget(ui, r.path);    // also the changes kept for the next start
             running_follow_slots(ui);   // cards dragged in the running machine go back as well
             set_message(r, tr("Changes reverted."), false);
         }
@@ -2258,7 +2446,12 @@ void draw_rack(UiState& ui)
                                         : tr("Back to the configuration as last saved."));
     ImGui::EndDisabled();
     ImGui::TextDisabled("%s%s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str(),
-                        dirty ? tr("  - unsaved changes") : "");
+                        !dirty ? "" : kept_current(ui) ? tr("  - unsaved changes, kept for the next start") : tr("  - unsaved changes"));
+    if (dirty && !r.saved.is_null() && ImGui::IsItemHovered()) {   // what they are
+        std::string tip;
+        for (const std::string& c : editor_changes(r)) tip += (tip.empty() ? "" : "\n") + c;
+        ImGui::SetTooltip("%s", tip.c_str());
+    }
     if (!r.message.empty()) {
         ImGui::SameLine();
         ImGui::TextColored(r.message_error ? theme().error : theme().ok, "%s", r.message.c_str());

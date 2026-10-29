@@ -8,6 +8,7 @@
 #include "core/log.h"
 #include "core/machine_cfg.h"
 #include "core/util.h"
+#include "core/version.h"
 #include "input/keyboards.h"
 
 #include <stdio.h>
@@ -614,24 +615,51 @@ Card* Machine::find_card(const std::string& n)
 // ---------------------------------------------------------------- save state
 
 static const char STATE_MAGIC[8] = { 'S', 'A', 'P', 'I', 'S', 'T', 'A', 'T' };
-static const uint32_t STATE_VERSION = 1;
 
-static bool state_head(StateIO& io, std::string& cfg_text, std::string& file, std::string& err)
+// The start of the header: the name, the format and (format 2 on) the version of SAPIemu. False: not a state of
+// SAPIemu, or it ends there.
+static bool state_start(StateIO& io, StateOrigin& o, std::string& err)
 {
     char magic[8];
     memcpy(magic, STATE_MAGIC, 8);
     io.raw(magic, 8);
-    uint32_t ver = STATE_VERSION;
-    io.v(ver);
+    o.format = STATE_FORMAT;
+    io.v(o.format);
+    if (io.loading && (!io.ok() || memcmp(magic, STATE_MAGIC, 8) != 0)) { err = "not a SAPIemu state file"; return false; }
+    o.app = io.loading ? std::string() : std::string(sapiemu_version());
+    if (o.format >= 2) io.v(o.app);   // format 1 has no version of the program
+    if (!io.ok()) { err = io.error; return false; }
+    return true;
+}
+
+// The whole header: the start, then the machine description and its file. A format this SAPIemu does not read is
+// refused after the start (its description is not read: a newer format may hold anything there).
+static bool state_head(StateIO& io, std::string& cfg_text, std::string& file, std::string& err)
+{
+    StateOrigin o;
+    if (!state_start(io, o, err)) return false;
+    if (io.loading && (o.format < STATE_FORMAT_MIN || o.format > STATE_FORMAT)) {
+        std::string reads = "this SAPIemu " + std::string(sapiemu_version()) + " reads state formats " +
+                            std::to_string(STATE_FORMAT_MIN) + " to " + std::to_string(STATE_FORMAT);
+        if (o.format > STATE_FORMAT)
+            err = "the state was saved by a newer SAPIemu (" + (o.app.empty() ? std::string("?") : o.app) +
+                  ", state format " + std::to_string(o.format) + "); " + reads;
+        else
+            err = "the state was saved by an old SAPIemu (state format " + std::to_string(o.format) + "); " + reads;
+        return false;
+    }
     io.v(cfg_text);
     io.v(file);
     if (!io.ok()) { err = io.error; return false; }
-    if (io.loading && memcmp(magic, STATE_MAGIC, 8) != 0) { err = "not a SAPIemu state file"; return false; }
-    if (io.loading && ver != STATE_VERSION) {
-        err = "state version " + std::to_string(ver) + ", this emulator reads " + std::to_string(STATE_VERSION);
-        return false;
-    }
     return true;
+}
+
+bool Machine::state_origin(const std::vector<uint8_t>& in, StateOrigin& origin)
+{
+    StateIO io(true);
+    io.data = in;
+    std::string err;
+    return state_start(io, origin, err);
 }
 
 bool Machine::state_header(const std::vector<uint8_t>& in, json& cfg, std::string& file, std::string& err)

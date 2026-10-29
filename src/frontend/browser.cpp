@@ -129,6 +129,7 @@ static void machine_item(UiState& ui, const MachineEntry& e, const std::string& 
     bool run = running(ui, e);
     std::string label = name;
     if (run) label += std::string(" ") + tr("(running)");
+    if (rack_has_kept(ui, e.file)) label += " *";   // unsaved changes kept from the configurator, as its title marks them
     label += "###" + e.file + "#" + cat;
     if (run) ImGui::PushStyleColor(ImGuiCol_Text, theme().ok);
     bool clicked = ImGui::Selectable(label.c_str(), sel, ImGuiSelectableFlags_AllowDoubleClick);
@@ -256,6 +257,12 @@ static void details(UiState& ui, const MachineEntry& e)
     if (entry_name(e) != e.name) text_dim_wrapped(e.name);
     const std::string& sum = pick(e.summary, e.summary_en);
     if (!sum.empty()) ImGui::TextWrapped("%s", sum.c_str());
+    if (rack_has_kept(ui, e.file)) {   // the preview and the cards below show the file, the start does not
+        ImGui::PushStyleColor(ImGuiCol_Text, theme().warn);
+        ImGui::TextWrapped("* %s", tr("A start uses the changes kept from the configurator, not saved in its file. "
+                                      "Open in the configurator, then Revert forgets them, Save writes them."));
+        ImGui::PopStyleColor();
+    }
     ImGui::Spacing();
     // the running machine: Restart (the mouse only, Enter does not throw its memory away); at the first start the
     // machine behind the window was started by nobody, Start
@@ -547,10 +554,10 @@ static void markdown(UiState& ui, const std::string& text)
 
 void draw_guide(UiState& ui)
 {
-    // a machine the user started (Start, Restart, File -> Recent machines, Open machine file): its guide opens itself
-    // (categories with guides), unless the user said no; not after a power cycle, a restart from the configurator, a
-    // state or MCP (decision 2026-10-17). Not while the window Choose a machine is open: the machine the user starts
-    // from it opens its guide.
+    // a machine the user started (Start, Restart, File -> Recent machines, Start a machine from a file): its guide
+    // opens itself (categories with guides), unless the user said no; not after a power cycle, a restart from the
+    // configurator, a state or MCP (decision 2026-10-17). Not while the window Choose a machine is open: the machine
+    // the user starts from it opens its guide.
     uint64_t gen = ui.host->machine_generation();
     if (gen != ui.guide_gen && !ui.show_browser) {
         ui.guide_gen = gen;

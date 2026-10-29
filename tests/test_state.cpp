@@ -1,7 +1,8 @@
 // Save state is complete: for every machine in machines/, the state saved at A, run on,
 // saved at B, is the same as the state of a new machine loaded with A and run for the same
 // time. A variable a card forgets to save shows up as a difference (the block is named).
-// Also: the file round trip through EmuHost, a state of another description, damaged data.
+// Also: the file round trip through EmuHost, a state of another description, damaged data, the formats (a newer or
+// a too old one refused before the running machine is touched, format 1 of the alphas still read).
 #include <stdio.h>
 #include <string.h>
 #include "core/headless.h"
@@ -9,6 +10,7 @@
 #include "core/machine.h"
 #include "core/state.h"
 #include "core/util.h"
+#include "core/version.h"
 #include "test_util.h"
 
 using nlohmann::json;
@@ -32,7 +34,8 @@ static void blocks(const std::vector<uint8_t>& d, std::vector<std::string>& name
     io.raw(magic, 8);
     uint32_t ver;
     io.v(ver);
-    std::string cfg, file;
+    std::string app, cfg, file;
+    if (ver >= 2) io.v(app);
     io.v(cfg);
     io.v(file);
     while (io.ok() && io.pos < io.data.size()) {
@@ -177,17 +180,125 @@ static void host_file(void)
     CHECK(!other.load_state(st, err));
     CHECK(other.load_state(st, err, true));
     CHECK(other.name == h.machine()->name);
-    // damaged: the old machine stays
+    // damaged: the old machine stays (built again from its own state, state_formats)
     std::vector<uint8_t> bad = st;
     bad.resize(bad.size() / 2);
-    Machine* old = h.machine();
     CHECK(!h.load_state(bad, err));
     printf("damaged state: %s\n", err.c_str());
     CHECK(h.machine() != nullptr);
-    (void)old;
     std::vector<uint8_t> junk(100, 0x55);
     CHECK(!h.load_state(junk, err));
     file_remove(path);
+}
+
+// The state with another start of the header: format `fmt`, with the version of the program `app` when fmt >= 2.
+static std::vector<uint8_t> with_format(const std::vector<uint8_t>& st, uint32_t fmt, const std::string& app)
+{
+    StateIO in(true);
+    in.data = st;
+    char magic[8];
+    in.raw(magic, 8);
+    uint32_t f = 0;
+    in.v(f);
+    std::string a;
+    if (f >= 2) in.v(a);
+    CHECK(in.ok());
+    StateIO out(false);
+    out.raw(magic, 8);
+    out.v(fmt);
+    std::string a2 = app;
+    if (fmt >= 2) out.v(a2);
+    out.data.insert(out.data.end(), st.begin() + (ptrdiff_t)in.pos, st.end());
+    return out.data;
+}
+
+// The format of the state: the version of SAPIemu in the header (format 2); a format this SAPIemu does not read (a
+// newer or a too old version) is refused before the running machine is touched; format 1 of the alphas still loads;
+// a state that does not fit after all (a card block cut short) brings the running machine back as it was.
+static void state_formats(void)
+{
+    const char* file = "machines/sapi1v.sapi";
+    const uint16_t A = 0x7123;   // RAM-1V, nobody uses it at the ECMON prompt
+    EmuHost h;
+    std::string err;
+    CHECK(h.load_config(machine_cfg(file), file, err));
+    CHECK(run_until_text(*h.machine(), "Zadej 0-3", 3.0));
+    std::vector<uint8_t> st;
+    CHECK(h.save_state(st, err));
+    std::string screen_st = screen_text(*h.machine());
+    StateOrigin o;
+    CHECK(Machine::state_origin(st, o));
+    CHECK_EQ((int)o.format, (int)STATE_FORMAT);
+    CHECK(o.app == sapiemu_version());
+    // the running machine moves on: a load would replace its screen and its memory
+    h.machine()->type_text("1");
+    h.machine()->run_seconds(2.0);
+    h.machine()->poke(A, 0xA5);
+    std::string screen = screen_text(*h.machine());
+    CHECK(screen != screen_st);
+    h.machine()->set_breakpoint(0x2345, true);
+    Machine* mp = h.machine();
+    uint64_t gen = h.machine_generation();
+    // a newer format (with its version of the program) and a too old one: refused, the same machine untouched
+    std::vector<uint8_t> newer = with_format(st, STATE_FORMAT + 1, "9.9.9-test");
+    StateOrigin on;
+    CHECK(Machine::state_origin(newer, on));
+    CHECK_EQ((int)on.format, (int)STATE_FORMAT + 1);
+    CHECK(on.app == "9.9.9-test");
+    int back = -1;
+    CHECK(!h.load_state(newer, err, &back));
+    CHECK_EQ(back, (int)STATE_BACK_SAME);
+    printf("newer format: %s\n", err.c_str());
+    CHECK(err.find("newer SAPIemu (9.9.9-test") != std::string::npos);
+    CHECK(err.find(sapiemu_version()) != std::string::npos);
+    std::vector<uint8_t> old = with_format(st, STATE_FORMAT_MIN - 1, "");
+    CHECK(!h.load_state(old, err));
+    printf("too old format: %s\n", err.c_str());
+    CHECK(err.find("old SAPIemu") != std::string::npos);
+    CHECK(h.machine() == mp);
+    CHECK_EQ(h.machine_generation(), gen);
+    CHECK(screen_text(*h.machine()) == screen);
+    CHECK_EQ(h.machine()->peek(A), 0xA5);
+    // format 1 (the alphas before format 2): no version of the program, loads as before
+    std::vector<uint8_t> v1 = with_format(st, 1, "");
+    StateOrigin o1;
+    CHECK(Machine::state_origin(v1, o1));
+    CHECK_EQ((int)o1.format, 1);
+    CHECK(o1.app.empty());
+    json cfg1;
+    std::string f1;
+    CHECK(Machine::state_header(v1, cfg1, f1, err));
+    CHECK(f1 == file);
+    if (!h.load_state(v1, err)) fprintf(stderr, "format 1: %s\n", err.c_str());
+    CHECK(h.machine_generation() != gen);
+    CHECK(screen_text(*h.machine()) == screen_st);
+    CHECK(h.machine()->peek(A) != 0xA5);
+    // does not fit after all (the header is good, a card block is cut short): the machine comes back as it was
+    h.machine()->type_text("1");
+    h.machine()->run_seconds(2.0);
+    h.machine()->poke(A, 0x5A);
+    screen = screen_text(*h.machine());
+    h.paused = true;
+    gen = h.machine_generation();
+    std::vector<uint8_t> cut = st;
+    cut.resize(cut.size() / 2);
+    back = -1;
+    CHECK(!h.load_state(cut, err, &back));
+    CHECK_EQ(back, (int)STATE_BACK_SAME);   // brought back from its own state: the GUI says "runs on as it was"
+    printf("a state that does not fit: %s\n", err.c_str());
+    CHECK(h.machine() != nullptr);
+    CHECK(h.machine_generation() != gen);   // built again
+    CHECK(h.machine_file() == file);
+    CHECK(screen_text(*h.machine()) == screen);
+    CHECK_EQ(h.machine()->peek(A), 0x5A);
+    CHECK(h.machine()->has_breakpoint(0x2345));
+    CHECK(h.paused);
+    // switched off: it stays off
+    h.power_off();
+    CHECK(!h.load_state(cut, err));
+    CHECK(h.machine() == nullptr);
+    CHECK(h.machine_file() == file);
+    CHECK(h.power_on(err));
 }
 
 // Cards moved while running (the configurator drags them): the slots of the bus are equal, so the
@@ -249,5 +360,6 @@ int main(int argc, char** argv)
     roundtrip_mph();
     moved_cards();
     host_file();
+    state_formats();
     return TEST_RESULT();
 }

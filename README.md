@@ -11,7 +11,7 @@ ARITMA Minigraf 0507, grafická jednotka XY 4130, plotter z Amatérského radia 
 kazetový disk RKD-1 a magnetická páska RMP-1. Nové desky Libora Lasoty („V“, JPR-1S, JPR-1X s 8085, BGP-1S, AND-1B,
 ANK-1M2) přidávají VGA, barevnou grafiku a zvuk. Hry a dema na nových deskách jsou novodobý doplněk, SAPI-1 nebyl
 herní počítač. Chování desek V se ověřuje měřením na skutečném SAPI-1 V (logický analyzátor), odchylky od desky jdou
-v konfigurátoru vypnout. Emulátor má vestavěný MCP server pro vývoj softwaru pro SAPI s Claude.
+v konfigurátoru vypnout.
 
 > *English: an emulator of the Czechoslovak Tesla SAPI-1 (1983-1990) for Windows. SAPI-1, designed by Ing. Eduard
 > Smutný and made by Tesla Liberec, was an industrial control computer, not a home computer: modular cards with an
@@ -22,14 +22,14 @@ v konfigurátoru vypnout. Emulátor má vestavěný MCP server pro vývoj softwa
 > KZD-1 cassette data recorder, the RKD-1 cartridge disk and the RMP-1 magnetic tape. The new boards of Libor
 > Lasota ("V" boards with VGA, colour graphics and YM3812 sound, JPR-1S, JPR-1X with an 8085, PMD-85 style graphics
 > BGP-1S) run games and demos, a modern extra: SAPI-1 was not a games machine. Also cassette tapes made from
-> programs, save states, a debugger and a built-in MCP server. The V boards are checked against a real SAPI-1 V with
-> a logic analyzer.*
+> programs, save states and a debugger. The V boards are checked against a real SAPI-1 V with a logic analyzer.*
 >
 > *Getting started: download the zip from [Releases](https://github.com/mlukasek/SAPIemu/releases), unpack it
 > and run `sapiemu.exe`, nothing is installed. The first start shows the window Choose a machine: the historic
 > ZPS sets, instruments, the boards of Libor Lasota, games and demos, each with a preview and a short text; the
 > machines of the first four groups have a guide in English (Help → Machine guide). The user interface is in Czech
-> and English (View → Settings), the detailed documentation is in Czech. The emulator sends nothing anywhere by
+> and English (View → Jazyk / Language), the detailed documentation is in Czech; a short English guide is
+> [docs/getting-started.md](docs/getting-started.md) (`GETTING-STARTED.md` in the zip). The emulator sends nothing anywhere by
 > itself, see "Síť a soukromí" (network and privacy) below. Prince of Persia (machine `sapi1v_PoP`) is an
 > unofficial, non-commercial port shown as a demonstration of historic technology; at the request of the copyright
 > holders it will be changed or removed. Alpha version.*
@@ -53,7 +53,8 @@ spustit `sapiemu.exe`, nic se neinstaluje. Jak začít: [docs/prvni-kroky.md](do
 
 Jde o **alfa verzi** (poslední je 0.6.0-alpha, novinky v
 [docs/release-notes/v0.6.0-alpha.md](docs/release-notes/v0.6.0-alpha.md)). Hlavní věci fungují, ale chyby čekejte.
-Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
+Hlaste je přes Nápověda → Nahlásit chybu… (zkopíruje diagnostiku a konec logu): do zveřejnění cestou, kterou jste
+program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 ## Co umí
 
@@ -169,6 +170,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 ## Dokumentace
 
 - [docs/prvni-kroky.md](docs/prvni-kroky.md): spuštění, sestavy, klávesy, co vyzkoušet.
+- [docs/getting-started.md](docs/getting-started.md): krátké první kroky anglicky (v zipu `GETTING-STARTED.md`).
 - [docs/aps5-ukazka.md](docs/aps5-ukazka.md): měřicí jednotka APS-5 krok za krokem (nebo tlačítko DEMO).
 - [docs/navod-kzd1.md](docs/navod-kzd1.md): návod k záznamníku dat KZD-1 (příprava kazety, ukládání z BASICu
   i monitoru, adresář, kopírování z magnetofonu a zpět programem CKM, i jeho opravenou kopií).
@@ -214,7 +216,7 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
 
 - **Visual Studio 2022:** Soubor → Otevřít → Složka, preset `Windows x64 Debug` nebo `Release`.
 - **Příkazová řádka:** `tools\build.cmd release test` (najde VS, sestaví a spustí testy).
-- **Balík pro vydání:** `python tools\package.py`.
+- **Balík pro vydání:** `python tools\package.py` (zip a vedle něj jeho SHA-256 v souboru `.sha256`).
 - SDL3 se stáhne při prvním configure (CMake FetchContent). Ostatní knihovny jsou v `third_party/`.
 
 ## Síť a soukromí
@@ -229,8 +231,8 @@ Hlaste je v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - spojení TCP a DNS na adresu, kterou zadá program.
 - Odkazy v okně O programu a v průvodcích otevřou webový prohlížeč.
 - **Kam se co ukládá:**
-  - nastavení, rozložení oken (`imgui.ini`) a log posledního spuštění (`sapiemu.log`) ukládá emulátor vedle
-    `sapiemu.exe`;
+  - nastavení, rozložení oken (`imgui.ini`) a logy posledních dvou spuštění (`sapiemu.log`, `sapiemu.prev.log`)
+    ukládá emulátor vedle `sapiemu.exe`;
   - pracovní kopie disket, disků a kazet, obsah pamětí s baterií a výstupy tiskáren jsou ve složce `work/`;
   - když do složky programu nejde zapisovat (např. `Program Files`), ukládá se nastavení do
     `%APPDATA%\SAPIemu\SAPIemu` a `work/` do `%LOCALAPPDATA%\SAPIemu\work` (Linux: `~/.local/share/SAPIemu`).

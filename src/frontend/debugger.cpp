@@ -45,7 +45,12 @@ static void draw_controls(UiState& ui, Machine* m)
     if (ImGui::Button(tr("Step over (F10)"))) { m->step_over(); h.status = m->stop_text(); }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Reset"))) request_reset(ui);   // the APS-5 unit asks first
+    if (ImGui::Button(tr("Reset (F12)"))) request_reset(ui);   // the APS-5 unit asks first
+    ImGui::SameLine();
+    if (ImGui::TextLink(tr("Keyboard shortcuts"))) {   // F9 breakpoint: the keys as in Visual Studio
+        ui.show_shortcuts = true;
+        ImGui::SetWindowFocus(tr_id("Keyboard shortcuts"));   // in front when it is open already
+    }
     if (!h.status.empty()) {
         ImGui::SameLine();
         ImGui::TextColored(theme().warn, "%s", h.status.c_str());
@@ -97,7 +102,7 @@ static void draw_disasm(UiState& ui, Machine* m)
         if (parse_hex16(ui.disasm_goto, ui.disasm_addr)) ui.disasm_follow = false;
     }
     ImGui::SameLine();
-    ImGui::TextDisabled("%s", tr("address, click a line = breakpoint"));
+    ImGui::TextDisabled("%s", tr("address; a click on a line or F9 = breakpoint"));
 
     if (ui.disasm_follow) {
         // keep PC visible: restart the listing at PC when it leaves the window
@@ -131,6 +136,7 @@ static void draw_disasm(UiState& ui, Machine* m)
         snprintf(id, sizeof(id), "##dl%d", i);
         ImGui::PushID(i);
         if (ImGui::Selectable(line, false)) m->set_breakpoint(a, !bp);
+        if (ImGui::IsItemHovered()) ui.disasm_hover = a;   // F9 (handle_key, next frame) takes this row
         ImGui::PopID();
         a = (uint16_t)(a + d.length);
     }
@@ -204,6 +210,7 @@ static void draw_stack(UiState& ui, Machine* m)
 
 void draw_debugger(UiState& ui)
 {
+    ui.disasm_hover = -1;   // no row under the mouse unless draw_disasm finds one
     if (!ui.show_debugger) return;
     Machine* m = ui.host->machine();
     layout_window(LW_DEBUGGER);

@@ -396,6 +396,33 @@ Zbývá:
 
 ### Etapa 6: zbytek před betou · M
 
+**Stav 2026-10-29: hotová, beta zip čeká na autorův pokyn** (workflow, autor spal: 3 agenti, 3 oponenti, nálezy
+opravené; rozhodnutí 2026-10-29 – etapa 6 plánu vzhledu: před betou). Všechny body níže jsou hotové, s těmito
+rozdíly a doplňky:
+- **F9 = breakpoint, reset jen F12:** plán to měl jako návrh ke schválení, rozhodl vedoucí workflow za autora. Pod
+  Visual Studiem si F12 bere Windows, reset je pak z menu Stroj → Reset nebo tlačítkem Reset v debuggeru.
+- „Zapomenout“ je „Zahodit změny“. Ponechané změny platí pro každé další spuštění z GUI, dokud se neuloží nebo
+  nevrátí; start to ohlásí, výběr sestav je označí `*`, s chybou v sestavě Ponechat nejde.
+- Stav: formát 2 s verzí SAPIemu. Když stav nesedí až v kartách, běžící sestava se vrátí ze svého stavu v paměti
+  (pro stavy tím odpadá „starý stroj vypnout až po postavení nového“ z etapy 8).
+- Navíc log předchozího spuštění `sapiemu.prev.log` (po pádu), `package.py` píše `.sha256` až po kontrolách
+  a odmítne nepřidané první kroky.
+
+Čeká na autora:
+- **Beta zip** (`package.py --public`) až na jeho pokyn. Předtím přidat do gitu nové `docs/getting-started.md`
+  a `docs/vydani/beta-testeri.md` (`package.py` bez nich odmítne zabalit).
+- **Otázky před zipem:**
+  - jméno verze bety: `0.7.0-beta`, nebo dál `0.7.0-alpha` (přípona `SAPIEMU_VERSION_SUFFIX` v `CMakeLists.txt`,
+    poznámky k vydání, „alfa“ v README);
+  - kam testeři hlásí: odpovědí na zprávu (tak to teď říkají texty), nebo je přidat do soukromého repa na GitHubu
+    (Issues); sedí věta „do zveřejnění cestou, kterou jste program dostali, potom přes GitHub Issues“?
+  - F9 = breakpoint nechat (doporučení), nebo v debug buildu F9 bez otevřeného debuggeru = reset.
+- V `docs/vydani/beta-testeri.md` doplnit verzi a termín, Liborovi a Petrovi přidat žádost o souhlasy
+  (`docs/vydani/souhlasy.md`).
+- Martin ručně: Ponechat pro příští spuštění (kliknutí, start s hlášením, `*` ve výběru, Vrátit změny), stav z alfy
+  0.6.0, F9 v debuggeru, Ctrl+Shift+C do Poznámkového bloku, Enter a Esc v oknech Neuložené změny a Nahrát program,
+  Nahlásit chybu po pádu (`sapiemu.prev.log`).
+
 **Menu**
 - Nápověda → Nahlásit chybu…: verze, sestava, cesty k datům a logu, Kopírovat diagnostiku, Otevřít složku logu.
 - Přejmenovat „Sestava…“ na „Konfigurátor sestavy…“ a „Otevřít soubor sestavy…“ na „Spustit sestavu ze
@@ -475,6 +502,12 @@ Zbývá:
 - GIF a video, `README.en.md`, `docs/funkce.md`.
 - Obrázky v `docs/img` v novém vzhledu, zmenšit `minigraf-ukazka.png`.
 - Úklid repa, šablona issue.
+
+**Texty „do zveřejnění“** (přidáno 2026-10-29)
+- `k_issues_public = true` v `src/frontend/help.cpp`: Nahlásit chybu ukáže odkaz na Issues místo adresy v závorce.
+- Zjednodušit „do zveřejnění … potom přes GitHub Issues“ v Nahlásit chybu (`i18n.cpp`), Prvních krocích,
+  `GETTING-STARTED.md` a README; „Testovací verze“ v Prvních krocích podle vydané verze.
+- README: odkazy na `docs/vydani/sestavy.md` a `docs/SOUHRN.md` (ve veřejném zipu chybí).
 
 **Ověření před zveřejněním**
 - `release full` a WSL.

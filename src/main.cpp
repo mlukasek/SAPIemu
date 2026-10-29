@@ -68,10 +68,16 @@ static void print_help(void)
            "                     menu with --ui-screen-menu; given twice: on and off again),\n"
            "                     --ui-pause: pause the machine (F5) just before the picture, --ui-log: the Log window,\n"
            "                     --ui-reset: F12 just before the picture (APS-5: the question first),\n"
+           "                     --ui-report: Help -> Report a bug, --ui-debugger: the Debugger window,\n"
+           "                     --ui-menu NAME: the menu NAME open (File, Machine, Debug, View, Help),\n"
+           "                     --ui-key KEY: a key pressed before the picture (F9, Ctrl+Shift+C, Enter, Esc...;\n"
+           "                     repeated: one after another), --ui-mouse X,Y: the mouse there (points),\n"
            "                     --ui-video SEC: a video of SEC seconds (Ctrl+Alt+F5), the picture when it is saved,\n"
            "                     --ui-state FILE: load a saved state first, --ui-size WxH: the window size,\n"
            "                     --ui-scale F: the display scale (1.25 = 125 %%) instead of the one of the system,\n"
-           "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied)\n"
+           "                     --ui-set SLOT:KEY=VALUE or SLOT:remove: a change in the configurator, not applied,\n"
+           "                     --ui-exit: File -> Exit before the picture (the question about unsaved changes;\n"
+           "                     without changes the program ends with no picture))\n"
            "  --mcp              headless: run in real time and serve MCP until Ctrl+C\n"
            "  --verbose          debug log on stderr\n"
            "  --version, --help\n\n"
@@ -258,6 +264,12 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-about") snap.about = true;
         else if (a == "--ui-settings") snap.settings = true;
         else if (a == "--ui-shortcuts") snap.shortcuts = true;
+        else if (a == "--ui-report") snap.report = true;
+        else if (a == "--ui-debugger") snap.debugger = true;
+        else if (a == "--ui-exit") snap.exit = true;
+        else if (a == "--ui-menu" && i + 1 < argc) snap.menu = argv[++i];
+        else if (a == "--ui-key" && i + 1 < argc) snap.keys.push_back(argv[++i]);
+        else if (a == "--ui-mouse" && i + 1 < argc) sscanf(argv[++i].c_str(), "%f,%f", &snap.mouse_x, &snap.mouse_y);
         else if (a == "--ui-crop" && i + 1 < argc) snap.crop = argv[++i];
         else if (a == "--ui-ims2") snap.ims2 = true;
         else if (a == "--ui-aps5-demo") snap.aps5_demo = true;

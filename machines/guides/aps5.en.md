@@ -15,5 +15,5 @@ program and the control of three furnaces. In about a minute the furnaces start 
   number → and `8R` → the thermocouple type → (furnace 1: 3 = ch-a).
 - `11` → shows the table of the furnaces.
 - **Do not use Reset.** The real unit has none and the firmware takes it as an error, the setup is lost. The
-  emulator therefore asks before a reset (F12, F9, RESET on the ZDR panel). Switch it off with the power switch or
-  Machine → Switch off and on (Ctrl+F12), that is a power failure and the setup stays.
+  emulator therefore asks before a reset (F12, Machine → Reset, RESET on the ZDR panel). Switch it off with the
+  power switch or Machine → Switch off and on (Ctrl+F12), that is a power failure and the setup stays.

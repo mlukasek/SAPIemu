@@ -79,7 +79,7 @@ emulátoru. Kdo si omylem přepíše ukázkovou pásku, vrátí ji položkou **O
 chrání před zápisem i odškrtnutý kroužek (před LOAD). Soubor, který nejde přečíst, se nevloží a na mechanice
 zůstane původní páska.
 
-Výměna pásky v okně Média se zapíše do sestavy: konfigurátor (Zobrazení → Sestava…) ukáže novou pásku
+Výměna pásky v okně Média se zapíše do sestavy: konfigurátor (Zobrazení → Konfigurátor sestavy…) ukáže novou pásku
 a sestavu označí jako neuloženou. Tamtéž jde pásku vybrat nebo založit (**Nová…**) a za chodu se hned vloží.
 V nabídce obrazů jsou i všechny pásky ze složek `work\rmp-1` a `media\rmp-1`.
 

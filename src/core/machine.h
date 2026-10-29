@@ -19,6 +19,18 @@ enum StopReason {
     STOP_STEP,          // single step finished
 };
 
+// Save state formats (docs/stav.md): SAPIemu writes STATE_FORMAT and reads STATE_FORMAT_MIN..STATE_FORMAT. Format 2
+// put the version of SAPIemu that saved it into the header; every later format keeps the start of the header ("SAPISTAT",
+// the format, that version), so that any version can say who saved a state it does not read.
+// A state() that reads other data than before: STATE_FORMAT + 1, and STATE_FORMAT_MIN up to it when the old data
+// cannot be read any more (such a state is then refused before the running machine is touched).
+enum { STATE_FORMAT = 2, STATE_FORMAT_MIN = 1 };
+
+struct StateOrigin {
+    uint32_t format = 0;
+    std::string app;   // the version of SAPIemu that saved it ("0.7.0-alpha"); empty in format 1 (the alphas before)
+};
+
 class Machine {
 public:
     Machine();
@@ -87,9 +99,12 @@ public:
     // when the description differs (sapiemu-cli).
     bool save_state(std::vector<uint8_t>& out, const std::string& file, std::string& err);
     bool load_state(const std::vector<uint8_t>& in, std::string& err, bool rebuild = false);
-    // The machine description and machine file stored in a state.
+    // The machine description and machine file stored in a state; a state of a format this SAPIemu does not read
+    // (STATE_FORMAT_MIN..STATE_FORMAT) is refused here, before anything is built.
     static bool state_header(const std::vector<uint8_t>& in, nlohmann::json& cfg, std::string& file,
                              std::string& err);
+    // Who saved a state: its format and the version of SAPIemu (also of a format not read here). False: not a state.
+    static bool state_origin(const std::vector<uint8_t>& in, StateOrigin& origin);
 
     // Host side serial connections (TCP server, COM port).
     bool start_bridges(std::string& err);   // from the channels' configuration

@@ -1229,7 +1229,13 @@ json t_load_state(EmuHost& h, const json& a)
         if (it == h.snapshots.end()) return error_result("no state named '" + name + "' (save_state first)");
         d = it->second;
     }
-    if (!h.load_state(d, err)) return error_result(err);
+    int back = STATE_BACK_SAME;
+    if (!h.load_state(d, err, &back)) {
+        if (back == STATE_BACK_RESTARTED) err += " (the running machine was switched off and on, its memory is lost)";
+        else if (back == STATE_BACK_RESET) err += " (the running machine did not come back as it was and was reset)";
+        else err += h.machine() ? " (the running machine runs on as it was)" : " (nothing was changed)";
+        return error_result(err);
+    }
     Machine& m = need_machine(h);
     CpuRegs r;
     m.cpu->get_regs(r);

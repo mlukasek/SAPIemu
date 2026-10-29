@@ -51,7 +51,7 @@ Testy smějí běžet souběžně: každý zapisuje jen do vlastních souborů v
 pracovní kopie médií ve `work/` jen čte. Pracovní kopie vzniká pod dočasným jménem a přejmenuje se, takže
 ji souběžně nevytvoří dva procesy napůl (dřív na čistém `work/` padaly `test_zps3`, `test_state`).
 
-Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 nebo F9 reset (pod debuggerem jen F9), Ctrl+F12 vypnout a zapnout, Alt+Enter celá obrazovka.
+Klávesy v GUI: F5 běh/pauza, F8 rychlost emulace (100 % → 200 % → 400 % → maximum, dokola), F10 krok přes, F11 krok, F12 reset (pod debuggerem PC si F12 bere Windows, pak Stroj → Reset nebo tlačítko Reset v debuggeru), F9 breakpoint v debuggeru (do 2026-10-29 reset), Ctrl+F12 vypnout a zapnout, Alt+Enter celá obrazovka.
 
 **Rychlost a takt** jsou dvě různé věci:
 - **Takt CPU** je vlastnost karty: u JPR-1ZI propojky JP2/JP3 v sestavě, u JPR-1V přepínač TURBO (2/4 MHz) i za
@@ -284,7 +284,10 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 2. **Build:** `tools\build.cmd release test`. Runtime MSVC je přilinkovaný (`CMAKE_MSVC_RUNTIME_LIBRARY`), takže exe
    nepotřebuje Visual C++ Redistributable.
 3. **Balík:** `python tools\package.py` vytvoří `out\package\SAPIemu-<verze>-win64.zip`:
-   - exe, `roms\`, `media\`, `machines\`, `docs\`, fonty, licence knihoven a `PRVNI-KROKY.md`;
+   - exe, `roms\`, `media\`, `machines\`, `docs\`, fonty, licence knihoven, `PRVNI-KROKY.md` (česky,
+     z `docs\prvni-kroky.md`) a `GETTING-STARTED.md` (anglicky, z `docs\getting-started.md`);
+   - vedle zipu zapíše `SAPIemu-<verze>-win64.zip.sha256` s jeho SHA-256 ve formátu `sha256sum` (`<hex>  <jméno>`)
+     a vypíše ho; ověří se `sha256sum -c …zip.sha256`, na Windows `certutil -hashfile …zip SHA256`;
    - jen soubory, které zná git, takže nové soubory nejdřív `git add`;
    - skript zip rozbalí do čisté složky a ověří, že z ní naběhne MikroMon;
    - odmítne build se zapnutým `SAPIEMU_SOURCE_FALLBACK` (balík nesmí sahat do repa);
@@ -302,7 +305,7 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
    - rozložení oken dává `s.json.imgui.ini`, třeba `[Window][x###screen]` a `[Window][x###gfx0]` s `Pos=` a `Size=`;
    - naše PNG nejsou komprimovaná, před commitem je přeuložit se zlib.
 5. **Poznámky k vydání:** `docs\release-notes\v<verze>.md`.
-6. **GitHub:** tag `v<verze>`, Releases → Draft a new release, Pre-release, vložit poznámky a zip.
+6. **GitHub:** tag `v<verze>`, Releases → Draft a new release, Pre-release, vložit poznámky, zip a soubor `.sha256`.
 
 ## Tipy pro vývoj (postupy, které se osvědčily)
 

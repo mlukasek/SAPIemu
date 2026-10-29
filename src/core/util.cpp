@@ -152,6 +152,13 @@ bool file_remove(const std::string& utf8_path)
     return fs::remove(u8_to_path(utf8_path), ec);
 }
 
+bool file_rename(const std::string& utf8_from, const std::string& utf8_to)
+{
+    std::error_code ec;
+    fs::rename(u8_to_path(utf8_from), u8_to_path(utf8_to), ec);   // replaces `to` (MoveFileExW REPLACE_EXISTING, rename(2))
+    return !ec;
+}
+
 bool make_dirs(const std::string& utf8_dir)
 {
     std::error_code ec;

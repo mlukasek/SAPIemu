@@ -38,7 +38,7 @@ struct TapeDialog {
     std::string last_dir;    // where the last tape came from
 };
 
-// Machine configurator (window "Sestava"): edits a copy of a machine description.
+// Machine configurator (View -> Machine configurator, window id ###rack): edits a copy of a machine description.
 struct RackEditor {
     nlohmann::json cfg;            // description being edited
     nlohmann::json saved;          // as last opened / saved (unsaved changes = cfg != saved)
@@ -67,12 +67,21 @@ struct RackEditor {
     std::string message;
     bool message_error = false;
     // Question "save the unsaved changes?" before the description is replaced: the
-    // action waits for the answer (Save, Save as, Discard, Cancel).
+    // action waits for the answer (Save, Save as, Keep for the next start, Discard changes, Cancel).
     enum { PEND_NONE = 0, PEND_START, PEND_OPEN, PEND_TEMPLATE, PEND_EMPTY, PEND_FOLLOW, PEND_EXIT };
     int pending = PEND_NONE;
     std::string pending_path;      // machine file of PEND_START / PEND_OPEN / PEND_TEMPLATE
     bool ask_unsaved = false;      // open the question in the next frame
     bool save_then_continue = false;   // "Save as" dialog for the pending action
+    // what changed against `saved` (machine_cfg_changes), for the question and the title; computed again when
+    // cfg or saved change
+    std::vector<std::string> changes;
+    nlohmann::json changes_cfg, changes_saved;
+    int changes_lang = -1;
+    // "Keep for the next start": machine file (data relative) -> { "base": the file as it was, "cfg": the description
+    // with the changes }. A start of the file from the GUI and the configurator opening it take the changes, while the
+    // file is still the same; Save, Revert and Discard changes forget them. In the settings ("kept_machines").
+    nlohmann::json kept = nlohmann::json::object();
 
     // native file dialogs answer from another thread
     enum { DLG_NONE = 0, DLG_OPEN, DLG_SAVE, DLG_PARAM, DLG_RUN, DLG_PARAM_NEW };
@@ -126,12 +135,18 @@ struct UiState {
     bool show_settings = false;    // View -> Settings
     bool show_about = false;       // Help -> About SAPIemu
     bool show_shortcuts = false;   // Help -> Keyboard shortcuts
+    bool show_report = false;      // Help -> Report a bug
+    std::string report_status;     // its last copy ("Copied..."), shown under the buttons
+    std::string settings_file;     // the settings of this run and its log (app_run), for Report a bug; empty = none
+    std::string log_file;
+    std::string log_prev_file;     // the log of the run before (after a crash), empty = none
     bool show_guide = false;
     bool guide_focus = false;      // bring the guide window to the front (Help -> Machine guide, the button Guide)
     std::string guide_machine;     // the machine whose guide is shown
     uint64_t guide_gen = ~0ull;    // the machine generation the guide was considered for
-    // the machine generation the user started (Start, Restart, File -> Recent machines, Open machine file): only
-    // its guide opens itself, not after a power cycle, a restart from the configurator, a state or MCP (2026-10-17)
+    // the machine generation the user started (Start, Restart, File -> Recent machines, Start a machine from a
+    // file): only its guide opens itself, not after a power cycle, a restart from the configurator, a state or MCP
+    // (2026-10-17)
     uint64_t guide_start_gen = ~0ull;
     bool guides_auto = true;       // guides open themselves for the basic, Libor's and the games machines (settings)
     std::vector<std::string> guides_hidden;   // machines whose guide does not open itself (settings)
@@ -199,6 +214,7 @@ struct UiState {
     std::string bridge_error;
 
     // debugger
+    int disasm_hover = -1;         // the address of the disassembly row under the mouse last frame (F9), -1 none
     bool disasm_follow = true;
     uint16_t disasm_addr = 0;
     char disasm_goto[8] = "";
@@ -230,6 +246,16 @@ struct UiState {
 // The result of a save, a load, a screenshot... (app.cpp): the status bar shows it for 7 s and it goes into the Log;
 // an error opens the window Error.
 void ui_notice(UiState& ui, bool ok, const std::string& text);
+// The keys of a modal window, called between its BeginPopupModal and EndPopup (app.cpp): Enter for its default button
+// (only where that is not destructive), Esc for Cancel / Close. Only the window in front answers, and not in the frame
+// it opens (the key that opened it does not answer it).
+bool popup_enter(void);
+bool popup_escape(void);
+// The text of the console display to the clipboard (View -> Copy screen text, Ctrl+Shift+C), told in the status bar.
+void copy_screen_text(UiState& ui);
+// Debug -> Breakpoint on / off (F9, as in Visual Studio): in the debugger at the disassembly row under the mouse, else
+// at the PC; without the debugger open only a hint (F9 was the reset before).
+void debug_toggle_breakpoint(UiState& ui);
 // Serial terminal window: the clipboard (Alt+C / Alt+V as in TeraTerm, Ctrl+Insert / Shift+Insert)
 // Screenshots of a display output (frontend/shot.cpp): PNG of the exact emulated dots (or enlarged 3x with
 // px_aspect = the width of a dot on a TV), named by the card and the time in work/snimky, into a chosen
@@ -262,9 +288,11 @@ void draw_plotter(UiState& ui);
 void browser_open(UiState& ui);
 void draw_browser(UiState& ui);
 void draw_guide(UiState& ui);
-// Help (frontend/help.cpp): About, Keyboard shortcuts, the user guides of docs/
+// Help (frontend/help.cpp): About, Keyboard shortcuts, Report a bug, the user guides of docs/
 void draw_about(UiState& ui);
 void draw_shortcuts(UiState& ui);
+void draw_report(UiState& ui);
+std::string report_diagnostics(UiState& ui, int log_lines);   // the text "Copy diagnostics" puts on the clipboard
 void help_docs_menu(UiState& ui);
 void open_doc(const char* rel);   // a file of docs/ in the program of the system
 // Default places of the windows (frontend/layout.cpp), called before Begin: the place and the size at the first use
@@ -272,7 +300,7 @@ void open_doc(const char* rel);   // a file of docs/ in the program of the syste
 enum LayoutWin {
     LW_GUIDE, LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG,
     LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_TERMINAL, LW_PRINTER, LW_LOG, LW_RACK,
-    LW_BROWSER, LW_SETTINGS, LW_SHORTCUTS, LW_ABOUT,
+    LW_BROWSER, LW_SETTINGS, LW_SHORTCUTS, LW_ABOUT, LW_REPORT,
     LW_COUNT
 };
 void layout_window(int which);
@@ -321,7 +349,7 @@ void layout_dock_frame(void);
 void draw_ims2(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);
-// Reset from the GUI (F12, F9, Machine -> Reset, RESET on the ZDR panel, the debugger): at once, or on the APS-5 unit
+// Reset from the GUI (F12, Machine -> Reset, RESET on the ZDR panel, the debugger): at once, or on the APS-5 unit
 // (no reset button; the firmware clears its settings after one) first the question of draw_reset_question (aps5.cpp).
 void request_reset(UiState& ui);
 void draw_reset_question(UiState& ui);
@@ -334,6 +362,10 @@ void bin_load_dialog(UiState& ui);
 void state_save_dialog(UiState& ui);
 void state_load_dialog(UiState& ui);
 void state_quick(UiState& ui, bool save);
+// The text of the Error window when the state file `path` did not load (err = the reason of EmuHost): a state of a
+// version of SAPIemu that this one does not read is named as such; back = StateBack of EmuHost::load_state (what
+// became of the running machine).
+std::string state_load_error(UiState& ui, const std::string& path, const std::string& err, int back);
 void draw_rack(UiState& ui);
 // Windows a machine description opens and puts on top at its start ("windows": ["minigraf"]): the key in the
 // machine file, the window title (tr_id), the label in the configurator. Keyboard input stays with the screen.
@@ -349,6 +381,13 @@ void rack_open_and_run(UiState& ui);
 // File -> Open machine: start a machine file; asks first when the configurator holds
 // unsaved changes.
 void rack_start_machine(UiState& ui, const std::string& file);
+// Build a machine file now (the machine of the last session at the program start, a start from the GUI): with the
+// changes kept for it (RackEditor::kept) when its file is still the same, else as the file says.
+bool rack_load_machine(UiState& ui, const std::string& file, std::string& err);
+// The machine file has changes kept for the next start (the browser marks it).
+bool rack_has_kept(UiState& ui, const std::string& file);
+// The running machine runs with the changes kept for its file (Report a bug says so).
+bool rack_runs_kept(UiState& ui);
 // Exit: asks first when the configurator holds unsaved changes, then sets ui.quit.
 void rack_request_exit(UiState& ui);
 // POWER switch: off when the machine runs, else on with the configurator's description.

@@ -20,6 +20,7 @@
 #include "imgui_impl_sdlrenderer3.h"
 
 #include "cards/catalog.h"
+#include "core/headless.h"
 #include "core/host.h"
 #include "core/log.h"
 #include "core/util.h"
@@ -151,6 +152,7 @@ struct App {
     float dpi = 1.0f;             // the scale of the display of the window (View -> Settings: text size on top)
     bool dpi_fixed = false;       // --ui-scale: the scale of a snapshot, not of the display
     bool style_editor = false;    // Debug -> Style editor (debug builds)
+    std::string snap_menu;        // UI snapshot (--ui-menu): the menu kept open, its English name
 };
 
 // ---------------------------------------------------------------- settings
@@ -218,6 +220,8 @@ nlohmann::json settings_json(App& app)
     j["browser"] = { { "recent", ui.recent } };
     j["mcp"] = { { "enabled", app.mcp_pref }, { "port", app.mcp_pref_port } };
     j["guides"] = { { "auto", ui.guides_auto }, { "hidden", ui.guides_hidden } };
+    // the configurator: changes kept for the next start (Unsaved changes -> Keep for the next start)
+    if (ui.rack.kept.is_object() && !ui.rack.kept.empty()) j["kept_machines"] = ui.rack.kept;
     return j;
 }
 
@@ -265,6 +269,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(s, "smooth", app.smooth);
     get_opt(s, "card_types", ui.rack.show_types);
     get_opt(j.value("browser", nlohmann::json::object()), "recent", ui.recent);
+    if (j.contains("kept_machines") && j["kept_machines"].is_object()) ui.rack.kept = j["kept_machines"];
     const nlohmann::json& gd = j.value("guides", nlohmann::json::object());
     get_opt(gd, "auto", ui.guides_auto);
     get_opt(gd, "hidden", ui.guides_hidden);
@@ -552,7 +557,7 @@ static void osd_follow(App& app)
 void load_machine(App& app, const std::string& file)
 {
     std::string err;
-    if (!app.host.load(file, err)) {
+    if (!rack_load_machine(app.ui, file, err)) {   // with the changes kept for the next start
         app.error_text = std::string(tr("Cannot load machine")) + ":\n" + err;
         app.show_error = true;
         LOGE("%s", err.c_str());
@@ -638,6 +643,20 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
         if (!ev.repeat) fullscreen_toggle(app);
         return;
     }
+    // Ctrl+Shift+C: the text of the console screen to the clipboard (Ctrl+C alone goes to SAPI as a control code); in
+    // the serial terminal its own text, and Ctrl+Shift+V pastes there (as Alt+C, Alt+V; Windows Terminal does the same)
+    bool ctrl_shift =
+        (ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_SHIFT) && !(ev.mod & (SDL_KMOD_ALT | SDL_KMOD_GUI));
+    if (ctrl_shift && ev.key == SDLK_C) {
+        if (ev.repeat) return;
+        if (app.ui.terminal_focused) terminal_copy(app.ui);
+        else copy_screen_text(app.ui);
+        return;
+    }
+    if (ctrl_shift && ev.key == SDLK_V && app.ui.terminal_focused && m) {
+        if (!ev.repeat) terminal_paste(app.ui);
+        return;
+    }
     switch (ev.key) {
     case SDLK_F5:   // Ctrl+F5: a screenshot of the focused output (as in DOSBox); F5 run/pause
         if ((ev.mod & SDL_KMOD_CTRL) && (ev.mod & SDL_KMOD_ALT)) video_toggle(app);   // Ctrl+Alt+F5: video
@@ -660,7 +679,8 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
         else debug_step(app, true);
         return;
     case SDLK_F11: debug_step(app, false); return;
-    case SDLK_F12:   // Ctrl+F12: switch off and on; under a debugger Windows takes F12 as the break hotkey, F9 still works
+    case SDLK_F12:   // Ctrl+F12: switch off and on. Under a debugger of the PC Windows takes F12 as its break hotkey
+                     // (UserDebuggerHotKey): then Machine -> Reset.
         if (ev.repeat) return;   // a held key: one power cycle, one reset (a switch does not repeat)
         if (ev.mod & SDL_KMOD_CTRL) {
             if (m) power_cycle(app);
@@ -668,8 +688,8 @@ void handle_key(App& app, const SDL_KeyboardEvent& ev)
         }
         request_reset(app.ui);   // the APS-5 unit asks first
         return;
-    case SDLK_F9:
-        if (!ev.repeat) request_reset(app.ui);
+    case SDLK_F9:   // the breakpoint, as in Visual Studio (F5, F10, F11 too); the reset was here before 2026-10-29
+        if (!ev.repeat) debug_toggle_breakpoint(app.ui);
         return;
     case SDLK_F2:   // Ctrl+F2 / Ctrl+F3: the quick slot of the machine; without Ctrl the SAPI keys
     case SDLK_F3:
@@ -1261,6 +1281,8 @@ void shot_items(App& app, DisplayDevice* d, const char* name)
     if (ImGui::MenuItem(tr("Save screenshot"), "Ctrl+F5", false, d != nullptr)) shot_save(app.ui, d, name, a);
     if (ImGui::MenuItem(tr("Save screenshot as..."), nullptr, false, d != nullptr)) shot_save_as(app.ui, d, name, a);
     if (ImGui::MenuItem(tr("Copy screenshot"), nullptr, false, d != nullptr)) shot_copy(app.ui, d, a);
+    Machine* m = app.host.machine();
+    if (d && m && d == m->display && ImGui::MenuItem(tr("Copy screen text"), "Ctrl+Shift+C")) copy_screen_text(app.ui);
     ImGui::MenuItem(tr("Screenshot enlarged 3x (as shown)"), nullptr, &app.ui.shot_enlarged);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", tr("Off: the exact dots of the emulated picture. On: every dot 3 lines high and as wide as on the screen (TV aspect)."));
@@ -1547,11 +1569,18 @@ static std::string status_text(App& app, Machine* m, const std::string& notice, 
     return s;
 }
 
+// A menu of the menu bar by its English name; a UI snapshot (--ui-menu) keeps the one it names open.
+static bool begin_menu(App& app, const char* key)
+{
+    if (!app.snap_menu.empty() && app.snap_menu == key && !ImGui::IsPopupOpen(tr(key))) ImGui::OpenPopup(tr(key));
+    return ImGui::BeginMenu(tr(key));
+}
+
 void draw_menu(App& app)
 {
     if (!ImGui::BeginMainMenuBar()) return;
     Machine* m = app.host.machine();
-    if (ImGui::BeginMenu(tr("File"))) {
+    if (begin_menu(app, "File")) {
         if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
         if (ImGui::BeginMenu(tr("Recent machines"), !app.ui.recent.empty())) {
             for (const std::string& f : std::vector<std::string>(app.ui.recent)) {
@@ -1564,7 +1593,7 @@ void draw_menu(App& app)
             }
             ImGui::EndMenu();
         }
-        if (ImGui::MenuItem(tr("Open machine file..."))) rack_open_and_run(app.ui);
+        if (ImGui::MenuItem(tr("Start a machine from a file..."))) rack_open_and_run(app.ui);
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Load program into memory (Intel HEX)..."), nullptr, false, m != nullptr))
             hex_load_dialog(app.ui);
@@ -1579,7 +1608,7 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Exit"))) rack_request_exit(app.ui);
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu(tr("Machine"))) {
+    if (begin_menu(app, "Machine")) {
         if (ImGui::MenuItem(m ? tr("Switch off") : tr("Switch on"))) {
             rack_power_switch(app.ui);
             m = app.host.machine();   // the old machine is gone
@@ -1670,7 +1699,7 @@ void draw_menu(App& app)
         }
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu(tr("Debug"))) {
+    if (begin_menu(app, "Debug")) {
         ImGui::MenuItem(tr("Debugger"), nullptr, &app.ui.show_debugger);
         ImGui::MenuItem(tr("Memory"), nullptr, &app.ui.show_memory);
         ImGui::MenuItem(tr("I/O log"), nullptr, &app.ui.show_iolog);
@@ -1679,14 +1708,20 @@ void draw_menu(App& app)
         bool stepping = m && app.host.paused;   // the steps are for a paused machine (F5)
         if (ImGui::MenuItem(tr("Step"), "F11", false, stepping)) debug_step(app, false);
         if (ImGui::MenuItem(tr("Step over"), "F10", false, stepping)) debug_step(app, true);
+        // as F9, but from the menu always at the PC (the mouse is on the menu)
+        if (ImGui::MenuItem(tr("Breakpoint on / off"), "F9", false, m && m->cpu && app.ui.show_debugger))
+            debug_toggle_breakpoint(app.ui);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("%s", tr("In the debugger: F9 sets or removes the breakpoint at the disassembly row under "
+                                       "the mouse, else at the PC (from this menu at the PC)."));
 #ifndef NDEBUG
         ImGui::Separator();   // tuning the look live; Export copies the values for frontend/theme_data.cpp
         ImGui::MenuItem(tr("Style editor (development)"), nullptr, &app.style_editor);
 #endif
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu(tr("View"))) {
-        ImGui::MenuItem(tr("Configuration..."), nullptr, &app.ui.show_rack);
+    if (begin_menu(app, "View")) {
+        ImGui::MenuItem(tr("Machine configurator..."), nullptr, &app.ui.show_rack);
         ImGui::MenuItem(tr("Serial terminal"), nullptr, &app.ui.show_terminal);
         ImGui::MenuItem(tr("Media"), nullptr, &app.ui.show_media);
         bool has_printer = false, has_plotter = false;   // windows of devices the machine has
@@ -1716,6 +1751,10 @@ void draw_menu(App& app)
             ImGui::SetTooltip("%s", tr("The display used last alone over the whole monitor, without the menu and the other "
                                        "windows. Alt+Enter or its right click menu leaves it; Esc goes to SAPI."));
         if (ImGui::MenuItem(tr("Screenshot"), "Ctrl+F5", false, m && m->display)) shot_now(app);
+        if (ImGui::MenuItem(tr("Copy screen text"), "Ctrl+Shift+C", false, m && m->display)) copy_screen_text(app.ui);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("%s", tr("The text of the console display to the clipboard (in the serial terminal "
+                                       "Ctrl+Shift+C copies its text)."));
         if (ImGui::MenuItem(video_recording(app.ui) ? tr("Stop the video") : tr("Record video with sound"), "Ctrl+Alt+F5",
                             false, m && m->display))
             video_toggle(app);
@@ -1740,7 +1779,7 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Settings..."))) app.ui.show_settings = true;
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu(tr("Help"))) {
+    if (begin_menu(app, "Help")) {
         if (ImGui::MenuItem(tr("Machine guide"))) {   // opens it in front (an instrument may hide it), X closes it
             app.ui.show_guide = true;
             app.ui.guide_focus = true;
@@ -1751,6 +1790,11 @@ void draw_menu(App& app)
         help_docs_menu(app.ui);
         if (ImGui::MenuItem(tr("Keyboard shortcuts"))) app.ui.show_shortcuts = true;
         ImGui::Separator();
+        if (ImGui::MenuItem(tr("Report a bug..."))) {
+            app.ui.show_report = true;
+            app.ui.report_status.clear();
+            ImGui::SetWindowFocus(tr_id("Report a bug"));   // in front when it is open already
+        }
         if (ImGui::MenuItem(tr("About SAPIemu"))) app.ui.show_about = true;
         ImGui::EndMenu();
     }
@@ -2147,7 +2191,8 @@ void draw_error(App& app)
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + (wrap < most ? wrap : most));
         ImGui::TextUnformatted(app.error_text.c_str());
         ImGui::PopTextWrapPos();
-        if (ImGui::Button(tr("Close"))) ImGui::CloseCurrentPopup();
+        // the only button: the default one (Enter), Esc closes it too
+        if (theme_accent_button(tr("Close")) || popup_enter() || popup_escape()) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
 }
@@ -2163,6 +2208,67 @@ void ui_notice(UiState& ui, bool ok, const std::string& text)
     else LOGE("%s", text.c_str());
 }
 
+// Not in the frame the popup opens (the key that opened it, e.g. Enter of a path field, does not answer it) and only
+// for the popup in front (an Error over another question takes the key alone).
+static bool popup_key_ok(void)
+{
+    return !ImGui::IsWindowAppearing() && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+}
+
+bool popup_enter(void)
+{
+    return popup_key_ok() &&
+           (ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false));
+}
+
+bool popup_escape(void)
+{
+    return popup_key_ok() && ImGui::IsKeyPressed(ImGuiKey_Escape, false);
+}
+
+void copy_screen_text(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    if (!m) return;
+    if (!m->display) {
+        ui_notice(ui, true, tr("The machine has no text display."));
+        return;
+    }
+    std::string text = screen_text(*m);
+    while (!text.empty() && text.back() == '\n') text.pop_back();   // the empty rows at the bottom
+    size_t first = text.find_first_not_of('\n');                     // and at the top
+    text = first == std::string::npos ? std::string() : text.substr(first);
+    if (text.empty()) {
+        ui_notice(ui, true, tr("The screen has no text."));
+        return;
+    }
+    text += '\n';
+    SDL_SetClipboardText(text.c_str());   // UTF-8; Windows gets CR LF
+    ui_notice(ui, true, tr("Screen text copied to the clipboard."));
+}
+
+void debug_toggle_breakpoint(UiState& ui)
+{
+    Machine* m = ui.host->machine();
+    if (!m || !m->cpu) return;
+    if (!ui.show_debugger) {
+        ui_notice(ui, true, tr("F9 sets a breakpoint in the debugger (Debug -> Debugger). Reset is F12."));
+        return;
+    }
+    uint16_t a;
+    if (ui.disasm_hover >= 0) a = (uint16_t)ui.disasm_hover;
+    else {
+        CpuRegs r;
+        m->cpu->get_regs(r);
+        a = r.pc;
+    }
+    bool on = !m->has_breakpoint(a);
+    m->set_breakpoint(a, on);
+    char t[96];
+    snprintf(t, sizeof(t), "%s %04Xh", on ? tr("Breakpoint set at") : tr("Breakpoint removed at"), (unsigned)a);
+    ui_notice(ui, true, t);
+}
+
 void app_layout_override(bool docked)
 {
     g_layout_override = docked ? 1 : 0;
@@ -2172,6 +2278,48 @@ const MachineWindow* machine_windows(int* count)
 {
     *count = k_machine_window_count;
     return k_machine_windows;
+}
+
+static size_t snap_keys(const UiSnapshot* snap)
+{
+    return snap ? snap->keys.size() : 0;
+}
+
+// --ui-key "Ctrl+Shift+C", "F9", "Enter", "Esc": the key event into the queue of SDL, as the keyboard sends it.
+static void snap_key(App& app, const std::string& spec, bool down)
+{
+    static const struct {
+        const char* prefix;
+        SDL_Keymod mod;
+    } k_mods[] = { { "Ctrl+", SDL_KMOD_LCTRL }, { "Shift+", SDL_KMOD_LSHIFT }, { "Alt+", SDL_KMOD_LALT } };
+    std::string name = spec;
+    unsigned mod = 0;
+    for (bool more = true; more;) {
+        more = false;
+        for (const auto& k : k_mods)
+            if (name.rfind(k.prefix, 0) == 0) {
+                mod |= k.mod;
+                name.erase(0, strlen(k.prefix));
+                more = true;
+            }
+    }
+    if (name == "Enter") name = "Return";
+    if (name == "Esc") name = "Escape";
+    SDL_Keycode key = SDL_GetKeyFromName(name.c_str());
+    if (key == SDLK_UNKNOWN) {
+        if (down) fprintf(stderr, "UI snapshot: unknown key %s\n", spec.c_str());
+        return;
+    }
+    SDL_Event ev;
+    SDL_zero(ev);
+    ev.type = down ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
+    ev.key.windowID = SDL_GetWindowID(app.window);
+    ev.key.key = key;
+    ev.key.scancode = SDL_GetScancodeFromKey(key, nullptr);
+    ev.key.mod = (SDL_Keymod)mod;
+    ev.key.down = down;
+    ev.key.timestamp = SDL_GetTicksNS();
+    SDL_PushEvent(&ev);
 }
 
 // A start that fails: the message on stderr, in the log and in a message box (a user who started the
@@ -2230,9 +2378,17 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     if (!app.settings_path.empty()) {
         std::string log_file = !settings_file.empty() ? settings_file + ".log"
                                                       : path_join(path_dir(app.settings_path), "sapiemu.log");
-        if (log_set_file(log_file)) LOGI("SAPIemu %s, data %s, work %s", sapiemu_version(), data_root().c_str(),
-                                         work_root().c_str());
+        // the log of the run before stays as sapiemu.prev.log (one generation): after a crash the tester starts
+        // SAPIemu again to reach Report a bug, and that start must not throw the log of the crash away
+        std::string prev = log_file.substr(0, log_file.size() - 4) + ".prev.log";   // log_file ends with ".log"
+        if (file_exists(log_file) && file_rename(log_file, prev)) app.ui.log_prev_file = prev;
+        else if (file_exists(prev)) app.ui.log_prev_file = prev;   // not renamed (held open): the older one is still there
+        if (log_set_file(log_file)) {
+            LOGI("SAPIemu %s, data %s, work %s", sapiemu_version(), data_root().c_str(), work_root().c_str());
+            app.ui.log_file = log_file;   // Help -> Report a bug
+        }
     }
+    app.ui.settings_file = app.settings_path;
     // no settings yet: the first start of a fresh copy offers the machines (window Choose a machine, author
     // 2026-10-17; before it was the configuration behind the screen)
     bool first_start = !app.settings_path.empty() && !file_exists(app.settings_path);
@@ -2354,7 +2510,11 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     load_machine(app, first);
     if (snap && !snap->state.empty()) {   // a picture of a saved moment
         std::string err;
-        if (!app.host.load_state_file(snap->state, err)) fprintf(stderr, "UI snapshot: %s\n", err.c_str());
+        int back = STATE_BACK_SAME;
+        if (!app.host.load_state_file(snap->state, err, &back)) {   // the Error window in the picture, as File -> Load state
+            fprintf(stderr, "UI snapshot: %s\n", err.c_str());
+            ui_notice(app.ui, false, state_load_error(app.ui, snap->state, err, back));
+        }
     }
     if (!app.host.machine() && first != DEFAULT_MACHINE_FILE) load_machine(app, DEFAULT_MACHINE_FILE);
     // the machine of the last session: its guide does not open by itself at every start (only a machine started
@@ -2373,6 +2533,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_about = snap->about;
         app.ui.show_settings = snap->settings;
         app.ui.show_shortcuts = snap->shortcuts;
+        app.ui.show_report = snap->report;
+        if (snap->debugger) app.ui.show_debugger = true;
         app.ui.show_media = snap->media;
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
@@ -2517,6 +2679,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         draw_settings(app);
         draw_about(app.ui);
         draw_shortcuts(app.ui);
+        draw_report(app.ui);
         draw_reset_question(app.ui);
         draw_rack(app.ui);
         draw_log(app);
@@ -2594,7 +2757,15 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 if (d) shot_copy(app.ui, d, display_px_aspect(app, d));
             }
             if (snap->video > 0) video_toggle(app);
+            app.snap_menu = snap->menu;
+            if (snap->exit) rack_request_exit(app.ui);
         }
+        // --ui-mouse, --ui-key: the mouse placed (two frames before the keys: what it hovers is known when they come),
+        // then each key down and up in two frames, through the event queue as typed (handle_key and ImGui see them)
+        int keys_end = 10 + 2 * (int)snap_keys(snap);
+        if (snap && snap_frames >= 8 && snap->mouse_x >= 0) io.AddMousePosEvent(snap->mouse_x, snap->mouse_y);
+        if (snap && snap_frames >= 10 && snap_frames < keys_end)
+            snap_key(app, snap->keys[(size_t)(snap_frames - 10) / 2], (snap_frames - 10) % 2 == 0);
         if (snap && snap->video > 0 && video_recording(app.ui) && video_seconds(app.ui) >= snap->video)
             video_toggle(app);   // stop: the picture is taken once the video is saved
         if (snap && snap->terminal && snap_frames == 9 && !app.ui.terms.empty()) {
@@ -2626,7 +2797,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (snap_frames == 5) io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
             if (snap_frames == 10 && snap->drag_drop) io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
         }
-        if (snap && snap_frames >= 12 && !(snap->video > 0 && video_busy(app.ui))) {
+        if (snap && snap_frames >= 12 && snap_frames >= keys_end + 2 && !(snap->video > 0 && video_busy(app.ui))) {
             // window content as PNG (our own renderer, not the screen)
             SDL_Rect crop, *rect = nullptr;   // --ui-crop: only that window (previews of machines)
             if (!snap->crop.empty()) {

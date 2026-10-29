@@ -430,7 +430,7 @@ void draw_aps5(UiState& ui)
     ImGui::End();
 }
 
-// A reset from the GUI (F12, F9, Machine -> Reset, RESET of the ZDR panel, the debugger). The APS-5 unit has no
+// A reset from the GUI (F12, Machine -> Reset, RESET of the ZDR panel, the debugger). The APS-5 unit has no
 // reset: its firmware takes one as a watchdog error (CHYBA 0, INICIALIZACE) and after M -> its cold start clears
 // the programs, the thermocouple types and the calibration (docs/desky/APS-5.md). The reset itself stays as the
 // hardware answers it; the GUI only asks first (decision 2026-10-29). Other machines reset at once, MCP never asks.
@@ -464,9 +464,11 @@ void draw_reset_question(UiState& ui)
                               "failure instead: the settings stay."));
     ImGui::PopTextWrapPos();
     ImGui::Spacing();
+    // Esc = Cancel; Enter does nothing (a reset by mistake clears the unit, decision 2026-10-29), so no button is
+    // the highlighted default
     bool yes = ImGui::Button(tr("Yes, reset"));
     ImGui::SameLine();
-    bool no = ImGui::Button(tr("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape, false);
+    bool no = ImGui::Button(tr("Cancel")) || popup_escape();
     if (ui.host->machine_generation() != ui.ask_reset_gen) {   // switched off and on, or another machine: not asked
         yes = false;
         no = true;

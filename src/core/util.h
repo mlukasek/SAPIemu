@@ -24,6 +24,8 @@ void host_time_fix(time_t t);
 // size and modification time (file clock ticks) of a file
 bool file_stat(const std::string& utf8_path, uint64_t& size, int64_t& mtime);
 bool file_remove(const std::string& utf8_path);
+// rename a file, over an existing `to` (false: e.g. another program holds one of them open on Windows)
+bool file_rename(const std::string& utf8_from, const std::string& utf8_to);
 bool make_dirs(const std::string& utf8_dir);
 std::string path_join(const std::string& a, const std::string& b);
 std::string path_dir(const std::string& p);

@@ -76,7 +76,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích
   vedle SAPIemu, `--bombernet` RAM disk sestavy `sapi1v_BomberNet`, `docs/vydani/sestavy.md`), `third_party_notices.py` (`THIRD-PARTY-NOTICES.txt`), `make_icon.py`
   (ikona `src/res/sapiemu.ico` a logo `docs/img/logo.png` pro README a O programu; VERSIONINFO z `src/res/sapiemu.rc.in`).
-- **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy).
+- **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy,
+  `plan-vzhled.md` plán vzhledu a použitelnosti GUI, `beta-testeri.md` dopis a úkoly pro testery bety).
+  Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`).
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
 - **Testy:** `tests/`, ctest. Podrobnosti k sestavení a příklady jsou v `docs/build.md`.
 - **MCP:** emulátor (GUI nebo `sapiemu-cli --mcp`) poskytuje MCP na `http://127.0.0.1:8580/mcp`. V GUI podle
@@ -130,7 +132,7 @@ Pasti ověřené 2026-10-05:
   kódu závislého na platformě nebo před vydáním.
 - **Výstupy:** `out/build/<preset>/sapiemu.exe`, testy v `out/build/<preset>/tests/`.
 - **Data hledá exe** od své složky nahoru, pak od aktuální. Cesty `work/...` vedou do `work_root()`: `work/` v datech,
-  nebo `%LOCALAPPDATA%\SAPIemu\work`, když tam nejde zapisovat. GUI píše log `sapiemu.log` vedle nastavení. Záchranná cesta ke zdrojákům (`SAPIEMU_SOURCE_FALLBACK`)
+  nebo `%LOCALAPPDATA%\SAPIemu\work`, když tam nejde zapisovat. GUI píše log `sapiemu.log` vedle nastavení (předchozí běh zůstane jako `sapiemu.prev.log`, kvůli pádům). Záchranná cesta ke zdrojákům (`SAPIEMU_SOURCE_FALLBACK`)
   je jen v debug a lokálních buildech mimo repo, release presety ji vypínají a `package.py` to hlídá.
 - **Linux:** `cmake --preset linux-debug && cmake --build --preset linux-debug`, ověřeno ve WSL 2 (Ubuntu 24.04,
   klon v `~/SAPIemu`, ne na `/mnt/e`; postup a pasti GCC v `docs/build.md`). Windows build má přednost, změny

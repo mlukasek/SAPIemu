@@ -2,7 +2,7 @@
 
 Sestava je popis počítače: sběrnice, karty ve slotech a jejich jumpery. Je uložená v souboru `.sapi`
 (JSON s komentáři). Emulátor sestavy hledá ve složce `machines/` vedle sebe (i v podsložkách), ale soubor může
-ležet kdekoli: otevírá se přes Soubor → Otevřít soubor sestavy… nebo v konfigurátoru.
+ležet kdekoli: spustí se přes Soubor → Spustit sestavu ze souboru…, k úpravám se otevře v konfigurátoru.
 
 ## Výběr sestav (Soubor → Vybrat sestavu…)
 
@@ -53,7 +53,7 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
   otevírají sami a jiný průvodce už neběží).
 - Test `test_machine_index` hlídá, že rejstřík zná jen existující sestavy a sestavy s průvodcem ho mají.
 
-## Konfigurátor (Zobrazení → Sestava…)
+## Konfigurátor (Zobrazení → Konfigurátor sestavy…)
 
 - **Čelní pohled na rám:** sloty X1…Xn zprava doleva, vpravo panely SPN a ZDR.
   - Panely jsou kreslené podle tiskových podkladů hliníkových štítků z rámu Libora Lasoty
@@ -157,10 +157,26 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/
 - **Uložit** zapíše soubor s komentáři z katalogu: u každého jumperu je jeho označení a význam zvolené
   hodnoty. Ruční komentáře z původního souboru se při uložení z konfigurátoru ztratí.
 - **Konfigurátor ukazuje běžící sestavu.** Když má neuložené změny a má se nahradit jinou sestavou (menu
-  Soubor → Vybrat sestavu…, Otevřít soubor sestavy…, v konfigurátoru Nová a Otevřít…, i ukončení emulátoru), nejdřív
-  se zeptá: **Uložit / Uložit jako… / Zahodit / Zrušit**. Zrušit akci nechá být. Když sestavu přepne MCP,
-  dotaz přijde hned potom a Zrušit ponechá rozpracované změny v konfigurátoru. Vypnutí a zapnutí stejné sestavy
-  (NAPÁJENÍ, „Zapnout s touto sestavou“) se neptá a změny zachová.
+  Soubor → Vybrat sestavu…, Spustit sestavu ze souboru…, v konfigurátoru Nová a Otevřít…, i ukončení emulátoru), nejdřív
+  se zeptá. Dotaz vyjmenuje skutečné změny proti souboru (nejvýš 9 řádků a „a další změny (N)“), třeba
+  „X1 JPR-1V: TURBO: CPU 4 MHz, sběrnice vždy 2 MHz → vypnuto“, „X4 DSM-1 #10: Kazeta v magnetofonu → hra.wav“,
+  „X2 DMR-1: přesunuta do X4“, „X6 IDE-1: odebrána“. Hodnota zapsaná jinak, ale stejná (výchozí hodnota vypsaná,
+  `10h` a 16), změnou není. Tlačítka: **Uložit / Uložit jako… / Ponechat pro příští spuštění / Zahodit změny /
+  Zrušit** (Enter i Esc = Zrušit). Zrušit akci nechá být. Když sestavu přepne MCP nebo načtený stav, dotaz přijde
+  hned potom a Zrušit ponechá rozpracované změny v konfigurátoru. Vypnutí a zapnutí stejné sestavy (NAPÁJENÍ,
+  „Zapnout s touto sestavou“) se neptá a změny zachová. Seznam změn ukáže i bublina nad řádkem „neuložené změny“
+  v konfigurátoru.
+- **Ponechat pro příští spuštění** (jen sestava se souborem a bez chyb v sestavě, s chybou je tlačítko šedé, start by
+  selhal a změny by se zapomněly): soubor zůstane, jak je, a popis se změnami si program uloží do nastavení
+  (`kept_machines`: soubor → jeho obsah na disku v tu chvíli a upravený popis). **Každé** další spuštění téhož
+  souboru z GUI (výběr sestav i Restartovat, Poslední sestavy, Spustit ze souboru, sestava minulé relace při startu
+  programu) a jeho otevření v konfigurátoru změny použije, dokud je někdo neuloží nebo nevrátí. Každý takový start
+  ohlásí stavový řádek („Běží se změnami ponechanými z konfigurátoru…“), výběr sestav ji označí hvězdičkou
+  a větou pod popisem, Nahlásit chybu to napíše u sestavy. Konfigurátor je dál ukazuje jako neuložené („neuložené
+  změny, ponechané pro příští spuštění“), ale znovu se na ně neptá, dokud se nepřidá další změna. **Uložit**,
+  **Vrátit změny** a **Zahodit změny** je zapomenou. Když se soubor mezitím změnil (nová verze dodané sestavy), změny
+  se zapomenou a řekne to okno Chyba; když se popis se změnami nedá postavit (chybí médium), sestava se spustí podle
+  souboru a okno Chyba to řekne. MCP a `sapiemu-cli` ponechané změny nepoužívají.
 
 ## Okna obrazovek a barva obrazu
 
@@ -379,7 +395,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   Hodí se na programy, které spoléhají na vymazanou paměť (podnět z portu Prince of Persia). Paměti se
   zálohou z baterie (DMR-1, CRM-1) a RAM disky mají dál obsah ze souboru.
 - **Okna nahoře po spuštění** (`windows`, v konfigurátoru řádek zaškrtávátek „Okna nahoře po spuštění“): okna,
-  která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad okno Sestava. Klávesnice
+  která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad konfigurátor. Klávesnice
   zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač: Minigraf, XY 4130), `aps5` (panel APS-5), `diag`
   (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2). Okno v doku dostane vybranou
   záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `aps5` panel, `zps/ZPS-2_DPS-1_IMS-2`
@@ -436,11 +452,18 @@ vrátí místa oken druhého rozložení),
 červeně, varování žlutě; „Chyby: N“ ve stavovém řádku je vidět jen bez něj), `--ui-reset` těsně před obrázkem
 stiskne F12 (u APS-5 ukáže otázku „Resetovat jednotku APS-5?“), `--ui-rack SLOT` vybere slot jako kliknutím
 (záložka Nastavení karty, posunutá do pohledu),
+`--ui-report` okno Nápověda → Nahlásit chybu, `--ui-debugger` okno Debugger, `--ui-menu JMÉNO` nechá otevřené menu
+(anglicky: `File`, `Machine`, `Debug`, `View`, `Help`), `--ui-key KLÁVESA` stiskne klávesu přes frontu událostí jako
+z klávesnice (`F9`, `Ctrl+Shift+C`, `Enter`, `Esc`…; víc `--ui-key` jedna po druhé, např. `--ui-reset --ui-key Esc`
+zavře otázku APS-5), `--ui-mouse X,Y` postaví myš (body okna; s `--ui-debugger --ui-pause --ui-key F9` breakpoint
+na řádku pod myší). Ctrl+Shift+C přepíše schránku jako `--ui-copy`,
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,
 `--ui-drag 3:7` táhne kartu z X3 na X7 (s `:drop` ji pustí), `--ui-terminal` okno Sériový terminál (`--ui-term-text 'řádek\nřádek'` do něj vloží text, `--ui-term-sel 0,7-4,12`
 v něm vybere od řádku 0, hranice 7 po řádek 4, hranici 12),
 `--ui-set SLOT:KLÍČ=HODNOTA` změní kartu v konfigurátoru bez restartu (třeba `--ui-set 5:baud=1200`, ukáže
-oranžové značení), `--ui-set SLOT:remove` kartu vyjme,
+oranžové značení), `--ui-set SLOT:remove` kartu vyjme, `--ui-exit` dá před obrázkem Soubor → Konec (s `--ui-set`
+ukáže dotaz Neuložené změny se seznamem změn; bez změn program skončí bez obrázku), `--ui-state` se stavem, který
+nejde načíst, ukáže okno Chyba jako Soubor → Načíst stav…,
 `--lang en` (nebo `cs`) vybere jazyk. Rozložení oken uživatele
 (`imgui.ini`) se nemění. Se `--settings X.json` se ale rozložení ukládá do `X.json.imgui.ini` a při dalším snímku se
 použije, proto ho před snímkem smazat.

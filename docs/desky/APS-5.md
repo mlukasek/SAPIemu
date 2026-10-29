@@ -88,7 +88,7 @@ přerušení jsou RST na 14C9h. Obsluha čte P2-IN, bity 4–6 negované, a úlo
     (příkaz 7R);
   - AAh bez /PFAIL (reset watchdogem) znamená „CHYBA n“ a „INICIALIZACE“, po M → studený start;
   - jiná hodnota znamená studený start.
-- **RESET** (F9/F12, Stroj → Reset, tlačítko na panelu ZDR) je reset bez varování: firmware ukáže „CHYBA 0“ a
+- **RESET** (F12, Stroj → Reset, tlačítko na panelu ZDR) je reset bez varování: firmware ukáže „CHYBA 0“ a
   „INICIALIZACE“ a po M → udělá studený start (smaže programy, typy termočlánků i kalibraci). Skutečná APS-5
   tlačítko RESET nemá, takhle reaguje na reset watchdogem. Autor chce věrné chování (2026-10-08), proto RESET
   u této sestavy nepoužívat a vypínat síťovým vypínačem (POWER), Stroj → Vypnout a zapnout (Ctrl+F12) nebo

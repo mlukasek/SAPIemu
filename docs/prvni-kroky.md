@@ -3,8 +3,9 @@
 Emulátor počítače Tesla SAPI-1. SAPI-1 (1983–1990) byl průmyslový řídicí počítač do racku.
 Začněte základní sestavou ZPS-1, pak zkuste přístroje. Hry a dema jsou novodobý doplněk na nových deskách.
 
-Verze **alfa**: hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje (GitHub
-Issues: https://github.com/mlukasek/SAPIemu/issues).
+Testovací verze: hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje: Nápověda →
+Nahlásit chybu… (do zveřejnění cestou, kterou jste program dostali, potom přes GitHub Issues:
+https://github.com/mlukasek/SAPIemu/issues). Anglicky: `GETTING-STARTED.md` (`docs/getting-started.md`).
 
 ## Spuštění
 
@@ -12,9 +13,9 @@ Issues: https://github.com/mlukasek/SAPIemu/issues).
 2. Spusťte **`sapiemu.exe`**. Windows u nepodepsaného programu ukážou varování SmartScreen: „Další informace“
    → „Přesto spustit“.
 3. Nic se neinstaluje. Nastavení se ukládá vedle exe (`sapiemu-settings.json`, místa oken `imgui.ini`
-   a `imgui-docked.ini`), stejně jako log
-   posledního spuštění `sapiemu.log` (hodí se k hlášení chyby). Pracovní kopie disků a RAM disků vznikají ve složce
-   `work\`. Originály v `media\` zůstávají netknuté. Když do složky programu nejde zapisovat (např. `Program Files`),
+   a `imgui-docked.ini`), stejně jako log posledního spuštění `sapiemu.log` a toho před ním `sapiemu.prev.log`
+   (hodí se k hlášení chyby). Pracovní kopie disků a RAM disků vznikají ve složce `work\`. Originály v `media\`
+   zůstávají netknuté. Když do složky programu nejde zapisovat (např. `Program Files`),
    ukládá se nastavení do `%APPDATA%\SAPIemu\SAPIemu` a `work` do `%LOCALAPPDATA%\SAPIemu\work`.
 
 Potřebujete Windows 10 nebo 11, 64 bit.
@@ -28,8 +29,8 @@ skupin v tomto pořadí: **Základ: historické sestavy Tesla**, **Přístroje a
 s připojeným příslušenstvím (klávesnice, mechaniky a obrazy disket, tiskárna, zapisovač, magnetofon…) a tlačítko
 Spustit; dvojklik sestavu také spustí. U sestav z prvních čtyř skupin se po spuštění otevře **Průvodce sestavou**
 s tím, co vyzkoušet (políčko dole ho vypne, Nápověda → Průvodce sestavou ho otevře kdykoli). Bloky kódu v průvodci
-napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy odjinud otevře Soubor → Otevřít soubor sestavy…,
-konfigurátor sestavy (karty v rámu, propojky, mapa portů) je Zobrazení → Sestava….
+napíše do SAPI tlačítko Napsat do SAPI. Soubor sestavy odjinud spustí Soubor → Spustit sestavu ze souboru…,
+konfigurátor sestavy (karty v rámu, propojky, mapa portů) je Zobrazení → Konfigurátor sestavy….
 
 Sestavy po skupinách jako ve výběru (soubory jsou ve složce `machines\`):
 
@@ -136,22 +137,30 @@ s Liborovými deskami.
     a poměr TV, pauza zůstane napsaná přes obraz;
   - F8 rychlost (100 / 200 / 400 % / maximum); pauza i nová rychlost se na chvíli ukážou přes obraz, při pauze
     je v titulku okna „[pauza]“;
-  - F9 nebo F12 reset (paměť zůstane; u APS-5, která reset nemá, se emulátor nejdřív zeptá);
+  - F12 reset (paměť zůstane; u APS-5, která reset nemá, se emulátor nejdřív zeptá);
   - **Ctrl+F12 vypnout a zapnout** (Stroj → Vypnout a zapnout): jako síťový vypínač, paměť se ztratí, karty,
     přepínače a vložená média zůstanou. Pomůže, když program visí a reset nestačí (třeba volba 0–2 v ECMONu
     u sestavy V);
-  - F10 / F11 krok v debuggeru;
+  - ladění jako ve Visual Studiu: F5 běh / pauza, F10 krok přes, F11 krok, **F9 breakpoint** v debuggeru (na řádku
+    disassembleru pod myší, jinak na PC; bez otevřeného debuggeru jen připomene, že reset je F12);
+  - **Ctrl+Shift+C** zkopíruje text obrazovky do schránky (také Zobrazení → Kopírovat text obrazovky a pravé tlačítko
+    na obraz konzole; v sériovém terminálu kopíruje jeho text);
+  - v oknech s otázkou Esc zruší nebo zavře a Enter stiskne zvýrazněné tlačítko (Nahrát, Vložit, Zavřít, u neuložených
+    změn Zrušit); kde by šlo o něco nevratného (reset APS-5, Obnovit z originálu, zápis systému RKD-1), Enter nedělá nic;
   - **Ctrl+F2 / Ctrl+F3** rychlé uložení a načtení stavu;
   - Ctrl+F7 režim pro hry u klávesnice ANK-1 / ANK-1M2 (klávesy podle polohy, Shift = SHIFT; Manic Miner);
   - **Ctrl+Shift+V** vloží text ze schránky na klávesnici SAPI (také Stroj → Klávesnice → Vložit text), třeba
     program v BASICu;
   - Ctrl+F8 joystick z klávesnice (šipky, mezerník);
   - Ctrl+F10 pustí zachycenou myš.
-- **Sestava a karty:** Zobrazení → Sestava…. Rám s panely karet, propojky karet, mapa portů a paměti. Panely jsou
+- **Sestava a karty:** Zobrazení → Konfigurátor sestavy…. Rám s panely karet, propojky karet, mapa portů a paměti. Panely jsou
   nakreslené podle modernizované skříně Libora Lasoty s popsanými panely, původní Tesla SAPI-1 měl holé karty za
   krycím panelem. Kartu změníte kliknutím na slot, na jiný slot ji přetáhnete myší (na obsazený se prohodí).
   Některé propojky platí hned („platí hned“), ostatní změny se projeví až tlačítkem „Restartovat s touto
-  sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo nahoře v hlavním okně).
+  sestavou“. Co běžící stroj ještě nemá, je oranžové (i vpravo nahoře v hlavním okně). Při odchodu s neuloženými
+  změnami se program zeptá: Uložit přepíše soubor sestavy (i dodanou v `machines\`), Ponechat pro příští spuštění
+  nechá soubor být a změny použije při **každém** dalším spuštění sestavy, dokud je neuložíte nebo v konfigurátoru
+  nestisknete Vrátit změny (stavový řádek to při startu řekne, výběr sestav ji označí `*`).
 - **Zobrazení:** barva obrazu, zvětšení (pravé tlačítko na obraz; Zobrazení → Zvětšení obrazovky platí pro displej
   použitý naposledy, první volba „Přizpůsobit oknu“), celá obrazovka, celočíselné škálování, poměr stran TV,
   **Jazyk / Language** (čeština, angličtina; poprvé podle Windows). Okna displejů nejdou sbalit a všechna okna se
@@ -189,12 +198,17 @@ s Liborovými deskami.
   zapnutí sestavy ukáže okno Chyba, povedené nahrání stavový řádek („Nahráno 0100-1FFFh, 7936 B: …“). Upozornění
   ve stavovém řádku svítí 7 s a zůstanou v Logu. Červené **✖ Chyby: N** ve stavovém řádku znamená chyby zapsané do
   Logu od jeho posledního otevření; kliknutím se Log otevře (chyby červeně, varování žlutě).
+- **Nahlásit chybu:** Nápověda → Nahlásit chybu… řekne, co do hlášení napsat a kam ho poslat (do zveřejnění
+  cestou, kterou jste program dostali, potom přes GitHub Issues). Ukáže verzi, běžící sestavu, složky dat a práce,
+  soubory nastavení a logu a systém. **Kopírovat diagnostiku** dá tohle a posledních 200 řádků logu do schránky
+  (jsou v tom cesty na vašem PC), **Otevřít složku logu** ukáže `sapiemu.log`. **Po pádu** program spusťte znovu
+  a pošlete i `sapiemu.prev.log` z téže složky: je to log spuštění, které spadlo (další spuštění ho přepíše).
 - **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,
   FORTH, Pascal/MT+, C, dBase II, WordStar…). Okno Média, Vložit… do B: a pak např. `B:MBAS`. Soupis všech
   disket je v `docs/software/SAPIMAN_diskety.md`.
 - **Sériový terminál:** Zobrazení → Sériový terminál. Poslat soubor (tak, jak je), textový soubor, soubor XMODEM
-  (např. do `DOCPM10` v CP/M), přijmout soubor XMODEM (z `DOPC10`), Kopírovat (Alt+C, výběr myší nebo celý text; výběr jde do schránky
-  i sám po puštění tlačítka myši) a Vložit (Alt+V).
+  (např. do `DOCPM10` v CP/M), přijmout soubor XMODEM (z `DOPC10`), Kopírovat (Alt+C nebo Ctrl+Shift+C, výběr myší nebo celý text; výběr jde do schránky
+  i sám po puštění tlačítka myši) a Vložit (Alt+V nebo Ctrl+Shift+V).
   `docs/seriova-linka.md`.
 - **Deska diagnostiky:** u JPR-1S / JPR-1X s `k3` = `diag` (sestava `jpr1x_bgp1s`) Zobrazení → Deska
   diagnostiky (K3): dvě sedmisegmentovky a tlačítka − a +. Ukázkový čítač: Soubor → Nahrát program
@@ -206,8 +220,10 @@ s Liborovými deskami.
 - **Zvuk, joystick, myš:** Stroj → Zvuk, joystick a myš; hlasitost a citlivost myši v Zobrazení → Nastavení. Zvuk
   hraje jen při rychlosti 100 %.
 - **Nastavení** (Zobrazení → Nastavení…): vzhled (světlý nebo tmavý, velikost písma, okna plovoucí nebo
-  zadokovaná), jazyk, zvuk, myš, průvodci sestavami, server MCP pro vývoj s Claude, cesta k ffmpeg. **Nápověda:** Průvodce sestavou, První kroky a Návody k obsluze (otevřou se v programu pro soubory .md),
-  Klávesové zkratky (všechny na jednom místě) a O programu.
+  zadokovaná), jazyk, zvuk, myš, průvodci sestavami, server MCP pro vývoj s Claude, cesta k ffmpeg.
+- **Nápověda:** Průvodce sestavou, První kroky (s anglickým rozhraním anglické `docs/getting-started.md`), Návody
+  k obsluze (otevřou se v programu pro soubory .md), Klávesové zkratky (všechny na jednom místě), Nahlásit chybu…
+  a O programu.
 - **Stav stroje:** Soubor → Uložit / Načíst stav (`.sapistate`). Stav uloží celý počítač včetně RAM disků.
 
 ## Vyzkoušejte

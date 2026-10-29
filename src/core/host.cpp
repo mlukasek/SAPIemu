@@ -293,11 +293,27 @@ bool EmuHost::save_state(std::vector<uint8_t>& out, std::string& err)
     return m->save_state(out, file, err);
 }
 
-bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err)
+bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err, int* back_out)
 {
     nlohmann::json cfg;
     std::string f;
+    if (back_out) *back_out = STATE_BACK_SAME;
+    // the header first: a state of a format this SAPIemu does not read (a newer or a too old version), damaged
+    // or not a state at all is refused before the running machine is touched
     if (!Machine::state_header(in, cfg, f, err)) return false;
+    // the running machine as it is: it comes back when the state does not fit after all (a card of another version
+    // reads other data, the description does not build here)
+    std::vector<uint8_t> back;
+    nlohmann::json back_cfg, back_last = last_cfg;
+    std::string back_file = file;
+    if (m) {
+        std::string e;
+        back_cfg = m->config;
+        if (!m->save_state(back, file, e)) {
+            LOGW("state: the running machine not saved for a return: %s", e.c_str());
+            back.clear();
+        }
+    }
     // debugging aids of the old machine survive
     std::vector<uint16_t> bps;
     std::vector<uint8_t> mw, iw;
@@ -307,11 +323,39 @@ bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err)
         iw.assign(m->bus.io_watch, m->bus.io_watch + 256);
     }
     bool was_paused = paused;
-    if (!load_config(cfg, f, err)) return false;
-    if (!m->load_state(in, err)) {
+    bool ok = load_config(cfg, f, err);
+    if (ok && !m->load_state(in, err)) {
         err = "state: " + err;
-        m->reset();
-        return false;
+        ok = false;
+    }
+    if (!ok) {
+        std::string e;
+        if (back_cfg.is_null()) {   // switched off before: off again
+            if (m) {
+                m->stop_bridges();
+                m->power_down();
+                m.reset();
+                generation++;
+            }
+            file = back_file;
+            last_cfg = back_last;
+            paused = was_paused;
+            status.clear();
+            return false;
+        }
+        if (!load_config(back_cfg, back_file, e) || (!back.empty() && !m->load_state(back, e))) {
+            LOGE("state: the machine that ran did not come back: %s", e.c_str());
+            if (m) m->reset();
+            if (back_out) *back_out = STATE_BACK_RESET;
+            return false;
+        }
+        last_cfg = back_last;
+        if (back.empty()) {   // its state was not saved first: built again from its description
+            LOGW("state not loaded, the machine was switched off and on with its description (its memory is lost)");
+            if (back_out) *back_out = STATE_BACK_RESTARTED;
+        } else {
+            LOGI("state not loaded, the machine runs on as it was");
+        }
     }
     for (uint16_t a : bps) m->set_breakpoint(a, true);
     for (size_t i = 0; i < mw.size(); i++)
@@ -321,7 +365,7 @@ bool EmuHost::load_state(const std::vector<uint8_t>& in, std::string& err)
     paused = was_paused;
     speed_t0 = host_time_ns();
     speed_c0 = m->bus.now;
-    return true;
+    return ok;
 }
 
 bool EmuHost::save_state_file(const std::string& path, std::string& err)
@@ -335,11 +379,12 @@ bool EmuHost::save_state_file(const std::string& path, std::string& err)
     return true;
 }
 
-bool EmuHost::load_state_file(const std::string& path, std::string& err)
+bool EmuHost::load_state_file(const std::string& path, std::string& err, int* back_out)
 {
     std::vector<uint8_t> d;
+    if (back_out) *back_out = STATE_BACK_SAME;
     if (!file_read_all(path, d)) { err = "cannot read " + path; return false; }
-    if (!load_state(d, err)) return false;
+    if (!load_state(d, err, back_out)) return false;
     LOGI("state loaded: %s", path.c_str());
     return true;
 }

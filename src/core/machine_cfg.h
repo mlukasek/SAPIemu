@@ -62,5 +62,12 @@ struct MachinePart {
 };
 std::vector<MachinePart> machine_cfg_parts(const nlohmann::json& cfg, bool czech);
 
+// What changed from one description to another, one line per change in slot order, for the question about unsaved
+// changes of the configurator: the name, the bus, cards added, removed or moved ("X2 DMR-1: moved to X4"), parameters
+// by their label without the details in parentheses and the new value ("X3 AND-1V: S1: ink colour -> white",
+// "X3 FDC-1: Drive 0, disk image -> cpm.img"; the arrow is U+2192). A value written differently but equal (the
+// default written out, "10h" and 16) is no change.
+std::vector<std::string> machine_cfg_changes(const nlohmann::json& before, const nlohmann::json& after, bool czech);
+
 // Commented text of a machine description (.sapi file, JSON with comments).
 std::string machine_cfg_to_jsonc(const nlohmann::json& cfg);

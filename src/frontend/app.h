@@ -50,6 +50,14 @@ struct UiSnapshot {
     bool reset = false;          // F12 before the picture (the APS-5 unit asks first)
     int fullscreen = 0;          // Alt+Enter so many times: 1 the display used last over the whole window (the window
                                  // keeps its size), 2 on and off again (the windows as they were)
+    bool report = false;         // show Help -> Report a bug
+    bool debugger = false;       // show the Debugger window
+    std::string menu;            // the menu with this English name ("Help", "View"...) open in the picture
+    std::vector<std::string> keys;   // keys pressed one after another before the picture ("F9", "Ctrl+Shift+C",
+                                     // "Enter", "Esc"), through the event queue as typed
+    float mouse_x = -1, mouse_y = -1;   // the mouse there (points) from the frame the keys start (F9 on a row)
+    bool exit = false;           // File -> Exit before the picture: the question about unsaved changes of the
+                                 // configurator (with --ui-set); without changes the program ends with no picture
 };
 
 // --ui-layout floating|docked: the window layout of this run (View -> Settings -> Windows), not saved; other than the

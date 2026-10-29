@@ -21,7 +21,7 @@ fungovat najednou:
    - `"protocol": "auto"` zůstane v raw režimu, dokud klient sám nezačne telnetem.
 3. **DCD = klient připojen** (`dcd_follows`): dokud je TeraTerm připojený, je na DMR-1 aktivní DCD
    (připojený terminál). ECMON i MikroMon si konzoli volí při startu. Postup je tedy: připojit TeraTerm,
-   dát v emulátoru Reset (F12 nebo F9) a ECMON pak běží na TeraTermu.
+   dát v emulátoru Reset (F12) a ECMON pak běží na TeraTermu.
 4. **Nastavení terminálu v TeraTermu:**
    - Nový řádek Příjem: **CR**. ECMON posílá `CR CR CR LF`.
    - Vysílání: **CR**.

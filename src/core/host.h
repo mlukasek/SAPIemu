@@ -15,6 +15,14 @@
 #include "json.hpp"
 #include "core/machine.h"
 
+// The machine that ran, after a state that did not load (EmuHost::load_state): what the user is told.
+enum StateBack {
+    STATE_BACK_SAME = 0,    // as it was: not touched (the header refused the state) or brought back from its own state
+                            // saved first; switched off before: off again
+    STATE_BACK_RESTARTED,   // its own state could not be saved first: built again from its description, memory lost
+    STATE_BACK_RESET,       // it did not come back (the Log says why): reset
+};
+
 class EmuHost {
 public:
     EmuHost();
@@ -75,12 +83,15 @@ public:
     std::string status;         // last stop reason ("breakpoint F123h"...)
     double speed_percent = 0;
 
-    // Save state (docs/stav.md): into memory or a file. Loading builds the machine of the state
-    // (the old one stays on error), keeps breakpoints, watchpoints and the pause.
+    // Save state (docs/stav.md): into memory or a file. Loading builds the machine of the state, keeps breakpoints,
+    // watchpoints and the pause. On error the old machine stays: a state of a format not read here is refused before
+    // it is touched; a state that does not fit after all (a card of another version) brings it back as it was (its
+    // state saved in memory first), a switched off machine stays off. back_out (when given): how the machine that ran
+    // is after an error (StateBack).
     bool save_state(std::vector<uint8_t>& out, std::string& err);
-    bool load_state(const std::vector<uint8_t>& in, std::string& err);
+    bool load_state(const std::vector<uint8_t>& in, std::string& err, int* back_out = nullptr);
     bool save_state_file(const std::string& path, std::string& err);
-    bool load_state_file(const std::string& path, std::string& err);
+    bool load_state_file(const std::string& path, std::string& err, int* back_out = nullptr);
     // the quick slot of the machine: work/state/<machine file name>.sapistate
     std::string quick_state_path(void) const;
     // named states in memory (MCP save_state / load_state without a file)

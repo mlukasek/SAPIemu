@@ -50,6 +50,7 @@ const WinDef k_wins[LW_COUNT] = {
     { "###Settings", ROLE_DIALOG, 34, 30, 0, 0, 0, 0 },
     { "###Keyboard shortcuts", ROLE_DIALOG, 36, 24, 0, 0, 0, 0 },
     { "###About SAPIemu", ROLE_DIALOG, 0, 0, 0, 0, 0, 0 },   // its own size (AlwaysAutoResize)
+    { "###Report a bug", ROLE_DIALOG, 0, 0, 0, 0, 0, 0 },    // the same
 };
 
 const int MAX_DISPLAY_IDS = 5;   // ###screen, ###gfx0..3 (app.cpp)

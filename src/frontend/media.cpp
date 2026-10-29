@@ -21,6 +21,7 @@
 #include "core/ihex.h"
 #include "core/log.h"
 #include "core/util.h"
+#include "core/version.h"
 
 // A path of a medium as shown: relative to the data root or "work/..." (data_relative), the whole path is in the
 // tooltip. Cached: data_relative asks the file system.
@@ -135,6 +136,44 @@ static void hex_scan(UiState& ui, const std::string& path)
     ui.hex_hi = s.hi;
 }
 
+// Why a state did not load, for the user: a state of a version of SAPIemu that this one does not read is named as such;
+// the core's reason (English, for MCP) then comes last as a detail. `back`: how the machine that ran is now
+// (StateBack of EmuHost::load_state).
+std::string state_load_error(UiState& ui, const std::string& path, const std::string& err, int back)
+{
+    std::string s = std::string(tr("Cannot load the state")) + ":\n";
+    std::vector<uint8_t> d;
+    StateOrigin o;
+    char buf[512];
+    bool known = file_read_all(path, d) && Machine::state_origin(d, o);
+    bool detail = false;   // the core's reason after the machine line
+    if (known && o.format > STATE_FORMAT) {
+        snprintf(buf, sizeof(buf), tr("It was saved by a newer version of SAPIemu (%s). This version (%s) cannot read it."),
+                 o.app.empty() ? "?" : o.app.c_str(), sapiemu_version());
+        s += buf;
+    } else if (known && o.format < STATE_FORMAT_MIN) {
+        snprintf(buf, sizeof(buf), tr("It was saved by an old version of SAPIemu. This version (%s) no longer reads it."),
+                 sapiemu_version());
+        s += buf;
+    } else if (known && o.app != sapiemu_version()) {   // read, but a card did not fit: another version saved it
+        snprintf(buf, sizeof(buf), tr("The state was saved by another version of SAPIemu (%s), this is version %s."),
+                 o.app.empty() ? tr("an older alpha") : o.app.c_str(), sapiemu_version());
+        s += buf;
+        detail = true;
+    } else {
+        s += err;
+    }
+    s += "\n\n";
+    if (back == STATE_BACK_RESTARTED)
+        s += tr("The running machine could not be kept as it was: it was switched off and on, its memory is lost.");
+    else if (back == STATE_BACK_RESET)
+        s += tr("The running machine did not come back as it was (the Log says why): it was reset.");
+    else
+        s += tr(ui.host->machine() ? "The machine runs on as it was." : "Nothing was changed.");
+    if (detail) s += std::string("\n\n") + tr("Details:") + " " + err;
+    return s;
+}
+
 static void state_file(UiState& ui, std::string path, bool save)
 {
     std::string err;
@@ -144,8 +183,9 @@ static void state_file(UiState& ui, std::string path, bool save)
         if (ui.host->save_state_file(path, err)) ui_notice(ui, true, std::string(tr("State saved")) + ": " + path);
         else ui_notice(ui, false, std::string(tr("Cannot save the state")) + ":\n" + err);
     } else {
-        if (ui.host->load_state_file(path, err)) ui_notice(ui, true, std::string(tr("State loaded")) + ": " + path);
-        else ui_notice(ui, false, std::string(tr("Cannot load the state")) + ":\n" + err);
+        int back = STATE_BACK_SAME;
+        if (ui.host->load_state_file(path, err, &back)) ui_notice(ui, true, std::string(tr("State loaded")) + ": " + path);
+        else ui_notice(ui, false, state_load_error(ui, path, err, back));
     }
 }
 
@@ -265,7 +305,8 @@ static void media_restore_dialog(UiState& ui)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"))) ImGui::CloseCurrentPopup();
+    // Esc = Cancel; Enter does nothing: Restore throws away the changes of the working copy
+    if (ImGui::Button(tr("Cancel")) || popup_escape()) ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
 }
 
@@ -707,7 +748,8 @@ static void hex_load_question(UiState& ui, Machine* m)
         ImGui::TextColored(theme().error, "%s", ui.hex_error.c_str());
     }
     ImGui::BeginDisabled(!ok || !m);
-    if (ImGui::Button(tr("Load"))) {
+    // Load is the default (Enter): the file was chosen for it; Esc = Cancel
+    if (theme_accent_button(tr("Load")) || (ok && m && popup_enter())) {
         std::string text, err;
         int n = 0;
         char done[96];   // "Loaded 0100-1FFFh, 7936 B: file" in the status bar and the Log, a failure in the Error window
@@ -723,7 +765,7 @@ static void hex_load_question(UiState& ui, Machine* m)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"))) {
+    if (ImGui::Button(tr("Cancel")) || popup_escape()) {
         ui.hex_path.clear();
         ImGui::CloseCurrentPopup();
     }
@@ -764,7 +806,8 @@ static void bin_load_question(UiState& ui, Machine* m)
                                                         : tr("The file does not fit into memory there."));
     }
     ImGui::BeginDisabled(!fits || !m);
-    if (ImGui::Button(tr("Load"))) {
+    // Load is the default (Enter, also in the address field); Esc = Cancel
+    if (theme_accent_button(tr("Load")) || (fits && m && popup_enter())) {
         std::string err;
         int n = 0;
         if (!m->load_binary(ui.bin_path, (uint16_t)addr, err, &n)) {
@@ -780,7 +823,7 @@ static void bin_load_question(UiState& ui, Machine* m)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"))) {
+    if (ImGui::Button(tr("Cancel")) || popup_escape()) {
         ui.bin_path.clear();
         ImGui::CloseCurrentPopup();
     }
@@ -822,7 +865,8 @@ static void tape_program_question(UiState& ui, Machine* m)
     Dsm1* dsm = ui.tprog_kzd ? nullptr : dynamic_cast<Dsm1*>(card);
     Kzd1* kzd = ui.tprog_kzd && card ? card->kzd1() : nullptr;
     ImGui::BeginDisabled(!dsm && !kzd);
-    if (ImGui::Button(tr("Insert"))) {
+    // Insert is the default (Enter); Esc = Cancel
+    if (theme_accent_button(tr("Insert")) || ((dsm || kzd) && popup_enter())) {
         TapeProgram p;
         p.format = ui.tprog_kzd ? TAPE_MIKOS : ui.tprog_format;
         p.name = ui.tprog_name;
@@ -857,7 +901,7 @@ static void tape_program_question(UiState& ui, Machine* m)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"))) {
+    if (ImGui::Button(tr("Cancel")) || popup_escape()) {
         ui.tprog_path.clear();
         ImGui::CloseCurrentPopup();
     }
@@ -952,7 +996,8 @@ static void rkd_system_dialog(Rkd1* r, bool open)
         }
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"))) {
+    // Esc = Cancel; Enter does nothing: writing the system (and the format) overwrites the cartridge
+    if (ImGui::Button(tr("Cancel")) || popup_escape()) {
         s_rkd_sys_error.clear();
         s_rkd_sys_unit = -1;
         ImGui::CloseCurrentPopup();

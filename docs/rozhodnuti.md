@@ -144,6 +144,8 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
   pro ladění pod debuggerem. Klávesu debuggeru lze ve Windows přesunout hodnotou `UserDebuggerHotKey`
   v `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug` (např. 0x13 = Pause, platí po restartu).
   Emulátor to nemění.
+- Od 2026-10-29 je F9 breakpoint jako ve Visual Studiu a reset jen F12 (rozhodl vedoucí workflow za autora,
+  oddíl „2026-10-29 – etapa 6 plánu vzhledu: před betou“).
 
 ## 2026-10-03 – Telnet jako výchozí protokol TCP, IPv6
 
@@ -2270,6 +2272,243 @@ Známá omezení:
 - Průvodce má nejvýš 36 em a Média jsou při 1920 × 1080 nízká (pod nimi je volno).
 - Zadokované: Debugger a Paměť jsou záložky, vidět je jedna. Prázdné okno DGD-1 sestavy s XY 4130 zabírá horní část
   sloupce; je to skutečný displej sestavy, proto zůstal.
+
+## 2026-10-29 – etapa 6 plánu vzhledu: před betou
+
+Etapu udělal workflow (3 agenti: menu a zkratky, bezpečí dat, pro testery; 3 oponenti: data, texty a GUI, plán;
+opravy nálezů), autor spal a rozhodnutí nechal na Claudovi. Chování skutečného SAPI-1 se nemění: jde o ovládání,
+konfigurátor a ukládání stavu na straně PC a o podklady pro testery. Beta zip se nestavěl, postaví se až na autorův
+pokyn. Změny po oponentuře jsou označené. Co má autor rozhodnout a vyzkoušet ručně, je na konci oddílu.
+
+### F9 = breakpoint, reset jen F12 (rozhodl vedoucí workflow za autora)
+
+- **Zkratky ladění jako ve Visual Studiu:** F5 běh / pauza, F10 krok přes a F11 krok zůstaly, **F9 přepne
+  breakpoint**, reset je jen **F12** (Ctrl+F12 vypnout a zapnout). Plán to měl jako návrh ke schválení. Rozhodl
+  vedoucí workflow za autora: autor nechal rozhodnutí na Claudovi a F9 = reset nebylo dogma (2026-10-28). Důvod:
+  kdo ladí, zná F9 z Visual Studia, a reset na dvou klávesách nic nepřidával. Autor to může vrátit (níže „Na
+  rozhodnutí autora“).
+- **Tím končí rozhodnutí z 2026-10-03** (F9 = reset kvůli ladění pod Visual Studiem). Pod debuggerem PC si F12 bere
+  Windows (`UserDebuggerHotKey`), reset pak jde z menu Stroj → Reset nebo tlačítkem Reset (F12) v debuggeru
+  (`docs/build.md`).
+- **F9 působí jen s otevřeným debuggerem:** na řádku disassembleru pod myší, jinak na PC. Bez debuggeru jen
+  upozorní ve stavovém řádku: „F9 nastavuje breakpoint v debuggeru (Ladění → Debugger). Reset je F12.“ Důvod: alfa
+  testeři měli F9 jako reset a breakpoint na PC běžícího stroje by ho potichu zastavil.
+- **Ladění → Breakpoint zap / vyp (F9)** je povolené jen s otevřeným debuggerem a z menu platí pro PC (myš je
+  v tu chvíli na menu). Debugger má nápovědu „adresa; klik na řádek nebo F9 = breakpoint“, tlačítko Reset (F12)
+  a odkaz na Klávesové zkratky. Nastavený breakpoint ohlásí stavový řádek („Breakpoint nastaven na 0DB8h“).
+- Nepoužitý klíč překladu „Keys: F5 run/pause…“ (zmiňoval F9 jako reset) je pryč.
+
+### Menu, schránka, Enter a Esc
+
+- **Přejmenování:** Zobrazení → „Sestava…“ je **Konfigurátor sestavy…** („Machine configurator…“), Soubor →
+  „Otevřít soubor sestavy…“ je **Spustit sestavu ze souboru…** („Start a machine from a file…“). Důvod: položka
+  sestavu spustí, kdežto Otevřít… v konfigurátoru ji jen načte k úpravám. Okno se jmenuje „Konfigurátor sestavy -
+  jméno“ se stejným ID `###rack`, takže místa v `imgui.ini` zůstanou. Plán čekal asi 77 zmínek v dokumentaci,
+  aktuálních bylo asi 15 (`docs/`, průvodci APS-5). Historie (tento soubor, poznámky k vydání, plán, hodnocení UX)
+  zůstala, jak byla.
+- **Kopírovat text obrazovky (Ctrl+Shift+C)** je v menu Zobrazení pod Snímkem obrazovky a v menu pravého tlačítka
+  konzole. Grafické displeje ho nemají, text nemají. Do schránky jde `screen_text` konzole bez prázdných řádků
+  nahoře a dole jako UTF-8 (SDL ve Windows doplní CR LF), výsledek ohlásí stavový řádek. Ctrl+C dál jde do SAPI jako
+  řídicí kód. Ctrl+Shift+C dřív posílalo také ^C a nikde jinde použité nebylo.
+- **V sériovém terminálu** Ctrl+Shift+C kopíruje jeho text a Ctrl+Shift+V do něj vkládá, jako Alt+C a Alt+V
+  (stejně jako Windows Terminal). Důvod: text konzole by tam překvapil. ^C a ^V zůstávají na Ctrl+C a Ctrl+V.
+- **Enter a Esc v modálních oknech** (`popup_enter`, `popup_escape` v `app.cpp`). Odpovídá jen okno vpředu, a ne
+  v prvním snímku, kdy se otevřelo. Důvod: Enter, který okno otevřel, ho nesmí hned zavřít. Tlačítko pro Enter má
+  barvu zvýraznění, jako Windows značí výchozí tlačítko.
+  - Chyba: Enter i Esc zavřou.
+  - Neuložené změny: Enter i Esc = **Zrušit**. Důvod (hodnocení UX): nic nezapíše ani nezahodí.
+  - Nahrát program (Intel HEX) a Nahrát binární soubor: Enter = Nahrát, i z pole adresy. Program na kazetu: Enter =
+    Vložit. Esc všude zruší.
+  - **Enter nedělá nic, kde je jediná akce nevratná:** reset APS-5 (rozhodnutí etapy 4), Obnovit z originálu a zápis
+    systému RKD-1 (SYSGEN). Esc tam zruší.
+
+### Nahlásit chybu a log předchozího spuštění
+
+- **Nápověda → Nahlásit chybu…** řekne, co popsat (sestava, kroky, co se čekalo a co se stalo, snímek, stav,
+  upravený soubor sestavy) a kam to poslat. Ukáže diagnostiku: verze (u debug buildu „debug build“), běžící sestava
+  se souborem (i s ponechanými změnami, níže), karty po slotech, stav a rychlost, složka dat, pracovní složka,
+  soubor nastavení, log a předchozí log, systém (Windows 10/11 s číslem sestavení přes `RtlGetVersion`, 64bitový
+  program, vlákna CPU, RAM) a obraz (renderer, velikost okna, měřítko, jazyk, verze SDL a Dear ImGui).
+- **Kopírovat diagnostiku** dá do schránky totéž a posledních 200 řádků logu. **Otevřít složku logu** ji otevře
+  v Průzkumníku (`SDL_OpenURL(file:///…)`). Okno upozorní, že v cestách je jméno uživatele Windows.
+- **Kopie diagnostiky je anglicky** jako log, popisky a hodnoty v okně jsou přeložené (běží / pauza, rychlost,
+  vypnuto…; hodnoty po oponentuře). Důvod: autor čte kopii stejně v každém jazyce testera, tester čte okno ve svém.
+- **Kam hlásit:** do zveřejnění SAPIemu cestou, kterou tester program dostal, potom přes GitHub Issues. Žádný
+  e-mail ani jiný osobní kontakt do programu, repa ani zipu. Adresa Issues je do zveřejnění jen text v závorce, ne
+  odkaz (po oponentuře): repo je soukromé a odkaz by vedl na 404. Odkaz zapne `k_issues_public` v `help.cpp` při
+  zveřejnění (etapa 9). Texty říkají „do zveřejnění … potom“ místo „v betaverzi“, aby seděly, ať se verze bude
+  jmenovat alfa, nebo beta. Totéž říkají První kroky (dřív jen odkaz na Issues), `GETTING-STARTED.md` a README.
+- **Log předchozího spuštění `sapiemu.prev.log`** (po oponentuře): start před otevřením nového logu ten starý
+  přejmenuje (`file_rename` v `core/util`), jedna generace; při `--settings SOUBOR` je to `SOUBOR.prev.log`. Důvod:
+  po pádu tester program spustí, aby se dostal k Nahlásit chybu, a ten start dřív log pádu přepsal. Rada „pošlete
+  log před dalším spuštěním“ tak nešla splnit. Nahlásit chybu má řádek Předchozí log a větu „Po pádu pošlete
+  i předchozí log…“.
+
+### Dotaz na neuložené změny
+
+- **Dotaz vyjmenuje skutečné změny proti souboru** (`machine_cfg_changes` v `src/core/machine_cfg.cpp`): název,
+  popis, sběrnice, náhodná paměť, okna nahoře, karty přidané, odebrané a přesunuté („X2 DMR-1: přesunuta do X4“)
+  a parametry podle katalogu jménem a novou hodnotou („X1 JPR-1V: TURBO: CPU 4 MHz, sběrnice vždy 2 MHz →
+  vypnuto“). Ukáže nejvýš 9 řádků a „a další změny (N)“, aby okno zůstalo na obrazovce. Celý seznam je v bublině nad
+  „neuložené změny“ v konfigurátoru.
+  - Jen nová hodnota: rozhoduje se, co s ní, stará je v souboru.
+  - Jméno parametru je popisek katalogu bez závorek. Dřív řez u první závorky dělal z „Čekání (RDY) při přístupu do
+    VRAM“ jen „Čekání“. Parametr sekce má jméno sekce („Mechanika 0, obraz diskety“), soubor jen jméno, volba svůj
+    popisek.
+  - Vypnutá sekce je jeden řádek, ne všechny její parametry. Klíče, které katalog nezná, jsou „jiná nastavení“.
+    Přesun se pozná podle typu karty, nejdřív se stejným nastavením.
+- **Neuložená změna je jen skutečná změna:** hodnota zapsaná jinak, ale stejná (výchozí hodnota vypsaná, `10h`
+  a 16), se nepočítá ani pro dotaz, ani pro hvězdičku v titulku. Důvod: dřív stačil jiný zápis v JSON a dotaz přišel
+  bez jediné změny, kterou by šlo vyjmenovat.
+- **Tlačítka: Uložit / Uložit jako… / Ponechat pro příští spuštění / Zahodit změny / Zrušit**, výchozí Zrušit.
+  „Zahodit změny“ místo „Zapomenout“ z plánu: jasně říká, co se zahodí. Uložit má bublinu „Zapíše změny do
+  machines/…“: dodané sestavy se přepisují (kopie do „Moje sestavy“ je v etapě 8).
+- **Po přepnutí sestavy zvenku** dotaz říká „Mezitím se spustila jiná sestava (načtený stav nebo MCP)“. Dřív vinil
+  MCP i u načteného stavu (hodnocení UX).
+
+### Ponechat pro příští spuštění
+
+- **Jen u sestavy se souborem.** Nová neuložená sestava nemá k čemu změny vztáhnout, nabízí se Uložit jako….
+- **Změny jdou do nastavení** (`kept_machines`: soubor → `{ base, cfg }`), soubor sestavy zůstane nedotčený.
+  Důvod: dotaz přichází hlavně při ukončení programu, v paměti by se změny ztratily.
+- **Celý popis i se základem, ne rozdíl:** rozdíl podle indexů karet by po změně souboru trefil jinou kartu. Se
+  základem se pozná, že se soubor změnil (nová verze dodané sestavy). Ponechané změny se pak zapomenou a **řekne to
+  okno Chyba** (po oponentuře, dřív jen řádek v Logu): uživatel přišel o svou práci, má to vidět.
+- **Základ je soubor na disku v okamžiku Ponechat** (po oponentuře), ne popis v editoru. Důvod: po načtení stavu je
+  v editoru popis ze stavu a další start by změny potichu zahodil jako „soubor se změnil“.
+- **Platí pro každé další spuštění téhož souboru z GUI** (výběr sestav i Restartovat, Poslední sestavy, Spustit ze
+  souboru, sestava minulé relace při startu programu) a při otevření v konfigurátoru, dokud je někdo neuloží nebo
+  nevrátí. MCP a `sapiemu-cli` je nepoužívají: skripty a testy mají dostat soubor, jak je. Název tlačítka zůstal
+  podle plánu, bublina říká „při každém spuštění … dokud je neuložíte nebo v konfigurátoru nestisknete Vrátit
+  změny“.
+- **Ať o nich uživatel ví i mimo konfigurátor** (po oponentuře, dřív platily potichu): každý start s nimi ohlásí
+  stavový řádek („Běží se změnami ponechanými z konfigurátoru, v souboru sestavy nejsou…“, 7 s a Log), výběr sestav
+  dá k sestavě `*` a pod popis větu, jak je zapomenout nebo zapsat, Nahlásit chybu je napíše u sestavy. Hlášení je
+  bez jména sestavy: stavový řádek ukáže upozornění, jen když se vejde, a s celým jménem ZPS-1 se při 1600 bodech
+  nevešlo.
+- **Konfigurátor je dál ukazuje jako neuložené** („neuložené změny, ponechané pro příští spuštění“), aby šly kdykoli
+  uložit nebo vrátit. Dotaz se na ně znovu neptá, dokud nepřibude další změna: rozhodnutí už padlo, jinak by se ptal
+  při každém konci.
+- **Zapomenou je** Uložit (i Uložit jako…, změny jsou pak v souboru), Vrátit změny a Zahodit změny.
+- **S chybou v sestavě Ponechat nejde** (po oponentuře): tlačítko je šedé s bublinou proč. Další start by selhal
+  a zapomněl by všechny ponechané změny, i ty dobré. Chyby počítá jedna funkce `editor_problems` pro konfigurátor
+  i dotaz, jen po změně. Když start přesto selže (chybí médium), sestava se spustí podle souboru, změny se zapomenou
+  a okno Chyba to řekne. Jinak by se chyba opakovala při každém spuštění.
+- **Klíč ponechaných změn se počítá jednou na cestu** (`kept_key` s malou mapou, `kept_entry` bez práce, když nic
+  ponechané není; po oponentuře). Důvod: `data_relative` volá třikrát `weakly_canonical` a konfigurátor i výběr
+  sestav se ptají v každém snímku, na síťovém disku je to znát.
+
+### Verze ve stavu
+
+- **Co bylo:** hlavička `SAPISTAT` s formátem 1. Jiný formát se odmítal před `load_config`, jen anglicky a bez
+  jména verze. Formát se ale od první alfy nezvedl, i když se data karet měnila. Stav starší alfy prošel hlavičkou
+  a spadl až v kartách, kdy běžící sestava už byla pryč a zbyl nový stroj po resetu.
+- **Formát 2** (`STATE_FORMAT`, `STATE_FORMAT_MIN` v `src/core/machine.h`): za formátem je verze SAPIemu, která stav
+  uložila. Začátek hlavičky (`SAPISTAT`, formát, verze) zůstane i v dalších formátech, takže každá verze řekne,
+  která stav uložila, i když ho neumí přečíst. `STATE_FORMAT_MIN` = 1: stavy alf se dál čtou. Alfy do 0.6.0 stav
+  této verze odmítnou svou hláškou, ale také dřív, než se běžící sestavy dotknou.
+- **Jiný formát se odmítne před `load_config`** se srozumitelnou hláškou: GUI česky („Uložila ho novější verze
+  SAPIemu (0.9.0). Tato verze (0.7.0-alpha) ho neumí přečíst. Sestava běží dál, jak běžela.“), MCP a cli anglicky
+  z jádra. Důvod: chyby jádra zůstávají anglicky pro skripty, GUI je překládá (`state_load_error`).
+- **Návrat běžící sestavy,** když stav nesedí až v kartách: `EmuHost::load_state` si stav běžící sestavy uloží do
+  paměti a po chybě ji z něj postaví znovu (paměti, obrazovka, breakpointy, watchpointy, pauza). Vypnutý stroj
+  zůstane vypnutý. Hodnocení UX navrhovalo postavit nový stroj vedle starého (v plánu etapa 8 „starý stroj vypnout
+  až po postavení nového“). Návrat je levnější a nepotřebuje dva stroje se stejnými soubory médií naráz. Zmizí tím
+  i trvalý výpadek napájení HRK-1 po nepovedeném načtení stavu. Přepnutí sestavy souborem (ne stavem) se nemění.
+  Důvod celku: testeři mají stavy alf a mají dostat srozumitelnou odpověď, ne přijít o rozdělanou práci.
+- **Pravda o běžící sestavě** (po oponentuře): `load_state` vrací v `back_out` (`StateBack` v `src/core/host.h`),
+  co se s ní stalo: beze změny nebo vrácená („Sestava běží dál, jak běžela.“), postavená znovu z popisu, když se její
+  stav předem nepovedl uložit („vypnula se a zapnula, obsah její paměti je ztracený“), nebo nevrácená a resetovaná
+  („proběhl reset“, důvod v Logu). GUI i MCP podle toho volí větu. Dřív GUI psalo „běží dál, jak běžela“ i tam, kde
+  to neplatilo. Výstupní parametr, ne člen třídy: volání zůstane bezpečné pro vlákna.
+- **Česky napřed, anglický důvod jádra na konec** za „Podrobnosti:“, když GUI ví, že stav uložila jiná verze („Stav
+  uložila jiná verze SAPIemu (starší alfa), toto je verze 0.7.0-alpha.“; po oponentuře).
+- **Stavy alf od 0.3.0 se načtou.** Alfy 0.1.0 a 0.2.0 mají také formát 1, ale `state()` klávesnice a DSM-1V se
+  2026-10-06 změnilo. Takový stav selže v kartách, GUI ho odmítne jako „starší alfu“ a sestava zůstane. Formát se
+  kvůli tomu dodatečně nezvyšuje, ty alfy jsou venku. Říká to `docs/stav.md` a text pro testery, aby to testeři
+  nehlásili jako chybu.
+- **Pravidlo pro dál:** změna dat `state()` karty = `STATE_FORMAT` + 1; když starý blok nejde přečíst, posunout
+  i `STATE_FORMAT_MIN` (`docs/stav.md`).
+
+### Pro testery
+
+- **Anglické `docs/getting-started.md`** (v zipu `GETTING-STARTED.md` vedle `PRVNI-KROKY.md`): krátké, ne překlad
+  Prvních kroků. Důvod: podrobnosti jsou v anglických průvodcích sestavami v programu, tabulka všech 60 sestav by se
+  v angličtině jen přepisovala. Názvy sestav a menu jsou přesně podle anglického GUI (`_vyber.json`, klíče `tr()`).
+- **Nápověda → První kroky s anglickým rozhraním otevře `docs/getting-started.md`** (když v datech je), jinak
+  `prvni-kroky.md`. Důvod: anglický tester by z menu dostal český text. Okno nápovědy v programu je v etapě 8.
+- **README:** věta o MCP pryč z prvního českého odstavce i z anglického shrnutí. MCP zůstává v „Co umí“ a „Síť
+  a soukromí“. Anglické shrnutí odkazuje na `docs/getting-started.md`. Sekce „Pro vývojáře“, zkrácení README
+  a odkazy na `docs/vydani/sestavy.md` a `docs/SOUHRN.md`, které veřejný zip vynechá (na GitHubu fungují), čekají
+  na přestavbu README v etapě 9 (hodnocení UX, kapitola 6).
+- **`docs/vydani/beta-testeri.md`:** text pro autora k rozeslání se zástupnými místy pro verzi a termín. Pět úkolů
+  podle hodnocení UX (bod 9), čtyři otázky (co mátlo, kde se zasekli, co vyhodit, co je SAPIemu jednou větou), jak
+  hlásit, známá omezení. Je v `docs/vydani/`, takže do veřejného zipu nejde (`DEV_DOCS`).
+  - Úkoly: ZPS-1 a BASIC, APS-5 DEMO, hra, soubor v CP/M, konfigurátor.
+  - **CP/M na ZPS-3 s CP/M 64K Tesla IMA** (`MBASIC`, `SAVE "POKUS"`, nové spuštění emulátoru, `DIR B:`). Důvod:
+    historická sestava ze Základu, disketa B: jde přes pracovní kopii, takže úkol zkouší i průběžné ukládání médií.
+    Ověřeno `sapiemu-cli` na kopiích obrazů disket mimo `work/`.
+  - **Konfigurátor na ZPS-1:** AND-1 (X3) Generátor znaků → MHB 2502 azbuka. Důvod: změna je hned vidět a konec
+    programu ukáže nový dotaz se seznamem změn (ověřeno snímkem s `--ui-set` a `--ui-exit`). Jak dostat původní
+    ZPS-1 zpátky, je až za volbou (po oponentuře), aby úkol dál zkoušel, čemu tester z dotazu rozumí.
+  - Po pádu poslat `sapiemu.prev.log`. Kdo měl alfu, dozví se, že F9 už není reset.
+- **SHA-256 k zipu:** `package.py` zapíše `<zip>.sha256` ve formátu `sha256sum` (`<hex>  <jméno>`, LF) a vypíše ho,
+  na Windows ho ověří `certutil`. Zapíše ho až po kontrolách (veřejný zip bez poznámek vývoje, MikroMon z rozbaleného
+  zipu), `.sha256` staršího zipu na začátku smaže a při chybě vypíše „NOT READY: do not publish …“ (po oponentuře,
+  dřív hned po zabalení). Důvod: zip, který neprošel, nesmí mít vedle sebe platný součet a vypadat hotově.
+- **`package.py` odmítne běh, když první kroky nejsou v gitu** (po oponentuře). Důvod: `docs/` bere z gitu, první
+  kroky z disku. Nepřidaný `docs/getting-started.md` by byl nahoře v zipu, ale chyběl by v `docs/` a anglická
+  Nápověda → První kroky by otevřela český soubor.
+- **„Testovací verze“** v Prvních krocích místo „Verze alfa“ (po oponentuře). Důvod: jméno verze rozhodne autor,
+  text sedí v obou případech.
+
+### Snímky GUI a testy
+
+- Nové volby snímků (`docs/sestavy.md`): `--ui-report`, `--ui-debugger`, `--ui-menu JMÉNO`, `--ui-key KLÁVESA`
+  (přes frontu událostí SDL, opakovatelné), `--ui-mouse X,Y`, `--ui-exit` (Soubor → Konec, s `--ui-set` ukáže
+  dotaz) a `--ui-state` se stavem, který nejde načíst, ukáže okno Chyba. Důvod: menu, klávesy a dotazy by snímek
+  jinak neukázal.
+- Testy: `test_machine_cfg` (`test_changes`: změny česky i anglicky, jiný zápis stejné hodnoty není změna),
+  `test_state` (`state_formats`: verze v hlavičce, odmítnutý formát bez dotyku sestavy, formát 1, useknutý stav
+  vrátí sestavu, `back_out`). Celá debug sada prošla (59/59).
+
+### Na rozhodnutí autora
+
+- **F9 = breakpoint, reset jen F12** (rozhodl vedoucí workflow). Doporučení: nechat. Možnost z hodnocení UX:
+  v debug buildu F9 bez otevřeného debuggeru = reset (pod Visual Studiem je teď reset jen z menu nebo tlačítkem
+  v debuggeru).
+- **Jméno verze bety:** `0.7.0-beta`, nebo dál `0.7.0-alpha` (`SAPIEMU_VERSION_SUFFIX` v `CMakeLists.txt`, jméno
+  poznámek k vydání, „alfa“ v README).
+- **Kam testeři hlásí:** odpovědí na zprávu, se kterou betu dostanou (tak to teď říkají texty), nebo je přidat jako
+  spolupracovníky soukromého repa, aby fungovaly Issues. Sedí věta „do zveřejnění cestou, kterou jste program
+  dostali, potom přes GitHub Issues“?
+- Před rozesláním doplnit v `beta-testeri.md` verzi a termín a přidat Liborovi a Petrovi žádost o souhlasy
+  (`docs/vydani/souhlasy.md`).
+- **Beta zip** (`package.py --public`) až na autorův pokyn. Před ním přidat do gitu `docs/getting-started.md`
+  a `docs/vydani/beta-testeri.md` (`package.py` jinak odmítne).
+
+### Ruční zkouška autora a známá omezení
+
+Snímek skrytého okna tyto věci neukáže:
+
+- Ctrl+Shift+C a vložení do Poznámkového bloku (řádky, čeština, rámečky); Ctrl+Shift+C a Ctrl+Shift+V v sériovém
+  terminálu.
+- F9 při ladění: myš na řádku disassembleru a F9, myš mimo disassembler (PC), F9 bez debuggeru (jen upozornění).
+- Enter a Esc v oknech Neuložené změny, Nahrát program, Nahrát binární soubor, Program na kazetu a SYSGEN RKD-1
+  (snímek je neumí otevřít; stejný kód je ověřený v okně Chyba a v otázce APS-5).
+- Ponechat pro příští spuštění: vložit kazetu nebo přepnout TURBO, Konec → Ponechat, spustit znovu (kazeta je
+  vložená, hlášení ve stavovém řádku, `*` ve výběru sestav, Konec se už neptá), pak Vrátit změny; šedé Ponechat
+  a jeho bublina.
+- Načíst stav z alfy 0.6.0 (formát 1) v sestavě, kterou měnila etapa 4 nebo 5.
+- Nahlásit chybu: Otevřít složku logu, Kopírovat diagnostiku do zprávy, po pádu řádek Předchozí log.
+- Nápověda → První kroky s anglickým rozhraním (otevře vnější program).
+
+Známá omezení:
+
+- Cesty `STATE_BACK_RESTARTED` a `STATE_BACK_RESET` se těžko vyvolají a vyzkoušené nejsou, stejně jako skutečný
+  pád se `sapiemu.prev.log`.
+- `.sha256` je ověřený jen na malém souboru, zip se nestavěl.
+- Stavy z alf 0.1.0 a 0.2.0 se nenačtou (výše).
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

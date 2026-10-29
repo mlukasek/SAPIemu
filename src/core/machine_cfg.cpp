@@ -425,6 +425,226 @@ std::vector<MachinePart> machine_cfg_parts(const json& cfg, bool czech)
     return out;
 }
 
+// ---------------------------------------------------------------- changes between two descriptions
+
+// a text of at most about n bytes, cut on a character boundary (UTF-8)
+static std::string text_cut(std::string s, size_t n)
+{
+    if (s.size() <= n) return s;
+    size_t k = n;
+    while (k > 0 && ((unsigned char)s[k] & 0xC0) == 0x80) k--;
+    s.resize(k);
+    return s + "\xE2\x80\xA6";
+}
+
+// a label without its details in parentheses ("RDY wait states (on VRAM access)" -> "RDY wait states", "Wait (RDY) on
+// VRAM access" -> "Wait on VRAM access")
+static std::string label_short(const char* label)
+{
+    std::string s;
+    int depth = 0;
+    for (const char* c = label ? label : ""; *c; c++) {
+        if (*c == '(') {
+            depth++;
+            while (!s.empty() && s.back() == ' ') s.pop_back();
+        } else if (*c == ')' && depth > 0) {
+            depth--;
+        } else if (depth == 0) {
+            s += *c;
+        }
+    }
+    while (!s.empty() && s.back() == ' ') s.pop_back();
+    return text_cut(s, 64);
+}
+
+static std::string json_text(const json& v)
+{
+    if (v.is_null()) return "-";
+    if (v.is_string()) return v.get<std::string>();
+    return v.dump(-1, ' ', false, json::error_handler_t::replace);
+}
+
+static const char* on_off(bool on, bool czech)
+{
+    return on ? (czech ? "zapnuto" : "on") : (czech ? "vypnuto" : "off");
+}
+
+// the value of a parameter as the configurator shows it: the option, the file name, on / off
+static std::string param_text(const CardParam* p, const json& v, bool czech)
+{
+    switch (p->kind) {
+    case PK_BOOL:
+    case PK_SECTION:
+        return on_off(v.is_boolean() ? v.get<bool>() : !v.is_null(), czech);
+    case PK_CHOICE: {
+        int o = param_option_index(p, v);
+        if (o >= 0) return text_cut(label_short(czech ? p->options[o].cs : p->options[o].en), 48);
+        break;
+    }
+    case PK_FILE:
+    case PK_DIR: {
+        std::string f = v.is_string() ? v.get<std::string>() : "";
+        return f.empty() ? (czech ? "(nic)" : "(none)") : text_cut(base_name(f), 48);
+    }
+    case PK_KEYBOARD: {
+        std::string type = v.is_object() ? v.value("type", std::string()) : v.is_string() ? v.get<std::string>() : "";
+        return type.empty() ? (czech ? "(žádná)" : "(none)") : type;
+    }
+    default:
+        break;
+    }
+    return text_cut(json_text(v), 48);
+}
+
+// the name of a parameter, after its section ("Mechanika 0, obraz diskety")
+static std::string param_name(const CardInfo* ci, const CardParam* p, bool czech)
+{
+    std::string l = label_short(czech ? p->cs : p->en);
+    const CardParam* s = param_section(ci, p);
+    if (!s) return l;
+    if (l.size() > 1 && isupper((unsigned char)l[0]) && islower((unsigned char)l[1])) l[0] = (char)tolower((unsigned char)l[0]);
+    return param_name(ci, s, czech) + ", " + l;
+}
+
+struct CfgCardRef {
+    const json* card;
+    int slot;
+    std::string type;
+    int peer;   // the index of the same card in the other description, -1 = none
+};
+
+static std::vector<CfgCardRef> cfg_card_refs(const json& cfg)
+{
+    std::vector<CfgCardRef> out;
+    if (cfg.contains("cards") && cfg["cards"].is_array())
+        for (const json& c : cfg["cards"])
+            if (c.is_object()) out.push_back({ &c, card_slot(c), c.value("type", std::string()), -1 });
+    return out;
+}
+
+// keys of a card that no parameter of the catalog covers, different in the two entries
+static bool other_keys_differ(const json& a, const json& b, const CardInfo* ci)
+{
+    for (const json* j : { &a, &b })
+        for (auto it = j->begin(); it != j->end(); ++it) {
+            const std::string& k = it.key();
+            if (k == "slot" || k == "type") continue;
+            bool known = false;
+            for (const CardParam* p = ci ? ci->params : nullptr; p && p->path && !known; p++)
+                known = split_path(p->path)[0] == k;
+            if (known) continue;
+            json va = a.contains(k) ? a[k] : json(), vb = b.contains(k) ? b[k] : json();
+            if (va != vb) return true;
+        }
+    return false;
+}
+
+// the same settings, the slot aside: every parameter of the catalog equal (the configurator writes a value also when
+// it is the default) and the other keys too
+static bool card_same_settings(const json& a, const json& b, const CardInfo* ci)
+{
+    for (const CardParam* p = ci ? ci->params : nullptr; p && p->path; p++)
+        if (!cfg_values_equal(card_param_value(a, p), card_param_value(b, p))) return false;
+    return !other_keys_differ(a, b, ci);
+}
+
+std::vector<std::string> machine_cfg_changes(const json& before, const json& after, bool czech)
+{
+    std::vector<std::pair<int, std::string>> out;   // slot (0 = the machine) and the line
+    if (!before.is_object() || !after.is_object()) return std::vector<std::string>();
+    auto get = [](const json& j, const std::string& k) { return j.contains(k) ? j[k] : json(); };
+
+    // the machine and the bus: the known keys in the order of the configurator, then any other
+    std::vector<std::string> keys = { "name", "description", "bus", "power_on_memory", "windows" };
+    for (const json* j : { &before, &after })
+        for (auto it = j->begin(); it != j->end(); ++it)
+            if (it.key() != "cards" && std::find(keys.begin(), keys.end(), it.key()) == keys.end()) keys.push_back(it.key());
+    for (const std::string& k : keys) {
+        json va = get(before, k), vb = get(after, k);
+        if (va == vb) continue;
+        std::string t;
+        if (k == "name") {
+            t = std::string(czech ? "Název" : "Name") + " \xE2\x86\x92 " + text_cut(json_text(vb), 48);
+        } else if (k == "description") {
+            t = czech ? "Popis změněn" : "Description changed";
+        } else if (k == "power_on_memory") {
+            t = std::string(czech ? "Náhodný obsah pamětí po zapnutí" : "Random memory content after power on") + " \xE2\x86\x92 " +
+                on_off(vb == json("random"), czech);
+        } else if (k == "windows") {
+            t = czech ? "Okna nahoře po spuštění změněna" : "Windows on top at the start changed";
+        } else if (k == "bus") {
+            json ba = va.is_object() ? va : json::object(), bb = vb.is_object() ? vb : json::object();
+            std::vector<std::string> bk;
+            for (const json* j : { &ba, &bb })
+                for (auto it = j->begin(); it != j->end(); ++it)
+                    if (std::find(bk.begin(), bk.end(), it.key()) == bk.end()) bk.push_back(it.key());
+            for (const std::string& b : bk) {
+                json x = get(ba, b), y = get(bb, b);
+                if (x == y) continue;
+                std::string v = json_text(y);
+                if (b == "type")
+                    if (const BusInfo* bi = bus_info(v)) v = czech ? bi->cs : bi->en;
+                out.push_back({ 0, std::string(czech ? "Sběrnice" : "Bus") + (b == "type" ? std::string() : ", " + b) +
+                                       " \xE2\x86\x92 " + text_cut(v, 48) });
+            }
+            continue;
+        } else if (vb.is_null()) {
+            t = k + (czech ? " odebráno" : " removed");
+        } else if (vb.is_object() || vb.is_array()) {
+            t = k + (czech ? " změněno" : " changed");
+        } else {
+            t = k + " \xE2\x86\x92 " + text_cut(json_text(vb), 48);
+        }
+        out.push_back({ 0, t });
+    }
+
+    // the cards: the same card in the same slot, then moved ones (the same settings first, then any of the type)
+    std::vector<CfgCardRef> A = cfg_card_refs(before), B = cfg_card_refs(after);
+    for (size_t i = 0; i < A.size(); i++)
+        for (size_t j = 0; j < B.size() && A[i].peer < 0; j++)
+            if (B[j].peer < 0 && A[i].slot == B[j].slot && A[i].type == B[j].type) {
+                A[i].peer = (int)j;
+                B[j].peer = (int)i;
+            }
+    for (int pass = 0; pass < 2; pass++)
+        for (size_t i = 0; i < A.size(); i++)
+            for (size_t j = 0; j < B.size() && A[i].peer < 0; j++)
+                if (B[j].peer < 0 && A[i].type == B[j].type &&
+                    (pass == 1 || card_same_settings(*A[i].card, *B[j].card, card_info(A[i].type)))) {
+                    A[i].peer = (int)j;
+                    B[j].peer = (int)i;
+                }
+    auto ref = [](const CfgCardRef& c) { return "X" + std::to_string(c.slot) + " " + card_display_name(*c.card); };
+    for (const CfgCardRef& a : A)
+        if (a.peer < 0) out.push_back({ a.slot, ref(a) + (czech ? ": odebrána" : ": removed") });
+    for (const CfgCardRef& b : B) {
+        if (b.peer < 0) {
+            out.push_back({ b.slot, ref(b) + (czech ? ": přidána" : ": added") });
+            continue;
+        }
+        const CfgCardRef& a = A[(size_t)b.peer];
+        if (a.slot != b.slot)
+            out.push_back({ b.slot, ref(a) + (czech ? ": přesunuta do X" : ": moved to X") + std::to_string(b.slot) });
+        const CardInfo* ci = card_info(b.type);
+        for (const CardParam* p = ci ? ci->params : nullptr; p && p->path; p++) {
+            if (!card_param_active(*b.card, ci, p)) continue;   // in a section switched off: the section says it
+            json va = card_param_value(*a.card, p), vb = card_param_value(*b.card, p);
+            if (cfg_values_equal(va, vb)) continue;
+            std::string v = param_text(p, vb, czech);
+            if (p->kind == PK_KEYBOARD && v == param_text(p, va, czech))   // the same keyboard, its options changed
+                v += czech ? ", jiná nastavení" : ", other settings";
+            out.push_back({ b.slot, ref(b) + ": " + param_name(ci, p, czech) + " \xE2\x86\x92 " + v });
+        }
+        if (other_keys_differ(*a.card, *b.card, ci))   // keys the catalog does not know
+            out.push_back({ b.slot, ref(b) + (czech ? ": jiná nastavení" : ": other settings") });
+    }
+    std::stable_sort(out.begin(), out.end(),
+                     [](const std::pair<int, std::string>& x, const std::pair<int, std::string>& y) { return x.first < y.first; });
+    std::vector<std::string> lines;
+    for (const auto& o : out) lines.push_back(o.second);
+    return lines;
+}
+
 std::vector<CfgProblem> machine_cfg_problems(const json& cfg)
 {
     std::vector<CfgProblem> out;

@@ -30,7 +30,21 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     soubor míst oken), celá obrazovka Alt+Enter, „Přizpůsobit oknu“ v menu zvětšení, displej menší než 1:1 hladce.
     **Checkpoint C:** výchozí zůstávají plovoucí okna (rozhodl vedoucí agent), autor vybere podle galerie
     `out\ui-gallery\20261029-044908-layouts\` (`tools/ui_gallery.py --layouts`). Autor ručně vyzkouší notebook, dva
-    monitory a celou obrazovku. Další je etapa 6 (zbytek před betou).
+    monitory a celou obrazovku.
+  - **Etapa 6 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 6 plánu vzhledu: před betou):
+    Nápověda → Nahlásit chybu… (diagnostika a konec logu do schránky, složka logu, po pádu log předchozího spuštění
+    `sapiemu.prev.log`), přejmenované Zobrazení → Konfigurátor sestavy… a Soubor → Spustit sestavu ze souboru…,
+    Kopírovat text obrazovky Ctrl+Shift+C, Enter a Esc v modálních oknech, **F9 = breakpoint, reset jen F12**
+    (rozhodl vedoucí workflow za autora). Dotaz Neuložené změny vyjmenuje skutečné změny (`machine_cfg_changes`)
+    a nabídne **Ponechat pro příští spuštění** (`kept_machines` v nastavení, platí při každém startu z GUI, dokud se
+    neuloží nebo nevrátí). Stav má formát 2 s verzí SAPIemu (stavy alf od 0.3.0 se čtou): jiný formát se odmítne
+    před přepnutím sestavy, stav, který nesedí v kartách, vrátí běžící sestavu (`StateBack`). Pro testery anglické
+    `docs/getting-started.md` (v zipu `GETTING-STARTED.md`), text `docs/vydani/beta-testeri.md`, MCP pryč z úvodu
+    README, `package.py` píše `.sha256` až po kontrolách. Snímky GUI nově `--ui-report`, `--ui-debugger`,
+    `--ui-menu`, `--ui-key`, `--ui-mouse`, `--ui-exit`. **Dál:** otázky na autora (jméno verze bety, kam testeři
+    hlásí, F9), `git add` nových `docs/getting-started.md` a `docs/vydani/beta-testeri.md`, beta zip
+    (`package.py --public`) až na Martinův pokyn, checkpoint C, ruční zkoušky autora (plán, etapy 4–6), pak etapa 7
+    (přístupnost a jazyky).
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.
@@ -100,7 +114,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     - copyright v README, O programu a exe;
     - ikona `src/res/sapiemu.ico` (`tools/make_icon.py`, jednička z loga SAPI 1 překreslená podle příručky) a VERSIONINFO
       z `src/res/sapiemu.rc.in`; logo `docs/img/logo.png` ze stejného skriptu v O programu a README;
-    - log `sapiemu.log` vedle nastavení;
+    - log `sapiemu.log` vedle nastavení (od 2026-10-29 i předchozí `sapiemu.prev.log`);
     - okno s chybou při startu (SDL, chybějící data);
     - `work/` náhradou v `%LOCALAPPDATA%\SAPIemu\work` (`work_root()`, test `test_paths`);
     - `package.py --public` (bez `work/ide`, `REPO_ONLY` a `DEV_DOCS`: `SOUHRN`, `rozhodnuti`, `docs/vydani/`);
@@ -797,7 +811,7 @@ sestava, okno, otevřená okna, zobrazení, terminál, rychlost. Opravené pády
 klávesnice) a ztráta psaní po použití textového pole ImGui. F8 přepíná rychlost emulace 100/200/400 %/max
 (2026-10-04, dřív TURBO 2 / 4 MHz / max).
 
-**Hotové: konfigurátor sestavy (Zobrazení → Sestava…, do 2026-10-10 v menu Stroj), návod `docs/sestavy.md`.**
+**Hotové: konfigurátor sestavy (Zobrazení → Konfigurátor sestavy…, do 2026-10-29 „Sestava…“, do 2026-10-10 v menu Stroj), návod `docs/sestavy.md`.**
 - Čelní pohled na rám (X1 vpravo, panely SPN a ZDR). Kliknutím na slot se karta vloží, vymění nebo nastaví
   (jumpery, ROM, obrazy).
 - Katalog karet (`src/cards/catalog.cpp`) zná i karty, které zatím nejsou emulované. Ty jsou šedé a na sběrnici
