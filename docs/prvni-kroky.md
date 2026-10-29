@@ -147,6 +147,11 @@ s Liborovými deskami.
     na obraz konzole; v sériovém terminálu kopíruje jeho text);
   - v oknech s otázkou Esc zruší nebo zavře a Enter stiskne zvýrazněné tlačítko (Nahrát, Vložit, Zavřít, u neuložených
     změn Zrušit); kde by šlo o něco nevratného (reset APS-5, Obnovit z originálu, zápis systému RKD-1), Enter nedělá nic;
+  - **Tab a šipky** přecházejí v oknech emulátoru (dialogy, Nastavení, konfigurátor, přístroje) mezi prvky: rámeček
+    ukáže až Tab, pak ho posouvají i šipky, mezerník a Enter stisknou prvek v rámečku a kliknutí myší rámeček skryje
+    (šipky a mezerník bez rámečku nic nestisknou, třeba když hrajete a okno obrazovky zrovna nemá fokus); v okně
+    s otázkou začíná Tab na bezpečném tlačítku (Zrušit). Ctrl+Tab přepíná okna. V okně obrazovky SAPI a v sériovém
+    terminálu patří šipky, mezerník, Enter, Esc i Alt počítači SAPI;
   - **Ctrl+F2 / Ctrl+F3** rychlé uložení a načtení stavu;
   - Ctrl+F7 režim pro hry u klávesnice ANK-1 / ANK-1M2 (klávesy podle polohy, Shift = SHIFT; Manic Miner);
   - **Ctrl+Shift+V** vloží text ze schránky na klávesnici SAPI (také Stroj → Klávesnice → Vložit text), třeba
@@ -352,7 +357,8 @@ Programy pro desky V z `media\` si nahrajete takto:
 SAPI-1 nebyl herní počítač, hry a dema jsou novodobý doplněk na nových deskách.
 
 **SAPI-1 V: hry a dema** (`sapi1v_hry.sapi`, start volbou `3`, pak jméno programu na RAM disku A:):
-- `BADAPPLE` (demo Bad Apple!!), `FXS4` (Fuxoft Soundtrack IV, skladby klávesami A–Z);
+- `BADAPPLE` (demo Bad Apple!!; obraz místy rychle bliká, kdo je citlivý na blikání, ať ho nespouští), `FXS4`
+  (Fuxoft Soundtrack IV, skladby klávesami A–Z);
 - `FLAPPY` (Flappy na CGA-1V; šipky a mezerník, nebo joystick) a `FLAPDGD` (Flappy na DGD-1V, port L. Lasoty):
   ovládá se joystickem, Ctrl+F8 joystick z klávesnice, mezerník = palba (úvod, výběr scény, hra);
 - `BOMBER` (Bomberman), `BKP` (textová hra Bratrstvo kočičí pracky, verze pro SAPI od L. Lasoty);

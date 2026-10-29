@@ -35,20 +35,30 @@ static const std::string& shown_path(const std::string& path)
 
 // ---------------------------------------------------------------- cassette recorder
 
-static const SDL_DialogFileFilter k_tape_filter[] = { { "Kazeta (WAV, MP3) nebo program (HEX, TXT, BIN)", "wav;mp3;hex;ihx;txt;bin" },
-                                                      { "Kazeta (WAV, MP3)", "wav;mp3" },
+// The names are tr() keys: the dialog gets them in the UI language (dialog_filters).
+static const SDL_DialogFileFilter k_tape_filter[] = { { "Cassette (WAV, MP3) or program (HEX, TXT, BIN)", "wav;mp3;hex;ihx;txt;bin" },
+                                                      { "Cassette (WAV, MP3)", "wav;mp3" },
                                                       { "Program (Intel HEX, TXT, BIN)", "hex;ihx;txt;bin" } };
 static const SDL_DialogFileFilter k_wav_filter[] = { { "WAV", "wav" } };
 static const SDL_DialogFileFilter k_hex_filter[] = { { "Intel HEX (HEX, IHX, TXT)", "hex;ihx;txt" }, { "*", "*" } };
-static const SDL_DialogFileFilter k_img_filter[] = { { "Disketa (IMG, IMD, 8SD, SP2, SP1)", "img;8sd;imd;sp2;sp1" },
+static const SDL_DialogFileFilter k_img_filter[] = { { "Floppy disk (IMG, IMD, 8SD, SP2, SP1)", "img;8sd;imd;sp2;sp1" },
                                                      { "*", "*" } };
-static const SDL_DialogFileFilter k_state_filter[] = { { "Stav SAPIemu", "sapistate" } };
-static const SDL_DialogFileFilter k_kzd_filter[] = { { "Kazeta KZD-1 (KZD)", "kzd" }, { "*", "*" } };
-static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "Kazeta KZD-1 (KZD)", "kzd" },
+static const SDL_DialogFileFilter k_state_filter[] = { { "SAPIemu state", "sapistate" } };
+static const SDL_DialogFileFilter k_kzd_filter[] = { { "KZD-1 cassette (KZD)", "kzd" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "KZD-1 cassette (KZD)", "kzd" },
                                                           { "Program (HEX, BIN)", "hex;ihx;bin" }, { "*", "*" } };
 
-static const SDL_DialogFileFilter k_rkd_filter[] = { { "Kazeta RKD-1 (RKD)", "rkd" }, { "*", "*" } };
-static const SDL_DialogFileFilter k_tap_filter[] = { { "Magnetická páska (SIMH TAP)", "tap" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_rkd_filter[] = { { "RKD-1 cartridge (RKD)", "rkd" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_tap_filter[] = { { "Magnetic tape (SIMH TAP)", "tap" }, { "*", "*" } };
+
+// The filters with their names in the UI language. SDL reads them until the dialog closes: the names are strings of
+// the translation table (they stay), the array is static (one dialog of this window at a time, tape_dialog).
+static const SDL_DialogFileFilter* dialog_filters(const SDL_DialogFileFilter* f, int n)
+{
+    static SDL_DialogFileFilter s_tr[4];
+    for (int i = 0; i < n && i < 4; i++) s_tr[i] = { tr(f[i].name), f[i].pattern };
+    return s_tr;
+}
 static int s_new_disk_fmt = 0;   // format of a new disk (index into floppy_geoms())
 
 static void SDLCALL tape_dialog_done(void* userdata, const char* const* files, int)
@@ -89,21 +99,26 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
         make_dirs(where);
     }
     where = dialog_location(where);
-    if (kind == 1) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tape_filter, 3, where.c_str(), false);
-    else if (kind == 3) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_hex_filter, 2, where.c_str(), false);
-    else if (kind == 6) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, nullptr, 0, where.c_str(), false);
-    else if (kind == 7) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str());
-    else if (kind == 8) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_state_filter, 1, where.c_str(), false);
-    else if (kind == 4) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 2, where.c_str(), false);
-    else if (kind == 5) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_img_filter, 1, where.c_str());
-    else if (kind == 9) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
-    else if (kind == 10) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_kzd_open_filter, 3, where.c_str(), false);
-    else if (kind == 11) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_kzd_filter, 1, where.c_str());
-    else if (kind == 12) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_rkd_filter, 2, where.c_str(), false);
-    else if (kind == 13) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_rkd_filter, 1, where.c_str());
-    else if (kind == 14) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, k_tap_filter, 2, where.c_str(), false);
-    else if (kind == 15) SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_tap_filter, 1, where.c_str());
-    else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, k_wav_filter, 1, where.c_str());
+    // the filters of each kind (the others, 2 = a new cassette: a WAV to save)
+    static const struct { int kind; const SDL_DialogFileFilter* f; int n; bool open; } k_kinds[] = {
+        { 1, k_tape_filter, 3, true },      { 3, k_hex_filter, 2, true },   { 6, nullptr, 0, true },
+        { 7, k_state_filter, 1, false },    { 8, k_state_filter, 1, true }, { 4, k_img_filter, 2, true },
+        { 5, k_img_filter, 1, false },      { 9, k_wav_filter, 1, false },  { 10, k_kzd_open_filter, 3, true },
+        { 11, k_kzd_filter, 1, false },     { 12, k_rkd_filter, 2, true },  { 13, k_rkd_filter, 1, false },
+        { 14, k_tap_filter, 2, true },      { 15, k_tap_filter, 1, false },
+    };
+    const SDL_DialogFileFilter* f = k_wav_filter;
+    int n = 1;
+    bool open = false;
+    for (const auto& k : k_kinds)
+        if (k.kind == kind) {
+            f = k.f;
+            n = k.n;
+            open = k.open;
+        }
+    const SDL_DialogFileFilter* shown = f ? dialog_filters(f, n) : nullptr;
+    if (open) SDL_ShowOpenFileDialog(tape_dialog_done, &d, ui.window, shown, n, where.c_str(), false);
+    else SDL_ShowSaveFileDialog(tape_dialog_done, &d, ui.window, shown, n, where.c_str());
 }
 
 struct HexScan {
@@ -305,8 +320,11 @@ static void media_restore_dialog(UiState& ui)
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    // Esc = Cancel; Enter does nothing: Restore throws away the changes of the working copy
-    if (ImGui::Button(tr("Cancel")) || popup_escape()) ImGui::CloseCurrentPopup();
+    // Esc = Cancel; Enter does nothing: Restore throws away the changes of the working copy. The keyboard navigation
+    // (Tab) starts at Cancel too.
+    bool cancel = ImGui::Button(tr("Cancel"));
+    ImGui::SetItemDefaultFocus();
+    if (cancel || popup_escape()) ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
 }
 
@@ -475,8 +493,10 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     ImGui::EndDisabled();
 
     ImGui::BeginDisabled(!t->loaded());
-    struct Btn { const char* label; int mode; };
-    const Btn btns[3] = { { "PLAY", TapeDeck::PLAY }, { "REC", TapeDeck::RECORD }, { "STOP", TapeDeck::STOP } };
+    // the lit button also carries the symbol of its mode (play, record, stop): not the colour alone (WCAG 1.4.1)
+    struct Btn { const char* label; int mode; const char* symbol; };
+    const Btn btns[3] = { { "PLAY", TapeDeck::PLAY, "\xE2\x96\xB6 " }, { "REC", TapeDeck::RECORD, "\xE2\x97\x8F " },
+                          { "STOP", TapeDeck::STOP, "\xE2\x96\xA0 " } };
     if (ImGui::Button(tr("<< Rewind"))) {
         t->mode = TapeDeck::STOP;
         t->pos = 0;
@@ -490,7 +510,9 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
             ImGui::PushStyleColor(ImGuiCol_Button, b.mode == TapeDeck::RECORD ? IM_COL32(170, 40, 40, 255) : IM_COL32(30, 110, 50, 255));
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
         }
-        if (ImGui::Button(tr(b.label))) t->mode = (TapeDeck::Mode)b.mode;
+        char lbl[64];   // the id stays when the symbol comes and goes
+        snprintf(lbl, sizeof(lbl), "%s%s###%s", on ? b.symbol : "", tr(b.label), b.label);
+        if (ImGui::Button(lbl)) t->mode = (TapeDeck::Mode)b.mode;
         if (on) ImGui::PopStyleColor(2);
         ImGui::EndDisabled();
         if (dis && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -509,7 +531,7 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     double len = t->length_seconds(), p = t->position_seconds();
     char over[64];
     snprintf(over, sizeof(over), "%s / %s", mmss(p).c_str(), mmss(len).c_str());
-    ImGui::ProgressBar(len > 0 ? (float)(p / len) : 0.0f, ImVec2(260, 0), over);
+    ImGui::ProgressBar(len > 0 ? (float)(p / len) : 0.0f, ImVec2(16.0f * ImGui::GetFontSize(), 0), over);
     ImGui::SameLine();
     if (dsm->motor_on()) ImGui::TextColored(theme().ok, "%s", tr("motor running"));
     else ImGui::TextDisabled("%s", tr("motor stopped"));
@@ -573,6 +595,8 @@ static void draw_kzd(UiState& ui, Card* card, Kzd1* k)
         panel_text(dl, ImVec2(o.x + 1.0f * u, o.y + 4.0f * u), IM_COL32(150, 150, 150, 255), tr("(no cassette)"));
     }
     ImGui::Dummy(ImVec2(w, h));
+    if (picture_only())   // the cassette with a margin (a preview of the machine)
+        picture_mark(o.x - 0.3f * u, o.y - 0.3f * u, o.x + w + 0.3f * u, o.y + h + 0.3f * u);
     ImGui::SameLine();
     ImGui::BeginGroup();
     if (has) {
@@ -645,7 +669,7 @@ static void draw_pmd32(Pmd32Sd* p)
         cpm_tooltip();
         ImGui::TableNextColumn();
         std::string cur = p->drive_present(d) ? p->drive_path(d) : std::string(tr("(empty)"));
-        ImGui::SetNextItemWidth(260);
+        ImGui::SetNextItemWidth(16.0f * ImGui::GetFontSize());
         if (ImGui::BeginCombo("##img", cur.c_str())) {
             if (ImGui::Selectable(tr("(empty)"), !p->drive_present(d))) p->eject(d);
             for (const std::string& im : images)
@@ -996,8 +1020,11 @@ static void rkd_system_dialog(Rkd1* r, bool open)
         }
     }
     ImGui::SameLine();
-    // Esc = Cancel; Enter does nothing: writing the system (and the format) overwrites the cartridge
-    if (ImGui::Button(tr("Cancel")) || popup_escape()) {
+    // Esc = Cancel; Enter does nothing: writing the system (and the format) overwrites the cartridge. The keyboard
+    // navigation (Tab) starts at Cancel too.
+    bool cancel = ImGui::Button(tr("Cancel"));
+    ImGui::SetItemDefaultFocus();
+    if (cancel || popup_escape()) {
         s_rkd_sys_error.clear();
         s_rkd_sys_unit = -1;
         ImGui::CloseCurrentPopup();
@@ -1202,9 +1229,11 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
     dl->AddRectFilled(o, ImVec2(o.x + w, o.y + h), IM_COL32(222, 220, 208, 255), 0.4f * s);
     dl->AddRect(o, ImVec2(o.x + w, o.y + h), IM_COL32(120, 118, 110, 255), 0.4f * s, 0, 1.5f);
     dl->AddText(panel_font(), 1.15f * s, ImVec2(o.x + 0.8f * s, o.y + 0.5f * s), IM_COL32(40, 40, 40, 255), "IZOT SM 5300.01");
-    char unit_s[32];
-    snprintf(unit_s, sizeof(unit_s), "%s %d", tr("unit"), i);
-    panel_text(dl, ImVec2(o.x + w - 5.0f * s, o.y + 0.6f * s), IM_COL32(90, 90, 90, 255), unit_s);
+    if (!picture_only()) {   // the number of the unit is the emulator's text, no lettering: not in a preview
+        char unit_s[32];
+        snprintf(unit_s, sizeof(unit_s), "%s %d", tr("unit"), i);
+        panel_text(dl, ImVec2(o.x + w - 5.0f * s, o.y + 0.6f * s), IM_COL32(90, 90, 90, 255), unit_s);
+    }
     // the tape deck: reels of 216 mm with a hub of 100 mm, 350 m of tape from the left reel to the right one
     ImVec2 p0(o.x + 0.8f * s, o.y + 2.0f * s), p1(o.x + w - 0.8f * s, o.y + 11.4f * s);
     dl->AddRectFilled(p0, p1, IM_COL32(44, 46, 50, 255), 0.3f * s);
@@ -1276,35 +1305,49 @@ static void draw_rmp_unit(UiState& ui, Rmp1* r, int i)
         dl->AddCircle(c, 0.55f * s, IM_COL32(60, 60, 58, 255), 20, 1.0f);
         ImVec2 ts = panel_text_size(lamps[k].name);
         panel_text(dl, ImVec2(c.x - ts.x * 0.5f, c.y + 0.8f * s), IM_COL32(50, 50, 50, 255), lamps[k].name);
+        lamp_tooltip(c, 0.55f * s, lamps[k].name, lamps[k].on);
     }
+    if (picture_only() && i == 0)   // the first drive with a margin (a preview of the machine)
+        picture_mark(o.x - 0.3f * s, o.y - 0.3f * s, o.x + w + 0.3f * s, o.y + h + 0.3f * s);
     // the buttons of the drive, on its panel
     ImGui::SetCursorScreenPos(ImVec2(o.x + 0.8f * s, o.y + 14.4f * s));
     ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(236, 234, 226, 255));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(250, 248, 240, 255));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(200, 198, 190, 255));
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(30, 30, 30, 255));
-    float bw = (w - 1.6f * s - 3 * ImGui::GetStyle().ItemSpacing.x) / 4;
+    // the widths from the labels (OFF-LINE, the longest, was cut off in equal widths), the rest of the panel shared
+    // evenly; the padding of the frames no wider than that share
+    static const char* const k_btn[4] = { "LOAD", "OFF-LINE", "REWIND", "UNLOAD" };
+    const ImGuiStyle& st = ImGui::GetStyle();
+    float bw[4], sum = 0;
+    for (int k = 0; k < 4; k++) sum += bw[k] = ImGui::CalcTextSize(k_btn[k]).x;
+    float extra = (w - 1.6f * s - 3 * st.ItemSpacing.x - sum) / 4;
+    if (extra < 0) extra = 0;
+    for (int k = 0; k < 4; k++) bw[k] += extra;
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                        ImVec2(extra * 0.5f < st.FramePadding.x ? extra * 0.5f : st.FramePadding.x, st.FramePadding.y));
     ImGui::BeginDisabled(!t.loaded || u.loaded);
-    if (ImGui::Button("LOAD", ImVec2(bw, 1.8f * s))) r->press_load(i);
+    if (ImGui::Button("LOAD", ImVec2(bw[0], 1.8f * s))) r->press_load(i);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("Thread the tape and wind it to the BOT marker (RDY)."));
     ImGui::SameLine();
     ImGui::BeginDisabled(!u.loaded);
-    if (ImGui::Button(u.online ? "OFF-LINE" : "ON-LINE", ImVec2(bw, 1.8f * s))) r->press_online(i);
+    if (ImGui::Button(u.online ? "OFF-LINE" : "ON-LINE", ImVec2(bw[1], 1.8f * s))) r->press_online(i);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("ON-LINE: the computer controls the drive (MTDAT: \"DISTANC\")."));
     ImGui::SameLine();
     ImGui::BeginDisabled(!u.loaded || u.online || u.pos <= 0);
-    if (ImGui::Button("REWIND", ImVec2(bw, 1.8f * s))) r->press_rewind(i);
+    if (ImGui::Button("REWIND", ImVec2(bw[2], 1.8f * s))) r->press_rewind(i);
     ImGui::EndDisabled();
     ImGui::SameLine();
     ImGui::BeginDisabled(!u.loaded || u.online);
-    if (ImGui::Button("UNLOAD", ImVec2(bw, 1.8f * s))) r->press_unload(i);
+    if (ImGui::Button("UNLOAD", ImVec2(bw[3], 1.8f * s))) r->press_unload(i);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("Rewind and unthread (OFF-LINE only)."));
+    ImGui::PopStyleVar();
     ImGui::PopStyleColor(4);
     ImGui::SetCursorScreenPos(o);
     ImGui::Dummy(ImVec2(w, h));

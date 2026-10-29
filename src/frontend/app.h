@@ -26,6 +26,7 @@ struct UiSnapshot {
     bool guide = false;      // show the guide of the machine
     bool about = false, settings = false, shortcuts = false;   // Help -> About, View -> Settings, Help -> Keyboard shortcuts
     std::string crop;        // the picture of one window only: its key ("Media", "Minigraf"; the part after ###)
+    bool picture = false;    // with crop: only the drawn hardware the window marks (picture_mark), not its controls
     bool ims2 = false;       // show the IMS-2 measuring bench window
     bool aps5_demo = false;  // and start its DEMO
     int drag_from = 0, drag_to = 0;   // drag the card in slot drag_from to drag_to in the configurator

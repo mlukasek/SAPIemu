@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -324,11 +325,14 @@ void settings_apply(App& app, const nlohmann::json& j)
     app.restyle = true;
 }
 
-// View -> Language: switches at once (the texts are translated every frame) and is saved.
+void set_title(App& app);
+
+// View -> Language: switches at once (the texts are translated every frame, the title of the window here) and is saved.
 void set_ui_language(App& app, UiLanguage lang)
 {
     i18n_set_language(lang);
     app.language = i18n_code(lang);
+    set_title(app);
 }
 
 // The look in use: --ui-theme until a look is chosen in the settings, else the saved one; "as the system says"
@@ -506,7 +510,7 @@ void track_window(App& app)
 void set_title(App& app)
 {
     Machine* m = app.host.machine();
-    std::string title = std::string("SAPIemu - ") + (m ? m->name : "");
+    std::string title = std::string("SAPIemu - ") + (m ? machine_title(app.ui, app.host.machine_file(), m->name) : "");
     if (m && app.host.paused) title += std::string(" ") + tr("[paused]");   // seen on the task bar too
     SDL_SetWindowTitle(app.window, title.c_str());
 }
@@ -1532,9 +1536,9 @@ static std::string status_text(App& app, Machine* m, const std::string& notice, 
     }
     KeyboardDevice* kb = m->keyboard();
     if (kb && level < 4) {
-        std::string ks = kb->status();
+        std::string ks = kb->status();   // English ("APS-5 key 2, FAULT"); the LEDs of ANK-1 as printed
         *kb_leds = ks.find("LED") != std::string::npos;
-        status_add(s, ks);
+        status_add(s, tr(ks.c_str()));
     }
     if (level < 1) status_add(s, notice);
     if (video_recording(app.ui)) {
@@ -1584,8 +1588,7 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Choose a machine..."))) browser_open(app.ui);
         if (ImGui::BeginMenu(tr("Recent machines"), !app.ui.recent.empty())) {
             for (const std::string& f : std::vector<std::string>(app.ui.recent)) {
-                const MachineEntry* e = machine_index_find(app.ui.machine_index, f);
-                std::string label = e ? (e->title.empty() ? e->name : e->title) : f;
+                std::string label = machine_title(app.ui, f, std::string());
                 if (ImGui::MenuItem((label + "##" + f).c_str(), nullptr, f == app.host.machine_file())) {
                     rack_start_machine(app.ui, f);   // its guide may open itself (a new machine generation)
                     m = app.host.machine();
@@ -1967,8 +1970,9 @@ static bool type_hint(App& app, Machine* m, int target)
 }
 
 // The display windows cannot be collapsed (one saved collapsed by an older version opens again); a drag on the picture
-// does not move them (io.ConfigWindowsMoveFromTitleBarOnly), a click there captures the mouse of SAPI.
-const ImGuiWindowFlags k_display_flags = ImGuiWindowFlags_NoCollapse;
+// does not move them (io.ConfigWindowsMoveFromTitleBarOnly), a click there captures the mouse of SAPI. No keyboard
+// navigation of ImGui in them: the arrows, Space, Enter, Esc and Alt are the keys of SAPI there.
+const ImGuiWindowFlags k_display_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavInputs;
 
 void draw_screen(App& app)
 {
@@ -2094,7 +2098,7 @@ static void draw_fullscreen(App& app)
     // behind all others (created at the back, never raised): the dialogs come over it, the other windows are hidden
     ImGui::Begin("###fullscreen", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
                                                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
-                                               ImGuiWindowFlags_NoBringToFrontOnFocus);
+                                               ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(3);
     fw = ImGui::GetCurrentWindow();
@@ -2215,10 +2219,78 @@ static bool popup_key_ok(void)
     return !ImGui::IsWindowAppearing() && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 }
 
+// The frame of the keyboard navigation (io.ConfigNavCursorVisibleAuto off), after ImGui::NewFrame: Tab without Ctrl
+// and Alt in a window that takes the navigation shows it (ImGui puts it on a control in this frame and moves it on
+// with the next Tab or the arrows), a click of the mouse hides it. ImGui presses a control by Space or Enter only
+// with the frame shown, so an arrow alone (a player's key for SAPI in another window) presses nothing.
+static void nav_cursor_frame(void)
+{
+    ImGuiContext& g = *GImGui;
+    for (int b = 0; b < ImGuiMouseButton_COUNT; b++)
+        if (g.IO.MouseClicked[b]) {
+            if (g.NavCursorVisible) ImGui::SetNavCursorVisible(false);
+            return;
+        }
+    if (!g.NavCursorVisible && ImGui::IsKeyPressed(ImGuiKey_Tab, false) && !g.IO.KeyCtrl && !g.IO.KeyAlt &&
+        g.NavWindow && !(g.NavWindow->Flags & ImGuiWindowFlags_NoNavInputs))
+        ImGui::SetNavCursorVisible(true);
+}
+
+// The texts of Dear ImGui itself in the language of the UI: the list of Ctrl+Tab ("(Main menu bar)"), the tooltip and
+// the menu of a link, the docked layout. Registered again when the language changes (tr() keeps its texts static).
+static void imgui_localize(void)
+{
+    static int s_lang = -1;
+    if (s_lang == (int)i18n_language()) return;
+    s_lang = (int)i18n_language();
+    const ImGuiLocEntry e[] = {
+        { ImGuiLocKey_WindowingMainMenuBar, tr("(Main menu bar)") },
+        { ImGuiLocKey_WindowingPopup, tr("(Popup)") },
+        { ImGuiLocKey_WindowingUntitled, tr("(Untitled)") },
+        { ImGuiLocKey_OpenLink_s, tr("Open '%s'") },
+        { ImGuiLocKey_CopyLink, tr("Copy Link###CopyLink") },
+        { ImGuiLocKey_DockingHideTabBar, tr("Hide tab bar###HideTabBar") },
+        { ImGuiLocKey_DockingHoldShiftToDock, tr("Hold SHIFT to enable Docking window.") },
+        { ImGuiLocKey_DockingDragToUndockOrMoveNode, tr("Click and drag to move or undock whole node.") },
+    };
+    ImGui::LocalizeRegisterEntries(e, (int)(sizeof(e) / sizeof(e[0])));
+}
+
+bool nav_cursor_on_item(void)
+{
+    ImGuiContext& g = *GImGui;
+    return g.NavCursorVisible && g.NavId != 0 && g.ActiveId == 0 && g.NavWindow &&
+           g.NavWindow->RootWindow == ImGui::GetCurrentWindow()->RootWindow;
+}
+
 bool popup_enter(void)
 {
+    // the keyboard navigation (Tab, arrows) shows its cursor on a button or a box of this window: Enter presses that
+    // one (ImGui does it), not the default button; a text field being edited keeps Enter for the default
+    if (nav_cursor_on_item()) return false;
     return popup_key_ok() &&
            (ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false));
+}
+
+static bool g_picture_only = false;            // --ui-picture (UiSnapshot::picture)
+static bool g_picture_set = false;             // marked in this frame
+static ImVec2 g_picture_min, g_picture_max;    // their union (screen points)
+
+bool picture_only(void)
+{
+    return g_picture_only;
+}
+
+void picture_mark(float x0, float y0, float x1, float y1)
+{
+    if (!g_picture_set) {
+        g_picture_min = ImVec2(x0, y0);
+        g_picture_max = ImVec2(x1, y1);
+        g_picture_set = true;
+        return;
+    }
+    g_picture_min = ImVec2(std::min(g_picture_min.x, x0), std::min(g_picture_min.y, y0));
+    g_picture_max = ImVec2(std::max(g_picture_max.x, x1), std::max(g_picture_max.y, y1));
 }
 
 bool popup_escape(void)
@@ -2471,6 +2543,13 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    // Tab, the arrows, Space and Enter move and press in the windows of the emulator (WCAG 2.1.1). The windows the
+    // keys of SAPI go to have ImGuiWindowFlags_NoNavInputs (the displays, the full screen, the serial terminal): there
+    // the arrows, Space, Enter, Esc and Alt stay SAPI's (handle_key routes by the focus, not by ImGui). The frame of
+    // the navigation shows only after Tab (nav_cursor_frame), not after an arrow: a player's arrows and Space, meant
+    // for SAPI while another window has the focus, do not press its buttons (a guide's "Type into SAPI").
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigNavCursorVisibleAuto = false;
     io.ConfigWindowsMoveFromTitleBarOnly = true;   // a drag on a picture or a panel does not move its window
     io.IniFilename = app.ini_path.empty() ? nullptr : app.ini_path.c_str();   // none for a self-check
     // the fonts of all looks (baked on demand); the style is built before the first frame (app.restyle)
@@ -2497,7 +2576,9 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_browser = true;
         app.ui.browser_first = true;
     }
-    std::string first = machine_file;
+    // --machine as the rest of the program keeps it (machines/x.sapi): a backslash or a whole path inside the data
+    // finds the machine in the index (its English title) and in Recent machines
+    std::string first = machine_file.empty() ? std::string() : data_relative(data_path(machine_file));
     if (first.empty()) {
         std::string last;
         get_opt(settings, "machine", last);
@@ -2546,6 +2627,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_log = snap->log;
         app.ui.rack.sel = snap->rack_slot;
         app.ui.rack.machine_gen = ~0ull;
+        g_picture_only = snap->picture && !snap->crop.empty();
     }
 
     // the MCP server: View -> Settings; settings of an older version without the key keep it on as it was, a new
@@ -2636,9 +2718,12 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             switch_layout(app);
             app.layout_switch = false;
         }
+        imgui_localize();
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        nav_cursor_frame();
+        g_picture_set = false;   // the windows mark their pictures again in this frame
         // The ImGui SDL3 backend stops SDL text input whenever an ImGui text field
         // loses focus (debugger, configurator...); the SAPI keyboard and the serial
         // terminal need it all the time, otherwise no characters arrive.
@@ -2803,7 +2888,15 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (!snap->crop.empty()) {
                 if (ImGuiWindow* w = ImGui::FindWindowByName(("###" + snap->crop).c_str())) {
                     ImVec2 sc = io.DisplayFramebufferScale;
-                    crop = { (int)(w->Pos.x * sc.x), (int)(w->Pos.y * sc.y), (int)(w->Size.x * sc.x), (int)(w->Size.y * sc.y) };
+                    ImVec2 a = w->Pos, b(w->Pos.x + w->Size.x, w->Pos.y + w->Size.y);
+                    if (g_picture_only) {   // --ui-picture: the drawn hardware it marked, inside the window
+                        if (!g_picture_set) fprintf(stderr, "UI snapshot: no picture marked in ###%s\n", snap->crop.c_str());
+                        else {   // the marks have their margins (picture_mark)
+                            a = ImVec2(std::max(a.x, g_picture_min.x), std::max(a.y, g_picture_min.y));
+                            b = ImVec2(std::min(b.x, g_picture_max.x), std::min(b.y, g_picture_max.y));
+                        }
+                    }
+                    crop = { (int)(a.x * sc.x), (int)(a.y * sc.y), (int)((b.x - a.x) * sc.x), (int)((b.y - a.y) * sc.y) };
                     rect = &crop;
                 } else {
                     fprintf(stderr, "UI snapshot: no window ###%s\n", snap->crop.c_str());

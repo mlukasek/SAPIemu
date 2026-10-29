@@ -50,6 +50,35 @@ static const ImU32 k_plot_col[8] = {
     IM_COL32(255, 140, 200, 255), IM_COL32(230, 230, 230, 255),
 };
 
+// The name of a furnace in the host UI (the legend, the tooltip): a default name ("Pec 1", painted on the furnace
+// as the lettering of the shop) in the UI language, a name from the machine description as it is.
+static const char* furnace_label(const Furnace& f, int i, char* buf, size_t size)
+{
+    if (f.name != FurnacePlant::default_name(i)) return f.name.c_str();
+    snprintf(buf, size, tr("Furnace %d"), i + 1);
+    return buf;
+}
+
+// The name in the legend and in the tooltip of the chart, where the line ends carry the numbers: a name of its own
+// with the number in front ("3 Annealing"), a default one has it already ("Furnace 3").
+static const char* furnace_legend(const Furnace& f, int i, char* buf, size_t size)
+{
+    char nb[64];
+    const char* name = furnace_label(f, i, nb, sizeof(nb));
+    if (f.name != FurnacePlant::default_name(i)) snprintf(buf, size, "%d %s", i + 1, name);
+    else snprintf(buf, size, "%s", name);
+    return buf;
+}
+
+// The stroke of a furnace's line in the legend and the tooltip, on a chip of the chart's background: the light
+// colours (furnace 8 almost white) stay visible on the light look too.
+static void legend_stroke(ImDrawList* dl, ImVec2 p, float y, int i, float thick, float u)
+{
+    dl->AddRectFilled(ImVec2(p.x, y - 0.42f * u), ImVec2(p.x + 1.2f * u, y + 0.42f * u), IM_COL32(18, 20, 24, 255),
+                      0.2f * u);
+    dl->AddLine(ImVec2(p.x + 0.2f * u, y), ImVec2(p.x + 1.0f * u, y), k_plot_col[i], thick);
+}
+
 static void lamp(ImDrawList* dl, ImVec2 c, float r, bool on, ImU32 col_on)
 {
     ImU32 off = lerp_col(col_on, IM_COL32(30, 30, 30, 255), 0.78f);
@@ -71,8 +100,12 @@ static void draw_panel(Hrk1* p, float u)
     float y = o.y + 0.5f * u;
     panel_text(dl, ImVec2(o.x + pad, y), ink, "porucha");
     panel_text(dl, ImVec2(o.x + w - pad - panel_text_size("napájení").x, y), ink, "napájení");
-    lamp(dl, ImVec2(o.x + pad + 1.4f * u, y + 1.9f * u), 0.45f * u, p->powered() && p->led_fault(), IM_COL32(255, 40, 30, 255));
-    lamp(dl, ImVec2(o.x + w - pad - 1.6f * u, y + 1.9f * u), 0.45f * u, p->powered(), IM_COL32(60, 230, 60, 255));
+    ImVec2 fault_c(o.x + pad + 1.4f * u, y + 1.9f * u), power_c(o.x + w - pad - 1.6f * u, y + 1.9f * u);
+    lamp(dl, fault_c, 0.45f * u, p->powered() && p->led_fault(), IM_COL32(255, 40, 30, 255));
+    lamp(dl, power_c, 0.45f * u, p->powered(), IM_COL32(60, 230, 60, 255));
+    // the lettering stays as printed; the tooltip tells the state (and the English UI the meaning)
+    lamp_tooltip(fault_c, 0.9f * u, tr("porucha (fault)"), p->powered() && p->led_fault());
+    lamp_tooltip(power_c, 0.9f * u, tr("napájení (power)"), p->powered());
     // keys: 7 8 9 / 4 5 6 / 1 2 3 / 0 / <- M -> / R
     static const int rows[6][3] = { { 7, 8, 9 }, { 4, 5, 6 }, { 1, 2, 3 }, { 0, -1, -1 },
                                     { Hrk1::KEY_BACK, Hrk1::KEY_M, Hrk1::KEY_ENTER }, { -1, Hrk1::KEY_R, -1 } };
@@ -166,8 +199,10 @@ static void draw_furnace(FurnacePlant* pl, Hrk1* panel, int i, float u, float tw
     lamp(dl, ImVec2(o.x + tw - 0.6f * u, o.y + 0.55f * u), 0.32f * u, heat && !f.heater_broken, IM_COL32(255, 150, 20, 255));
     ImGui::Dummy(ImVec2(tw, bh));
     if (ImGui::IsItemHovered()) {
+        char nb[64];
         ImGui::BeginTooltip();
-        ImGui::Text("%s: %s %.1f °C, %s %.1f °C", f.name.c_str(), tr("chamber"), f.tch, tr("heater"), f.th);
+        ImGui::Text("%s: %s %.1f °C, %s %.1f °C", furnace_label(f, i, nb, sizeof(nb)), tr("chamber"), f.tch, tr("heater"),
+                    f.th);
         ImGui::Text("%s %s, %.0f W, %s %.0f °C, %s %.0f min", tr("thermocouple"), tc_name(f.tc), f.power_w, tr("full power"),
                     f.t_max, tr("time constant"), f.tau_s / 60);
         ImGui::Text("%s: %s", tr("Heating (DRV-1A contact)"), heat ? tr("on") : tr("off"));
@@ -185,7 +220,10 @@ static void draw_furnace(FurnacePlant* pl, Hrk1* panel, int i, float u, float tw
     lamp(dl, ImVec2(lp.x + 3.4f * u, lp.y + 0.55f * u), 0.3f * u, lo2, IM_COL32(255, 60, 40, 255));
     dl->AddText(ImVec2(lp.x + 3.9f * u, lp.y), ImGui::GetColorU32(ImGuiCol_Text), "LO2");
     ImGui::Dummy(ImVec2(tw, 1.1f * u));
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Logic outputs LO n1 (fault of the measurement), LO n2 (held at L)"));
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s\nLO1: %s, LO2: %s", tr("Logic outputs LO n1 (fault of the measurement), LO n2 (held at L)"),
+                          lo1 ? tr("lit") : tr("not lit"), lo2 ? tr("lit") : tr("not lit"));
+    if (picture_only()) return;   // a preview of the machine: the furnaces without the switches of the simulation
     bool la = !f.li[0], lb = !f.li[1];
     if (ImGui::Checkbox("LI a##a", &la)) f.li[0] = !la;
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("Logic input closed = L (open = H, as the cold start expects)"));
@@ -196,15 +234,80 @@ static void draw_furnace(FurnacePlant* pl, Hrk1* panel, int i, float u, float tw
     ImGui::Checkbox(tr("Heater broken"), &f.heater_broken);
 }
 
-// The temperatures of the chambers over the chosen span.
+// The temperature of furnace i k samples ago (k < 0: now).
+static float plot_value(FurnacePlant* pl, size_t i, int k)
+{
+    if (k < 0) return (float)pl->furnaces[i].tch;
+    return pl->hist[i][(pl->hist_pos - 1 - k + FurnacePlant::HIST_LEN) % FurnacePlant::HIST_LEN];
+}
+
+// The numbers of the furnaces at the right ends of their lines (the colours of Pec 4 and Pec 5 are alike for
+// deuteranopes): the same temperatures put their numbers side by side, not over each other. Returns the line under
+// the mouse (its number), else -1.
+static int plot_end_labels(FurnacePlant* pl, ImVec2 p0, ImVec2 p1, float tmax, float u)
+{
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    int n = pl->furnaces.size() < 8 ? (int)pl->furnaces.size() : 8;
+    int order[8];
+    float ys[8];
+    for (int i = 0; i < n; i++) {
+        order[i] = i;
+        float y = p1.y - (p1.y - p0.y) * plot_value(pl, (size_t)i, -1) / tmax;
+        ys[i] = y < p0.y ? p0.y : (y > p1.y ? p1.y : y);
+    }
+    for (int a = 1; a < n; a++)   // by height, the same height by the number (1 left of 2)
+        for (int b = a; b > 0 && (ys[order[b]] < ys[order[b - 1]] ||
+                                  (ys[order[b]] == ys[order[b - 1]] && order[b] > order[b - 1])); b--) {
+            int t = order[b];
+            order[b] = order[b - 1];
+            order[b - 1] = t;
+        }
+    ImVec2 r0[8], r1[8];
+    float h = ImGui::GetTextLineHeight() + 0.1f * u, pad = 0.25f * u;
+    int hot = -1;
+    for (int j = 0; j < n; j++) {
+        int i = order[j];
+        char b[4];
+        snprintf(b, sizeof(b), "%d", i + 1);
+        float tw = ImGui::CalcTextSize(b).x + 2 * pad;
+        float y = ys[i] - h * 0.5f;
+        if (y < p0.y) y = p0.y;
+        if (y + h > p1.y) y = p1.y - h;
+        float x = p1.x - 0.2f * u - tw;
+        for (bool moved = true; moved;) {   // left of every label it would cover
+            moved = false;
+            for (int q = 0; q < j; q++) {
+                int o = order[q];
+                if (x < r1[o].x && x + tw > r0[o].x && y < r1[o].y && y + h > r0[o].y) {
+                    x = r0[o].x - 0.15f * u - tw;
+                    moved = true;
+                }
+            }
+        }
+        r0[i] = ImVec2(x, y);
+        r1[i] = ImVec2(x + tw, y + h);
+        dl->AddRectFilled(r0[i], r1[i], IM_COL32(18, 20, 24, 230), 0.2f * u);
+        dl->AddRect(r0[i], r1[i], k_plot_col[i], 0.2f * u);
+        dl->AddText(ImVec2(x + pad, y + 0.05f * u), k_plot_col[i], b);
+        if (ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(r0[i], r1[i])) hot = i;
+    }
+    return hot;
+}
+
+// The temperatures of the chambers over the chosen span. Under the mouse: the values at that time; a furnace in the
+// legend or its number at the line end under the mouse: its line drawn over the others, thicker.
 static void draw_plot(FurnacePlant* pl, UiState& ui, float u)
 {
     static const int spans[3] = { 600, 3600, 14400 };
     static const char* const names[3] = { "10 min", "1 h", "4 h" };
-    ImGui::TextUnformatted(tr("Temperatures"));
-    for (int s = 0; s < 3; s++) {
-        ImGui::SameLine();
-        ImGui::RadioButton(names[s], &ui.aps5_span, s);
+    static int s_hot = -1;   // the furnace under the mouse in the last frame
+    bool picture = picture_only();   // a preview of the machine: the chart without the controls around it
+    if (!picture) {
+        ImGui::TextUnformatted(tr("Temperatures"));
+        for (int s = 0; s < 3; s++) {
+            ImGui::SameLine();
+            ImGui::RadioButton(names[s], &ui.aps5_span, s);
+        }
     }
     ImDrawList* dl = ImGui::GetWindowDrawList();
     ImVec2 o = ImGui::GetCursorScreenPos();
@@ -213,8 +316,8 @@ static void draw_plot(FurnacePlant* pl, UiState& ui, float u)
     float lm = 3.6f * u, bm = 1.4f * u;
     ImVec2 p0(o.x + lm, o.y + 0.4f * u), p1(o.x + w - 0.4f * u, o.y + h - bm);
     dl->AddRectFilled(p0, p1, IM_COL32(18, 20, 24, 255));
-    int n = spans[ui.aps5_span] / FurnacePlant::HIST_STEP;
-    int have = pl->hist_count < n ? pl->hist_count : n;
+    int samples = spans[ui.aps5_span] / FurnacePlant::HIST_STEP;
+    int have = pl->hist_count < samples ? pl->hist_count : samples;
     float tmax = 200;
     for (size_t i = 0; i < pl->furnaces.size() && i < 8; i++) {
         if (pl->furnaces[i].tch > tmax) tmax = (float)pl->furnaces[i].tch;
@@ -232,41 +335,83 @@ static void draw_plot(FurnacePlant* pl, UiState& ui, float u)
         snprintf(b, sizeof(b), "%.0f", t);
         dl->AddText(ImVec2(o.x + lm - ImGui::CalcTextSize(b).x - 0.3f * u, y - 0.5f * u), txt, b);
     }
-    for (int q = 0; q <= 4; q++) {   // time marks: minutes ago
+    for (int q = 0; q <= 4; q++) {   // time marks: minutes ago ("0 min" = now, the same in every language)
         float x = p0.x + (p1.x - p0.x) * q / 4;
         dl->AddLine(ImVec2(x, p0.y), ImVec2(x, p1.y), grid);
         char b[24];
         int ago = spans[ui.aps5_span] * (4 - q) / 4 / 60;
-        if (q == 4) snprintf(b, sizeof(b), "%s", tr("now"));
-        else snprintf(b, sizeof(b), "-%d min", ago);
+        snprintf(b, sizeof(b), q == 4 ? "%d min" : "-%d min", ago);
         float tx = x - ImGui::CalcTextSize(b).x * (q == 4 ? 1.0f : 0.5f);
         dl->AddText(ImVec2(tx, p1.y + 0.15f * u), txt, b);
     }
+    int n = pl->furnaces.size() < 8 ? (int)pl->furnaces.size() : 8;
+    float span = (float)spans[ui.aps5_span];
     dl->PushClipRect(p0, p1, true);
-    for (size_t i = 0; i < pl->furnaces.size() && i < 8; i++) {
-        ImVec2 prev;
-        bool first = true;
-        for (int k = have - 1; k >= -1; k--) {   // oldest to newest, then the value now
-            float v = k >= 0 ? pl->hist[i][(pl->hist_pos - 1 - k + FurnacePlant::HIST_LEN) % FurnacePlant::HIST_LEN]
-                             : (float)pl->furnaces[i].tch;
-            float x = p1.x - (p1.x - p0.x) * (float)((k + 1) * FurnacePlant::HIST_STEP) / spans[ui.aps5_span];
-            ImVec2 pt(x, p1.y - (p1.y - p0.y) * v / tmax);
-            if (!first) dl->AddLine(prev, pt, k_plot_col[i], 1.6f);
-            prev = pt;
-            first = false;
+    for (int pass = 0; pass < 2; pass++) {   // the line under the mouse last: over the others
+        for (int i = 0; i < n; i++) {
+            if ((i == s_hot) != (pass == 1)) continue;
+            ImVec2 prev;
+            bool first = true;
+            for (int k = have - 1; k >= -1; k--) {   // oldest to newest, then the value now
+                float v = plot_value(pl, (size_t)i, k);
+                float x = p1.x - (p1.x - p0.x) * (float)((k + 1) * FurnacePlant::HIST_STEP) / span;
+                ImVec2 pt(x, p1.y - (p1.y - p0.y) * v / tmax);
+                if (!first) dl->AddLine(prev, pt, k_plot_col[i], i == s_hot ? 3.2f : 1.6f);
+                prev = pt;
+                first = false;
+            }
         }
     }
     dl->PopClipRect();
+    int hot = plot_end_labels(pl, p0, p1, tmax, u);
     ImGui::Dummy(ImVec2(w, h));
-    for (size_t i = 0; i < pl->furnaces.size() && i < 8; i++) {   // legend: the stroke of the line, the name
-        if (i) ImGui::SameLine(0, ImGui::GetFontSize());
+    ImVec2 mp = ImGui::GetIO().MousePos;
+    if (hot < 0 && !picture && ImGui::IsItemHovered() && mp.x >= p0.x && mp.x <= p1.x && mp.y >= p0.y && mp.y <= p1.y) {
+        // the values at the time under the mouse, in the order of the legend
+        float ago = (p1.x - mp.x) / (p1.x - p0.x) * span;   // seconds
+        int k = (int)(ago / FurnacePlant::HIST_STEP + 0.5f) - 1;
+        dl->AddLine(ImVec2(mp.x, p0.y), ImVec2(mp.x, p1.y), IM_COL32(200, 200, 200, 120));
+        if (k < have) {
+            ImGui::BeginTooltip();
+            ImGui::Text("-%.1f min", ago / 60.0f);
+            ImDrawList* tl = ImGui::GetWindowDrawList();
+            for (int i = 0; i < n; i++) {
+                char nb[80];
+                ImVec2 p = ImGui::GetCursorScreenPos();
+                float y = p.y + ImGui::GetTextLineHeight() * 0.5f;
+                legend_stroke(tl, p, y, i, 0.25f * u, u);
+                ImGui::Dummy(ImVec2(1.4f * u, ImGui::GetTextLineHeight()));
+                ImGui::SameLine(0, 0);
+                ImGui::Text("%s: %.0f °C", furnace_legend(pl->furnaces[(size_t)i], i, nb, sizeof(nb)),
+                            plot_value(pl, (size_t)i, k));
+            }
+            ImGui::EndTooltip();
+        }
+    }
+    if (picture) {
+        s_hot = -1;
+        return;
+    }
+    float right = o.x + w;   // the legend wraps at the right edge of the plot (longer names in English)
+    for (int i = 0; i < n; i++) {   // legend: the stroke of the line, the name (with its number when it has its own)
+        char nb[80];
+        const char* name = furnace_legend(pl->furnaces[(size_t)i], i, nb, sizeof(nb));
+        float item = 1.4f * u + ImGui::CalcTextSize(name).x;
+        if (i) {
+            ImGui::SameLine(0, u);
+            if (ImGui::GetCursorScreenPos().x + item > right) ImGui::NewLine();
+        }
+        ImGui::BeginGroup();
         ImVec2 p = ImGui::GetCursorScreenPos();
-        float u = ImGui::GetFontSize(), y = p.y + ImGui::GetTextLineHeight() * 0.5f;
-        dl->AddLine(ImVec2(p.x, y), ImVec2(p.x + 1.2f * u, y), k_plot_col[i], 0.25f * u);
+        float y = p.y + ImGui::GetTextLineHeight() * 0.5f;
+        legend_stroke(dl, p, y, i, (i == s_hot ? 0.4f : 0.25f) * u, u);
         ImGui::Dummy(ImVec2(1.4f * u, ImGui::GetTextLineHeight()));
         ImGui::SameLine(0, 0);
-        ImGui::TextUnformatted(pl->furnaces[i].name.c_str());
+        ImGui::TextUnformatted(name);
+        ImGui::EndGroup();
+        if (ImGui::IsItemHovered()) hot = i;
     }
+    s_hot = hot;
 }
 
 // The emulation back to the speed before the demo.
@@ -377,7 +522,17 @@ void draw_aps5(UiState& ui)
         ImGui::End();
         return;
     }
-    if (panel) {
+    bool picture = picture_only();   // a preview of the machine: the panel, the furnaces and the chart alone
+    ImVec2 pic0 = ImGui::GetCursorScreenPos(), pic1 = pic0;
+    auto grow = [&](ImVec2 mx) {   // the picture over the last item
+        if (mx.x > pic1.x) pic1.x = mx.x;
+        if (mx.y > pic1.y) pic1.y = mx.y;
+    };
+    if (panel && picture) {
+        draw_panel(panel, u);
+        grow(ImGui::GetItemRectMax());
+        ImGui::SameLine();
+    } else if (panel) {
         ImGui::BeginGroup();
         draw_panel(panel, u);
         ImGui::PushItemWidth(5.5f * u);
@@ -426,7 +581,10 @@ void draw_aps5(UiState& ui)
         }
         draw_plot(pl, ui, u);
         ImGui::EndGroup();
+        grow(ImGui::GetItemRectMax());
     }
+    if (picture)   // with a margin: the thermocouples stick out over the furnaces
+        picture_mark(pic0.x - 0.5f * u, pic0.y - 0.5f * u, pic1.x + 0.5f * u, pic1.y + 0.5f * u);
     ImGui::End();
 }
 
@@ -468,7 +626,9 @@ void draw_reset_question(UiState& ui)
     // the highlighted default
     bool yes = ImGui::Button(tr("Yes, reset"));
     ImGui::SameLine();
-    bool no = ImGui::Button(tr("Cancel")) || popup_escape();
+    bool no = ImGui::Button(tr("Cancel"));
+    ImGui::SetItemDefaultFocus();   // the keyboard navigation (Tab, Enter) starts at Cancel
+    no = no || popup_escape();
     if (ui.host->machine_generation() != ui.ask_reset_gen) {   // switched off and on, or another machine: not asked
         yes = false;
         no = true;

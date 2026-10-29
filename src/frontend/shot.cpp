@@ -173,7 +173,7 @@ void shot_copy(UiState& ui, DisplayDevice* d, float px_aspect)
     if (clip_windows(ui))
         ui_notice(ui, true, tr("Screenshot copied to the clipboard."));
     else
-        ui_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ": Windows error " +
+        ui_notice(ui, false, std::string(tr("Cannot copy the screenshot")) + ": " + tr("Windows error") + " " +
                                  std::to_string((unsigned long)GetLastError()));
 #else
     static const char* mimes[] = { "image/png", "image/bmp" };

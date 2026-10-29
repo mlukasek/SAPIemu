@@ -2510,6 +2510,164 @@ Známá omezení:
 - `.sha256` je ověřený jen na malém souboru, zip se nestavěl.
 - Stavy z alf 0.1.0 a 0.2.0 se nenačtou (výše).
 
+## 2026-10-29 – etapa 7 plánu vzhledu: přístupnost a jazyky
+
+Etapu udělal workflow (2 agenti: jazyky, přístupnost; oponentura; opravy nálezů), autor spal a rozhodnutí nechal
+na Claudovi. Chování skutečného SAPI-1 se nemění. Pravidlo pro jazyky: co je natištěné na skutečném panelu nebo
+přístroji a co vypisují emulované programy, zůstává česky jako na skutečném stroji. Překládá se rozhraní PC kolem
+toho, u potisku bublinou nebo legendou vedle. Změny po oponentuře jsou označené „po kontrole“. Co má autor
+rozhodnout a vyzkoušet ručně, je na konci oddílu.
+
+### Jazyky
+
+- **Stav APS-5 ve stavovém řádku:** HRK-1 vrací celé anglické texty („APS-5 key 2, FAULT“) a lišta je překládá přes
+  `tr()` („APS-5 klíč 2, PORUCHA“). Jsou to čtyři pevné texty místo skládání, aby je hlídal test klíčů. MCP
+  (`keyboard_status`) je teď anglicky jako zbytek MCP. Pole a změnu popisuje `docs/mcp.md` u `machine_info`
+  (doplněno po kontrole: nic v repu ho nečte, ale programy přes MCP by mohly).
+- **Pece:** výchozí jména „Pec 1“ až „Pec 8“ jsou potisk provozu, na peci zůstávají česky jako panel APS-5 a texty
+  firmwaru. Legenda grafu a bublina pece patří k rozhraní PC, anglicky tedy „Furnace 1“. Jméno ze sestavy
+  (`furnaces[].name`) se nepřekládá. Legenda se zalamuje u pravého okraje grafu, protože anglická jména jsou delší.
+  Dvě jména jedné pece v anglickém okně (štítek „Pec 1“, legenda „Furnace 1“) jsou záměr, stejně jako u IMS-2:
+  potisk česky, překlad hned vedle v rozhraní (legenda, bublina pece). Náhled APS-5 díky tomu nezávisí na jazyce.
+  Kontrola navrhovala přeložit i štítek, ale pak by štítek nebyl potiskem a náhled by v angličtině ukazoval
+  „Pec 1“ z českého snímku. V legendě a bublině grafu má číslo jen pec s vlastním jménem („3 Kalicí pec“),
+  výchozí ho má ve jméně („Pec 3“, dřív „3  Pec 3“).
+- **Filtry dialogů** (`media.cpp`): anglické klíče, `tr()` při otevření dialogu. SDL čte filtry až do zavření
+  dialogu, proto je pole statické a texty jsou z tabulky (platí stále). „*“ zůstává.
+- **Hlášení mapy:** zůstává jeden způsob jako u ostatních problémů sestavy: jádro dává `en` i `cs`, GUI vybírá
+  `loc()`. Do českého textu dává jádro názvy funkcí přes překladač z GUI (`machine_map_problems(m, cs_what)`
+  s `tr_lang`), takže hlášení zní „RAM-1V registr MAP“ místo „RAM-1V MAP register“. Přibylo 71 českých názvů funkcí
+  karet, platí i v tabulce mapy. Technické zkratky (UART, VRAM, 8255 PC, SRAM A, RTC…) zůstávají.
+- **`loc(en, cs)` s doslovnými texty** v konfigurátoru je převedené na `tr()` (12 míst). `loc()` zůstává jen pro data
+  se dvěma jazyky (katalog karet, problémy sestavy), takže všechny texty GUI hlídá test. Prázdný slot má klíč
+  „(no card)“ (česky dál „(prázdný)“), protože „(empty)“ je „(prázdná)“ u mechaniky.
+- **Název sestavy** v titulku okna OS, v Soubor → Poslední sestavy, v titulku konfigurátoru a v otázce Neuložené
+  změny bere `machine_title()` z rejstříku (`title_en` v angličtině), ale jen když jméno odpovídá souboru.
+  Sestava přejmenovaná v konfigurátoru ukáže své jméno. Titulek okna se mění i při přepnutí jazyka. Sestavy mimo
+  rejstřík ukazují jméno ze `.sapi` (data).
+  - Po kontrole má `title_en` v rejstříku každá sestava, jejíž jméno má česká slova: přibylo 32 anglických titulků
+    (varianty ZPS, CP/M s ECMONem, CP/M J. Bíby, „Libor at home“, „PMD-85 graphics“). Je to jen překlad jména ze
+    `.sapi`, technické části zůstávají. Osm sestav s čistě technickým jménem („ZPS-3 CP/M 48K (MOR48A, RPD-1)“)
+    titulek nepotřebuje. V anglickém výběru sestav je tak česky jen jméno ze `.sapi` pod titulkem.
+  - Cesta z `--machine` se převádí na tvar v datech (`data_relative(data_path())`, „machines/x.sapi“), takže
+    sestavu v rejstříku a v Posledních sestavách najde i zadání se zpětným lomítkem nebo celou cestou.
+- **IMS-2:** potisk přístrojů je česky i v anglickém GUI, jak je na přístroji a v `docs/navod-dps1.md` (OCHRANA,
+  NAPĚTÍ, PROUD, SÍŤ, MĚŘENÍ, „Stabilizovaný zdroj 2 x 30 V / 1 A“). V angličtině má nad textem anglickou bublinu.
+  České GUI bubliny nad potiskem nemá, potisk se čte přímo. Bubliny ovládacích prvků jsou v obou jazycích jako dřív.
+  Výběr zátěže je široký podle nejdelší volby (byl uříznutý) a zmizel překryv PROTECTION a MAINS.
+- **Test `test_i18n_keys`:** čte `src/` jako C++ (komentáře, znakové literály, raw stringy, spojené literály,
+  escape sekvence). Chybějící záznam: doslovný klíč `tr()`, `tr_id()`, `tr_lang()`, `tx()` (Nahlásit chybu)
+  a `begin_menu()` ve `src/frontend` bez českého překladu. Nepoužitý záznam: text, který není literálem nikde
+  v `src/` (klíče chodí i z jádra: názvy funkcí karet, kroky DEMA APS-5). Klíče předávané proměnnou (tabulky
+  v `help.cpp`, texty jádra) na chybějící záznam nekontroluje. Výjimky s důvodem jsou v seznamu v testu (zatím
+  prázdném). Test našel 14 mrtvých záznamů a ty jsou pryč, s nimi i 5 záznamů potisku IMS-2.
+- **Drobnosti:** „chyba Windows“ při kopírování snímku, „kontrolní součet“ v XMODEM.
+- **Záměrně nepřeloženo:**
+  - druhy breakpointů v debuggeru (exec, mem read…), technické;
+  - jména souborů a složek (`kresba_`, `snimky`, `videa`);
+  - chybové texty jádra (`err` z `configure()`, chyba DEMA APS-5 „no "…" on the screen“);
+  - podtitulek ve výběru sestav (jméno ze `.sapi`);
+  - „Jazyk / Language“ v menu Zobrazení, je dvojjazyčné schválně (najde ho i ten, kdo druhému jazyku nerozumí).
+
+### Přístupnost
+
+- **Stav nejen barvou (WCAG 1.4.1), po místech:**
+  - Média, magnetofon DSM-1: rozsvícené tlačítko nese značku režimu (▶ PŘEHRÁT, ● NAHRÁT, ■ STOP), barva zůstává.
+    Značka jen u rozsvíceného tlačítka, takže sama říká, které svítí. ID tlačítek se nemění (`###PLAY`).
+  - Graf APS-5: na konci každé čáry je číslo pece v rámečku její barvy. Stejné teploty dají čísla vedle sebe
+    (1 vlevo od 2), ne přes sebe. Pod myší svislá čára a bublina s teplotami všech pecí v tom čase. Pec v legendě
+    nebo její číslo pod myší kreslí svou čáru navrch a tlustší. Legenda u pece s vlastním jménem přidá číslo.
+    Popisek osy „teď“ je „0 min“ jako ostatní značky („-15 min“), takže nezávisí na jazyce.
+  - Kontrolky nakresleného hardwaru se liší jasem, ne jen odstínem, proto stačí bublina se stavem (svítí, nesvítí)
+    přes `lamp_tooltip()`: APS-5 porucha a napájení (v angličtině i s významem potisku), LO1 a LO2 (do bubliny
+    výstupů), RMP-1 (PON…WPT), plotter AR 1990 a XY 4130, IMS-2 (všechny kontrolky přístrojů i monitoru sběrnice).
+    Topení pece má stav už v bublině pece, kontrolky rámu ARB-1 jen napájení, ty zůstaly.
+  - Konfigurátor: problémy sestavy mají ✖ (chyba) nebo ⚠ (varování), v mapě portů a paměti má sdílený zápis slovo
+    „SDÍLENÝ ZÁPIS“ jako kolize „KOLIZE“.
+  - Stavový řádek už slova a značky má (✖ Chyby: N, ● se změnou sestavy, LED SHIFT/ERR), Log má „error:“ a „warn:“,
+    běžící sestava „(běží)“. Hlášky v červené a žluté jinde jsou celé věty, beze změny.
+- **Rozměry v jednotkách písma:** debugger (pole adres 4,4 řádku, disassembler 21 řádků, odsazení registrů podle
+  „AF' “), paměť, terminál (port TCP a COM, výběr emulace a protokolu podle nejdelší volby `combo_width()`), Média
+  (průběh pásky, obrazy disků 16 řádků). Ostatní čísla v pixelech jsou kreslení hardwaru (tloušťky čar).
+- **Upozornění na blikání:** průvodce `sapi1v_hry` (česky i anglicky) má před dema větu, že dema rychle mění obraz
+  a Bad Apple!! místy bliká. Totéž je ve shrnutí sestavy v okně Vybrat sestavu, v `docs/prvni-kroky.md`
+  a `docs/getting-started.md`. Ostatní dema (FXS4, Y1STDEMO, obrázky) se nezkoumala snímek po snímku, proto obecná
+  věta o demech, ne seznam. Hry (Prince of Persia, BomberNet, Manic Miner) se na blikání nezkoumaly.
+- **README:** anglická věta v úvodu a sekce Přístupnost: rozhraní kreslí Dear ImGui a čtečky obrazovky ho nevidí,
+  textové cesty (Kopírovat text obrazovky, `sapiemu-cli --print-screen`, sériový terminál), klávesnice, stav nejen
+  barvou, velikost písma, blikání. Anglicky ještě v `docs/getting-started.md`.
+- **Náhledy jen na obraz:** v plánu i hodnocení (5.4) jde o náhledy přístrojů, které byly snímky českého okna.
+  Obrazovky z `sapiemu-cli --screenshot` jsou už jen obraz bez rámu, ty zůstaly. Nová volba `--ui-picture`:
+  okno přístroje označí svůj nakreslený hardware (`picture_mark()`) a snímek ho ořízne. APS-5 v tom režimu
+  vynechá ovládání pod panelem, přepínače simulace pod pecemi, nadpis a legendu grafu; ostatní okna jen označí
+  obraz (IMS-2 přístroje s kabely, KZD-1 kazetu, RMP-1 první mechaniku, zapisovače viditelný papír). Přegenerováno
+  všech 7 náhledů přístrojů a prohlédnuté. Zůstal potisk („porucha“, „Pec 1“, „OCHRANA“), je součástí kresby.
+  - Po kontrole: „jednotka 0“ u RMP-1 není potisk, ale text emulátoru (`tr("unit")`), proto ho náhled vynechá.
+    Tlačítka mechaniky mají šířku podle popisku (OFF-LINE bylo uříznuté i v okně), zbytek panelu se dělí rovným dílem.
+  - Zapisovače: náhled je kresba s okrajem 10 mm, nejméně tak široká jako vysoká, oříznutá na viditelný papír.
+    Znaková sada XY 4130 (asi 93 × 58 mm) byla na papíře 230 mm malá a náhled byl z 80 % prázdný. Okno XY 4130 je
+    v náhledu 1000 bodů široké (`WINDOW_SIZE`), takže kresba vyjde těsně pod 480 bodů bez zmenšení. Náhled
+    plotteru AR 1990 je teď těsně kolem rámečku ukázky, Minigraf zůstal stejný (kresba zabírá celou šířku).
+- **Navigace klávesnicí (`NavEnableKeyboard`) zůstává zapnutá:** Tab a šipky v dialozích, Nastavení,
+  konfigurátoru i přístrojích, mezerník a Enter stisknou prvek v rámečku. Okna, kam jdou klávesy SAPI, mají
+  `ImGuiWindowFlags_NoNavInputs` (displeje, celá obrazovka, sériový terminál i jeho text), takže tam ImGui na šipky,
+  mezerník, Enter, Esc ani Alt nereaguje (Alt by jinak přepínal do vrstvy menu). `handle_key` posílá klávesy podle
+  fokusu, ne podle ImGui, takže jim navigace nic nebere. Ověřeno snímky: Tab, šipky a Enter na obrazovce ZPS-1
+  došly do BASICu, okno zůstalo aktivní bez kurzoru navigace; Tab v Nastavení posouvá rámeček; v otázce na reset
+  APS-5 začíná Tab na Zrušit a Tab + Enter nic neresetuje.
+  - **Rámeček až po Tab** (po kontrole): `io.ConfigNavCursorVisibleAuto = false`, rámeček ukáže Tab bez Ctrl a Alt
+    v okně, které navigaci bere (`nav_cursor_frame()` v `app.cpp`), kliknutí myší ho skryje. Pak ho posouvají
+    i šipky. Bez rámečku ImGui mezerníkem ani Enterem nic nestiskne. Důvod: hráč, který klikl do průvodce a hraje
+    šipkami a mezerníkem, by jinak rozsvítil rámeček šipkou a mezerníkem stiskl třeba Napsat do SAPI (BADAPPLE
+    a Enter) nebo odkaz. Dřív se takové klávesy jen zahodily s hláškou „Psaní teď nejde do SAPI“, a tak to zůstává.
+    Stejně se chovají Windows: rámeček fokusu se ukáže až po Tab. Šipka bez rámečku posune neviditelnou pozici
+    navigace a do pohybu myši vypne zvýraznění pod myší, nic víc. Alt v okně s tlačítkem zavřít přepne neviditelně
+    do vrstvy titulku; Tab tam ukáže rámeček na ×, Esc vrstvu vrátí. Ověřeno snímky: Nastavení s Down, Down, Space
+    beze změny a bez rámečku; Tab, Tab rámeček na English; Tab, Down, Space vybere Podle systému.
+  - **Enter s navigací:** když navigace ukazuje rámeček na prvku, patří Enter tomu prvku a `popup_enter()` ustoupí
+    (`nav_cursor_on_item()`), jinak by Enter stiskl dvě tlačítka. Otázky, kde Enter nedělá nic (reset APS-5, Obnovit
+    z originálu, zápis systému RKD-1), a neuložené změny začínají navigaci na Zrušit (`SetItemDefaultFocus`).
+  - Vybrat sestavu: Enter spustí sestavu jen s rámečkem na řádku sestavy (nebo bez rámečku, jako dřív). Na
+    kategorii, tlačítku nebo odkazu patří Enter jim.
+  - Klávesové zkratky mají řádky Tab a šipky, Ctrl+Tab. Sloupec kláves jde po kontrole přes `tr()`: jména kláves
+    zůstávají, slovo „arrows“ je česky „šipky“ (tabulku test klíčů nevidí, klíče jsou v proměnné).
+- **Texty samotného ImGui** (po kontrole) jsou česky přes `ImGui::LocalizeRegisterEntries` při změně jazyka
+  (`imgui_localize()` v `app.cpp`, překlady v `i18n.cpp`, hlídá je test klíčů): seznam oken Ctrl+Tab („(Hlavní
+  menu)“, „(Vyskakovací okno)“, „(Bez názvu)“), bublina a menu odkazu („Otevřít „…““, „Kopírovat odkaz“)
+  a ukotvená okna („Skrýt lištu záložek“…). Texty tabulek (velikost a pořadí sloupců) ne, žádná tabulka je nemá.
+- **Legenda a bublina grafu APS-5** kreslí čáru pece na tmavém štítku barvy grafu (po kontrole): ve světlém vzhledu
+  byla pec 8 (230, 230, 230) skoro neviditelná. Barvy čar se nemění, na tmavém grafu jsou dobře rozlišitelné
+  a pece mají čísla.
+
+### Na rozhodnutí autora
+
+Rozhodl vedoucí workflow za autora, autor to může změnit (doporučení je první):
+
+- **Štítek pece „Pec 1“** zůstává v anglickém okně česky jako potisk, nebo ho přeložit na „Furnace 1“. Pak by ale
+  náhled APS-5 v anglickém výběru sestav ukazoval češtinu, nebo by potřeboval druhý náhled.
+- **MCP `keyboard_status` u APS-5** je anglicky jako zbytek MCP, nebo vrátit češtinu.
+- **Navigace klávesnicí** zůstává zapnutá s rámečkem až po Tab, nebo ji vypnout úplně. Bez ní jdou dialogy
+  a Nastavení jen myší, Enter a Esc v modálních oknech zůstávají.
+
+### Ruční zkouška autora a známá omezení
+
+Snímek skrytého okna tyto věci neukáže:
+
+- Titulek okna Windows s anglickým jménem sestavy (třeba ZPS-2) a jeho změna po přepnutí jazyka.
+- Soubor → Poslední sestavy v angličtině (podmenu snímek v jednom kroku neotevře).
+- Seznam oken Ctrl+Tab česky (je vidět jen při drženém Ctrl).
+- Navigace naživo: sestava Hry a dema s průvodcem, klik do průvodce, šipky a mezerník nic nestisknou (ani Napsat
+  do SAPI); Tab v konfigurátoru; Alt v okně, pak Esc zpět. Nastavení a otázka APS-5 jsou ověřené snímky.
+
+Známá omezení:
+
+- Chybové texty jádra (chyby `configure()` karet, chyba DEMA APS-5, část hlášek načtení stavu) jsou i v českém
+  rozhraní anglicky. Hodnocení UX je odhaduje na velikost M, proto jsou přesunuté do etapy 8 plánu.
+- Čtečky obrazovky rozhraní nevidí (Dear ImGui nemá UI Automation), zbývají textové cesty z README.
+- Hry (Prince of Persia, BomberNet, Manic Miner) a ostatní dema se na blikání snímek po snímku nezkoumaly.
+- Náhled Minigrafu se novým ořezem nezměnil, kresba asi zabírá celý viditelný papír (neověřeno).
+- Testy `release` a překlad ve WSL se nespouštěly, podle plánu jsou před pushem.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`

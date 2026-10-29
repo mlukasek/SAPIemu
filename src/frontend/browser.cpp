@@ -35,6 +35,18 @@ static std::string entry_name(const MachineEntry& e)
     return e.title.empty() ? e.name : e.title;
 }
 
+std::string machine_title(UiState& ui, const std::string& file, const std::string& name)
+{
+    if (ui.machine_index.machines.empty() && !ui.machine_index_tried) {
+        ui.machine_index_tried = true;
+        std::string err;
+        machine_index_load(ui.machine_index, err);
+    }
+    const MachineEntry* e = file.empty() ? nullptr : machine_index_find(ui.machine_index, file);
+    if (e && (name.empty() || name == e->name)) return entry_name(*e);
+    return name.empty() ? file : name;
+}
+
 // ---------------------------------------------------------------- previews
 
 struct Preview {
@@ -118,6 +130,8 @@ static void select_row(UiState& ui, const MachineEntry& e, const std::string& ca
     ui.browser_sel_title = name != entry_name(e) ? name : std::string();
 }
 
+static bool s_nav_on_row = false;   // the cursor of the keyboard navigation is on a machine row (this frame)
+
 // first: the first row the list shows (Enter while the search hides the selected one)
 static void machine_item(UiState& ui, const MachineEntry& e, const std::string& name, const std::string& cat,
                          BrowserRow* first)
@@ -133,6 +147,7 @@ static void machine_item(UiState& ui, const MachineEntry& e, const std::string& 
     label += "###" + e.file + "#" + cat;
     if (run) ImGui::PushStyleColor(ImGuiCol_Text, theme().ok);
     bool clicked = ImGui::Selectable(label.c_str(), sel, ImGuiSelectableFlags_AllowDoubleClick);
+    if (ImGui::IsItemFocused()) s_nav_on_row = true;   // the keyboard navigation is on a machine: Enter starts it
     if (sel) theme_selected_bar();
     if (run) ImGui::PopStyleColor();
     if (clicked) {
@@ -381,8 +396,11 @@ void draw_browser(UiState& ui)
     ImGui::EndChild();
     // Enter = Start while the window has the keyboard; when the search hides the selected machine, the first one
     // the list shows is selected and started. Not Restart: one key would throw away the memory of the running machine
-    // (the button does it with the mouse); at the first start nobody started it yet.
-    if (ui.show_browser && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+    // (the button does it with the mouse); at the first start nobody started it yet. The keyboard navigation on
+    // another item (a category, a button, a link): Enter is that item's.
+    bool nav_elsewhere = nav_cursor_on_item() && !s_nav_on_row;
+    s_nav_on_row = false;
+    if (ui.show_browser && !nav_elsewhere && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
         (ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false))) {
         const MachineEntry* e = machine_index_find(idx, ui.browser_sel);
         if (searching && (!e || !machine_index_matches(*e, filter)) && first.e) {

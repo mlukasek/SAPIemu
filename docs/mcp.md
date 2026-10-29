@@ -52,7 +52,7 @@ Adresy a porty se zadávají jako **hex řetězce** (`"F000"`, `"0xF000"`, `"F00
 
 | Nástroj | Popis |
 |---|---|
-| `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry |
+| `machine_info` | Přehled: sestava, stav, takt, karty ve slotech s jumpery, sériové kanály, registry; `keyboard_status` = stav klávesnice nebo panelu, jak ho ukazuje stavový řádek (ANK-1 `LED SHIFT ERR`, AR 1990 `AR 1990 READY BUFF`, panel HRK-1 APS-5 `APS-5 key 2, FAULT`; HRK-1 je od etapy 7 plánu vzhledu, 2026-10-29, anglicky jako zbytek MCP, dřív `APS-5 klíč 2, PORUCHA`) |
 | `tape_status`, `tape_insert`, `tape_control` | Magnetofon DSM-1: stav, vložení kazety (WAV/MP3 odkudkoli, nebo nová, nebo program `.hex`/`.bin` převedený na kazetu MIKOS či MIKROBASIC: `format`, `name`, `address`, `entry`), tlačítka přehrát / nahrát / stop / převinout / vysunout / uložit / ochrana, `export` do WAV (`path`); vložení a vysunutí se zapíše i do popisu sestavy (jako v okně Média) |
 | `power` | Vypínač: `off` (RAM se ztratí, SRAM s baterií a RAM disky zůstanou), `on` (popis sestavy, jak běžela: vložená média a přepnuté přepínače zůstanou), `cycle` (jako Stroj → Vypnout a zapnout, Ctrl+F12) |
 | `quit` | Ukončí emulátor (`sapiemu-cli --mcp` i GUI): nejdřív stroj vypne (nahrané kazety, kazety KZD-1, SRAM s baterií a RAM disky se uloží), pak program skončí. Odpověď ještě dorazí |

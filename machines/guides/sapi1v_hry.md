@@ -53,6 +53,9 @@ BKP
 
 ## Dema a hudba
 
+Upozornění: dema rychle mění obraz a Bad Apple!! místy rychle bliká. Pokud vám blikání vadí (citlivost na
+světlo, fotosenzitivní epilepsie), dema nespouštějte.
+
 - Bad Apple!!: video z RAM disku s hudbou na YM3812 (3:39). Obraz místy rychle bliká. Klávesa demo ukončí.
 
 ```

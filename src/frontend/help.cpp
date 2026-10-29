@@ -68,7 +68,7 @@ void help_docs_menu(UiState& ui)
 // ---------------------------------------------------------------- keyboard shortcuts
 
 static const struct {
-    const char* keys;
+    const char* keys;   // tr() key too: the names of keys stay, a word ("arrows") is translated
     const char* what;   // tr() key
 } k_shortcuts[] = {
     // the debugging keys as in Visual Studio (F5, F9, F10, F11; decision 2026-10-29)
@@ -89,6 +89,10 @@ static const struct {
     { "Ctrl+Shift+V", "Paste the clipboard on the SAPI keyboard (with the screen focused)" },
     { "Alt+C, Alt+V", "Copy, paste in the serial terminal (also Ctrl+Shift+C, Ctrl+Shift+V there)" },
     { "Enter, Esc", "In a question window: Enter = the highlighted button, Esc = Cancel or Close" },
+    { "Tab, arrows", "In the windows of the emulator (not on the screen of SAPI, not in the terminal): Tab shows the "
+                     "frame on a control and moves it to the next one, the arrows move it too; Space or Enter "
+                     "presses the one in the frame, a click of the mouse hides the frame" },
+    { "Ctrl+Tab", "Switch between the windows" },
 };
 
 void draw_shortcuts(UiState& ui)
@@ -111,7 +115,7 @@ void draw_shortcuts(UiState& ui)
         for (const auto& s : k_shortcuts) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(s.keys);
+            ImGui::TextUnformatted(tr(s.keys));
             ImGui::TableNextColumn();
             ImGui::TextWrapped("%s", tr(s.what));
         }

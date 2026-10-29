@@ -131,6 +131,7 @@ struct UiState {
     std::string browser_sel_cat;   // the category of the row selected ("recent": Recently started): one row lit
     std::string browser_sel_title; // the title of that row when the category has its own (Manic Miner), else empty
     MachineIndex machine_index;
+    bool machine_index_tried = false;  // machine_title read it once (an empty index is not read every frame)
     std::vector<std::string> recent;   // machines started from the window, newest first (settings)
     bool show_settings = false;    // View -> Settings
     bool show_about = false;       // Help -> About SAPIemu
@@ -251,6 +252,16 @@ void ui_notice(UiState& ui, bool ok, const std::string& text);
 // it opens (the key that opened it does not answer it).
 bool popup_enter(void);
 bool popup_escape(void);
+// The keyboard navigation (Tab, arrows; io.ConfigFlags NavEnableKeyboard) shows its cursor on an item of the current
+// window and no text field is being edited: Enter and Space belong to that item (ImGui presses it), not to a default.
+bool nav_cursor_on_item(void);
+// The previews of the machines (sapiemu --ui-snapshot --ui-crop KEY --ui-picture, tools/make_previews.py): a window
+// of an instrument marks its drawn hardware (the panel, the mechanism, the paper) and leaves out the controls of the
+// emulator around it, so that the picture does not depend on the language of the UI. picture_only(): this run makes
+// such a preview; picture_mark(): the rectangle (screen points, with the margin it wants) to add to the picture of
+// this frame.
+bool picture_only(void);
+void picture_mark(float x0, float y0, float x1, float y1);
 // The text of the console display to the clipboard (View -> Copy screen text, Ctrl+Shift+C), told in the status bar.
 void copy_screen_text(UiState& ui);
 // Debug -> Breakpoint on / off (F9, as in Visual Studio): in the debugger at the disassembly row under the mouse, else
@@ -287,6 +298,10 @@ void draw_plotter(UiState& ui);
 // File -> Choose a machine: categories, previews, short texts (docs/vydani/sestavy.md); the guide of a machine
 void browser_open(UiState& ui);
 void draw_browser(UiState& ui);
+// The name of a machine file for the title of the OS window, File -> Recent machines and the configurator: the title
+// of the index in the UI language (title_en in English) when the file is in the index and `name` (its name now, empty
+// = any) is the name in the file (not renamed in the configurator); else `name`, or the file when it is empty.
+std::string machine_title(UiState& ui, const std::string& file, const std::string& name);
 void draw_guide(UiState& ui);
 // Help (frontend/help.cpp): About, Keyboard shortcuts, Report a bug, the user guides of docs/
 void draw_about(UiState& ui);

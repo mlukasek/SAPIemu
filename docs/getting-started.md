@@ -65,7 +65,8 @@ The guide of each machine has the steps. The longer user guides (Help → User g
 
 - **SAPI-1 V: games and demos:** type `3` (CP/M from the RAM disk), then a program name: `BADAPPLE`, `FXS4`
   (music, keys A–Z), `FLAPPY`, `BOMBER`, `FLAPDGD`, `BKP`. `DIR` lists everything. ESC usually returns to CP/M; a
-  program that does not end by itself is stopped by F12.
+  program that does not end by itself is stopped by F12. Warning: Bad Apple!! flashes fast in places; skip the demos
+  if flashing light bothers you.
 - **SAPI-1 V: Prince of Persia:** `3`, then `POP`. An unofficial, non-commercial port shown as a demonstration of
   historic technology.
 - **SAPI-1 V: BomberNet:** `3`, then `BOMBNET`; it can play over the internet only after you choose HOST or JOIN.
@@ -84,6 +85,12 @@ The guide of each machine has the steps. The longer user guides (Help → User g
 - **Ctrl+F5** screenshot, **Alt+Enter** full screen, **Ctrl+F2 / Ctrl+F3** quick save and load of the state.
 - All the keys are in **Help → Keyboard shortcuts**. In the debugger F9 (breakpoint), F10 and F11 work as in
   Visual Studio. F9 is no longer a reset, as it was in the alpha versions.
+- **In the windows of the emulator** (dialogs, Settings, the configurator) Tab shows a frame on a control and moves
+  it to the next one, then the arrows move it too; Space and Enter press the control in the frame, a mouse click
+  hides the frame, Esc closes a dialog. Without the frame the arrows and Space press nothing. In the screen window and
+  the serial terminal these keys belong to SAPI.
+- **Screen readers do not see the user interface:** it is drawn by Dear ImGui, which gives the system no tree of
+  controls. The text of the SAPI screen can be copied (Ctrl+Shift+C) or printed by `sapiemu-cli --print-screen`.
 
 ## Saving
 

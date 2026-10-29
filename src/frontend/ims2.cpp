@@ -64,14 +64,32 @@ static void lamp(ImDrawList* dl, ImVec2 c, float r, bool lit, ImU32 col = K_LED_
     dl->AddCircleFilled(c, r, lit ? col : K_LED_OFF, 16);
     if (lit) dl->AddCircleFilled(c, r * 2.0f, (col & 0x00FFFFFF) | 0x30000000, 16);
     dl->AddCircle(c, r, IM_COL32(20, 20, 20, 255), 16, 1.0f);
+    lamp_tooltip(c, r * 1.5f, nullptr, lit);   // its lettering has its own tooltip; this one tells the state
 }
 
-static void text_center(ImDrawList* dl, ImVec2 c, ImU32 col, const char* s, float scale = 1.0f)
+// The lettering stays as printed on the instruments (Czech, docs/navod-dps1.md); the English UI explains it in a
+// tooltip over the text (`en`, English only: the Czech UI reads the lettering itself).
+static void lettering_tip(ImVec2 p0, ImVec2 p1, const char* en)
+{
+    if (en && i18n_language() == LANG_EN && ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(p0, p1))
+        ImGui::SetTooltip("%s", en);
+}
+
+static void lettering(ImDrawList* dl, ImVec2 p, ImU32 col, const char* text, const char* en)
+{
+    panel_text(dl, p, col, text);
+    ImVec2 sz = panel_text_size(text);
+    lettering_tip(p, ImVec2(p.x + sz.x, p.y + sz.y), en);
+}
+
+static void text_center(ImDrawList* dl, ImVec2 c, ImU32 col, const char* s, float scale = 1.0f, const char* en = nullptr)
 {
     ImFont* f = panel_font();
     float fs = ImGui::GetFontSize() * scale;
     ImVec2 sz = f->CalcTextSizeA(fs, FLT_MAX, 0.0f, s);
-    dl->AddText(f, fs, ImVec2(c.x - sz.x * 0.5f, c.y - sz.y * 0.5f), col, s);
+    ImVec2 p(c.x - sz.x * 0.5f, c.y - sz.y * 0.5f);
+    dl->AddText(f, fs, p, col, s);
+    lettering_tip(p, ImVec2(p.x + sz.x, p.y + sz.y), en);
 }
 
 // a push button of the panel; true when clicked
@@ -216,29 +234,32 @@ static M1tTerms draw_m1t330(Ims2Bench* b, uint64_t now, ImVec2 o, float w)
     };
     float x = f0.x + fw * 0.05f;
     // SIT
-    panel_text(dl, ImVec2(x + bw * 0.2f, by0 - u * 1.9f), K_LABEL, "SÍŤ");
+    lettering(dl, ImVec2(x + bw * 0.2f, by0 - u * 1.9f), K_LABEL, "SÍŤ", "SÍŤ: the mains switch");
     panel_text(dl, ImVec2(x, by0 - u * 1.05f), K_LABEL, "0\xe2\x96\xa1 I\xe2\x96\xa0");
     if (panel_button("##m1t_power", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Mains switch"))) b->set_power_m1t(!v.power);
     x += bw * 1.35f;
-    panel_text(dl, ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "AUTO");
+    lettering(dl, ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "AUTO", "AUTO: automatic range (R4)");
     lamp(dl, ImVec2(x + bw * 0.5f, by0 - u * 0.55f), u * 0.22f, v.power && v.autorange);
     if (panel_button("##m1t_auto", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Autorange (R4); local only"))) v.key_auto(now);
     x += bw * 1.35f;
-    panel_text(dl, ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "FILTR");
+    lettering(dl, ImVec2(x + bw * 0.12f, by0 - u * 1.9f), K_LABEL, "FILTR",
+              "FILTR: the digital filter (D1), it measures four times longer with less noise");
     lamp(dl, ImVec2(x + bw * 0.5f, by0 - u * 0.55f), u * 0.22f, v.power && v.filter);
     if (panel_button("##m1t_filter", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Digital filter (D1); local only")))
         v.key_filter(now);
     x += bw * 1.35f;
-    panel_text(dl, ImVec2(x + bw * 0.8f, by0 - u * 1.9f), K_LABEL, "START");
-    panel_text(dl, ImVec2(x + bw * 0.1f, by0 - u * 1.05f), K_LABEL, "REP");
-    panel_text(dl, ImVec2(x + bw * 1.6f, by0 - u * 1.05f), K_LABEL, "1x");
+    const char* start_en = "START REP / 1x: measure again and again / once";
+    lettering(dl, ImVec2(x + bw * 0.8f, by0 - u * 1.9f), K_LABEL, "START", start_en);
+    lettering(dl, ImVec2(x + bw * 0.1f, by0 - u * 1.05f), K_LABEL, "REP", start_en);
+    lettering(dl, ImVec2(x + bw * 1.6f, by0 - u * 1.05f), K_LABEL, "1x", start_en);
     lamp(dl, ImVec2(x + bw * 1.17f, by0 - u * 0.55f), u * 0.22f, v.power && v.repeat && !v.remote);
     if (panel_button("##m1t_rep", ImVec2(x, by0), ImVec2(x + bw, by1), tr("Measure again and again; local only")))
         v.key_rep(now);
     if (panel_button("##m1t_one", ImVec2(x + bw * 1.35f, by0), ImVec2(x + bw * 2.35f, by1), tr("One measurement; local only")))
         v.key_single(now);
     x += bw * 2.7f;
-    panel_text(dl, ImVec2(x + bw * 0.02f, by0 - u * 1.9f), K_LABEL, "CHYBA");
+    lettering(dl, ImVec2(x + bw * 0.02f, by0 - u * 1.9f), K_LABEL, "CHYBA",
+              "CHYBA (error): the display shows the error of the value in %");
     if (panel_button("##m1t_err", ImVec2(x, by0), ImVec2(x + bw, by1), tr("The display shows the error of the value in %")))
         v.key_error();
     // the terminals
@@ -315,7 +336,7 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
     float fw = f1.x - f0.x, fh = f1.y - f0.y;
     text_center(dl, ImVec2(f0.x + fw * 0.5f, f0.y + u * 0.8f), IM_COL32(20, 20, 20, 255), "TESLA  BS 525");
     text_center(dl, ImVec2(f0.x + fw * 0.5f, f0.y + u * 1.8f), IM_COL32(60, 60, 60, 255),
-                tr("Stabilized power supply 2 x 30 V / 1 A"), 0.8f);
+                "Stabilizovaný zdroj 2 x 30 V / 1 A", 0.8f, "Stabilized power supply 2 x 30 V / 1 A");
     BsTerms t;
     for (int k = 0; k < 2; k++) {
         Bs525Output& out = bs.out[k];
@@ -325,7 +346,8 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
         meter(dl, ImVec2(x0 + fw * 0.03f, f0.y + fh * 0.22f), ImVec2(x0 + fw * 0.25f, f0.y + fh * 0.56f), out, bs.power);
         // the switch "Mereni"
         ImVec2 s0(x0 + fw * 0.29f, f0.y + fh * 0.26f), s1(x0 + fw * 0.38f, f0.y + fh * 0.36f);
-        panel_text(dl, ImVec2(s0.x, s0.y - u * 1.0f), IM_COL32(20, 20, 20, 255), "MĚŘENÍ");
+        lettering(dl, ImVec2(s0.x, s0.y - u * 1.0f), IM_COL32(20, 20, 20, 255), "MĚŘENÍ",
+                  "MĚŘENÍ (meter): the meter shows the voltage (V) or the current (A)");
         ImGui::SetCursorScreenPos(s0);
         if (ImGui::InvisibleButton("##meas", ImVec2(s1.x - s0.x, s1.y - s0.y))) out.meter_a = !out.meter_a;
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tr("The meter shows the voltage (V) or the current (A)."));
@@ -337,11 +359,14 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
         // the protection lamp
         ImVec2 lc(x0 + fw * 0.335f, f0.y + fh * 0.52f);
         lamp(dl, lc, u * 0.28f, bs.power && out.limiting);
-        panel_text(dl, ImVec2(lc.x - u * 1.9f, lc.y + u * 0.35f), IM_COL32(20, 20, 20, 255), tr("PROTECTION"));
+        lettering(dl, ImVec2(lc.x - u * 1.9f, lc.y + u * 0.35f), IM_COL32(20, 20, 20, 255), "OCHRANA",
+                  "OCHRANA (protection): lit while the output limits the current");
         // the knobs
         ImVec2 ku(x0 + fw * 0.08f, f0.y + fh * 0.83f), ki(x0 + fw * 0.22f, f0.y + fh * 0.83f);
-        text_center(dl, ImVec2(ku.x, ku.y - u * 1.75f), IM_COL32(20, 20, 20, 255), tr("VOLTAGE"), 0.8f);
-        text_center(dl, ImVec2(ki.x, ki.y - u * 1.75f), IM_COL32(20, 20, 20, 255), tr("CURRENT"), 0.8f);
+        text_center(dl, ImVec2(ku.x, ku.y - u * 1.75f), IM_COL32(20, 20, 20, 255), "NAPĚTÍ", 0.8f,
+                    "NAPĚTÍ: the output voltage, 0-30 V");
+        text_center(dl, ImVec2(ki.x, ki.y - u * 1.75f), IM_COL32(20, 20, 20, 255), "PROUD", 0.8f,
+                    "PROUD: the current limit, 0.05-1.1 A");
         if (knob("##u", ku, u * 0.95f, &out.u_set, 0, 30, 0.02, "%.3f V", tr("Output voltage"))) *changed = true;
         if (knob("##i", ki, u * 0.95f, &out.i_lim, 0.05, 1.1, 0.002, "%.3f A", tr("Current limit"))) *changed = true;
         // the terminals
@@ -353,7 +378,8 @@ static BsTerms draw_bs525(Ims2Bench* b, ImVec2 o, float w, bool* changed)
     }
     // the mains switch with the lamp E40
     ImVec2 m0(f0.x + fw * 0.465f, f0.y + fh * 0.70f), m1(f0.x + fw * 0.535f, f0.y + fh * 0.84f);
-    text_center(dl, ImVec2((m0.x + m1.x) * 0.5f, m0.y - u * 1.6f), IM_COL32(20, 20, 20, 255), tr("MAINS"), 0.85f);
+    text_center(dl, ImVec2((m0.x + m1.x) * 0.5f, m0.y - u * 1.6f), IM_COL32(20, 20, 20, 255), "SÍŤ", 0.85f,
+                "SÍŤ: the mains switch of both outputs");
     lamp(dl, ImVec2((m0.x + m1.x) * 0.5f, m0.y - u * 0.6f), u * 0.25f, bs.power, IM_COL32(255, 170, 40, 255));
     if (panel_button("##bs_power", m0, m1, tr("Mains switch"))) {
         bs.power = !bs.power;
@@ -488,7 +514,7 @@ void draw_ims2(UiState& ui)
     draw_monitor(ui, b, card, u);
     ImGui::Separator();
     float w = ImGui::GetContentRegionAvail().x;
-    ImVec2 o = ImGui::GetCursorScreenPos();
+    ImVec2 o = ImGui::GetCursorScreenPos(), pic0 = o;
     M1tTerms vt = draw_m1t330(b, now, o, w);
     ImGui::Dummy(ImVec2(w, u * 2.5f));   // room for the wires
     o = ImGui::GetCursorScreenPos();
@@ -505,6 +531,12 @@ void draw_ims2(UiState& ui)
         };
         wire(vt.h, st.plus[k], IM_COL32(200, 40, 30, 255));
         wire(vt.l, st.minus[k], IM_COL32(40, 40, 40, 255));
+    }
+    // a preview of the machine: the voltmeter and the supply with the wires, without the bus monitor and the loads
+    if (picture_only()) {   // a margin smaller than the spacing: not the separator above, not the radio buttons below
+        float mg = 0.25f * u;
+        picture_mark(pic0.x - mg, pic0.y - mg, pic0.x + w + mg,
+                     ImGui::GetCursorScreenPos().y - ImGui::GetStyle().ItemSpacing.y + mg);
     }
     // the bench: which output feeds the voltmeter, the loads
     ImGui::AlignTextToFramePadding();
@@ -525,7 +557,10 @@ void draw_ims2(UiState& ui)
         double r = BS525_LOADS[o2.load];
         if (r > 0) snprintf(cur, sizeof cur, r >= 1000 ? "%.0f k\xce\xa9" : "%.0f \xce\xa9", r >= 1000 ? r / 1000 : r);
         else snprintf(cur, sizeof cur, "%s", tr("none (only the voltmeter)"));
-        ImGui::SetNextItemWidth(12 * u);
+        // as wide as its longest choice in the UI language (none... is the longest), with the arrow
+        float cw = ImGui::CalcTextSize(tr("none (only the voltmeter)")).x + ImGui::GetStyle().FramePadding.x * 2 +
+                   ImGui::GetFrameHeight();
+        ImGui::SetNextItemWidth(cw > 8 * u ? cw : 8 * u);
         if (ImGui::BeginCombo("##load", cur)) {
             for (int i = 0; i < BS525_LOAD_COUNT; i++) {
                 char s[32];

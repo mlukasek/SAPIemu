@@ -148,7 +148,10 @@ přerušení jsou RST na 14C9h. Obsluha čte P2-IN, bity 4–6 negované, a úlo
   - výpadek sítě zadané délky, baterie, okolí, teplota svorkovnice;
   - osm pecí: komora žhne podle teploty, spirály podle teploty tělesa, lampa topení (kontakt DRV-1A), LO1/LO2,
     přepínače LI a/b, přerušený termočlánek, vadné topení;
-  - graf teplot za 10 min, 1 h nebo 4 h (ukládá se i ve stavu);
+  - graf teplot za 10 min, 1 h nebo 4 h (ukládá se i ve stavu): na konci čáry číslo pece, pod myší bublina
+    s teplotami všech pecí, čára pece pod myší (v legendě nebo u čísla) je tlustší; kontrolky řeknou stav v bublině;
+  - štítky „Pec 1“ až „Pec 8“ na pecích jsou potisk provozu a zůstávají česky i v anglickém rozhraní, legenda
+    a bublina tam píšou „Furnace 1“; jméno ze sestavy (`furnaces[].name`) zůstává, jak je;
   - tlačítko **DEMO** (`src/plant/aps5_demo.*`): automatická obsluha, která na panelu odťuká ukázku
     z `docs/aps5-ukazka.md`. Po každé klávese čeká na výzvu firmwaru (do paměti nesahá), mezitím a 25 minut
     nahřívání běží emulace naplno. Prázdný program 1 při výmazu hlásí CHYBA PARAMETRU, přiřazený program

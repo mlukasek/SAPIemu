@@ -56,6 +56,8 @@ static void print_help(void)
            "                     --ui-browser: Choose a machine, --ui-guide: the guide of the machine,\n"
            "                     --ui-about, --ui-settings, --ui-shortcuts: About, Settings, Keyboard shortcuts,\n"
            "                     --ui-crop KEY: only the window with the id ###KEY (Media, Minigraf...),\n"
+           "                     --ui-picture: with --ui-crop only the drawn hardware in it (the panel, the mechanism,\n"
+           "                     the paper) without the controls around it (previews of the machines),\n"
            "                     --ui-terminal: the serial terminal, --ui-term-text TEXT: text in it (\\n = new line),\n"
            "                     --ui-term-sel L0,C0-L1,C1: a selection in it (line indexes, cell boundaries),\n"
            "                     --ui-drag FROM:TO[:drop]: drag a card in the configurator (and drop it),\n"
@@ -271,6 +273,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-key" && i + 1 < argc) snap.keys.push_back(argv[++i]);
         else if (a == "--ui-mouse" && i + 1 < argc) sscanf(argv[++i].c_str(), "%f,%f", &snap.mouse_x, &snap.mouse_y);
         else if (a == "--ui-crop" && i + 1 < argc) snap.crop = argv[++i];
+        else if (a == "--ui-picture") snap.picture = true;
         else if (a == "--ui-ims2") snap.ims2 = true;
         else if (a == "--ui-aps5-demo") snap.aps5_demo = true;
         else if (a == "--ui-drag" && i + 1 < argc) {

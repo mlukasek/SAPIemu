@@ -39,9 +39,14 @@ struct MachineMap {
 };
 
 void machine_map_build(const nlohmann::json& cfg, MachineMap& out);
-// Conflicts of a map as configuration problems (read conflict = error).
-std::vector<CfgProblem> machine_map_problems(const MachineMap& m);
+// A function name of the map in another language ("BOOT off" -> "vypnutí BOOT"): the frontend gives its table
+// (tr_lang), nullptr = the names as they are (English).
+typedef const char* (*MapWhatText)(const char* what);
+// Conflicts of a map as configuration problems (read conflict = error); cs_what translates the function names in
+// the Czech texts.
+std::vector<CfgProblem> machine_map_problems(const MachineMap& m, MapWhatText cs_what = nullptr);
 // Layout problems and map conflicts together.
 std::vector<CfgProblem> machine_all_problems(const nlohmann::json& cfg);
-// Readable text of the users of a range ("DMR-1 #10 UART, ...").
-std::string map_range_users(const MachineMap& m, const MapRange& r);
+// Readable text of the users of a range ("DMR-1 #10 UART, ..."), the function names through `what` (nullptr = as
+// they are).
+std::string map_range_users(const MachineMap& m, const MapRange& r, MapWhatText what = nullptr);

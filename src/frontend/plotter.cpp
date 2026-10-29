@@ -89,6 +89,29 @@ static void draw_sheet(Plotter* g)
     dl->AddRect(ImVec2(pen.x - 4 * k, pen.y - 4 * k), ImVec2(pen.x + 4 * k, pen.y + 4 * k), IM_COL32(60, 62, 70, 230), 1.5f, 0, 2.0f);
     dl->AddCircleFilled(pen, 1.6f * k, g->pen_down() ? IM_COL32(200, 40, 40, 255) : IM_COL32(120, 120, 128, 220));
     dl->PopClipRect();
+    if (picture_only()) {   // a preview of the machine: the table with the paper as far as it is in sight, cut down
+        // to the drawing with a margin of 10 mm, at least as wide as high (the character set of the XY 4130 test is
+        // small on its sheet: the preview was mostly empty paper)
+        ImVec2 wp = ImGui::GetWindowPos();
+        float ax = ox, bx = ox + mw * k;
+        float ay = oy > wp.y ? oy : wp.y, by = oy + mh * k < wp.y + vh ? oy + mh * k : wp.y + vh;
+        int32_t ex0, ey0, ex1, ey1;
+        if (g->extent(ex0, ey0, ex1, ey1)) {
+            ImVec2 d0 = P(ex0, ey1), d1 = P(ex1, ey0);   // the top left and the bottom right of the drawing
+            float m = 10 * k;
+            float x0 = d0.x - m, x1 = d1.x + m;
+            if (d0.y - m > ay) ay = d0.y - m;
+            if (d1.y + m < by) by = d1.y + m;
+            if (x1 - x0 < by - ay) {
+                float c = (x0 + x1) * 0.5f;
+                x0 = c - (by - ay) * 0.5f;
+                x1 = c + (by - ay) * 0.5f;
+            }
+            if (x0 > ax) ax = x0;
+            if (x1 < bx) bx = x1;
+        }
+        picture_mark(ax, ay, bx, by);
+    }
     ImGui::Dummy(ImVec2(vw, ch > vh ? ch : vh - 1.0f));
     static uint64_t s_steps = ~0ull;   // the pen moved: keep it in sight
     if (g->steps != s_steps) {
@@ -121,6 +144,7 @@ static void ar_lamp(const char* name, bool on, ImU32 col)
     ImVec2 c(p.x + 0.45f * u, p.y + 0.55f * u);
     dl->AddCircleFilled(c, 0.38f * u, on ? col : IM_COL32(70, 70, 70, 255), 16);
     dl->AddCircle(c, 0.38f * u, IM_COL32(30, 30, 30, 255), 16, 1.0f);
+    lamp_tooltip(c, 0.5f * u, name, on);
     ImGui::Dummy(ImVec2(1.0f * u, 1.1f * u));
     ImGui::SameLine(0, 0.2f * u);
     ImGui::TextUnformatted(name);

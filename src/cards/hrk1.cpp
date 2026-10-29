@@ -155,11 +155,13 @@ bool Hrk1::host_key(int key, int)
     return false;
 }
 
+// English, whole texts: the status bar translates them with tr() (frontend/i18n.cpp), MCP gives them as they are.
 std::string Hrk1::status() const
 {
-    char b[64];
-    snprintf(b, sizeof(b), "APS-5 klíč %d%s", lock, wd_armed && now() < wd_end ? "" : ", PORUCHA");
-    return b;
+    static const char* const k_text[2][2] = { { "APS-5 key 1", "APS-5 key 1, FAULT" },
+                                              { "APS-5 key 2", "APS-5 key 2, FAULT" } };
+    bool fault = !(wd_armed && now() < wd_end);   // the LED "porucha"
+    return k_text[lock == 2 ? 1 : 0][fault ? 1 : 0];
 }
 
 void Hrk1::state(StateIO& io)

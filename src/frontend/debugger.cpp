@@ -22,10 +22,16 @@ static bool parse_hex16(const char* s, uint16_t& out)
     return true;
 }
 
+// A field for a 16-bit address in hex (FFFF and room for the cursor), in units of the font: it grows with the text.
+static float hex_field_width(void)
+{
+    return 4.4f * ImGui::GetFontSize();
+}
+
 static void reg_edit(Machine* m, const char* name, uint16_t& value, bool editable, bool& changed)
 {
     ImGui::TextUnformatted(name);
-    ImGui::SameLine(40);
+    ImGui::SameLine(ImGui::CalcTextSize("AF' ").x + ImGui::GetStyle().ItemSpacing.x);   // past the longest name
     ImGui::SetNextItemWidth(ImGui::CalcTextSize("FFFFFF").x);
     ImGuiInputTextFlags fl = ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue;
     if (!editable) fl |= ImGuiInputTextFlags_ReadOnly;
@@ -96,7 +102,7 @@ static void draw_disasm(UiState& ui, Machine* m)
     m->cpu->get_regs(r);
     ImGui::Checkbox(tr("Follow PC"), &ui.disasm_follow);
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(70);
+    ImGui::SetNextItemWidth(hex_field_width());
     if (ImGui::InputText("##dgoto", ui.disasm_goto, sizeof(ui.disasm_goto),
                          ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
         if (parse_hex16(ui.disasm_goto, ui.disasm_addr)) ui.disasm_follow = false;
@@ -115,7 +121,7 @@ static void draw_disasm(UiState& ui, Machine* m)
         if (!visible) ui.disasm_addr = r.pc;
     }
 
-    ImGui::BeginChild("disasm", ImVec2(0, 340), ImGuiChildFlags_Borders);
+    ImGui::BeginChild("disasm", ImVec2(0, 21.0f * ImGui::GetFontSize()), ImGuiChildFlags_Borders);
     if (ui.mono) ImGui::PushFont(ui.mono, 0.0f);
     uint16_t a = ui.disasm_addr;
     for (int i = 0; i < 24; i++) {
@@ -147,10 +153,10 @@ static void draw_disasm(UiState& ui, Machine* m)
 static void draw_breakpoints(UiState& ui, Machine* m)
 {
     static const char* const kinds[] = { "exec", "mem read", "mem write", "IN", "OUT" };
-    ImGui::SetNextItemWidth(70);
+    ImGui::SetNextItemWidth(hex_field_width());
     ImGui::InputText("##bpaddr", ui.bp_input, sizeof(ui.bp_input), ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(110);
+    ImGui::SetNextItemWidth(combo_width(kinds, 5));
     ImGui::Combo("##bpkind", &ui.bp_kind, kinds, 5);
     ImGui::SameLine();
     uint16_t addr;
@@ -239,17 +245,17 @@ void draw_memory(UiState& ui)
     }
     ImGui::TextUnformatted(tr("Go to"));
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(70);
+    ImGui::SetNextItemWidth(hex_field_width());
     bool jump = ImGui::InputText("##mgoto", ui.mem_goto, sizeof(ui.mem_goto),
                                  ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue);
     if (jump) parse_hex16(ui.mem_goto, ui.mem_addr);
     ImGui::SameLine();
     ImGui::TextUnformatted(tr("Write"));
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(70);
+    ImGui::SetNextItemWidth(hex_field_width());
     ImGui::InputText("##meaddr", ui.mem_edit_addr, sizeof(ui.mem_edit_addr), ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(200);
+    ImGui::SetNextItemWidth(12.5f * ImGui::GetFontSize());
     ImGui::InputTextWithHint("##medata", "3E 41 ...", ui.mem_edit_data, sizeof(ui.mem_edit_data));
     ImGui::SameLine();
     uint16_t wa;

@@ -85,6 +85,10 @@ Zdroje:
            "input": "I" }   // input: výstup BS 525 na svorkách H, L voltmetru (I, II, none)
 ```
 
+Okno Měřicí pracoviště IMS-2 kreslí potisk přístrojů česky i v anglickém rozhraní, jak je na přístroji (OCHRANA,
+NAPĚTÍ, PROUD, SÍŤ, MĚŘENÍ, „Stabilizovaný zdroj 2 x 30 V / 1 A“). V anglickém rozhraní má nad potiskem anglickou
+bublinu, kontrolky v obou jazycích bublinu se stavem (svítí, nesvítí).
+
 ### Voltmetr Metra M1T 330
 
 - Stejnosměrný voltmetr (asi 1982), převodník s dvojí integrací přes půlperiodu sítě (10 ms), rozsahy 300 mV, 3 V,

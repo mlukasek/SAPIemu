@@ -45,7 +45,8 @@ kopie, baterie) zůstane netknuté; výstupy a snímky jsou tamtéž. Používá
 `--debug` debug. Nová sestava potřebuje svůj scénář v tabulce `MACHINES`, jinak ji nástroj ohlásí.
 
 Dotčené testy podle oblasti: deska nebo sestava → testy, které ji načítají (`grep machines/… tests/*.cpp`); diskové
-řadiče → `fdc_ecmon|floppy_imd|sapi_sys|drive_letters|rpd1|zps3|zps4`; GUI texty → `i18n`; MCP → `mcp`; stav → `state`.
+řadiče → `fdc_ecmon|floppy_imd|sapi_sys|drive_letters|rpd1|zps3|zps4`; GUI texty → `i18n` (`test_i18n`
+a `test_i18n_keys`, ten i po přidání nebo smazání `tr()` kdekoli v `src/frontend`); MCP → `mcp`; stav → `state`.
 
 Testy smějí běžet souběžně: každý zapisuje jen do vlastních souborů ve `work/test*` (složky vytvoří `test_init()`),
 pracovní kopie médií ve `work/` jen čte. Pracovní kopie vzniká pod dočasným jménem a přejmenuje se, takže
@@ -74,7 +75,32 @@ sestava (spustí se bez
 v `src/cards/catalog.cpp` (anglicky i česky). Okna mají ID nezávislé na jazyku (`tr_id()`, „Média###Media“), aby si
 po přepnutí držela polohu. Nepřekládají se: názvy a popisy sestav (`.sapi`), hlášky emulovaných programů, popisky
 čelního panelu (potisk štítků modernizované skříně Libora Lasoty, podle které se panely kreslí; původní Tesla SAPI-1
-měl holé karty za krycím panelem), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce.
+měl holé karty za krycím panelem), MCP a `sapiemu-cli`. Test `test_i18n` hlídá i dvojí klíč v tabulce,
+`test_i18n_keys` čte `src/` a hledá klíče `tr()` bez českého záznamu a záznamy, které nic nepoužívá (výjimky
+s důvodem jsou v testu).
+- **Potisk přístrojů** se také nepřekládá (štítky pecí „Pec 1“ APS-5, OCHRANA, NAPĚTÍ… IMS-2). V anglickém rozhraní
+  má překlad vedle: legenda grafu a bublina pece („Furnace 1“), bublina nad potiskem IMS-2. Jméno pece ze sestavy
+  (`furnaces[].name`) zůstává, jak je napsané.
+- **Jméno sestavy** v titulku okna, v Soubor → Poslední sestavy, v konfigurátoru a v otázce Neuložené změny bere
+  `machine_title()` z rejstříku `machines/_vyber.json` (`title_en` v angličtině), jen když jméno odpovídá souboru.
+  Sestava mimo rejstřík nebo přejmenovaná v konfigurátoru ukáže jméno ze `.sapi`.
+- **Texty samotného ImGui** (seznam oken Ctrl+Tab, bublina a menu odkazu, ukotvená okna) registruje
+  `imgui_localize()` v `app.cpp` při každé změně jazyka, překlady jsou v `i18n.cpp`.
+- **`loc(en, cs)`** jen pro data se dvěma jazyky (katalog karet, problémy sestavy). Hlášení mapy portů a paměti dává
+  jádro v obou jazycích, české názvy funkcí karet bere přes překladač z GUI (`machine_map_problems(m, cs_what)`).
+
+**Přístupnost** (od 2026-10-29, etapa 7 plánu vzhledu; důvody v `docs/rozhodnuti.md`, uživatelský přehled v README):
+- **Navigace klávesnicí ImGui** (`NavEnableKeyboard`) je zapnutá s `io.ConfigNavCursorVisibleAuto = false`: rámeček
+  ukáže až Tab (`nav_cursor_frame()` v `app.cpp`), kliknutí myší ho skryje, bez rámečku mezerník ani Enter nic
+  nestisknou. Okna s klávesami SAPI (displeje, celá obrazovka, sériový terminál i jeho text) mají
+  `ImGuiWindowFlags_NoNavInputs`, `handle_key` posílá klávesy podle fokusu. S rámečkem na prvku patří Enter jemu
+  a `popup_enter()` ustoupí (`nav_cursor_on_item()`).
+- **Stav nejen barvou:** kontrolky nakresleného hardwaru mají bublinu se stavem (`lamp_tooltip()`), rozsvícené
+  tlačítko magnetofonu značku režimu, graf APS-5 čísla pecí, problémy sestavy ✖ a ⚠. Nová okna to mají dodržet.
+- **Rozměry** oken a polí v jednotkách písma (výšky řádku, `combo_width()` podle nejdelší volby), pixely jen
+  v kresbách hardwaru.
+- **Náhled přístroje:** okno označí nakreslený hardware `picture_mark()`, `--ui-picture` s `--ui-crop` ořízne snímek
+  jen na něj (`docs/sestavy.md`).
 
 **Vzhled GUI** (od 2026-10-28, plán `docs/vydani/plan-vzhled.md`): Windows 11, světlý i tmavý, jako data
 v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled je dvojice palet, rozměry a řádek

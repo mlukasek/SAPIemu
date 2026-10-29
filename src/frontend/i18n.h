@@ -18,3 +18,4 @@ const char* tr_lang(const char* key, UiLanguage lang);
 // change with the language.
 const char* tr_id(const char* key);
 const char* i18n_duplicate_key(void);   // a key twice in the table (test), else nullptr
+const char* i18n_key_at(int i);         // the i-th key of the table (test), nullptr past the end

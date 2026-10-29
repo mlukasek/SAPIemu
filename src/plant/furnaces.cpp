@@ -31,6 +31,11 @@ static const FurnaceDefault k_defaults[8] = {
     { "Pec 8", TC_B, 6000, 1700, 30, 90 },
 };
 
+const char* FurnacePlant::default_name(int i)
+{
+    return i >= 0 && i < 8 ? k_defaults[i].name : "";
+}
+
 static bool get_num(const json& j, const char* key, double& out, double def, double lo, double hi, std::string& err)
 {
     out = def;

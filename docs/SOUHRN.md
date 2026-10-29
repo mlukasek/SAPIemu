@@ -41,10 +41,24 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     před přepnutím sestavy, stav, který nesedí v kartách, vrátí běžící sestavu (`StateBack`). Pro testery anglické
     `docs/getting-started.md` (v zipu `GETTING-STARTED.md`), text `docs/vydani/beta-testeri.md`, MCP pryč z úvodu
     README, `package.py` píše `.sha256` až po kontrolách. Snímky GUI nově `--ui-report`, `--ui-debugger`,
-    `--ui-menu`, `--ui-key`, `--ui-mouse`, `--ui-exit`. **Dál:** otázky na autora (jméno verze bety, kam testeři
-    hlásí, F9), `git add` nových `docs/getting-started.md` a `docs/vydani/beta-testeri.md`, beta zip
-    (`package.py --public`) až na Martinův pokyn, checkpoint C, ruční zkoušky autora (plán, etapy 4–6), pak etapa 7
-    (přístupnost a jazyky).
+    `--ui-menu`, `--ui-key`, `--ui-mouse`, `--ui-exit`.
+  - **Etapa 7 hotová** (2026-10-29): překlady zbylých textů hostitele (stavový řádek APS-5, legenda pecí, filtry
+    dialogů, hlášení mapy, název sestavy z rejstříku), test `test_i18n_keys` na chybějící a nepoužité překlady,
+    stav nejen barvou (symboly na tlačítkách pásky, čísla pecí v grafu, tooltipy kontrolek), rozměry v jednotkách
+    písma, varování na blikání, věta o čtečkách obrazovky v README, náhledy přístrojů jen kresba, klávesová
+    navigace v dialozích (Tab; displeje a terminál ji ignorují).
+  - **Etapa 7 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 7 plánu vzhledu: přístupnost
+    a jazyky): potisk panelů a přístrojů zůstává česky, rozhraní kolem se překládá (stavový řádek APS-5, legenda
+    pecí, filtry dialogů, hlášení mapy s 71 českými názvy funkcí karet, texty samotného ImGui). Jméno sestavy
+    v titulku okna, Posledních sestavách a konfigurátoru bere `machine_title()` z rejstříku (32 nových `title_en`).
+    IMS-2 má nad českým potiskem anglickou bublinu. Test `test_i18n_keys` hlídá chybějící a nepoužité klíče. Stav
+    nejen barvou (▶ ● ■ u magnetofonu, čísla pecí a bublina v grafu APS-5, bubliny kontrolek, ✖ a ⚠
+    v konfigurátoru), rozměry v jednotkách písma, upozornění na blikání u dem, v README sekce Přístupnost. Navigace
+    klávesnicí zapnutá, rámeček až po Tab, okna s klávesami SAPI ji nemají. Náhledy přístrojů jen na obraz
+    (`--ui-picture`), všech 7 přegenerovaných. MCP `keyboard_status` u APS-5 je anglicky. Chyby jádra (anglicky
+    i v češtině) jsou přesunuté do etapy 8. **Dál:** otázky na autora (jméno verze bety, kam testeři hlásí, F9;
+    z etapy 7 štítek „Pec 1“, `keyboard_status`, navigace), beta zip (`package.py --public`) až na Martinův pokyn,
+    checkpoint C, ruční zkoušky autora (plán, etapy 4–7), pak etapa 8.
 - **2026-10-28, příprava bety (pushnuté):**
   - GUI bez nastavení spustí ZPS-1 s MIKROBASICem (`GUI_FIRST_MACHINE_FILE`), ve výběru je vybraná; `sapiemu-cli`
     dál MikroMon. MikroMon patří do Desek Libora Lasoty, běžící sestava je ve výběru zelená.

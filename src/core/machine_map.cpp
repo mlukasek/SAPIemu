@@ -142,18 +142,18 @@ void machine_map_build(const json& cfg, MachineMap& out)
     }
 }
 
-std::string map_range_users(const MachineMap& m, const MapRange& r)
+std::string map_range_users(const MachineMap& m, const MapRange& r, MapWhatText what)
 {
     std::string s;
     for (const MapUser& u : r.users) {
         if (!s.empty()) s += ", ";
         s += m.cards[(size_t)u.card].name;
-        if (!u.what.empty()) s += " " + u.what;
+        if (!u.what.empty()) s += std::string(" ") + (what ? what(u.what.c_str()) : u.what.c_str());
     }
     return s;
 }
 
-std::vector<CfgProblem> machine_map_problems(const MachineMap& m)
+std::vector<CfgProblem> machine_map_problems(const MachineMap& m, MapWhatText cs_what)
 {
     std::vector<CfgProblem> out;
     auto add = [&](int slot, bool error, const std::string& en, const std::string& cs) {
@@ -163,28 +163,28 @@ std::vector<CfgProblem> machine_map_problems(const MachineMap& m)
     };
     for (const MapRange& r : m.io) {
         if (!r.conflict && !r.shared_write) continue;
-        std::string who = map_range_users(m, r);
+        std::string who = map_range_users(m, r), who_cs = map_range_users(m, r, cs_what);
         int slot = m.cards[(size_t)r.users.back().card].slot;
         if (r.conflict)
             add(slot, true, "ports " + hex_range(r.lo, r.hi, 2) + "h answered by two cards: " + who,
-                "porty " + hex_range(r.lo, r.hi, 2) + "h obsluhují dvě karty: " + who);
+                "porty " + hex_range(r.lo, r.hi, 2) + "h obsluhují dvě karty: " + who_cs);
         else
             add(slot, false, "writes to ports " + hex_range(r.lo, r.hi, 2) + "h go to two cards: " + who,
-                "zápis na porty " + hex_range(r.lo, r.hi, 2) + "h jde do dvou karet: " + who);
+                "zápis na porty " + hex_range(r.lo, r.hi, 2) + "h jde do dvou karet: " + who_cs);
     }
     for (int map = 0; map < 4; map++) {
         char st[48] = "";
         if (m.map_matters) snprintf(st, sizeof(st), " (MAP1=%d MAP2=%d)", map & 1, (map >> 1) & 1);
         for (const MapRange& r : m.mem[map]) {
             if (!r.conflict && !r.shared_write) continue;
-            std::string who = map_range_users(m, r);
+            std::string who = map_range_users(m, r), who_cs = map_range_users(m, r, cs_what);
             int slot = m.cards[(size_t)r.users.back().card].slot;
             if (r.conflict)
                 add(slot, true, "memory " + hex_range(r.lo, r.hi, 4) + "h answered by two cards" + st + ": " + who,
-                    "paměť " + hex_range(r.lo, r.hi, 4) + "h obsluhují dvě karty" + st + ": " + who);
+                    "paměť " + hex_range(r.lo, r.hi, 4) + "h obsluhují dvě karty" + st + ": " + who_cs);
             else
                 add(slot, false, "writes to memory " + hex_range(r.lo, r.hi, 4) + "h go to two cards" + st + ": " + who,
-                    "zápis do paměti " + hex_range(r.lo, r.hi, 4) + "h jde do dvou karet" + st + ": " + who);
+                    "zápis do paměti " + hex_range(r.lo, r.hi, 4) + "h jde do dvou karet" + st + ": " + who_cs);
         }
     }
     for (const MapCard& c : m.cards)

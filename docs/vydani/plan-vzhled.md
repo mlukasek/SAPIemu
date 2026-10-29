@@ -450,6 +450,22 @@ rozdíly a doplňky:
 
 ### Etapa 7: přístupnost a jazyky · M
 
+**Stav 2026-10-29: hotová** (workflow, autor spal: 2 agenti, oponentura, nálezy opravené; rozhodnutí 2026-10-29 –
+etapa 7 plánu vzhledu: přístupnost a jazyky). Všechny body níže jsou hotové, s těmito rozdíly a doplňky:
+- Potisk zůstává česky i v anglickém rozhraní (štítky „Pec 1“, IMS-2), překlad je v legendě nebo bublině.
+  Stavový řádek APS-5 se překládá, MCP `keyboard_status` je proto anglicky.
+- `NavEnableKeyboard` zůstává zapnutý, rámeček ukáže až Tab (bez něj šipky a mezerník nic nestisknou). Okna
+  s klávesami SAPI (displeje, celá obrazovka, sériový terminál) navigaci nemají.
+- Náhledy přístrojů přes novou volbu `--ui-picture` (jen nakreslený hardware), přegenerováno všech 7.
+- Navíc: test `test_i18n_keys` (14 mrtvých záznamů pryč), texty samotného ImGui česky (Ctrl+Tab, odkazy, dokování),
+  32 anglických titulků sestav v rejstříku, 71 českých názvů funkcí karet v mapě, tlačítka RMP-1 podle popisku
+  (OFF-LINE se vešlo), čáry APS-5 na tmavém štítku (pec 8 ve světlém vzhledu).
+- **Chyby jádra** (anglicky i v češtině, velikost M) jsou přesunuté do etapy 8.
+
+Čeká na autora: tři volby v rozhodnutí (štítek „Pec 1“, `keyboard_status`, navigace) a ruční zkoušky (titulek okna
+v angličtině, Poslední sestavy, Ctrl+Tab, navigace při hře s průvodcem).
+
+**Body plánu**
 - **Překlady přes `tr()`:**
   - APS-5 klíč, PORUCHA, Pec %d;
   - filtry dialogů;
@@ -489,6 +505,7 @@ rozdíly a doplňky:
 - Poslední sestavy po každém startu.
 - Stroj → Klávesnice za běhu (`rack_set_live_param`).
 - Přetahování souborů na okno (`SDL_EVENT_DROP_FILE`).
+- Chyby jádra česky v českém rozhraní (`configure()` karet, DEMO APS-5, „not a SAPIemu state file“; z etapy 7).
 
 ### Etapa 9: prezentace a zveřejnění · M + Martin
 

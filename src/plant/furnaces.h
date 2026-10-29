@@ -64,6 +64,9 @@ public:
     std::vector<float> duty[8];         // heater on fraction in the slot
     int hist_pos = 0, hist_count = 0;
     double seconds(void) const { return t_sec; }
+    // The name of furnace i when the machine description gives none: "Pec 1".."Pec 8", the lettering of the shop
+    // (the window paints it on the furnace; the legend and the tooltips translate it).
+    static const char* default_name(int i);
 
 private:
     void integrate(double dt);

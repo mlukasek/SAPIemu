@@ -332,7 +332,8 @@ const std::vector<CfgProblem>& editor_problems(RackEditor& r)
         r.map_cfg = r.cfg;
         machine_map_build(r.cfg, r.map);
         r.problems = machine_cfg_problems(r.cfg);
-        std::vector<CfgProblem> mp = machine_map_problems(r.map);
+        // the Czech texts with the function names of the map in Czech, as the map table shows them
+        std::vector<CfgProblem> mp = machine_map_problems(r.map, [](const char* w) { return tr_lang(w, LANG_CS); });
         r.problems.insert(r.problems.end(), mp.begin(), mp.end());
     }
     return r.problems;
@@ -378,7 +379,7 @@ void draw_unsaved_question(UiState& ui)
     }
     if (!ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
     float u = ImGui::GetFontSize();
-    std::string name = r.cfg.value("name", std::string("?"));
+    std::string name = machine_title(ui, r.path, r.cfg.value("name", std::string("?")));
     ImGui::Text("%s", tr("The machine in the configurator has unsaved changes:"));
     ImGui::Text("  %s", name.c_str());
     ImGui::TextDisabled("  %s", r.path.empty() ? tr("(not saved yet)") : r.path.c_str());
@@ -457,8 +458,11 @@ void draw_unsaved_question(UiState& ui)
         do_pending(ui);
     }
     ImGui::SameLine();
-    // Cancel is the default (Enter) and Esc: neither writes nor throws away anything (UX review, 5.x)
-    if (theme_accent_button(tr("Cancel")) || popup_enter() || popup_escape()) {
+    // Cancel is the default (Enter) and Esc: neither writes nor throws away anything (UX review, 5.x); the keyboard
+    // navigation (Tab) starts there too
+    bool cancel = theme_accent_button(tr("Cancel"));
+    ImGui::SetItemDefaultFocus();
+    if (cancel || popup_enter() || popup_escape()) {
         ImGui::CloseCurrentPopup();
         r.pending = RackEditor::PEND_NONE;
     }
@@ -1356,7 +1360,7 @@ void draw_frame(UiState& ui, const std::vector<CfgProblem>& problems)
                 const CardInfo* ci = card_info(c.value("type", std::string()));
                 ImGui::SetTooltip("X%d: %s\n%s%s%s", first, card_display_name(c).c_str(),
                                   ci ? loc(ci->en, ci->cs) : tr("unknown card"),
-                                  ci && !ci->emulated ? loc("\n(not emulated yet)", "\n(zatím neemulováno)") : "",
+                                  ci && !ci->emulated ? tr("\n(not emulated yet)") : "",
                                   pend.c_str());
             } else {
                 ImGui::SetTooltip("X%d: %s%s", s, tr("empty slot"), pend.c_str());
@@ -1618,7 +1622,7 @@ void card_menu_items(UiState& ui, int slot, bool combo)
     RackEditor& r = ui.rack;
     int idx = machine_cfg_card_at(r.cfg, slot);
     std::string cur = idx >= 0 ? r.cfg["cards"][(size_t)idx].value("type", std::string()) : std::string();
-    if (ImGui::Selectable(loc("(empty)", "(prázdný)"), cur.empty())) put_card(r, slot, nullptr);   // a slot
+    if (ImGui::Selectable(tr("(no card)"), cur.empty())) put_card(r, slot, nullptr);   // a slot
     for (int pass = 0; pass < 2; pass++) {
         if (pass == 1) theme_section(tr("not emulated yet"));
         for (const CardInfo* ci : card_catalog()) {
@@ -1856,24 +1860,19 @@ void draw_bus_props(RackEditor& r)
         else r.cfg.erase("description");
     }
     bool random_mem = r.cfg.value("power_on_memory", std::string("zero")) == "random";
-    if (ImGui::Checkbox(loc("Random memory content after power on", "Náhodný obsah pamětí po zapnutí"), &random_mem)) {
+    if (ImGui::Checkbox(tr("Random memory content after power on"), &random_mem)) {
         if (random_mem) r.cfg["power_on_memory"] = "random";
         else r.cfg.erase("power_on_memory");
     }
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", loc("RAM, video RAM and palettes hold random bits after power on, like the real chips. "
-                                    "Off: zeros (spaces in text displays), so programs relying on cleared memory work.",
-                                    "RAM, videopaměti a palety mají po zapnutí náhodný obsah jako skutečné obvody. "
-                                    "Vypnuto: nuly (u textových displejů mezery), takže fungují i programy, které "
-                                    "spoléhají na vymazanou paměť."));
+        ImGui::SetTooltip("%s", tr("RAM, video RAM and palettes hold random bits after power on, like the real chips. "
+                                   "Off: zeros (spaces in text displays), so programs relying on cleared memory work."));
     // windows the machine opens and puts on top at its start (the check boxes wrap to the next line)
     float right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
-    ImGui::TextUnformatted(loc("Windows on top at the start:", "Okna nahoře po spuštění:"));
+    ImGui::TextUnformatted(tr("Windows on top at the start:"));
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", loc("They open and come on top of the other windows when the machine starts "
-                                    "(the plotter with READY, the tape drives...). The keyboard stays with the screen.",
-                                    "Po spuštění sestavy se otevřou a dají nad ostatní okna (plotter s READY, "
-                                    "mechaniky pásek...). Klávesnice zůstane obrazovce."));
+        ImGui::SetTooltip("%s", tr("They open and come on top of the other windows when the machine starts "
+                                   "(the plotter with READY, the tape drives...). The keyboard stays with the screen."));
     const json* wl = r.cfg.contains("windows") && r.cfg["windows"].is_array() ? &r.cfg["windows"] : nullptr;
     json chosen = json::array();
     bool changed = false;
@@ -1914,9 +1913,8 @@ void draw_bus_props(RackEditor& r)
     if (bi && bi->has_jp3) {
         std::string jp3 = bus.value("jp3", std::string("2-3"));
         ImGui::SetNextItemWidth(30.0f * u);
-        const char* l23 = loc("2-3: CPU card in X1 (normal)", "2-3: procesorová karta v X1 (běžné)");
-        const char* l12 = loc("1-2: address buffers off, CPU card anywhere (PKT-1)",
-                              "1-2: budiče adres vypnuté, procesor kdekoli (PKT-1)");
+        const char* l23 = tr("2-3: CPU card in X1 (normal)");
+        const char* l12 = tr("1-2: address buffers off, CPU card anywhere (PKT-1)");
         if (ImGui::BeginCombo("JP3", jp3 == "1-2" ? l12 : l23)) {
             if (ImGui::Selectable(l23, jp3 != "1-2")) bus["jp3"] = "2-3";
             if (ImGui::Selectable(l12, jp3 == "1-2")) bus["jp3"] = "1-2";
@@ -1938,7 +1936,7 @@ void draw_slot_props(UiState& ui, int slot)
     ImGui::SetNextItemWidth(30.0f * u);
     char preview[200];
     if (card) snprintf(preview, sizeof(preview), "%s  %s", card_display_name(*card).c_str(), ci ? loc(ci->en, ci->cs) : "");
-    else snprintf(preview, sizeof(preview), "%s", loc("(empty)", "(prázdný)"));
+    else snprintf(preview, sizeof(preview), "%s", tr("(no card)"));
     char lab[32];
     snprintf(lab, sizeof(lab), "X%d", slot);
     if (ImGui::BeginCombo(lab, preview, ImGuiComboFlags_HeightLarge)) {
@@ -1961,8 +1959,7 @@ void draw_slot_props(UiState& ui, int slot)
     }
     if (!card) return;
     if (ci && !ci->emulated)
-        ImGui::TextColored(theme().warn, "%s", loc("Not emulated yet: the card occupies the slot but does not respond.",
-                                              "Zatím neemulovaná: karta zabírá slot, ale neodpovídá."));
+        ImGui::TextColored(theme().warn, "%s", tr("Not emulated yet: the card occupies the slot but does not respond."));
     if (!ci) {
         ImGui::TextColored(theme().error, "%s", tr("unknown card"));
         return;
@@ -2022,7 +2019,7 @@ std::string flags_text(int f)
     std::string s;
     if (f & DEC_READ) s += "R";
     if (f & DEC_WRITE) s += "W";
-    if (f & DEC_ONCARD) s += loc(" (on card)", " (na kartě)");
+    if (f & DEC_ONCARD) s += tr(" (on card)");
     return s;
 }
 
@@ -2055,8 +2052,8 @@ void map_table(const char* id, const MachineMap& m, const std::vector<MapRange>&
             ImGui::TableNextColumn();
             ImGui::TextColored(col, "%s", tr(us.what.c_str()));
             ImGui::TableNextColumn();
-            ImGui::TextColored(col, "%s%s", flags_text(us.flags).c_str(),
-                               k == 0 && rg.conflict ? loc("  CONFLICT", "  KOLIZE") : "");
+            ImGui::TextColored(col, "%s%s", flags_text(us.flags).c_str(),   // the word too, not the colour alone
+                               k != 0 ? "" : rg.conflict ? tr("  CONFLICT") : rg.shared_write ? tr("  SHARED WRITE") : "");
         }
     }
     ImGui::EndTable();
@@ -2377,7 +2374,7 @@ void draw_rack(UiState& ui)
     bool dirty = editor_dirty(r);
     char title[300];
     snprintf(title, sizeof(title), "%s - %s%s###rack", tr("Machine configurator"),
-             r.cfg.value("name", std::string("?")).c_str(), dirty ? " *" : "");
+             machine_title(ui, r.path, r.cfg.value("name", std::string("?"))).c_str(), dirty ? " *" : "");
     if (!ImGui::Begin(title, &ui.show_rack)) {
         ImGui::End();
         return;
@@ -2467,8 +2464,9 @@ void draw_rack(UiState& ui)
     float line = ImGui::GetTextLineHeightWithSpacing();
     float props_h = ImGui::GetContentRegionAvail().y < 8.0f * line ? 8.0f * line : 0.0f;
     ImGui::BeginChild("props", ImVec2(0, props_h), ImGuiChildFlags_None);
-    for (const CfgProblem& p : problems)
-        ImGui::TextColored(p.error ? theme().error : theme().warn, "%s", loc(p.en.c_str(), p.cs.c_str()));
+    for (const CfgProblem& p : problems)   // a cross or a warning sign too: not the colour alone (WCAG 1.4.1)
+        ImGui::TextColored(p.error ? theme().error : theme().warn, "%s %s", p.error ? "\xE2\x9C\x96" : "\xE2\x9A\xA0",
+                           loc(p.en.c_str(), p.cs.c_str()));
     if (!problems.empty()) ImGui::Separator();
     if (r.sel > machine_cfg_slots(r.cfg)) r.sel = 0;
     // a slot clicked: when the messages above push its settings down, the tabs go to the top

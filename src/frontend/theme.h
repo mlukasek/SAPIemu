@@ -120,6 +120,12 @@ void theme_section(const char* text);
 ImFont* panel_font(bool bold = false);
 void panel_text(ImDrawList* dl, const ImVec2& pos, ImU32 col, const char* text, float scale = 1.0f);
 ImVec2 panel_text_size(const char* text, float scale = 1.0f);
+// A lamp of the drawn hardware at `c` with the radius `r` (pixels) under the mouse: a tooltip with its state, so that
+// the state is not told by the colour alone (WCAG 1.4.1). name: the lamp ("RDY"), nullptr: the state alone.
+void lamp_tooltip(const ImVec2& c, float r, const char* name, bool on);
+
+// The width of a combo box for its longest item in the UI language (the text, the padding and the arrow).
+float combo_width(const char* const* items, int count);
 
 // The sRGB contrast ratio of WCAG 2.2 (1..21) of two 0xRRGGBB colours.
 double theme_contrast(uint32_t a, uint32_t b);

@@ -275,7 +275,7 @@ static void draw_send(UiState& ui, SerialChannel* ch)
     } else if (x.active()) {
         if (x.state == XmodemSender::WAIT_START) snprintf(msg, sizeof(msg), "%s", tr("XMODEM: waiting for the receiver (NAK or C)..."));
         else snprintf(msg, sizeof(msg), tr("XMODEM: packet %zu of %zu (%s)"), x.packet + 1 > x.packets ? x.packets : x.packet + 1,
-                      x.packets, x.crc ? "CRC" : "checksum");
+                      x.packets, x.crc ? "CRC" : tr("checksum"));
         ImGui::TextUnformatted(msg);
         ImGui::SameLine();
         if (ImGui::SmallButton(tr("Cancel")) && ui.xmodem_channel >= 0) {
@@ -318,7 +318,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
                                "%s", tcp->describe().c_str());
         }
     } else {
-        ImGui::SetNextItemWidth(70);
+        ImGui::SetNextItemWidth(4.5f * ImGui::GetFontSize());   // 65535
         ImGui::InputInt("##tcpport", &ui.tcp_port, 0);
         ImGui::SameLine();
         if (ImGui::Button(tr("Start TCP server"))) {
@@ -329,7 +329,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
         }
         ImGui::SameLine();
         const char* protos[] = { "telnet", "raw", "auto" };
-        ImGui::SetNextItemWidth(80);
+        ImGui::SetNextItemWidth(combo_width(protos, 3));
         ImGui::Combo("##tcpproto", &ui.tcp_protocol, protos, 3);
         ImGui::SameLine();
         ImGui::Checkbox(tr("DCD = client connected"), &ui.tcp_dcd_follows);
@@ -342,7 +342,7 @@ static void draw_bridges(UiState& ui, Machine* m, SerialChannel* ch)
             ImGui::TextUnformatted(com->describe().c_str());
         }
     } else {
-        ImGui::SetNextItemWidth(70);
+        ImGui::SetNextItemWidth(4.5f * ImGui::GetFontSize());   // COM13
         ImGui::InputText("##comport", ui.com_port, sizeof(ui.com_port));
         ImGui::SameLine();
         if (ImGui::Button(tr("Open COM port"))) {
@@ -426,7 +426,8 @@ void draw_terminal(UiState& ui)
         xmodem_pump(ui, m);
         term_dialog_poll(ui, m);
     }
-    if (!ImGui::Begin(tr_id("Serial terminal"), &ui.show_terminal) || !m) {
+    // no keyboard navigation of ImGui: with the terminal focused the arrows, Space and Enter go to SAPI (handle_key)
+    if (!ImGui::Begin(tr_id("Serial terminal"), &ui.show_terminal, ImGuiWindowFlags_NoNavInputs) || !m) {
         ImGui::End();
         return;
     }
@@ -469,7 +470,7 @@ void draw_terminal(UiState& ui)
     same_line_if_fits(tr("Clear"));
     if (ImGui::Button(tr("Clear"))) terminal_clear(t);
     const char* emus[] = { tr("SAPI (ECMON/AND-1Z)"), "ANSI/VT100", tr("No emulation (^X)") };
-    ImGui::SetNextItemWidth(180);
+    ImGui::SetNextItemWidth(combo_width(emus, 3));
     ImGui::Combo("##emu", &t.emulation, emus, 3);
     ImGui::SameLine();
     ImGui::Checkbox(tr("CR = new line"), &t.cr_newline);
@@ -485,7 +486,7 @@ void draw_terminal(UiState& ui)
 
     // NoMove: dragging in the text selects instead of moving the window
     ImGui::BeginChild("termtext", ImVec2(0, 0), ImGuiChildFlags_Borders,
-                      ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoMove);
+                      ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs);
     if (ImGui::BeginPopupContextWindow("termmenu")) {
         if (ImGui::MenuItem(tr("Copy"), "Alt+C")) terminal_copy(ui);
         if (ImGui::MenuItem(tr("Paste"), "Alt+V")) terminal_paste(ui);

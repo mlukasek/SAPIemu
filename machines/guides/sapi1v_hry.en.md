@@ -55,6 +55,9 @@ BKP
 
 ## Demos and music
 
+Warning: the demos change the picture fast, and Bad Apple!! flashes fast in places. If flashing light bothers
+you (photosensitivity, photosensitive epilepsy), do not run them.
+
 - Bad Apple!!: a video from the RAM disk with music on the YM3812 (3:39). The picture flashes fast in places. A key
   ends the demo.
 

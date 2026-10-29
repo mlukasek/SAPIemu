@@ -157,8 +157,8 @@
         "sapi1v_hry.sapi": {
             "title": "SAPI-1 V: hry a dema",
             "title_en": "SAPI-1 V: games and demos",
-            "summary": "Hry a dema na sestavě V: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, Bratrstvo kočičí pracky, dema a hudba Libora Lasoty.",
-            "summary_en": "Games and demos on the V set: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, a Czech text adventure, demos and music by Libor Lasota."
+            "summary": "Hry a dema na sestavě V: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, Bratrstvo kočičí pracky, dema a hudba Libora Lasoty. Pozor, Bad Apple!! místy rychle bliká.",
+            "summary_en": "Games and demos on the V set: Bad Apple!!, Fuxoft Soundtrack IV, Flappy, Bomberman, a Czech text adventure, demos and music by Libor Lasota. Note: Bad Apple!! flashes fast in places."
         },
         "aps5.sapi": {
             "title": "Měřicí jednotka APS-5 (pece)",
@@ -209,36 +209,116 @@
             "summary_en": "The IZOT SM 5300 tape unit with the RMP-1 controller and J. Bíba's CP/M. The reels turn in the Media window."
         },
         "cpm_zrmd.sapi": {
+            "title_en": "CP/M 2.2 from the RAM disk (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1, zavádí ho ECMON na procesorové kartě JPR-1ZI. Po zapnutí stiskněte 3 (bez IDE disku vypíše ECMON INIT HDD YXYX…, to je v pořádku), pak DIR. Ctrl+P a DIR vytiskne výpis do okna Tiskárna.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk, booted by ECMON on the JPR-1ZI CPU card. After power on press 3 (without an IDE disk ECMON prints INIT HDD YXYX…, that is fine), then DIR. Ctrl+P and DIR print the listing in the Printer window."
         },
         "cpm_ide.sapi": {
+            "title_en": "CP/M 2.2 with IDE-1 (JPR-1ZI ECMON IDE, DMR-1, AND-1Z-89, ZRMD-1, IDE-1 + PMD32-SD)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1 s IDE diskem (B:, C:) a emulátorem disket PMD32-SD (D:, E:) na desce IDE-1. Po zapnutí stiskněte 3, pak třeba DIR B:.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with an IDE disk (B:, C:) and the PMD32-SD floppy emulator (D:, E:) on the IDE-1 board. After power on press 3, then for example DIR B:."
         },
         "cpm_zrmd_fdc1.sapi": {
+            "title_en": "CP/M 2.2 from the RAM disk + FDC-1 (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, FDC-1)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1 s řadičem disket FDC-1 a 8\" mechanikami. Po zapnutí stiskněte 0, pak DIR B: (disketa s CP/M 2.2/P). Disketu do C: vložíte v okně Média.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the FDC-1 floppy controller and 8\" drives. After power on press 0, then DIR B: (a CP/M 2.2/P disk). A disk for C: goes in through the Media window."
         },
         "cpm_zrmd_mfc1a.sapi": {
+            "title_en": "CP/M 2.2 from the RAM disk + MFC-1A (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, MFC-1A)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1 s řadičem disket MFC-1A (Tesla Liberec 1989) a 8\" mechanikami. Po zapnutí stiskněte 2, pak DIR B:.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the MFC-1A floppy controller (Tesla Liberec 1989) and 8\" drives. After power on press 2, then DIR B:."
         },
         "cpm_zrmd_dpp1.sapi": {
+            "title_en": "CP/M 2.2 from the RAM disk with DPP-1 and PMD32-SD (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, DPP-1)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1 s deskou DPP-1, přes kterou ECMON obsluhuje emulátor disket PMD32-SD. Po zapnutí stiskněte 3, pak DIR D: (BASIC J. Bíby) a DIR E:.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the DPP-1 board, through which ECMON drives the PMD32-SD floppy emulator. After power on press 3, then DIR D: (J. Bíba's BASIC) and DIR E:."
         },
         "cpm_zrmd_rtc_dsp.sapi": {
+            "title_en": "CP/M 2.2 with RTC-1 and DSP-1 (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, DPP-1, RTC-1, DSP-1)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1 s hodinami reálného času RTC-1, sériovou deskou DSP-1 a programy J. Bíby. Po zapnutí stiskněte 3; E:RTCZ ukáže hodiny (ESC konec), DOPCP SOUBOR pošle soubor XMODEMem do okna terminálu.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the RTC-1 real-time clock, the DSP-1 serial board and J. Bíba's programs. After power on press 3; E:RTCZ shows the clock (ESC ends), DOPCP FILE sends a file by XMODEM to the terminal window."
         },
         "cpm_ec1045.sapi": {
+            "title_en": "CP/M 2.2 EC1045: RAM disk + FDC-1 with 3.5\"/5.25\" HD (ECMON_cd, BIOS ECBIF3/F5)",
             "summary": "Systém EC1045 (Petr Všijanský): CP/M z RAM disku ZRMD-1 a řadič FDC-1 s disketami PC 3,5\" a 5,25\" HD. Po zapnutí stiskněte 1 (3,5\") nebo 2 (5,25\", disketu vložte v okně Média), pak DIR B:.",
             "summary_en": "The EC1045 system (Petr Všijanský): CP/M from the ZRMD-1 RAM disk and the FDC-1 controller with PC floppies, 3.5\" and 5.25\" HD. After power on press 1 (3.5\") or 2 (5.25\", insert the disk in the Media window), then DIR B:."
         },
         "libor_doma.sapi": {
+            "title_en": "Libor at home (ImBUS12: JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, DGD-1V, CGA-1V, MPH-1V)",
             "summary": "Sestava Libora Lasoty doma na sběrnici ImBUS12 s jeho deskami V: textový displej AND-1V, grafiky DGD-1V a CGA-1V (střídají se podle MAP), myš MPH-1V a RAM disk ZRD-1V. Po zapnutí stiskněte 3 (CP/M z RAM disku), pak DIR. Disky B: a C: bez desky IDE-1 nefungují.",
             "summary_en": "Libor Lasota's set at home on the ImBUS12 bus with his V boards: the AND-1V text display, the DGD-1V and CGA-1V graphics (switched by MAP), the MPH-1V mouse and the ZRD-1V RAM disk. After power on press 3 (CP/M from the RAM disk), then DIR. The disks B: and C: do not work without the IDE-1 board."
+        },
+        "zps/MIKROBASIC_AR1983.sapi": {
+            "title_en": "SAPI-1 MIKROBASIC AR/B 1983 (JPR-1 with EPROM and 1 KB RAM, AND-1, ANK-1)"
+        },
+        "zps/ZPS-1_JPR-1S_AND-1B.sapi": {
+            "title_en": "ZPS-1 with JPR-1S, AND-1B and ANK-1M2 (Libor Lasota): MIKROBASIC 2.4"
+        },
+        "zps/ZPS-1_JPR-1X.sapi": {
+            "title_en": "ZPS-1 with JPR-1X: MIKROBASIC 2.4 (JPR-1X 8085, REM-1, AND-1, DSM-1, BDK-1, ANK-1)"
+        },
+        "zps/ZPS-2_MIKOS_V5_DGD-1V.sapi": {
+            "title_en": "ZPS-2 MIKOS V5.0 with DGD-1V (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, BDK-1, DGD-1V, Consul 262.3)"
+        },
+        "zps/ZPS-4_FDC-1.sapi": {
+            "title_en": "ZPS-4 with FDC-1 (JPR-1Z, RAM-1Z, AND-1Z, DSM-1, FDC-1, RMD-1, Consul 262.3)"
+        },
+        "cpm_boot_fdc1.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: FDC-1, BIOS V130711JB (J. Bíba 2011)"
+        },
+        "cpm_boot_fdc1_irmd.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: FDC-1, BIOS-2K V130711JB, RMD-1 initialized by the BIOS (J. Bíba)"
+        },
+        "cpm_boot_fdc1_rmd.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: FDC-1, BIOS V130711JB, RMD-1 (J. Bíba 2011)"
+        },
+        "cpm_boot_fdc1_ss256.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: FDC-1, BIOS V130711JB, ZRMD-1 SS256 (J. Bíba)"
+        },
+        "cpm_boot_mfc1a.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: MFC-1A, BIOS V281211JB (J. Bíba 2011)"
+        },
+        "cpm_boot_mfc1a_rmd.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: MFC-1A, BIOS V281211JB, RMD-1 (J. Bíba)"
+        },
+        "cpm_boot_rpd1.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: RPD-1, BIOS V271111JB (J. Bíba 2011)"
+        },
+        "cpm_boot_rpd1_rmd.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: RPD-1, BIOS V271111JB, RMD-1 (J. Bíba 2011)"
+        },
+        "cpm_boot_rpd1_ss256.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: RPD-1, BIOS V271111JB, ZRMD-1 SS256 (J. Bíba)"
+        },
+        "cpm_boot_rpd1_fdc1_rmd.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: RPD-1 + FDC-1 8\", BIOS-2K V260811JB, RMD-1 (J. Bíba)"
+        },
+        "cpm_boot_rpd1_mfc256.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: RPD-1 + MFC-1A 8\" 14 × 256, BIOS-2K V261211JB, RMD-1 (J. Bíba)"
+        },
+        "cpm_boot_rpd1_mfc512.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: RPD-1 + MFC-1A 8\" 8 × 512, BIOS-3K V261211JB, RMD-1 (J. Bíba)"
+        },
+        "cpm_boot_dlouhe_rpd1_fdc1.sapi": {
+            "title_en": "Long CP/M 2.2 (3K BIOS): RPD-1 8\" + FDC-1 5.25\" HD, ZRMD-1 (J. Bíba 050412)"
+        },
+        "cpm_boot_dlouhe_rpd1_fdc1_35.sapi": {
+            "title_en": "Long CP/M 2.2 (3K BIOS): RPD-1 8\" + FDC-1 3.5\" HD, ZRMD-1 (J. Bíba 050412)"
+        },
+        "cpm_pmd_fdc1.sapi": {
+            "title_en": "CP/M 2.2 from an 8\" disk: FDC-1 + PMD32-SD through DPP-1 (J. Bíba 140212)"
+        },
+        "cpm_pmd_rpd1.sapi": {
+            "title_en": "Long CP/M 2.2 (2K BIOS): RPD-1 8\" + PMD32-SD through DPP-1 (J. Bíba 170212)"
+        },
+        "cpm_term64k_fdc1.sapi": {
+            "title_en": "CP/M 2.2 64K with a terminal only: FDC-1, RMD-1 (J. Bíba, MON 151111)"
+        },
+        "rkd1_jb_cm5400.sapi": {
+            "title_en": "J. Bíba's CP/M with the RKD-1 cartridge disk and the Bulgarian CM 5400 drive (D: to G:, BIOS from SAPIemu)"
+        },
+        "jpr1x_bgp1s.sapi": {
+            "title_en": "JPR-1X + BGP-1S + ANK-1M2 (Libor Lasota): MIKROBIOS 1.02, 8085, PMD-85 graphics"
         }
     }
 }

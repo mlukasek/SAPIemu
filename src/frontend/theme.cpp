@@ -1,6 +1,7 @@
 // The look of the GUI (theme.h): the ImGui style from the data of theme_data.cpp, the fonts, the semantic colours
 // of the windows and the frame of the focused window.
 #include "frontend/theme.h"
+#include "frontend/i18n.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -417,6 +418,26 @@ void panel_text(ImDrawList* dl, const ImVec2& pos, ImU32 col, const char* text, 
 ImVec2 panel_text_size(const char* text, float scale)
 {
     return panel_font(false)->CalcTextSizeA(ImGui::GetFontSize() * scale, FLT_MAX, 0.0f, text);
+}
+
+void lamp_tooltip(const ImVec2& c, float r, const char* name, bool on)
+{
+    float hit = r < 0.4f * ImGui::GetFontSize() ? 0.4f * ImGui::GetFontSize() : r;   // small lamps: a larger target
+    if (!ImGui::IsWindowHovered() || !ImGui::IsMouseHoveringRect(ImVec2(c.x - hit, c.y - hit), ImVec2(c.x + hit, c.y + hit)))
+        return;
+    const char* state = on ? tr("lit") : tr("not lit");
+    if (name) ImGui::SetTooltip("%s: %s", name, state);
+    else ImGui::SetTooltip("%s", state);
+}
+
+float combo_width(const char* const* items, int count)
+{
+    float most = 0;
+    for (int i = 0; i < count; i++) {
+        float w = ImGui::CalcTextSize(items[i]).x;
+        if (w > most) most = w;
+    }
+    return most + ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetFrameHeight();
 }
 
 void theme_section(const char* text)

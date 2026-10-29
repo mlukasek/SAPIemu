@@ -6,7 +6,8 @@ Usage: python tools/make_previews.py [--debug] [--instruments] [FILTER...]
 Each machine runs in sapiemu-cli as in tools/check_machines.py (its scenario brings the machine to something to
 see), over a clean copy of the data (git archive, no work/ as in a fresh install). The screen, or the graphics
 named by the scenario ("shot:CGA-1V") or by PREVIEWS below, is saved, scaled down to at most 480 points wide and
-compressed. Machines with an instrument (INSTRUMENTS) get the picture of its window in the GUI, in the dark look.
+compressed. Machines with an instrument (INSTRUMENTS) get the drawn instrument of its window in the GUI (without the
+controls around it, the same in both languages), in the dark look.
 Run again after a machine or its software changes; the pictures are committed.
 
 FILTER: only the machines whose name contains one of the filters; --instruments: only the machines of INSTRUMENTS;
@@ -43,10 +44,12 @@ PREVIEWS = {
 }
 
 # machines with an instrument: the picture of its window in the GUI (sapiemu --ui-snapshot --ui-crop) after the
-# actions, which run in sapiemu-cli and save the state: (actions, window option, window id after ###). The windows
-# are drawn in the dark Windows 11 look at 100 % (UI_LOOK), the same on any PC: the window "Choose a machine" shows
-# the previews in a dark frame like a monitor.
-UI_LOOK = ['--ui-theme', 'dark', '--ui-scale', '1']
+# actions, which run in sapiemu-cli and save the state: (actions, window option, window id after ###). Only the drawn
+# hardware the window marks (--ui-picture: the panel and the furnaces, the instruments, the mechanism, the paper),
+# not the controls of the emulator around it: the picture is the same in both languages of the UI. The windows are
+# drawn in the dark Windows 11 look (UI_LOOK) at 100 % or at UI_SCALE, the same on any PC: the window "Choose a
+# machine" shows the previews in a dark frame like a monitor.
+UI_LOOK = ['--ui-theme', 'dark']
 INSTRUMENTS = {
     'aps5': (cm.run(5000), '--ui-aps5', 'APS-5: panel and furnaces'),
     'zps_ZPS-2_DPS-1_IMS-2': (cm.run(3000), '--ui-ims2', 'IMS-2 measuring bench'),
@@ -67,10 +70,24 @@ INSTRUMENTS = {
     'rmp1_jb_izot': (cm.MACHINES['rmp1_jb_izot'][0], '--ui-media', 'Media'),
 }
 
-# the size of the window (pixels at 100 %) where its default one cuts the content: put into the imgui.ini of the run
+# the size of the window (pixels at its scale) where its default one cuts the content: put into the imgui.ini of the run
+# (shrink() takes whole factors: a picture a little over 480 or 960 points wide would end up a third as wide)
 WINDOW_SIZE = {
-    'aps5': (960, 800),           # the whole window with the legend; 960 = 2 x 480: shrunk 2x, sharp
-    'rmp1_jb_izot': (820, 600),   # the RPD-1 drives above the RMP-1 tape: its lamps and the blocks of the tape
+    'aps5': (960, 800),           # the panel, the furnaces and the chart just under 2 x 480 wide: shrunk 2x, sharp
+    'zps_ZPS-2_DPS-1_IMS-2': (968, 1400),   # the instruments as wide as the window, just under 2 x 480, all in sight
+    'zps_ZPS-2_MIKOS_K': (1100, 900),       # the cassette of KZD-1 under the tape of DSM-1
+    'rmp1_jb_izot': (1300, 1000),           # the RPD-1 drives above the RMP-1 drive
+    # the picture is the drawing with a margin (plotter.cpp): the character set of the test, about 115 x 80 mm with
+    # the margin, is just under 480 points wide on a sheet 230 mm wide when the window is this wide
+    'zps_ZPS-2_MIKOS_V5_XY4130': (1000, 1500),
+}
+
+# the scale of the UI where the picture would be small or lose its proportions at 100 %: the cassette of KZD-1 is
+# 16 lines wide with its margin (16 x 16 x 1.83 = 468), the drive of RMP-1 21 lines (470)
+UI_SCALE = {
+    'zps_ZPS-2_DPS-1_IMS-2': 1.5,
+    'zps_ZPS-2_MIKOS_K': 1.83,
+    'rmp1_jb_izot': 1.4,
 }
 
 
@@ -88,9 +105,10 @@ def instrument_picture(cli, gui, sb, rel, name, png, tmp):
         open(settings + '.imgui.ini', 'w').write('[Window][%s]\nPos=20,40\nSize=%d,%d\nCollapsed=0\n' %
                                                  ((key,) + WINDOW_SIZE[name]))
     args = [gui, '--data-root', sb, '--machine', rel, '--no-mcp', '--lang', 'cs', '--settings', settings,
-            '--ui-state', state, opt, '--ui-crop', key, '--ui-size', '1400x900'] + UI_LOOK + ['--ui-snapshot', png]
+            '--ui-state', state, opt, '--ui-crop', key, '--ui-picture', '--ui-size', '1700x1600',
+            '--ui-scale', str(UI_SCALE.get(name, 1))] + UI_LOOK + ['--ui-snapshot', png]
     r = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=600, cwd=sb)
-    if 'no window' in r.stderr:   # the whole OS window instead of the instrument
+    if 'no window' in r.stderr or 'no picture' in r.stderr:   # the whole OS window or window instead of the instrument
         return r.stderr.strip()
     return ''
 

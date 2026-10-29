@@ -30,7 +30,9 @@ v konfigurátoru vypnout.
 > machines of the first four groups have a guide in English (Help → Machine guide). The user interface is in Czech
 > and English (View → Jazyk / Language), the detailed documentation is in Czech; a short English guide is
 > [docs/getting-started.md](docs/getting-started.md) (`GETTING-STARTED.md` in the zip). The emulator sends nothing anywhere by
-> itself, see "Síť a soukromí" (network and privacy) below. Prince of Persia (machine `sapi1v_PoP`) is an
+> itself, see "Síť a soukromí" (network and privacy) below. The user interface is drawn by Dear ImGui, so screen
+> readers do not see it; the text of the SAPI screen can be copied (View → Copy screen text) or printed by
+> `sapiemu-cli --print-screen`, see "Přístupnost" (accessibility) below. Prince of Persia (machine `sapi1v_PoP`) is an
 > unofficial, non-commercial port shown as a demonstration of historic technology; at the request of the copyright
 > holders it will be changed or removed. Alpha version.*
 
@@ -236,6 +238,21 @@ program dostali, potom v [Issues](https://github.com/mlukasek/SAPIemu/issues).
   - pracovní kopie disket, disků a kazet, obsah pamětí s baterií a výstupy tiskáren jsou ve složce `work/`;
   - když do složky programu nejde zapisovat (např. `Program Files`), ukládá se nastavení do
     `%APPDATA%\SAPIemu\SAPIemu` a `work/` do `%LOCALAPPDATA%\SAPIemu\work` (Linux: `~/.local/share/SAPIemu`).
+
+## Přístupnost
+
+- **Čtečky obrazovky rozhraní nevidí.** Okna kreslí knihovna Dear ImGui, která pro systém nevytváří strom
+  ovládacích prvků (UI Automation). Text obrazovky SAPI jde získat jinak: Zobrazení → Kopírovat text obrazovky
+  (Ctrl+Shift+C) do schránky, `sapiemu-cli --print-screen` do konzole, nebo přes sériový terminál (okno Sériový
+  terminál, TCP pro jiný program, [docs/seriova-linka.md](docs/seriova-linka.md)).
+- **Klávesnice:** v oknech emulátoru ukáže Tab rámeček na prvku a přechází na další, pak rámeček posouvají
+  i šipky, mezerník a Enter stisknou prvek v rámečku, kliknutí myší rámeček skryje. Esc zavře dialog, Ctrl+Tab
+  přepíná okna. V okně obrazovky SAPI a v sériovém terminálu patří šipky, mezerník, Enter, Esc
+  a Alt počítači SAPI.
+- **Stav není jen barvou:** chyby mají ✖ a slovo, varování ⚠, rozsvícené tlačítko magnetofonu značku (▶, ●, ■),
+  čáry v grafu APS-5 čísla pecí a kontrolky přístrojů řeknou svůj stav v bublině.
+- **Velikost písma** 100–200 % je v Zobrazení → Nastavení.
+- **Blikání:** některá dema rychle mění obraz, Bad Apple!! místy rychle bliká (upozornění je v průvodci sestavou).
 
 ## Licence a poděkování
 
