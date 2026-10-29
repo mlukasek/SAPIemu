@@ -573,7 +573,6 @@ void draw_guide(UiState& ui)
         }
     }
     if (!ui.show_guide) return;
-    float u = ImGui::GetFontSize();
     layout_window(LW_GUIDE);   // beside the instruments and Media, not over them
     if (ui.guide_focus) {   // asked for: in front of the windows that hide it (an instrument at the same place)
         ImGui::SetNextWindowFocus();
@@ -603,7 +602,10 @@ void draw_guide(UiState& ui)
             md_resolve(s_doc, path);   // the guides link "docs/..." from the data root
         }
     }
-    ImGui::BeginChild("text", ImVec2(0, e && !e->guide.empty() ? -3.6f * u : 0));
+    // the text scrolls by itself above the two check boxes: room for them exactly (and a pixel), so that the window does
+    // not scroll too (author 2026-10-29: two scroll bars, the inner one moving 2 pixels)
+    float below = 2.0f * ImGui::GetFrameHeightWithSpacing() + 1.0f;
+    ImGui::BeginChild("text", ImVec2(0, e && !e->guide.empty() ? -below : 0));
     if (!e) ImGui::TextDisabled("%s", tr("No machine."));
     else if (s_doc.empty()) {
         ImGui::TextWrapped("%s", entry_name(*e).c_str());
