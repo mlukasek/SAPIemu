@@ -17,7 +17,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `73e124fc5199876db9d6346945a9a5a94285d6f162e28706fb56109c272a9d0c`; přes `..\SAPIemu-release` nakopírovaná
   (`work/`, `imgui.ini`, nastavení a logy zůstaly, žádné zastaralé soubory). První balení (550 souborů,
   `bec249fb…`) nikdo nedostal.
-  **Dál:** autor ji pošle Liborovi, Petrovi a Michalovi (dopis `docs/vydani/beta-testeri.md`); po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
+  **Dál:** autor ji pošle Liborovi, Petrovi a Michalovi (e-mail si napíše sám a stručně, bez povinných úkolů; `docs/vydani/beta-testeri.md` je jen podklad); po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
   (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz.
 - **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
   etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu

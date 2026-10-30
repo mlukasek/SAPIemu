@@ -1,6 +1,6 @@
 # Beta: text pro testery
 
-Podklad pro Martina k rozeslání bety 0.7.0-beta třem testerům alf (Libor, Petr, Michal) spolu se zipem z `python
+**Autor kamarádům píše sám a stručně, úkoly nejsou povinné (2026-10-30), tohle je jen podklad.** Podklad pro Martina k rozeslání bety 0.7.0-beta třem testerům alf (Libor, Petr, Michal) spolu se zipem z `python
 tools\package.py --public` a souborem `.sha256` vedle něj (`package.py` ho píše, až zip projde kontrolami). Text pod
 čarou jde poslat, jak je, jen se doplní termín v hranatých závorkách. E-mail ani jiný kontakt do repa nepíšeme,
 testeři odpoví na zprávu, se kterou betu dostanou. Liborovi a Petrovi přidat žádost o souhlasy podle
