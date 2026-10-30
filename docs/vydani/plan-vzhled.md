@@ -403,7 +403,7 @@ Zbývá:
 
 ### Etapa 6: zbytek před betou · M
 
-**Stav 2026-10-29: hotová, beta zip čeká na autorův pokyn** (workflow, autor spal: 3 agenti, 3 oponenti, nálezy
+**Stav 2026-10-29: hotová; beta zip zabalený a 2026-10-30 poslaný třem testerům** (workflow, autor spal: 3 agenti, 3 oponenti, nálezy
 opravené; rozhodnutí 2026-10-29 – etapa 6 plánu vzhledu: před betou). Všechny body níže jsou hotové, s těmito
 rozdíly a doplňky:
 - **F9 = breakpoint, reset jen F12:** plán to měl jako návrh ke schválení, rozhodl vedoucí workflow za autora. Pod
@@ -453,7 +453,9 @@ rozdíly a doplňky:
 - 5 úkolů pro testery.
 - SHA-256 k zipu.
 
-**→ BETA zip** (`package.py --public`) až na Martinův pokyn.
+**→ BETA zip** (`package.py --public`) až na Martinův pokyn. **Hotovo:** zabalený 2026-10-30, přebalený se zbytkem
+etapy 9 (554 souborů, SHA-256 `73e124fc…`) a týž den poslaný Liborovi, Petrovi a Michalovi. E-mail napsal autor sám
+a stručně, úkoly z `docs/vydani/beta-testeri.md` nejsou povinné.
 
 **Cesta vydání bety (autor, 2026-10-29; rozhodnutí 2026-10-29 – ráno: připomínky autora):**
 1. **0.7.0-beta** jen třem testerům alf (Libor, Petr, Michal): zpětná vazba (pět úkolů a otázky
@@ -567,8 +569,9 @@ a snímky autora v `docs/img/readme/`. Čeká na autorovu kontrolu; GIF, video, 
 **Stav 2026-10-30:** README autor upravil a schválil (pushnuto), beta 0.7.0 zabalená. Pak hotové: GIF nahoře
 v README česky i anglicky (`tools/readme_gif.py`), `README.en.md`, obrázky v `docs/img` v novém vzhledu
 (`tools/docs_images.py`, `minigraf-ukazka.png` zmenšený), úklid repa a šablony issue, odkazy na `docs/SOUHRN.md`
-a `docs/vydani/` z README a dokumentů v zipu vedou na GitHub. Zbývá video (zatím ne) a texty „do zveřejnění“
-níže těsně před 0.7.1.
+a `docs/vydani/` z README a dokumentů v zipu vedou na GitHub, odkazy na `H:` nahradily odkazy na sapi.cz. Beta
+s tím vším přebalená a 2026-10-30 poslaná testerům. Zbývá video (zatím ne) a texty „do zveřejnění“ níže těsně
+před 0.7.1.
 
 **README**
 - Zhruba 110 řádků.

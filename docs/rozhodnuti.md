@@ -3361,6 +3361,10 @@ se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od 
     k replikám a jeho SD dump EC1045, ostatní „archiv autora“. Co to znamená na disku, je v `CLAUDE.local.md`;
   - test nahrávek hledá jen `..\SAPI_DOKU` vedle repa, záloha na `H:` z něj zmizela;
   - nová pravidla v `CLAUDE.md`: cesty na `H:` se do repa nepíšou.
+- **Beta 0.7.0 přebalená a poslaná** (2026-10-30, 554 souborů, SHA-256 `73e124fc…`). Autor napsal Liborovi,
+  Petrovi a Michalovi sám a stručně, se seznamem novinek proti 0.6.0: „povinnostmi … je takhle striktně určitě
+  nebudu zatěžovat, mají svojí práce dost, mrknou na co chtějí“. Pět úkolů v `docs/vydani/beta-testeri.md` proto
+  zůstává jen podkladem.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

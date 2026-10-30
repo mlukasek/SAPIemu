@@ -13,12 +13,16 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   a `check_machines.py --games` 60 sestav a 12 her a dem; rozbalená do `..\SAPIemu-release` s autorovým `work/`,
   `imgui.ini` a nastavením, stará 0.6.0 je v `..\SAPIemu-release-0.6.0`. **Přebalená 2026-10-30 dopoledne**
   (autor: „přebal to prosím znovu … rád bych to pro kamarády měl co nejfinálnější“) se zbytkem etapy 9, odkazy
-  a sapi.cz místo `H:` (commit `261c4f8`, release test 62/62): 554 souborů, 36,0 MB, SHA-256
+  na sapi.cz místo `H:` (commit `261c4f8`, release test 62/62): 554 souborů, 36,0 MB, SHA-256
   `73e124fc5199876db9d6346945a9a5a94285d6f162e28706fb56109c272a9d0c`; přes `..\SAPIemu-release` nakopírovaná
   (`work/`, `imgui.ini`, nastavení a logy zůstaly, žádné zastaralé soubory). První balení (550 souborů,
   `bec249fb…`) nikdo nedostal.
-  **Dál:** autor ji pošle Liborovi, Petrovi a Michalovi (e-mail si napíše sám a stručně, bez povinných úkolů; `docs/vydani/beta-testeri.md` je jen podklad); po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
-  (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz.
+  **Beta poslaná 2026-10-30** Liborovi, Petrovi a Michalovi (tento zip, SHA-256 `73e124fc…`). E-mail napsal autor
+  sám a stručně, se seznamem novinek proti 0.6.0 a bez povinných úkolů (`docs/vydani/beta-testeri.md` je jen
+  podklad). **Dál:** počkat na jejich zpětnou vazbu, Liborovy souhlasy a aktuální verze jeho softwaru, pak úprava
+  a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
+  `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
+  vyzkouší později.
 - **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
   etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu
   (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →
