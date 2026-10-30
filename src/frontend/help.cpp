@@ -404,6 +404,7 @@ struct AboutLogo {
     SDL_Texture* tex = nullptr;     // the mask at the size drawn last, or logo.png
     int tex_w = 0, tex_h = 0;
     bool tinted = false;            // the mask (else logo.png)
+    float ink_bottom = 1.0f;        // the bottom of the strokes as a part of the height (the mask has a margin)
 };
 
 // Area average of the alpha of `src` (RGBA32) into w x h (not larger than src): the strokes keep their weight.
@@ -448,6 +449,16 @@ static SDL_Texture* about_logo(UiState& ui, AboutLogo& lg, int h)
             SDL_DestroySurface(s);
         }
         lg.tinted = lg.mask != nullptr;
+        if (lg.mask) {   // the last row with a half covered pixel: where the eye sees the bottom of the logo
+            int last = lg.mask->h - 1;
+            for (; last > 0; last--) {
+                const uint8_t* line = (const uint8_t*)lg.mask->pixels + (size_t)last * lg.mask->pitch;
+                bool ink = false;
+                for (int x = 0; x < lg.mask->w && !ink; x++) ink = line[(size_t)x * 4 + 3] >= 128;
+                if (ink) break;
+            }
+            lg.ink_bottom = (float)(last + 1) / (float)lg.mask->h;
+        }
         if (!lg.mask)
             if (SDL_Surface* s = SDL_LoadPNG(data_path("docs/img/logo.png").c_str())) {
                 lg.tex = SDL_CreateTextureFromSurface(r, s);
@@ -499,6 +510,7 @@ void draw_about(UiState& ui)
     float fb = io.DisplayFramebufferScale.y > 0 ? io.DisplayFramebufferScale.y : 1.0f;
     ImVec2 top = ImGui::GetCursorPos();
     float right = top.x + ImGui::GetContentRegionAvail().x, left = top.x, bottom = top.y;
+    float ink = -1;   // where the strokes of the logo end: the baseline of the version
     if (SDL_Texture* logo = about_logo(ui, s_logo, (int)(3.2f * u * fb + 0.5f))) {
         // pixels of the texture 1:1 on the pixel grid of the screen (no second resampling)
         float h = (float)s_logo.tex_h / fb, w = (float)s_logo.tex_w / fb;
@@ -514,6 +526,7 @@ void draw_about(UiState& ui)
         else ImGui::Image(ImTextureRef((ImTextureID)(intptr_t)logo), ImVec2(w, h));
         left += w + u;
         bottom += h;
+        if (s_logo.tinted) ink = top.y + h * s_logo.ink_bottom;
     }
     const char* ver = sapiemu_version();
     ImFont* bold = theme_fonts().bold[theme_variant()];
@@ -524,6 +537,11 @@ void draw_about(UiState& ui)
     ImGui::TextUnformatted("SAPIemu");
     ImGui::PopStyleColor();
     ImGui::PopFont();
+    if (ink > 0) {   // the baseline of the version on the bottom of the logo (author 2026-10-30), below the name's line
+        float y = ink - ImGui::GetFontBaked()->Ascent;
+        float name_end = ImGui::GetCursorPosY() - ImGui::GetStyle().ItemSpacing.y;
+        ImGui::SetCursorPosY(y > name_end ? y : name_end);
+    }
     float vw = ImGui::CalcTextSize(ver).x;
     ImGui::SetCursorPosX(right - vw > left ? right - vw : left);
     ImGui::TextDisabled("%s", ver);

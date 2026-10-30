@@ -23,6 +23,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **Po odeslání bety (pro poznámky k 0.7.1):** WSL 2026-10-30 v pořádku (62/62, autor GUI pod WSLg vyzkoušel,
+  „běží dobře“), sedm nových varování GCC opravených; O programu: verze `0.7.0-beta` zvednutá tak, že její účaří
+  sedí na spodní hraně loga (autor: po odebrání černého obdélníku loga nesedělo účaří), `ink_bottom` z masky
+  `logo-alpha.png`, při 100 i 150 %.
 - **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
   etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu
   (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →
