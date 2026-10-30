@@ -665,7 +665,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
      převede na kazetu MIKOS (`.K_L`, `.J`) nebo MIKROBASIC (LOAD), „Uložit jako WAV…“, cli `--make-tape`
      (`docs/software/kazeta.md`). Otázky na HW: přehrání WAV z PC do skutečné DSM-1, minimální mezery.
   5. ~~Linux build~~ ověřený ve WSL 2026-10-06 (`docs/build.md`, všech 33 testů a GUI přes WSLg); CI
-     (GitHub Actions) zatím ne, nejdřív až s veřejným repem nebo jen s linuxovým během.
+     (GitHub Actions) se nezavádí (autor 2026-10-30, `docs/rozhodnuti.md`): Linux ve WSL před vydáním.
   6. ~~Přepínání jazyka UI~~ hotové 2026-10-06 (Zobrazení → Jazyk / Language, výchozí podle Windows, `--lang`,
      `docs/build.md`).
   7. ~~PKT-1~~ hotová 2026-10-07 se sestavou ZPS-6 (a RSW-1, DBS-1A). Zbývá ZPS-5 (firmware se nenašel). ~~Dump

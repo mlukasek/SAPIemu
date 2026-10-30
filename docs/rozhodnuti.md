@@ -3383,6 +3383,14 @@ se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od 
 - **Co zbývá k 0.7.1:** zpětná vazba testerů, případně novější verze Liborova softwaru. Manic Miner na BGP-1S
   převedl Libor (autor 2026-10-30), je to uvedené v průvodci sestavou, `media/README.md` a u desek.
 
+## 2026-10-30 – bez automatického sestavení na GitHubu (CI)
+
+- **GitHub Actions se nezavádějí** (autor): vydání se nahrávají do Releases ručně, testy (debug i release) běží
+  lokálně před každým pushem a pull requesty se nečekají („skupina lidí, co to vůbec vyzkouší, je tak desítka,
+  možná dvě desítky“). CI by v soukromém repu ubíralo minuty a na Windows by jen opakovalo lokální testy.
+- **Linux** se dál ověřuje ve WSL před vydáním a po změně kódu závislého na platformě (`docs/build.md`).
+- Vrátit se k tomu, kdyby začaly chodit pull requesty od jiných lidí.
+
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
 - **Opravený BIOS ECBIM8 (MFC-1A, chybějící `RET` v `INIT_MFC`) se hlásí `BIOS-3K M050815JB`** místo `V050815JB`
