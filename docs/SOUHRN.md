@@ -36,6 +36,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (DSE.COM), varování DSE.DOC u S a R s 2716 v patici, tentýž soubor znovu v patici nic neztratí. **Dál:** sonda X3
   do patice jiné karty (REM-1, JPR-1), DSE.COM J. Hlaváče (`dse.8sd`) do `media/` až s autorem, 2708, 2764
   a 2732A.
+- **2026-10-30 večer, kontrola kódu před zveřejněním** (autor pryč; rozhodnutí 2026-10-30 – kontrola kódu před
+  zveřejněním): 16 opravených chyb z kódu etap 4–9 (`fb124e6`): pád po Soubor → Rychlé načtení stavu, druhé okno
+  pod varováním už nic nezapíše, jeden obraz ve dvou jednotkách odmítnut, dodaná kazeta DSM-1 z `media/` chráněná,
+  Nová…/Uložit jako… bez přípony nic nepřepíše, nastavení přes dočasný soubor, ručně upravené soubory program
+  neshodí, jedna sestava jeden zapisovač a drobnosti v konfigurátoru, rozložení oken a nápovědě. Seznam
+  v poznámkách k 0.7.1. Opravy vznikly v odděleném pracovním stromu (souběžně s DSE-1), převzaté do `main`,
+  pracovní strom i jeho větev jsou smazané.
 - **Po odeslání bety (pro poznámky k 0.7.1):** WSL 2026-10-30 v pořádku (62/62, autor GUI pod WSLg vyzkoušel,
   „běží dobře“), sedm nových varování GCC opravených; O programu: verze `0.7.0-beta` zvednutá tak, že její účaří
   sedí na spodní hraně loga (autor: po odebrání černého obdélníku loga nesedělo účaří), `ink_bottom` z masky

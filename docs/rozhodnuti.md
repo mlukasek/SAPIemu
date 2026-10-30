@@ -3486,3 +3486,29 @@ cokoli změnit, doporučení je vždy první možnost. Popis desky `docs/desky/D
 - **Vedlejší nález k ZPS-6:** SIMPROG na disketě 7 je build pro 4 MHz (konstanta 07CEh, 98 ms na 2 MHz). Mohl by to
   být doklad, že Melsoft jel na 4 MHz (XT5 23-24). Jen Nejasnost v `docs/desky/PKT-1.md`, takt ZPS-6 zůstává 2 MHz.
 - **Barva LED** v okně Média je u obou červená, skutečná barva Tesla není známá (Nejasnost).
+
+## 2026-10-30 – kontrola kódu před zveřejněním (rozhodnuto za autora)
+
+Autor byl pryč („rozhoduj se sám a pořád pokračuj dál“). Kontrola kódu změněného od alfy 0.6.0 (etapy 4–9 GUI, asi
+12 800 řádků) ve čtyřech oblastech, každý nález zkoušel vyvrátit druhý agent: 17 potvrzených, 16 různých. Opravy
+v `fb124e6`, tři nejzávažnější ověřené znovu v programu nad kopií dat (pád po Rychlém načtení stavu, druhé okno,
+stejná disketa podruhé). Rozhodnutí, která šla za opravu:
+
+- **Druhé okno:** jakékoli ukončení, dokud varování „Už běží jiné SAPIemu“ čeká na odpověď (Konec, křížek, Alt+F4),
+  je totéž jako jeho tlačítko Ukončit: nic se nezapíše a stroj se zahodí bez vypnutí (`EmuHost::drop`). Klávesové
+  zkratky pod varováním nefungují. První oprava (jen událost zavření okna) nestačila: varování se při ukončení samo
+  zavřelo a smazalo si příznak, ověřeno porovnáním `crm.bin`, `rtc.bin` a nastavení před a po.
+- **Jeden obraz ve dvou jednotkách** se odmítne (okno Média, přetažení souboru), hláška řekne, kde už je. Porovnává
+  se soubor, se kterým jednotka opravdu pracuje (pracovní kopie z `media/` ve `work/`, velikost písmen ve Windows).
+- **Kazeta magnetofonu (DSM-1)** pracovní kopii nemá a nemá ji dostat (nástroje a návody s ní počítají). Dodaná
+  kazeta z `media/` proto zůstává v okně Média chráněná proti zápisu, nahrává se na Novou kazetu, a Obnovit
+  z originálu se u ní nenabízí.
+- **Nová… a Uložit jako…** v konfigurátoru: když se jméno napíše bez přípony a soubor s příponou existuje, nic se
+  nepřepíše (dialog se ptal na jiné jméno), hláška řekne, ať se napíše celé jméno.
+- **Jedna sestava, jeden zapisovač:** skutečná DPP-1 by obsloužila Minigraf i XY 4130 na dvou kanálech, okno, MCP
+  a cli ale ukazují jeden zapisovač. Konfigurace s oběma (a JPR-1 s XY 4130 i plotterem AR 1990) se odmítne
+  s vysvětlením, místo aby jeden zapisovač tiše nešel ovládat. Podpora více zapisovačů by byla samostatná práce.
+- **Nastavení** se ukládá přes dočasný soubor (`file_write_safe`) a jen při změně; dřív se při neuložené sestavě
+  přepisovalo každé 3 s.
+- **Ručně upravené soubory** (sestavy, `_vyber.json`, nastavení) program neshodí: texty se čtou s kontrolou typu,
+  výběr sestav chybu jen zapíše do logu.
