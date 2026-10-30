@@ -1,7 +1,7 @@
 # REM-1 – deska pamětí RAM a EPROM
 
 Zdroje: `BKP\rem-1.php` (OCR manuálu), `BKP\pdf\rem-1.pdf`, `BKP\obrazky\rempri1.png`, `rempri3a.png`,
-`rempri3b.png`, `rempri4.png`, skeny `H:\SAPI-1\Foto\Jiri_Slansky\Dokumentace\REM-1\*.tif`, Eagle
+`rempri3b.png`, `rempri4.png`, skeny originálu od J. Slanského (archiv autora), Eagle
 `D11\sapi_eagle\REPLIKY\REM-1\` (zkratky viz JPR-1.md).
 
 ## Zapojení

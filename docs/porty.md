@@ -2,7 +2,7 @@
 
 ## I/O porty (CP/M sestavy)
 
-Zdroj: `H:\SAPI-1\PORTY_v_SAPI-1_CPM.xls`, tabulka „čistě portové desky“, doplněná z ROM a ovladačů.
+Zdroj: `PORTY_v_SAPI-1_CPM.xls` (archiv autora), tabulka „čistě portové desky“, doplněná z ROM a ovladačů.
 
 | Porty | Deska |
 |---|---|

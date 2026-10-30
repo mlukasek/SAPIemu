@@ -27,8 +27,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   např. `MFC-1A` s celým návodem a originálními skeny schémat) a `..\SAPI.CZ` (záloha webu sapi.cz: `sapi`, `pdf`…).
   `..\SAPI_DOKU_FTP` je kopie SAPI_DOKU z FTP (2026-10-05), liší se od té z Dropboxu (archiv EC1045 s disketami,
   obrazy ImageDisk, viz `docs/software/CPM_SAPIMAN.md`); autor je bude slučovat.
-  Starší archiv autora je na jeho síťovém disku (vedou do něj odkazy na `H:` v `docs/`), cesty k němu jsou
-  v `CLAUDE.local.md` (jen na autorově PC, není v gitu). **Zdrojáky systému ECMON
+  Starší archiv autora je na jeho síťovém disku, cesty k němu jsou v `CLAUDE.local.md` (jen na autorově PC, není
+  v gitu). Do repa se cesty na `H:` nepíšou (od 2026-10-30): zdroj se uvede odkazem na sapi.cz (záloha webu =
+  `https://sapi.cz/…`), složkou archivu SAPI_DOKU, nebo slovy, od koho je („archiv autora“). **Zdrojáky systému ECMON
   + CP/M ZRMD-1** (ověřené proti originálům) jsou v `..\SAPI-karty\ZRMD-1\SRC\` (`build.py`, M80/L80 pod
   `cpmrun`, viz `docs/software/ECMON.md`). **Systémy CP/M J. Bíby (SAPIMAN) a EC1045**, obrazy disket, formáty a otázky na
   EC1045: `docs/software/CPM_SAPIMAN.md`, soupis jeho disket a knihovna v repu: `docs/software/SAPIMAN_diskety.md`.

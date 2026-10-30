@@ -1,7 +1,7 @@
 # AND-1Z / AND-1Z-89 – alfanumerický displej
 
 Zdroje:
-- `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\and-1z.php` (OCR manuálu Tesla)
+- [sapi.cz/sapi/and-1z.php](https://sapi.cz/sapi/and-1z.php) (OCR manuálu Tesla)
 - `..\SAPI-karty\AND-1Z-89\AND-1Z-89.pdf`, `X2_connector_pinout.txt`
 - dumpy v `roms/and-1z-89/`
 
@@ -91,11 +91,11 @@ Kompozitní video na X2 pin 30. Barvu obrazu dává monitor, v emulátoru parame
 ## AND-1Z (ZPS-4)
 
 - Funkčně stejná jako AND-1Z-89 (4× 2114 místo 6116). Návod: AND-1Z na F800 je „pro ELIS (ZPS-4) a CP/M“.
-- **Dumpy z desky ELIS** v `H:\SAPI-1\Petr_repliky_k_vyrobe\AND-1Z-89\`:
+- **Dumpy z desky ELIS** v podkladech Petra Všijanského k replikám (archiv autora):
   - PROM D1 `AND-1Z_ELIS_PROM-D1-00/FF.HEX`, `PROM_AND-1Z_D1_ELIS.HEX`: vše 1, 0x3F = 0, 0xBF = 8. Standardní
     dump má místo toho 0x7F/0xFF, takže ELIS vybere F800–FFFF při **A6 = L**, standardní při A6 = H.
   - **Vstup A6 DA1 nastavuje přepínač S1** (schéma
-    `H:\SAPI-1\SAPI_DOKU_2019-10-09\sapi_eagle\SAPI-1\REPLIKY\AND-1Z\AND-1Z.pdf`), stejně jako u RAM-1Z:
+    [sapi.cz/sapi/pdf/and-1z.pdf](https://sapi.cz/sapi/pdf/and-1z.pdf)), stejně jako u RAM-1Z:
     - obě poloviny vypnuté: pull-up R2 4k7, tedy H (standardní PROM bez mapování);
     - S1/2 zapnutý: zem, tedy L (PROM ELIS);
     - S1/1 zapnutý: MAP1 ze sběrnice.

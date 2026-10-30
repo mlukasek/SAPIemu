@@ -603,6 +603,6 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
 - **Rozbor schémat v PDF:** Python PyMuPDF (`pymupdf.open`, `page.get_pixmap(dpi=..., clip=...)`)
   vyrenderuje výřez schématu do PNG. Eagle `.sch` z let kolem 2011 je binární a nečte se.
 - **RAR archivy ze sapi.cz** rozbalí `C:\Windows\System32\tar.exe -xf soubor.rar`.
-- **Testy se skutečnými nahrávkami nebo disketami mimo repo** (`H:\SAPI-1\…`) se při chybějícím souboru
+- **Testy se skutečnými nahrávkami nebo disketami mimo repo** (archiv `..\SAPI_DOKU`, desky v `..\SAPI-karty`) se při chybějícím souboru
   přeskočí. Testy pracují s kopiemi ve `work/test/`.
 

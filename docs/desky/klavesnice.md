@@ -145,7 +145,7 @@ Malé prodlevy mezi kroky odpovídají rychlosti firmwaru.
 
 ## Consul 262.3
 
-Zdroj: `jpr-1z.php`, manuál 864.795 (skeny `H:\SAPI-1\SAPI_DOKU_2024-01-03\skeny_dokumentace_bez_retusi_Petr\CONSUL_262.3_4\`).
+Zdroj: [sapi.cz/sapi/jpr-1z.php](https://sapi.cz/sapi/jpr-1z.php), manuál 864.795 (skeny v archivu SAPI_DOKU, `skeny_dokumentace_bez_retusi_Petr\CONSUL_262.3_4`).
 
 - **Zapojení:** DAT0–7 → P1-IN0..7 (X2 piny 6, 4, 3, 5, 2, 8, 9, 7). STROBE → X2 pin 30 (P0-IN0). Napájení +5 V na pinu 22.
 - **STROBE se nezachytává:** jde o pulz asi 1 ms, takže při pollingu lze klávesu přehlédnout. Úprava se 7474
@@ -218,7 +218,7 @@ Zdroj: `sapi\ank-1.php`, příloha VII manuálu (`ank-1pri07.png`), tabulky MIKO
 ### ANK-1 schéma
 
 Překreslená schémata EC1045.01 (2010): `BKP\obrazky\ank-1_logika.png` a `ank-1_tlacitka.png` (`BKP` =
-`H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`), význam bitů v příloze VII `ank-1pri07.png`.
+web `https://sapi.cz/sapi/…` ([přehled desek](https://sapi.cz/sapi/desky.php))), význam bitů v příloze VII `ank-1pri07.png`.
 - P0-OUT5 → 7405 → LED SHIFT (zelená), P0-OUT7 → LED ERR (rudá), P0-OUT6 → piezo (zní při 1).
 - **Bzučák ANK-1:** MIKROBASIC 2.4 tón dělá sám: po stisku klávesy přepíná D6 asi 64× (asi 750 Hz, 65–80 ms).
   Piezo tedy sleduje úroveň bitu (pasivní měnič). Emulace je stejná: zvuk je průběh D6 (`core/beeper`, druh

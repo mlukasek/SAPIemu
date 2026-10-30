@@ -5,15 +5,15 @@ jinak S1/3 zem) a `prom` (výchozí dump `roms/ram-1z/RAM-1Z_D3B_74S571.bin`). R
 neemuluje: deska s 8080 by na skutečném HW nefungovala, emulátor to nehlídá.
 
 Zdroje:
-- `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\ram-1z.php`
-- `H:\SAPI-1\RAM-1Z\DESCRIPTION`
+- [sapi.cz/sapi/ram-1z.php](https://sapi.cz/sapi/ram-1z.php)
+- popis `DESCRIPTION` k RAM-1Z (archiv autora)
 
 ## Parametry
 
 - **Paměť:** 4116 DRAM, 4 řady po 16 KB. Osadit lze 16–64 KB.
 - **Refresh:** vychází ze signálu Z80 /REF, takže deska funguje **jen s JPR-1Z/ZI**.
 - **Dekodér PROM D3B (74S571):** dumpy shodné s HEX v návodu:
-  - `H:\SAPI-1\Petr_repliky_k_vyrobe\DMR-1\RAM-1Z_PROM_B9.hex`, `RAM1Z_B9.hex`;
+  - `RAM-1Z_PROM_B9.hex` a `RAM1Z_B9.hex` v podkladech Petra Všijanského k DMR-1 (archiv autora);
   - `...\SAPI-karty\AND-1Z-89\SD-PROM-PROG\RAM1Z_B9.571`.
   - Vstupy podle schématu: A0–A5 = A10, A11, AZ12–AZ15 (AZ = zachycené 7475 během MRQ), **A6 = S1/1,
     A7 = S1/2** (pull-up 4k7, sepnuto = 0), A8 = MAP1 (X1/21) přes S1/4, nebo zem přes S1/3.

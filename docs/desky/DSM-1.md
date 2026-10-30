@@ -1,8 +1,8 @@
 # DSM-1 – sériové rozhraní s kazetou
 
 Zdroje:
-- `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\dsm-1.php`, `obrazky\dsmobr3.png`
-- `H:\SAPI-1\DSM-1\`
+- [sapi.cz/sapi/dsm-1.php](https://sapi.cz/sapi/dsm-1.php), [sapi.cz/sapi/obrazky/dsmobr3.png](https://sapi.cz/sapi/obrazky/dsmobr3.png)
+- podklady k DSM-1 v archivu autora
 
 ## Základní parametry
 
@@ -18,7 +18,7 @@ Zdroje:
 - **Formát:** pevně 2400 Bd, 1 start bit, 8 datových bitů, 2 stop bity.
 - **Kódování:** vysílaný bit XOR hodiny, tedy jedna perioda nosné na bit a změna fáze při změně dat. Prakticky jde o Manchester 2400 bit/s.
 - **Čtení:** rozhoduje doba mezi průchody nulou. 208 µs znamená „beze změny“, 416 µs „změna“. Práh čítače je 12.
-- **Ověřeno na nahrávce** `H:\SAPI-1\SAPI_DOKU_2024-01-03\Kazetopáskové vybavení AUDIO WAV\tool_48.wav`: mezery jsou přesně 208 a 416 µs. Tyto WAV nahrávky jsou vhodné jako testovací vstup pro emulátor.
+- **Ověřeno na nahrávce** `tool_48.wav` z archivu SAPI_DOKU (složka `Kazetopáskové vybavení AUDIO WAV`): mezery jsou přesně 208 a 416 µs. Tyto WAV nahrávky jsou vhodné jako testovací vstup pro emulátor.
 
 ## Emulace (`src/cards/dsm1.*`, `src/chips/tape_deck.*`)
 
@@ -54,7 +54,7 @@ Zdroje:
   - Dekodér jen podle délky intervalů (jako popis v manuálu) se na kopiích kazet v MP3 rozpadal: jeden zákmit
     otočil úroveň linky. Fázový dekodér čte všechny dostupné nahrávky bez chyby.
 - **Ověřeno:**
-  - Nahrávky `H:\SAPI-1\SAPI_DOKU_2024-01-03\Kazetopáskové vybavení AUDIO WAV\` (BASIC EX V4.0, TOOL 48, TOOL 80)
+  - Nahrávky z archivu SAPI_DOKU (složka `Kazetopáskové vybavení AUDIO WAV`: BASIC EX V4.0, TOOL 48, TOOL 80)
     ve WAV i MP3 bez chyby rámce. Hlavička `10 10 10 01 "TOOL 48"`, tedy formát jiného programu než MIKROBASIC.
   - MIKROBASIC SAVE → WAV → LOAD → RUN (`tests/test_cassette.cpp`).
 

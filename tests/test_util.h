@@ -18,13 +18,11 @@ static inline void test_init(void)
     }
 }
 
-// A real tape recording of the SAPI_DOKU archive: next to the repository (../SAPI_DOKU, the current copy),
-// else the older archive on H: (author's PCs). Empty when neither has it (the test part is skipped).
+// A real tape recording of the SAPI_DOKU archive next to the repository (../SAPI_DOKU). Empty when it is not
+// there (the test part is skipped).
 static inline std::string real_tape_path(const char* file)
 {
     std::string p = data_path(std::string("../SAPI_DOKU/Kazetopáskové vybavení AUDIO WAV/") + file);
-    if (file_exists(p)) return p;
-    p = std::string("H:/SAPI-1/SAPI_DOKU_2024-01-03/Kazetopáskové vybavení AUDIO WAV/") + file;
     return file_exists(p) ? p : std::string();
 }
 

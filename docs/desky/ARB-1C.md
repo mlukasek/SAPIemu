@@ -1,7 +1,7 @@
 # ARB-1 / ARB-1C – sběrnice
 
 Zdroje:
-- `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\arb-1.php`, `arb-1x.php`
+- [sapi.cz/sapi/arb-1.php](https://sapi.cz/sapi/arb-1.php), [sapi.cz/sapi/arb-1x.php](https://sapi.cz/sapi/arb-1x.php)
 - netlist `..\SAPI-karty\ARB-1C_8slot\Eagle\ARB-1C_ZPC_8slot_cor.sch` (XML)
 - `..\SAPI-karty\ARB-1C_8slot\ARB-1C_ZPC_8slot_cor_sch.pdf`
 

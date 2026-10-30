@@ -2,9 +2,9 @@
 
 Zdroje:
 - `..\SAPI-karty\IDE-1\IDE-1_M_u_SCH.pdf` (rev 2.1, 13.10.2019), `IDE-1_M_u_BOM.xlsx`, `IDE-1_jumpers.xlsx`, `SAPI_IDE_pokusy.txt`
-- `H:\SAPI-1\IDE-1\IDE_POPIS.TXT`
+- `IDE_POPIS.TXT` v archivu SAPI_DOKU (`sapi_eagle\SAPI-1\NOVE_DESKY\IDE-1`)
 
-Nejlepší zdroje jsou ale zdrojové kódy uvnitř obrazů disků v SD dumpu `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\`:
+Nejlepší zdroje jsou ale zdrojové kódy uvnitř obrazů disků v SD dumpu EC1045 od Petra Všijanského (`SD_EC1045_2019-01-31`, archiv autora):
 - `IMAGE_M\HDD_TOOL_2M.2MB`: IDE.MAC, INIHDBC.MAC, IHDFULL.MAC, COPY8HD.MAC, 8HDOU*.MAC.
 - `SAPI1_MAP\4B_DBSC_311212\311212C.2MB`: BIOS B3112HD.MAC a B3112HDO.MAC, monitor P3112C.MAC a Z3112C.MAC (ovladač PMD32 od řádku 799).
 

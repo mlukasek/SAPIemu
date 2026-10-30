@@ -845,7 +845,7 @@ void follow_machine(UiState& ui)
 // ---------------------------------------------------------------- frame drawing
 //
 // Front panels after Libor Lasota's print data for the aluminium panels of his
-// SAPI-1 frame (H:\SAPI-1\LiborLasota\Chassis\Potisk_ARTAX). Dimensions are in
+// SAPI-1 frame (his print data Potisk_ARTAX). Dimensions are in
 // points (1/72 inch) as in the drawings: narrow panel 57 x 491.8, SPN two
 // positions (114.2), ZDR seven positions (402.5); slot pitch 20.32 mm.
 

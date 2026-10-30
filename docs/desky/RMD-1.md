@@ -10,7 +10,7 @@ RMD-1 a RMD-1Z se liší jen názvem.
 - **Návod (OCR) s přílohou** (mapa portů, PROM v HEX): `BKP\rmd-1.php`.
 - **Zpětně nakreslené schéma:** `BKP\pdf\rmd-1.pdf` (vektorové). Stránka upozorňuje, že rozpiska neodpovídá
   schématu.
-- **Fotka:** `H:\SAPI-1\Foto\Aukro\RMD-1Z_Aukro.jpg`.
+- **Fotka:** z aukce na Aukru (`RMD-1Z_Aukro.jpg`, archiv autora).
 
 ## Zapojení
 

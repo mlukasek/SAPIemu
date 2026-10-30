@@ -1,9 +1,9 @@
 # JPR-1 – původní procesorová deska (8080)
 
-Zdroje (`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI_DOKU_2011-09-10`):
+Zdroje (`BKP` = web `https://sapi.cz/sapi/…` ([přehled desek](https://sapi.cz/sapi/desky.php)), `D11` = archiv dokumentace SAPI_DOKU, stav 2011-09-10):
 - `BKP\jpr-1.php` (OCR manuálu), `BKP\pdf\jpr-1.pdf` (vektorové překreslení „EC1045.01“, 2011),
   `BKP\obrazky\jprpri2.png` (propojky)
-- původní skeny `H:\SAPI-1\Foto\Jiri_Slansky\Dokumentace\JPR-1\{schema1,schema2,eprom,propojky,popis,x2-3}.tif`
+- původní skeny od J. Slanského (archiv autora): dvě strany schématu, EPROM, propojky, popis, X2 a X3
 - Eagle replika `D11\sapi_eagle\REPLIKY\JPR-1\`
 - manuál ZPS-1 `BKP\pdf\zps1.pdf` (str. 16 mapa paměti, 17 mapa I/O, 18 sloty)
 

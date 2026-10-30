@@ -19,7 +19,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →
   `docs/vznik.md`, šablony Issues v `.github/ISSUE_TEMPLATE/`), odkazy na vývojářské poznámky mimo zip vedou na
   GitHub (i z dokumentů desek, `build.md`, `sestavy.md` a z popisu sestavy her; v okně Média u pevného disku
-  RKD-1 jen jméno souboru). Beta se z toho přebalí znovu jako 0.7.0-beta, až autor řekne. Video zatím ne. **Těsně před 0.7.1:** `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9),
+  RKD-1 jen jméno souboru). Odkazy do autorova archivu na `H:` nahrazené odkazy na sapi.cz a archiv SAPI_DOKU
+  (rozhodnutí 2026-10-30), `out/` uklizené. Beta přebalená znovu jako 0.7.0-beta (stejná verze, nikdo ji ještě
+  nemá). Video zatím ne. **Těsně před 0.7.1:** `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9),
   WSL; jméno serveru se starým archivem zůstává ve staré historii gitu (historie se nepřepisuje).
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
@@ -33,7 +35,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     krocích, tooltip o rámu); checkpoint B: texty schválené, úvod „průmyslový řídicí počítač do racku“.
   - **Etapa 3 hotová** (2026-10-29): tlačítka zapisovačů v MCP a cli (`core/plotter_ctl`), titulek okna Windows
     v barvách vzhledu, měřítko podle monitoru, náhledy přístrojů v novém vzhledu (nově AR 1990 a XY 4130).
-    Autor ručně ověří titulek a přesun mezi monitory.
+    Titulek okna ověřil autor 2026-10-30 (v pořádku), přesun mezi monitory nevyzkouší (má jeden monitor).
   - **Etapa 4 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 4 plánu vzhledu: ovládání):
     klávesnice se vrací displeji a nápis „Klikněte sem a pište“, Stroj → Vypnout a zapnout (Ctrl+F12, i MCP
     a `--power-cycle`), průvodci her s volbou `3` a ovládáním, reset APS-5 s otázkou, konfigurátor podle výšky
@@ -46,8 +48,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
     u her podle klíče sestavy `main_display`, ostatní okna do volného místa vpravo, dialogy uprostřed, okno programu
     88 % plochy), zadokované rozložení jako volba v Zobrazení → Nastavení → Vzhled → Okna (každé rozložení má svůj
     soubor míst oken), celá obrazovka Alt+Enter, „Přizpůsobit oknu“ v menu zvětšení, displej menší než 1:1 hladce.
-    **Checkpoint C:** výchozí zůstávají plovoucí okna (potvrdil autor 2026-10-29). Autor ručně vyzkouší notebook, dva
-    monitory a celou obrazovku.
+    **Checkpoint C:** výchozí zůstávají plovoucí okna (potvrdil autor 2026-10-29). Celá obrazovka Alt+Enter funguje
+    dobře (autor 2026-10-30), notebook (s ještě větším rozlišením) vyzkouší později, dva monitory nemá.
   - **Etapa 6 hotová** (2026-10-29, autor spal, rozhodnutí 2026-10-29 – etapa 6 plánu vzhledu: před betou):
     Nápověda → Nahlásit chybu… (diagnostika a konec logu do schránky, složka logu, po pádu log předchozího spuštění
     `sapiemu.prev.log`), přejmenované Zobrazení → Konfigurátor sestavy… a Soubor → Spustit sestavu ze souboru…,
@@ -1210,7 +1212,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
 2. Přečíst `CLAUDE.md`, tento soubor a `docs/rozhodnuti.md`.
 3. Sestavit přes `tools\build.cmd debug test`. Na PC s pomalým síťovým diskem použít lokální preset `local-debug`
    (soubor `CMakeUserPresets.json` se necommituje, vzor je v `docs/build.md`). Na autorově hlavním PC je repo od
-   2026-10-04 na lokálním `E:\SAPI_GIT\SAPIemu` (dřív `H:\SAPI-1\GIT\SAPIemu`), stačí preset `windows-debug`.
+   2026-10-04 na lokálním `E:\SAPI_GIT\SAPIemu` (dřív na síťovém disku), stačí preset `windows-debug`.
    Po přesunu je sestavení čisté (2026-10-06: 35 testů v debug, v release navíc ZEX a 8080EXM). Autor ověřil překlad debug i release
    ve VS 2022.
 4. Pokračovat další fází z tabulky. **Hotovo (2026-10-04): F9 desky V včetně CGA-1V.** Původní poznámky k F9:
@@ -1236,5 +1238,5 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
      - implementovat JPR-1V, AND-1V (rev 2.3), RAM-1V (s generátorem MAP a volitelným RTC v C), DSM-1V,
        opravit ZRD-1V (pryč `map_jp2`);
      - sestava V s ECMON a CP/M ze ZRD-1V a IDE-1.
-   - Zdroje MikroBIOSu jsou v `H:\SAPI-1\LiborLasota\JPR-1V\@orig\JPR-1V_monitor.zip` (do repa jen HEX/BIN). Otevřené otázky ke ZPS-3/4 jsou v bodech
+   - Zdroje MikroBIOSu jsou v `JPR-1V_monitor.zip` od Libora Lasoty (do repa jen HEX/BIN). Otevřené otázky ke ZPS-3/4 jsou v bodech
    19 a 20. Originální IMA CP/M 48K je rekonstruovaný (MOVCPM48), 62K a 64K jsou hotové. Podklady jsou v `docs/software/CPM_ZPS-3.md`.

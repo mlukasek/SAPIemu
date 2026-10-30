@@ -1,9 +1,9 @@
 # MIKOS V4 a V5 (Monitor + kazetový operační systém)
 
-Zdroje: manuál „Kazetopáskové programové vybavení SAPI-1 V4.0“ (1985) v `BKP\sapi\doku\zps2-v4.php` a
-`BKP\pdf\zps2.pdf`, výpisy `BKP\sapi\data\m40f_*.php` (monitor) a `mi40f_*.php` (MIKOS), programy
-`H:\SAPI-1\MIKOS_PGM\` (HEX, shodné s sapi.cz), nahrávky
-`H:\SAPI-1\SAPI_DOKU_2024-01-03\Kazetopáskové vybavení AUDIO WAV\` (BASIC EX V4.0, TOOL 48, TOOL 80).
+Zdroje: manuál „Kazetopáskové programové vybavení SAPI-1 V4.0“ (1985) na [sapi.cz/sapi/doku/zps2-v4.php](https://sapi.cz/sapi/doku/zps2-v4.php) a
+[sapi.cz/sapi/pdf/zps2.pdf](https://sapi.cz/sapi/pdf/zps2.pdf), výpisy `sapi/data/m40f_*.php` (monitor) a `mi40f_*.php` (MIKOS) na sapi.cz,
+programy v archivu SAPI_DOKU (`MIKOS_PGM`, HEX, shodné s sapi.cz), nahrávky z archivu SAPI_DOKU (složka `Kazetopáskové vybavení AUDIO WAV`:
+BASIC EX V4.0, TOOL 48, TOOL 80).
 
 ## Verze v emulátoru
 
@@ -53,8 +53,8 @@ Sestava `machines/zps/ZPS-2.sapi`: JPR-1, REM-1 (EPROM 0000–0FFF, RAM odpojen�
 
 ## MIKOS V5.0 (Monitor V5.0, Consul)
 
-Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) v `BKP\sapi\doku2\v5.php`, výpisy `BKP\sapi\data\m5e_*`,
-`m5f_*` (monitor), `mi5_*` (MIKOS), `H:\SAPI-1\_ROM\MIKOS v5\` (binárky a `MONITOR5.TXT`).
+Zdroje: OCR „Programové vybavení V5“ (ELTOS DIZ 1988) na [sapi.cz/sapi/doku2/v5.php](https://sapi.cz/sapi/doku2/v5.php), výpisy `sapi/data/m5e_*`,
+`m5f_*` (monitor), `mi5_*` (MIKOS) na sapi.cz, binárky a `MONITOR5.TXT` v archivu SAPI_DOKU (`MIKOS5`).
 
 | Soubor | Obsah | Zdroj |
 |---|---|---|
@@ -85,8 +85,8 @@ XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); celé je jako `M
 
 ## BASIC EXP V5.0 a V5.0/G (pod Monitorem V5)
 
-- Zdroj: Intel HEX ze sapi.cz (`BKP\sapi\data\bexp_hex.php`, `bexpg_hex.php`), shodné s
-  `H:\SAPI-1\MIKOS_PGM\BASIC5.HEX`, `BASIC5G.HEX`. V repu `media/mikos/BASIC_EXP_V5.0.hex` (4400–6B00) a
+- Zdroj: Intel HEX ze sapi.cz ([sapi.cz/sapi/data/bexp_hex.php](https://sapi.cz/sapi/data/bexp_hex.php), [sapi.cz/sapi/data/bexpg_hex.php](https://sapi.cz/sapi/data/bexpg_hex.php)), shodné
+  s `BASIC5.HEX` a `BASIC5G.HEX` v archivu SAPI_DOKU (`MIKOS_PGM`). V repu `media/mikos/BASIC_EXP_V5.0.hex` (4400–6B00) a
   `BASIC_EXP_V5.0G.hex` (4400–7400). Nahrávky na kazetě nemáme.
 - **Nahrání:** v GUI Soubor → „Nahrát program do paměti (Intel HEX)…“, pak `.B`. Přes MCP `load_hex`, v
   `sapiemu-cli --load-hex`.
@@ -100,7 +100,7 @@ XY 4130 (autostart z 1800h, shodný s `xy4130_hex` na sapi.cz); celé je jako `M
 
 ## MIKOS/D V5.0 (diskety, RPD-1)
 
-- Zdroj: `BKP\sapi\doku2\v5.php` (výpisy `mi5d_*`, `ebios_*`, `bios_*`, `bdos_*`), EPROM `m5mid_hex` = 8 KB
+- Zdroj: [sapi.cz/sapi/doku2/v5.php](https://sapi.cz/sapi/doku2/v5.php) (výpisy `mi5d_*`, `ebios_*`, `bios_*`, `bdos_*`), EPROM `m5mid_hex` = 8 KB
   (Monitor V5.0F 0000–0BFF, MIKOS/D 0C00–12FF, EBIOS 1300–17DA), systémová disketa `m5mid_img.rar`
   (záložní kopie, IMD 4/2018). Dokumentace z diskety: `MIKOS_D.DOC`, `MONIT.DOC`, `BAS5.DOC`, `TEDIT.DOC`…
 - V repu: `roms/mikos/MONITOR_V5.0F_MIKOS_D_V5.0.bin`, `media/rpd-1/MIKOS_D_V5.0_system.img`, sestava

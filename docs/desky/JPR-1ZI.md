@@ -1,7 +1,7 @@
 # JPR-1ZI – procesorová deska se Z80
 
 Zdroje:
-- `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\jpr-1z.php` (manuál Tesla včetně obsahu PROM a zapojení X1–X3) a `jpr-1zi.php`
+- [sapi.cz/sapi/jpr-1z.php](https://sapi.cz/sapi/jpr-1z.php) (manuál Tesla včetně obsahu PROM a zapojení X1–X3) a [sapi.cz/sapi/jpr-1zi.php](https://sapi.cz/sapi/jpr-1zi.php)
 - `..\SAPI-karty\JPR-1ZI\JPR-1ZI.pdf`, `JPR-1ZI_BOM.xlsx`
 - PROM dumpy v `roms/jpr-1zi/`
 

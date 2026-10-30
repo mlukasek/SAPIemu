@@ -93,7 +93,7 @@ Zdroje:
   - z `..\SAPI-karty\AND-1V\rev2.3\font_and1v22\`: `font_and1v22_1024.bin` (typ 1), `newfont_and1v22_1024.bin` (typ 2),
     `font_and1v22_1012.bin` (rev 2.1);
   - z `..\SAPI-karty\AND-1V\FontROM\`: `FontAND1V.bmp.bin` (rev 1.x).
-  - Stejné kopie jsou v `H:\SAPI-1\Klasika\AND-1V\`.
+  - Stejné kopie má i archiv autora.
 
 ## Nejasnosti k ověření
 

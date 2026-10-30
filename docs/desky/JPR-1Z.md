@@ -8,7 +8,7 @@ JPR-1Z je předchůdce JPR-1ZI (`docs/desky/JPR-1ZI.md`).
   proti D3C (2k) jinou polaritu nepoužitých bitů a jiný obsah v polovině s A7 = 1, která je uzemněná. Pro
   používané adresy vybírá stejně.
 
-`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `PR` = `H:\SAPI-1\Petr_repliky_k_vyrobe`.
+`BKP` = web `https://sapi.cz/sapi/…` ([přehled desek](https://sapi.cz/sapi/desky.php)), `PR` = podklady Petra Všijanského k výrobě replik (archiv autora).
 
 ## Podklady
 
@@ -16,7 +16,7 @@ JPR-1Z je předchůdce JPR-1ZI (`docs/desky/JPR-1ZI.md`).
 - **Schéma:**
   - překreslené EC1045 2011: `BKP\pdf\jpr-1z.pdf` = `PR\JPR-1ZI\JPR-1Z.pdf`;
   - zapojení konektorů: `PR\JPR-1ZI\JPR-1Z_*_connector_pinout.txt`.
-- **Skeny originálního návodu:** `H:\SAPI-1\Foto\Jiri_Slansky\Dokumentace\JPR-1Z\1-7.jpg`.
+- **Skeny originálního návodu:** sedm stran od J. Slanského (archiv autora).
 
 ## Rozdíly proti JPR-1ZI (podle schématu)
 
@@ -43,7 +43,7 @@ JPR-1Z je předchůdce JPR-1ZI (`docs/desky/JPR-1ZI.md`).
 | ROM | Soubor | Poznámka |
 |---|---|---|
 | MOR62Z (Peřina 1988) | `BKP\data\mor62z_hex.php` | „SAPI-1 ZPS4-62K“, CP/M 2.2/P, zdroj MOR24.MAC (ZPS4 EQU) |
-| „SAPI-1 ZPS4-62K *ZF“ | `H:\SAPI-1\Foto\Jiri_Slansky\SW\JPR-1Z MACROS\1Z.BIN` | varianta MOR62Z |
+| „SAPI-1 ZPS4-62K *ZF“ | `1Z.BIN` od J. Slanského (archiv autora) | varianta MOR62Z |
 | ELIS v3.00 | `BKP\data\elis_hex.php` | kód 8080, text „C262.3“ |
 | ELIS v7.01 | `PR\JPR-1ZI\JPR-1Z_BIOS_ELIS.BIN` | kód Z80, „C259.11/C262.3 + K6313“ |
 | JB „ROM JPR-1Z S AND-1Z CESTINA V131087JB“ | zdroj `MO2711.MAC/.HEX` na `...\IMAGE_8\RPD\60_r1_rmd1m_271111.8sd` | RPD-1 + RMD-1/1MB + AND-1Z + C259.11 |

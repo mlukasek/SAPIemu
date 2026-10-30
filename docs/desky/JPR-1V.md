@@ -14,7 +14,7 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
   instrukci (změřeno 2026-10-13, `docs/zmeny-podle-hw.md`). Parametr `z80` to přepne pro desku s NMOS čipem;
 - výchozí obraz `roms/jpr-1v/JPR-1V_28C64_MikroBIOS_ECMON.bin`: banka 0 MikroBIOS 3.0, banka 1 ECMON IDE-1
   (autorovo rozhodnutí);
-- na autorově desce (fotka `H:\SAPI-1\LiborLasota\JPR-1V\Foto\mJPR1V.jpg`) je propojka BIOS osazená a TURBO
+- na autorově desce (fotka v podkladech Libora Lasoty) je propojka BIOS osazená a TURBO
   rozpojené (2 MHz).
 - **TURBO a BIOS za chodu** (jako na skutečné desce vyvedené na tlačítka panelu ZDR, autor): tlačítka TURBO a
   BIOS na panelu ZDR, menu Stroj („TURBO karty CPU“, „Propojka BIOS rozpojená“), konfigurátor („platí hned“), MCP
@@ -31,7 +31,7 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
 Zdroje:
 - [S1] schéma `..\SAPI-karty\JPR-1V\JPR-1V.pdf` (rev 1.1, 4 listy);
 - [S2] `..\SAPI-karty\JPR-1V\DESCRIPTION`;
-- [S3] monitor `H:\SAPI-1\LiborLasota\JPR-1V\@orig\JPR-1V_monitor.zip` (mimo GIT);
+- [S3] zdroje monitoru `JPR-1V_monitor.zip` od Libora Lasoty (mimo GIT);
 - [S4] https://www.pmd85.cz/?page_id=2120.
 
 Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se dají vyrenderovat znovu (`docs/build.md`).

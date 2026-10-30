@@ -98,7 +98,7 @@ Tabulka je v `docs/desky/JPR-1A.md`. Standard je **MON V1.0-C1** (`B_V10_JPR-1A_
   Soubory čtvrté diskety jsou v `cpmzps3_soubory.rar` (BIOS48C1.MAC, BOOT0C1/1C1.MAC, MON48C1.MAC,
   MOVCPM48.COM).
 - **Originální Tesla IMA CP/M 64K, bootovatelný** („CCP V2.2-A1 TESLA ELTOS IMA PARDUBICE 15/11/1984“):
-  `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\DEX\SAPI_ZPS3\01–03.8SD` (stejné jsou
+  `DEX\SAPI_ZPS3\01–03.8SD` v SD dumpu EC1045 Petra Všijanského (stejné jsou
   v `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\DEX\SAPI_ZPS3`). Volá F821, patří
   k `JPR1A_BOOT_64k`. V repu jako `media/rpd-1/CPM64K_IMA_01–03.img`, sestava `ZPS-3_CPM64K_IMA.sapi`.
 - **Diskety ze Slušovic** ve stejné složce `DEX\SAPI_ZPS3` (`04A`, `04B`: TNS CP/M V2.27-K 1986; `05`: MIC CP/M

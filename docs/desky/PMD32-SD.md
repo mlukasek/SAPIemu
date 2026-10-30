@@ -8,7 +8,8 @@ i na kanál desky **DPP-1** (`docs/desky/DPP-1.md`; ECMON bez IDE a CP/M J. Bíb
 Zdroje:
 - firmware v3.2 (26. 2. 2012, Roman Bórik): `..\SAPI-karty\PMD32-SD\Firmware\pmd32sd-v32-src\pmd32sd-v32\src\pmd32.c`, `pmd32.h`, `config.c`, `timer.c`
 - popis protokolu: `...\pmd32-protokol.txt`
-- ovladač pro PMD-85: `H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\Borik\pmd32sd-doc\pmd85-3_pmd32.asm`
+- ovladač pro PMD-85: `pmd85-3_pmd32.asm` z dokumentace PMD32-SD R. Bórika (v podkladech Petra Všijanského,
+  archiv autora)
 - ovladač pro SAPI: P3112C.MAC od řádku 799 (je uvnitř obrazu disku, viz [IDE-1.md](IDE-1.md))
 - web: https://pmd85.borik.net/wiki/Blog:Postavte_si_PMD_32-SD (popisuje starou verzi 1.3, platí zdroj v3.2)
 

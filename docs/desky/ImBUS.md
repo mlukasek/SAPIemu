@@ -4,7 +4,7 @@ Stav: **v emulátoru** jako typy sběrnice `ImBUS9` (9 pozic) a `ImBUS12` (12 po
 
 ## Podklady
 
-- ImBUS9 rev. 1.1: `H:\SAPI-1\LiborLasota\ImBUS9 rev. 1.1\` (EAGLE `ImBus9.sch`, `.brd`, knihovna `ImBUS.lbr`, rozpiska
+- ImBUS9 rev. 1.1: podklady Libora Lasoty (EAGLE `ImBus9.sch`, `.brd`, knihovna `ImBUS.lbr`, rozpiska
   `ImBus9.csv`, popis `DESCRIPTION`). ImBUS12 je podle autora stejná, jen na 12 karet.
 
 ## Zapojení (ImBUS9 rev. 1.1)

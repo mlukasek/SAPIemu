@@ -80,7 +80,7 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, [docs/
 
 - **Čelní pohled na rám:** sloty X1…Xn zprava doleva, vpravo panely SPN a ZDR.
   - Panely jsou kreslené podle tiskových podkladů hliníkových štítků z rámu Libora Lasoty
-    (`H:\SAPI-1\LiborLasota\Chassis\Potisk_ARTAX`, rozměry v bodech přímo z PDF): úzký panel 57 × 491,8 bodu,
+    (podklady `Potisk_ARTAX`, rozměry v bodech přímo z PDF): úzký panel 57 × 491,8 bodu,
     SPN dvě pozice, ZDR sedm pozic, otvory, konektory K2/K3 (D-sub), LED ZAM/DSK, popisky.
   - **Konektory:** desky původní konstrukce mají konektory FRB v hranatých otvorech, desky V většinou D-sub
     (autor). Rozměry jsou ze štítků: otvor FRB 22,7 × 150,2 bodu vlevo od středu (první sada, DSM/FDC/JPR), D-sub

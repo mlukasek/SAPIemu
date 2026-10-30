@@ -334,7 +334,7 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 - **Magnetofon jako skutečný** (autor): tlačítka PŘEHRÁT, NAHRÁT, STOP a Převinout, motor ovládá relé DSM-1.
   Vložené kazety jsou chráněné proti zápisu, nahrává se na novou kazetu nebo po vypnutí ochrany.
 - **Kazety odkudkoli ve WAV i MP3** (autor). MP3 dekóduje vendorovaná minimp3 (CC0). Nahrávky nejsou v repu,
-  zůstávají v `H:\SAPI-1\SAPI_DOKU_2024-01-03\Kazetopáskové vybavení AUDIO WAV\` (test je přeskočí, když chybí).
+  zůstávají v archivu SAPI_DOKU, složka `Kazetopáskové vybavení AUDIO WAV` (test je přeskočí, když chybí).
 - **Fázový dekodér místo prostého rozhodování podle délky intervalů.** Popis v manuálu (208/416 µs, práh čítače
   12) na čistých WAV fungoval, na MP3 kopiích dával stovky chyb rámce: jeden zákmit otočil úroveň linky. Fázový
   dekodér (mřížka bitů podle prvního start bitu, PLL, rozhodnutí každého bitu porovnáním polovin) čte všechny
@@ -484,10 +484,11 @@ Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně 
 
 ## 2026-10-04 – Repo na lokálním disku
 
-- **Autor přesunul repo i podpůrné repozitáře desek** z `H:\SAPI-1\GIT\` (síťový disk) do `E:\SAPI_GIT\`.
+- **Autor přesunul repo i podpůrné repozitáře desek** ze síťového disku do `E:\SAPI_GIT\`.
   Důvod: sestavení ve VS na síťovém disku zlobilo (IntelliSense do `.vs\`, pomalost).
-- **Archiv zůstává na `H:\SAPI-1\`** (záloha sapi.cz, `LiborLasota`, `_ROM`, nahrávky kazet). Odkazy v `docs/`
-  a cesty v testech (`test_mikos`, `test_cassette`) na něj platí dál. Relativní odkazy `..\<deska>` také.
+- **Archiv autora zůstává na síťovém disku** (záloha sapi.cz, podklady Libora Lasoty, ROM, nahrávky kazet).
+  Odkazy v `docs/` a cesty v testech (`test_mikos`, `test_cassette`) na něj platí dál. (Od 2026-10-30 vedou
+  odkazy na sapi.cz a do archivu SAPI_DOKU, testy hledají nahrávky v `..\SAPI_DOKU`.) Relativní odkazy `..\<deska>` také.
 - **Po přesunu** se smazalo `out\build\*` (CMakeCache s cestami na `H:`), nastavení GUI se zachovalo a sestavení
   je čisté, 24 testů prochází. Lokální preset `local-debug` (`C:\SAPIemu-build`) už na tomto PC není potřeba.
 
@@ -1284,7 +1285,7 @@ udělat předkonfigurované sestavy a naimplementovat FDC-1 podle `..\SAPI-karty
 
 ## 2026-10-08 – Sběrnice ImBUS9 a ImBUS12
 
-- **Přání autora:** sběrnice Libora Lasoty ImBUS9 (rev. 1.1, `H:\SAPI-1\LiborLasota\ImBUS9 rev. 1.1\`) a stejná
+- **Přání autora:** sběrnice Libora Lasoty ImBUS9 (rev. 1.1, podklady Libora Lasoty) a stejná
   na 12 karet jako typy `ImBUS9` a `ImBUS12`.
 - **Ze schématu:** X1 (K1) je pro procesorovou kartu, její A0–A15 jdou přes 4 × MH3216 (vypíná je /AEN) do ostatních
   pozic, data a řídicí signály vedou přímo. Propojka jako JP3 u ARB-1C tu není, proto `has_jp3 = false` a X1 jen
@@ -3349,6 +3350,17 @@ se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od 
   Položka rychlosti ve stavovém řádku je vynechaná, protože snímek by ukázal „--“ (hodnocení UX: radši vynechat než
   předstírat). Generátor `tools/readme_gif.py`.
 - **Video zatím ne:** na první dojem stačí GIF, video podle zájmu po zveřejnění.
+- **Odkazy do autorova archivu na `H:` nahrazené** (autor: „odkazy do H: prosím nahraď odkazy na sapi.cz“), 55 míst
+  v dokumentech, testu, popisu sestavy a komentáři v kódu:
+  - co je ze zálohy webu, vede na `https://sapi.cz/sapi/…` (stránky desek, PDF schémat, výpisy HEX, `BKP` =
+    sapi.cz). Všech 17 adres jsem ověřil na živém webu. Schéma AND-1Z ze `sapi_eagle` je bajtově shodné
+    s `pdf/and-1z.pdf` na webu, `MIKOS5.BIN` s `roms/mikos/MONITOR_V5.0F_MIKOS_V5.0_XY4130.bin`;
+  - co na webu není, ale je v archivu dokumentace SAPI_DOKU (nahrávky kazet, `MIKOS_PGM`, `MIKOS5`, `sapi_eagle`,
+    skeny bez retuší), má jméno složky archivu SAPI_DOKU;
+  - zbytek má slovy, od koho je: podklady Libora Lasoty, skeny a software J. Slanského, podklady Petra Všijanského
+    k replikám a jeho SD dump EC1045, ostatní „archiv autora“. Co to znamená na disku, je v `CLAUDE.local.md`;
+  - test nahrávek hledá jen `..\SAPI_DOKU` vedle repa, záloha na `H:` z něj zmizela;
+  - nová pravidla v `CLAUDE.md`: cesty na `H:` se do repa nepíšou.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

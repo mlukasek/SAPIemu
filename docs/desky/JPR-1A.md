@@ -2,15 +2,15 @@
 
 Stav: **emulovaná** (varianta karty JPR-1 v `src/cards/jpr1.*`), ověřeno v ZPS-3 (`tests/test_zps3.cpp`).
 
-`BKP` = `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi`, `D11` = `H:\SAPI-1\SAPI_DOKU_2011-09-10` (stejné soubory jsou
+`BKP` = web `https://sapi.cz/sapi/…` ([přehled desek](https://sapi.cz/sapi/desky.php)), `D11` = archiv dokumentace SAPI_DOKU, stav 2011-09-10 (stejné soubory jsou
 i ve snapshotech 2012-05-23, 2012-09-03, 2019-01-04).
 
 ## Podklady
 
 - **Návod (OCR):** `BKP\jpr-1a.php`, obsahuje tabulku propojek, konektory X2/X3, rozpisku a PROM D2C v Intel HEX.
 - **Schéma:**
-  - překreslené v EAGLE: `BKP\pdf\jpr-1a.pdf` = `H:\SAPI-1\JPR-1A\jpr-1a.pdf`;
-  - originální sken: `H:\SAPI-1\JPR-1A\schema.tif`;
+  - překreslené v EAGLE: [sapi.cz/sapi/pdf/jpr-1a.pdf](https://sapi.cz/sapi/pdf/jpr-1a.pdf);
+  - originální sken: `schema.tif` (archiv autora);
   - Eagle soubory: `D11\sapi_eagle\REPLIKY\JPR-1A\`.
 - **Skeny originálních příloh** po deskách: `D11\sapi1zps3.zip`, složka `6xk19966`.
 - **Fotky desky s boot ROM:** `D11\FOTO_poklady_petr\SAPI\JPR-1A_*`.

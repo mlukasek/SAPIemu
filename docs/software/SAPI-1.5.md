@@ -91,5 +91,5 @@ Diskety 5 a 6 se nedochovaly. Všechny soubory mají atribut R/O.
   a 6, úplný návod k CP/M SAPI-1.5
   (zachoval se jen `CPM62-5.TXT`).
 - Další zdroje: `CPM\BIOS\BIOS_ZPS7\BIOS7.asm` (2010–13, rozhraní ROM BIOSu pro SAPI-1 s konzolí na sériové lince
-  DSM-1), ovladač DBS-1A J. Bíby z roku 2012 na H: (`H:\SAPI-1\Petr_repliky_k_vyrobe\PMD32-SD\SD_EC1045_2019-01-31\
-  SAPI1_MAP\4B_DBSC_311212\311212C.2MB`).
+  DSM-1), ovladač DBS-1A J. Bíby z roku 2012 v SD dumpu EC1045 Petra Všijanského
+  (`SAPI1_MAP\4B_DBSC_311212\311212C.2MB`).

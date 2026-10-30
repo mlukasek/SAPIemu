@@ -9,9 +9,9 @@ Stav: **emulovaná** (typ `AND-1A` třídy AND-1 v `src/cards/and1.*`), ověřen
   - překreslené: `BKP\pdf\and-1a.pdf`;
   - originální sken: `D11\sapi1zps3.zip`, složka `6xk199137`.
 - **Tabulky propojek:** `BKP\obrazky\andpriloha-d1a.png`, `andpriloha-d2.png`. Fotky propojek
-  `H:\SAPI-1\Foto\Jiri_Slansky\Test_Prog\SAPI-1 ANK\*AND-1A*.JPG`.
+  od J. Slanského (archiv autora).
 - **Ovladače:** `...\SAPI1_ARCHIV\ze SAPI\zdrojemercl\and1a.txt`,
-  `H:\SAPI-1\LiborLasota\JPR-1S\jpr1s_mikrobios\test_and1a.asm`.
+  `test_and1a.asm` ve zdrojích MikroBIOSu JPR-1S od Libora Lasoty.
 
 ## Zapojení
 

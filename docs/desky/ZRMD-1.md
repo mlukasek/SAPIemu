@@ -3,7 +3,7 @@
 Zdroje:
 - `..\SAPI-karty\ZRMD-1\GAL\deport60.eqn`, `mem.eqn`, `porty.eqn`
 - `..\SAPI-karty\ZRMD-1\ZRMD-1.pdf`
-- `H:\SAPI-1\sapi.cz_BKP_2023-02-22\sapi\zrmd-1.php`
+- [sapi.cz/sapi/zrmd-1.php](https://sapi.cz/sapi/zrmd-1.php)
 - `..\SAPI-karty\ZRD-1V\DESCRIPTION`
 
 ## ZRMD-1
@@ -112,7 +112,7 @@ Zdroje:
 Zdroje:
 - `..\SAPI-karty\ZRD-1V\DESCRIPTION`, rozpiska, řetězce v binárním `ZRD-1V.sch` (PDF schéma chybí);
 - https://www.pmd85.cz/?page_id=2245;
-- rev 2.0-alpha v `H:\SAPI-1\LiborLasota\ZRD-1V\ZRD-1V_2-0-alpha_2025-10-16\`.
+- rev 2.0-alpha (podklady Libora Lasoty z 16. 10. 2025).
 
 **Bez PROM a GAL.**
 

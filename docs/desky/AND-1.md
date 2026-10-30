@@ -1,8 +1,8 @@
 # AND-1 – původní alfanumerický displej
 
 Zdroje: `BKP\and-1.php` (OCR manuálu, výpis PROM 74188), `BKP\pdf\and-1.pdf`, `BKP\obrazky\andpriloha-d1.png`,
-`andpriloha-d2.png`, `and-1_font*.jpg`, skeny `H:\SAPI-1\Foto\Jiri_Slansky\Dokumentace\AND-1\*.tif`, katalogový
-list znakových generátorů `...\Dokumentace\AND-1 a 1A\MHB250x.png`, Eagle `D11\sapi_eagle\REPLIKY\AND-1\`.
+`andpriloha-d2.png`, `and-1_font*.jpg`, skeny originálu od J. Slanského (archiv autora), katalogový
+list znakových generátorů `MHB250x.png` (tamtéž), Eagle `D11\sapi_eagle\REPLIKY\AND-1\`.
 
 ## Zapojení
 
