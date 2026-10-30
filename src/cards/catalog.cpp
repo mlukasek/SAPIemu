@@ -1776,6 +1776,60 @@ static const CardParam k_dmt1[] = {
       "false", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
+// DSE-1 EPROM simulator and programmer: S1 positions of S1/1 (A6), S1/2 (A7), S1/3 (A5), S1/4 (A4), 1 = closed = bit 0
+static const ParamOption k_dse1_base[] = {
+    { "\"00h\"", "00h (S1/1-4: 1 1 1 1)", "00h (S1/1-4: 1 1 1 1)" },
+    { "\"10h\"", "10h (S1/1-4: 1 1 1 0)", "10h (S1/1-4: 1 1 1 0)" },
+    { "\"20h\"", "20h (S1/1-4: 1 1 0 1)", "20h (S1/1-4: 1 1 0 1)" },
+    { "\"30h\"", "30h (S1/1-4: 1 1 0 0)", "30h (S1/1-4: 1 1 0 0)" },
+    { "\"40h\"", "40h (S1/1-4: 0 1 1 1)", "40h (S1/1-4: 0 1 1 1)" },
+    { "\"50h\"", "50h (S1/1-4: 0 1 1 0)", "50h (S1/1-4: 0 1 1 0)" },
+    { "\"60h\"", "60h (S1/1-4: 0 1 0 1)", "60h (S1/1-4: 0 1 0 1)" },
+    { "\"70h\"", "70h (S1/1-4: 0 1 0 0)", "70h (S1/1-4: 0 1 0 0)" },
+    { "\"80h\"", "80h (S1/1-4: 1 0 1 1)", "80h (S1/1-4: 1 0 1 1)" },
+    { "\"90h\"", "90h (S1/1-4: 1 0 1 0)", "90h (S1/1-4: 1 0 1 0)" },
+    { "\"A0h\"", "A0h (S1/1-4: 1 0 0 1)", "A0h (S1/1-4: 1 0 0 1)" },
+    { "\"B0h\"", "B0h (S1/1-4: 1 0 0 0)", "B0h (S1/1-4: 1 0 0 0)" },
+    { "\"C0h\"", "C0h (S1/1-4: 0 0 1 1)", "C0h (S1/1-4: 0 0 1 1)" },
+    { "\"D0h\"", "D0h (S1/1-4: 0 0 1 0)", "D0h (S1/1-4: 0 0 1 0)" },
+    { "\"E0h\"", "E0h (S1/1-4: 0 0 0 1)", "E0h (S1/1-4: 0 0 0 1)" },
+    { "\"F0h\"", "F0h (S1/1-4: 0 0 0 0, as supplied)", "F0h (S1/1-4: 0 0 0 0, z výroby)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dse1_vpp[] = {
+    { "\"pin50\"", "DSE-1B: +30 V from pin 50 (terminal N of ZDR-1A)", "DSE-1B: +30 V z kolíku 50 (svorka N zdroje ZDR-1A)" },
+    { "\"converter\"", "DSE-1A: converter from +12 V", "DSE-1A: měnič z +12 V" },
+    { "\"none\"", "DSE-1B without +30 V (Vpp always 0 V: a 2716 does not even read)",
+      "DSE-1B bez +30 V (Vpp vždy 0 V: 2716 nejde ani číst)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dse1_cable[] = {
+    { "\"2716\"", "for 2716, as supplied (18 = PC6, 20 = /PC7, 21 = Vpp)", "pro 2716, z výroby (18 = PC6, 20 = /PC7, 21 = Vpp)" },
+    { "\"2732\"", "for 2732, modified after DSE.DOC (21 = PA11, 18 = /CE, 20 = OE/Vpp)",
+      "pro 2732, upravený podle DSE.DOC (21 = PA11, 18 = /CE, 20 = OE/Vpp)" },
+    { "\"dual\"", "two sockets 2716 + 2732 (replica; the EPROM picks its socket)",
+      "dvě patice 2716 + 2732 (replika; EPROM si vybere svou patici)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_dse1_eproms[] = {
+    { "\"media/dse-1/prazdna_2716.bin\"", "Blank 2716 (2 KB, all FFh)", "Prázdná 2716 (2 KB, celá FFh)" },
+    { "\"media/dse-1/prazdna_2732.bin\"", "Blank 2732 (4 KB, all FFh)", "Prázdná 2732 (4 KB, celá FFh)" },
+    { "\"\"", "socket empty", "patice prázdná" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_dse1[] = {
+    { "base", PK_CHOICE, "S1: ports (base+0..3 8255, base+4..7 register)", "S1: porty (základ+0..3 8255, základ+4..7 registr)",
+      "\"F0h\"", k_dse1_base, 0, 0 },
+    { "jp1_map", PK_BOOL, "JP1: bit D5 drives MAP1 (pin 21 of X1)", "JP1: bit D5 budí MAP1 (kolík 21 X1)", "true", nullptr, 0, 0 },
+    { "vpp", PK_CHOICE, "Programming voltage Vpp (variant)", "Programovací napětí Vpp (provedení)", "\"pin50\"", k_dse1_vpp, 0, 0 },
+    { "x2_cable", PK_CHOICE, "Programming cable X2", "Programovací kabel X2", "\"2716\"", k_dse1_cable, 0, 0 },
+    { "eprom", PK_FILE,
+      "EPROM in the socket of X2 (.bin: 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, an assumption)",
+      "EPROM v patici X2 (.bin: 2048 B = 2716, 4096 B = 2732; programuje pulz od 1 ms, předpoklad)",
+      "\"media/dse-1/prazdna_2716.bin\"", k_dse1_eproms, 0, 0 },
+    { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
 static const ParamOption k_drv1a_load[] = {
     { "\"none\"", "nothing connected", "nic nepřipojeno" },
     { "\"plant\"", "heaters of the furnaces (APS-5, plant of the machine)", "topení pecí (APS-5, technologie sestavy)" },
@@ -2033,6 +2087,8 @@ CARD(c_adp1, "ADP-1", "ADP", "A/D converter C 520 D, 16 inputs", "A/D převodní
      k_adp1)
 CARD(c_dmt1, "DMT-1", "DMT", "Measuring amplifier, 8 thermocouple inputs", "Měřicí zesilovač, 8 vstupů pro termočlánky",
      CC_IO, 1, true, k_dmt1)
+CARD(c_dse1, "DSE-1", "DSE", "EPROM simulator and programmer 2716/2732", "Simulátor a programátor EPROM 2716/2732",
+     CC_IO, 1, true, k_dse1)
 CARD(c_drv1a, "DRV-1A", "DRV", "Relay outputs (8 reed relays)", "Reléové výstupy (8 jazýčkových relé)", CC_IO, 1, true,
      k_drv1a)
 CARD(c_dpi1l, "DPI-1L", "DPI", "Repository API and NET (network games through a relay)",
@@ -2048,7 +2104,7 @@ const std::vector<const CardInfo*>& card_catalog(void)
         &c_and1z89, &c_and1z, &c_and1v, &c_and1b, &c_bgp1s, &c_and1, &c_and1a, &c_and30c, &c_dgd1, &c_dgd1v, &c_cga1v, &c_dbs1a,
         &c_dsm1v, &c_dsm1, &c_dsp1,
         &c_zrmd1, &c_zrd1v, &c_ide1, &c_rmd1, &c_rpd1, &c_rkd1, &c_rmp1, &c_rpd1z, &c_mfc1a, &c_fdc1,
-        &c_mph1v, &c_dpp1, &c_dps1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_dpi1l, &c_bdk1,
+        &c_mph1v, &c_dpp1, &c_dps1, &c_dse1, &c_rtc1, &c_adp1, &c_dmt1, &c_drv1a, &c_dpi1l, &c_bdk1,
     };
     return list;
 }
