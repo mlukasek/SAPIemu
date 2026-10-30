@@ -1,0 +1,66 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "ZPS-2 MIKOS V4.0F s deskou DSE-1 (simulátor a programátor EPROM 2716/2732)",
+    "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou DSE-1 Tesla Elstroj na portech F0h-F7h (8255 F0h-F3h, registr F4h). V paticích 5 a 6 desky REM-1 (1000-17FF) je program DSE od Ing. P. Navrátila (NAP051186), spouští se z monitoru G1000 a nabídne menu: K kontrola smazání EPROM, P programování z RAM, C porovnání, T přenos EPROM do RAM, S a R simulátor (RAM desky) tam a zpět. V patici programovacího kabelu X2 je prázdná 2716 (pracovní kopie ve work/dse-1/); okno Média ukazuje patici, LED kabelu, Vpp, ON LINE a délku programovacího pulzu a vloží jinou EPROM nebo novou prázdnou 2716/2732. Sonda simulátoru X3 není nikam zasunutá. docs/desky/DSE-1.md, docs/navod-dse1.md.",
+    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
+    "bus": {
+        "type": "ARB-1"                     // ARB-1 (original, 8 positions)
+    },
+    "cards": [
+        {
+            "slot": 1,                      // position X1
+            "type": "JPR-1",                // CPU card 8080, memory mapped ports
+            "rom": "",                      // EPROM sockets D4E-D7E (from 0000) - none (ZPS-1: EPROMs on REM-1)
+            "eprom_type": "2708",           // Jumpers 7-8/4-5 or 9-7/4-6: EPROM type - 2708 (1 KB)
+            "ram": false,                   // RAM 1 KB at 2000 (2x 2114)
+            "int_key": false,               // Jumper 10-11: INT key -> interrupt R7
+            "wait_state": false,            // Jumper 12-14: one wait state
+            "crystal_hz": 18000000,         // Crystal (Hz, CPU = crystal / 9)
+            "keyboard": { "type": "ANK-1", "software": "mikos" }  // Keyboard (connector X2)
+        },
+        {
+            "slot": 2,                      // position X2
+            "type": "REM-1",                // RAM and EPROM card
+            "rom": "roms/dse-1/MIKOS_V4.0F_DSE_1000.bin",  // EPROMs (from socket 1) - Monitor V4.0F + MIKOS 4.0F (ANK-1) + DSE program for the DSE-1 at 1000h (6 KB)
+            "eprom_type": "2708",           // Jumpers H/G/I/J: EPROM type - 2708 (1 KB)
+            "eprom_block": 0,               // Jumper E: EPROM block - 0000-1FFF
+            "eprom_block2": "none",         // Jumper F: second EPROM block (2716) - not connected
+            "ram_block": "none",            // Jumper R: RAM block - not connected
+            "ram_kb": 0                     // RAM fitted (KB, 2 per 4x 2114)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RAM-1",                // Dynamic RAM up to 48 KB
+            "fitted_kb": 48,                // Fitted memory - RAM-1/48K
+            "s1": true,                     // S1 (S1 S2: 10 = 4000-FFFF, 01 = 4000-BFFF, 11 = 4000-7FFF, 00 = 4000-DFFF)
+            "s2": false                     // S2
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "AND-1",                // Alphanumeric display 40x24
+            "charset": "MHB2501",           // Character generator - MHB 2501 latin (jumper 42-43)
+            "rows": 24,                     // Rows - 24 rows (jumper 47-48)
+            "int1": false                   // Jumper 49-50: INT1 at the end of the frame
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "DSM-1",                // Serial modem (cassette, terminal)
+            "base": "10h",                  // Jumpers 16-12..16-15: ports
+            "baud": 600,                    // Jumper: terminal baud rate - 600 Bd (factory)
+            "int0": false,                  // UART interrupt on INT0
+            "tape": "",                     // Cassette in the recorder (WAV, MP3; a .hex program becomes a MIKOS tape)
+            "tape_write_protect": true      // Cassette write protected
+        },
+        {
+            "slot": 6,                      // position X6
+            "type": "DSE-1",                // EPROM simulator and programmer 2716/2732
+            "base": "F0h",                  // S1: ports (base+0..3 8255, base+4..7 register) - F0h (S1/1-4: 0 0 0 0, as supplied)
+            "jp1_map": true,                // JP1: bit D5 drives MAP1 (pin 21 of X1)
+            "vpp": "pin50",                 // Programming voltage Vpp (variant) - DSE-1B: +30 V from pin 50 (terminal N of ZDR-1A)
+            "x2_cable": "2716",             // Programming cable X2 - for 2716, as supplied (18 = PC6, 20 = /PC7, 21 = Vpp)
+            "eprom": "media/dse-1/prazdna_2716.bin",  // EPROM in the socket of X2 (.bin: 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, an assumption) - Blank 2716 (2 KB, all FFh)
+            "working_copy": true            // Work on copies in work/
+        }
+    ]
+}

@@ -388,6 +388,10 @@ static std::vector<std::string> card_devices(const json& card, const CardInfo* c
             std::string f = v.is_string() ? base_name(v.get<std::string>()) : "";
             std::string name = czech ? "Magnetofon" : "Tape recorder";
             out.push_back(f.empty() ? name : name + ": " + f);
+        } else if (p->kind == PK_FILE && !strcmp(p->path, "eprom")) {   // the socket of the DSE-1 programmer (cable X2)
+            std::string f = v.is_string() ? base_name(v.get<std::string>()) : "";
+            std::string name = czech ? "Patice programátoru EPROM" : "EPROM programmer socket";
+            out.push_back(f.empty() ? name : name + ": " + f);
         } else if (p->kind == PK_CHOICE && (!strcmp(p->path, "k2") || !strcmp(p->path, "k3"))) {   // connectors
             int o = param_option_index(p, v);
             if (o >= 0 && v != json("none")) out.push_back(short_label(czech ? p->options[o].cs : p->options[o].en));

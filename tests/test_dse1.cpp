@@ -1,7 +1,11 @@
 // DSE-1: the 8255 and the register through io_write / io_read with the primitives of the Tesla program (WRSIM,
 // RDSIM, RDEPR, PRGBYTE): the simulator RAM, the programming pulse (length, sampled data, bits 1 -> 0 only), the
 // cables and EPROM types, Vpp, /RES, the ports and mirrors, MAP1 by JP1, Emil's copy EPROM -> RAM, the pulse
-// statistics and the state. No ROM: the CPU card does not run.
+// statistics and the state. No ROM: the CPU card does not run (DSE_PART=unit).
+// The programs in their machines (the EPROM read from its original in media/, nothing written):
+// - DSE_PART=tesla: the program DSE of Tesla in machines/zps/ZPS-2_DSE-1.sapi (K, P, S, R);
+// - DSE_PART=simprog: SIMPROG of Melsoft (disk 7) in a copy of ZPS-6 with a DSE-1 (P, 98 ms pulses at 2 MHz).
+#include <stdlib.h>
 #include <string.h>
 #include "cards/dse1.h"
 #include "core/headless.h"
@@ -454,22 +458,211 @@ static void test_state(void)
     CHECK(b1 == b2);
 }
 
+// ---------------------------------------------------------------- the programs in their machines
+
+// A machine of machines/ with the EPROM of the socket read from its original (no working copy: nothing is written,
+// the copy in work/ of the user is not read either); `edit` changes the description first
+static bool load_file(Machine& m, const char* file, void (*edit)(json&) = nullptr)
+{
+    std::string text, err;
+    CHECK(file_read_text(data_path(file), text));
+    json cfg = json::parse(text, nullptr, false, true);
+    if (edit) edit(cfg);
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "DSE-1") c["working_copy"] = false;
+    bool ok = m.load_json(cfg, err);
+    if (!ok) fprintf(stderr, "%s: %s\n", file, err.c_str());
+    CHECK(ok);
+    return ok;
+}
+
+static Dse1* find_dse(Machine& m)
+{
+    for (auto& c : m.cards)
+        if (Dse1* d = dynamic_cast<Dse1*>(c.get())) return d;
+    return nullptr;
+}
+
+// The last line of the screen with text: where the program waits for an answer
+static std::string last_line(Machine& m)
+{
+    std::string s = screen_text(m);
+    size_t e = s.find_last_not_of(" \r\n");
+    if (e == std::string::npos) return std::string();
+    size_t b = s.rfind('\n', e);
+    b = b == std::string::npos ? 0 : b + 1;
+    return s.substr(b, e + 1 - b);
+}
+
+// Waits until the program asks with `prompt` on the last line, then types `keys`: the keyboards lose a key typed
+// before the program reads them (after OK the DSE program prints its menu line first)
+static bool answer(Machine& m, const char* prompt, const char* keys, double timeout_s = 5.0)
+{
+    for (double t = 0; t < timeout_s; t += 0.05) {
+        if (last_line(m).find(prompt) != std::string::npos) {
+            m.run_seconds(0.3);
+            m.type_text(keys);
+            return true;
+        }
+        m.run_seconds(0.05);
+    }
+    fprintf(stderr, "NO PROMPT '%s':\n%s\n", prompt, screen_text(m).c_str());
+    CHECK(false);
+    return false;
+}
+
+static uint8_t pattern(int i) { return (uint8_t)(i * 37 + 11); }
+
+// The program DSE of Tesla (MONITOR V4.0F, G1000) in machines/zps/ZPS-2_DSE-1.sapi: K the blank 2716, P 5000-50FF
+// into the EPROM from 0000 (50 ms pulses, verified by the program), S the RAM into the simulator and ON LINE, R back.
+static void test_tesla(void)
+{
+    Machine m;
+    if (!load_file(m, "machines/zps/ZPS-2_DSE-1.sapi")) return;
+    Dse1* d = find_dse(m);
+    CHECK(d && d->eprom().type == Eprom27::T2716);
+    if (!d) return;
+    if (!run_until_text(m, "SAPI-1 V4.0", 5.0)) {
+        fprintf(stderr, "NO MONITOR:\n%s\n", screen_text(m).c_str());
+        CHECK(false);
+        return;
+    }
+    m.run_seconds(0.3);
+    m.type_text("G1000\r");
+    // K: the EPROM is blank
+    answer(m, "STISKNI KLAVESU:", "K");
+    answer(m, "VLOZ EPROM", " ");
+    answer(m, "2732? A=ANO", "N");
+    answer(m, "DOLNI ADRESA EPROM=", "0\r");
+    answer(m, "HORNI ADRESA EPROM=", "7FF\r");
+    answer(m, "STISKNI KLAVESU:", "", 10.0);
+    CHECK(screen_text(m).find("\nCISTA  0000 - 07FF") != std::string::npos);
+    // P: 256 bytes from the RAM, about 13 s with the pulses of 50 ms; the program compares them after
+    for (int i = 0; i < 0x800; i++) m.bus.mem_write((uint16_t)(0x5000 + i), pattern(i));
+    answer(m, "STISKNI KLAVESU:", "P");
+    answer(m, "DOLNI ADRESA RAM=", "5000\r");
+    answer(m, "HORNI ADRESA RAM=", "50FF\r");
+    answer(m, "DOLNI ADRESA EPROM=", "0\r");
+    answer(m, "VLOZ EPROM", " ");
+    answer(m, "2732? A=ANO", "N");
+    bool ok = run_until_text(m, "SHODNY OBSAH  0000 - 00FF", 30.0);
+    if (!ok) fprintf(stderr, "NOT PROGRAMMED:\n%s\n", screen_text(m).c_str());
+    CHECK(ok);
+    const std::vector<uint8_t>& e = d->eprom().data;
+    int wrong = 0;
+    for (int i = 0; i < 2048; i++)
+        if (e[i] != (i < 0x100 ? pattern(i) : 0xFF)) wrong++;
+    CHECK_EQ(wrong, 0);
+    CHECK(d->eprom().dirty);
+    answer(m, "STISKNI KLAVESU:", "", 5.0);
+    const Dse1::Run& r = d->run();
+    CHECK(!r.active);   // Vpp went back to 0 V
+    CHECK_EQ(r.pulses, 256);
+    CHECK_EQ(r.bytes, 256);
+    CHECK_EQ(r.short_pulses, 0);
+    CHECK(r.min_byte_ms > 49.0 && r.max_byte_ms < 51.0);
+    CHECK(d->last_pulse_ms() > 49.0 && d->last_pulse_ms() < 51.0);
+    CHECK_EQ(d->vpp_volts(), 0);
+    // S: 5000-57FF into the simulator RAM 800-FFF (a 2716 sits at 800-FFF: SA11 of the probe is not wired), ON LINE
+    answer(m, "STISKNI KLAVESU:", "S");
+    answer(m, "DOLNI ADRESA RAM=", "5000\r");
+    answer(m, "EPROM 4K", "N");
+    answer(m, "STISKNI KLAVESU:", "", 10.0);
+    CHECK(d->onla() && d->onld());
+    wrong = 0;
+    for (int i = 0; i < 0x800; i++)
+        if (d->sim_ram()[0x800 + i] != pattern(i)) wrong++;
+    CHECK_EQ(wrong, 0);
+    // R: the simulator RAM 800-8FF back to 6000, compared by the program
+    answer(m, "STISKNI KLAVESU:", "R");
+    answer(m, "DOLNI ADRESA DSE=", "800\r");
+    answer(m, "HORNI ADRESA DSE=", "8FF\r");
+    answer(m, "DOLNI ADRESA RAM=", "6000\r");
+    ok = run_until_text(m, "SHODNY OBSAH  0800 - 08FF", 10.0);
+    if (!ok) fprintf(stderr, "NO RECALL:\n%s\n", screen_text(m).c_str());
+    CHECK(ok);
+    wrong = 0;
+    for (int i = 0; i < 0x100; i++)
+        if (m.peek((uint16_t)(0x6000 + i)) != pattern(i)) wrong++;
+    CHECK_EQ(wrong, 0);
+    CHECK(d->warnings().empty());
+}
+
+// ZPS-6 with the disk 1 (a copy: SAVE writes it) in A:, the disk 7 of Melsoft in B: and a DSE-1 at F0h
+static const char* const ZPS6_A = "work/test/dse1_sapi15_a.sp2";
+
+static void zps6_dse1(json& cfg)
+{
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "MFC-1A") {
+            c["drive_a"] = { { "image", ZPS6_A }, { "write_protect", false } };
+            c["drive_b"] = { { "image", "media/sapi15/SAPI15_7.sp2" }, { "write_protect", true } };
+            c["working_copy"] = false;
+        }
+    cfg["cards"].push_back({ { "slot", 6 }, { "type", "DSE-1" } });
+}
+
+// SIMPROG of Melsoft (CP/M, disk 7) in ZPS-6: P programs 0000-00FF of the 2716 from a file. The build on disk 7 is the
+// one for 4 MHz (constant 07CEh): at the 2 MHz of ZPS-6 its pulses are 98 ms, the log notes it (the length is measured
+// in the time of the bus, as on the hardware).
+static void test_simprog(void)
+{
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path("media/sapi15/SAPI15_1.sp2"), img));
+    CHECK(file_write_all(data_path(ZPS6_A), img.data(), img.size()));
+    {
+        Machine m;
+        if (!load_file(m, "machines/zps/ZPS-6.sapi", zps6_dse1)) return;
+        Dse1* d = find_dse(m);
+        CHECK(d && d->eprom().type == Eprom27::T2716);
+        if (!d || !answer(m, "A>", "", 30.0)) return;
+        for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x100 + i), pattern(i));
+        m.type_text("SAVE 1 X.BIN\r");
+        m.run_seconds(3.0);   // the prompt is on the last line while the command is typed too
+        answer(m, "A>", "B:SIMPROG A:X.BIN\r", 10.0);
+        answer(m, "epromtype: 2716", "P", 20.0);
+        answer(m, "whole eprom? (y/n):", "N");
+        answer(m, "low  address(xxxx):", "0000\r");
+        answer(m, "high address(xxxx):", "00FF\r");
+        answer(m, "give eprom to prog(ret):", "\r");
+        bool ok = answer(m, "ok(ret):", "", 60.0);   // 256 x 98 ms
+        if (!ok) fprintf(stderr, "SIMPROG:\n%s\n", screen_text(m).c_str());
+        const std::vector<uint8_t>& e = d->eprom().data;
+        int wrong = 0;
+        for (int i = 0; i < 2048; i++)
+            if (e[i] != (i < 0x100 ? pattern(i) : 0xFF)) wrong++;
+        CHECK_EQ(wrong, 0);
+        const Dse1::Run& r = d->run();
+        CHECK(!r.active);
+        CHECK_EQ(r.pulses, 256);
+        CHECK_EQ(r.bytes, 256);
+        CHECK(d->last_pulse_ms() > 97.0 && d->last_pulse_ms() < 99.0);
+        CHECK(r.min_byte_ms > 55.0);   // outside 50 ms +-5: the note in the log
+    }
+    file_remove(data_path(ZPS6_A));
+}
+
 int main(void)
 {
     test_init();
-    make_files();
-    test_ram();
-    test_program_2716();
-    test_2732();
-    test_vpp();
-    test_reset();
-    test_ports();
-    test_copy();
-    test_stats();
-    test_media();
-    test_state();
-    file_remove(data_path(F2716));
-    file_remove(data_path(F2732));
-    file_remove(data_path(FBAD));
+    const char* part = getenv("DSE_PART");   // ctest runs the parts in parallel (tests/CMakeLists.txt)
+    if (!part || !strcmp(part, "unit")) {
+        make_files();
+        test_ram();
+        test_program_2716();
+        test_2732();
+        test_vpp();
+        test_reset();
+        test_ports();
+        test_copy();
+        test_stats();
+        test_media();
+        test_state();
+        file_remove(data_path(F2716));
+        file_remove(data_path(F2732));
+        file_remove(data_path(FBAD));
+    }
+    if (!part || !strcmp(part, "tesla")) test_tesla();
+    if (!part || !strcmp(part, "simprog")) test_simprog();
     return TEST_RESULT();
 }

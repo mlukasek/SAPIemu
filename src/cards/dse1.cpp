@@ -52,15 +52,20 @@ bool Dse1::configure(const json& cfg, std::string& err)
     return true;
 }
 
+std::string Dse1::rom_work_copy(const std::string& image)
+{
+    std::string norm = image;
+    for (char& c : norm) if (c == '\\') c = '/';
+    if (norm.rfind("roms/", 0) != 0) return std::string();
+    return path_join(data_path("work/dse-1"), norm.substr(norm.find_last_of('/') + 1));
+}
+
 // The file the socket works on: an EPROM of media/ through its working copy (work/dse-1/... for media/dse-1/...), a
 // dump of roms/ through a copy in work/dse-1/ (the dumps stay as they are), other files as they are (an own EPROM).
 bool Dse1::read_image(const std::string& image, Eprom27& to, std::string& err)
 {
-    std::string norm = image;
-    for (char& c : norm) if (c == '\\') c = '/';
-    std::string p;
-    if (work_copy && norm.rfind("roms/", 0) == 0) {
-        p = path_join(data_path("work/dse-1"), norm.substr(norm.find_last_of('/') + 1));
+    std::string p = work_copy ? rom_work_copy(image) : std::string();
+    if (!p.empty()) {
         if (!file_exists(p)) {
             Eprom27 orig;
             if (!orig.load(data_path(image), err)) return false;

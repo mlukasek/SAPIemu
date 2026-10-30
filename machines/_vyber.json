@@ -20,12 +20,12 @@
             "id": "pristroje",
             "name": "Přístroje a technologie",
             "name_en": "Instruments and equipment",
-            "text": "Přístroje a zařízení se SAPI-1, nakreslené v oknech emulátoru: pece s jednotkou APS-5, měřicí pracoviště, zapisovače, záznamník dat, kazetový disk a magnetická páska.",
-            "text_en": "Instruments and equipment around SAPI-1, drawn in the emulator's windows: furnaces with the APS-5 unit, a measuring bench, plotters, a data recorder, a cartridge disk and a magnetic tape.",
+            "text": "Přístroje a zařízení se SAPI-1, nakreslené v oknech emulátoru: pece s jednotkou APS-5, měřicí pracoviště, zapisovače, záznamník dat, kazetový disk, magnetická páska a programátor EPROM.",
+            "text_en": "Instruments and equipment around SAPI-1, drawn in the emulator's windows: furnaces with the APS-5 unit, a measuring bench, plotters, a data recorder, a cartridge disk, a magnetic tape and an EPROM programmer.",
             "guides": true,
             "machines": [ "aps5.sapi", "zps/ZPS-2_DPS-1_IMS-2.sapi", "zps/ZPS-2_MIKOS_V5_Minigraf.sapi",
                           "zps/ZPS-2_MIKOS_V5_XY4130.sapi", "plotter_ar1990.sapi", "zps/ZPS-2_MIKOS_K.sapi",
-                          "rkd1_tesla_cpm.sapi", "rmp1_jb_izot.sapi" ]
+                          "rkd1_tesla_cpm.sapi", "rmp1_jb_izot.sapi", "zps/ZPS-2_DSE-1.sapi" ]
         },
         {
             "id": "libor",
@@ -177,6 +177,12 @@
             "title_en": "Cassette data recorder KZD-1",
             "summary": "Kazetopáskový záznamník dat KZD-1 s MIKOSem/K: programy se ukládají na digitální kazetu, mechanika je nakreslená v okně Média.",
             "summary_en": "The KZD-1 cassette data recorder with MIKOS/K: programs are stored on a digital cassette, the drive is drawn in the Media window."
+        },
+        "zps/ZPS-2_DSE-1.sapi": {
+            "title": "Programátor EPROM DSE-1",
+            "title_en": "DSE-1 EPROM programmer",
+            "summary": "Deska DSE-1 Tesla Elstroj programuje a simuluje EPROM 2716 a 2732. Program DSE (z monitoru G1000) zkontroluje prázdnou EPROM, naprogramuje ji z RAM a porovná. Patice, LED a Vpp jsou v okně Média.",
+            "summary_en": "The Tesla Elstroj DSE-1 board programs and simulates 2716 and 2732 EPROMs. The DSE program (G1000 in the monitor) checks a blank EPROM, programs it from RAM and compares it. The socket, the LEDs and Vpp are in the Media window."
         },
         "zps/ZPS-2_MIKOS_V5_Minigraf.sapi": {
             "title": "Zapisovač Minigraf 0507",

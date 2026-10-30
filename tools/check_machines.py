@@ -48,6 +48,8 @@ UCPM = w('U0A>', 30000)
 BASIC = w('READY', 10000) + t('PRINT 6*7\\r') + run(1500)
 MIKOS = run(3000) + t('D0 7\\r') + run(1500)
 MANIC = run(2000) + ['--load-hex', 'media/jpr-1s/manic_miner.hex'] + t('JUMP 4400\\r') + run(8000)
+# the program DSE of the DSE-1 (G1000 in MONITOR V4.0F): its menu
+DSE = w('SAPI-1 V4.0', 10000) + run(500) + t('G1000\\r') + w('STISKNI', 10000) + run(500)
 
 def plotter(action, arg=None):
     """A button of the plotter (sapiemu-cli --plotter: ready, test, pen, demo, send TEXT...)."""
@@ -107,6 +109,10 @@ MACHINES = {
     'zps_ZPS-1_JPR-1X': (BASIC, ['42']),
     'zps_ZPS-2': (MIKOS, ['0000']),
     'zps_ZPS-2_DPS-1_IMS-2': (MIKOS, ['0000']),
+    # the blank check K of the 2716 in the socket (the program waits for each answer: the keys one by one)
+    'zps_ZPS-2_DSE-1': (DSE + t('K') + w('VLOZ EPROM', 5000) + run(500) + t(' ') + w('2732?', 5000) + run(500) + t('N') +
+                        w('DOLNI ADRESA EPROM=', 5000) + run(500) + t('0\\r') + w('HORNI ADRESA EPROM=', 5000) +
+                        run(500) + t('7FF\\r') + run(3000), ['CISTA  0000 - 07FF', 'log-clean']),
     'zps_ZPS-2_MIKOS_D': (run(5000) + MIKOS, ['0000']),
     'zps_ZPS-2_MIKOS_K': (run(3000) + t('KI') + w('NAZEV:', 60000) + t('MOJE\\r') + run(4000) + t('KD') + run(30000),
                           ['00 MOJE']),

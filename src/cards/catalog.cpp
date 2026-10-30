@@ -635,6 +635,8 @@ static const ParamOption k_rem1_roms[] = {
     { "\"roms/mikos/MONITOR_V5.0E_MIKOS_V5.0.bin\"", "Monitor V5.0E + MIKOS V5.0 (Consul, 5 KB)", "Monitor V5.0E + MIKOS V5.0 (Consul, 5 KB)" },
     { "\"roms/mikos/MONITOR_V5.0F_MIKOS_V5.0_MINIGRAF.bin\"", "Monitor V5.0F + MIKOS V5.0 + Minigraf 0507 driver at 1800h (8 KB)", "Monitor V5.0F + MIKOS V5.0 + ovladač Minigrafu 0507 na 1800h (8 KB)" },
     { "\"roms/mikos/MONITOR_V5.0E_MIKOS_K_V5.0.bin\"", "Monitor V5.0E + MIKOS/K V5.0 for the KZD-1 (6 KB)", "Monitor V5.0E + MIKOS/K V5.0 pro KZD-1 (6 KB)" },
+    { "\"roms/dse-1/MIKOS_V4.0F_DSE_1000.bin\"", "Monitor V4.0F + MIKOS 4.0F (ANK-1) + DSE program for the DSE-1 at 1000h (6 KB)",
+      "Monitor V4.0F + MIKOS 4.0F (ANK-1) + program DSE pro DSE-1 na 1000h (6 KB)" },
     { "\"\"", "empty sockets", "prázdné patice" },
     { nullptr, nullptr, nullptr },
 };

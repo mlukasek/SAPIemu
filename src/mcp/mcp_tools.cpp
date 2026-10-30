@@ -1,5 +1,6 @@
 #include "mcp/mcp_tools.h"
 #include "cards/catalog.h"
+#include "cards/dse1.h"
 #include "cards/dsm1.h"
 #include "cards/hrk1.h"
 #include "cards/ide1.h"
@@ -1177,6 +1178,55 @@ json t_kzd1(EmuHost& h, const json& a)
     return json_result(j);
 }
 
+json t_dse1(EmuHost& h, const json& a)
+{
+    Machine& m = need_machine(h);
+    Dse1* d = nullptr;
+    for (auto& c : m.cards) {
+        Dse1* x = dynamic_cast<Dse1*>(c.get());
+        if (x && (!a.contains("card") || c->name == a.value("card", std::string()))) {
+            d = x;
+            break;
+        }
+    }
+    if (!d) return error_result("no DSE-1 in this machine");
+    std::string err;
+    // the EPROM in the socket through the machine description (the configurator follows, as with the Media window)
+    if (a.value("eject", false) && !m.set_live_param(d, "eprom", json(""), err)) return error_result(err);
+    if (a.contains("new")) {
+        const json& v = a["new"];
+        int type = v.is_number_integer() ? v.get<int>() : v.is_string() ? atoi(v.get<std::string>().c_str()) : 0;
+        std::string rel;
+        if (type != Eprom27::T2716 && type != Eprom27::T2732) return error_result("new must be 2716 or 2732");
+        if (!Dse1::new_blank(type, "work/dse-1", rel, err) || !m.set_live_param(d, "eprom", json(rel), err))
+            return error_result(err);
+    }
+    if (a.contains("insert")) {   // relative to the data root: media/ and roms/ go through their working copies
+        std::string p = data_relative(data_path(arg_str(a, "insert", nullptr, true)));
+        if (!m.set_live_param(d, "eprom", json(p), err)) return error_result(err);
+    }
+    if (a.value("flush", false)) d->flush();
+    json j;
+    j["card"] = d->name;
+    d->describe(j);
+    if (a.contains("sim_read")) {   // the simulator RAM as hex (offset 0-FFFh)
+        long long off = arg_num(a, "sim_read", 0);
+        long long len = arg_num(a, "length", 256);
+        if (off < 0 || len < 1 || off + len > 4096) throw ToolError{ "sim_read + length must stay within 0..FFFh (4 KB)" };
+        std::string s;
+        for (long long i = 0; i < len; i++) s += h2(d->sim_ram()[off + i]);
+        j["sim_offset"] = h4((unsigned)off);
+        j["sim_hex"] = s;
+    }
+    if (a.contains("sim_save")) {   // emulator help: not on the real board
+        std::string p = data_path(arg_str(a, "sim_save", nullptr, true));
+        make_dirs(path_dir(p));
+        if (!d->save_sim_ram(p, err)) return error_result(err);
+        j["sim_saved"] = p;
+    }
+    return json_result(j);
+}
+
 json t_mouse(EmuHost& h, const json& a)
 {
     Machine& m = need_machine(h);
@@ -1612,6 +1662,8 @@ const Tool k_tools[] = {
       R"({"type":"object","properties":{"pen_button":{"type":"boolean"},"new_sheet":{"type":"boolean"},"ar_button":{"type":"string","enum":["ready","test","stop","whole_test"]},"demo":{"type":"boolean"},"send":{"type":"string"},"send_file":{"type":"string"},"png":{"type":"string"},"svg":{"type":"string"},"px_per_mm":{"type":"integer","default":8},"crop":{"type":"boolean","default":false}}})", t_plotter },
     { "kzd1", "KZD-1 cassette data recorder (on DPP-1 X2, MIKOS/K): without arguments its state (cassette, side, tape position in metres, motion, motor overloads, the control lines). insert = a .kzd cassette (created empty when missing), new = an empty cassette into a new file (replaces it), eject, flip (the other side faces the head), tab_a / tab_b (break-out write tabs present = recording allowed), flush (write the cassette file now). program = an Intel HEX or binary file (address = its load address, hex) made into a new cassette work/kzd-1/NAME.kzd as MIKOS/K writes it (K_I with tape name volume, then K_S with name; entry = start address for .J): .K_Z, .K_L NAME, .J. Paths relative to the data root.",
       R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"string"},"eject":{"type":"boolean"},"flip":{"type":"boolean"},"tab_a":{"type":"boolean"},"tab_b":{"type":"boolean"},"flush":{"type":"boolean"},"program":{"type":"string"},"name":{"type":"string"},"volume":{"type":"string"},"address":{"type":"string"},"entry":{"type":"string"}}})", t_kzd1 },
+    { "dse1", "DSE-1 EPROM simulator and programmer (8255 at base+0..3, register at base+4, default F0h; MONITOR V4 program DSE: G1000 in machines/zps/ZPS-2_DSE-1.sapi). Without arguments its state: the register decoded (Vpp 0/5/25 V, ON LINE = onla + onld, led1 \"progr.\", led2 \"map.\", map1), the EPROM in the socket of the programming cable X2 (image, working copy path, type 2716/2732, the socket wiring of x2_cable), the last programming pulse in ms, the programming run (pulses of 1 ms or longer program, shorter ones counted apart; per byte the pulses added up, the data sheet asks for 50 ms) and the warnings logged (wired AND on the data bus, 25 V on a wrong pin...). insert = an EPROM image .bin (2048 B = 2716, 4096 B = 2732; media/ and roms/ go through a working copy in work/, programming writes the copy), new = 2716 or 2732: a new blank EPROM (all FFh) work/dse-1/eprom_N.bin into the socket, eject, flush (write the EPROM file now). The socket goes into the machine description too. sim_read = offset of the simulator RAM (hex, 0-FFF) with length (default 256): its bytes as hex; sim_save = the 4 KB of the simulator RAM into a .bin file (an emulator help, not on the real board). The probe X3 is not connected to anything. Paths relative to the data root.",
+      R"({"type":"object","properties":{"card":{"type":"string"},"insert":{"type":"string"},"new":{"type":"integer","enum":[2716,2732]},"eject":{"type":"boolean"},"flush":{"type":"boolean"},"sim_read":{"type":"string","description":"offset in the simulator RAM, hex 0-FFF"},"length":{"type":"integer"},"sim_save":{"type":"string"}}})", t_dse1 },
     { "plant", "APS-5: the plant (furnaces, thermocouples, terminal block) and the front panel HRK-1. Without arguments it reports the temperatures, heaters (DRV-1A contacts), logic inputs/outputs and the panel (key switch, fault LED, watchdog relay). Arguments change it: lock (1 operator, 2 programming), outage_s (a mains failure of that many seconds: the power fail warning, then no power, then power again; run the machine to see it), ambient_c, block_c (isothermal terminal block), battery_v, reset (all furnaces to the ambient temperature), and for channel (1-8): temperature_c (sets the furnace at once), tc_broken, heater_broken, li_a / li_b (logic inputs, true = H open). Keys of the panel: type_text with 0-9, M, R, backspace (<-), CR (->).",
       R"({"type":"object","properties":{"lock":{"type":"integer","enum":[1,2]},"outage_s":{"type":"number"},"ambient_c":{"type":"number"},"block_c":{"type":"number"},"battery_v":{"type":"number"},"reset":{"type":"boolean"},"channel":{"type":"integer"},"temperature_c":{"type":"number"},"tc_broken":{"type":"boolean"},"heater_broken":{"type":"boolean"},"li_a":{"type":"boolean"},"li_b":{"type":"boolean"}}})", t_plant },
     { "joystick", "Joysticks of the machine (MPH-1V connectors K4/K2 or the ANK-1M2 keyboard connector set to joystick; ANK-1M2 follows port 0): port 0 = the first joystick, 1 = the second. 'pressed' sets what is held (names down, up, right, left, fire1, fire2); without it only reports. The GUI changes it when the gamepad or the keyboard joystick moves.",

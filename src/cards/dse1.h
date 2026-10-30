@@ -66,6 +66,9 @@ public:
     void eject(void);
     // A new blank EPROM (all FFh, 2716 or 2732) as a new file `dir`/eprom_N.bin; rel = its path for insert()
     static bool new_blank(int type, const char* dir, std::string& rel, std::string& err);
+    // The copy in work/dse-1/ a dump of roms/ is used through (the full path; "" for other images): the Media window
+    // restores it from the original as the working copies of media/
+    static std::string rom_work_copy(const std::string& image);
     // emulator help (not the hardware): the simulator RAM into a .bin of 4 KB
     bool save_sim_ram(const std::string& path, std::string& err) const;
 

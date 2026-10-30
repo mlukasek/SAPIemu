@@ -1,5 +1,6 @@
 // Media window: cassette recorders of DSM-1 cards, images of the PMD32-SD drives,
-// the IDE disk of IDE-1 cards, cartridge disks of RKD-1 and the magnetic tape drives of RMP-1.
+// the IDE disk of IDE-1 cards, cartridge disks of RKD-1, the magnetic tape drives of RMP-1 and the EPROM in the
+// socket of the DSE-1 programmer.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 #include "frontend/theme.h"
@@ -10,6 +11,7 @@
 #include <string>
 #include <SDL3/SDL.h>
 #include "imgui.h"
+#include "cards/dse1.h"
 #include "cards/dsm1.h"
 #include "cards/ide1.h"
 #include "cards/rkd1.h"
@@ -56,6 +58,8 @@ static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "KZD-1 cassette (KZD
 
 static const SDL_DialogFileFilter k_rkd_filter[] = { { "RKD-1 cartridge (RKD)", "rkd" }, { "*", "*" } };
 static const SDL_DialogFileFilter k_tap_filter[] = { { "Magnetic tape (SIMH TAP)", "tap" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_eprom_filter[] = { { "EPROM (BIN: 2 KB = 2716, 4 KB = 2732)", "bin" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_bin_filter[] = { { "Binary file (BIN)", "bin" } };
 
 // The filters with their names in the UI language. SDL reads them until the dialog closes: the names are strings of
 // the translation table (they stay), the array is static (one dialog of this window at a time, tape_dialog).
@@ -98,7 +102,7 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
     }
     // the first time: a file to open in media/ (the programs, tapes and disks that come with the emulator; a disk from
     // there is used through its working copy), a new file in work/
-    bool opens = kind == 1 || kind == 3 || kind == 4 || kind == 6 || kind == 10 || kind == 12 || kind == 14;
+    bool opens = kind == 1 || kind == 3 || kind == 4 || kind == 6 || kind == 10 || kind == 12 || kind == 14 || kind == 16;
     std::string where = !d.last_dir.empty() ? d.last_dir : data_path(opens && dir_exists(data_path("media")) ? "media" : "work");
     if (kind == 7 || kind == 8) {   // states: in work/state unless chosen elsewhere before
         where = data_path("work/state");
@@ -111,7 +115,8 @@ static void tape_dialog(UiState& ui, int kind, const std::string& card, int driv
         { 7, k_state_filter, 1, false },    { 8, k_state_filter, 1, true }, { 4, k_img_filter, 2, true },
         { 5, k_img_filter, 1, false },      { 9, k_wav_filter, 1, false },  { 10, k_kzd_open_filter, 3, true },
         { 11, k_kzd_filter, 1, false },     { 12, k_rkd_filter, 2, true },  { 13, k_rkd_filter, 1, false },
-        { 14, k_tap_filter, 2, true },      { 15, k_tap_filter, 1, false },
+        { 14, k_tap_filter, 2, true },      { 15, k_tap_filter, 1, false }, { 16, k_eprom_filter, 2, true },
+        { 17, k_bin_filter, 1, false },
     };
     const SDL_DialogFileFilter* f = k_wav_filter;
     int n = 1;
@@ -235,7 +240,8 @@ static void media_note(UiState& ui, Card* c, int u, const std::string& image)
 }
 
 // The image the description names for unit `u`, and when it is a file of media/ used through its working
-// copy, both paths (Restore from the original).
+// copy (or a dump of roms/ in the socket of DSE-1, used through its copy in work/dse-1/), both paths (Restore from
+// the original).
 static std::string media_image(Machine* m, Card* c, int u)
 {
     const char* p = c ? c->media_param(u) : nullptr;
@@ -257,7 +263,7 @@ static bool media_copied(Machine* m, Card* c, int u, std::string& img)
     for (char& ch : img) if (ch == '\\') ch = '/';
     nlohmann::json* cc = m ? m->card_config(c) : nullptr;
     bool copies = !cc || cc->value("working_copy", true);
-    return copies && img.rfind("media/", 0) == 0;
+    return copies && (img.rfind("media/", 0) == 0 || (dynamic_cast<Dse1*>(c) && img.rfind("roms/", 0) == 0));
 }
 
 static bool media_original(Machine* m, Card* c, int u, std::string& orig, std::string& work)
@@ -265,7 +271,7 @@ static bool media_original(Machine* m, Card* c, int u, std::string& orig, std::s
     std::string img;
     if (!media_copied(m, c, u, img)) return false;
     orig = data_path(img);
-    work = data_path("work/" + img.substr(6));
+    work = img.rfind("roms/", 0) == 0 ? Dse1::rom_work_copy(img) : data_path("work/" + img.substr(6));
     return file_exists(orig);
 }
 
@@ -357,7 +363,7 @@ static void file_chosen(UiState& ui, Machine* m, int kind, std::string path, con
     }
     if (path.empty() || !m) return;
     d.last_dir = path_dir(path);
-    if (kind != 9) ui.focus_display = 2;   // a medium put in, a program chosen: the keyboard back to the display
+    if (kind != 9 && kind != 17) ui.focus_display = 2;   // a medium put in, a program chosen: the keyboard back to the display
     if (kind == 3) {   // a program: show where it goes first
         hex_scan(ui, path);
         return;
@@ -428,6 +434,20 @@ static void file_chosen(UiState& ui, Machine* m, int kind, std::string path, con
         }
         // a disk from media/ is used through its working copy
         media_set(ui, r, drive, data_relative(path));
+        return;
+    }
+    if (kind == 16 || kind == 17) {   // an EPROM for the socket of DSE-1, its simulator RAM into a file
+        Dse1* r = dynamic_cast<Dse1*>(m->find_card(card));
+        if (!r) return;
+        if (kind == 16) {   // one of media/ or roms/ is used through its working copy
+            media_set(ui, r, 0, data_relative(path));
+            return;
+        }
+        size_t slash = path.find_last_of("/\\");
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".bin";
+        std::string err;
+        if (r->save_sim_ram(path, err)) ui_notice(ui, true, std::string(tr("Simulator RAM saved")) + ": " + path);
+        else ui_notice(ui, false, tr_core(err));
         return;
     }
     Dsm1* dsm = dynamic_cast<Dsm1*>(m->find_card(card));
@@ -1525,6 +1545,105 @@ static void draw_rmp(UiState& ui, Rmp1* r)
     ImGui::PopID();
 }
 
+// ---------------------------------------------------------------- DSE-1 EPROM simulator and programmer
+
+// A LED in the box of the programming cable: a dot when lit, a ring when dark (not the colour alone)
+static void dse_led(const char* label, bool on, const char* hint)
+{
+    float h = ImGui::GetTextLineHeight();
+    float r = 0.32f * h;
+    ImGui::BeginGroup();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImVec2 c(p.x + r + 1.0f, p.y + 0.5f * h);
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    if (on) dl->AddCircleFilled(c, r, IM_COL32(235, 45, 35, 255), 16);
+    else dl->AddCircle(c, r, IM_COL32(128, 128, 128, 255), 16, 1.5f);
+    ImGui::Dummy(ImVec2(2.0f * r + 2.0f, h));
+    ImGui::SameLine();
+    ImGui::TextUnformatted(label);
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered()) tip(hint);
+}
+
+// New 2716 / New 2732: a blank EPROM (all FFh) in work/dse-1/ goes into the socket
+static void dse_new(UiState& ui, Dse1* d, int type)
+{
+    std::string rel, err;
+    if (Dse1::new_blank(type, "work/dse-1", rel, err)) media_set(ui, d, 0, rel);
+    else ui_notice(ui, false, tr_core(err));
+}
+
+// The socket of the programming cable X2 with its EPROM (a medium), the LEDs of the cable, Vpp, ON LINE, the last
+// programming pulse; the simulator RAM into a file (emulator help). No window of its own: the board has no controls.
+static void draw_dse(UiState& ui, Dse1* d)
+{
+    ImGui::PushID(d);
+    const Eprom27& e = d->eprom();
+    bool has = e.loaded();
+    ImGui::TextUnformatted(tr("EPROM in the socket:"));
+    ImGui::SameLine();
+    if (!has) ImGui::TextDisabled("%s", tr("(socket empty)"));
+    else {
+        file_name_text(e.path);
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%d)", e.type);
+    }
+    int wired = d->socket_wiring() == Dse1::CABLE_2732 ? Eprom27::T2732 : Eprom27::T2716;
+    if (has && e.type != wired) {
+        char b[256];
+        snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d (cable X2): it does not read or program as it should."),
+                 e.type, wired);
+        ImGui::PushStyleColor(ImGuiCol_Text, theme().warn);
+        ImGui::TextWrapped("%s", b);
+        ImGui::PopStyleColor();
+    }
+    if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 16, d->name);
+    const char* blank = tr("A new blank EPROM (all bits 1, as erased by UV light) in work/dse-1/ goes into the socket.");
+    ImGui::SameLine();
+    if (ImGui::Button(tr("New 2716"))) dse_new(ui, d, Eprom27::T2716);
+    if (ImGui::IsItemHovered()) tip(blank);
+    ImGui::SameLine();
+    if (ImGui::Button(tr("New 2732"))) dse_new(ui, d, Eprom27::T2732);
+    if (ImGui::IsItemHovered()) tip(blank);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!has);
+    if (ImGui::Button(tr("Eject"))) media_set(ui, d, 0, "");
+    ImGui::EndDisabled();
+    media_more(ui, d, 0);
+
+    float gap = 2.0f * ImGui::GetStyle().ItemSpacing.x;
+    dse_led(tr("LED1 progr."), d->led1(), tr("LED1 in the box of the cable X2, \"indikace progr.\" (register bit D4)."));
+    ImGui::SameLine(0, gap);
+    dse_led(tr("LED2 map."), d->led2(), tr("LED2 in the box of the cable X2, \"indikace map.\" (register bit D5, with JP1 also MAP1)."));
+    ImGui::SameLine(0, gap);
+    int v = d->vpp_volts();
+    if (v == 25) ImGui::TextColored(theme().error, "Vpp %d V", v);
+    else ImGui::Text("Vpp %d V", v);
+    if (ImGui::IsItemHovered()) tip(tr("The voltage on the Vpp pin of the socket: 0 V, 5 V for reading, 25 V for programming."));
+    ImGui::SameLine(0, gap);
+    const char* line = d->onla() && d->onld() ? "ON LINE" : d->onla() ? "ON LINE (ONLA)" : d->onld() ? "ON LINE (ONLD)" : "OFF LINE";
+    if (d->onla() || d->onld()) ImGui::TextColored(theme().ok, "%s", line);
+    else ImGui::TextDisabled("%s", line);
+    if (ImGui::IsItemHovered())
+        tip(tr("ON LINE: the simulator RAM is given to the probe X3 (in the emulator it is not plugged in anywhere); "
+               "OFF LINE: the computer writes and reads it."));
+    const Dse1::Run& r = d->run();
+    if (d->last_pulse_ms() > 0) ImGui::Text("%s %.2f ms", tr("Last programming pulse:"), d->last_pulse_ms());
+    else ImGui::TextDisabled("%s", tr("No programming pulse yet"));
+    if (d->pulse_on()) {
+        ImGui::SameLine(0, gap);
+        ImGui::TextColored(theme().error, "%s", tr("pulse on"));
+    }
+    if (r.active) {
+        ImGui::SameLine(0, gap);
+        ImGui::TextDisabled("%s %u", tr("pulses while programming:"), r.pulses);
+    }
+    if (ImGui::Button(tr("Save simulator RAM..."))) tape_dialog(ui, 17, d->name);
+    if (ImGui::IsItemHovered())
+        tip(tr("Emulator help, not on the real board: the 4 KB of the simulator RAM into a .bin file."));
+    ImGui::PopID();
+}
+
 // ---------------------------------------------------------------- files dropped on the main window
 
 // The suffix of a file in lower case, without the dot ("" = none).
@@ -1709,6 +1828,14 @@ void draw_media(UiState& ui)
             snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("magnetic tape IZOT SM 5300 (9 tracks, 800 bpi NRZI, 12.5 ips)"));
             theme_section(title);
             draw_rmp(ui, mt);
+            continue;
+        }
+        if (Dse1* dse = dynamic_cast<Dse1*>(c.get())) {
+            any = true;
+            char title[96];
+            snprintf(title, sizeof(title), "%s: %s", c->name.c_str(), tr("EPROM simulator and programmer"));
+            theme_section(title);
+            draw_dse(ui, dse);
             continue;
         }
         if (Kzd1* k = c->kzd1()) {
