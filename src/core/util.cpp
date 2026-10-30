@@ -97,6 +97,17 @@ bool file_write_safe(const std::string& utf8_path, const void* data, size_t size
     return file_write_all(utf8_path, data, size);
 }
 
+bool file_write_new(const std::string& utf8_path, const void* data, size_t size)
+{
+    fs::path dst = u8_to_path(utf8_path);
+    fs::path tmp = dst;   // a name of its own, renamed only when the file is still missing (as media_path)
+    tmp += ".tmp" + std::to_string((unsigned long long)std::random_device()());
+    std::error_code ec;
+    if (file_write_all(path_to_u8(tmp), data, size) && !fs::exists(dst, ec)) fs::rename(tmp, dst, ec);
+    if (fs::exists(tmp, ec)) fs::remove(tmp, ec);   // not needed: made meanwhile, or failed
+    return fs::exists(dst, ec);
+}
+
 bool file_write_text(const std::string& utf8_path, const std::string& text)
 {
 #ifdef _WIN32

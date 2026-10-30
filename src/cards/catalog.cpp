@@ -1822,7 +1822,9 @@ static const ParamOption k_dse1_eproms[] = {
 static const CardParam k_dse1[] = {
     { "base", PK_CHOICE, "S1: ports (base+0..3 8255, base+4..7 register)", "S1: porty (základ+0..3 8255, základ+4..7 registr)",
       "\"F0h\"", k_dse1_base, 0, 0 },
-    { "jp1_map", PK_BOOL, "JP1: bit D5 drives MAP1 (pin 21 of X1)", "JP1: bit D5 budí MAP1 (kolík 21 X1)", "true", nullptr, 0, 0 },
+    { "jp1_map", PK_BOOL,
+      "JP1: bit D5 drives MAP1 (pin 21 of X1; open for EPROM.COM of J. Biba, it lights a LED by D5)",
+      "JP1: bit D5 budí MAP1 (kolík 21 X1; pro EPROM.COM J. Bíby rozpojit, svítí jím LED)", "true", nullptr, 0, 0 },
     { "vpp", PK_CHOICE, "Programming voltage Vpp (variant)", "Programovací napětí Vpp (provedení)", "\"pin50\"", k_dse1_vpp, 0, 0 },
     { "x2_cable", PK_CHOICE, "Programming cable X2", "Programovací kabel X2", "\"2716\"", k_dse1_cable, 0, 0 },
     { "eprom", PK_FILE,

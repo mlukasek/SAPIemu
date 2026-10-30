@@ -23,7 +23,11 @@
 //   first control word) is not modelled: the address is not determined.
 // - Programming pulse: measured in bus time; PD is sampled while it lasts (AND), the write that ends it does
 //   not count. A pulse of 1 ms or longer programs (cell AND data), a shorter one not (assumption: the
-//   threshold of a real chip is unknown). One summary per programming run in the log (until Vpp leaves 25 V).
+//   threshold of a real chip is unknown). One summary per programming run in the log: the run ends when Vpp has
+//   been off 25 V for 0.5 s of bus time (DSE.COM drops it around every pulse to verify the byte), on /RES or when
+//   the EPROM changes.
+// - DSE.DOC wants the programming socket empty during S and R: a 2716 with 0 V on Vpp and /CE low while the RAM is
+//   used gives a warning in the log once (the emulator reads the RAM right, the real board may not).
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -38,6 +42,7 @@ public:
 
     bool configure(const nlohmann::json& cfg, std::string& err) override;
     void reset() override;
+    void advance(uint64_t now) override;
     bool io_read(uint8_t port, uint8_t& data) override;
     bool io_write(uint8_t port, uint8_t data) override;
     int map_lines() override;
@@ -61,13 +66,13 @@ public:
     enum { VPP_PIN50 = 0, VPP_CONVERTER = 1, VPP_NONE = 2 };    // vpp
 
     // Media window, MCP: put an EPROM image into the socket (a file of media/ through its working copy, a dump
-    // of roms/ through a copy in work/dse-1/), take it out
+    // of roms/ through a copy in work/dse-1/roms/), take it out. The same file again keeps what was programmed.
     bool insert(const std::string& image, std::string& err);
     void eject(void);
     // A new blank EPROM (all FFh, 2716 or 2732) as a new file `dir`/eprom_N.bin; rel = its path for insert()
     static bool new_blank(int type, const char* dir, std::string& rel, std::string& err);
-    // The copy in work/dse-1/ a dump of roms/ is used through (the full path; "" for other images): the Media window
-    // restores it from the original as the working copies of media/
+    // The copy a dump of roms/ is used through, work/dse-1/roms/<its path in roms/> (the full path; "" for other
+    // images): the Media window restores it from the original as the working copies of media/
     static std::string rom_work_copy(const std::string& image);
     // emulator help (not the hardware): the simulator RAM into a .bin of 4 KB
     bool save_sim_ram(const std::string& path, std::string& err) const;
@@ -86,7 +91,8 @@ public:
     double last_pulse_ms(void) const;   // the last programming pulse (0 = none yet)
     bool pulse_on(void) const { return pulse_active; }
 
-    // A programming run: the pulses while Vpp is 25 V (summary in the log when it ends)
+    // A programming run: the pulses until Vpp has been off 25 V for 0.5 s, /RES or another EPROM (summary in the log
+    // when it ends)
     struct Run {
         bool active = false;
         uint32_t pulses = 0;            // 1 ms or longer: programmed
@@ -115,6 +121,7 @@ private:
         W_ONLA = 8,                     // ON LINE address while PB / PC0-3 are outputs
         W_25V_P18 = 9, W_25V_P20 = 10, W_25V_P21 = 11,
         W_PULSE_ADDR = 12,              // the address changed during a pulse
+        W_SIM_EPROM = 13,               // the RAM used with a 2716 at Vpp 0 V and /CE low in the socket (DSE.DOC)
     };
 
     Lines lines(void);
@@ -143,6 +150,7 @@ private:
     uint8_t pulse_data = 0xFF;          // PD while it lasts (AND)
     uint64_t last_pulse = 0;            // length of the last one (bus time)
     uint8_t last_vpp = EPL_L;
+    uint64_t vpp_off = 0;               // when Vpp left 25 V (bus time): the run ends 0.5 s later
     Run runs;
     std::vector<uint32_t> run_us;       // per cell: the programming pulses of this run added up (us)
     uint32_t warned = 0;

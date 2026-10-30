@@ -12,6 +12,7 @@ using nlohmann::json;
 
 static const double MIN_PULSE_S = 0.001;           // shorter pulses do not program (assumption)
 static const double BYTE_MIN_MS = 45, BYTE_MAX_MS = 55;   // 50 ms +-5 of the data sheets, per byte
+static const double RUN_GAP_S = 0.5;               // Vpp off 25 V this long ends a programming run
 
 Dse1::~Dse1()
 {
@@ -57,11 +58,12 @@ std::string Dse1::rom_work_copy(const std::string& image)
     std::string norm = image;
     for (char& c : norm) if (c == '\\') c = '/';
     if (norm.rfind("roms/", 0) != 0) return std::string();
-    return path_join(data_path("work/dse-1"), norm.substr(norm.find_last_of('/') + 1));
+    return data_path("work/dse-1/" + norm);   // with its folders: dumps of the same name stay apart
 }
 
 // The file the socket works on: an EPROM of media/ through its working copy (work/dse-1/... for media/dse-1/...), a
-// dump of roms/ through a copy in work/dse-1/ (the dumps stay as they are), other files as they are (an own EPROM).
+// dump of roms/ through a copy in work/dse-1/roms/ (the dumps stay as they are), other files as they are (an own
+// EPROM).
 bool Dse1::read_image(const std::string& image, Eprom27& to, std::string& err)
 {
     std::string p = work_copy ? rom_work_copy(image) : std::string();
@@ -70,7 +72,7 @@ bool Dse1::read_image(const std::string& image, Eprom27& to, std::string& err)
             Eprom27 orig;
             if (!orig.load(data_path(image), err)) return false;
             make_dirs(path_dir(p));
-            if (!file_write_safe(p, orig.data.data(), orig.data.size())) {
+            if (!file_write_new(p, orig.data.data(), orig.data.size())) {
                 err = "cannot create working copy " + p;
                 return false;
             }
@@ -136,6 +138,12 @@ bool Dse1::insert(const std::string& image, std::string& err)
         LOGW("%s: the EPROM in the socket changed with Vpp %d V (a real chip could be damaged)", name.c_str(), vpp_volts());
     if (pulse_active) pulse_end();
     run_end();
+    if (chip.loaded() && data_relative(chip.path) == data_relative(e.path)) {
+        // the same file again: the chip as programmed so far, not the file as it was read (saved first)
+        flush();
+        e.data = chip.data;
+        e.dirty = chip.dirty;
+    }
     take_out();
     chip = e;
     LOGI("%s: EPROM %d %s in the socket", name.c_str(), chip.type, chip.path.c_str());
@@ -186,6 +194,15 @@ void Dse1::reset()
     regv = 0;
     ppi.reset();
     update();
+    run_end();
+}
+
+void Dse1::advance(uint64_t now)
+{
+    // the programming run ends when Vpp has been off 25 V for a while: DSE.COM drops it to 5 V (2732: 0 V) around
+    // every pulse to verify the byte, the run goes on
+    if (!runs.active || pulse_active || last_vpp == EPL_VPP || !bus || !bus->cpu_hz || now < vpp_off) return;
+    if (now - vpp_off >= (uint64_t)(RUN_GAP_S * bus->cpu_hz)) run_end();
 }
 
 uint8_t Dse1::vpp_level(void) const
@@ -303,6 +320,11 @@ void Dse1::update(void)
     case 21: warn_once(W_25V_P21, "25 V on A11 (pin 21) of the 2732 in the socket wired for a 2716: on a real chip this could damage it"); break;
     default: break;
     }
+    // DSE.DOC: during S and R the programming socket must be empty (a 2716 with 0 V on Vpp and /CE low probably
+    // loads PD, Nejasnost 3); the emulator reads the RAM right, the log says it once
+    if ((l.pc & 0x30) && l.pins.p18 == EPL_L && chip.mode(l.pins) == EPM_NO_VPP)
+        warn_once(W_SIM_EPROM, "the simulator RAM used while a 2716 sits in the socket with Vpp 0 V and /CE low: "
+                  "DSE.DOC asks for an empty socket during S and R (the real board may read wrong data)");
     // the programming pulse: from the edge that starts it to the write that ends it
     bool prog = chip.mode(l.pins) == EPM_PROGRAM;
     uint16_t c = prog ? chip.cell(l.pins) : 0;
@@ -321,7 +343,7 @@ void Dse1::update(void)
         }
     }
     uint8_t v = vpp_level();
-    if (last_vpp == EPL_VPP && v != EPL_VPP) run_end();
+    if (last_vpp == EPL_VPP && v != EPL_VPP) vpp_off = bus ? bus->now : 0;   // the run ends later (advance)
     last_vpp = v;
 }
 
@@ -427,6 +449,8 @@ std::vector<std::string> Dse1::warnings(void) const
     if (warned & (1u << W_25V_P20)) w.push_back("25 V on /OE of a 2716 (socket wired for a 2732)");
     if (warned & (1u << W_25V_P21)) w.push_back("25 V on A11 of a 2732 (socket wired for a 2716)");
     if (warned & (1u << W_PULSE_ADDR)) w.push_back("the address changed during a programming pulse");
+    if (warned & (1u << W_SIM_EPROM))
+        w.push_back("simulator RAM used with a 2716 in the socket (DSE.DOC: empty for S and R)");
     return w;
 }
 
@@ -489,17 +513,29 @@ void Dse1::state(StateIO& io)
     // the EPROM: which one (its image) and the content, programmed while running (2 or 4 KB)
     std::string img = chip.image;
     io.v(img);
+    bool unread = false;   // its file cannot be read here: the chip is made of the content in the state
     if (io.loading && io.ok() && img != chip.image) {   // another one was put in since
         std::string err;
         Eprom27 e;
         take_out();
         if (!img.empty() && read_image(img, e, err)) chip = e;
-        else if (!img.empty()) LOGW("state: DSE-1 EPROM %s: %s", img.c_str(), err.c_str());
+        else if (!img.empty()) {
+            LOGW("state: DSE-1 EPROM %s: %s (the content of the state goes into the socket, not into a file)",
+                 img.c_str(), err.c_str());
+            unread = true;
+        }
     }
     std::vector<uint8_t> d = chip.data;
     io.v(d);
     if (io.loading && io.ok()) {
-        if (d.size() != chip.data.size()) LOGW("state: DSE-1 EPROM %s has another size than in the state", img.c_str());
+        if (unread) {
+            chip.type = Eprom27::type_of_size(d.size());
+            if (chip.loaded()) {   // no path: nothing is written
+                chip.data = d;
+                chip.image = img;
+            }
+        } else if (d.size() != chip.data.size())
+            LOGW("state: DSE-1 EPROM %s has another size than in the state", img.c_str());
         else if (d != chip.data) {   // saved to the working copy like any programming
             chip.data = d;
             chip.dirty = true;
@@ -515,6 +551,7 @@ void Dse1::state(StateIO& io)
     io.v(pulse_data);
     io.v(last_pulse);
     io.v(last_vpp);
+    io.v(vpp_off);
     io.v(runs.active);
     io.v(runs.pulses);
     io.v(runs.short_pulses);
@@ -526,7 +563,7 @@ void Dse1::state(StateIO& io)
     uint32_t n = (uint32_t)run_us.size();
     io.v(n);
     if (io.loading) {
-        if (!io.ok() || n > 4096) {
+        if (!io.ok() || (n != 0 && n != 4096) || runs.active != (n == 4096)) {   // a run has its 4096 cells
             io.fail("DSE-1: bad programming run");
             return;
         }

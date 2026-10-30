@@ -30,10 +30,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   z vývodů), model na úrovni signálů, pulz v čase sběrnice (od 1 ms programuje, předpoklad), kabel X2 pro 2716,
   2732 nebo dvě patice, EPROM jako médium s pracovní kopií ve `work/dse-1/`. Blok v okně Média, MCP `dse1`, sestava
   `zps/ZPS-2_DSE-1.sapi` s programem DSE Ing. P. Navrátila (`G1000`), průvodce, náhled, testy `test_dse1`,
-  `test_dse1_tesla` a `test_dse1_simprog` (SIMPROG z diskety 7 v kopii ZPS-6: 98 ms na 2 MHz). Dokumentace
-  `docs/desky/DSE-1.md` (12 Nejasností) a návod `docs/navod-dse1.md` s výpisy z emulátoru. **Dál:** sonda X3 do
-  patice jiné karty (REM-1, JPR-1), EPROM.COM J. Bíby v sestavě CP/M (JP1 rozpojená), DSE.COM J. Hlaváče
-  (`dse.8sd`) do `media/` až s autorem, 2708, 2764 a 2732A.
+  `test_dse1_tesla`, `test_dse1_simprog` (SIMPROG z diskety 7 v kopii ZPS-6: 98 ms na 2 MHz) a `test_dse1_eprom`
+  (EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`, JP1 rozpojená). Dokumentace `docs/desky/DSE-1.md` (12 Nejasností)
+  a návod `docs/navod-dse1.md` s výpisy z emulátoru. Po kontrole: programování končí až 0,5 s po poklesu Vpp
+  (DSE.COM), varování DSE.DOC u S a R s 2716 v patici, tentýž soubor znovu v patici nic neztratí. **Dál:** sonda X3
+  do patice jiné karty (REM-1, JPR-1), DSE.COM J. Hlaváče (`dse.8sd`) do `media/` až s autorem, 2708, 2764
+  a 2732A.
 - **Po odeslání bety (pro poznámky k 0.7.1):** WSL 2026-10-30 v pořádku (62/62, autor GUI pod WSLg vyzkoušel,
   „běží dobře“), sedm nových varování GCC opravených; O programu: verze `0.7.0-beta` zvednutá tak, že její účaří
   sedí na spodní hraně loga (autor: po odebrání černého obdélníku loga nesedělo účaří), `ink_bottom` z masky

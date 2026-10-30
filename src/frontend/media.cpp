@@ -279,10 +279,10 @@ static std::string s_restore_card;   // Restore from the original: asked in a mo
 static int s_restore_unit = -1;
 static bool s_restore_open = false;
 
-// The "..." button after Eject: Restore from the original (the working copy in work/ gets the file of media/
-// again). No "Eject without saving": the media are saved while running (a few seconds after the last write), it
-// would throw away only the last seconds (decided 2026-10-29). Disabled when the medium is not from media/ (an empty
-// drive, an own file): its only item could not be used.
+// The "..." button after Eject: Restore from the original (the working copy in work/ gets the file of media/, or of
+// roms/ for an EPROM in DSE-1, again). No "Eject without saving": the media are saved while running (a few seconds
+// after the last write), it would throw away only the last seconds (decided 2026-10-29). Disabled when the medium is
+// not from media/ (an empty drive, an own file): its only item could not be used.
 static void media_more(UiState& ui, Card* c, int u)
 {
     Machine* m = ui.host->machine();
@@ -295,7 +295,7 @@ static void media_more(UiState& ui, Card* c, int u)
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         if (copied) tip(tr("Restore from the original"));
         else tipf("%s\n%s", tr("Restore from the original"),
-                  tr("Only for media of media/ used through a working copy."));
+                  tr("Only for media used through a working copy of an original in media/ (an EPROM also roms/)."));
     }
     if (!ImGui::BeginPopup("more")) return;
     std::string orig, work;
@@ -306,8 +306,8 @@ static void media_more(UiState& ui, Card* c, int u)
         s_restore_open = true;
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        tip(can ? tr("The working copy in work/ is replaced by the original in media/.")
-                : tr("Only for media of media/ used through a working copy."));
+        tip(can ? tr("The working copy in work/ is replaced by its original (media/, for an EPROM also roms/).")
+                : tr("Only for media used through a working copy of an original in media/ (an EPROM also roms/)."));
     ImGui::EndPopup();
 }
 
@@ -328,7 +328,7 @@ static void media_restore_dialog(UiState& ui)
         ImGui::Text("%s", tr("is replaced by the original"));
         ImGui::TextDisabled("%s", orig.c_str());
         ImGui::TextUnformatted(tr("All changes made in the working copy are lost."));
-    } else ImGui::TextUnformatted(tr("The medium has no original in media/."));
+    } else ImGui::TextUnformatted(tr("The medium has no original in media/ or roms/."));
     ImGui::BeginDisabled(!can);
     if (ImGui::Button(tr("Restore"))) {
         std::string img = media_image(m, c, s_restore_unit);

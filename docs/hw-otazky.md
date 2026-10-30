@@ -232,7 +232,8 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 
 3. **Jak se chová 2716 s Vpp 0 V a /CE dole.** Nastane bez +30 V a při S a R, kdy programy zapisují F4 = 00h a PC6 = 0.
    DSE.DOC i DSECPM.DOC: bez 30 V „nebude pracovat ani čtení“, DSE.DOC: při S a R nesmí být v programovacím
-   konektoru EPROM. Nejspíš 2716 při Vpp 0 V zatěžuje PD. Emulace: 2716 při Vpp 0 V nebudí PD ani ho nezatěžuje.
+   konektoru EPROM. Nejspíš 2716 při Vpp 0 V zatěžuje PD. Emulace: 2716 při Vpp 0 V nebudí PD ani ho nezatěžuje,
+   při práci s RAM s 2716 v patici (Vpp 0 V, /CE dole) zapíše jednou varování do logu.
 
 4. **Nejkratší programovací pulz,** který skutečnou 2716 a 2732 naprogramuje. Emulace programuje od 1 ms
    (předpoklad). Programy používají 5–98 ms.

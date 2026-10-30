@@ -237,8 +237,9 @@ OK
 
 `D` a `7000,701F` ukáže data z kroku 5 i se změněnými bajty `12 34` na 7010h.
 
-Původní návod DSE.DOC radí mít při `S` a `R` patici programátoru prázdnou. V emulátoru na tom nezáleží
-(`docs/desky/DSE-1.md`, Nejasnost 3).
+Původní návod DSE.DOC radí mít při `S` a `R` patici programátoru prázdnou. V emulátoru `S` a `R` projdou i s EPROM
+v patici, do logu ale jde jednou varování („…DSE.DOC asks for an empty socket during S and R…“). Skutečná deska by
+mohla číst špatně (`docs/desky/DSE-1.md`, Nejasnost 3). Prázdnou patici dá Vysunout v okně Média.
 
 ## 8. Zkouška desky a návrat: Z, E
 

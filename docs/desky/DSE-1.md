@@ -4,8 +4,8 @@ Stav: **emulovaná** od 2026-10-30:
 - karta `DSE-1` (`src/cards/dse1.*`) a čip EPROM 2716/2732 vyhodnocovaný z vývodů (`src/chips/eprom27.*`);
 - sestava `machines/zps/ZPS-2_DSE-1.sapi` (ZPS-2 s MIKOSem V4.0F a programem DSE Tesla Elstroj od 1000h);
 - blok v okně Média (patice, LED, Vpp, ON LINE, délka pulzu), nástroj MCP `dse1`;
-- testy `test_dse1` (primitivy na portech), `test_dse1_tesla` (program Tesla v ZPS-2) a `test_dse1_simprog`
-  (SIMPROG Melsoft z diskety 7 v kopii ZPS-6);
+- testy `test_dse1` (primitivy na portech), `test_dse1_tesla` (program Tesla v ZPS-2), `test_dse1_simprog`
+  (SIMPROG Melsoft z diskety 7 v kopii ZPS-6) a `test_dse1_eprom` (EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`);
 - **návod k obsluze: `docs/navod-dse1.md`**.
 
 Tesla, deska 3WK 055 04 / 3WK 055 07, provedení DSE-1A a DSE-1B. Vyráběla TESLA Blatná, dodávala TESLA Eltos DIZ,
@@ -162,7 +162,7 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 | DSE pro MIKOS V5 (1800h v EPROM, 4400h z kazety) | MONITOR V5 | popis v DSE.DOC, nenašel se | ne |
 | SIMPROG (Melsoft, převod programu Tesla) | CP/M 2.2, 8080 | disketa 7 SAPI-1.5 (`media/sapi15/SAPI15_7.sp2`), upravená kopie `SimProg_opr` | test `test_dse1_simprog` v kopii ZPS-6 |
 | DSE.COM (J. Hlaváč 1988, Intel HEX, asi 20 příkazů, pulzy se přizpůsobují) | CP/M ZPS-3, 8080 | SAPIMAN `PERINA\dse.8sd` | ne (později, s autorem) |
-| EPROM.COM (J. Bíba, „V130786“, 2708–2764, základ portů nastaví příkaz `B`) | CP/M, Z80 | `media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img` | zatím nevyzkoušený |
+| EPROM.COM (J. Bíba, „V130786“, 2708–2764, základ portů nastaví příkaz `B`) | CP/M, Z80 | `media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img` | test `test_dse1_eprom` v kopii `cpm_boot_rpd1` (JP1 rozpojená) |
 | DSE4 a MON1 (Emil, OK2KOJ 2007, základ 20h) | vlastní monitor | SAPI_DOKU `SW_SAPI_Petr` | ne, jen pro poučení |
 
 - **Program Tesla** volá MONITOR V4.0F nebo V4.1F (HILO 0624h, DISP, FILL, SUBS…), s V4.0D ani V5 nejde.
@@ -191,8 +191,10 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 
 - **Parametry** (`src/cards/catalog.cpp`):
   - `base`: S1, 00h…F0h po 10h, text volby ukazuje polohu S1/1–4; výchozí F0h;
-  - `jp1_map`: JP1, bit D5 budí MAP1; výchozí **osazená** (tabulka X1 Tesla). Sestava pro EPROM.COM J. Bíby (bit 5
-    pro LED) ji musí mít rozpojenou, s komentářem;
+  - `jp1_map`: JP1, bit D5 budí MAP1; výchozí **osazená** (tabulka X1 Tesla). Sestava pro EPROM.COM J. Bíby ji musí
+    mít rozpojenou, s komentářem, a říká to i text parametru. EPROM.COM při programování svítí bitem 5 LED (33h,
+    u 2764 71h). S osazenou JP1 by MAP1 pod CP/M přepnula paměť karet, které na MAP1 reagují (RAM-1Z, RAM-1V,
+    DMR-1, AND-1Z, AND-1V… podle jejich propojek). Na železe s osazenou JP1 je to stejné;
   - `vpp`: `pin50` DSE-1B s +30 V z kolíku 50 (výchozí), `converter` DSE-1A s měničem, `none` DSE-1B bez +30 V
     (Vpp vždy 0 V);
   - `x2_cable`: `2716` z výroby (výchozí), `2732` upravený podle DSE.DOC, `dual` dvě patice jako repliky (typ
@@ -215,6 +217,10 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   zapíše jednou varování „na skutečném čipu by ho to mohlo poškodit“. Okno Média upozorní, když typ EPROM nesedí
   se zapojením patice.
 - **2716 při Vpp 0 V** (bez +30 V nebo F4 = 00h) PD nebudí a čte se FFh (předpoklad podle DSE.DOC, Nejasnost 3).
+- **EPROM v patici při S a R:** DSE.DOC chce mít při přenosu mezi RAM počítače a RAM simulátoru (příkazy S a R)
+  patici programátoru prázdnou. Když se RAM simulátoru zapisuje nebo čte (W nebo R) a v patici je 2716 s Vpp 0 V
+  a /CE dole (PC6 = 0), zapíše se do logu jednou varování. RAM se v emulátoru přečte správně, skutečná deska možná
+  ne (Nejasnost 3). 2732 v kabelu pro 2732 má při S a R /CE nahoře, varování nedostane.
 - **Programovací pulz:**
   - měří se v čase sběrnice (`(now − začátek) / cpu_hz`, jako DMT-1 a ADP-1), takže závisí na taktu CPU jako na
     železe;
@@ -223,15 +229,20 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   - **pulz od 1 ms programuje** (buňka = buňka AND data, bity jen 1 → 0), kratší ne. Práh skutečné 2716/2732 neznáme
     (předpoklad, Nejasnost 4). Počítají se jen hrany: smyčka Tesla zapisuje 0Dh 999×, to není nový pulz;
   - změna adresy během pulzu pulz ukončí a začne nový (jednou varování);
-  - **programování** jsou všechny pulzy, dokud je Vpp 25 V. Skončí změnou Vpp, resetem nebo výměnou EPROM. Do logu
-    jde jedno shrnutí: bajty, pulzy na bajt, nejkratší a nejdelší pulz v ms, počet krátkých pulzů. Když součet
-    pulzů jednoho bajtu vyjde mimo 45–55 ms (katalogových 50 ms ± 5), jde do logu varování „naprogramováno stejně“.
-    Přísný režim (krátký pulz = nenaprogramováno) není;
+  - **programování** jsou pulzy od prvního do chvíle, kdy je Vpp **0,5 s času sběrnice** mimo 25 V, nebo do resetu
+    či výměny EPROM. Krátký pokles Vpp programování neukončí: DSE.COM J. Hlaváče kolem každého pulzu přepne na
+    5 V (F4 = 11h) a bajt přečte (2732 s F4 = 10h, tedy 0 V). Do logu jde jedno shrnutí: bajty, pulzy na bajt,
+    nejkratší a nejdelší pulz v ms, počet krátkých pulzů. Když součet pulzů jednoho bajtu vyjde mimo 45–55 ms
+    (katalogových 50 ms ± 5), jde do logu varování „naprogramováno stejně“. Přísný režim (krátký pulz =
+    nenaprogramováno) není;
   - příklady: program Tesla na 2 MHz `DSE-1: programming: 256 bytes, 1.00 pulses per byte, pulses 49.97-49.97 ms`,
-    SIMPROG z diskety 7 98,15 ms a varování.
+    SIMPROG z diskety 7 98,15 ms a EPROM.COM J. Bíby 98,3 ms, oba s varováním. DSE.COM dá bajtu 20 + 10 ms
+    a bajtu, který už sedí, 5 ms (algoritmus se přizpůsobuje schválně), varování 5–30 ms dostane také.
 - **Očekávaná poznámka u 2732:** program Tesla zapíše F4 = 13h dřív než řídicí slovo 80h a PC7 je přitom ještě 1 (po
-  resetu plave v H, po K, C nebo T zůstane z čtení). U 2732 je to /CE dole při 25 V, tedy krátký pulz s daty FFh,
-  který nic nezmění. Shrnutí v logu ho uvede jako „1 pulse shorter than 1 ms did not program“.
+  resetu plave v H, po K zůstane z čtení; C a T PC na konci každého bajtu vynulují řídicím slovem v CMPTAIL). U 2732
+  je to /CE dole při 25 V, tedy krátký pulz s daty FFh, který nic nezmění. Shrnutí v logu ho uvede jako „1 pulse
+  shorter than 1 ms did not program“. DSE.COM čte bajt s PC7 = 1 před každým pulzem, krátký pulz má tedy před
+  každým a shrnutí je sečte.
 - **Vpp** je 0, 5 nebo 25 V jmenovitě a přepíná okamžitě (zjednodušení: skutečný pokles s τ ≈ 0,2 ms, Nejasnost 8).
   Trimry P1 a P2 se nemodelují.
 - **Reset** vynuluje registr a dá porty 8255 na vstupy. RAM simulátoru zůstane. Skutečná deska po resetu nejspíš
@@ -247,14 +258,19 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 - **EPROM jako médium** (rozhodnutí 2026-10-10 o médiích):
   - `.bin` s 2048 B je 2716, s 4096 B 2732, jiná velikost se odmítne (2708, 2764 a 2732A zatím ne);
   - soubor z `media/` se používá přes pracovní kopii ve `work/dse-1/`, dump z `roms/` se zkopíruje do
-    `work/dse-1/<jméno>`. Originály se nemění, programování píše do kopie a ukládá se průběžně jako ostatní média
-    (dočasný soubor a přejmenování);
+    `work/dse-1/roms/<cesta v roms>` (se složkami, dumpy stejného jména se nepletou). Kopie vznikne, jen když ještě
+    není (kopie z jiného běhu zůstane). Originály se nemění, programování píše do kopie a ukládá se průběžně jako
+    ostatní média (dočasný soubor a přejmenování);
+  - vložení téhož souboru znovu (Vložit…, MCP `insert`) ponechá, co se do EPROM naprogramovalo: obsah se nejdřív
+    uloží a v patici zůstane;
   - prázdné originály `media/dse-1/prazdna_2716.bin` a `prazdna_2732.bin` (celé FFh). V okně Média Vložit…,
     Vysunout, Nová 2716, Nová 2732 (`work/dse-1/eprom_N.bin`) a „…“ → Obnovit z originálu (u prázdné EPROM jako
     smazání UV světlem). Ochrana proti zápisu není potřeba, bez 25 V EPROM nic nezmění;
   - výměna EPROM při Vpp ≠ 0 V zapíše do logu varování (skutečnou EPROM by to mohlo zničit).
-- **Stav** (`state()`): 8255, registr, 4 KB RAM, rozběhnutý pulz (začátek, adresa, data), statistika programování,
-  zalogovaná varování, obsah EPROM a její obraz. Po načtení stavu se obsah EPROM zapíše i do pracovní kopie.
+- **Stav** (`state()`): 8255, registr, 4 KB RAM, rozběhnutý pulz (začátek, adresa, data), statistika programování
+  (i kdy Vpp kleslo z 25 V), zalogovaná varování, obsah EPROM a její obraz. Po načtení stavu se obsah EPROM zapíše
+  i do pracovní kopie. Když soubor EPROM ze stavu nejde přečíst, dostane patice obsah ze stavu bez souboru (nic se
+  neukládá, v logu je varování).
 - **Okno Média:** blok DSE-1 s paticí, LED1, LED2, Vpp, ON LINE / OFF LINE, posledním pulzem v ms (a počtem pulzů
   během programování) a tlačítkem **Uložit RAM simulátoru…** (4 KB do `.bin`, pomoc emulátoru, skutečná deska to
   neumí).
@@ -268,12 +284,18 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 
 - **Program Tesla v ZPS-2** (`test_dse1_tesla`, `docs/navod-dse1.md`): K hlásí `CISTA  0000 - 07FF`, P z 5000–50FF
   do EPROM od 0000 naprogramuje 256 bajtů pulzy 49,97 ms a ohlásí `SHODNY OBSAH  0000 - 00FF`, S a R tam a zpět
-  `SHODNY OBSAH  0800 - 08FF`. S 2732 v kabelu pro 2732 od 900h `SHODNY OBSAH  0900 - 09FF`. Bez varování.
+  `SHODNY OBSAH  0800 - 08FF`. S 2732 v kabelu pro 2732 od 900h `SHODNY OBSAH  0900 - 09FF`. Jediné varování je
+  podle DSE.DOC u S a R (prázdná 2716 zůstala v patici).
 - **SIMPROG z diskety 7 v kopii ZPS-6** s mechanikou B a DSE-1 (`test_dse1_simprog`): `B:SIMPROG A:X.BIN`
   naprogramuje 256 bajtů ze souboru pulzy 98,15 ms, v logu je varování mimo 45–55 ms.
+- **EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`** (CP/M J. Bíby na JPR-1ZI s DMR-1, služební disketa
+  `sysprog_a_sluzebni_CPM.img` v B:, DSE-1 na F0h s rozpojenou JP1; `test_dse1_eprom`): `B:EPROM`, `P`, typ `1`,
+  RAM 2000–20FF do EPROM od 0 naprogramuje 256 bajtů pulzy 98,3 ms a ohlásí `SHODNÝ OBSAH`. Při programování svítí
+  LED1 i LED2, MAP1 zůstane v L. V logu je varování mimo 45–55 ms.
 - **Primitivy** (`test_dse1`): zápis a čtení RAM, řídicí slovo nuluje PC, pulz 50 ms programuje jen 1 → 0, pulz
   0,5 ms ne, PD vzorkované během pulzu, 2732 v obou kabelech, bez +30 V nic, reset, základ 20h a zrcadla, MAP1,
-  Emilova kopie EPROM → RAM, statistika a stav uprostřed pulzu.
+  Emilova kopie EPROM → RAM, statistika (i pulzy po způsobu DSE.COM s 2716 a 2732), varování DSE.DOC u RAM
+  s 2716 v patici, vložení téhož souboru, stav uprostřed pulzu, s jinou EPROM, s prázdnou paticí a bez souboru.
 
 ## Nejasnosti k ověření na HW
 
@@ -283,7 +305,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
    (8286 budí sběrnici i tam). Emulace FFh.
 3. **Jak se chová 2716 s Vpp 0 V a /CE dole.** Nastane bez +30 V a při S a R, kdy programy zapisují F4 = 00h a PC6 = 0.
    DSE.DOC i DSECPM.DOC: bez 30 V „nebude pracovat ani čtení“, DSE.DOC: při S a R nesmí být v programovacím
-   konektoru EPROM. Nejspíš 2716 při Vpp 0 V zatěžuje PD. Emulace: 2716 při Vpp 0 V nebudí PD ani ho nezatěžuje.
+   konektoru EPROM. Nejspíš 2716 při Vpp 0 V zatěžuje PD. Emulace: 2716 při Vpp 0 V nebudí PD ani ho nezatěžuje,
+   při práci s RAM s 2716 v patici (Vpp 0 V, /CE dole) zapíše jednou varování do logu.
 4. **Nejkratší programovací pulz,** který skutečnou 2716 a 2732 naprogramuje. Emulace programuje od 1 ms
    (předpoklad). Programy používají 5–98 ms.
 5. **Je JP1 (D5 → MAP1) z výroby osazená?** Tabulka X1 Tesla má kolík 21 MAP1 osazený, na fotce desky 6750/44328

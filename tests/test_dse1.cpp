@@ -1,10 +1,12 @@
 // DSE-1: the 8255 and the register through io_write / io_read with the primitives of the Tesla program (WRSIM,
 // RDSIM, RDEPR, PRGBYTE): the simulator RAM, the programming pulse (length, sampled data, bits 1 -> 0 only), the
 // cables and EPROM types, Vpp, /RES, the ports and mirrors, MAP1 by JP1, Emil's copy EPROM -> RAM, the pulse
-// statistics and the state. No ROM: the CPU card does not run (DSE_PART=unit).
+// statistics (also DSE.COM of J. Hlavac: Vpp 5 V around every pulse), the socket as a medium (the same file again) and
+// the state. No ROM: the CPU card does not run (DSE_PART=unit).
 // The programs in their machines (the EPROM read from its original in media/, nothing written):
 // - DSE_PART=tesla: the program DSE of Tesla in machines/zps/ZPS-2_DSE-1.sapi (K, P, S, R);
-// - DSE_PART=simprog: SIMPROG of Melsoft (disk 7) in a copy of ZPS-6 with a DSE-1 (P, 98 ms pulses at 2 MHz).
+// - DSE_PART=simprog: SIMPROG of Melsoft (disk 7) in a copy of ZPS-6 with a DSE-1 (P, 98 ms pulses at 2 MHz);
+// - DSE_PART=eprom: EPROM.COM of J. Biba in a copy of cpm_boot_rpd1 with a DSE-1, JP1 open (P, 98 ms pulses).
 #include <stdlib.h>
 #include <string.h>
 #include "cards/dse1.h"
@@ -63,6 +65,20 @@ static uint8_t in(Machine& m, uint8_t p)
 static void wait_ms(Machine& m, double ms)
 {
     m.bus.now += (uint64_t)(ms * m.bus.cpu_hz / 1000.0);
+}
+
+// Bus time goes on without an access to the card: the cards catch up as after a slice of CPU time
+static void idle_ms(Machine& m, double ms)
+{
+    wait_ms(m, ms);
+    m.bus.advance_all();
+}
+
+// The only warning logged is the one of DSE.DOC: the simulator RAM used with a 2716 in the socket at Vpp 0 V
+static bool only_sim_warning(Dse1* d)
+{
+    std::vector<std::string> w = d->warnings();
+    return w.size() == 1 && w[0].find("DSE.DOC") != std::string::npos;
 }
 
 // WRSIM: 8255 = 80h, PC = H, PB = L, PA = data, PC4 pulse by BSR 09h / 08h
@@ -153,10 +169,22 @@ static void test_ram(void)
     out(m, 0xF3, 0x08);
     CHECK_EQ(d->sim_ram()[0x400], 0x77);
     CHECK_EQ(d->sim_ram()[0x401], 0x78);
-    CHECK(d->warnings().empty());
+    CHECK(only_sim_warning(d));   // Vpp 0 V (F4 = 00h) and PC6 = 0: the 2716 has /CE low
     // reads of the control word and of the register: FFh; the register is write only
     CHECK_EQ(in(m, 0xF3), 0xFF);
     CHECK_EQ(in(m, 0xF4), 0xFF);
+    // the socket empty as DSE.DOC asks, or the 2716 at Vpp 5 V: no warning
+    Machine e;
+    if (!load(e, { { "eprom", nullptr } })) return;
+    sim_write(e, 0xF0, 0x123, 0xA5);
+    CHECK_EQ(sim_read(e, 0xF0, 0x123), 0xA5);
+    CHECK(dse(e)->warnings().empty());
+    Machine v;
+    if (!load(v, json::object())) return;
+    out(v, 0xF4, 0x01);
+    sim_write(v, 0xF0, 0x123, 0xA5);
+    CHECK_EQ(sim_read(v, 0xF0, 0x123), 0xA5);
+    CHECK(dse(v)->warnings().empty());
 }
 
 static void test_program_2716(void)
@@ -285,7 +313,7 @@ static void test_reset(void)
     out(m, 0xF4, 0x3C);   // + LED1, LED2 / MAP
     CHECK(d->onla() && d->onld() && d->led1() && d->led2());
     CHECK_EQ(m.bus.map, (int)MAP_1);
-    CHECK(d->warnings().empty());
+    CHECK(only_sim_warning(d));   // no ONLA warning: PB and PC0-3 are inputs
     m.bus.reset();
     CHECK_EQ(d->reg(), 0);
     CHECK(!d->onla() && !d->onld() && !d->led1() && !d->led2());
@@ -361,6 +389,36 @@ static void test_copy(void)
     CHECK_EQ((int)d->warnings().size(), 1);
 }
 
+// DSE.COM of J. Hlavac (16DEh-1729h): every pulse inside F4 = 13h ... F4 = 11h, with the delay 1786h (about 1 ms)
+// before and after it
+static void dsecom_pulse(Machine& m, uint16_t a, uint8_t d, double ms)
+{
+    out(m, 0xF4, 0x13);
+    out(m, 0xF3, 0x80);
+    out(m, 0xF2, (uint8_t)((a >> 8) & 0x0F));
+    out(m, 0xF1, (uint8_t)a);
+    out(m, 0xF0, d);
+    wait_ms(m, 1);
+    out(m, 0xF3, 0x0D);
+    wait_ms(m, ms);
+    out(m, 0xF3, 0x0C);
+    out(m, 0xF4, 0x11);
+    wait_ms(m, 1);
+}
+
+// DSE.COM, one byte: read back (16AFh 2716: F4 = 11h, 16B4h 2732: F4 = 10h), already right: 5 ms; else 20 ms, then
+// 10 ms when right (40 ms when not)
+static void dsecom_byte(Machine& m, bool is2732, uint16_t a, uint8_t d)
+{
+    uint8_t r = is2732 ? 0x10 : 0x11;
+    if (eprom_read(m, 0xF0, r, a) == d) {
+        dsecom_pulse(m, a, d, 5);
+        return;
+    }
+    dsecom_pulse(m, a, d, 20);
+    dsecom_pulse(m, a, d, eprom_read(m, 0xF0, r, a) == d ? 10 : 40);
+}
+
 static void test_stats(void)
 {
     Machine m;
@@ -369,12 +427,15 @@ static void test_stats(void)
     eprom_program(m, 0xF0, 0x000, 0x11, 50);
     eprom_program(m, 0xF0, 0x001, 0x22, 50);
     eprom_program(m, 0xF0, 0x002, 0x33, 50);
-    eprom_program(m, 0xF0, 0x003, 0x44, 25);   // two pulses of 25 ms (DSE.COM style)
+    eprom_program(m, 0xF0, 0x003, 0x44, 25);   // two pulses of 25 ms on one byte
     eprom_program(m, 0xF0, 0x003, 0x44, 25);
     eprom_program(m, 0xF0, 0x004, 0x55, 0.5);
     CHECK(d->run().active);
     CHECK(d->last_pulse_ms() > 0.49 && d->last_pulse_ms() < 0.51);
-    out(m, 0xF4, 0x11);   // Vpp 5 V: the run ends
+    out(m, 0xF4, 0x11);   // Vpp 5 V: the run ends 0.5 s later
+    idle_ms(m, 450);
+    CHECK(d->run().active);
+    idle_ms(m, 60);
     const Dse1::Run& r = d->run();
     CHECK(!r.active);
     CHECK_EQ(r.pulses, 5);
@@ -388,6 +449,8 @@ static void test_stats(void)
     // 98 ms (SIMPROG of disk 7 at 2 MHz): programmed, noted in the log
     eprom_program(m, 0xF0, 0x005, 0x66, 98);
     out(m, 0xF4, 0x00);
+    idle_ms(m, 510);
+    CHECK(!d->run().active);
     CHECK_EQ(d->run().bytes, 1);
     CHECK(d->run().max_byte_ms > 97.9);
     CHECK_EQ(d->eprom().data[0x005], 0x66);
@@ -395,6 +458,43 @@ static void test_stats(void)
     d->describe(j);
     CHECK(j["run"]["pulses"] == 1);
     CHECK(j["eprom"]["type"] == 2716);
+    // DSE.COM: Vpp 5 V around every pulse, still one run: a byte gets 20 + 10 ms, a byte right before 5 ms
+    Machine c;
+    if (!load(c, json::object())) return;
+    Dse1* e = dse(c);
+    dsecom_byte(c, false, 0x010, 0x5A);
+    dsecom_byte(c, false, 0x011, 0xFF);
+    dsecom_byte(c, false, 0x012, 0x00);
+    CHECK(e->run().active);
+    idle_ms(c, 510);
+    const Dse1::Run& rc = e->run();
+    CHECK(!rc.active);
+    CHECK_EQ(rc.pulses, 5);
+    CHECK_EQ(rc.short_pulses, 0);
+    CHECK_EQ(rc.bytes, 3);
+    CHECK(rc.min_byte_ms > 4.9 && rc.min_byte_ms < 5.1);
+    CHECK(rc.max_byte_ms > 29.9 && rc.max_byte_ms < 30.1);
+    CHECK_EQ(e->eprom().data[0x010], 0x5A);
+    CHECK_EQ(e->eprom().data[0x011], 0xFF);
+    CHECK_EQ(e->eprom().data[0x012], 0x00);
+    // a 2732 in its cable: read with Vpp 0 V between the pulses; F4 = 13h while PC7 is still 1 from the read puts /CE
+    // low at 25 V, a short pulse with FFh before every pulse (nothing changes)
+    Machine t;
+    if (!load(t, { { "x2_cable", "2732" }, { "eprom", F2732 } })) return;
+    Dse1* f = dse(t);
+    dsecom_byte(t, true, 0x900, 0x30);          // F0h -> 30h
+    dsecom_byte(t, true, 0x901, hi32(0x101));   // right before
+    CHECK(f->run().active);
+    idle_ms(t, 510);
+    const Dse1::Run& rt = f->run();
+    CHECK(!rt.active);
+    CHECK_EQ(rt.pulses, 3);
+    CHECK_EQ(rt.short_pulses, 3);
+    CHECK_EQ(rt.bytes, 2);
+    CHECK(rt.max_byte_ms > 29.9 && rt.max_byte_ms < 30.1);
+    CHECK_EQ(f->eprom().data[0x900], 0x30);
+    CHECK_EQ(f->eprom().data[0x901], hi32(0x101));
+    CHECK(f->warnings().empty());
 }
 
 // The socket as a medium: a wrong size is refused (the chip stays), a new blank one, the empty socket
@@ -422,6 +522,34 @@ static void test_media(void)
     CHECK(file_read_all(data_path("work/test/dse1_sim.bin"), s));
     CHECK_EQ(s.size(), 4096);
     file_remove(data_path("work/test/dse1_sim.bin"));
+}
+
+// The same file put in again while what was programmed is not saved yet: the chip keeps it (and the file gets it
+// with the media written, as in the program)
+static void test_same_file(void)
+{
+    const char* file = "work/test/dse1_same.bin";
+    std::vector<uint8_t> blank(2048, 0xFF), f;
+    CHECK(file_write_all(data_path(file), blank.data(), blank.size()));
+    {
+        Machine m;
+        if (!load(m, { { "eprom", file } })) return;
+        Dse1* d = dse(m);
+        std::string err;
+        eprom_program(m, 0xF0, 0x010, 0xA5, 50);
+        CHECK(m.set_live_param(d, "eprom", json(file), err));   // tests: nothing written, the chip keeps it
+        CHECK_EQ(d->eprom().data[0x010], 0xA5);
+        CHECK(d->eprom().dirty);
+        battery_files_enable(true);
+        eprom_program(m, 0xF0, 0x011, 0x5A, 50);
+        CHECK(m.set_live_param(d, "eprom", json(data_path(file)), err));   // the same file by its full path
+        CHECK(d->eprom().data[0x010] == 0xA5 && d->eprom().data[0x011] == 0x5A);
+        CHECK(!d->eprom().dirty);
+        CHECK(file_read_all(data_path(file), f));
+        CHECK(f.size() == 2048 && f[0x010] == 0xA5 && f[0x011] == 0x5A);
+        battery_files_enable(false);
+    }
+    file_remove(data_path(file));
 }
 
 // The state in the middle of a pulse: the copy runs on and programs the same
@@ -456,6 +584,45 @@ static void test_state(void)
     CHECK(m1.save_state(b1, "", err));
     CHECK(m2.save_state(b2, "", err));
     CHECK(b1 == b2);
+    // another EPROM put in since (straight, the description stays): the one of the state with its content
+    Machine m3;
+    if (!load(m3, json::object())) return;
+    CHECK(dse(m3)->insert(F2732, err));
+    CHECK(m3.load_state(st, err));
+    CHECK_EQ(dse(m3)->eprom().type, 2716);
+    CHECK(dse(m3)->eprom().image == F2716);
+    CHECK_EQ(dse(m3)->eprom().data[0x000], 0x11);
+    CHECK(dse(m3)->pulse_on());
+    // the socket empty in the state
+    Machine e1;
+    if (!load(e1, json::object())) return;
+    dse(e1)->eject();
+    std::vector<uint8_t> se;
+    CHECK(e1.save_state(se, "", err));
+    Machine e2;
+    if (!load(e2, json::object())) return;
+    CHECK(e2.load_state(se, err));
+    CHECK(!dse(e2)->eprom().loaded());
+    CHECK_EQ(eprom_read(e2, 0xF0, 0x11, 0x123), 0xFF);
+    // its file gone meanwhile: the content of the state goes into the socket (nothing is written)
+    const char* gone = "work/test/dse1_gone.bin";
+    std::vector<uint8_t> blank(2048, 0xFF), sg;
+    CHECK(file_write_all(data_path(gone), blank.data(), blank.size()));
+    {
+        Machine g1;
+        if (!load(g1, json::object())) return;
+        CHECK(dse(g1)->insert(gone, err));
+        eprom_program(g1, 0xF0, 0x020, 0x42, 50);
+        CHECK(g1.save_state(sg, "", err));
+    }
+    file_remove(data_path(gone));
+    Machine g2;
+    if (!load(g2, json::object())) return;
+    CHECK(g2.load_state(sg, err));
+    const Eprom27& eg = dse(g2)->eprom();
+    CHECK(eg.type == Eprom27::T2716 && eg.data.size() == 2048 && eg.path.empty());
+    CHECK(eg.data[0x020] == 0x42 && eg.data[0x021] == 0xFF);
+    CHECK(!dse(g2)->unsaved());
 }
 
 // ---------------------------------------------------------------- the programs in their machines
@@ -555,8 +722,9 @@ static void test_tesla(void)
     CHECK_EQ(wrong, 0);
     CHECK(d->eprom().dirty);
     answer(m, "STISKNI KLAVESU:", "", 5.0);
+    m.run_seconds(0.5);   // the run ends 0.5 s after Vpp left 25 V (the check with 11h)
     const Dse1::Run& r = d->run();
-    CHECK(!r.active);   // Vpp went back to 0 V
+    CHECK(!r.active);
     CHECK_EQ(r.pulses, 256);
     CHECK_EQ(r.bytes, 256);
     CHECK_EQ(r.short_pulses, 0);
@@ -585,7 +753,7 @@ static void test_tesla(void)
     for (int i = 0; i < 0x100; i++)
         if (m.peek((uint16_t)(0x6000 + i)) != pattern(i)) wrong++;
     CHECK_EQ(wrong, 0);
-    CHECK(d->warnings().empty());
+    CHECK(only_sim_warning(d));   // S and R with the 2716 in the socket (DSE.DOC: take it out)
 }
 
 // ZPS-6 with the disk 1 (a copy: SAVE writes it) in A:, the disk 7 of Melsoft in B: and a DSE-1 at F0h
@@ -605,41 +773,113 @@ static void zps6_dse1(json& cfg)
 // SIMPROG of Melsoft (CP/M, disk 7) in ZPS-6: P programs 0000-00FF of the 2716 from a file. The build on disk 7 is the
 // one for 4 MHz (constant 07CEh): at the 2 MHz of ZPS-6 its pulses are 98 ms, the log notes it (the length is measured
 // in the time of the bus, as on the hardware).
+static void simprog_run(void)
+{
+    Machine m;
+    if (!load_file(m, "machines/zps/ZPS-6.sapi", zps6_dse1)) return;
+    Dse1* d = find_dse(m);
+    CHECK(d && d->eprom().type == Eprom27::T2716);
+    if (!d || !answer(m, "A>", "", 30.0)) return;
+    for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x100 + i), pattern(i));
+    m.type_text("SAVE 1 X.BIN\r");
+    m.run_seconds(3.0);   // the prompt is on the last line while the command is typed too
+    answer(m, "A>", "B:SIMPROG A:X.BIN\r", 10.0);
+    answer(m, "epromtype: 2716", "P", 20.0);
+    answer(m, "whole eprom? (y/n):", "N");
+    answer(m, "low  address(xxxx):", "0000\r");
+    answer(m, "high address(xxxx):", "00FF\r");
+    answer(m, "give eprom to prog(ret):", "\r");
+    bool ok = answer(m, "ok(ret):", "", 60.0);   // 256 x 98 ms
+    if (!ok) fprintf(stderr, "SIMPROG:\n%s\n", screen_text(m).c_str());
+    m.run_seconds(0.5);   // the run ends 0.5 s after Vpp left 25 V
+    const std::vector<uint8_t>& e = d->eprom().data;
+    int wrong = 0;
+    for (int i = 0; i < 2048; i++)
+        if (e[i] != (i < 0x100 ? pattern(i) : 0xFF)) wrong++;
+    CHECK_EQ(wrong, 0);
+    const Dse1::Run& r = d->run();
+    CHECK(!r.active);
+    CHECK_EQ(r.pulses, 256);
+    CHECK_EQ(r.bytes, 256);
+    CHECK(d->last_pulse_ms() > 97.0 && d->last_pulse_ms() < 99.0);
+    CHECK(r.min_byte_ms > 55.0);   // outside 50 ms +-5: the note in the log
+}
+
 static void test_simprog(void)
 {
     std::vector<uint8_t> img;
     CHECK(file_read_all(data_path("media/sapi15/SAPI15_1.sp2"), img));
     CHECK(file_write_all(data_path(ZPS6_A), img.data(), img.size()));
-    {
-        Machine m;
-        if (!load_file(m, "machines/zps/ZPS-6.sapi", zps6_dse1)) return;
-        Dse1* d = find_dse(m);
-        CHECK(d && d->eprom().type == Eprom27::T2716);
-        if (!d || !answer(m, "A>", "", 30.0)) return;
-        for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x100 + i), pattern(i));
-        m.type_text("SAVE 1 X.BIN\r");
-        m.run_seconds(3.0);   // the prompt is on the last line while the command is typed too
-        answer(m, "A>", "B:SIMPROG A:X.BIN\r", 10.0);
-        answer(m, "epromtype: 2716", "P", 20.0);
-        answer(m, "whole eprom? (y/n):", "N");
-        answer(m, "low  address(xxxx):", "0000\r");
-        answer(m, "high address(xxxx):", "00FF\r");
-        answer(m, "give eprom to prog(ret):", "\r");
-        bool ok = answer(m, "ok(ret):", "", 60.0);   // 256 x 98 ms
-        if (!ok) fprintf(stderr, "SIMPROG:\n%s\n", screen_text(m).c_str());
-        const std::vector<uint8_t>& e = d->eprom().data;
-        int wrong = 0;
-        for (int i = 0; i < 2048; i++)
-            if (e[i] != (i < 0x100 ? pattern(i) : 0xFF)) wrong++;
-        CHECK_EQ(wrong, 0);
-        const Dse1::Run& r = d->run();
-        CHECK(!r.active);
-        CHECK_EQ(r.pulses, 256);
-        CHECK_EQ(r.bytes, 256);
-        CHECK(d->last_pulse_ms() > 97.0 && d->last_pulse_ms() < 99.0);
-        CHECK(r.min_byte_ms > 55.0);   // outside 50 ms +-5: the note in the log
-    }
+    simprog_run();   // the copy of the disk goes away on every way out
     file_remove(data_path(ZPS6_A));
+}
+
+// CP/M 2.2 of J. Biba (cpm_boot_rpd1: JPR-1ZI Z80, DMR-1) with his service disk in B: and a DSE-1 at F0h. JP1 open:
+// EPROM.COM lights the LED of bit 5 while programming (PERAP 33h), with JP1 fitted MAP1 would switch the RAM of DMR-1
+// under CP/M.
+static void cpm_jb_dse1(json& cfg)
+{
+    for (json& c : cfg["cards"]) {
+        std::string ty = c.value("type", std::string());
+        if (ty == "ZRMD-1") {
+            c["mode"] = "nosave";
+            c["working_copy"] = false;
+        }
+        if (ty == "RPD-1") {
+            c["drive_a"] = { { "image", "media/sapiman/r1_zrmd4m_271111.img" }, { "write_protect", true } };
+            c["drive_b"] = { { "image", "media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img" },
+                             { "write_protect", true } };
+            c["working_copy"] = false;
+        }
+    }
+    cfg["cards"].push_back({ { "slot", 7 }, { "type", "DSE-1" }, { "jp1_map", false } });   // RPD-1 takes X5 and X6
+}
+
+// EPROM.COM of J. Biba ("V130786", Z80, cpm/biba/EPROM_mac.txt): P, type 1 (2716), RAM 2000-20FF into the EPROM from
+// 0000. Its pulse is DEPUL 03E7h written with OUTCW in a HILO loop: 98 ms at 2 MHz, the log notes it; then it compares.
+static void test_eprom_com(void)
+{
+    Machine m;
+    if (!load_file(m, "machines/cpm_boot_rpd1.sapi", cpm_jb_dse1)) return;
+    Dse1* d = find_dse(m);
+    CHECK(d && d->eprom().type == Eprom27::T2716);
+    if (!d || !run_until_text(m, "\nA>", 30.0)) {
+        fprintf(stderr, "NO CP/M:\n%s\n", screen_text(m).c_str());
+        CHECK(false);
+        return;
+    }
+    m.run_seconds(0.3);
+    m.type_text("B:EPROM\r");
+    if (!answer(m, "STISKNI KL", "P", 20.0)) return;
+    for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x2000 + i), pattern(i));
+    answer(m, "2764 ... 3", "1");
+    answer(m, "adresa RAM", "2000\r");
+    answer(m, "Horn", "20FF\r");
+    answer(m, "adresa EPROM", "0\r");
+    answer(m, "(A=ano)", "A");
+    bool ok = run_until_text(m, "PROGRAMUJI", 5.0);
+    m.run_seconds(1.0);
+    CHECK(ok && d->run().active);
+    CHECK(d->led1() && d->led2());   // PERAP 33h: Vpp 25 V and both LEDs
+    CHECK_EQ(m.bus.map, 0);           // JP1 open: no MAP1
+    ok = run_until_text(m, "OBSAH", 60.0);   // 256 x 98 ms, a pause, the comparison
+    if (!ok) fprintf(stderr, "EPROM.COM:\n%s\n", screen_text(m).c_str());
+    CHECK(ok);
+    CHECK(screen_text(m).find("ROZD") == std::string::npos);   // ROZDILNY OBSAH: a byte differs
+    m.run_seconds(0.6);   // the run ends 0.5 s after Vpp left 25 V
+    const std::vector<uint8_t>& e = d->eprom().data;
+    int wrong = 0;
+    for (int i = 0; i < 2048; i++)
+        if (e[i] != (i < 0x100 ? pattern(i) : 0xFF)) wrong++;
+    CHECK_EQ(wrong, 0);
+    const Dse1::Run& r = d->run();
+    CHECK(!r.active);
+    CHECK_EQ(r.pulses, 256);
+    CHECK_EQ(r.bytes, 256);
+    CHECK(d->last_pulse_ms() > 97.0 && d->last_pulse_ms() < 99.5);
+    CHECK(r.min_byte_ms > 55.0);   // outside 50 ms +-5: the note in the log
+    CHECK(d->warnings().empty());
+    CHECK_EQ(m.bus.map, 0);
 }
 
 int main(void)
@@ -657,6 +897,7 @@ int main(void)
         test_copy();
         test_stats();
         test_media();
+        test_same_file();
         test_state();
         file_remove(data_path(F2716));
         file_remove(data_path(F2732));
@@ -664,5 +905,6 @@ int main(void)
     }
     if (!part || !strcmp(part, "tesla")) test_tesla();
     if (!part || !strcmp(part, "simprog")) test_simprog();
+    if (!part || !strcmp(part, "eprom")) test_eprom_com();
     return TEST_RESULT();
 }

@@ -14,6 +14,10 @@ bool file_write_all(const std::string& utf8_path, const void* data, size_t size)
 // renamed over the old one, so a crash or a power cut never leaves a half written image (the old one or the new
 // one). When the rename is refused (Windows: another program holds the file open) it is written in place.
 bool file_write_safe(const std::string& utf8_path, const void* data, size_t size);
+// A new file (a working copy made from its original): written under a temporary name and renamed only when the file
+// is still missing, so a copy another process made meanwhile is kept and never seen half written. True when the
+// file is there after.
+bool file_write_new(const std::string& utf8_path, const void* data, size_t size);
 // Text file with the line ends of the platform (CRLF on Windows), like a git checkout.
 bool file_write_text(const std::string& utf8_path, const std::string& text);
 bool file_exists(const std::string& utf8_path);
