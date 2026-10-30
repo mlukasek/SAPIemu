@@ -1184,7 +1184,7 @@ static void plan_layout(App& app)
         return;
     }
     DisplayDevice* d = main >= 0 ? gfx[main] : (m ? m->display : nullptr);
-    char id[16];
+    char id[24];
     if (main >= 0) snprintf(id, sizeof(id), "###gfx%d", main);
     else snprintf(id, sizeof(id), "###screen");
     ImVec2 s = main_output_size(app, m, d, w, h, gap, &app.main_k);
@@ -1294,7 +1294,7 @@ static void refit_displays(App& app)
         DisplayDevice* d = k < 0 ? m->display : gfx[k];
         ZoomState& zs = display_zoom(app, k);
         if (!d || zs.user) continue;
-        char id[16];
+        char id[24];
         if (k >= 0) snprintf(id, sizeof(id), "###gfx%d", k);
         else snprintf(id, sizeof(id), "###screen");
         float z = zs.fixed > 0 ? zs.fixed : display_layout_zoom(app, d, id), fit = display_fit_zoom(app, d, w, h);
@@ -1437,7 +1437,7 @@ static void dock_layout(App& app)
     DisplayDevice* gfx[MAX_GFX_VIEWS];
     int n = graphic_displays(m, gfx);
     int main = main_output(m, gfx, n);
-    char ids[1 + MAX_GFX_VIEWS][16];
+    char ids[1 + MAX_GFX_VIEWS][24];
     DockPlan p = {};
     auto add = [&](int k, DisplayDevice* d) {   // k = gfx[k], -1 = the console screen
         if (p.n_displays >= 1 + MAX_GFX_VIEWS) return;
@@ -3563,9 +3563,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             if (layout_docked(app)) dock_follow(app);
             app.dock_follow = false;
         }
-        // without the close button at the right end of a dock (it closed the tab shown, whose tab has its own close button)
+        // without the close button at the right end of a dock (it closed the tab shown, whose tab has its own close button);
+        // the private flag through the int type (two enum types in one | are deprecated in C++20)
         app.dockspace_id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode |
-                                                                        ImGuiDockNodeFlags_NoCloseButton);
+                                                                        (ImGuiDockNodeFlags)ImGuiDockNodeFlags_NoCloseButton);
         IM_ASSERT(app.dockspace_id == layout_dockspace_id());   // the docked layout is built into this one
         draw_menu(app);   // the menu bar first: the work area of the windows is below it
         drop_frame(app);  // a file dropped on the window, before the windows that show what it did (Media, questions)

@@ -11,7 +11,7 @@ schéma 6XK 199 246/Z, návod 6XV 123 45.
   „funkční pro rastr 64x20“, J. Bíba 2014). Netlisty verzí 2014 jsou shodné až na +12 V. **„Chyba selektu“**
   replik z roku 2012: nezapojený chip select 6845 (DD16/25), opraveno 2014. `DBS-1A_POPIS.TXT`.
 - Software: ROM BIOS PKT-1 (`docs/software/SAPI-1.5.md`), `CPM62-5.TXT` (bity atributu), `SETDBS1.COM` (nastavení
-  barev, Turbo Pascal). Ovladač J. Bíby z roku 2012 je na H: (`docs/software/SAPI-1.5.md`).
+  barev, Turbo Pascal). Ovladač J. Bíby z roku 2012 je v SD dumpu EC1045 Petra Všijanského (`docs/software/SAPI-1.5.md`).
 - Rozbor: `work/sapi15/report_dbs1.md` (mimo git).
 
 ## Zapojení

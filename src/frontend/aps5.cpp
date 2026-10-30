@@ -267,7 +267,7 @@ static int plot_end_labels(FurnacePlant* pl, ImVec2 p0, ImVec2 p1, float tmax, f
     int hot = -1;
     for (int j = 0; j < n; j++) {
         int i = order[j];
-        char b[4];
+        char b[12];
         snprintf(b, sizeof(b), "%d", i + 1);
         float tw = ImGui::CalcTextSize(b).x + 2 * pad;
         float y = ys[i] - h * 0.5f;

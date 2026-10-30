@@ -2578,7 +2578,6 @@ void draw_rack(UiState& ui)
         return;
     }
     RackEditor& r = ui.rack;
-    float u = ImGui::GetFontSize();
     // opened by the user: at the first use the whole height at the right edge (over the screen when there is no room)
     if (!by_layout) layout_window(LW_RACK);
     bool dirty = editor_dirty(r);

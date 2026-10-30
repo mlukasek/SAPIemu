@@ -574,7 +574,7 @@ static const char* report_en(const char* s) { return s; }
 // for the newer versions); Windows 11 still says 10.0, its builds start at 22000.
 static std::string os_text(ReportText tx)
 {
-    char t[160];
+    char t[256];   // uname: three fields of up to 65 bytes
 #ifdef _WIN32
     typedef LONG(WINAPI * RtlGetVersionFn)(OSVERSIONINFOW*);
     OSVERSIONINFOW v;

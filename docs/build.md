@@ -424,12 +424,18 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
 Výsledek 2026-10-06: všech 37 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX),
-`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-17: 58 testů (2026-10-16 před 0.6.0: 55, 2026-10-14 před 0.5.0: 53, 2026-10-09 před 0.4.0: 44; čisté
+`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-30 po betě 0.7.0: 62 testů, překlad 248 souborů od nuly; sedm nových
+varování GCC ve vlastním kódu opravených (`snprintf` do malých bufferů, `|` dvou typů enum ImGui, nepoužitá
+proměnná). Dřív 2026-10-17: 58 testů (2026-10-16 před 0.6.0: 55, 2026-10-14 před 0.5.0: 53, 2026-10-09 před 0.4.0: 44; čisté
 sestavení našlo dvě varování v kódu DPS-1, opravená; distribuce se ve WSL jmenuje `Ubuntu`,
 `wsl -d Ubuntu`, klon aktualizuje `git pull /mnt/e/SAPI_GIT/SAPIemu main`). Čisté sestavení (`cmake --build --preset linux-debug --clean-first`) je bez varování
 GCC ve vlastním kódu (varování v `third_party/` a `_deps/` se neřeší).
-Testy `test_cassette` a `test_mikos` je hledají v `../SAPI_DOKU`, pak ve starém archivu na `H:`, jinak tu část
+Testy `test_cassette` a `test_mikos` je hledají v `../SAPI_DOKU`, jinak tu část
 přeskočí. Co GCC na rozdíl od MSVC nepromine (pro další vývoj):
+- `snprintf` do bufferu, do kterého by se celý výstup nemusel vejít (`"###gfx%d"` do 16 bajtů, `uname` do 160):
+  buffer dimenzovat na nejhorší případ (`-Wformat-truncation`);
+- `|` mezi dvěma různými typy enum (veřejné a privátní příznaky ImGui): jeden z nich přetypovat na typ příznaků
+  (`(ImGuiDockNodeFlags)`), v C++20 je to zastaralé;
 - statická konstanta třídy použitá odkazem (`std::min`, JSON) bez definice: psát `static constexpr int`, ne
   `static const int` (linker hlásí `undefined reference to And1::COLS`);
 - záměrný průchod do dalšího `case` (makro protothreadu v `pmd32sd.cpp`) označit `[[fallthrough]]`, pomocné
