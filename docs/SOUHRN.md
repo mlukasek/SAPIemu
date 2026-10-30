@@ -9,9 +9,14 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 - **Stav 2026-10-30:** etapy 1–8 plánu vzhledu hotové a pushnuté (repo je zatím soukromé), README podle autorova
   článku na 8bity.cz. **Beta 0.7.0 zabalená** (autor: „připrav mi release pro kamarády a přeplácni ho i v
-  SAPIemu-release“): `out\package\SAPIemu-0.7.0-beta-win64.zip` (`package.py --public`, 550 souborů, 34,9 MB,
-  SHA-256 `bec249fb…`) po `release full` 66/66 a `check_machines.py --games` 60 sestav a 12 her a dem; rozbalená do
-  `..\SAPIemu-release` s autorovým `work/`, `imgui.ini` a nastavením, stará 0.6.0 je v `..\SAPIemu-release-0.6.0`.
+  SAPIemu-release“): `out\package\SAPIemu-0.7.0-beta-win64.zip` (`package.py --public`) po `release full` 66/66
+  a `check_machines.py --games` 60 sestav a 12 her a dem; rozbalená do `..\SAPIemu-release` s autorovým `work/`,
+  `imgui.ini` a nastavením, stará 0.6.0 je v `..\SAPIemu-release-0.6.0`. **Přebalená 2026-10-30 dopoledne**
+  (autor: „přebal to prosím znovu … rád bych to pro kamarády měl co nejfinálnější“) se zbytkem etapy 9, odkazy
+  a sapi.cz místo `H:` (commit `261c4f8`, release test 62/62): 554 souborů, 36,0 MB, SHA-256
+  `73e124fc5199876db9d6346945a9a5a94285d6f162e28706fb56109c272a9d0c`; přes `..\SAPIemu-release` nakopírovaná
+  (`work/`, `imgui.ini`, nastavení a logy zůstaly, žádné zastaralé soubory). První balení (550 souborů,
+  `bec249fb…`) nikdo nedostal.
   **Dál:** autor ji pošle Liborovi, Petrovi a Michalovi (dopis `docs/vydani/beta-testeri.md`); po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
   (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz.
 - **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
