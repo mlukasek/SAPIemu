@@ -15,10 +15,13 @@ v binární podobě (jen kód, informace a snímky) a autor ho zveřejní.
 2026-10-10 verze z Apple, od 2026-10-28 verze DOS; smazaný `ramdisk_pop-fxs4-flappy-bomberman-bkp.bin` také). Průzkum,
 jak to řeší jiné porty, postoj Jordana Mechnera, práva a doporučení: `docs/vydani/pop-prava.md`.
 
-## Libor Lasota: souhlas máme, potvrdit rozsah
+## Libor Lasota: souhlas pro veřejné vydání máme (2026-10-30)
 
-Souhlas je zapsaný u MikroMonu a MIKROBIOSu („použito s jeho souhlasem“, `roms/README.md`, `docs/rozhodnuti.md`).
-Potvrdit, že platí pro všechno níže a pro veřejné vydání, a vyžádat si případně poslední verze:
+**Souhlas v plném rozsahu** (odpověď na betu 0.7.0, 2026-10-30): „ohledně SW použij v plném rozsahu vše, co
+potřebuješ“. Platí pro všechno níže i pro veřejné vydání. Dřív byl souhlas zapsaný jen u MikroMonu a MIKROBIOSu
+(„použito s jeho souhlasem“, `roms/README.md`, `docs/rozhodnuti.md`). Emulátor vyzkouší asi o víkendu, až přejde
+z Windows 7 (SAPIemu chce Windows 10 nebo 11). Otevřené zůstává jen, jestli pošle novější verze svého softwaru,
+a otázka k Manic Mineru níže. Jeho software ve vydání:
 
 - MikroMon 1.3 (`roms/mikromon/`);
 - MIKROBIOS 1.0, 1.02 a 2.1 (`roms/jpr-1s/`), MikroBIOS 3.0 v bance JPR-1V (`roms/jpr-1v/`), MIKROBIOS +
@@ -33,7 +36,10 @@ Potvrdit, že platí pro všechno níže a pro veřejné vydání, a vyžádat s
 
 ## Petr Všijanský (EC1045, sapi.cz)
 
-Byl mezi příjemci soukromých alf, výslovný souhlas pro veřejné vydání zapsaný není. Vyžádat souhlas s:
+Byl mezi příjemci soukromých alf, výslovný souhlas pro veřejné vydání zapsaný není. **Autor 2026-10-30:** klíčový
+byl souhlas Libora, Petrovy věci a programy na webu jsou většinou převzaté ze starých a historických zdrojů (Tesla
+a další níže), jeho souhlas proto vydání nepodmiňuje. Poděkování zůstává první v pořadí. Co ve vydání je z jeho
+zdrojů:
 
 - výpisy a dumpy převzatými ze sapi.cz: MIKOS, MIKROBASIC, MOR*, ELIS, APS-5, DPS-1, PKT-1 a RSW-1, BASIMS,
   disketa MIKOS/D a další (`roms/`, `media/`, vždy se zdrojem v README);
@@ -75,7 +81,8 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
 
 ## Postup
 
-1. Martin odsouhlasí rozřazení sestav (`docs/vydani/sestavy.md`) a obsah herní sestavy.
-2. Podle tohoto souboru napíše Liborovi a Petrovi s konkrétním seznamem.
+1. ~~Martin odsouhlasí rozřazení sestav (`docs/vydani/sestavy.md`) a obsah herní sestavy.~~ Hotovo 2026-10-17.
+2. ~~Podle tohoto souboru napíše Liborovi a Petrovi s konkrétním seznamem.~~ Betu poslal 2026-10-30, Libor souhlasil
+   v plném rozsahu týž den, Petrův souhlas vydání nepodmiňuje (autor).
 3. Souhlasy se zapíšou sem a do `roms/README.md` a `media/README.md` (sloupec Zdroj), poděkování do README a okna
    O programu.

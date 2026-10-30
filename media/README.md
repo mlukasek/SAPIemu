@@ -76,7 +76,7 @@ Zdroj: `..\SAPI-karty\ZRMD-1\SW`.
 
 ## `mikos/` – programy pro MIKOS (Intel HEX)
 
-Zdroj: `H:\SAPI-1\MIKOS_PGM\` (shodné s výpisy na sapi.cz). Nahrávají se v GUI přes Soubor → Nahrát program do
+Zdroj: archiv SAPI_DOKU, složka `MIKOS_PGM` (shodné s výpisy na sapi.cz). Nahrávají se v GUI přes Soubor → Nahrát program do
 paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak se spouští `.B` v monitoru.
 
 | Soubor | Program | Adresy |
@@ -101,7 +101,7 @@ paměti (Intel HEX), přes MCP `load_hex` nebo `sapiemu-cli --load-hex`, a pak s
 | `CPM64K_IMA_01.img`, `_02`, `_03` | Originální CP/M 2.2 64K Tesla Eltos IMA Pardubice (CCP V2.2-A1, 15/11/1984) pro ZPS-3 s ROM MON64C3: 01 systém, ED, PIP, M80, F80, ASM; 02 STAT, FORMAT, MBASIC, COBOL; 03 Pascal MT+. Z `..\SAPI_DOKU_FTP\ZALOHY_8SD_EC1045.01\nove_a_vse_co_mám\DEX\SAPI_ZPS3\01–03.8SD`. Sestava `ZPS-3_CPM64K_IMA`. |
 | `CPM22P_62Z_Perina.img` | CP/M 2.2/P 62K (R. Peřina 1988) pro ZPS-4 (JPR-1Z, AND-1Z, RPD-1, RAM disk RMD-1 jako E:). Zdroj sapi.cz `data2/cpm62z_img.rar`. |
 | `ELIS_61K.img` | ELIS 61k CP/M V2.2 (A, B: RPD-1, C: RMD-1, AND-1Z, Consul). Zdroj sapi.cz `data2/elis_img.rar` (= `MELSOFT\001.8SD` na SD kartě EC1045). ED, PIP, STAT, MBASIC, SYSGEN, INIRMD5 (JB 2011). |
-| `MIKOS_D_V5.0_system.img` | Systémová disketa MIKOS/D V5.0 („ZALOZNI“), 77 × 26 × 128 B v logickém pořadí. Zdroj `H:\SAPI-1\Klasika\mikos5\m5mid_img.rar` = sapi.cz `data2/m5mid_img.rar`, shodná s daty v `m5mid.IMD`. Obsahuje BAS5C, TEDIT, TOOL, BASIMS4, KONVERT, COPYSYS, X2 a dokumentaci (.DOC). |
+| `MIKOS_D_V5.0_system.img` | Systémová disketa MIKOS/D V5.0 („ZALOZNI“), 77 × 26 × 128 B v logickém pořadí. Zdroj [sapi.cz/sapi/data2/m5mid_img.rar](https://sapi.cz/sapi/data2/m5mid_img.rar), shodná s daty v `m5mid.IMD`. Obsahuje BAS5C, TEDIT, TOOL, BASIMS4, KONVERT, COPYSYS, X2 a dokumentaci (.DOC). |
 
 ## `sapiman/` – bootovací 8" diskety CP/M J. Bíby (SAPIMAN, 2011)
 

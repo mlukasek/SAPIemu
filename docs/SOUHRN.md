@@ -19,14 +19,17 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   `bec249fb…`) nikdo nedostal.
   **Beta poslaná 2026-10-30** Liborovi, Petrovi a Michalovi (tento zip, SHA-256 `73e124fc…`). E-mail napsal autor
   sám a stručně, se seznamem novinek proti 0.6.0 a bez povinných úkolů (`docs/vydani/beta-testeri.md` je jen
-  podklad). **Dál:** počkat na jejich zpětnou vazbu, Liborovy souhlasy a aktuální verze jeho softwaru, pak úprava
-  a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
+  podklad). **Libor souhlasil 2026-10-30 v plném rozsahu** („ohledně SW použij v plném rozsahu vše, co
+  potřebuješ“, `docs/vydani/souhlasy.md`); Petrův souhlas vydání nepodmiňuje (autor: jeho věci jsou převážně
+  z historických zdrojů). Libor emulátor vyzkouší asi o víkendu, až přejde z Windows 7. **Dál:** počkat na
+  zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
 - **Po odeslání bety (pro poznámky k 0.7.1):** WSL 2026-10-30 v pořádku (62/62, autor GUI pod WSLg vyzkoušel,
   „běží dobře“), sedm nových varování GCC opravených; O programu: verze `0.7.0-beta` zvednutá tak, že její účaří
   sedí na spodní hraně loga (autor: po odebrání černého obdélníku loga nesedělo účaří), `ink_bottom` z masky
-  `logo-alpha.png`, při 100 i 150 %.
+  `logo-alpha.png`, při 100 i 150 %. Dalších 10 cest na `H:` v `roms/README.md` a `media/README.md` (git je má
+  za binární, `git grep -I` je přeskočil) nahrazených archivem SAPI_DOKU (MD5 ověřené) a odkazy na sapi.cz.
 - **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
   etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu
   (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →

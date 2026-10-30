@@ -29,7 +29,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   obrazy ImageDisk, viz `docs/software/CPM_SAPIMAN.md`); autor je bude slučovat.
   Starší archiv autora je na jeho síťovém disku, cesty k němu jsou v `CLAUDE.local.md` (jen na autorově PC, není
   v gitu). Do repa se cesty na `H:` nepíšou (od 2026-10-30): zdroj se uvede odkazem na sapi.cz (záloha webu =
-  `https://sapi.cz/…`), složkou archivu SAPI_DOKU, nebo slovy, od koho je („archiv autora“). **Zdrojáky systému ECMON
+  `https://sapi.cz/…`), složkou archivu SAPI_DOKU, nebo slovy, od koho je („archiv autora“). Kontrola obyčejným
+  `grep -r`: `roms/**` a `media/**` jsou pro git binární a `git grep -I` je přeskočí. **Zdrojáky systému ECMON
   + CP/M ZRMD-1** (ověřené proti originálům) jsou v `..\SAPI-karty\ZRMD-1\SRC\` (`build.py`, M80/L80 pod
   `cpmrun`, viz `docs/software/ECMON.md`). **Systémy CP/M J. Bíby (SAPIMAN) a EC1045**, obrazy disket, formáty a otázky na
   EC1045: `docs/software/CPM_SAPIMAN.md`, soupis jeho disket a knihovna v repu: `docs/software/SAPIMAN_diskety.md`.

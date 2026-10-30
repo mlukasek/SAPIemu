@@ -3360,11 +3360,28 @@ se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od 
   - zbytek má slovy, od koho je: podklady Libora Lasoty, skeny a software J. Slanského, podklady Petra Všijanského
     k replikám a jeho SD dump EC1045, ostatní „archiv autora“. Co to znamená na disku, je v `CLAUDE.local.md`;
   - test nahrávek hledá jen `..\SAPI_DOKU` vedle repa, záloha na `H:` z něj zmizela;
-  - nová pravidla v `CLAUDE.md`: cesty na `H:` se do repa nepíšou.
+  - nová pravidla v `CLAUDE.md`: cesty na `H:` se do repa nepíšou;
+  - **dodatek:** dalších 10 míst bylo v `roms/README.md` a `media/README.md`. Git má `roms/**` a `media/**` za
+    binární (`.gitattributes`), takže je `git grep -I` přeskočil. Zdroje ROM jsou teď složky archivu SAPI_DOKU
+    (MD5 souborů shodné s binárkami v repu), disketa a výpis MIKOS/D odkazy na sapi.cz. V beta zipu 0.7.0 ty
+    cesty ještě jsou (jen jako zdroj, nic neotevírají), opraví je 0.7.1. Hledat proto obyčejným `grep -r`.
 - **Beta 0.7.0 přebalená a poslaná** (2026-10-30, 554 souborů, SHA-256 `73e124fc…`). Autor napsal Liborovi,
   Petrovi a Michalovi sám a stručně, se seznamem novinek proti 0.6.0: „povinnostmi … je takhle striktně určitě
   nebudu zatěžovat, mají svojí práce dost, mrknou na co chtějí“. Pět úkolů v `docs/vydani/beta-testeri.md` proto
   zůstává jen podkladem.
+
+## 2026-10-30 – souhlas Libora Lasoty se softwarem ve vydání
+
+- **Libor Lasota souhlasí v plném rozsahu** (odpověď na betu 0.7.0, 2026-10-30): „ohledně SW použij v plném
+  rozsahu vše, co potřebuješ“. Platí pro všechen jeho software v repu i ve veřejném vydání: MikroMon, MIKROBIOSy,
+  fonty, programy a dema pro CGA-1V, MPH-1V, JPR-1S a BGP-1S, Flappy pro DGD-1V, BKP, převody hudby. Seznam
+  v `docs/vydani/souhlasy.md`. E-mail ani jiný kontakt do repa nepíšeme.
+- **Petrův souhlas vydání nepodmiňuje** (autor: „od Libora máme souhlas, ten byl v zásadě klíčový, protože Petrovy
+  (EC1045) věci a programy na webu jsou většinou převzaté ze starých a historických zdrojů“). Poděkování mu zůstává
+  první v pořadí.
+- Libor emulátor vyzkouší asi o víkendu, až přejde z Windows 7 (SAPIemu chce Windows 10 nebo 11).
+- **Co zbývá k 0.7.1:** zpětná vazba testerů, případně novější verze Liborova softwaru, otázka, kdo převedl Manic
+  Miner na BGP-1S (jen pro poděkování).
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 
