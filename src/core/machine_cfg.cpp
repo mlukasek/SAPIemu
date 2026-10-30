@@ -8,6 +8,15 @@
 
 using nlohmann::json;
 
+// A string of an object: def when the object or the key is missing or the value is not a string (a machine file
+// edited by hand may hold anything; value() would throw and end the program).
+static std::string jstr(const json& j, const char* key, const std::string& def = std::string())
+{
+    if (!j.is_object()) return def;
+    json::const_iterator it = j.find(key);
+    return it != j.end() && it->is_string() ? it->get<std::string>() : def;
+}
+
 // ---------------------------------------------------------------- paths
 
 static std::vector<std::string> split_path(const char* path)
@@ -213,7 +222,7 @@ json card_new_config(const CardInfo* ci, int slot)
 static const BusInfo* cfg_bus(const json& cfg, std::string& type)
 {
     type = "ARB-1C-8";
-    if (cfg.contains("bus") && cfg["bus"].is_object()) type = cfg["bus"].value("type", type);
+    if (cfg.contains("bus") && cfg["bus"].is_object()) type = jstr(cfg["bus"], "type", type);
     return bus_info(type);
 }
 
@@ -240,7 +249,7 @@ bool machine_cfg_cpu_in_x1(const json& cfg)
 
 int card_cfg_width(const json& card)
 {
-    const CardInfo* ci = card_info(card.value("type", std::string()));
+    const CardInfo* ci = card_info(jstr(card, "type"));
     return ci ? ci->width : 1;
 }
 
@@ -260,7 +269,7 @@ static std::string port_of(const json& card, const CardInfo* ci, const char* pat
 
 std::string card_port_label(const json& card)
 {
-    const CardInfo* ci = card_info(card.value("type", std::string()));
+    const CardInfo* ci = card_info(jstr(card, "type"));
     const char* pp = card_port_param(ci);
     if (!pp) return std::string();
     if (!strcmp(ci->type, "DMR-1")) {   // UART switched off: no port
@@ -273,7 +282,7 @@ std::string card_port_label(const json& card)
 std::vector<std::string> card_connector_ports(const json& card)
 {
     std::vector<std::string> out;
-    const CardInfo* ci = card_info(card.value("type", std::string()));
+    const CardInfo* ci = card_info(jstr(card, "type"));
     if (!ci) return out;
     if (!strcmp(ci->type, "DSM-1V")) {
         for (const char* ch : { "a", "b" }) {
@@ -290,7 +299,7 @@ std::vector<std::string> card_connector_ports(const json& card)
 
 std::string card_display_name(const json& card)
 {
-    std::string n = card.value("type", std::string("?"));
+    std::string n = jstr(card, "type", "?");
     std::string port = card_port_label(card);
     return port.empty() ? n : n + " " + port;
 }
@@ -365,15 +374,15 @@ static std::vector<std::string> card_devices(const json& card, const CardInfo* c
         if (strchr(p->path, '.') && strcmp(p->path, "keyboard.joyport") != 0) continue;
         json v = card_param_value(card, p);
         if (p->kind == PK_KEYBOARD) {
-            std::string type = v.is_object() ? v.value("type", std::string()) : v.is_string() ? v.get<std::string>() : "";
+            std::string type = v.is_object() ? jstr(v, "type") : v.is_string() ? v.get<std::string>() : "";
             if (type.empty()) continue;
             std::string name = (czech ? "Klávesnice " : "Keyboard ") + type;
             for (const KeyboardPreset& k : keyboard_presets())   // another device on the keyboard connector
-                if (!k.keyboard && json::parse(k.config, nullptr, false).value("type", std::string()) == type) name = k.name;
+                if (!k.keyboard && jstr(json::parse(k.config, nullptr, false), "type") == type) name = k.name;
             out.push_back(name);
         } else if (!strcmp(p->path, "keyboard.joyport")) {   // the joystick connector of ANK-1M2
             const json* kb = cfg_find(card, "keyboard");
-            std::string type = kb && kb->is_object() ? kb->value("type", std::string()) : "";
+            std::string type = kb ? jstr(*kb, "type") : "";
             int o = param_option_index(p, v);
             if (type.rfind("ANK-1M", 0) == 0 && o > 0) out.push_back(short_label(czech ? p->options[o].cs : p->options[o].en));
         } else if (p->kind == PK_SECTION && v == json(true)) {
@@ -409,7 +418,7 @@ std::vector<MachinePart> machine_cfg_parts(const json& cfg, bool czech)
             MachinePart m;
             m.slot = card_slot(card);
             m.type = card_display_name(card);
-            if (const CardInfo* ci = card_info(card.value("type", std::string()))) {
+            if (const CardInfo* ci = card_info(jstr(card, "type"))) {
                 m.title = czech ? ci->cs : ci->en;
                 m.devices = card_devices(card, ci, czech);
             }
@@ -420,7 +429,7 @@ std::vector<MachinePart> machine_cfg_parts(const json& cfg, bool czech)
     if (cfg.contains("plant") && cfg["plant"].is_object()) {   // the technology outside the computer
         MachinePart m;
         m.slot = 0;
-        m.type = cfg["plant"].value("type", std::string());
+        m.type = jstr(cfg["plant"], "type");
         if (m.type == "APS-5") m.title = czech ? "Osm pecí s termočlánky" : "Eight furnaces with thermocouples";
         if (m.type == "IMS-2")
             m.title = czech ? "Měřicí pracoviště: voltmetr M1T 330, zdroj BS 525" : "Measuring bench: voltmeter M1T 330, power supply BS 525";
@@ -491,7 +500,7 @@ static std::string param_text(const CardParam* p, const json& v, bool czech)
         return f.empty() ? (czech ? "(nic)" : "(none)") : text_cut(base_name(f), 48);
     }
     case PK_KEYBOARD: {
-        std::string type = v.is_object() ? v.value("type", std::string()) : v.is_string() ? v.get<std::string>() : "";
+        std::string type = v.is_object() ? jstr(v, "type") : v.is_string() ? v.get<std::string>() : "";
         return type.empty() ? (czech ? "(žádná)" : "(none)") : type;
     }
     default:
@@ -522,7 +531,7 @@ static std::vector<CfgCardRef> cfg_card_refs(const json& cfg)
     std::vector<CfgCardRef> out;
     if (cfg.contains("cards") && cfg["cards"].is_array())
         for (const json& c : cfg["cards"])
-            if (c.is_object()) out.push_back({ &c, card_slot(c), c.value("type", std::string()), -1 });
+            if (c.is_object()) out.push_back({ &c, card_slot(c), jstr(c, "type"), -1 });
     return out;
 }
 
@@ -661,7 +670,7 @@ std::vector<CfgProblem> machine_cfg_problems(const json& cfg)
     int cpus = 0;
     if (cfg.contains("cards") && cfg["cards"].is_array()) {
         for (const json& c : cfg["cards"]) {
-            std::string type = c.value("type", std::string());
+            std::string type = jstr(c, "type");
             const CardInfo* ci = card_info(type);
             int s = card_slot(c);
             int w = ci ? ci->width : 1;
@@ -705,12 +714,12 @@ std::vector<CfgProblem> machine_cfg_problems(const json& cfg)
         };
         for (size_t i = 0; i < cards.size(); i++) {
             for (size_t j = i + 1; j < cards.size(); j++) {
-                if (cards[i].value("type", std::string()) != "DMR-1" || cards[j].value("type", std::string()) != "DMR-1")
+                if (jstr(cards[i], "type") != "DMR-1" || jstr(cards[j], "type") != "DMR-1")
                     continue;
                 if (!on(cards[i], "ram") || !on(cards[j], "ram") || !on(cards[i], "battery") || !on(cards[j], "battery"))
                     continue;
-                std::string fa = cards[i].value("sram_file", std::string("work/dmr-1/sram.bin"));
-                std::string fb = cards[j].value("sram_file", std::string("work/dmr-1/sram.bin"));
+                std::string fa = jstr(cards[i], "sram_file", "work/dmr-1/sram.bin");
+                std::string fb = jstr(cards[j], "sram_file", "work/dmr-1/sram.bin");
                 if (fa == fb)
                     out.push_back({ card_slot(cards[j]), false, "two DMR-1 keep their SRAM in the same file " + fa,
                                     "dvě DMR-1 drží SRAM ve stejném souboru " + fa });
@@ -889,7 +898,7 @@ void value_lines(const Writer& w, const json& v, const std::string& path, std::v
             if (!w.ci && !w.bus && path == "cards" && v[i].is_object()) {
                 // a card: comments and key order from its catalog entry
                 Writer cw;
-                cw.ci = card_info(v[i].value("type", std::string()));
+                cw.ci = card_info(jstr(v[i], "type"));
                 member_lines(cw, "", v[i], std::string(), out, ind + 4, i + 1 == v.size());
                 continue;
             }

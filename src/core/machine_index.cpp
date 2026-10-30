@@ -180,6 +180,10 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
     std::vector<std::string> titles(out.machines.size());   // the titles of categories, for the search
     if (idx.contains("categories") && idx["categories"].is_array()) {
         for (const json& c : idx["categories"]) {
+            if (!c.is_object()) {   // an edited index: the other categories still load
+                add_err(err, "a category is not an object");
+                continue;
+            }
             MachineCategory cat;
             cat.id = jstr(c, "id");
             cat.name = jstr(c, "name");
@@ -188,7 +192,8 @@ static void load(MachineIndex& out, const std::string* index, std::string& err)
             cat.text_en = jstr(c, "text_en");
             cat.group = jstr(c, "group");
             cat.group_en = jstr(c, "group_en");
-            cat.guides = c.value("guides", false);
+            if (c.contains("guides") && !c["guides"].is_boolean()) add_err(err, cat.id + ": guides is not true or false");
+            cat.guides = c.contains("guides") && c["guides"].is_boolean() && c["guides"].get<bool>();
             if (c.contains("machines") && c["machines"].is_array()) {
                 for (const json& m : c["machines"]) {
                     if (!m.is_string()) continue;

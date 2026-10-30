@@ -234,20 +234,33 @@ static void category_text(const MachineCategory& cat, bool open, bool searching)
     ImGui::PopTextWrapPos();
 }
 
-// the cards of the machine by slots with the devices plugged into them (read when the selection changes)
+// the cards of the machine by slots with the devices plugged into them (read when the selection or the file changes:
+// a copy in My machines saved again, or a deleted one whose name a new copy takes)
 static void parts(const MachineEntry& e)
 {
     static std::string s_file;
+    static int64_t s_mtime = 0;
+    static uint64_t s_size = 0;
     static bool s_en = false;
     static std::vector<MachinePart> s_parts;
-    if (e.file != s_file || english() != s_en) {
+    uint64_t size = 0;
+    int64_t mtime = 0;
+    file_stat(data_path(e.file), size, mtime);
+    if (e.file != s_file || mtime != s_mtime || size != s_size || english() != s_en) {
         s_file = e.file;
+        s_mtime = mtime;
+        s_size = size;
         s_en = english();
         s_parts.clear();
         std::string text;
         if (file_read_text(data_path(e.file), text)) {
             nlohmann::json j = nlohmann::json::parse(text, nullptr, false, true /* comments */);
-            if (!j.is_discarded()) s_parts = machine_cfg_parts(j, !s_en);
+            try {   // a file edited by hand: whatever is in it, the window stays
+                if (!j.is_discarded()) s_parts = machine_cfg_parts(j, !s_en);
+            } catch (const std::exception& ex) {
+                LOGW("%s: %s", e.file.c_str(), ex.what());
+                s_parts.clear();
+            }
         }
     }
     if (s_parts.empty() || !ImGui::CollapsingHeader(tr("Cards and devices"), ImGuiTreeNodeFlags_DefaultOpen)) return;

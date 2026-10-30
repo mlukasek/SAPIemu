@@ -180,6 +180,7 @@ float layout(const MdText& t, const Fonts& f, bool bold, float width, std::vecto
                     float w = 0;
                     while (q < word[k].e) {
                         int n = utf8_len((unsigned char)*q);
+                        if (n > word[k].e - q) n = (int)(word[k].e - q);   // a character cut off (bad UTF-8)
                         float cw = width_of(fo, f.size, q, q + n);
                         if (x + w + cw > width && (q > p || x > 0)) break;
                         w += cw;
@@ -271,14 +272,19 @@ static float rich(UiState& ui, const MdText& t, ImVec2 pos, float width, const F
     }
     ImU32 code_bg = ImGui::ColorConvertFloat4ToU32(theme().code_bg);
     float u = f.size;
+    // the backgrounds of code first: the mono text reaches a little below its line, the background of a code span on
+    // the next line drawn after it would hide its underscores
+    for (const Frag& fr : frags) {
+        if (!((t[(size_t)fr.span].style | (bold ? MD_BOLD : 0)) & MD_CODE)) continue;
+        ImVec2 p(pos.x + fr.x, pos.y + fr.y);
+        dl->AddRectFilled(ImVec2(p.x - 0.12f * u, p.y), ImVec2(p.x + fr.w + 0.12f * u, p.y + f.size), code_bg,
+                          0.2f * u);
+    }
     for (const Frag& fr : frags) {
         const MdSpan& s = t[(size_t)fr.span];
         uint8_t style = (uint8_t)(s.style | (bold ? MD_BOLD : 0));
         ImFont* fo = font_of(f, style);
         ImVec2 p(pos.x + fr.x, pos.y + fr.y);
-        if (style & MD_CODE)
-            dl->AddRectFilled(ImVec2(p.x - 0.12f * u, p.y), ImVec2(p.x + fr.w + 0.12f * u, p.y + f.size), code_bg,
-                              0.2f * u);
         ImU32 col = text;
         if (!s.link.empty()) {
             ImVec4 c = fr.span == hot ? lc_hot : lc;

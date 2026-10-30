@@ -242,6 +242,10 @@ bool Jpr1::configure(const json& cfg, std::string& err)
         if (!kbd) return false;
         kbd->bus = bus;
     }
+    if (xy && kbd && kbd->minigraf()) {   // the plotter of AR 1990 and the XY 4130: the emulator shows one plotter
+        err = "one plotter per machine: the XY 4130 on X3 or the plotter of AR 1990 (the window, MCP and cli show one)";
+        return false;
+    }
     return true;
 }
 

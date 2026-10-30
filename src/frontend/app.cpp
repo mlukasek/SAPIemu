@@ -279,11 +279,13 @@ void settings_save(App& app, bool force)
 {
     if (app.settings_path.empty()) return;
     nlohmann::json j = settings_json(app);
-    if (!force && j == app.settings_saved) return;
+    // an unsaved configuration is not a "last machine" (before the comparison: else it differs every 3 s)
     if (j["machine"].get<std::string>().empty() && app.settings_saved.contains("machine"))
-        j["machine"] = app.settings_saved["machine"];   // an unsaved configuration is not a "last machine"
+        j["machine"] = app.settings_saved["machine"];
+    if (!force && j == app.settings_saved) return;
     std::string text = j.dump(2);
-    if (file_write_all(app.settings_path, text.data(), text.size())) app.settings_saved = j;
+    // through a temporary file: a crash while writing must not leave it empty (kept machines, recent machines)
+    if (file_write_safe(app.settings_path, text.data(), text.size())) app.settings_saved = j;
 }
 
 // Values of the settings file, applied before the window opens (geometry) or after.
@@ -378,7 +380,8 @@ void settings_apply(App& app, const nlohmann::json& j)
     // the display windows as they were left (author 2026-10-29: what one sets stays): the zoom chosen, the window
     // exactly that size at its first frame (zoom_resize; its place from imgui.ini), or sized by hand (a machine change
     // keeps its size). The floating layout only: a docked display fits its dock.
-    const nlohmann::json& dz = j.value("displays", nlohmann::json::object());
+    nlohmann::json dz = j.value("displays", nlohmann::json::object());
+    if (!dz.is_object()) dz = nlohmann::json::object();   // a damaged file: the defaults, not an exception
     for (int k = -1; k < MAX_GFX_VIEWS && !app.docked; k++) {
         ZoomState& zs = k < 0 ? app.screen_zs : app.gfx[k].zs;
         char key[8];
@@ -716,6 +719,7 @@ static void paste_keyboard(App& app, Machine* m);
 void handle_key(App& app, const SDL_KeyboardEvent& ev)
 {
     Machine* m = app.host.machine();
+    if (app.instance_warn) return;   // the second-window warning waits: nothing may write (quick slot, Ctrl+F12)
     if (ImGui::GetIO().WantTextInput) return;   // typing into a text field: no shortcuts, nothing for SAPI
     // Alt+Enter: full screen on / off, before Enter goes to SAPI (AltGr = Ctrl+Alt is not it). Esc stays the key of SAPI
     // and F11 the step of the debugger.
@@ -1511,8 +1515,10 @@ static void reset_window_layout(App& app, bool open_only)
     // the windows undocked, the dock space comes back empty; arranging the floating layout undocks the open windows only
     if (!open_only || layout_docked(app)) ImGui::DockBuilderRemoveNode(layout_dockspace_id());
     for (ImGuiWindow* w : g.Windows) {
-        // an open docked window (a child of its dock node until it is undocked)
-        if (open_only && w->DockNode && (w->Active || w->WasActive)) ImGui::SetWindowDock(w, 0, ImGuiCond_Always);
+        // a docked window is a child of its dock node until it is undocked (DockNodeRemoveWindow clears the flag):
+        // undocked first, also the ones docked together in a floating node (Default window layout: all of them)
+        if (w->DockNode && !w->DockNodeAsHost && (!open_only || w->Active || w->WasActive))
+            ImGui::SetWindowDock(w, 0, ImGuiCond_Always);
         if (w->Flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip |
                         ImGuiWindowFlags_NoTitleBar))
             continue;   // the menu bar, the dock space host, popups
@@ -2161,7 +2167,10 @@ void draw_menu(App& app)
         if (ImGui::MenuItem(tr("Save state..."), nullptr, false, m != nullptr)) state_save_dialog(app.ui);
         if (ImGui::MenuItem(tr("Load state..."))) state_load_dialog(app.ui);
         if (ImGui::MenuItem(tr("Quick save state"), "Ctrl+F2", false, m != nullptr)) state_quick(app.ui, true);
-        if (ImGui::MenuItem(tr("Quick load state"), "Ctrl+F3")) state_quick(app.ui, false);
+        if (ImGui::MenuItem(tr("Quick load state"), "Ctrl+F3")) {
+            state_quick(app.ui, false);
+            m = app.host.machine();   // loaded at once: the old machine is gone (or rebuilt after a failure)
+        }
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Exit"))) rack_request_exit(app.ui);
         ImGui::EndMenu();
@@ -2398,6 +2407,7 @@ void draw_menu(App& app)
             notice = notice.substr(0, colon + 2) + notice.substr(slash + 1);
     }
     // changes in the configurator wait for a restart: visible with the configurator closed too
+    m = app.host.machine();   // an item above may have replaced the machine (a state loaded at once)
     bool pending = rack_pending(app.ui);
     int errors = log_errors() - app.errors_seen;   // errors in the Log not seen there yet
     float sp = ImGui::GetStyle().ItemSpacing.x;
@@ -2462,7 +2472,9 @@ void draw_menu(App& app)
 
 float display_px_aspect(App& app, DisplayDevice* d)
 {
-    return app.tv_aspect ? (float)(k_tv_square_dot_hz / d->dot_clock_hz()) : 1.0f;
+    // no display (full screen of a machine without one, its menu): square pixels
+    double hz = d ? d->dot_clock_hz() : 0;
+    return app.tv_aspect && hz > 0 ? (float)(k_tv_square_dot_hz / hz) : 1.0f;
 }
 
 // A label in a dark box over the picture `a`-`b`, centred, at the top (top = true) or at the bottom; into the draw
@@ -2833,6 +2845,7 @@ void draw_instance_warning(App& app)
         app.quit = true;
     }
     if (go || app.quit || popup_enter() || popup_escape()) {
+        if (app.quit) app.quit_nosave = true;   // any exit while it waits (Exit, the window's X): as Quit here
         app.instance_warn = false;
         if (!app.quit && app.ini_held) {   // Continue: the window layout is saved again from now on
             ImGui::GetIO().IniFilename = app.ini_held;
@@ -3449,7 +3462,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         while (SDL_PollEvent(&ev)) {
             if (mouse_event(app.mouse, app.window, app.host.machine(), ev)) continue;   // captured: for the SAPI
             ImGui_ImplSDL3_ProcessEvent(&ev);
-            if (ev.type == SDL_EVENT_QUIT) rack_request_exit(app.ui);
+            if (ev.type == SDL_EVENT_QUIT) {   // closing the window while the second-window warning waits = Quit there
+                if (app.instance_warn) app.quit_nosave = app.quit = true;
+                else rack_request_exit(app.ui);
+            }
             else if (ev.type == SDL_EVENT_WINDOW_MOVED || ev.type == SDL_EVENT_WINDOW_RESIZED) track_window(app);
             else if (ev.type == SDL_EVENT_KEY_DOWN) handle_key(app, ev.key);
             else if (ev.type == SDL_EVENT_KEY_UP) handle_key_up(app, ev.key);
@@ -3794,6 +3810,8 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         }
     }
 
+    // closed in any way (Exit, the window's X, Alt+F4) while that warning still waited for an answer: as Quit there
+    if (app.instance_warn) app.quit_nosave = true;
     if (app.quit_nosave) {   // Quit at that warning: the layout and the files of the machine of the other window stay
         ImGui::GetIO().IniFilename = nullptr;
         app.host.drop();

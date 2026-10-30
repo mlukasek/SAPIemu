@@ -592,6 +592,9 @@ void draw_unsaved_question(UiState& ui)
     ImGui::EndPopup();
 }
 
+// a name typed without its extension: the dialog asked about that name only, not about the file with the extension
+static const char* k_exists_unasked = "A file of that name already exists, type the whole name to replace it:";
+
 void handle_dialog(UiState& ui)
 {
     RackEditor& r = ui.rack;
@@ -618,7 +621,15 @@ void handle_dialog(UiState& ui)
         request(ui, RackEditor::PEND_START, data_relative(path));
     } else if (kind == RackEditor::DLG_SAVE) {
         size_t slash = path.find_last_of("/\\");
-        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ".sapi";
+        if (path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) {
+            path += ".sapi";
+            // the dialog asked about the name without .sapi only: an existing file is not replaced unasked
+            if (file_exists(path)) {
+                set_message(r, std::string(tr(k_exists_unasked)) + " " + path, true);
+                r.save_then_continue = false;
+                return;
+            }
+        }
         bool saved = editor_save(ui, path);
         if (saved) recent_add(ui, r.path);   // Save as...: the new file at hand in Recent machines
         if (r.save_then_continue) {
@@ -636,7 +647,15 @@ void handle_dialog(UiState& ui)
             if (kind == RackEditor::DLG_PARAM_NEW) {   // a blank medium: the card makes it when the file is missing
                 std::string ext = param_extension(p, card_param_value(card, p));
                 size_t slash = path.find_last_of("/\\");
-                if (!ext.empty() && path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) path += ext;
+                if (!ext.empty() && path.find('.', slash == std::string::npos ? 0 : slash) == std::string::npos) {
+                    path += ext;
+                    // the dialog asked about the name without the extension: an existing medium (a recorded
+                    // cassette, a tape) is not deleted unasked
+                    if (file_exists(path)) {
+                        set_message(r, std::string(tr(k_exists_unasked)) + " " + path, true);
+                        return;
+                    }
+                }
                 file_remove(path);   // the save dialog asked before replacing it
             }
             card_set_param(card, ci, p, data_relative(path));
@@ -1786,6 +1805,9 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
     if (pend) label_s = "\xE2\x97\x8F " + label_s;
     std::string id_s = label_s + "###lbl";
     const char* label = id_s.c_str();
+    // the ID of the card too: the same parameter of another slot is another field (else a field being typed into
+    // gives its text to the card selected by a right click in the same frame)
+    ImGui::PushID(card_idx);
     ImGui::PushID(p->path);
     if (pend) ImGui::PushStyleColor(ImGuiCol_FrameBg, theme().pending_bg);   // the field, not the popup items
     ImGui::SetNextItemWidth(16.0f * u);
@@ -1956,6 +1978,7 @@ void draw_param(UiState& ui, json& card, int card_idx, const CardInfo* ci, const
             tipf("%s\n%s %s", tr("Changed: takes effect after a restart"), tr("The running machine has:"),
                  run_v.is_null() ? tr("(none)") : scalar(run_v).c_str());
     }
+    ImGui::PopID();
     ImGui::PopID();
 }
 

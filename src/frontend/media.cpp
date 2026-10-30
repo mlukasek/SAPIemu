@@ -219,11 +219,20 @@ static void state_file(UiState& ui, std::string path, bool save)
 
 // The medium of unit `u` of the card changes ("" = taken out): through the machine, so the description
 // (the configurator) keeps up with the Media window.
+static std::string media_image(Machine* m, Card* c, int u);
+static std::string media_unit_with(Machine* m, Card* c, int u, const std::string& image);
+
 static void media_set(UiState& ui, Card* c, int u, const std::string& image)
 {
     Machine* m = ui.host->machine();
     const char* p = c ? c->media_param(u) : nullptr;
     if (!m || !p) return;
+    std::string other = media_unit_with(m, c, u, image);
+    if (!other.empty()) {   // two units with one file: each saves its own copy over the changes of the other
+        ui_notice(ui, false, c->name + ": " + tr("Cannot put the medium in") + ":\n" +
+                                 tr("This medium is already in another unit:") + " " + other);
+        return;
+    }
     std::string err;
     if (!m->set_live_param(c, p, nlohmann::json(image), err))   // the Error window and the Log (a bad image: the old
         ui_notice(ui, false, c->name + ": " +                    // disk stays in, Fdc8272Card::floppy_insert)
@@ -255,15 +264,71 @@ static std::string media_image(Machine* m, Card* c, int u)
     return std::string();
 }
 
-// The medium of unit `u` is a file of media/ used through a working copy (the description only, no look at the disk:
-// asked every frame by the "..." button).
+// The card works on copies of the files of media/ in work/ (its parameter working_copy, true when missing). The
+// cassette recorder of DSM-1 has none: it plays and records the file it is given.
+static bool media_copies(Machine* m, Card* c)
+{
+    if (dynamic_cast<Dsm1*>(c)) return false;
+    nlohmann::json* cc = m ? m->card_config(c) : nullptr;
+    nlohmann::json wc = cc ? cc->value("working_copy", nlohmann::json(true)) : nlohmann::json(true);
+    return !wc.is_boolean() || wc.get<bool>();
+}
+
+// A file inside media/ of the data folder (the supplied originals).
+static bool in_media(const std::string& full)
+{
+    std::string a = data_path("media/"), b = full;
+    for (std::string* x : { &a, &b })
+        for (char& ch : *x) {
+            if (ch == '\\') ch = '/';
+#ifdef _WIN32
+            if (ch >= 'A' && ch <= 'Z') ch = (char)(ch - 'A' + 'a');
+#endif
+        }
+    return b.compare(0, a.size(), a) == 0;
+}
+
+// The medium of unit `u` is a file of media/ (DSE-1: also roms/) used through a working copy (the description only,
+// no look at the disk: asked every frame by the "..." button).
 static bool media_copied(Machine* m, Card* c, int u, std::string& img)
 {
     img = media_image(m, c, u);
     for (char& ch : img) if (ch == '\\') ch = '/';
-    nlohmann::json* cc = m ? m->card_config(c) : nullptr;
-    bool copies = !cc || cc->value("working_copy", true);
-    return copies && (img.rfind("media/", 0) == 0 || (dynamic_cast<Dse1*>(c) && img.rfind("roms/", 0) == 0));
+    return media_copies(m, c) &&
+           (img.rfind("media/", 0) == 0 || (dynamic_cast<Dse1*>(c) && img.rfind("roms/", 0) == 0));
+}
+
+// The file a unit really works with: a medium of media/ through its working copy in work/ (when the card makes one),
+// slashes and (Windows) letter case unified, so that two names of one file compare equal.
+static std::string media_key(Machine* m, Card* c, const std::string& image)
+{
+    std::string img = image;
+    for (char& ch : img) if (ch == '\\') ch = '/';
+    if (media_copies(m, c) && img.rfind("media/", 0) == 0) img = "work/" + img.substr(6);
+    else if (media_copies(m, c) && dynamic_cast<Dse1*>(c) && img.rfind("roms/", 0) == 0)
+        img = Dse1::rom_work_copy(img);   // a dump of the EPROM socket: its copy in work/dse-1/roms/
+    std::string key = data_path(img);
+    for (char& ch : key) {
+        if (ch == '\\') ch = '/';
+#ifdef _WIN32
+        if (ch >= 'A' && ch <= 'Z') ch = (char)(ch - 'A' + 'a');
+#endif
+    }
+    return key;
+}
+
+// Another unit of the machine that has `image` already: "card param", else empty.
+static std::string media_unit_with(Machine* m, Card* c, int u, const std::string& image)
+{
+    if (!m || image.empty()) return std::string();
+    std::string want = media_key(m, c, image);
+    for (auto& k : m->cards)
+        for (int v = 0; k->media_param(v); v++) {
+            if (k.get() == c && v == u) continue;
+            std::string have = media_image(m, k.get(), v);
+            if (!have.empty() && media_key(m, k.get(), have) == want) return k->name + " " + k->media_param(v);
+        }
+    return std::string();
 }
 
 static bool media_original(Machine* m, Card* c, int u, std::string& orig, std::string& work)
@@ -564,12 +629,17 @@ static void draw_tape(UiState& ui, Dsm1* dsm)
     }
     ImGui::SameLine();
     bool wp = t->write_protect;
-    ImGui::BeginDisabled(t->read_only());
+    // a supplied cassette of media/ stays as it is (the recorder has no working copy): record on a New cassette
+    bool supplied = t->loaded() && in_media(t->path);
+    if (supplied && !wp) t->write_protect = wp = true;
+    ImGui::BeginDisabled(t->read_only() || supplied);
     if (ImGui::Checkbox(tr("Write protect"), &wp)) {
         t->write_protect = wp;
         if (wp && t->mode == TapeDeck::RECORD) t->mode = TapeDeck::STOP;
     }
     ImGui::EndDisabled();
+    if (supplied && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        tip(tr("A supplied cassette of media/ stays as it is: record on a New cassette."));
     ImGui::EndDisabled();
 
     double len = t->length_seconds(), p = t->position_seconds();

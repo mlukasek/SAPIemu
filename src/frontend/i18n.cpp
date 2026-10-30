@@ -552,6 +552,7 @@ static const Translation k_table[] = {
     { "New machine from", "Nová sestava podle" },
     { "Opened", "Otevřeno:" },
     { "Cannot write", "Nelze zapsat" },
+    { "A file of that name already exists, type the whole name to replace it:", "Soubor tohoto jména už existuje, k nahrazení napište celé jméno:" },
     { "Saved", "Uloženo:" },
     { "The machine cannot be started", "Sestavu nelze spustit" },
     { "Machine switched off and on with this configuration.", "Sestava vypnuta a zapnuta s tímto nastavením." },
@@ -896,6 +897,8 @@ static const Translation k_table[] = {
     // errors loudly (stage 4, item 6)
     { "Cannot take the medium out", "Médium nejde vyndat" },
     { "Cannot put the medium in", "Médium nejde vložit" },
+    { "This medium is already in another unit:", "Toto médium už je v jiné jednotce:" },
+    { "A supplied cassette of media/ stays as it is: record on a New cassette.", "Dodaná kazeta z media/ zůstává, jak je: nahrávejte na Novou kazetu." },
     { "Cannot create the cassette", "Kazetu nejde vytvořit" },
     { "Cannot create the disk", "Disketu nejde vytvořit" },
     { "Loaded", "Nahráno" },

@@ -78,6 +78,10 @@ bool Dpp1::configure(const json& cfg, std::string& err)
         err = "the XY 4130 needs a channel without the PMD32-SD, the KZD-1 and the Minigraf";
         return false;
     }
+    if (mg_enabled && xy_enabled) {   // the card could drive both, the emulator shows one plotter per machine
+        err = "one plotter per machine: the Minigraf or the XY 4130 (the window, MCP and cli show one)";
+        return false;
+    }
     if (prn_enabled && !prn.configure(cfg["printer"], err)) return false;
     if (kzd_enabled) {
         kzd.bus = bus;
