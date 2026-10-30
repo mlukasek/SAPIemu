@@ -18,7 +18,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu
   (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →
   `docs/vznik.md`, šablony Issues v `.github/ISSUE_TEMPLATE/`), odkazy na vývojářské poznámky mimo zip vedou na
-  GitHub. Video zatím ne. **Těsně před 0.7.1:** `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9),
+  GitHub (i z dokumentů desek, `build.md`, `sestavy.md` a z popisu sestavy her; v okně Média u pevného disku
+  RKD-1 jen jméno souboru). Beta se z toho přebalí znovu jako 0.7.0-beta, až autor řekne. Video zatím ne. **Těsně před 0.7.1:** `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9),
   WSL; jméno serveru se starým archivem zůstává ve staré historii gitu (historie se nepřepisuje).
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
@@ -1049,7 +1050,7 @@ Po každé fázi následuje commit, shrnutí, aktualizace tohoto souboru a zasta
     (DMR, ZRMD, IDE…)? Jak vypadá panel originálních karet a DMR-1, ZRMD-1, IDE-1?~~ Odpověděl autor 2026-10-28:
     původní Tesla SAPI-1 měl holé karty za krycím panelem
     (http://www.osmibitovemuzeum.cz/fotogalerie/sapi-1_2/1.jpg). Rám v konfigurátoru se kreslí podle Liborovy
-    modernizované skříně s popsanými panely, je to záměrná odchylka (`docs/rozhodnuti.md`, 2026-10-28).
+    modernizované skříně s popsanými panely, je to záměrná odchylka ([docs/rozhodnuti.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/rozhodnuti.md), 2026-10-28).
 
 16. **ZPS-2 a MIKOS:**
     - Byl MIKOS v ZPS-2 ve 4× 2708 (dump 1. KB tomu odpovídá), nebo ve 2× 2716? Emulace: 2708.

@@ -353,7 +353,7 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 
 - **FXS4 a přepisované definice znaků:** na Liborově sestavě se po čase přepisuje font FXS4 a nakonec se program
   zasekne. Podle Libora se v 1.0.1 přerušení přijalo s PC > BFFFh. V SAPIemu PC při INTA nad 904Fh nebylo
-  (9. 10.). Zkouška fontu: viz `docs/SOUHRN.md` (2026-10-10).
+  (9. 10.). Zkouška fontu: viz [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) (2026-10-10).
 
 
 ## [JPR-1X – procesorová deska 80C85 (Libor Lasota, rev 1.0, 2025)](desky/JPR-1X.md) – Nejasnosti k ověření (HW / autor) (8)
@@ -728,7 +728,7 @@ Rozhodne všechna místa označená [S] a [?]:
     (DMR, ZRMD, IDE…)? Jak vypadá panel originálních karet a DMR-1, ZRMD-1, IDE-1?~~ Odpověděl autor 2026-10-28:
     původní Tesla SAPI-1 měl holé karty za krycím panelem
     (http://www.osmibitovemuzeum.cz/fotogalerie/sapi-1_2/1.jpg). Rám v konfigurátoru se kreslí podle Liborovy
-    modernizované skříně s popsanými panely, je to záměrná odchylka (`docs/rozhodnuti.md`, 2026-10-28).
+    modernizované skříně s popsanými panely, je to záměrná odchylka ([docs/rozhodnuti.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/rozhodnuti.md), 2026-10-28).
 
 16. **ZPS-2 a MIKOS:**
     - Byl MIKOS v ZPS-2 ve 4× 2708 (dump 1. KB tomu odpovídá), nebo ve 2× 2716? Emulace: 2708.

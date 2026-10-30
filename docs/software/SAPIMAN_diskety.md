@@ -30,7 +30,7 @@ s kopií ve `work/sapiman/knihovna/`.
 | `zdroj_stare_a_kermit.img` | Kermit pro CP/M se zdroji | `ZDROJ_STARE/a_kermit.8sd` |
 
 Dvojice `a_` a `b_` jsou dvě diskety jedné sady (program bývá rozdělený). Je v nich komerční software z 80. let
-(Turbo Pascal, dBase II, WordStar, Pascal/MT+…): **před zveřejněním repa** to probrat (`docs/SOUHRN.md`, příprava
+(Turbo Pascal, dBase II, WordStar, Pascal/MT+…): **před zveřejněním repa** to probrat ([docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md), příprava
 veřejného vydání).
 
 ## Ostatní diskety

@@ -26,7 +26,7 @@ Typ `JPR-1V` třídy JPR-1ZI (`src/cards/jpr1zi.*`):
     (`whole_clocks` v `jpr1zi.cpp`: n = ⌈(w − ½ taktu) / takt⌉). Dřív mohl CPU stát půl taktu. Týká se hlavně
     CGA-1V, ověřeno programem ZRDBENCH proti skutečné desce (`docs/desky/ZRMD-1.md`).
   - Stavový řádek ukazuje skutečný takt CPU.
-- **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z), viz „Na promyšlení“ v SOUHRN.
+- **Neemulováno:** STSTB bez refreshe (týká se jen čekání AND-1Z), viz „Na promyšlení“ v [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md).
 
 Zdroje:
 - [S1] schéma `..\SAPI-karty\JPR-1V\JPR-1V.pdf` (rev 1.1, 4 listy);
@@ -109,7 +109,7 @@ Vyrenderované výřezy schémat byly v dočasné složce rozboru, z PDF se daj�
 
 ## Otázky pro autora
 
-Jsou souhrnně v `docs/SOUHRN.md` (bod 21).
+Jsou souhrnně v [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) (bod 21).
 
 - **Čtení prázdné sběrnice** (změřeno 2026-10-11, `docs/zmeny-podle-hw.md`): když na čtení paměti nebo I/O
   nikdo neodpoví, dostane CPU poslední bajt své datové sběrnice: `IN A,(n)` → n, `IN A,(C)` → 78h,
@@ -123,4 +123,4 @@ Jsou souhrnně v `docs/SOUHRN.md` (bod 21).
   s RAM-1V (registr MAP 63h), DSM-1V a ostatními.
 - **FXS4 a přepisované definice znaků:** na Liborově sestavě se po čase přepisuje font FXS4 a nakonec se program
   zasekne. Podle Libora se v 1.0.1 přerušení přijalo s PC > BFFFh. V SAPIemu PC při INTA nad 904Fh nebylo
-  (9. 10.). Zkouška fontu: viz `docs/SOUHRN.md` (2026-10-10).
+  (9. 10.). Zkouška fontu: viz [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) (2026-10-10).

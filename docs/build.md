@@ -163,7 +163,7 @@ s důvodem jsou v testu).
 - **`loc(en, cs)`** jen pro data se dvěma jazyky (katalog karet, problémy sestavy). Hlášení mapy portů a paměti dává
   jádro v obou jazycích, české názvy funkcí karet bere přes překladač z GUI (`machine_map_problems(m, cs_what)`).
 
-**Přístupnost** (od 2026-10-29, etapa 7 plánu vzhledu; důvody v `docs/rozhodnuti.md`, uživatelský přehled v README):
+**Přístupnost** (od 2026-10-29, etapa 7 plánu vzhledu; důvody v [docs/rozhodnuti.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/rozhodnuti.md), uživatelský přehled v README):
 - **Navigace klávesnicí ImGui** (`NavEnableKeyboard`) je zapnutá s `io.ConfigNavCursorVisibleAuto = false`: rámeček
   ukáže až Tab (`nav_cursor_frame()` v `app.cpp`), kliknutí myší ho skryje, bez rámečku mezerník ani Enter nic
   nestisknou. Okna s klávesami SAPI (displeje, celá obrazovka, sériový terminál i jeho text) mají
@@ -204,7 +204,7 @@ s důvodem jsou v testu).
 - **Náhled přístroje:** okno označí nakreslený hardware `picture_mark()`, `--ui-picture` s `--ui-crop` ořízne snímek
   jen na něj (`docs/sestavy.md`).
 
-**Vzhled GUI** (od 2026-10-28, plán `docs/vydani/plan-vzhled.md`): Windows 11, světlý i tmavý, jako data
+**Vzhled GUI** (od 2026-10-28, plán [docs/vydani/plan-vzhled.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/vydani/plan-vzhled.md)): Windows 11, světlý i tmavý, jako data
 v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled je dvojice palet, rozměry a řádek
 `k_themes`. Varianty Windows klasický a SAPI průmyslový z galerie autor nevybral, jsou v commitu `1fc9a21`.
 - **Vzhled:**
@@ -265,7 +265,7 @@ v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled j
   je vynechaná (snímek by ukázal „--“). Jedna paleta 128 barev, asi 0,85 MB. Bez `--install` zůstane GIF jen
   v pracovní složce, `--install` ho zkopíruje do `docs/img/readme`.
 
-**Okna GUI** (od 2026-10-29, etapa 5 plánu vzhledu; důvody v `docs/rozhodnuti.md`, 2026-10-29 – etapa 5 plánu
+**Okna GUI** (od 2026-10-29, etapa 5 plánu vzhledu; důvody v [docs/rozhodnuti.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/rozhodnuti.md), 2026-10-29 – etapa 5 plánu
 vzhledu: okna):
 - **Plovoucí rozmístění** (`src/frontend/layout.cpp`, výchozí): jeden pomocník pro všechna okna. Okno dostane místo
   a velikost jen při prvním použití (`ImGuiCond_FirstUseEver`), takže místo z `imgui.ini` má vždy přednost.

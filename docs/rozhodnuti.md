@@ -3316,7 +3316,8 @@ uprav … a samozřejmě tam doplň vše ostatní, co patří do readme“), fot
 
 Autor po zabalení bety 0.7.0: „jasn, jdi na to, pak to rovnou commitni a pushni“ (úklid repa, odkazy, které by
 v zipu nikam nevedly, obrázky v novém vzhledu, `README.en.md` a GIF). Přepnutí `k_issues_public` a texty „do
-zveřejnění“ až těsně před 0.7.1, WSL tamtéž. Beta 0.7.0 tyto změny nemá, zip se kvůli nim nebalí znovu.
+zveřejnění“ až těsně před 0.7.1, WSL tamtéž. Betu autor ještě neposlal a chce ji „co nejfinálnější“: zip 0.7.0-beta
+se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od něj nic nechybí.
 
 - **Cesty k soukromému archivu autora** (síťový disk, jméno serveru) z `CLAUDE.md` do `CLAUDE.local.md`. Ten Claude
   Code čte automaticky a git ho ignoruje, v `CLAUDE.md` zůstala neutrální věta. Jméno serveru zůstává ve staré
@@ -3332,7 +3333,10 @@ zveřejnění“ až těsně před 0.7.1, WSL tamtéž. Beta 0.7.0 tyto změny n
   připomínají, ať lidé nepřikládají ROM a obrazy médií od jiných autorů. Nápad má místo i pro odpověď na otázku k HW.
 - **Odkazy na dokumenty mimo zip** (`DEV_DOCS` v `tools/package.py`: `docs/SOUHRN.md`, `docs/rozhodnuti.md`,
   `docs/vydani/`) vedou z README, poznámek k vydání 0.1–0.3 a otázek na HW na GitHub. `tools/hw_otazky.py` to dělá
-  sám. Odkaz z README na `docs/vydani/sestavy.md` je pryč (pro uživatele je okno Vybrat sestavu).
+  sám. Odkaz z README na `docs/vydani/sestavy.md` je pryč (pro uživatele je okno Vybrat sestavu). Na autorovo
+  přání („uprav ty dokumenty v zipu“) totéž v dokumentech desek, `build.md`, `sestavy.md` a `SAPIMAN_diskety.md`;
+  z technického popisu sestavy her (okno Vybrat sestavu) odkaz zmizel. Zůstal jen popis `DEV_DOCS` v `build.md`
+  a komentář v `machines/_vyber.json`.
 - **`README.en.md`:** anglické README se stejnou kostrou jako české (autorův text přeložený, AI, měření, stažení),
   v zipu vedle `README.md`. Anglický oddíl na konci českého README je jen krátký odkaz.
 - **Obrázky v `docs/img` v novém vzhledu:** 15 snímků GUI z návodů, desek a README ve tmavém vzhledu Windows 11 při

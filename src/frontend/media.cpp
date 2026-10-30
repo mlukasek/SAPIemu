@@ -1110,7 +1110,7 @@ static void draw_rkd(UiState& ui, Rkd1* r)
         ImGui::Text("   %s:", tr("fixed disk"));
         ImGui::SameLine();
         if (x.loaded) {
-            ImGui::TextUnformatted(x.path.c_str());
+            file_name_text(x.path);   // the whole path in the tooltip
             ImGui::SameLine();
             ImGui::Checkbox(tr("Write protect##fixed"), &x.write_protect);
         } else ImGui::TextDisabled("-");

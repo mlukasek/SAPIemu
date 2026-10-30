@@ -43,7 +43,7 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - Řadič umí až 4 mechaniky, 8" i 5,25", SS i DS, SD i DD (návod). **Emulace má 4 mechaniky, formát podle
   velikosti obrazu** (`src/chips/floppy.h`): 8" SS SD (IBM 3740, 77 × 26 × 128 B, jako u RPD-1) a formáty PC
   3,5" HD 1,44 MB, 5,25" HD 1,2 MB, DD 720 a 360 KB (MFM, 512 B, dvě strany). **Obrazy ImageDisk (`.imd`)**
-  s libovolnou geometrií po stopách (FM/MFM, délka a číslování sektorů, deleted, chyby CRC; `docs/rozhodnuti.md`). PC mechaniky HD používal EC1045
+  s libovolnou geometrií po stopách (FM/MFM, délka a číslování sektorů, deleted, chyby CRC; [docs/rozhodnuti.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/rozhodnuti.md)). PC mechaniky HD používal EC1045
   (BIOSy `ECBIF3`, `ECBIF5`, sestava `machines/cpm_ec1045.sapi`).
 - Od roku 1989 dodávaný místo RPD-1 (FDC.DOC). Tiskárnu DPP-1 je kvůli kolizi portů nutné přeadresovat z 08H na 18H.
 - **Propojení desek:** horní konektory (X2) obou desek spojuje stejný plochý kabel jako u RPD-1 (KB-17, návod:
@@ -147,7 +147,7 @@ Stav: **emulovaná** (typ `FDC-1`, `src/cards/fdc1.*`, obvody `src/chips/i8272.*
 - **Parametry:** `drive_a`–`drive_d` (obraz, ochrana), `working_copy`, `decoder` (PROM D5B), `rdy_ground`,
   `sa2_a`–`sa2_d` (přepínače SA2: 8sd, 8dd, 5sd, 5dd).
 - Okno Média ukazuje mechaniky 0–3 (vložit, nová, vysunout, ochrana), stejně jako u RPD-1, s písmenem v CP/M
-  (parametr `cpm` u mechaniky, jinak zjištěné za chodu; `docs/rozhodnuti.md` 2026-10-06).
+  (parametr `cpm` u mechaniky, jinak zjištěné za chodu; [docs/rozhodnuti.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/rozhodnuti.md) 2026-10-06).
 - **Motory** (parametr `motor_line`, výchozí ne): s ním se disketa točí, jen když má mechanika zapnutý motor
   bitem M3–M0 registru 0FH, a čte se až `spinup_ms` (výchozí 500 ms) po zapnutí. Bez otáčení nejsou indexové
   pulzy ani značky a 8272 čeká, dokud motor nenaběhne. Bez parametru se disketa točí stále (8" Consul se

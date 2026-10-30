@@ -119,7 +119,7 @@ Zdroje:
 - **Prohozená velikost českých písmen:** firmware posílá české znaky jako KOI-8 cs XOR 20h (malé `ž` jako FAh,
   což je v KOI-8 cs `Ž`). ECMON a ovladače CP/M (C25911) XOR 20h vracejí. MikroMon kódy ukládá a zobrazuje,
   jak přišly, takže v emulaci po napsání `ž` ukáže `Ž`. Emulátor se chová jako firmware (viz Nejasnosti
-  v `docs/SOUHRN.md`).
+  v [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md)).
 
 ### Protokol čtení (MikroMon `kbd.asm`, ověřeno v binárce 1.3)
 

@@ -14,7 +14,7 @@ a technologie mimo počítač (APS-5, IMS-2). Nové zařízení karty se do sezn
 Výpis všech sestav: `test_machine_cfg --parts` (`--parts en` anglicky).
 Při prvním spuštění (bez souboru nastavení) se otevře samo a běží v něm ZPS-1 s MIKROBASICem
 (`GUI_FIRST_MACHINE_FILE` v `src/frontend/app.h`), která je proto vybraná. `sapiemu-cli` bez `--machine` dál
-spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, `docs/vydani/sestavy.md`):
+spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, [docs/vydani/sestavy.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/vydani/sestavy.md)):
 
 - **`machines/_vyber.json`** (JSON s komentáři; soubory začínající `_` nejsou sestavy):
   - `intro`, `intro_en`: úvod nad seznamem přes celou šířku okna (co byl SAPI-1, kde začít);
@@ -290,7 +290,7 @@ který port a paměťovou adresu.
 | ZPS-3 | JPR-1A, RAM-1A, AND-1A, DSM-1, RPD-1 (2 sloty) | Consul 259.11 |
 | ZPS-4 | JPR-1Z, RAM-1Z, AND-1Z, DSM-1, RPD-1, RMD-1 | Consul 259.11 |
 
-Pořadí karet ve slotech je odhad (viz Nejasnosti v `docs/SOUHRN.md`). **ZPS-1 běží** s MIKROBASICem 2.4,
+Pořadí karet ve slotech je odhad (viz Nejasnosti v [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md)). **ZPS-1 běží** s MIKROBASICem 2.4,
 **ZPS-2** s Monitorem V4.0 a MIKOSem 4.0F (RAM-1/48K, programy z kazety, `docs/software/MIKOS.md`).
 `ZPS-2_MIKOS_V5.sapi` je ZPS-2 s Monitorem V5.0F, MIKOSem V5.0, klávesnicí Consul 262.3 a grafickým displejem
 DGD-1 (C000–FFFF, RAM-1 proto jen 4000–BFFF). Grafika má vlastní okno „DGD-1“. `ZPS-2_MIKOS_V5_DGD-1V.sapi` je
@@ -360,7 +360,7 @@ vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při
 **Hry a dema na sestavě V** (2026-10-17): `sapi1v_hry.sapi` má grafiku CGA-1V i DGD-1V (střídají se podle MAP2 jako
 u `libor_doma`), bez IDE. RAM disk `media/zrmd-1/hry-a-dema.bin` vyrábí `tools/make_hry_disk.py` z obrazu Bad Apple!!
 (`ba-ramdisk.bin`) a her a dem z repozitářů vedle SAPIemu: Bad Apple!!, FXS4, Flappy (CGA-1V i DGD-1V), Bomberman,
-BKP, dema, přehrávače a hudba L. Lasoty (`docs/vydani/sestavy.md`). Po startu volba 3, pak jméno programu.
+BKP, dema, přehrávače a hudba L. Lasoty ([docs/vydani/sestavy.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/vydani/sestavy.md)). Po startu volba 3, pak jméno programu.
 `sapi1v_PoP.sapi` (Prince of Persia s grafikou a hudbou DOS verze, `media/zrmd-1/pop-ramdisk.bin`) je od 2026-10-28
 v Hrách a demech i ve vydání. Sestavy
 `sapi1v_BadApple` a `sapi1v_DGD_Flapy` nahradila 2026-10-17 `sapi1v_hry`.
