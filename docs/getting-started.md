@@ -162,7 +162,7 @@ the log of the run that crashed. The start after that replaces it, so send it ri
 - In the program: Help → First steps (this guide) and Help → Glossary in the Help window (chapters fold, links open
   the web or the file), the Machine guides (English and Czech) and Help → Keyboard shortcuts.
 - `docs/glossary.md`: the glossary as a file (in Czech `docs/slovnicek.md`).
-- `README.md`: an English summary at the top, then the full Czech description.
+- `README.en.md`: the description of SAPIemu in English (the Czech one is `README.md`).
 - `PRVNI-KROKY.md`: the full first steps in Czech, with every machine and what to type.
 - `docs\`: user guides of the instruments (`navod-*.md`), notes on each board (`docs\desky\`) and on the software
   (`docs\software\`), all in Czech.

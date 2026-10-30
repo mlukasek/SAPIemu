@@ -1,5 +1,8 @@
 # Deník rozhodnutí
 
+> Pracovní poznámky z vývoje, vede je Claude Code podle zadání autora;
+> „autor“ v nich je Martin Lukášek.
+
 Nejnovější rozhodnutí jsou dole. U každého je uveden důvod. Při změně rozhodnutí se původní text nemaže, ale doplní se nový záznam.
 
 ## 2026-10-03 – Základní technologie
@@ -3308,6 +3311,40 @@ uprav … a samozřejmě tam doplň vše ostatní, co patří do readme“), fot
   zůstává mimo git.
 - **Počty v README ověřené:** 51 typů karet v katalogu, 48 emulovaných (AND-30C, RAM-64 a RPD-1Z jen v katalogu).
 - Kontakt na autora v README není (jen odkaz na 8bity.cz), chyby přes Issues.
+
+## 2026-10-30 – zbytek etapy 9: úklid repa, README.en.md, obrázky a GIF
+
+Autor po zabalení bety 0.7.0: „jasn, jdi na to, pak to rovnou commitni a pushni“ (úklid repa, odkazy, které by
+v zipu nikam nevedly, obrázky v novém vzhledu, `README.en.md` a GIF). Přepnutí `k_issues_public` a texty „do
+zveřejnění“ až těsně před 0.7.1, WSL tamtéž. Beta 0.7.0 tyto změny nemá, zip se kvůli nim nebalí znovu.
+
+- **Cesty k soukromému archivu autora** (síťový disk, jméno serveru) z `CLAUDE.md` do `CLAUDE.local.md`. Ten Claude
+  Code čte automaticky a git ho ignoruje, v `CLAUDE.md` zůstala neutrální věta. Jméno serveru zůstává ve staré
+  historii gitu: historie se nepřepisuje (rozhodnutí 2026-10-17), jde jen o jméno, ne o přístup.
+- **Vývojářské poznámky** (`SOUHRN.md`, `rozhodnuti.md`, `hw-otazky.md`, `hw-otazky-priorita.md`) mají nahoře dva
+  řádky, že je vede Claude Code podle zadání autora a kdo je v nich „autor“. Kdo přijde z GitHubu, jinak neví, proč
+  se v nich mluví o autorovi ve třetí osobě. `hw-otazky-priorita.md` se jmenuje „Hledáme pomoc: otázky k ověření na
+  skutečném hardwaru“ a zve do Issues: otázky na HW jsou to, s čím můžou pomoct lidé se skutečnými deskami.
+- **`zadani.md` z kořene repa do `docs/vznik.md`** s krátkým úvodem, text zadání beze změny (doklad, že cílem od
+  začátku bylo ověřovat emulaci proti skutečným deskám).
+- **Šablony Issues** v `.github/ISSUE_TEMPLATE/`: Chyba a Nápad, česky i anglicky, prázdné issue zůstává povolené.
+  Chyba chce verzi, sestavu, kroky, diagnostiku z Nahlásit chybu a log po pádu (`sapiemu.prev.log`); obě
+  připomínají, ať lidé nepřikládají ROM a obrazy médií od jiných autorů. Nápad má místo i pro odpověď na otázku k HW.
+- **Odkazy na dokumenty mimo zip** (`DEV_DOCS` v `tools/package.py`: `docs/SOUHRN.md`, `docs/rozhodnuti.md`,
+  `docs/vydani/`) vedou z README, poznámek k vydání 0.1–0.3 a otázek na HW na GitHub. `tools/hw_otazky.py` to dělá
+  sám. Odkaz z README na `docs/vydani/sestavy.md` je pryč (pro uživatele je okno Vybrat sestavu).
+- **`README.en.md`:** anglické README se stejnou kostrou jako české (autorův text přeložený, AI, měření, stažení),
+  v zipu vedle `README.md`. Anglický oddíl na konci českého README je jen krátký odkaz.
+- **Obrázky v `docs/img` v novém vzhledu:** 15 snímků GUI z návodů, desek a README ve tmavém vzhledu Windows 11 při
+  100 % ze skriptu `tools/docs_images.py`. Každý obrázek má recept (sestava, akce cli až do stavu, který popisuje
+  text, okna a ořez), data jsou čistá kopie z HEAD bez `work/`. `minigraf-ukazka.png` je menší. Kresby zapisovačů,
+  logo a fotky autora zůstávají.
+- **GIF nahoře v README** (česky `docs/img/readme/sapiemu-ukazka.gif`, v `README.en.md` `sapiemu-demo-en.gif`,
+  1200 × 675, asi 10 s, 0,85 MB): Vybrat sestavu → Spustit ZPS-1 → průvodce → Napsat do SAPI → program běží.
+  Snímky jsou skutečné snímky GUI, dokreslený je jen kurzor myši a kroužek kliknutí (skrytý snímek kurzor nemá).
+  Položka rychlosti ve stavovém řádku je vynechaná, protože snímek by ukázal „--“ (hodnocení UX: radši vynechat než
+  předstírat). Generátor `tools/readme_gif.py`.
+- **Video zatím ne:** na první dojem stačí GIF, video podle zájmu po zveřejnění.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

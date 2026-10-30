@@ -1,5 +1,8 @@
 # Otázky k ověření na skutečném HW
 
+> Pracovní poznámky z vývoje, vede je Claude Code podle zadání autora;
+> „autor“ v nich je Martin Lukášek.
+
 **Generováno** skriptem `python tools/hw_otazky.py` ze sekcí „Nejasnosti“ v `docs/` (needitovat ručně,
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
@@ -676,7 +679,7 @@ Rozhodne všechna místa označená [S] a [?]:
   nahrávky z magnetofonu jsou 96 kHz.
 
 
-## [SAPIemu – souhrn a předávka](SOUHRN.md) – Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově) (41)
+## [SAPIemu – souhrn a předávka](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) – Nejasnosti k ověření na reálném HW (sbírat a řešit dávkově) (41)
 
 1. **AND-1Z-89:** ~~20 nebo 24 řádků? Délka řádku 107 nebo 108 znaků.~~ 20 řádků, 109 znaků (změřeno 2026-10-13,
    `docs/desky/AND-1Z-89.md`).

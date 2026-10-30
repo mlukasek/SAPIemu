@@ -644,7 +644,7 @@ O programu  28 px tučně v barvě textu, verze 13 px
    - Neprůhledná okna a vlastní akcent (5.2), aby sdílené snímky nevypadaly jako ukázka ImGui.
 7. **Úklid repa.**
    - Do `SOUHRN.md`, `rozhodnuti.md` a `hw-otazky*.md` dát dvouřádkovou hlavičku „Pracovní poznámky z vývoje, vede je Claude Code; „autor“ = Martin Lukášek“.
-   - Z verzovaného `CLAUDE.md` vyndat, co cizí nepotřebuje: jméno sdílené složky `Luksrv1` a cesty na `H:`. Soubor nechat veřejný.
+   - Z verzovaného `CLAUDE.md` vyndat, co cizí nepotřebuje: jméno tvého serveru se sdílenou složkou a cesty na `H:`. Soubor nechat veřejný.
    - `zadani.md` přesunout do `docs/vznik.md` s jednou větou úvodu. Je to nejlepší doklad, že cílem bylo ověřování proti skutečným deskám.
    - `hw-otazky-priorita.md` přejmenovat na pozvánku „Hledáme pomoc: otázky k ověření na skutečném HW“.
 8. **Commity.**
@@ -769,7 +769,7 @@ Každé zjištění má tvar *závažnost, název — doklad → doporučení (n
 **Prezentace, README a vnímání**
 - [PER-01] kritické před zveřejněním, Nikde veřejně není, že program vzniká s AI, přestože ji uvádí skoro každý commit — README:10-11 a 19, [18], `git log` → odstavec tvými slovy, řádek v O programu, v poznámkách k vydání a v oznámeních; `Co-Authored-By` ponechat (S)
 - [PER-02] závažné, Nejsilnější důkaz, měření na skutečném hardwaru, není vidět — README:9-10, 194; `docs/img` nemá fotky → sekce „Měřeno na skutečném SAPI-1 V“ s fotkou, snímkem z Logic 2 a čísly (S)
-- [PER-03] závažné, Přední stránce chybí lidský hlas — README a První kroky bez první osoby, motivace je jen v `zadani.md` → 120–200 slov sám, „Kdo za tím je“ (S)
+- [PER-03] závažné, Přední stránce chybí lidský hlas — README a První kroky bez první osoby, motivace je jen v `zadani.md` (dnes `docs/vznik.md`) → 120–200 slov sám, „Kdo za tím je“ (S)
 - [PER-04, BEN-12, NEW-10] závažné, README je katalog o 2 642 slovech, anglická část je seznam zkratek a v zipu je jen český PRVNI-KROKY.md — README:5-11, 13-26, 49-156, `package.py:74` → asi 110 řádků, „Co umí“ do `docs/funkce.md`, `README.en.md`, „Tesla SAPI-1“, anglický Getting started; snímky nechat za odkazem na stažení (M)
 - [PER-05] závažné, Žádné video ani GIF — README:28-38 → GIF nahoře, 2–3 minuty skutečného SAPI-1 V vedle emulátoru (M)
 - [PER-07] závažné, Chvála přátel není test a testeři nemají kam hlásit (soukromé repo, Issues vrací 404) — `SOUHRN.md:592-593`, README:47, `prvni-kroky.md:4`, `help.cpp:163` → kanál pro hlášení, úkoly a otázky, dva lidé zvenku, desetivteřinový test, šablona issue (S)

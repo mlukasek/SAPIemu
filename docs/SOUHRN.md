@@ -1,5 +1,8 @@
 # SAPIemu – souhrn a předávka
 
+> Pracovní poznámky z vývoje, vede je Claude Code podle zadání autora;
+> „autor“ v nich je Martin Lukášek.
+
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
 ## Kde jsme skončili (2026-10-30) a co dál
@@ -10,8 +13,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   SHA-256 `bec249fb…`) po `release full` 66/66 a `check_machines.py --games` 60 sestav a 12 her a dem; rozbalená do
   `..\SAPIemu-release` s autorovým `work/`, `imgui.ini` a nastavením, stará 0.6.0 je v `..\SAPIemu-release-0.6.0`.
   **Dál:** autor ji pošle Liborovi, Petrovi a Michalovi (dopis `docs/vydani/beta-testeri.md`); po jejich zpětné vazbě a Liborových souhlasech `0.7.1-beta`
-  (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Zbytek etapy 9: GIF, video,
-  `README.en.md`, úklid repa.
+  (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz.
+- **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
+  etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu
+  (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →
+  `docs/vznik.md`, šablony Issues v `.github/ISSUE_TEMPLATE/`), odkazy na vývojářské poznámky mimo zip vedou na
+  GitHub. Video zatím ne. **Těsně před 0.7.1:** `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9),
+  WSL; jméno serveru se starým archivem zůstává ve staré historii gitu (historie se nepřepisuje).
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
   (Windows 11, Windows klasický, SAPI průmyslový; světlá i tmavá) a galerie ke srovnání → 2 výběr sestav a texty

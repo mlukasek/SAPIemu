@@ -1,4 +1,10 @@
-# Otázky na HW podle důležitosti
+# Hledáme pomoc: otázky k ověření na skutečném hardwaru
+
+> Pracovní poznámky z vývoje, vede je Claude Code podle zadání autora;
+> „autor“ v nich je Martin Lukášek.
+
+Víte odpověď, máte některou z desek nebo dokumentaci? Napište prosím do Issues projektu na GitHubu (šablona
+Nápad / Idea).
 
 Roztřídění seznamu `docs/hw-otazky.md` (2026-10-13, 238 otevřených bodů). Ten se generuje z Nejasností v dokumentech
 desek a obsahuje všechno, co nevíme jistě, od zapojení po to, kdo napsal hru. **Žádný bod neblokuje vydání:**
@@ -32,13 +38,13 @@ Skupiny:
    bez toho), pořadí bitů délky slova v řídicím registru, propojka JP8, bity modemu bez terminálu.
 5. **IDE-1** ([IDE-1.md](desky/IDE-1.md)): stav signálů IDE po resetu (8255 PC jako vstup, pull-upy R8/R9), obraz
    skutečného DOM/CF ze sestavy.
-6. **EKL-1 a MikroMon** ([klavesnice.md](desky/klavesnice.md), `docs/SOUHRN.md` body 7, 9, 13, 25): tón bzučáku,
+6. **EKL-1 a MikroMon** ([klavesnice.md](desky/klavesnice.md), [SOUHRN](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) body 7, 9, 13, 25): tón bzučáku,
    MikroMon s UART (`sw i01`, kanály 10/14/18h, ozvěna bez USYNC), velké `Ž` po Alt-lock. Stačí MikroMon v PicoROM
    a EKL-1.
 7. **DGD-1V**, pokud se najde ([DGD-1V.md](desky/DGD-1V.md)): čekací takty a zamrzání při INTA (emulováno podle
    schématu jako CGA-1V).
 8. ~~**AND-1V**~~: hotovo (čekací takty a zamrzání při INTA 2026-10-11, rev 2.3 s fontem typ 1 2026-10-13).
-9. **Desky V, odpovědi pohledem** (SOUHRN bod 22): revize RAM-1V (1.1, nebo 1.2), propojky DSM-1V, Timekeeper
+9. **Desky V, odpovědi pohledem** ([SOUHRN](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) bod 22): revize RAM-1V (1.1, nebo 1.2), propojky DSM-1V, Timekeeper
    v patici C.
 
 ## B – může změnit chování, potřebuje jiné desky nebo lidi
@@ -49,7 +55,7 @@ Seřazeno podle toho, jak viditelný by rozdíl byl.
   AND-1, AND-1A skládání sloupců 32–63 a font MHB 2501 ([AND-1.md](desky/AND-1.md), [AND-1A.md](desky/AND-1A.md);
   AND-1B je změřená, emulátor AND-1 zatím počítá trochu jinak, liší se jen neviditelné buňky); DGD-1 PROM D1A,
   okno CPU ([DGD-1.md](desky/DGD-1.md)).
-- **Sestavy ZPS-1 až ZPS-4** (SOUHRN body 14–20): pořadí RST z 3214 na JPR-1, MIKOS ve 2708, PROM D1A RAM-1,
+- **Sestavy ZPS-1 až ZPS-4** ([SOUHRN](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md) body 14–20): pořadí RST z 3214 na JPR-1, MIKOS ve 2708, PROM D1A RAM-1,
   RMD-1 význam bitů O3/O4 PROM ([RMD-1.md](desky/RMD-1.md)), boot EPROM a propojky JPR-1A ([JPR-1A.md](desky/JPR-1A.md)),
   ELIS a Consul 262.3, AND-1A 1 KB / 2 KB, prázdné patice JPR-1 a REM-1.
 - **SAPI-1.5** ([PKT-1.md](desky/PKT-1.md), [RSW-1.md](desky/RSW-1.md)): polarita MAP1/MAP2/BOOT, /MR při čtení vnitřní

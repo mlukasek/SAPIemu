@@ -251,6 +251,19 @@ v `src/frontend/theme_data.cpp`. Mechanismus unese víc vzhledů: nový vzhled j
   RMP-1 s Médii, ZPS-1 s debuggerem a pamětí) ve světlém vzhledu Windows 11. Sloupce jsou velikost × rozložení,
   rozložení je v nastavení snímku (`appearance.layout`) i v `--ui-layout`. Výsledek je
   v `out\ui-gallery\<čas>-layouts\index.html`.
+- **Obrázky do dokumentace:** `python tools\docs_images.py [--out SLOŽKA] [--keep] [jméno…]` znovu udělá snímky GUI
+  v `docs/img` (návody, desky, README) ve tmavém vzhledu Windows 11 při 100 %. Každý obrázek má v `PICTURES` recept:
+  sestavu, akce `sapiemu-cli` až do stavu, který popisuje text u obrázku, okna GUI a ořez (okna bez lišty menu, nebo
+  horní část jednoho okna). Co by člověk nastavil myší (knoflík zdroje BS 525, zátěž), zapíše skript do uloženého
+  stavu mezi dvěma běhy cli. Data jsou čistá kopie z HEAD v `out\docs-images\<čas>`, každý snímek má nové nastavení.
+  PNG se ukládá s paletou, když ji obrázek snese. Po změně GUI skript spustit s `--out` do jiné složky, obrázky
+  prohlédnout a dobré zkopírovat do `docs/img`. Kresby zapisovačů a logo nedělá.
+- **GIF nahoře v README:** `python tools\readme_gif.py [cs|en] [--install]` udělá krátkou ukázku (Vybrat sestavu →
+  Spustit ZPS-1 → průvodce → Napsat do SAPI → program běží), česky `docs/img/readme/sapiemu-ukazka.gif`, anglicky
+  `sapiemu-demo-en.gif`. Snímky jsou skutečné snímky GUI z release buildu nad čistou kopií dat
+  v `out\readme-gif\<čas>`, dokreslený je jen kurzor myši a kroužek kliknutí; položka rychlosti ve stavovém řádku
+  je vynechaná (snímek by ukázal „--“). Jedna paleta 128 barev, asi 0,85 MB. Bez `--install` zůstane GIF jen
+  v pracovní složce, `--install` ho zkopíruje do `docs/img/readme`.
 
 **Okna GUI** (od 2026-10-29, etapa 5 plánu vzhledu; důvody v `docs/rozhodnuti.md`, 2026-10-29 – etapa 5 plánu
 vzhledu: okna):
@@ -534,7 +547,10 @@ Pozor: sestava V zapisuje změny RAM disku do `work/`, na zkoušky je lepší ko
      zkontroluje;
    - přibalí `THIRD-PARTY-NOTICES.txt`. Po aktualizaci knihovny ho přegenerovat: `python tools\third_party_notices.py`
      (licenci SDL3 zkopírovat z `out\build\<preset>\_deps\sdl3-src\LICENSE.txt` do `third_party\sdl3\`).
-4. **Obrázky do README** (`docs\img\`) se dělají skrytým oknem GUI:
+4. **Obrázky do dokumentace a README** (`docs\img\`) po změně GUI: `python tools\docs_images.py --out <složka>`
+   a GIF nahoře v README `python tools\readme_gif.py` (oba popsané výše u galerie vzhledů). Výsledek prohlédnout
+   a dobré zkopírovat do `docs\img`, GIF přes `--install`. Fotky a snímky autora v `docs\img\readme\` se nedělají
+   skriptem. Ručně jde snímek udělat skrytým oknem GUI:
    - připravit stav přes `sapiemu-cli ... --save-state scena.sapistate`;
    - `sapiemu --settings s.json --ui-snapshot obr.png --ui-state scena.sapistate --ui-size 1540x572`;
    - rozložení oken dává `s.json.imgui.ini`, třeba `[Window][x###screen]` a `[Window][x###gfx0]` s `Pos=` a `Size=`;

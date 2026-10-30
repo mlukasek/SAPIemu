@@ -564,6 +564,12 @@ upravený: proč vznikl, AI a měření s fotkami a třemi výsledky měření),
 krátké „Co umí“ (celé přesunuté do `docs/funkce.md`), pro vývojáře, anglický souhrn s odstavcem o AI. Fotky
 a snímky autora v `docs/img/readme/`. Čeká na autorovu kontrolu; GIF, video, `README.en.md` a úklid repa zbývají.
 
+**Stav 2026-10-30:** README autor upravil a schválil (pushnuto), beta 0.7.0 zabalená. Pak hotové: GIF nahoře
+v README česky i anglicky (`tools/readme_gif.py`), `README.en.md`, obrázky v `docs/img` v novém vzhledu
+(`tools/docs_images.py`, `minigraf-ukazka.png` zmenšený), úklid repa a šablony issue, odkazy na `docs/SOUHRN.md`
+a `docs/vydani/` z README a dokumentů v zipu vedou na GitHub. Zbývá video (zatím ne) a texty „do zveřejnění“
+níže těsně před 0.7.1.
+
 **README**
 - Zhruba 110 řádků.
 - Odstavec tvým hlasem (napíšeš sám).
@@ -579,7 +585,8 @@ a snímky autora v `docs/img/readme/`. Čeká na autorovu kontrolu; GIF, video, 
 - `k_issues_public = true` v `src/frontend/help.cpp`: Nahlásit chybu ukáže odkaz na Issues místo adresy v závorce.
 - Zjednodušit „do zveřejnění … potom přes GitHub Issues“ v Nahlásit chybu (`i18n.cpp`), Prvních krocích,
   `GETTING-STARTED.md` a README; „Testovací verze“ v Prvních krocích podle vydané verze.
-- README: odkazy na `docs/vydani/sestavy.md` a `docs/SOUHRN.md` (ve veřejném zipu chybí).
+- ~~README: odkazy na `docs/vydani/sestavy.md` a `docs/SOUHRN.md` (ve veřejném zipu chybí).~~ Hotovo 2026-10-30:
+  odkaz na `docs/vydani/sestavy.md` z README pryč, na SOUHRN vede na GitHub.
 
 **Ověření před zveřejněním**
 - `release full` a WSL.

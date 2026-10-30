@@ -67,6 +67,11 @@ def sections(path):
     return res
 
 
+# the notes of the development (DEV_DOCS of tools/package.py) are not in the zip: links to them go to GitHub
+DEV_DOCS = ('SOUHRN.md', 'rozhodnuti.md', 'vydani')
+GITHUB = 'https://github.com/mlukasek/SAPIemu/blob/main/docs/'
+
+
 def title_of(path):
     with open(path, encoding='utf-8') as f:
         for line in f:
@@ -91,11 +96,14 @@ def main():
             if not items:
                 continue
             total += len(items)
-            parts.append('## [%s](%s) – %s (%d)\n' % (title_of(p), rel, name, len(items)))
+            link = GITHUB + rel if rel.split('/')[0] in DEV_DOCS else rel   # not in the zip: on GitHub
+            parts.append('## [%s](%s) – %s (%d)\n' % (title_of(p), link, name, len(items)))
             for it in items:
                 parts.append('\n'.join(it).rstrip() + '\n')
             parts.append('')
     text = ('# Otázky k ověření na skutečném HW\n\n'
+            '> Pracovní poznámky z vývoje, vede je Claude Code podle zadání autora;\n'
+            '> „autor“ v nich je Martin Lukášek.\n\n'
             '**Generováno** skriptem `python tools/hw_otazky.py` ze sekcí „Nejasnosti“ v `docs/` (needitovat ručně,\n'
             'otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté\n'
             'nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.\n\n'

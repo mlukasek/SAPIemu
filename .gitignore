@@ -10,4 +10,10 @@ work/
 
 # ImGui window layout
 imgui.ini
+
+# local notes of the author's PC for Claude Code (paths to his private archive)
+CLAUDE.local.md
 __pycache__/
+
+# the author's photos and screenshots (the chosen ones are copied to docs/img/readme)
+foto/

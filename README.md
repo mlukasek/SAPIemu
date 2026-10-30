@@ -5,7 +5,9 @@
 **Emulátor československého modulárního počítače Tesla SAPI-1 (1983–1990).** Sestavíte ho z karet v rámu jako
 skutečný, nastavíte propojky a spustíte MIKROBASIC, MIKOS nebo CP/M. K tomu přístroje, se kterými SAPI-1 pracoval
 v průmyslu, a nové desky Libora Lasoty s grafikou a zvukem. Pro Windows 10/11, sestaví se i na Linuxu, rozhraní je
-česky i anglicky. *English below.*
+česky i anglicky. *In English: [README.en.md](README.en.md).*
+
+<a href="docs/img/readme/sapiemu-ukazka.gif"><img src="docs/img/readme/sapiemu-ukazka.gif" width="90%" alt="Krátká ukázka SAPIemu: výběr sestavy, spuštění a program na obrazovce SAPI-1"></a>
 
 <p>
   <a href="docs/img/readme/sapiemu-mikos-svetly.png"><img src="docs/img/readme/sapiemu-mikos-svetly.png" width="49%" alt="ZPS-2 s MIKOSem a grafikou DGD-1, průvodce sestavou a konfigurátor, světlý vzhled"></a>
@@ -74,7 +76,7 @@ celkem osvědčil a aspoň vím, že se bez nás zatím neobejdou.
 </p>
 
 Co měření v emulátoru opravilo (podrobně v [docs/zmeny-podle-hw.md](docs/zmeny-podle-hw.md), programy měření
-v [tools/hwbench/](tools/hwbench/)):
+v [tools/hwbench/](https://github.com/mlukasek/SAPIemu/tree/main/tools/hwbench)):
 
 - **DSM-1V:** dva zápisy znaku rychle po sobě pošlou na desce jen jeden znak, protože UART převezme znak až na
   hraně svého taktu. Emulátor posílal „55 55 55“, deska „55 55“. Teď se chová jako deska.
@@ -181,14 +183,14 @@ z dokumentace IQ 151, sestava V s CP/M a obrázkem na grafice CGA-1V.*
   [Minigraf 0507](docs/navod-minigraf.md), [XY 4130](docs/navod-xy4130.md), [plotter z AR 1990](docs/navod-ar1990.md),
   [DPS-1 a IMS-2](docs/navod-dps1.md), [RKD-1](docs/navod-rkd1.md), [RMP-1](docs/navod-rmp1.md). V programu Nápověda
   → Návody k obsluze.
-- [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet;
-  [docs/vydani/sestavy.md](docs/vydani/sestavy.md): sestavy ve vydání po skupinách.
+- [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti),
   [docs/software/](docs/software/): software pro SAPI.
 - [docs/zmeny-podle-hw.md](docs/zmeny-podle-hw.md): změny podle měření na skutečném SAPI-1 V,
   [docs/hw-otazky-priorita.md](docs/hw-otazky-priorita.md): co zbývá ověřit na skutečném hardwaru.
 - Pro vývoj: [docs/build.md](docs/build.md), [docs/mcp.md](docs/mcp.md), [docs/stav.md](docs/stav.md), stav projektu
-  [docs/SOUHRN.md](docs/SOUHRN.md), všechny dokumenty ve složce [docs/](docs/).
+  [docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md), všechny dokumenty ve složce
+  [docs/](docs/).
 
 ## Síť a soukromí
 
@@ -237,30 +239,7 @@ z dokumentace IQ 151, sestava V s CP/M a obrázkem na grafice CGA-1V.*
 
 ## English
 
-SAPIemu emulates the Czechoslovak **Tesla SAPI-1** (1983–1990), a modular industrial control computer designed by
-Ing. Eduard Smutný and made by Tesla Liberec: cards with an 8080, 8085 or Z80 in a rack on the ARB-1 bus, configured
-like the real boards (jumpers, address decoders from PROM dumps). It runs the original ZPS sets with MIKROBASIC,
-MIKOS and CP/M, the instruments SAPI-1 worked with (the APS-5 furnace control unit, the IMS-2 instrument bus with a
-voltmeter and a power supply, plotters, a data recorder, a cartridge disk and a magnetic tape), and the new boards of
-Libor Lasota with VGA, colour graphics and sound. The games and demos on them are a modern extra: SAPI-1 was not a
-games machine.
-
-**Getting started:** download the zip from [Releases](https://github.com/mlukasek/SAPIemu/releases) (Windows 10/11),
-unpack it and run `sapiemu.exe`; nothing is installed. The window Choose a machine offers the machines with a
-preview and a guide. The user interface is in Czech and English (View → Jazyk / Language); the detailed
-documentation is in Czech, a short English guide is [docs/getting-started.md](docs/getting-started.md) (in the
-program Help → First steps, with a glossary). Beta version: please report bugs in
-[Issues](https://github.com/mlukasek/SAPIemu/issues) (Help → Report a bug copies the diagnostics).
-
-**How it is made.** I develop SAPIemu with the AI coding assistant Claude Code (Anthropic). Claude writes the code
-and most of the notes in `docs/` to my brief and under my review, which is why every commit carries
-`Co-Authored-By: Claude`. I build and measure SAPI-1 boards, decide what is emulated and how, and check the
-behaviour of the V boards on my own SAPI-1 V with a PicoROM in the EPROM socket and a Saleae Logic Pro 16 on the bus
-([docs/zmeny-podle-hw.md](docs/zmeny-podle-hw.md), in Czech). The original Tesla boards follow the documentation,
-schematics and ROM dumps from sapi.cz (Petr Všijanský) and from Libor Lasota. *Martin Lukášek,
-[8bity.cz](https://www.8bity.cz/)*
-
-The emulator sends nothing anywhere by itself. Screen readers do not see its user interface (it is drawn by Dear
-ImGui); the text of the SAPI screen can be copied (View → Copy screen text) or printed by
-`sapiemu-cli --print-screen`. Prince of Persia (machine `sapi1v_PoP`) is an unofficial, non-commercial port shown as
-a demonstration of historic technology; at the request of the copyright holders it will be changed or removed.
+SAPIemu emulates the Czechoslovak modular industrial computer **Tesla SAPI-1** (1983–1990): you build it from cards
+in a rack like the real one and run MIKROBASIC, MIKOS or CP/M. The user interface is in Czech and English. The
+English README, with why and how the emulator is made (with an AI assistant and measurements on a real SAPI-1 V), is
+**[README.en.md](README.en.md)**.

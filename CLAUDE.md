@@ -23,11 +23,12 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   karty přibývají tamtéž. Repa z GitHubu (`..\MikroMon`, `..\ZPS-3`, `..\SAPI_DPI-1`…) jsou přímo vedle SAPIemu.
   Do 2026-10-05 byly i desky přímo vedle (`..\<deska>`), testy proto zkoušejí obě místa. Podklady k sestavám
   (ROM, obrazy disket, které autor připravil) jsou v `..\SAPI-sestavy\<sestava>` (např. `ZPS-3`). **Aktuální kopie
-  archivů (stažené 2026-10-05, používat přednostně před staršími na `H:`):** `..\SAPI_DOKU` (dokumentace SAPI_DOKU,
+  archivů (stažené 2026-10-05, používat přednostně před starším archivem autora):** `..\SAPI_DOKU` (dokumentace SAPI_DOKU,
   např. `MFC-1A` s celým návodem a originálními skeny schémat) a `..\SAPI.CZ` (záloha webu sapi.cz: `sapi`, `pdf`…).
   `..\SAPI_DOKU_FTP` je kopie SAPI_DOKU z FTP (2026-10-05), liší se od té z Dropboxu (archiv EC1045 s disketami,
   obrazy ImageDisk, viz `docs/software/CPM_SAPIMAN.md`); autor je bude slučovat.
-  Další archiv je v `H:\SAPI-1\` (lokální záloha sapi.cz: `sapi.cz_BKP_2023-02-22`). **Zdrojáky systému ECMON
+  Starší archiv autora je na jeho síťovém disku (vedou do něj odkazy na `H:` v `docs/`), cesty k němu jsou
+  v `CLAUDE.local.md` (jen na autorově PC, není v gitu). **Zdrojáky systému ECMON
   + CP/M ZRMD-1** (ověřené proti originálům) jsou v `..\SAPI-karty\ZRMD-1\SRC\` (`build.py`, M80/L80 pod
   `cpmrun`, viz `docs/software/ECMON.md`). **Systémy CP/M J. Bíby (SAPIMAN) a EC1045**, obrazy disket, formáty a otázky na
   EC1045: `docs/software/CPM_SAPIMAN.md`, soupis jeho disket a knihovna v repu: `docs/software/SAPIMAN_diskety.md`.
@@ -35,7 +36,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   PDF a EAGLE se mohou lišit. Binární `.sch` převede offline na netlist `"C:\EAGLE 9.5.1\eaglecon.exe" -C "EXPORT
   NETLIST n.txt; EXPORT PARTLIST p.txt; WRITE x.sch; QUIT;" kopie.sch` (na kopii, `eagle.exe` chce přihlášení).
   Názvy: ANK-1M5 = ANK-1M2 (předchůdce), BGP-1 = BGP-1S.
-- **Původní zadání:** `zadani.md`.
+- **Původní zadání:** `docs/vznik.md`.
 - **Zdrojový kód** (`src/`):
   - `core/`: sběrnice, karta, stroj, `host` (běh a fronta příkazů), disasm, headless, util, charset, ihex,
     png, log, `xmodem` (vysílač a přijímač pro okno terminálu), `tapegen` (kazeta MIKOS a MIKROBASIC
@@ -74,7 +75,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `ar1990_rom.py` (EPROM plotteru z AR 1990 z výpisu `roms/ar1990/PLOTTER.MAC`, `docs/desky/AR1990.md`),
   `dps1_kazeta.py` (kazeta BASIMS s programy BASIC nahraná v emulátoru přes MCP, `docs/navod-dps1.md`),
   `ui_gallery.py` (galerie obrazovek GUI ve všech vzhledech `--ui-theme`, s `--layouts` plovoucí a zadokovaná
-  okna, `docs/vydani/plan-vzhled.md`),
+  okna, `docs/vydani/plan-vzhled.md`), `docs_images.py` (snímky GUI v `docs/img` pro návody, desky a README podle
+  receptů nad čistou kopií dat; výsledek prohlédnout před commitem), `readme_gif.py` (GIF nahoře v README česky
+  i anglicky, `--install`),
   `check_machines.py` (před vydáním: v každé sestavě něco spustí a zkontroluje, `--games` hry a dema sestavy
   `sapi1v_hry`; nad čistou kopií dat v `out/check/`, `docs/build.md`), `make_previews.py` (náhledy sestav pro
   okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích
@@ -83,7 +86,10 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy,
   `plan-vzhled.md` plán vzhledu a použitelnosti GUI, `beta-testeri.md` dopis a úkoly pro testery bety).
   Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`). README je krátké (text
-  autora, AI, měření, stažení), úplný seznam funkcí je `docs/funkce.md`, obrázky README v `docs/img/readme/`. Slovníček pojmů
+  autora, AI, měření, stažení), anglicky `README.en.md` (obě v zipu, změny dělat v obou), úplný seznam funkcí je
+  `docs/funkce.md`, obrázky README v `docs/img/readme/`. Dokumenty mimo zip (`DEV_DOCS` v `package.py`: SOUHRN,
+  rozhodnutí, `docs/vydani/`) odkazovat z dokumentů v zipu na GitHub. Šablony Issues jsou v `.github/ISSUE_TEMPLATE/`.
+  Soukromé cesty autorova PC patří do `CLAUDE.local.md` (mimo git), ne sem. Slovníček pojmů
   `docs/slovnicek.md` a `docs/glossary.md` (stejné oddíly a řádky, hlídá `test_markdown`); s prvními kroky je
   ukazuje okno Nápověda v programu, `package.py` je chce v gitu.
 - **Sestavy:** `machines/*.sapi` (JSON s komentáři, cesty relativně ke kořeni repa).
@@ -145,10 +151,8 @@ Pasti ověřené 2026-10-05:
   klon v `~/SAPIemu`, ne na `/mnt/e`; postup a pasti GCC v `docs/build.md`). Windows build má přednost, změny
   pro Linux nesmí nic rozbít na Windows (po nich vždy `tools\build.cmd debug test` i `release test`).
 - **Umístění na autorově hlavním PC (od 2026-10-04):** repo je na lokálním disku v `E:\SAPI_GIT\SAPIemu`, podpůrné
-  repozitáře desek v `E:\SAPI_GIT\SAPI-karty\<deska>` (od 2026-10-05, relativní odkazy `..\SAPI-karty\JPR-1V`). Archiv
-  `H:\SAPI-1\` (záloha sapi.cz, `LiborLasota`, `_ROM`, nahrávky kazet…) zůstává na síťovém disku `H:`
-  (`\\Luksrv1\history`). Dřív bylo repo v `H:\SAPI-1\GIT\SAPIemu` a VS na síťovém disku zlobilo (IntelliSense
-  do `.vs\`, pomalé sestavení). Lokální preset `local-debug` proto na tomto PC není potřeba.
+  repozitáře desek v `E:\SAPI_GIT\SAPI-karty\<deska>` (od 2026-10-05, relativní odkazy `..\SAPI-karty\JPR-1V`).
+  Lokální preset `local-debug` proto na tomto PC není potřeba.
 - **Po přesunu repa do jiné složky** neplatí `out\build\*` (CMakeCache má absolutní cesty): smazat ho, nebo ve VS
   Project → Delete Cache and Reconfigure. Nastavení GUI (`sapiemu-settings.json`, `imgui.ini`) z něj předem
   odložit.

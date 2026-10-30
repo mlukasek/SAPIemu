@@ -1,3 +1,10 @@
+# Vznik projektu: původní zadání
+
+Původní zadání projektu z jeho prvního dne (3. 10. 2026), jak ho napsal Martin Lukášek, ponechané beze změny jako
+doklad, že cílem od začátku bylo ověřovat emulaci proti skutečným deskám.
+
+---
+
 Emulátor počítače Tesla SAPI-1. Počítač je 8-bitový založený na procesoru 8080 a Z80. Je velmi modulární, do sběrnice si uživatel naskládal libovolné karty z nabídky a podle toho spustil systém MIKOS nebo CP/M. Emulátor by měl být stejně modulární a konfigurovatelný, aby šlo vybrat sestavu a jednotlivé desky a podle toho by se choval.
 
 

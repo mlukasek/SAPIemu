@@ -12,7 +12,7 @@ of the development (DEV_DOCS); the zip is checked not to hold them.
 
 The zip holds the release build (sapiemu.exe, sapiemu-cli.exe) and the data the emulator
 finds next to the exe: roms/, media/, machines/, third_party/fonts, the licences of the
-libraries, docs/, README.md, LICENSE, PRVNI-KROKY.md (Czech first steps) and GETTING-STARTED.md
+libraries, docs/, README.md, README.en.md, LICENSE, PRVNI-KROKY.md (Czech first steps) and GETTING-STARTED.md
 (English). Only files tracked by git are taken (no work/, no local leftovers). The zip is checked:
 unpacked into a clean folder, sapiemu-cli boots MikroMon from there.
 
@@ -34,7 +34,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, "out", "build", "windows-release")
 DATA = ["roms", "media", "machines", "docs", "third_party/fonts"]
-FILES = ["README.md", "LICENSE", "THIRD-PARTY-NOTICES.txt", "third_party/README.md"]
+FILES = ["README.md", "README.en.md", "LICENSE", "THIRD-PARTY-NOTICES.txt", "third_party/README.md"]
 # --public: notes of the development (state, decisions, the release plan and consents) stay in the repository
 DEV_DOCS = ("docs/SOUHRN.md", "docs/rozhodnuti.md", "docs/vydani/")
 # in the repository only (none now: Prince of Persia goes into the release since 2026-10-28, the author's decision)
