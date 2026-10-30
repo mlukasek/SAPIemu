@@ -233,6 +233,7 @@ z dokumentace IQ 151, sestava V s CP/M a obrázkem na grafice CGA-1V.*
 - **Libor Lasota** ([pmd85.cz](https://www.pmd85.cz/)): desky V, desky k původním sestavám (JPR-1S, JPR-1X, BGP-1S,
   AND-1B, ANK-1M2), sběrnice ImBUS, MikroMon, MIKROBIOS a programy pro CGA-1V, MPH-1V a BGP-1S, použité s jeho
   souhlasem.
+- **Ing. Jan Meloun (Melsoft):** sestava SAPI-1.5 a diskety CP/M 2.2 62K od Melsoftu (1990).
 - **Jiří Bíba (SAPIMAN):** monitory a BIOSy CP/M pro SAPI-1 (RPD-1, FDC-1, MFC-1A, RAM disky, IDE) a sbírka disket
   a zdrojáků v SAPI_DOKU; **EC1045** je dál udržoval (ECMON, diskety PC, CD a MOUNT pro PMD32-SD).
 - Software pro SAPI-1 od Tesla ELTOS / DIZ, CP/M 2.2/P od R. Peřiny a další programy, které se zachovaly.

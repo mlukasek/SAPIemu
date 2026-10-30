@@ -1,7 +1,7 @@
 # ZPS-6 (SAPI-1.5)
 
-SAPI-1.5 z roku 1990: procesorová karta PKT-1, barevný displej DBS-1A (80 × 25 znaků), disketa 5,25" s řadičem
-MFC-1A a CP/M 2.2 62K od Melsoftu.
+SAPI-1.5 z roku 1990: procesorová karta PKT-1, barevný displej DBS-1A (64 × 20 znaků), disketa 5,25" s řadičem
+MFC-1A a CP/M 2.2 62K od Melsoftu (Ing. Jan Meloun).
 
 ## Vyzkoušejte
 

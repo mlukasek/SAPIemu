@@ -194,6 +194,7 @@ static const Translation k_table[] = {
     { "Jiří Bíba (SAPIMAN): CP/M systems, disks and programs. R. Peřina, Tesla ELTOS, IMA, DIZ, Elstroj and all authors of the software of the time.", "Jiří Bíba (SAPIMAN): systémy CP/M, diskety a programy. R. Peřina, Tesla ELTOS, IMA, DIZ, Elstroj a všichni autoři dobového softwaru." },
     { "Keyboard shortcuts", "Klávesové zkratky" },
     { "Libor Lasota (pmd85.cz): the boards V, MikroMon, MIKROBIOS, his programs, demos and games.", "Libor Lasota (pmd85.cz): desky V, MikroMon, MIKROBIOS, jeho programy, dema a hry." },
+    { "Ing. Jan Meloun (Melsoft): a SAPI-1.5 set and the Melsoft disks.", "Ing. Jan Meloun (Melsoft): sestava SAPI-1.5 a diskety Melsoftu." },
     { "Libraries", "Knihovny" },
     { "MCP server on", "Server MCP zapnutý" },
     { "Off. Only programs on this PC (127.0.0.1) can connect, it is for the development of software for SAPI with Claude (docs/mcp.md).", "Vypnutý. Připojit se mohou jen programy na tomto PC (127.0.0.1), slouží k vývoji softwaru pro SAPI s Claude (docs/mcp.md)." },

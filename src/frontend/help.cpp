@@ -567,6 +567,7 @@ void draw_about(UiState& ui)
     ImGui::TextWrapped("%s", tr("Petr Všijanský (EC1045, sapi.cz): dumps, documentation and disks of SAPI-1 and "
                                 "answers to many questions."));
     ImGui::TextWrapped("%s", tr("Libor Lasota (pmd85.cz): the boards V, MikroMon, MIKROBIOS, his programs, demos and games."));
+    ImGui::TextWrapped("%s", tr("Ing. Jan Meloun (Melsoft): a SAPI-1.5 set and the Melsoft disks."));
     ImGui::TextWrapped("%s", tr("Jiří Bíba (SAPIMAN): CP/M systems, disks and programs. R. Peřina, Tesla ELTOS, IMA, "
                                 "DIZ, Elstroj and all authors of the software of the time."));
     theme_section(tr("Libraries"));

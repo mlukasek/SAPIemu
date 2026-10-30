@@ -2,7 +2,8 @@
 
 Software pro sestavy SAPI-1.5 (ZPS-5 až ZPS-10, Tesla Liberec 1990). Emulované od 2026-10-07 v sestavě
 `machines/zps/ZPS-6.sapi` (PKT-1, RSW-1, MFC-1A, DBS-1A), test `test_sapi15`. Desky: `docs/desky/PKT-1.md`,
-`RSW-1.md`, `DBS-1A.md`, `MFC-1A.md`.
+`RSW-1.md`, `DBS-1A.md`, `MFC-1A.md`. **Melsoft** = Ing. Jan Meloun (autor 2026-10-30). Od něj má autor sestavu
+SAPI-1.5 a diskety, poděkování je v README a v okně O programu.
 
 ## Sestavy SAPI-1.5 (Tesla, `..\SAPI.CZ\sapi\doku\sapi15.php`, `doku2\zps.php`)
 

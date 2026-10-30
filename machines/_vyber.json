@@ -133,8 +133,8 @@
         "zps/ZPS-6.sapi": {
             "title": "ZPS-6 (SAPI-1.5)",
             "title_en": "ZPS-6 (SAPI-1.5)",
-            "summary": "SAPI-1.5 z roku 1990: procesorová karta PKT-1, displej DBS-1A 80 × 25 a disketa 5,25\" s CP/M od Melsoftu.",
-            "summary_en": "SAPI-1.5 of 1990: the PKT-1 CPU card, the DBS-1A display 80 x 25 and a 5.25\" floppy with CP/M by Melsoft."
+            "summary": "SAPI-1.5 z roku 1990: procesorová karta PKT-1, displej DBS-1A 64 × 20 a disketa 5,25\" s CP/M od Melsoftu.",
+            "summary_en": "SAPI-1.5 of 1990: the PKT-1 CPU card, the DBS-1A display 64 x 20 and a 5.25\" floppy with CP/M by Melsoft."
         },
         "mikromon.sapi": {
             "title": "MikroMon 1.3",

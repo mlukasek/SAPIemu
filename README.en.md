@@ -254,6 +254,7 @@ The rest is in Czech:
 - **Libor Lasota** ([pmd85.cz](https://www.pmd85.cz/)): the V boards, boards for the original machines (JPR-1S,
   JPR-1X, BGP-1S, AND-1B, ANK-1M2), the ImBUS bus, MikroMon, MIKROBIOS and programs for CGA-1V, MPH-1V and BGP-1S,
   used with his consent.
+- **Ing. Jan Meloun (Melsoft):** a SAPI-1.5 set and the Melsoft CP/M 2.2 62K disks (1990).
 - **Jiří Bíba (SAPIMAN):** monitors and CP/M BIOSes for SAPI-1 (RPD-1, FDC-1, MFC-1A, RAM disks, IDE) and the
   collection of floppies and sources in SAPI_DOKU; **EC1045** maintained them further (ECMON, PC floppies, CD and
   MOUNT for PMD32-SD).

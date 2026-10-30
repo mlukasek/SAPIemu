@@ -30,6 +30,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   sedí na spodní hraně loga (autor: po odebrání černého obdélníku loga nesedělo účaří), `ink_bottom` z masky
   `logo-alpha.png`, při 100 i 150 %. Dalších 10 cest na `H:` v `roms/README.md` a `media/README.md` (git je má
   za binární, `git grep -I` je přeskočil) nahrazených archivem SAPI_DOKU (MD5 ověřené) a odkazy na sapi.cz.
+  Poděkování **Ing. Janu Melounovi (Melsoft)** za sestavu SAPI-1.5 a diskety (autor 2026-10-30): O programu, README
+  česky i anglicky, průvodce ZPS-6. Oprava: průvodce ZPS-6 a výběr sestav psaly u DBS-1A 80 × 25 znaků, ROM BIOS
+  PKT-1 ji nastavuje na 64 × 20 (ověřeno snímkem, 512 × 240 bodů); 80 sloupců umí jen s propojkou XT7 na 6 bodů
+  a programem, který přenastaví 6845.
 - **2026-10-30, zbytek etapy 9 hotový** (po zabalení bety, v betě ještě není; rozhodnutí 2026-10-30 – zbytek
   etapy 9): GIF nahoře v README (`tools/readme_gif.py`), `README.en.md`, obrázky `docs/img` v novém vzhledu
   (`tools/docs_images.py`), úklid repa (cesty k archivu autora v `CLAUDE.local.md` mimo git, `zadani.md` →

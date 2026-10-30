@@ -63,7 +63,7 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
 - Tesla ELTOS IMA, DIZ, Liberec, Elstroj: MIKROBASIC, MIKOS V4/V5, MIKOS/D, MIKOS/K, monitory ZPS-3, APS-5, RKD-1,
   PKT-1, ovladače Minigrafu a XY 4130, BASIC EXP, CKM, BASIMS, výpisy PROM.
 - R. Peřina (1988): CP/M MOR48A, MOR62A, MOR62Z a jejich diskety.
-- ELIS (*JME/JPE), Melsoft (1990), V. Julius OK1IVJ (plotter z AR 1990, přepsaný z výpisu v AR).
+- ELIS (*JME/JPE), Melsoft (1990, Ing. Jan Meloun: od něj má autor sestavu SAPI-1.5 a diskety, poděkování v README a O programu), V. Julius OK1IVJ (plotter z AR 1990, přepsaný z výpisu v AR).
 - Komerční software 80. let na disketách (Turbo Pascal, dBase II, WordStar, MBASIC, Pascal/MT+…): podle rozhodnutí
   autora ponechat.
 
