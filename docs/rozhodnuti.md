@@ -3401,3 +3401,78 @@ se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od 
   generování systému z toho souboru.
 - **Původ chyby:** monitor `mon281211` má na stejném místě záměrný průchod do výběru disku 0, do BIOSu pro RAM disk
   se nejspíš přenesl i s ním (`docs/software/CPM_SAPIMAN.md`).
+
+## 2026-10-30 – DSE-1
+
+**Rozhodnuto za autora** (2026-10-30, autor byl pryč: „rozhoduj se sám“). Podklady: tři průzkumy (HW, programy pro
+MONITOR V4, programy pro CP/M), návrh a jeho kontrola; kde kontrola návrh opravila, platí kontrola. Autor může
+cokoli změnit, doporučení je vždy první možnost. Popis desky `docs/desky/DSE-1.md`, návod `docs/navod-dse1.md`.
+
+- **Rozsah první verze:** programátor (EPROM v patici kabelu X2) a 4 KB RAM simulátoru za 8255. **Sonda X3 není
+  nikam zapojená**, ON LINE je jen stav v okně Média a v MCP. Všem známým programům to stačí, po ON LINE nic
+  nekontrolují. Export RAM simulátoru do `.bin` (okno Média, MCP) je označený jako pomoc emulátoru. Sonda v patici
+  jiné karty téže sestavy (REM-1, JPR-1) je další krok: mění jiné karty a ZPS-2 má v REM-1 2708, kam sonda bez
+  propojek nepasuje.
+- **Programovací pulz:**
+  - měří se v čase sběrnice (`(now − začátek) / cpu_hz` jako DMT-1 a ADP-1), ne v taktech CPU;
+  - PD se vzorkuje po dobu pulzu (AND), zápis, který pulz ukončí, se nepočítá. Řídicí slovo nuluje PA i PC naráz,
+    jinak by v buňce skončilo 00h;
+  - **pulz od 1 ms programuje** (buňka AND data, bity jen 1 → 0), kratší ne. Práh skutečného čipu neznáme
+    (předpoklad v katalogu, v `DSE-1.md` i v Nejasnostech). Počítají se jen hrany;
+  - jedno shrnutí za programování do logu (bajty, pulzy na bajt, nejkratší a nejdelší pulz) a varování, když součet
+    na bajt vyjde mimo 45–55 ms. **Přísný režim ne:** práh neznáme, skutečná 2716 se nejspíš naprogramuje rychleji
+    a přísný režim by rozbil programy, které na železe fungují (SIMPROG z diskety 7 na 2 MHz má 98 ms).
+- **JP1 (D5 → MAP1, kolík 21 X1) výchozí osazená.** Tabulka konektoru X1 v návodu Tesla má kolík 21 MAP1 osazený
+  a návod uvádí ovládání mapování RAM-1 jako výhodu desky. Programy Tesla, SIMPROG a DSE.COM bit 5 nenastavují.
+  Sestava s EPROM.COM J. Bíby (bit 5 pro LED) musí mít JP1 rozpojenou, s komentářem. Návrh původně chtěl rozpojenou
+  jen podle Bíbova programu, kontrola to opravila.
+- **Zdroj Vpp jako parametr:** „DSE-1B: +30 V z kolíku 50“ (výchozí, deska 6750/44328 na fotkách) / „DSE-1A: měnič
+  z +12 V“ / „DSE-1B bez +30 V“ (Vpp vždy 0 V). Tvrzení návrhu „obě vyfocené desky jsou B“ neplatí: deska 0917
+  (`SAPI15\SimProg_opr\Fotky_měnič`) má osazený měnič s 555 a vedle X1 3pinovou JP2.
+- **2716 při Vpp 0 V** nebudí PD a čte se FFh (DSE.DOC: bez 30 V „nebude pracovat ani čtení“). Jedna Nejasnost
+  spojuje chování 2716 při Vpp 0 V s varováním DSE.DOC před EPROM v patici při S a R.
+- **Reset:** /RES vynuluje 74174 (Vpp 0 V, OFF LINE, LED zhasnuté, MAP1 = L) a dá 8255 na vstupy. **RAM simulátoru
+  zůstane netknutá.** Skutečná deska nejspíš zapíše FFh někam do C00–FFFh, dokud PC4 plave v H, adresu ale zapojení
+  neurčuje (PA0–PA9 vedou jen na vstupy MOS). Do Nejasností, nemodeluje se.
+- **Úrovně vývodů:** v H plavou jen linky se vstupem LS-TTL (PA10, PA11, PC4–PC7, PD0–7). PA0–PA9 jsou neurčité,
+  model je bere jako H a je to zapsaný předpoklad.
+- **Kabel X2 jako parametr `x2_cable`** podle DSE.DOC a DSECPM.DOC (ř. 61–95) a Petrových replik adaptéru:
+  - „2716 (z výroby)“ výchozí, věrnost: vývod 18 = PC6, 20 = NOT PC7, 21 = Vpp;
+  - „2732 (upravený podle DSE.DOC)“: v konektoru FRB-30 přepojené tři vodiče, 21 = PA11, 18 = NOR(PC6, PC7),
+    20 = Vpp;
+  - „dvě patice (replika)“: 2716 sedí v patici zapojené jako z výroby, 2732 jako upravená (typ podle velikosti
+    souboru).
+
+  Čip v patici se vyhodnocuje z vývodů podle katalogu (čtení, standby, programování, Program Verify, zákaz
+  programování). Špatná kombinace se chová podle vývodů: 2732 v kabelu pro 2716 čte horní 2 KB a nenaprogramuje se.
+  25 V na vývodu, který není Vpp, zapíše jednou varování. Zapojení se shoduje s DSE.DOC, DSECPM.DOC i schématem.
+- **EPROM v patici je médium** (`media_param`, platí hned, okno Média i konfigurátor, jako ostatní média od
+  2026-10-10): `.bin` 2048 B = 2716, 4096 B = 2732, jiné velikosti se odmítnou (2708, 2764 a 2732A později).
+  Pracovní kopie ve `work/dse-1/`, originály v `roms/` a `media/` zůstávají. Prázdné originály
+  `media/dse-1/prazdna_2716.bin` a `prazdna_2732.bin`. V okně Média Vložit…, Vysunout, Nová 2716, Nová 2732
+  a Obnovit z originálu (u prázdné = smazání UV). Ochrana proti zápisu není (bez 25 V se nic nezmění). Varování
+  v logu, když se médium mění při Vpp ≠ 0 V. Obsah EPROM i cesta jsou ve stavu.
+- **Stav:** 8255, registr, 4 KB RAM, rozběhnutý pulz, statistika, varování, obsah EPROM a cesta. RAM simulátoru po
+  zapnutí plní `power_on_fill`.
+- **Porty:** S1 jako jedna volba `base` 00h…F0h (jako SA2 u DSP-1, rozhodnutí 2026-10-07), text volby ukazuje
+  polohu S1/1–4, výchozí F0h. 8255 základ+0…3, registr základ+4…7 (zrcadla), základ+8…F nedekódováno. Čtení +3
+  a +4…+7 vrací FFh (předpoklad, Nejasnost). Rozpory návodu („5 adres“, řídicí slovo „IOW, IOR“) jsou v `DSE-1.md`.
+- **Vpp přepíná okamžitě** (zjednodušení, skutečný pokles s τ ≈ 0,2 ms). Nejasnost, jestli Tesla P s 2732 čte první
+  bajt kontroly správně.
+- **Vlastní okno ne,** deska nemá ovládání. Blok DSE-1 v okně Média a nástroj MCP `dse1`; výměna EPROM se zapíše do
+  popisu sestavy jako u `kzd1`.
+- **Sestavy:**
+  - `zps/ZPS-2_DSE-1.sapi`: ZPS-2 s MIKOSem V4.0F a DSE-1 na F0h místo BDK-1 (jako sestava DPS-1). REM-1 má jeden
+    spojený soubor 6 KB `roms/dse-1/MIKOS_V4.0F_DSE_1000.bin` (MIKOS 4 KB a program DSE 2 KB, bez výplně, MD5 částí
+    v `roms/README.md`), v patici prázdná 2716, start `G1000`. Kategorie Přístroje a technologie, průvodce cs/en,
+    náhled, scénář `check_machines.py`. REM-1 se kvůli tomu neměnil (seznam souborů po paticích by byl obecnější,
+    ale mění REM-1);
+  - ZPS-6 se SIMPROG (disketa 7) a EPROM.COM J. Bíby **jen v testech** (DSE-1 přidaná do kopie sestavy v testu).
+    Test SIMPROG je hotový, EPROM.COM zatím ne;
+  - **DSE.COM J. Hlaváče (`dse.8sd`) do `media/` zatím ne**, později s autorem.
+- **Testy:** `test_dse1` ve třech částech (ctest `test_dse1`, `test_dse1_tesla`, `test_dse1_simprog`). Strojové
+  testy běží uvnitř testu nad sestavou s `working_copy: false`: čtou prázdný originál a nic nezapisují, autorova
+  pracovní kopie ve `work/dse-1/` je netknutá.
+- **Vedlejší nález k ZPS-6:** SIMPROG na disketě 7 je build pro 4 MHz (konstanta 07CEh, 98 ms na 2 MHz). Mohl by to
+  být doklad, že Melsoft jel na 4 MHz (XT5 23-24). Jen Nejasnost v `docs/desky/PKT-1.md`, takt ZPS-6 zůstává 2 MHz.
+- **Barva LED** v okně Média je u obou červená, skutečná barva Tesla není známá (Nejasnost).

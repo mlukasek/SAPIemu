@@ -68,6 +68,9 @@ Each instrument is drawn in its own window next to the screen.
   `.G=181E`) and the plotter from the magazine Amatérské radio 1990 (READY, then Demo or TEST).
 - **Data storage:** the cassette data recorder KZD-1, the cartridge disk RKD-1 and the magnetic tape RMP-1, with
   their mechanics drawn in the Media window.
+- **EPROM programmer DSE-1:** `G1000` starts the Tesla program DSE; `K` checks that the 2716 in the socket is blank,
+  `F` fills memory and `P` programs it into the EPROM. The Media window shows the socket, the LEDs of the cable, Vpp
+  and the length of the programming pulse.
 
 The guide of each machine has the steps. The longer user guides (Help → User guides) are in Czech. They open in
 the Help window of the program with their pictures, as do the links of the guides; Back and Forward (Alt+Left,

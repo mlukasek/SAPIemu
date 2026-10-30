@@ -7,7 +7,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **239** v 49 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **252** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -220,6 +220,45 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - **BS 525:** rozmístění ovládacích prvků na panelu (nakreslené podle popisu v návodu, ne podle fotografie).
 
 - **PROM D3D:** obsah z návodu je zjevně jen ukázka. Měl někdo skutečné kódy zpráv (UNL, DCL…)?
+
+
+## [DSE-1 – deska simulátoru a programátoru EPROM](desky/DSE-1.md) – Nejasnosti k ověření na HW (12)
+
+1. **Pořadí a polarita S1:** S1/1 = A6, S1/2 = A7, S1/3 = A5, S1/4 = A4, sepnuto = bit 0 (podle schématu). Emilův
+   komentář pro 20h potvrzuje jen polaritu a S1/3.
+
+2. **Co čte F0h, když vnitřní sběrnici nic nebudí** (prázdná patice, PC5 = PC7 = 0), a co čte F3h a F4–F7h
+   (8286 budí sběrnici i tam). Emulace FFh.
+
+3. **Jak se chová 2716 s Vpp 0 V a /CE dole.** Nastane bez +30 V a při S a R, kdy programy zapisují F4 = 00h a PC6 = 0.
+   DSE.DOC i DSECPM.DOC: bez 30 V „nebude pracovat ani čtení“, DSE.DOC: při S a R nesmí být v programovacím
+   konektoru EPROM. Nejspíš 2716 při Vpp 0 V zatěžuje PD. Emulace: 2716 při Vpp 0 V nebudí PD ani ho nezatěžuje.
+
+4. **Nejkratší programovací pulz,** který skutečnou 2716 a 2732 naprogramuje. Emulace programuje od 1 ms
+   (předpoklad). Programy používají 5–98 ms.
+
+5. **Je JP1 (D5 → MAP1) z výroby osazená?** Tabulka X1 Tesla má kolík 21 MAP1 osazený, na fotce desky 6750/44328
+   kolíček s propojkou v místě JP1 vidět není (drátová propojka v tom rozlišení vyloučit nejde). Emulace: osazená.
+
+6. **RAM simulátoru po /RES:** porty 8255 jsou vstupy a W (PC4) plave v H do prvního řídicího slova. Zapíše se FFh
+   někam do C00–FFFh? Emulace RAM po resetu nemění.
+
+7. **Měnič DSE-1A:** jaké má zapojení a osazení (na překreslení EC1045 „????“) a co přepíná JP2 na desce 0917
+   (fotky v `SAPI15\SimProg_opr\Fotky_měnič`)?
+
+8. **Čte program Tesla po programování 2732 (P) první bajt správně?** Kontrola po programování zapíše F4 = 10h
+   a první bajt čte asi za 50 µs. Vpp přitom klesá z 25 V s τ ≈ 0,2 ms, takže 2732 je ještě v režimu programování
+   s vypnutým výstupem a první bajt by mohl vyjít „ROZDILNY“. 2716 je v té chvíli v Program Verify a čte správně.
+   Emulace přepíná Vpp okamžitě.
+
+9. **Vpp 24, nebo 25 V** (návod a DSECPM.DOC 24 V, AR 25 V), jak nastavit P2 pro 2732A (21 V).
+
+10. **Doba programování 2 KB:** návod „cca 2,5 min“, program a Navrátilův článek asi 100 s.
+
+11. **Co je SP1 „spínač TS 501 4141“** z rozpisky a kde je na desce?
+
+12. **Barva LED1 a LED2** v krabičce kabelu Tesla. Okno Média kreslí obě červeně, Petrovy repliky mají zelenou
+    a červenou.
 
 
 ## [DSM-1 – sériové rozhraní s kazetou](desky/DSM-1.md) – Nejasnosti (7)
@@ -466,7 +505,7 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
   myš nepoužívá, MPH-test jen ukazuje bity.
 
 
-## [PKT-1 – procesorová deska SAPI-1.5 (Procesor, Klávesnice, Tiskárna)](desky/PKT-1.md) – Nejasnosti k ověření na HW (7)
+## [PKT-1 – procesorová deska SAPI-1.5 (Procesor, Klávesnice, Tiskárna)](desky/PKT-1.md) – Nejasnosti k ověření na HW (8)
 
 1. Polarita linek MAP1/MAP2/BOOT na sběrnici (replika: aktivní H; čísla vývodů DD7 v originálním schématu
    nesedí s replikou).
@@ -482,6 +521,11 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 6. Funguje EKL-1 s /KACK = IBF?
 
 7. Kde se použil dekodér DD8 s oknem 8 KB a 2864 z fotky (`FOTO_poklady_petr`)?
+
+8. **Jel Melsoft na 4 MHz (XT5 23-24)?** SIMPROG na disketě 7 (programátor DSE-1) je build pro 4 MHz: délka
+   programovacího pulzu `LXI H,07CEh` dá na 4 MHz 49 ms, na 2 MHz 98 ms. Upravená kopie `SAPI15\SimProg_opr` má
+   03E7h a poznámku „nemám rychlé SAPI (4MHz) ale normální JPR-1Z na 2MHz“. Emulace má ZPS-6 dál na 2 MHz
+   (dodávka ZPS-8), SIMPROG z diskety 7 tam programuje pulzy 98 ms a log to poznamená (`docs/desky/DSE-1.md`).
 
 
 ## [RAM-1 – deska dynamické paměti RAM](desky/RAM-1.md) – Nejasnosti (2)

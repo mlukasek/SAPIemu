@@ -68,7 +68,7 @@ RSW-1, SBK-1, ZDR-1A, ZPS-8 a systémovým parametrům: `..\SAPI_DOKU\SAPI-1.5_d
 | 2 (CPM62-5.002) | ASM, ED, M80, L80, LIB, CREF80, F80 + FORLIB, WM, SORT, DDUMP, SUBMIT, XSUB |
 | 3 (CPM62-5.003) | MBASIC, BASCOM + BASLIB, COBOL + OVR + COBLIB; **jeden sektor BDOS poškozený** (C0 H0 R14), proto `SAPI15_3_opr.sp2` se systémovou stopou z diskety 1 |
 | 4 (CPM62-5.004) | Pascal MT+, DIS8080 |
-| 7 | zdrojáky a aplikace: ROMBIOS.MAC, SYSTEM.MAC, CONNECT, INTER, SAPI (RSW-1), SIMPROG, TAPEREC, DOCTOR, TABULKA |
+| 7 | zdrojáky a aplikace: ROMBIOS.MAC, SYSTEM.MAC, CONNECT, INTER, SAPI (RSW-1), SIMPROG (programátor DSE-1, build pro 4 MHz, `docs/desky/DSE-1.md`), TAPEREC, DOCTOR, TABULKA |
 | 8 | ROMBIOS.MAC/PRN/REL, TAPEREC, ASM, LOAD, DUMP, FORMAT |
 
 Diskety 5 a 6 se nedochovaly. Všechny soubory mají atribut R/O.

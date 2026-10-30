@@ -111,8 +111,8 @@ logu) do [Issues](https://github.com/mlukasek/SAPIemu/issues). Na Linuxu se emul
   semigrafikou.
 - **Přístroje a technologie:** měřicí jednotka APS-5 s původním firmwarem reguluje osm pecí (tlačítko DEMO ukázku
   odťuká samo), měřicí pracoviště IMS-2 s voltmetrem a zdrojem, zapisovače Minigraf 0507 a XY 4130, plotter
-  z Amatérského radia 1990, záznamník dat KZD-1, kazetový disk RKD-1 a magnetická páska RMP-1. Přístroje jsou
-  nakreslené v oknech emulátoru a ovládají se myší.
+  z Amatérského radia 1990, záznamník dat KZD-1, kazetový disk RKD-1, magnetická páska RMP-1 a programátor EPROM
+  DSE-1. Přístroje jsou nakreslené v oknech emulátoru a ovládají se myší.
 - **Desky Libora Lasoty:** SAPI-1 V se Z80, VGA, barevnou grafikou CGA-1V a zvukem YM3812, JPR-1S s grafikou
   BGP-1S jako PMD-85, monitor MikroMon.
 - **Hry a dema** (novodobý doplněk, SAPI-1 herní počítač nebyl): Flappy, Bad Apple!!, Prince of Persia,
@@ -181,8 +181,8 @@ z dokumentace IQ 151, sestava V s CP/M a obrázkem na grafice CGA-1V.*
 - [docs/funkce.md](docs/funkce.md): co emulátor umí, po kartách a přístrojích.
 - **Návody k obsluze** krok za krokem: [APS-5](docs/aps5-ukazka.md), [KZD-1](docs/navod-kzd1.md),
   [Minigraf 0507](docs/navod-minigraf.md), [XY 4130](docs/navod-xy4130.md), [plotter z AR 1990](docs/navod-ar1990.md),
-  [DPS-1 a IMS-2](docs/navod-dps1.md), [RKD-1](docs/navod-rkd1.md), [RMP-1](docs/navod-rmp1.md). V programu Nápověda
-  → Návody k obsluze.
+  [DPS-1 a IMS-2](docs/navod-dps1.md), [RKD-1](docs/navod-rkd1.md), [RMP-1](docs/navod-rmp1.md),
+  [DSE-1](docs/navod-dse1.md). V programu Nápověda → Návody k obsluze.
 - [docs/sestavy.md](docs/sestavy.md): konfigurátor, sestavy a katalog karet.
 - [docs/desky/](docs/desky/): poznatky o jednotlivých deskách (porty, PROM, propojky, nejasnosti),
   [docs/software/](docs/software/): software pro SAPI.

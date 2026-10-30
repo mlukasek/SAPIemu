@@ -25,6 +25,15 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **2026-10-30 večer, DSE-1 hotová** (autor byl pryč, „rozhoduj se sám“; rozhodnutí 2026-10-30 – DSE-1):
+  simulátor a programátor EPROM 2716/2732 Tesla (`src/cards/dse1.*`, čip `src/chips/eprom27.*` vyhodnocovaný
+  z vývodů), model na úrovni signálů, pulz v čase sběrnice (od 1 ms programuje, předpoklad), kabel X2 pro 2716,
+  2732 nebo dvě patice, EPROM jako médium s pracovní kopií ve `work/dse-1/`. Blok v okně Média, MCP `dse1`, sestava
+  `zps/ZPS-2_DSE-1.sapi` s programem DSE Ing. P. Navrátila (`G1000`), průvodce, náhled, testy `test_dse1`,
+  `test_dse1_tesla` a `test_dse1_simprog` (SIMPROG z diskety 7 v kopii ZPS-6: 98 ms na 2 MHz). Dokumentace
+  `docs/desky/DSE-1.md` (12 Nejasností) a návod `docs/navod-dse1.md` s výpisy z emulátoru. **Dál:** sonda X3 do
+  patice jiné karty (REM-1, JPR-1), EPROM.COM J. Bíby v sestavě CP/M (JP1 rozpojená), DSE.COM J. Hlaváče
+  (`dse.8sd`) do `media/` až s autorem, 2708, 2764 a 2732A.
 - **Po odeslání bety (pro poznámky k 0.7.1):** WSL 2026-10-30 v pořádku (62/62, autor GUI pod WSLg vyzkoušel,
   „běží dobře“), sedm nových varování GCC opravených; O programu: verze `0.7.0-beta` zvednutá tak, že její účaří
   sedí na spodní hraně loga (autor: po odebrání černého obdélníku loga nesedělo účaří), `ink_bottom` z masky
@@ -699,7 +708,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
         2. ~~**RKD-1**~~ (hotové 2026-10-09, `docs/desky/RKD-1.md`) (řadič kazetového disku CM 5403, 8255 + 8253, 40h): ovladač, BIOS CP/M, boot ROM a formátovač
            se zdrojáky (Tesla Elstroj 1987) na `..\SAPI_DOKU\SAPIMAN\PMD32-SD_IMAGE8\ZDROJ_STARE\a_mercl.8sd`,
            `FORMRKD.COM` na `a_sluzebni CPM.8sd`; návod `rkd-1.php`, sken `SAPIMAN\Scany dokumentací\RKD1.pdf`;
-        3. **DSE-1** (simulátor a programátor EPROM 2716/2732, F0–F4h): programy pro MONITOR V4 (`SAPI_EPROM\ZPS-2\V4\
+        3. ~~**DSE-1**~~ (hotové 2026-10-30, `docs/desky/DSE-1.md`, návod `docs/navod-dse1.md`) (simulátor
+           a programátor EPROM 2716/2732, F0–F4h): programy pro MONITOR V4 (`SAPI_EPROM\ZPS-2\V4\
            DSE-1_1000H_programator.BIN`), CP/M `DSE.COM` (`PERINA\dse.8sd`) a `SIMPROG` (`SAPI15\SimProg_opr`);
         4. ~~**DPS-1**~~ (hotové 2026-10-10, `docs/desky/DPS-1.md`) (sběrnice IMS-2 / IEEE-488, 30–37h): BASIMS4.SYS je už v `media/rpd-1/MIKOS_D_V5.0_system.img`,
            chtělo by to virtuální přístroj (voltmetr M1T330 z návodu);
@@ -714,7 +724,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
            stránky Z9001 a plottercontrolleru);
         2. ~~RKD-1~~ hotové 2026-10-09: karta, sestava `rkd1_tesla_cpm.sapi`, systémová kazeta z originálních
            programů Tesla Elstroj (`docs/desky/RKD-1.md`);
-        3. DSE-1 (simulátor a programátor EPROM);
+        3. ~~DSE-1 (simulátor a programátor EPROM)~~ hotové 2026-10-30: sestava `zps/ZPS-2_DSE-1.sapi`
+           (`docs/desky/DSE-1.md`);
         4. ~~DPS-1 (IMS-2) s virtuálním voltmetrem~~ hotové 2026-10-10: voltmetr M1T 330, zdroj BS 525, kazeta s BASIMS;
         5. ~~souhrnný seznam otázek k ověření na HW (bod a)~~ hotové, `docs/hw-otazky.md`;
         6. další várka otázek pro EC1045 (bod b);

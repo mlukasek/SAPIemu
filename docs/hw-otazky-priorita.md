@@ -69,7 +69,9 @@ Seřazeno podle toho, jak viditelný by rozdíl byl.
   revize, AND-1Z neoznačené vstupy DD4 A7 a DA1 A6.
 - **Přístroje:** APS-5 (/PFAIL, kódy kláves HRK-1B, ADP-1), DPS-1 a IMS-2 (NDAC, /OBF, bajt 00h s ATN, odpovědi
   M1T 330), plotter AR 1990 (doraz, LED, kód zrušení zmenšení), Minigraf (rychlost, pero po zapnutí), XY 4130,
-  tiskárna (kolík 16 X3, hrana /STROBE).
+  tiskárna (kolík 16 X3, hrana /STROBE), DSE-1 ([DSE-1.md](desky/DSE-1.md): pořadí a polarita S1, čtení F0h bez
+  budiče a F3h–F7h, 2716 při Vpp 0 V, nejkratší programovací pulz, JP1 z výroby, RAM simulátoru po /RES, měnič
+  DSE-1A a JP2, první bajt kontroly 2732).
 - **CGA-1V a JPR-1V:** chování po Liborově záplatě IC15 (STSTB jen od /MREQ) a příčina poškození paměti ve FXS4
   (čeká se na Liborův výpis).
 
@@ -79,7 +81,8 @@ Tyto body se mohou vyřešit kdykoli, nebo nikdy:
 
 - původ a verze souborů: poslední `.sch` BGP-1S, popisek 143 ns, kdo napsal hru „auto“,
   ruční oprava FAST v plotteru AR 1990, verze ovladače ve FORMRKD, zdroje OFFSHDD.COM a BIOSu 2015, test TSX 10,
-  kdo dělal testy MFC_TEST_CPM;
+  kdo dělal testy MFC_TEST_CPM, takt CPU, pro který firma Melsoft přeložila SIMPROG (PKT-1);
+- DSE-1: Vpp 24 nebo 25 V, doba programování 2 KB podle návodu, spínač SP1, barva LED v kabelu;
 - dokumentace a tisky: OCR „EB00H“ u DGD-1, BAT41/BAT42, IC4 74HCT04/14 u JPR-1S, prázdný `TEST AND1` v BIOSu 2.1,
   PROM D3D DPS-1 (jen ukázka), zapojení lišty SV2 IDE-1;
 - vzhled: panely přístrojů (SM 5300, BS 525; panely karet zodpověděl autor 2026-10-28: kreslí se podle Liborovy

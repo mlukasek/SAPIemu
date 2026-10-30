@@ -115,8 +115,8 @@ built from source ([docs/build.md](docs/build.md), in Czech). In detail: [docs/g
 - **Instruments and equipment:** the APS-5 measuring unit with its original firmware controls eight furnaces (the
   DEMO button types the demonstration by itself), the IMS-2 measuring bench with a voltmeter and a power supply, the
   plotters Minigraf 0507 and XY 4130, the plotter from the magazine Amatérské radio 1990, the data recorder KZD-1, the
-  cartridge disk RKD-1 and the magnetic tape RMP-1. The instruments are drawn in windows of the emulator and are
-  operated with the mouse.
+  cartridge disk RKD-1, the magnetic tape RMP-1 and the EPROM programmer DSE-1. The instruments are drawn in windows
+  of the emulator and are operated with the mouse.
 - **Boards by Libor Lasota:** SAPI-1 V with a Z80, VGA, colour graphics CGA-1V and YM3812 sound, JPR-1S with the
   BGP-1S graphics like a PMD 85, the MikroMon monitor.
 - **Games and demos** (a modern extra, SAPI-1 was not a games machine): Flappy, Bad Apple!!, Prince of Persia,
@@ -196,8 +196,8 @@ The rest is in Czech:
 - [docs/funkce.md](docs/funkce.md): what the emulator can do, by cards and instruments.
 - **User guides** step by step: [APS-5](docs/aps5-ukazka.md), [KZD-1](docs/navod-kzd1.md),
   [Minigraf 0507](docs/navod-minigraf.md), [XY 4130](docs/navod-xy4130.md), [plotter of AR 1990](docs/navod-ar1990.md),
-  [DPS-1 and IMS-2](docs/navod-dps1.md), [RKD-1](docs/navod-rkd1.md), [RMP-1](docs/navod-rmp1.md). In the program
-  Help → User guides.
+  [DPS-1 and IMS-2](docs/navod-dps1.md), [RKD-1](docs/navod-rkd1.md), [RMP-1](docs/navod-rmp1.md),
+  [DSE-1](docs/navod-dse1.md). In the program Help → User guides.
 - [docs/sestavy.md](docs/sestavy.md): the configurator, the machines and the catalogue of cards.
 - [docs/desky/](docs/desky/): notes on each board (ports, PROMs, jumpers, open questions),
   [docs/software/](docs/software/): software for SAPI-1.

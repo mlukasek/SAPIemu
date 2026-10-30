@@ -60,6 +60,7 @@ static const struct {
     { "docs/navod-rkd1.md", "Cartridge disk RKD-1" },
     { "docs/navod-rmp1.md", "Magnetic tape RMP-1" },
     { "docs/navod-dps1.md", "Measuring bench IMS-2 (DPS-1)" },
+    { "docs/navod-dse1.md", "EPROM programmer DSE-1" },
     { "docs/aps5-ukazka.md", "APS-5 step by step" },
 };
 

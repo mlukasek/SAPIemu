@@ -240,6 +240,16 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 | `BASIMS.hex` | BASIMS V4.0: BASIC EX V4.0 (varianta B) s příkazem `IMS#` pro DPS-1, 4400h–635Fh, start 4400h. Jen pro Monitor V4.x a MIKOS V4.0F (sestava `zps/ZPS-2_DPS-1_IMS-2.sapi`, v magnetofonu jako kazeta MIKOS „BASIMS“: `.K_L BASIMS`, `.J`; nebo do paměti a `G4400`). Z `..\SAPI.CZ\sapi\data\basims_hex.php`, kontrolní součty záznamů sedí. `BASIMS4.SYS` na disketě MIKOS/D V5 je tentýž program s hlavičkou souboru. Návod `docs/navod-dps1.md`. |
 | `BASIMS_IMS2.wav` | Kazeta sestavy `zps/ZPS-2_DPS-1_IMS-2.sapi` (WAV 22050 Hz, 8 bitů, 1,3 MB): `BASIMS` (`.K_L BASIMS`, `.J`), za ním programy BASIC `PRIKLAD` (příklad z návodu BASIMS) a `SMYCKA` (měření ve smyčce), `LOAD` + jméno. Nahrál ji `tools/dps1_kazeta.py` v emulátoru originálním MIKOSem V4.0F a BASIMS (pak `ffmpeg -ar 22050 -acodec pcm_u8`; MP3 rozbije předěl mezi nahrávkami). |
 
+## `dse-1/` – prázdné EPROM pro programátor DSE-1
+
+| Soubor | Obsah |
+|---|---|
+| `prazdna_2716.bin` | Prázdná (smazaná) EPROM 2716: 2048 B, všechny bajty FFh. Výchozí EPROM v patici kabelu X2 desky DSE-1 (sestava `zps/ZPS-2_DSE-1.sapi`). Emulátor programuje její pracovní kopii `work/dse-1/prazdna_2716.bin`, „…“ → Obnovit z originálu v okně Média ji smaže jako UV světlo. |
+| `prazdna_2732.bin` | Prázdná EPROM 2732: 4096 B, všechny bajty FFh. Pro kabel X2 upravený pro 2732 nebo dvě patice (`x2_cable`). |
+
+Vytvořené pro SAPIemu (2026-10-30), nejsou to dumpy. Nová 2716 a Nová 2732 v okně Média vytvoří další prázdnou
+EPROM `work/dse-1/eprom_N.bin`. Návod `docs/navod-dse1.md`, deska `docs/desky/DSE-1.md`.
+
 ## `ar1990/` – povely pro plotter z AR 1990
 
 | Soubor | Obsah |

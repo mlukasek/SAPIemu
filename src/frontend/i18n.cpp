@@ -289,6 +289,7 @@ static const Translation k_table[] = {
     { "Cartridge disk RKD-1", "Kazetový disk RKD-1" },
     { "Magnetic tape RMP-1", "Magnetická páska RMP-1" },
     { "Measuring bench IMS-2 (DPS-1)", "Měřicí pracoviště IMS-2 (DPS-1)" },
+    { "EPROM programmer DSE-1", "Programátor EPROM DSE-1" },
     { "APS-5 step by step", "APS-5 krok za krokem" },
     { "Pause / run", "Pauza / běh" },
     { "Emulation speed 100 / 200 / 400 % / maximum", "Rychlost emulace 100 / 200 / 400 % / maximum" },

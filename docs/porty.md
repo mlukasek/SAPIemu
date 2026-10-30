@@ -32,6 +32,7 @@ Zdroj: `PORTY_v_SAPI-1_CPM.xls` (archiv autora), tabulka „čistě portové des
 | 00–FF po 16 | RTC-1: 8255 +0–3 (čítač reálného času), 8253 DD5 +4–7, DD6 +8–11, zápis času +12–15; základ SA1–SA8 a propojka A7, programy J. Bíby A0–AFh (`docs/desky/RTC-1.md`) |
 | B0–B1 | DPI-1L, Repository API (soubory na SD kartě nad složkou PC, NET): B0h příkaz (OUT) a stav (IN), B1h parametry, výstup a bajty souboru; báze z `DPI.INI`, bez zrcadel. Kódy NET A0–A9h jsou příkazy na B0h, ne porty (`docs/desky/DPI-1L.md`) |
 | C0–CB | RMP-1: 8255 D1B C0–C3 (data pro pásku a z ní), 8255 D2B C4–C7 (povely, stav, výběr jednotky), 8253 C8–CB (`docs/desky/RMP-1.md`) |
+| F0–F7 | DSE-1 (simulátor a programátor EPROM): 8255 F0–F3h (PA data, PB adresa A0–A7, PC A8–A11, W, R, PROG.PULS, R/W), registr 74LS174 F4h jen zápis (Vpp, ON LINE, LED, MAP), F5–F7h jeho zrcadla, F8–FFh deska nedekóduje. Základ 00h…F0h přepínači S1, z výroby F0h. Koliduje se ZDP-1 a s RTC-1 na F0h v sestavě `aps5`. Emilův program (OK2KOJ) má základ 20h, tam koliduje s RPD-1A 20–25h (`docs/desky/DSE-1.md`) |
 | F0–F7 | ZDP-1 |
 | F8–F9 | DSP-1/MS80 |
 

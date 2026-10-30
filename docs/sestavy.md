@@ -177,7 +177,8 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, [docs/
   má přednost, jinak stojí vpravo nahoře (od 2026-10-14).
 - **Výměnná média platí hned** (od 2026-10-10):
   - patří sem diskety řadičů RPD-1, FDC-1 a MFC-1A (`drive_x.image`), pásky RMP-1 (`unitN.tape`), kazety RKD-1
-    (`unitN.cartridge`), kazeta KZD-1 (`kzd1.cassette`) a kazeta v magnetofonu DSM-1 (`tape`);
+    (`unitN.cartridge`), kazeta KZD-1 (`kzd1.cassette`), kazeta v magnetofonu DSM-1 (`tape`) a EPROM v patici
+    programátoru DSE-1 (`eprom`);
   - obraz vybraný v konfigurátoru se za chodu hned vloží;
   - výměna, nové médium i vysunutí v okně Média se zapíšou do sestavy, takže konfigurátor je ukáže a sestavu
     označí jako neuloženou;
@@ -410,6 +411,12 @@ pracoviště na kabelu X2: voltmetr Metra M1T 330 a zdroj Tesla BS 525.
 - Konfigurátor oddíl nezobrazuje (je mimo sběrnici), upravuje se v souboru a za chodu v okně Měřicí pracoviště IMS-2.
 `docs/desky/DPS-1.md`, `docs/navod-dps1.md`.
 
+**Programátor EPROM DSE-1** (`machines/zps/ZPS-2_DSE-1.sapi`, 2026-10-30): ZPS-2 s MIKOSem V4.0F a deskou DSE-1 na
+F0h ve slotu X6 (místo BDK-1). REM-1 má spojený soubor `roms/dse-1/MIKOS_V4.0F_DSE_1000.bin`: Monitor V4.0F
+s MIKOSem a od 1000h program DSE Ing. P. Navrátila (`G1000`). Parametry DSE-1: `base` (S1), `jp1_map` (osazená),
+`vpp` (`pin50`), `x2_cable` (`2716`, `2732`, `dual`) a `eprom`, v patici prázdná 2716 (pracovní kopie
+`work/dse-1/prazdna_2716.bin`). Okno Média se otevře samo. `docs/desky/DSE-1.md`, `docs/navod-dse1.md`.
+
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
 - Na X2/X3 JPR-1 je panel HRK-1, zapsaný jako klávesnice `HRK-1`.
@@ -451,7 +458,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2). Okno v doku dostane vybranou
   záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `cpm_term64k_fdc1` terminál, `aps5` panel,
   `zps/ZPS-2_DPS-1_IMS-2` měřicí pracoviště, `rmp1_jb_izot`,
-  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky).
+  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky), `zps/ZPS-2_DSE-1` Média (patice programátoru EPROM).
   - **Sestava bez displeje** (od 2026-10-29: `plotter_ar1990`, `cpm_term64k_fdc1`) nemá okno obrazovky; první okno
     z `windows` je její hlavní výstup a dostane velké místo vlevo nahoře (zapisovač na celou výšku plochy, tak široký,
     aby se vešel celý list A4; jiné okno ve své velikosti). Bez `windows` by po startu nebylo vidět nic.

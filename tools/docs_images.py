@@ -127,6 +127,11 @@ KZD1 = (run(3000) + t('KI') + w('NAZEV:', 60000) + t('MOJE\\r') + run(5000) + BA
 SMYCKA = (run(3000) + ['--tape', 'media/dps-1/BASIMS_IMS2.wav'] + t('KL') + w('NAME', 10000) + t('BASIMS\\r') +
           w('DONE?', 10000) + t('Y') + run(120000) + t('J') + READY + t('LOAD\\r') + run(1500) + t('SMYCKA\\r') +
           run(1500) + t('Y') + run(150000) + t('LIST\\r') + run(4000) + t('RUN\\r') + run(900))
+# DSE-1: F fills 5000-50FF, P programs it into the blank 2716 from 0000; 5 s into it (docs/navod-dse1.md, chapter 4)
+DSE_P = (cm.DSE + t('F') + w('OBSAH:', 5000) + run(500) + t('5000,50FF,55\\r') + run(1500) + t('P') +
+         w('DOLNI ADRESA RAM=', 5000) + run(500) + t('5000\\r') + w('HORNI ADRESA RAM=', 5000) + run(500) + t('50FF\\r') +
+         w('DOLNI ADRESA EPROM=', 5000) + run(500) + t('0\\r') + w('VLOZ EPROM', 5000) + run(500) + t(' ') +
+         w('2732?', 5000) + run(500) + t('N') + run(5000))
 
 # name: machine (edit: (the machine it is a copy of, [(text, new text)]) in the data copy), cli (the actions; several
 # lists with a function between them that changes the state saved by the one before), the options of the GUI, the
@@ -173,6 +178,10 @@ PICTURES = {
     'navod-dps1': dict(
         machine='machines/zps/ZPS-2_DPS-1_IMS-2.sapi',
         cli=[BASIMS + lines(*LOOP) + t('LIST\\r') + run(4000) + t('RUN\\r') + run(1500)], gui=FRONT, size='1180x960'),
+    # docs/navod-dse1.md: P programs the blank 2716, the Media window shows LED1, Vpp 25 V and the 50 ms pulse
+    'navod-dse1': dict(
+        machine='machines/zps/ZPS-2_DSE-1.sapi', cli=[DSE_P], gui=['--ui-media'] + FRONT, size='1170x640',
+        ini={'Media': (528, 34, 634, 372)}),
     # docs/navod-kzd1.md: a new cassette moje.kzd, chapters 1 to 4
     'navod-kzd1': dict(
         machine='machines/zps/_docs_kzd1.sapi',

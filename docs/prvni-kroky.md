@@ -71,6 +71,7 @@ Přístroje a zařízení se SAPI-1. Každý je nakreslený v okně emulátoru.
 | `zps/ZPS-2_MIKOS_K.sapi` | záznamník dat KZD-1 s MIKOSem/K V5.0 (kazeta v okně Média) | `.K` `I` připraví kazetu, `.K` `D` vypíše adresář |
 | `rkd1_tesla_cpm.sapi` | CP/M 2.2 Tesla Elstroj 1987 z kazetového disku RKD-1 (CM 5403), shell SH | číslo uživatele (např. `1`) a název oblasti, pak `DIR A:`; pevný disk C:, D: naformátuje `FORMTRKD` (`2`, `3`, Enter, `a`) |
 | `rmp1_jb_izot.sapi` | CP/M J. Bíby s magnetickou páskou RMP-1 (IZOT SM 5300) a ukázkovou páskou | `B:DIRMT 0` vypíše pásku, `B:MTDAT` kopíruje mezi páskou a disketou; okno Média ukáže mechaniku |
+| `zps/ZPS-2_DSE-1.sapi` | simulátor a programátor EPROM DSE-1 s programem DSE Tesla Elstroj, prázdná 2716 v patici (okno Média) | `G1000`, `K` kontrola smazání, `P` programování z RAM |
 
 ### Desky Libora Lasoty (moderní)
 
@@ -408,6 +409,16 @@ Každá sestava Základu má průvodce (Nápověda → Průvodce sestavou). Pro 
      opravenou kopii `B:MTCOPYO` (původní MTCOPY zapíše do EOF1 o blok méně), postup krok za krokem v návodu.
 
   Celý návod s výpisy obrazovky: `docs/navod-rmp1.md`.
+- **Programátor EPROM DSE-1** (`zps\ZPS-2_DSE-1.sapi`, okno Média se otevře samo):
+  1. `G1000` spustí program DSE s nabídkou; příkazy jsou písmena bez Enteru, adresy šestnáctkově s Enterem;
+  2. `K`, klávesa, `N`, `0` a `7FF`: kontrola smazání vypíše `CISTA  0000 - 07FF`;
+  3. `F` a `5000,50FF,55` naplní RAM, `P` (`5000`, `50FF`, `0`, klávesa, `N`) ji naprogramuje do 2716. V okně Média
+     svítí LED1, Vpp je 25 V a pulz 50 ms, za 13 s `SHODNY OBSAH  0000 - 00FF`;
+  4. `C` porovná, `T` přenese EPROM do RAM, `S` a `R` přenesou data do RAM simulátoru a zpět (ON LINE);
+  5. EPROM v patici je pracovní kopie `work\dse-1\prazdna_2716.bin`: „…“ → Obnovit z originálu ji smaže jako UV
+     světlo, Nová 2716 a Nová 2732 vloží další prázdnou.
+
+  Celý návod s výpisy obrazovky: `docs/navod-dse1.md`.
 
 ### Desky Libora Lasoty (moderní)
 

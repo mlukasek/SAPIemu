@@ -15,7 +15,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **HW poznatky po deskách:** `docs/desky/*.md` (porty, PROM, jumpery, časování, **nejasnosti k ověření na HW**). Mapa portů je v `docs/porty.md`, software v `docs/software/` (SAPI-1.5, ZPS-6: `SAPI-1.5.md`), tiskárna (X3 karet JPR, DPP-1) v `docs/tiskarna.md`.
 - **Návody k obsluze pro uživatele** (krok za krokem, výpisy opsané z emulátoru): `docs/navod-kzd1.md`,
   `docs/navod-minigraf.md`, `docs/navod-xy4130.md`, `docs/navod-rkd1.md`, `docs/navod-rmp1.md`, `docs/navod-ar1990.md`, `docs/navod-dps1.md`,
-  `docs/aps5-ukazka.md`. Po změně chování přístroje je zkontrolovat.
+  `docs/navod-dse1.md`, `docs/aps5-ukazka.md`. Po změně chování přístroje je zkontrolovat.
 - **ROM, PROM a média:** `roms/` (dumpy, popis v `roms/README.md`) a `media/` (nedotčené originály obrazů, emulátor pracuje s kopiemi ve `work/`).
 - **Knihovny:** `third_party/` (vendorované, popis v `third_party/README.md`). SDL3 se stahuje přes CMake FetchContent.
 - **Podklady k deskám** jsou mimo repo, o složku výš ve složce `SAPI-karty` (`..\SAPI-karty\JPR-1ZI`,
@@ -49,9 +49,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     **každá karta musí mít `state()`**);
   - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`, upravené o režim 8085 pro JPR-1X,
     `docs/8085.md`);
-  - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421…) a přístroje (magnetofon, záznamník dat
-    KZD-1 `kzd1`, zapisovače se společnou mechanikou `plotter`: Minigraf 0507 `minigraf` a XY 4130 `xy4130`,
-    plotter z AR 1990 `ar1990` na portech JPR-1);
+  - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421, EPROM 2716/2732 `eprom27` pro DSE-1…)
+    a přístroje (magnetofon, záznamník dat KZD-1 `kzd1`, zapisovače se společnou mechanikou `plotter`:
+    Minigraf 0507 `minigraf` a XY 4130 `xy4130`, plotter z AR 1990 `ar1990` na portech JPR-1);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
   - `input/`: klávesnice, `joyport` (konektor joysticku Atari: joystick a myš, MPH-1V a ANK-1M2);
   - `frontend/`: GUI (app, debugger, terminal, i18n, keymap, `theme` = vzhledy GUI a jejich data `theme_data`, diag = okno desky diagnostiky na K3, `plotter` = okno

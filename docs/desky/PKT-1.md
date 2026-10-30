@@ -67,3 +67,7 @@ Stav: **emulovaná** (typ `PKT-1`, `src/cards/pkt1.*`) od 2026-10-07. Sestava `m
 5. Zapojení BUSY tiskárny na dochovaných deskách (PC6 původně, nebo upravené na PC3).
 6. Funguje EKL-1 s /KACK = IBF?
 7. Kde se použil dekodér DD8 s oknem 8 KB a 2864 z fotky (`FOTO_poklady_petr`)?
+8. **Jel Melsoft na 4 MHz (XT5 23-24)?** SIMPROG na disketě 7 (programátor DSE-1) je build pro 4 MHz: délka
+   programovacího pulzu `LXI H,07CEh` dá na 4 MHz 49 ms, na 2 MHz 98 ms. Upravená kopie `SAPI15\SimProg_opr` má
+   03E7h a poznámku „nemám rychlé SAPI (4MHz) ale normální JPR-1Z na 2MHz“. Emulace má ZPS-6 dál na 2 MHz
+   (dodávka ZPS-8), SIMPROG z diskety 7 tam programuje pulzy 98 ms a log to poznamená (`docs/desky/DSE-1.md`).
