@@ -373,7 +373,8 @@ COLOR n (1–7), JUMP adr, BOOT (Intel HEX 19200 Bd, 8N2, na 2800h bit 7 přes r
     bílé texty);
   - auto reaguje na joystick (ANK-1M2, P1-IN D3/D2).
 - Hry v repu (`media/jpr-1s/`):
-  - `manic_miner.hex` (Vít Libovický & Daniel Jenne, ViLiSoft & DaJeSoft 1985, port z PMD-85);
+  - `manic_miner.hex` (Vít Libovický & Daniel Jenne, ViLiSoft & DaJeSoft 1985, port z PMD-85, na SAPI-1 převedl
+    Libor Lasota);
   - `auto.hex`;
   - `martinuv_prvni_pokus.hex` (jen s BIOSem 1.02).
 - Sestava: `machines/jpr1s_bgp1s.sapi` (JPR-1S, MIKROBIOS 1.02, BGP-1S, ANK-1M2, redukce na K2, deska diagnostiky

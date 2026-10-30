@@ -3380,8 +3380,8 @@ se s těmito změnami zabalí znovu (stejná verze), až autor potvrdí, že od 
   (EC1045) věci a programy na webu jsou většinou převzaté ze starých a historických zdrojů“). Poděkování mu zůstává
   první v pořadí.
 - Libor emulátor vyzkouší asi o víkendu, až přejde z Windows 7 (SAPIemu chce Windows 10 nebo 11).
-- **Co zbývá k 0.7.1:** zpětná vazba testerů, případně novější verze Liborova softwaru, otázka, kdo převedl Manic
-  Miner na BGP-1S (jen pro poděkování).
+- **Co zbývá k 0.7.1:** zpětná vazba testerů, případně novější verze Liborova softwaru. Manic Miner na BGP-1S
+  převedl Libor (autor 2026-10-30), je to uvedené v průvodci sestavou, `media/README.md` a u desek.
 
 ## 2026-10-20 – hláška opraveného BIOSu ECBIM8
 

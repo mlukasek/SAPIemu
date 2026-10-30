@@ -180,7 +180,7 @@ program (Intel HEX), nebo jako na stroji `BOOT` a soubor poslat po sériové lin
 
 | Soubor | Obsah |
 |---|---|
-| `manic_miner.hex` | Manic Miner (Vít Libovický & Daniel Jenne, ViLiSoft & DaJeSoft 1985, port z PMD-85), 4400–989E. Potřebuje BGP-1S na C000h v režimu Colorace a RAM pod ní. Ovládání O, P, SHIFT (skok), M (melodie), CR (start). Snímek ze skutečného stroje `..\SAPI-karty\JPR-1S\jpr1s_sw\manic_main.jpg`. Původně `manic_sapi.txt`. |
+| `manic_miner.hex` | Manic Miner (Vít Libovický & Daniel Jenne, ViLiSoft & DaJeSoft 1985, port z PMD-85, na SAPI-1 s BGP-1S převedl Libor Lasota), 4400–989E. Potřebuje BGP-1S na C000h v režimu Colorace a RAM pod ní. Ovládání O, P, SHIFT (skok), M (melodie), CR (start). Snímek ze skutečného stroje `..\SAPI-karty\JPR-1S\jpr1s_sw\manic_main.jpg`. Původně `manic_sapi.txt`. |
 | `auto.hex` | Hra s autíčkem („HAVAROVAL SI … KRAT“), 4400–4BAB: joystick ANK-1M2 vlevo/vpravo (P1-IN D3/D2), čte videoram kvůli srážkám. Původně `auto.txt`. |
 | `martinuv_prvni_pokus.hex` | „MARTINUV PRVNI POKUS (06/06/2022)“ (autor emulátoru), volá tisk BIOSu 1.02 na 0BC4h, jen s ním. Původně `m.txt`. |
 

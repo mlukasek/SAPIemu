@@ -19,4 +19,5 @@ JUMP 4400
 ## More
 
 - `media\jpr-1s\auto.hex` is the car race "auto" (also `JUMP 4400`).
-- Manic Miner: Vít Libovický and Daniel Jenne, ViLiSoft and DaJeSoft 1985 (port from PMD-85).
+- Manic Miner: Vít Libovický and Daniel Jenne, ViLiSoft and DaJeSoft 1985 (port from PMD-85), ported to SAPI-1
+  with the BGP-1S by Libor Lasota.

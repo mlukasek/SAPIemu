@@ -377,7 +377,7 @@ Všechny jsou v Intel HEX (24 B na záznam, CR LF, závěr `:00000001FF` bez sta
 
 | Soubor (`jpr1s_sw\`) | V repu | Rozsah | Co to je | Potřebuje |
 |---|---|---|---|---|
-| `manic_sapi.txt` (55 078 B, 904 záznamů) | `media/jpr-1s/manic_miner.hex` | 4400–989E (21 663 B) | **Manic Miner** (port z PMD-85: „M A N I C   M I N E R … Matthew Smith“, české texty); `manic_main.jpg` = snímek obrazovky (barevná grafika PMD, „Hlavní sluj“, „Vzduch“, „Věcí: 5“) | RAM 4000–BFFF, BGP-1S na **C000** (+ RAM banka 3 pod ní pro čtení), BIOS jen kvůli **RST 4** |
+| `manic_sapi.txt` (55 078 B, 904 záznamů) | `media/jpr-1s/manic_miner.hex` | 4400–989E (21 663 B) | **Manic Miner** (port z PMD-85, na SAPI-1 převedl Libor Lasota: „M A N I C   M I N E R … Matthew Smith“, české texty); `manic_main.jpg` = snímek obrazovky (barevná grafika PMD, „Hlavní sluj“, „Vzduch“, „Věcí: 5“) | RAM 4000–BFFF, BGP-1S na **C000** (+ RAM banka 3 pod ní pro čtení), BIOS jen kvůli **RST 4** |
 | `auto.txt` | `media/jpr-1s/auto.hex` | 4400–4BAB (1964 B) | malá hra s autíčky („HAVAROVAL SI 003 KRAT“, „CIEL“) | BGP-1S na C000 (LXI H,C000…), RST 3 a RST 6 z BIOSu, **joystick** |
 | `m.asm/.lst/.txt` | `media/jpr-1s/martinuv_prvni_pokus.hex` | 4400–4428 | „MARTINUV PRVNI POKUS (06/06/2022)“ (Martinův první test) | **BIOS 1.02** (volá přímo PrintText 0BC4h; s 1.0 nebo 2.1 spadne) |
 

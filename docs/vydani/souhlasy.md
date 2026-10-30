@@ -21,7 +21,7 @@ jak to řeší jiné porty, postoj Jordana Mechnera, práva a doporučení: `doc
 potřebuješ“. Platí pro všechno níže i pro veřejné vydání. Dřív byl souhlas zapsaný jen u MikroMonu a MIKROBIOSu
 („použito s jeho souhlasem“, `roms/README.md`, `docs/rozhodnuti.md`). Emulátor vyzkouší asi o víkendu, až přejde
 z Windows 7 (SAPIemu chce Windows 10 nebo 11). Otevřené zůstává jen, jestli pošle novější verze svého softwaru,
-a otázka k Manic Mineru níže. Jeho software ve vydání:
+Jeho software ve vydání:
 
 - MikroMon 1.3 (`roms/mikromon/`);
 - MIKROBIOS 1.0, 1.02 a 2.1 (`roms/jpr-1s/`), MikroBIOS 3.0 v bance JPR-1V (`roms/jpr-1v/`), MIKROBIOS +
@@ -30,7 +30,7 @@ a otázka k Manic Mineru níže. Jeho software ve vydání:
 - programy pro CGA-1V (`media/cga-1v/`: test, obrázky Rembrandt, hrad) a MPH-1V (`media/mph-1v/`: MPH-TEST,
   SPLAY, RAT PLAYER, Y1STDEMO);
 - programy pro JPR-1S a BGP-1S, které poslal (`media/jpr-1s/`: hra „auto“ a další). Manic Miner je port ViLiSoft
-  a DaJeSoft 1985 pro PMD-85: kdo ho portoval na BGP-1S?
+  a DaJeSoft 1985 pro PMD-85, na SAPI-1 s BGP-1S ho převedl Libor (autor 2026-10-30).
 - Flappy pro DGD-1V (FLAPDGD), SNDDEMON, BKP (verze pro SAPI, „-LAILA-“ = Libor), skladby VGM převedené pro SPLAY
   a moduly RAD pro RAT na RAM disku herní sestavy (`docs/vydani/sestavy.md`, oddíl „Co je Liborovo“).
 

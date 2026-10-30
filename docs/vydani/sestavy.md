@@ -163,7 +163,7 @@ v emulátoru) (18 sestav).
 | MikroMon 1.3 | `roms/mikromon/`, sestava `mikromon` (Liborovy desky) |
 | MIKROBIOS 1.0, 1.02, 2.1; MikroBIOS 3.0 (JPR-1V); MIKROBIOS + MIKROBASIC (JPR-1X) | `roms/jpr-1s/`, `roms/jpr-1v/`, `roms/jpr-1x/`; sestavy `jpr1s_bgp1s`, `sapi1v`, `sapi1v_hry`, `jpr1x_bgp1s`, `libor_doma`, `zps/ZPS-1_JPR-1S_AND-1B`, `zps/ZPS-1_JPR-1X` |
 | fonty AND-1B a AND-1V | `roms/and-1b/`, `roms/and-1v/` |
-| programy pro JPR-1S a BGP-1S (hra „auto“ a další, Manic Miner v jeho úpravě?) | `media/jpr-1s/` |
+| programy pro JPR-1S a BGP-1S (hra „auto“ a další, Manic Miner v jeho převodu z PMD-85) | `media/jpr-1s/` |
 | dema a testy CGA-1V (CASTLE, REMBRAN1, REMBRAN2, CGATEST) | `media/cga-1v/` a RAM disk `hry-a-dema.bin` |
 | programy MPH-1V (MPHTEST, SPLAY, RAT, Y1STDEMO) | `media/mph-1v/` a RAM disk `hry-a-dema.bin` |
 | SNDDEMON | jen RAM disk `hry-a-dema.bin` (z `..\SAPI-karty\MPH-1V`) |
@@ -176,7 +176,7 @@ v emulátoru) (18 sestav).
 - `sapi1v_BadApple` a `sapi1v_DGD_Flapy` smazané, nahradila je `sapi1v_hry`.
 - „-LAILA-“ je L. Lasota (BKP, RAT).
 - Hudba: skladby VGM i moduly RAD zůstanou.
-- Otevřené: kdo upravil Manic Miner pro BGP-1S.
+- ~~Otevřené: kdo upravil Manic Miner pro BGP-1S.~~ Libor Lasota (autor 2026-10-30).
 
 ## Rozhodnuto (autor, 2026-10-28)
 
