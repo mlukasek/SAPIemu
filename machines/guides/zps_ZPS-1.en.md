@@ -21,4 +21,4 @@ RUN
 ## More
 
 - Programs are saved on a cassette in the tape recorder (Media window, New cassette..., RECORD), see
-  [MIKROBASIC](docs/software/MIKROBASIC.md) (Czech).
+  [MIKROBASIC](../../docs/software/MIKROBASIC.md) (Czech).

@@ -16,4 +16,4 @@ SETDBS1
 ## Dál
 
 - Další diskety Melsoft jsou v `media\sapi15`, vkládají se v okně Média.
-- Popis sestavy: [SAPI-1.5](docs/software/SAPI-1.5.md).
+- Popis sestavy: [SAPI-1.5](../../docs/software/SAPI-1.5.md).

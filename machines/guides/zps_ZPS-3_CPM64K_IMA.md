@@ -18,4 +18,4 @@ MBASIC
 
 ## Dál
 
-- Diskety se mění v okně Média. CP/M pro ZPS-3: [CP/M ZPS-3](docs/software/CPM_ZPS-3.md).
+- Diskety se mění v okně Média. CP/M pro ZPS-3: [CP/M ZPS-3](../../docs/software/CPM_ZPS-3.md).

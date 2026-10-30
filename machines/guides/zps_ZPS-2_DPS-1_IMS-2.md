@@ -14,4 +14,4 @@ M1T 330 a k němu zdroj Tesla BS 525, jehož knoflíky se točí myší. Měří
 
 ## Dál
 
-- Celý návod s měřením ve smyčce a příkazy `IMS#`: [návod DPS-1](docs/navod-dps1.md).
+- Celý návod s měřením ve smyčce a příkazy `IMS#`: [návod DPS-1](../../docs/navod-dps1.md).

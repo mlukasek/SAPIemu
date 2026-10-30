@@ -22,4 +22,4 @@ JUMP 4400
 - `media\jpr-1s\auto.hex` je závodní hra „auto“ (také `JUMP 4400`).
 - Manic Miner: Vít Libovický a Daniel Jenne, ViLiSoft a DaJeSoft 1985 (port z PMD-85), na SAPI-1 s BGP-1S ho
   převedl Libor Lasota.
-- Deska BGP-1S: [BGP-1S](docs/desky/BGP-1S.md).
+- Deska BGP-1S: [BGP-1S](../../docs/desky/BGP-1S.md).

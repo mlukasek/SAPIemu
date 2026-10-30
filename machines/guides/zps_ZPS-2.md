@@ -18,5 +18,5 @@ D0 1F
 
 ## Dál
 
-- Povely MIKOSu a práce s kazetou: [MIKOS](docs/software/MIKOS.md).
+- Povely MIKOSu a práce s kazetou: [MIKOS](../../docs/software/MIKOS.md).
 - Tato sestava má magnetofon s prázdnou kazetou, programy z kazet jdou vložit v okně Média (WAV, MP3).

@@ -20,4 +20,4 @@ regulace tří pecí. Asi za minutu pece začnou žhnout.
 
 ## Dál
 
-- Ukázka krok za krokem: [APS-5 ukázka](docs/aps5-ukazka.md), popis jednotky: [APS-5](docs/desky/APS-5.md).
+- Ukázka krok za krokem: [APS-5 ukázka](../../docs/aps5-ukazka.md), popis jednotky: [APS-5](../../docs/desky/APS-5.md).

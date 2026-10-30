@@ -20,5 +20,5 @@ RUN
 ## Dál
 
 - Program jde uložit na kazetu do magnetofonu (okno Média, Nová kazeta…, NAHRÁT), postup je v
-  [MIKROBASIC](docs/software/MIKROBASIC.md).
-- Klávesnice ANK-1 nemá všechny znaky PC, přehled kláves je v [klávesnice](docs/desky/klavesnice.md).
+  [MIKROBASIC](../../docs/software/MIKROBASIC.md).
+- Klávesnice ANK-1 nemá všechny znaky PC, přehled kláves je v [klávesnice](../../docs/desky/klavesnice.md).

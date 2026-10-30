@@ -18,4 +18,4 @@ window.
 ## More
 
 - New sheet turns READY off, the pen draws again after `G1803`. Drawing from BASIC and `LLIST`:
-  [XY 4130 manual](docs/navod-xy4130.md) (Czech).
+  [XY 4130 manual](../../docs/navod-xy4130.md) (Czech).

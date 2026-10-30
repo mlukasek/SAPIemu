@@ -17,5 +17,5 @@ the Minigraf window. The machine has no display.
 
 ## More
 
-- All commands, the switches and Whole test (the character set): [AR 1990 plotter manual](docs/navod-ar1990.md),
-  the wiring: [AR 1990](docs/desky/AR1990.md) (both Czech).
+- All commands, the switches and Whole test (the character set): [AR 1990 plotter manual](../../docs/navod-ar1990.md),
+  the wiring: [AR 1990](../../docs/desky/AR1990.md) (both Czech).

@@ -13,4 +13,4 @@ Kresba roste v okně zapisovače a uloží se jako PNG nebo SVG.
 
 ## Dál
 
-- Kreslení v milimetrech příkazem `KRES` a vlastní kresby: [návod Minigraf](docs/navod-minigraf.md).
+- Kreslení v milimetrech příkazem `KRES` a vlastní kresby: [návod Minigraf](../../docs/navod-minigraf.md).

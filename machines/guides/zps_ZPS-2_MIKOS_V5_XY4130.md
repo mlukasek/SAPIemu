@@ -16,4 +16,4 @@ DIZ v EPROM za MIKOSem V5 z ní udělá systémovou tiskárnu L:, kresba roste v
 ## Dál
 
 - Nový papír zhasne READY, pero pak kreslí až po `G1803`. Kreslení z BASICu a `LLIST`:
-  [návod XY 4130](docs/navod-xy4130.md).
+  [návod XY 4130](../../docs/navod-xy4130.md).

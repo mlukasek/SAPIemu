@@ -18,4 +18,4 @@ D0 1F
 
 ## More
 
-- The commands of MIKOS and the tape: [MIKOS](docs/software/MIKOS.md) (Czech).
+- The commands of MIKOS and the tape: [MIKOS](../../docs/software/MIKOS.md) (Czech).

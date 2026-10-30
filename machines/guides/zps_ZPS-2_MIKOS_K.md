@@ -12,4 +12,4 @@ jako s pomalým diskem. Mechanika je nakreslená v okně Média.
 
 ## Dál
 
-- Celý návod s výpisy obrazovky a kopírováním z magnetofonu programem CKM: [návod KZD-1](docs/navod-kzd1.md).
+- Celý návod s výpisy obrazovky a kopírováním z magnetofonu programem CKM: [návod KZD-1](../../docs/navod-kzd1.md).

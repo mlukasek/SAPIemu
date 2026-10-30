@@ -17,4 +17,4 @@ B:DIRMT 0
 
 ## Dál
 
-- Nová páska, zápis a kopie z pásky na pásku krok za krokem: [návod RMP-1](docs/navod-rmp1.md).
+- Nová páska, zápis a kopie z pásky na pásku krok za krokem: [návod RMP-1](../../docs/navod-rmp1.md).

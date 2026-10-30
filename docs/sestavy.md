@@ -52,8 +52,10 @@ spouští `mikromon.sapi` (`DEFAULT_MACHINE_FILE`). Podklady (2026-10-17, [docs/
     celými násobky: obraz o kousek širší než 480 nebo 960 bodů by skončil na třetině. Každý nový náhled je potřeba
     prohlédnout.
 - **Průvodci** `machines/guides/<id>.md` a `<id>.en.md`: krátký Markdown (nadpisy, odrážky, bloky kódu s
-  tlačítkem Napsat do SAPI, odkazy na `docs/` a web). Okno Průvodce sestavou se otevře samo u kategorií s
-  `guides`, dokud ho uživatel u sestavy nebo celkově nevypne (nastavení `guides`).
+  tlačítkem Napsat do SAPI, odkazy na `docs/` a web). Odkazy se píšou relativně ke složce průvodců
+  (`../../docs/desky/APS-5.md`), aby fungovaly v programu i na GitHubu; program je hledá vedle průvodce a pak od
+  kořene dat. Okno Průvodce sestavou se otevře samo u kategorií s `guides`, dokud ho uživatel u sestavy nebo celkově
+  nevypne (nastavení `guides`).
 - **Poslední sestavy** jsou nahoře (nadpis jako v Soubor → Poslední sestavy, do etapy 8 „Naposledy spuštěné“),
   ukládají se v nastavení (`browser.recent`). Plní je každý úspěšný start z GUI (výběr sestav, Poslední sestavy,
   Spustit sestavu ze souboru, přetažení souboru, Restartovat s touto sestavou v konfigurátoru) a Uložit jako;

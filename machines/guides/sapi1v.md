@@ -26,4 +26,4 @@ CASTLE
 ## Dál
 
 - Hry a dema pro tuto sestavu jsou připravené v sestavě „SAPI-1 V: hry a dema“.
-- Desky V: [JPR-1V](docs/desky/JPR-1V.md), [CGA-1V](docs/desky/CGA-1V.md), [MPH-1V](docs/desky/MPH-1V.md).
+- Desky V: [JPR-1V](../../docs/desky/JPR-1V.md), [CGA-1V](../../docs/desky/CGA-1V.md), [MPH-1V](../../docs/desky/MPH-1V.md).

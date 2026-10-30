@@ -17,5 +17,5 @@ nemá displej.
 
 ## Dál
 
-- Všechny povely, přepínače a Celý test (znaková sada): [návod k plotteru z AR 1990](docs/navod-ar1990.md), zapojení:
-  [AR 1990](docs/desky/AR1990.md).
+- Všechny povely, přepínače a Celý test (znaková sada): [návod k plotteru z AR 1990](../../docs/navod-ar1990.md), zapojení:
+  [AR 1990](../../docs/desky/AR1990.md).

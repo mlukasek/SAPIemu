@@ -18,4 +18,4 @@ CLSG:FOR I=0 TO 319 STEP 8:MOVE I,0:PLOT 319-I,239:NEXT I
 ## Dál
 
 - `BASIC_EXP_V5.0.hex` je BASIC bez grafiky, `BASIC_EXP_V5.0G_SZ.hex` umí navíc kreslit na zapisovač (`KRES`).
-- MIKOS V5 a jeho povely: [MIKOS](docs/software/MIKOS.md).
+- MIKOS V5 a jeho povely: [MIKOS](../../docs/software/MIKOS.md).

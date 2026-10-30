@@ -13,4 +13,4 @@ CP/M 2.2/P 62K R. Peřiny, podle dobové dokumentace základní verze pro ZPS-4.
 
 - RAM disk RMD-1 je jednotka E:, po zapnutí je v něm náhodný obsah jako ve skutečné paměti DRAM.
   Připraví ho `RTEST`.
-- Podrobnosti: [CP/M ZPS-4](docs/software/CPM_ZPS-4.md).
+- Podrobnosti: [CP/M ZPS-4](../../docs/software/CPM_ZPS-4.md).

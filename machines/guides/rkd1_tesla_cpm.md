@@ -12,4 +12,4 @@ CP/M 2.2 Tesly Elstroj z roku 1987 s jednoduchým shellem. Mechanika s kazetou j
 
 ## Dál
 
-- Kazetu měnit jen s Resetem (F12). Celý návod s výpisy obrazovky: [návod RKD-1](docs/navod-rkd1.md).
+- Kazetu měnit jen s Resetem (F12). Celý návod s výpisy obrazovky: [návod RKD-1](../../docs/navod-rkd1.md).
