@@ -115,6 +115,7 @@ unsigned Eprom27::overvoltage(const EpromPins& p) const
     if (type == T2732 && p.p21 == EPL_VPP) o |= EPO_25V_A11;
     if (type == T2708) {
         if (p.p21 == EPL_H || p.p21 == EPL_VPP) o |= EPO_VBB_PLUS;
+        if (p.p21 == EPL_L) o |= EPO_NO_VBB;   // VCC (pin 24) is on in the socket
         if (p.p20 == EPL_VPP) o |= EPO_25V_CSWE;
     }
     return o;

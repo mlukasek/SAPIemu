@@ -148,9 +148,9 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 
 - **Úprava pro 2732** (DSE.DOC, DSECPM.DOC): v konektoru FRB-30 kabelu se přepojí tři vodiče 26 → 11, 18 → 20
   a 12 → 25.
-- **Adaptér pro 2708 je rekonstrukce,** žádný dokument ani schéma se nenašly. Jediný program, který 2708 na DSE-1
-  programuje, je **EPROM.COM J. Bíby V130786** (typ `0`), sloupec tabulky je odvozený z toho, co dělá (zdroják
-  `EPROM.txt`, adresy v .COM):
+- **Adaptér pro 2708 je rekonstrukce,** žádný dokument ani schéma se nenašly. Jediný známý program, který 2708 na
+  DSE-1 programuje (jiný se v archivech nenašel), je **EPROM.COM J. Bíby V130786** (typ `0`), sloupec tabulky je
+  odvozený z toho, co dělá (zdroják `EPROM.txt`, adresy v .COM):
   - **volba typu** (TYP 0528h, ř. 570–575): F4 pro čtení **00h** (Vpp 0 V, LED zhasnuté), pro programování **30h**
     (Vpp 0 V, LED1 a LED2), kód typu 08h;
   - **programování** (RAPR 032Dh, PRG08 0192h): F4 = 30h, řídicí slovo 80h (PC = 0, tedy PC6 = PC7 = 0), pak
@@ -172,7 +172,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   nevíme (fotka chybí).
 - **EPROM, které Tesla vyráběla:** MHB2708C a MHB2716C, 2732 ne (autor 2026-10-31). Kabel X2 a program Tesla počítají
   s 2716 a 2732 (návod: „Typy simulovaných a programovaných EPROM: 2716, 2732“, přitom program DSE se dodával „ve
-  dvou kusech EPROM MHB 2708“ pro REM-1). 2708 umí jen EPROM.COM J. Bíby s adaptérem (výše, Nejasnost 13).
+  dvou kusech EPROM MHB 2708“ pro REM-1). Ze známých programů umí 2708 jen EPROM.COM J. Bíby s adaptérem (výše,
+  Nejasnost 13).
 - **2708** (katalogy Oki MSM2708AS s. 157, NTE2708): čte při PROGRAM 0 V, CS/WE dole, VDD +12 V, VBB −5 V; CS/WE
   v H = deselect; programuje CS/WE na 12 V (11,4–12,6 V) a pulz PROGRAM 25–27 V (dole ≤ 1 V) **0,1–1 ms**, adresa se
   smí změnit 1 µs po pulzu. Programuje se **N průchody všemi slovy, N × šířka pulzu ≥ 100 ms** (při 1 ms N = 100).
@@ -274,7 +275,10 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   2732 v kabelu pro 2716 čte horní 2 KB a nenaprogramuje se. Napětí, které by skutečný čip mohlo poškodit, zapíše
   jednou varování „on a real chip this could damage it“: 25 V na vývodu, který není Vpp (A11 2732 v kabelu pro 2716,
   /OE 2716 v kabelu pro 2732), +12 V na A10 a −5 V na vývod 21 2716 a 2732 v kabelu pro 2708, +12 V na /OE 2716
-  v kabelu pro 2708, 5 V nebo 25 V na VBB 2708 v kabelu pro 2716 a 2732, 25 V na CS/WE 2708 v kabelu pro 2732. Okno
+  v kabelu pro 2708, 5 V nebo 25 V na VBB 2708 v kabelu pro 2716 a 2732, 25 V na CS/WE 2708 v kabelu pro 2732.
+  Jednou varuje i **0 V na VBB 2708** v kabelu pro 2716 a 2732 (Vpp 0 V, v kabelu pro 2732 PA11 = 0): VCC +5 V je
+  v patici pořád a katalog Oki (pozn. 1) chce VBB zapnout dřív než VCC a VDD a vypnout poslední. Jestli to skutečnou
+  2708 poškodí, když VDD má nanejvýš 5 V (PA10), nevíme, varování „a real chip could be damaged“ je opatrnost. Okno
   programátoru upozorní, když typ EPROM nesedí se zapojením patice.
 - **2708** (od 2026-10-31, rozhodnutí 2026-10-31 „2708 a DSE.COM“): obraz 1024 B, buňka = A0–A9 (A10 čip nemá,
   adresy se po 1 KB opakují).
@@ -302,8 +306,12 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   - **2708, pravidlo (A) z rozhodnutí 2026-10-31:** programuje pulz od **0,1 ms** (buňka AND data), kratší ne. Pulz
     delší než 1 ms naprogramuje také a jednou varuje (mimo katalog, „a routine for a 2716?“), okno pak ukáže pomůcku
     „2708 dostává pulzy delší než 1 ms: EPROM.COM typ 0“. Pulzy na jedno slovo bez jiného slova mezi nimi varují
-    jednou (katalog dává v každém průchodu jeden pulz každému slovu), naprogramují. Shrnutí varuje, když součet pulzů
-    bajtu vyjde pod 100 ms („N x pulse width >= 100 ms“), horní mez nemá. Přísný režim (bit se překlopí až po 100 ms)
+    jednou (katalog dává v každém průchodu jeden pulz každému slovu), naprogramují. Katalogy počítají s průchody
+    všemi 1024 slovy, EPROM.COM ale prochází jen zvolený úsek: s úsekem jednoho bajtu (RAM 2000–2000) dá `P` 129
+    pulzů za sebou na jedno slovo a v logu je toto varování, i když jde o správný typ 0 (tak by to program udělal i na
+    železe; jestli to skutečné 2708 vadí, nevíme). Delší úsek varování nedá, i když nejde o všech 1024 slov. Shrnutí
+    varuje, když součet pulzů bajtu vyjde pod 100 ms („N x pulse width >= 100 ms“), horní mez nemá. Přísný režim
+    (bit se překlopí až po 100 ms)
     není, protože výdrž skutečné MHB2708C neznáme (Nejasnost 15) a s EPROM.COM na 4 MHz by nenaprogramoval nic;
   - změna adresy během pulzu pulz ukončí a začne nový (jednou varování);
   - **programování** jsou pulzy od prvního do chvíle, kdy je Vpp **0,5 s času sběrnice** mimo 25 V, nebo do resetu
@@ -433,8 +441,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   s 2716 v patici, vložení téhož souboru, stav uprostřed pulzu, s jinou EPROM, s prázdnou paticí a bez souboru.
   2708: čtení po způsobu EPROM.COM (opakování po 1 KB), RAM simulátoru bez srážky, 129 × 0,83 ms bez varování,
   100 × 0,83 ms pod 100 ms, pulzy 0,05 ms nic, pulz 2 ms s varováním a pomůckou, opakovaný pulz na jedno slovo,
-  rutina pro 2716 (data správně, varování), 2708 v kabelu pro 2716 a 2732, 2716 v kabelu pro 2708, dvě patice, stav
-  uprostřed pulzu 2708, Nová 2708.
+  rutina pro 2716 (data správně, varování), 2708 v kabelu pro 2716 a 2732 (i 0 V na VBB), 2716 v kabelu pro 2708, dvě
+  patice, stav uprostřed pulzu 2708, Nová 2708.
 
 ## Nejasnosti k ověření na HW
 
@@ -474,10 +482,14 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     opravdu potřebuje? Rozhoduje mezi pravidlem (A) (pulz od 0,1 ms programuje, pod 100 ms na bajt jen varování)
     a přísným (B) (bit se překlopí až po 100 ms). Emulace: (A).
 16. **Vpp pro 2708 potřebuje 25–27 V,** DSE-1 je nastavená na 24 V (návod) nebo 25 V (AR). Dá DSE-1B z nestabilizovaných
-    +30 V 26 V při odběru 40 mA vývodu PROGRAM a přestavoval se trimr P2?
+    +30 V 26 V při odběru 40 mA vývodu PROGRAM a přestavoval se trimr P2? A DSE-1A, jejíž měnič bere z +12 V nejvýš
+    100 mA (návod): utáhne při 25 V až 40 mA do vývodu PROGRAM (NTE2708) a asi 11 mA do R28 2k2? Emulace: Vpp má
+    25 V při jakémkoli odběru.
 17. **Tvar pulzu PROGRAM:** spád přes C18/R28 (τ ≈ 0,22 ms) proti 50–2000 ns katalogu a pasivní dolní úroveň (R28 2k2
-    při až 3 mA z vývodu dává až 6,6 V) proti ≤ 1 V a aktivnímu stažení, které katalog chce. Programovala a četla
-    2708 s DSE-1 spolehlivě? Emulace přepíná Vpp okamžitě.
+    při až 3 mA z vývodu dává až 6,6 V, víc než VCC) proti ≤ 1 V a aktivnímu stažení, které katalog chce. U 2716 drží
+    Vpp 25 V celé programování a pulz dává PC6, u 2708 je pulzem samo Vpp a každý začíná od 0 V (F4 30h → 33h, V1
+    otevírá MAA723): jak rychle Vpp naběhne na 25 V? Pomalý náběh by 0,83ms pulz EPROM.COM zkrátil. Programovala
+    a četla 2708 s DSE-1 spolehlivě? Emulace: dole 0 V, hrany okamžité.
 18. **Jaký takt měl J. Bíba?** Konstanty pro 2708 sedí na 2 MHz (0,83 ms, 106,7 ms na bajt), pulz 2716 je na 2 MHz
     98 ms a na 4 MHz 49 ms.
 19. **Jak čte 2708 s 5 V na PROGRAM** (F4 = 11h: EPROM.COM typ 1, program Tesla)? Katalog chce při čtení „below

@@ -631,15 +631,17 @@ static void test_2708_cables(void)
         CHECK_EQ(eprom_read(w, 0xF0, 0x11, 0x451), 0xF0);   // 5 V on PROGRAM (register 11h): reads, outside the sheets
         CHECK(has_warning(e, "5 V on PROGRAM"));
     }
-    // a 2708 in the cable for a 2716: no +12 V and -5 V, it reads FFh; Vpp 5 V on its VBB could damage it
+    // a 2708 in the cable for a 2716: no +12 V and -5 V, it reads FFh; VCC with 0 V on VBB (Vpp 0 V) is against its
+    // data sheets (VBB first), Vpp 5 V on its VBB could damage it
     {
         Machine w;
         if (!load(w, { { "eprom", F2708 } })) return;
         CHECK_EQ(eprom_read(w, 0xF0, 0x00, 0x123), 0xFF);
-        CHECK(dse(w)->warnings().empty());   // 0 V on VBB
-        CHECK_EQ(eprom_read(w, 0xF0, 0x11, 0x123), 0xFF);
         std::vector<std::string> ww = dse(w)->warnings();
-        CHECK(ww.size() == 1 && ww[0].find("VBB") != std::string::npos);
+        CHECK(ww.size() == 1 && ww[0].find("0 V on VBB") != std::string::npos);
+        CHECK_EQ(eprom_read(w, 0xF0, 0x11, 0x123), 0xFF);
+        ww = dse(w)->warnings();
+        CHECK(ww.size() == 2 && has_warning(dse(w), "5 V or 25 V on VBB"));
         eprom_program(w, 0xF0, 0x123, 0x00, 50);
         CHECK_EQ(dse(w)->eprom().data[0x123], p08(0x123));
     }
@@ -650,6 +652,7 @@ static void test_2708_cables(void)
         eprom_program(w, 0xF0, 0x123, 0x00, 50);
         CHECK_EQ(dse(w)->eprom().data[0x123], p08(0x123));
         CHECK(has_warning(dse(w), "CS/WE of a 2708"));
+        CHECK(has_warning(dse(w), "0 V on VBB"));   // PA11 = 0 on its VBB
     }
     // a 2716 in the cable for a 2708: +12 V on A10, -5 V on its Vpp pin; it reads FFh and is not programmed
     {
@@ -667,6 +670,7 @@ static void test_2708_cables(void)
         if (!load(w, { { "x2_cable", "dual" }, { "eprom", F2708 } })) return;
         CHECK_EQ(dse(w)->socket_type(), 2716);
         CHECK_EQ(eprom_read(w, 0xF0, 0x00, 0x123), 0xFF);
+        CHECK(has_warning(dse(w), "0 V on VBB"));
     }
 }
 

@@ -359,7 +359,7 @@ void Dse1::warn_once(int bit, const char* fmt, ...)
 {
     if (warned & (1u << bit)) return;
     warned |= 1u << bit;
-    char b[256];
+    char b[320];
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(b, sizeof(b), fmt, ap);
@@ -403,6 +403,9 @@ void Dse1::update(void)
     if (ov & EPO_VBB_PLUS)
         warn_once(W_VBB_PLUS, "%d V on VBB (pin 21) of the 2708 in the socket wired for a %d, it needs -5 V: on a real chip this "
                   "could damage it (it does not read)", l.pins.p21 == EPL_VPP ? 25 : 5, socket_type());
+    if (ov & EPO_NO_VBB)
+        warn_once(W_2708_NO_VBB, "the 2708 in the socket wired for a %d has 5 V on VCC but 0 V on VBB (pin 21): its data "
+                  "sheets want -5 V on VBB before VCC and VDD, a real chip could be damaged (it does not read)", socket_type());
     if (ov & EPO_25V_CSWE)
         warn_once(W_25V_CSWE, "25 V on CS/WE (pin 20) of the 2708 in the socket wired for a 2732: on a real chip this could "
                   "damage it");
@@ -475,7 +478,8 @@ void Dse1::pulse_end(void)
                       "anyway; a routine for a 2716? EPROM.COM of J. Biba programs a 2708 as type 0)", s * 1000.0);
         if (prev_cell == (int32_t)pulse_addr)
             warn_once(W_2708_REPEAT, "programming pulses on one word of the 2708 with no other word in between: its data "
-                      "sheets give one pulse to every word in each of N loops (programmed anyway)");
+                      "sheets give one pulse to every word in each of N loops (programmed anyway; EPROM.COM of J. Biba "
+                      "loops over its range only, a range of one byte does this)");
     }
     prev_cell = pulse_addr;
     if (chip.program(pulse_addr, pulse_data)) media_written();
@@ -601,6 +605,7 @@ std::vector<std::string> Dse1::warnings(void) const
     if (warned & (1u << W_2708_READ_5V)) w.push_back("a 2708 read with 5 V on PROGRAM");
     if (warned & (1u << W_2708_LONG)) w.push_back("a programming pulse longer than 1 ms on a 2708");
     if (warned & (1u << W_2708_REPEAT)) w.push_back("programming pulses on one word of a 2708 with no other word in between");
+    if (warned & (1u << W_2708_NO_VBB)) w.push_back("0 V on VBB of a 2708 with VCC on (socket wired for a 2716 / 2732)");
     return w;
 }
 
@@ -661,7 +666,7 @@ std::string Dse1::live_status()
 
 void Dse1::state(StateIO& io)
 {
-    // the EPROM: which one (its image) and the content, programmed while running (2 or 4 KB)
+    // the EPROM: which one (its image) and the content, programmed while running (1, 2 or 4 KB)
     std::string img = chip.image;
     io.v(img);
     bool unread = false;   // its file cannot be read here: the chip is made of the content in the state

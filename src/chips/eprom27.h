@@ -14,7 +14,8 @@
 //     standby         /CE H                      -> high Z (with /OE/Vpp 25 V: program inhibit)
 //     program         /CE L pulse (50 ms), /OE/Vpp 25 V -> D in
 //     output disabled /CE L, /OE/Vpp 5 V         -> high Z
-//   2708: 18 = PROGRAM, 19 = VDD +12 V, 20 = CS/WE, 21 = VBB -5 V (the supplies must be there, else high Z)
+//   2708: 18 = PROGRAM, 19 = VDD +12 V, 20 = CS/WE, 21 = VBB -5 V (the supplies must be there, else high Z; VBB
+//         before VCC and VDD and off last, Oki note 1: VCC is always on in a socket, so 0 V on VBB is flagged)
 //     read            CS/WE L, PROGRAM 0 V       -> D out (5 V on PROGRAM: read too, outside the data sheet)
 //     deselect        CS/WE H (5 V)              -> high Z
 //     program         CS/WE 12 V, PROGRAM pulse 25 V (0.1-1 ms, N loops over all words, N x width >= 100 ms) -> D in
@@ -60,6 +61,7 @@ enum EpromOver {
     EPO_M5V_P21 = 32,         // -5 V on pin 21 of a 2716 (Vpp) / 2732 (A11)
     EPO_VBB_PLUS = 64,        // 5 V or 25 V on VBB (pin 21) of a 2708, it needs -5 V
     EPO_25V_CSWE = 128,       // 25 V on CS/WE (pin 20) of a 2708
+    EPO_NO_VBB = 256,         // 0 V on VBB (pin 21) of a 2708 while VCC (pin 24) has 5 V: VBB must come first (Oki)
 };
 
 struct Eprom27 {

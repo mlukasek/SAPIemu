@@ -397,16 +397,20 @@ v emulátoru 2026-10-31, výpisy jsou opsané z něj.
 
 Při programování svítí PROG i MAP (EPROM.COM zapíná obě LED), Vpp je 25 V jen na 0,83 ms pulzu každého bajtu, okno
 proto ukazuje většinou 0 V. V logu je `DSE-1: programming: 64 bytes, 129.00 pulses per byte, pulses 0.83-0.83 ms`.
-To je pravidlo z katalogů 2708: pulzy 0,1–1 ms postupně na každé slovo, N průchodů, N × pulz aspoň 100 ms (tady
-106,7 ms). Celá 2708 (0–3FF) trvá asi 4 minuty času stroje.
+Tak programují katalogy 2708 (Oki MSM2708AS, NTE2708): pulzy 0,1–1 ms postupně na každé slovo, N průchodů, N × pulz
+aspoň 100 ms (tady 106,7 ms). Katalogy přitom chtějí v každém průchodu všech 1024 slov, EPROM.COM prochází jen
+zvolený úsek. Úsek jednoho bajtu (RAM 2000–2000) proto dá 129 pulzů za sebou na jedno slovo a log jednou varuje
+`programming pulses on one word of the 2708 with no other word in between`, EPROM se naprogramuje. Celá 2708 (0–3FF)
+trvá asi 4 minuty času stroje.
 
 - **Jiný typ než 0 s 2708:** program pro 2716 drží 25 V přes všechny adresy a pulzy jsou kolem 50–100 ms. Emulátor
   2708 i tak naprogramuje, ale log varuje (pulz nad 1 ms, změna adresy během pulzu, součet) a okno programátoru žlutě
   napíše „2708 dostává pulzy delší než 1 ms: EPROM.COM typ 0“. Totéž udělá program Tesla v sestavě
   `zps/ZPS-2_DSE-1` s kabelem pro 2708. Jak by to snesla skutečná MHB2708C, nevíme.
-- **2708 v kabelu pro 2716 nebo 2732** nedostane +12 V a −5 V a čte FFh. Okno programátoru upozorní „2708 v patici
-  zapojené pro 2716“ a log varuje, že 5 V nebo 25 V na jejím vývodu VBB by skutečný čip mohlo poškodit. Obráceně
-  2716 v kabelu pro 2708 dostane +12 V na A10 a −5 V na vývod 21.
+- **2708 v kabelu pro 2716 nebo 2732** dostane +5 V na VCC, ale ani +12 V, ani −5 V, a čte FFh. Okno programátoru
+  upozorní „2708 v patici zapojené pro 2716“. Log varuje, že skutečný čip by mohlo poškodit 0 V na jejím vývodu VBB
+  (katalog Oki chce −5 V na VBB dřív než VCC) i 5 V nebo 25 V na něm. Obráceně 2716 v kabelu pro 2708 dostane +12 V
+  na A10, −5 V na vývod 21, při programování 25 V na vývod 18 (/CE/PGM) a +12 V na /OE.
 - Typ 1 (2716) a 2 (2732) EPROM.COM fungují s kabelem pro 2716 (2732), stejně jako v testu `test_dse1_eprom`
   (pulzy 98 ms na 2 MHz, log varuje mimo 45–55 ms).
 

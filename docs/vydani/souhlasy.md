@@ -66,10 +66,10 @@ Byl mezi příjemci soukromých alf. Žádný jeho software ve vydání nenachá
   za MIKOSem V4.0F v `roms/dse-1/MIKOS_V4.0F_DSE_1000.bin` (sestava `zps/ZPS-2_DSE-1.sapi`). Zdroj sapi.cz a archiv
   SAPI_DOKU, historický zdroj.
 - J. Hlaváč (1988): DSE.COM pro DSE-1 pod CP/M ZPS-3 s návodem DSECPM.DOC TESLA ELTOS DIZ (1989), na disketě
-  i D.COM (DIRF V2.2, 1984) a X80.COM (X-FILE, R. Peřina 1988). Disketa `PERINA\dse.8sd` z archivu SAPIMAN beze změny
-  jako `media/sapiman/knihovna/perina_dse.img`. Historický software bez souhlasu autorů, **rozhodnutí autora
-  2026-10-31:** „DSE.COM klidně do media, je to 40 let a SAPI nikdo neřeší, natož pak v bývalém Československu, kde
-  se software kopíroval úplně volně v té době“.
+  i D.COM (DIRF V2.2, 1984) a X80.COM (X-FILE V 5.1/P, v souboru „(C) 1988 PERINA P.“). Disketa `PERINA\dse.8sd`
+  z archivu SAPIMAN beze změny jako `media/sapiman/knihovna/perina_dse.img`. Historický software bez souhlasu
+  autorů, **rozhodnutí autora 2026-10-31:** „DSE.COM klidně do media, je to 40 let a SAPI nikdo neřeší, natož pak
+  v bývalém Československu, kde se software kopíroval úplně volně v té době“.
 - R. Peřina (1988): CP/M MOR48A, MOR62A, MOR62Z a jejich diskety.
 - ELIS (*JME/JPE), Melsoft (1990, Ing. Jan Meloun: od něj má autor sestavu SAPI-1.5 a diskety, poděkování v README a O programu), V. Julius OK1IVJ (plotter z AR 1990, přepsaný z výpisu v AR).
 - Komerční software 80. let na disketách (Turbo Pascal, dBase II, WordStar, MBASIC, Pascal/MT+…): podle rozhodnutí

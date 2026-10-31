@@ -3606,7 +3606,8 @@ Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 n
 - **Úseky dat v pulzu** (kvůli 2708, platí pro všechny typy): data na PD kratší než nejkratší programující pulz (1 ms,
   2708 0,1 ms) se do buňky nepočítají. Program pro 2716 drží 25 V na PROGRAM 2708 přes adresy a mezi novou adresou
   a novými daty jsou na pár µs data předchozího bajtu; AND přes celý pulz by je zapsal, skutečná buňka se nabíjí
-  postupně. Na 2716 a 2732 se tím nic nezměnilo (testy beze změny).
+  postupně. U programů v testech (Tesla, SIMPROG, EPROM.COM, DSE.COM) se na 2716 a 2732 nic nezměnilo, úsek PD
+  kratší než 1 ms uvnitř pulzu 2716 a 2732 se ale už do buňky nepočítá (dřív AND přes celý pulz).
 - **Čip 2708** (`Eprom27::T2708`, soubor 1024 B, buňka A0–A9): bez +12 V nebo −5 V výstupy vypnuté; CS/WE 12 V
   programování nebo zákaz; čtení i s 5 V na PROGRAM (mimo katalog, jednou varování); 25 V na PROGRAM při CS/WE dole nic
   (předpoklad). Varování „could damage a real chip“ pro +12 V a −5 V na 2716 a 2732 v kabelu pro 2708 a pro 5 V nebo
@@ -3618,10 +3619,22 @@ Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 n
   nepřidal (nevíme, jak adaptér vypadal).
 - **DSE.COM J. Hlaváče do `media/`** (rozhodnutí autora výše): disketa SAPIMAN `PERINA\dse.8sd` beze změny jako
   `media/sapiman/knihovna/perina_dse.img` (jméno podle knihovny, `docs/software/SAPIMAN_diskety.md`), s DSE.DOC,
-  DSECPM.DOC, D.COM (DIRF V2.2) a X80.COM (X-FILE R. Peřiny). V `docs/vydani/souhlasy.md` jako historický software
-  bez souhlasu autorů. Spouští se v **`zps/ZPS-3_CPM64K_IMA` s DSE-1 přidanou v X8** a disketou v B: (návod kap. 12,
+  DSECPM.DOC, D.COM (DIRF V2.2) a X80.COM (X-FILE V 5.1/P, v souboru „(C) 1988 PERINA P.“). V `docs/vydani/souhlasy.md`
+  jako historický software bez souhlasu autorů. Spouští se v **`zps/ZPS-3_CPM64K_IMA` s DSE-1 přidanou v X8** a disketou v B: (návod kap. 12,
   test `test_dse1_dsecom`). Novou sestavu jsem nedělal: DSE.COM běží v emulátoru bez změn, sestava ZPS-2_DSE-1 už
   okno programátoru ukazuje a další sestava by znamenala náhled, průvodce a kategorii navíc. Když ji autor bude chtít,
   stačí kopie `ZPS-3_CPM64K_IMA` s DSE-1 v X8 a disketou DSE v B:.
 - **Oprava popisu DSE.COM:** pulzy jsou 20 + 10 ms, a když bajt po 20 ms nesedí, 20 + 40 ms; bajty FFh přeskočí. Po
   startu je nutné `E 0` (pracovní úsek `0000 - 0000`), po `P` pípá asi 32 s.
+- **Po revizi (2026-10-31):**
+  - **0 V na VBB 2708** v kabelu pro 2716 a 2732 jednou varuje (`EPO_NO_VBB`): VCC +5 V je v patici pořád a katalog
+    Oki (pozn. 1) chce VBB zapnout dřív než VCC a VDD. Jestli to skutečnou 2708 s VDD nanejvýš 5 V poškodí, nevíme,
+    varování je opatrnost.
+  - **Varování o pulzech na jedno slovo zůstává i pro úsek jednoho bajtu** v EPROM.COM (revize kódu navrhovala ho tam
+    vypnout). Katalogy (NTE2708: „Programming continues in this manner until all words have been programmed. This
+    constitutes one of N program loop.“) chtějí v každém průchodu všechna slova, pulzy za sebou na jedno slovo mezi
+    ně nepatří. EPROM.COM prochází jen zvolený úsek, takže by to tak udělal i na železe; log to teď říká
+    a `docs/desky/DSE-1.md` i návod kap. 11 to vysvětlují.
+  - **Okno programátoru v úzkém okně:** řádky pod kresbou se počítají tak, jak je `flow()` skládá (tlačítka ve třech
+    řadách, tlačítko Změnit kabel X2… pod upozorněním), pomůcky a upozornění se v úzkém okně zalomí (v obvyklé šířce
+    zůstávají na jednom řádku) a kresba není nikdy širší než okno (v nízkém okně se rolují ovládací prvky).

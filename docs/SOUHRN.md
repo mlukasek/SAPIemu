@@ -27,13 +27,16 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   vyzkouší později.
 - **2026-10-31, DSE-1: EPROM 2708 a DSE.COM** (autor: „DSE.COM klidně do media… 2708 je dobrý nápad, pojď to
   přidat“; rozhodnutí 2026-10-31 – 2708 a DSE.COM): kabel X2 `2708` zrekonstruovaný podle EPROM.COM J. Bíby
-  V130786 (jediný program, který 2708 na DSE-1 programoval: pulz na Vpp, 129 × 0,83 ms na 2 MHz), čip 2708
+  V130786 (jediný známý program, který 2708 na DSE-1 programuje: pulz na Vpp, 129 × 0,83 ms na 2 MHz), čip 2708
   v `Eprom27` (+12 V, −5 V, CS/WE 12 V), pravidlo (A): pulz od 0,1 ms programuje, nad 1 ms, opakování a součet pod
   100 ms jen varují; úseky dat kratší než programující pulz se nepočítají. Okno: TESLA 2708, Nová 2708, pomůcka
   u pulzů nad 1 ms, řádky pod kresbou si počítají místo. `media/dse-1/eprom_2708.bin`, MCP `new: 2708`. DSE.COM
   J. Hlaváče: disketa `media/sapiman/knihovna/perina_dse.img`, běží v `zps/ZPS-3_CPM64K_IMA` s DSE-1 v X8 (návod
   kap. 12, nutné `E 0`, po P 32 s pípání). Testy `test_dse1_eprom2708`, `test_dse1_dsecom`, unit části 2708.
-  Nejasnosti 13–21, obrázek návodu `docs/img/navod-dse1.png` znovu (`tools/docs_images.py`, Nová 2708). **Dál:**
+  Nejasnosti 13–21, obrázek návodu `docs/img/navod-dse1.png` znovu (`tools/docs_images.py`, Nová 2708). Po revizi:
+  varování 0 V na VBB 2708 v kabelu pro 2716 a 2732 (Oki: VBB první), úzké okno programátoru (řádky podle `flow()`,
+  zalomené pomůcky, kresba nikdy širší než okno), upřesněné texty (jediný známý program, model podle katalogů Oki
+  a NTE, X80.COM jen podle řetězce v souboru), Nejasnosti 16 (DSE-1A) a 17 (náběh pulzu). **Dál:**
   autor zváží vlastní sestavu ZPS-3 s DSE-1 (zatím kapitola 12 návodu) a podívá se na pravidlo programování 2708.
 - **2026-10-31, vlastní okno programátoru DSE-1** (přání autora, rozhodnutí 2026-10-31 – okno programátoru DSE-1):
   `src/frontend/dse1.cpp`, okno `###dse1` místo bloku v okně Média: krabička kabelu X2 se zelenou paticí v duchu

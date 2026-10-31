@@ -473,16 +473,19 @@ static const Translation k_table[] = {
     { "It does not read or program as it should. A 2708 needs +12 V on pin 19 and -5 V on pin 21, pin 18 is its PROGRAM "
       "input (25 V pulses) and pin 20 its CS/WE (12 V while programming). The cable X2 for a 2708 is an adapter "
       "reconstructed after EPROM.COM of J. Biba: no document of it survives. A 2708 in the cable for a 2716 or a 2732 gets "
-      "no supply voltages and reads FFh; 5 V or 25 V on its VBB pin could damage a real chip. A 2716 or a 2732 in the "
-      "cable for a 2708 gets +12 V on A10 and -5 V on pin 21, which could damage a real chip. In the configurator choose "
-      "the Programming cable X2 for the type of the EPROM and restart the machine (on the real board the cable is "
-      "rewired).",
+      "+5 V on VCC but neither +12 V nor -5 V and reads FFh; a real chip could be damaged by 0 V on its VBB pin (its data "
+      "sheets want -5 V there before VCC) and by 5 V or 25 V there. A 2716 or a 2732 in the cable for a 2708 gets +12 V on "
+      "A10, -5 V on pin 21, the programming voltage 25 V on pin 18 (/CE) and a 2716 +12 V on /OE, which could damage a "
+      "real chip. In the configurator choose the Programming cable X2 for the type of the EPROM and restart the machine "
+      "(on the real board the cable is rewired).",
       "Nečte se ani neprogramuje, jak má. 2708 potřebuje +12 V na vývodu 19 a −5 V na vývodu 21, vývod 18 je její vstup "
       "PROGRAM (pulzy 25 V) a vývod 20 CS/WE (při programování 12 V). Kabel X2 pro 2708 je adaptér zrekonstruovaný podle "
-      "EPROM.COM J. Bíby, žádný jeho popis se nedochoval. 2708 v kabelu pro 2716 nebo 2732 nedostane napájení a čte FFh, "
-      "5 V nebo 25 V na jejím vývodu VBB by skutečný čip mohlo poškodit. 2716 nebo 2732 v kabelu pro 2708 dostane +12 V "
-      "na A10 a −5 V na vývod 21, což by skutečný čip mohlo poškodit. V konfigurátoru zvolte Programovací kabel X2 pro typ "
-      "EPROM a sestavu restartujte (na skutečné desce se kabel přepojí)." },
+      "EPROM.COM J. Bíby, žádný jeho popis se nedochoval. 2708 v kabelu pro 2716 nebo 2732 dostane +5 V na VCC, ale ani "
+      "+12 V, ani −5 V, a čte FFh. Skutečný čip by mohlo poškodit 0 V na jejím vývodu VBB (katalogy chtějí −5 V na VBB dřív "
+      "než VCC) i 5 V nebo 25 V na něm. 2716 nebo 2732 v kabelu pro 2708 dostane +12 V na A10, −5 V na vývod 21, "
+      "programovací napětí 25 V na vývod 18 (/CE) a 2716 i +12 V na /OE, což by skutečný čip mohlo poškodit. "
+      "V konfigurátoru zvolte Programovací kabel X2 pro typ EPROM a sestavu restartujte (na skutečné desce se kabel "
+      "přepojí)." },
     { "LED1 PROG (\"indikace progr.\", register bit D4)", "LED1 PROG („indikace progr.“, bit D4 registru)" },
     { "LED2 MAP (\"indikace map.\", register bit D5, with JP1 also MAP1)",
       "LED2 MAP („indikace map.“, bit D5 registru, s JP1 i MAP1)" },

@@ -82,12 +82,13 @@ static void text_mm(const Scene& S, float x, float y, float mm, ImU32 col, const
 {
     ImFont* f = panel_font(bold);
     float px = S.k(mm);
+    if (px < 1.0f) return;   // a font size under 1 px is rounded to 0 by ImGui (an assert)
     ImVec2 ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, t);
     if (max_w > 0 && ts.x > S.k(max_w)) {
         px *= S.k(max_w) / ts.x;
+        if (px < 1.0f) return;
         ts = f->CalcTextSizeA(px, FLT_MAX, 0.0f, t);
     }
-    if (px < 1.0f) return;
     ImVec2 c = S.p(x, y);
     float left = align == 0 ? c.x - ts.x * 0.5f : align < 0 ? c.x : c.x - ts.x;
     S.dl->AddText(f, px, ImVec2(left, c.y - ts.y * 0.5f), col, t);
@@ -95,7 +96,8 @@ static void text_mm(const Scene& S, float x, float y, float mm, ImU32 col, const
 
 static float text_w_mm(const Scene& S, float mm, const char* t, bool bold = false)
 {
-    return panel_font(bold)->CalcTextSizeA(S.k(mm), FLT_MAX, 0.0f, t).x / S.s;
+    float px = S.k(mm);
+    return px < 1.0f ? 0.0f : panel_font(bold)->CalcTextSizeA(px, FLT_MAX, 0.0f, t).x / S.s;
 }
 
 static void screw(const Scene& S, float x, float y)
@@ -568,7 +570,7 @@ static void erase_question(UiState& ui)
 
 // ---------------------------------------------------------------- the drawing
 
-static float controls_rows(Dse1* d, float avail);
+static float controls_h(Dse1* d, float avail);
 
 // The box of the cable X2 with the socket, the EPROM and the LEDs, the UV lamp beside it; the picture of the machine
 // previews. Returns the bottom of the drawing (screen y).
@@ -576,12 +578,15 @@ static float draw_box(UiState& ui, Dse1* d)
 {
     float u = ImGui::GetFontSize();
     float avail = ImGui::GetContentRegionAvail().x;
-    // as wide as the window, smaller when the controls under it would not fit its height
-    float below = controls_rows(d, avail) * ImGui::GetFrameHeightWithSpacing() + 0.3f * u;
+    // as wide as the window, smaller when the controls under it would not fit its height; never wider than the
+    // window (a short window scrolls the controls instead)
+    float below = controls_h(d, avail) + 0.3f * u;
     float s = avail / SCENE_W, sh = (ImGui::GetContentRegionAvail().y - below) / SCENE_H;
     if (s > sh) s = sh;
     if (s > 0.62f * u) s = 0.62f * u;
     if (s < 0.25f * u) s = 0.25f * u;
+    if (s > avail / SCENE_W) s = avail / SCENE_W;
+    if (s < 0.05f * u) s = 0.05f * u;   // a window too narrow for any use: a drawing all the same
     ImVec2 o = ImGui::GetCursorScreenPos();
     if (avail > SCENE_W * s) o.x += (avail - SCENE_W * s) * 0.5f;
     Scene S = { ImGui::GetWindowDrawList(), o, s };
@@ -714,20 +719,106 @@ static float button_w(const char* label)
     return ImGui::CalcTextSize(label, nullptr, true).x + 2.0f * ImGui::GetStyle().FramePadding.x;
 }
 
-// The rows of draw_controls under the drawing: the EPROM line, the hints and the cable warning, the buttons (two rows
-// when the window is too narrow for them), the state line, and some room
-static float controls_rows(Dse1* d, float avail)
+// A hint or warning line of the window: one line at its usual width, wrapped in a narrow window
+static void warn_text(const char* t)
 {
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextColored(theme().warn, "%s", t);
+    ImGui::PopTextWrapPos();
+}
+
+static float warn_text_h(const char* t, float avail)
+{
+    return ImGui::CalcTextSize(t, nullptr, false, avail).y + ImGui::GetStyle().ItemSpacing.y;
+}
+
+// The button Change cable X2... fits on the line of the cable warning
+static bool cable_button_beside(const char* text, const char* button, float avail)
+{
+    return ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x + button_w(button) <= avail;
+}
+
+static void mismatch_text(Dse1* d, char* b, size_t n)
+{
+    snprintf(b, n, tr("A %d in the socket wired for a %d"), d->eprom().type, d->socket_type());
+}
+
+static void pulse_text(Dse1* d, char* t, size_t n)
+{
+    if (d->last_pulse_ms() > 0) snprintf(t, n, "%s %.2f ms", tr("Last programming pulse:"), d->last_pulse_ms());
+    else snprintf(t, n, "%s", tr("No programming pulse yet"));
+}
+
+// flow() played without drawing (controls_h): the rows of items `w` wide in a window `avail` wide
+struct FlowSim {
+    float avail;
+    float x;     // the end of the last item on the row, 0 = nothing yet
+    int rows;
+};
+
+static void flow_sim(FlowSim& f, float w, float gap, bool wraps = true)
+{
+    if (f.x <= 0) {
+        f.x = w;
+        return;
+    }
+    if (wraps && f.avail - (f.x + gap) < w) {
+        f.rows++;
+        f.x = w;
+    } else f.x += gap + w;
+}
+
+// The height of draw_controls under the drawing, laid out as it draws them in a window `avail` wide: the EPROM line,
+// the hints and the cable warning (wrapped when narrow), the rows of buttons, the state line, and some room
+static float controls_h(Dse1* d, float avail)
+{
+    const ImGuiStyle& st = ImGui::GetStyle();
     const Eprom27& e = d->eprom();
-    float rows = 2.6f;
-    if (e.loaded() && d->hint_2716_mode()) rows += 1;
-    if (e.loaded() && d->hint_2708_long()) rows += 1;
-    if (e.loaded() && e.type != d->socket_type()) rows += 1;
-    const char* const b[] = { tr("Insert..."), tr("New 2708"), tr("New 2716"), tr("New 2732"), tr("Eject"), "...",
-                              tr("Save simulator RAM...") };
-    float w = 0;
-    for (const char* t : b) w += button_w(t) + ImGui::GetStyle().ItemSpacing.x;
-    return rows + (w > avail ? 2.0f : 1.0f);
+    float fh = ImGui::GetFrameHeightWithSpacing(), th = ImGui::GetTextLineHeightWithSpacing(), sp = st.ItemSpacing.x;
+    // the EPROM line: its first row has the height of a button (AlignTextToFramePadding)
+    FlowSim f = { avail, 0, 1 };
+    flow_sim(f, ImGui::CalcTextSize(tr("EPROM in the socket:")).x, sp);
+    if (!e.loaded()) flow_sim(f, ImGui::CalcTextSize(tr("(socket empty)")).x, sp);
+    else {
+        size_t sl = e.path.find_last_of("/\\");
+        flow_sim(f, ImGui::CalcTextSize(e.path.c_str() + (sl == std::string::npos ? 0 : sl + 1)).x, sp);
+        char t[16];
+        snprintf(t, sizeof(t), "(%d)", e.type);
+        flow_sim(f, ImGui::CalcTextSize(t).x, sp);
+    }
+    float h = fh + (f.rows - 1) * th;
+    if (e.loaded() && d->hint_2716_mode()) h += warn_text_h(tr("The 2732 is read as a 2716: answer A to \"2732?\""), avail);
+    if (e.loaded() && d->hint_2708_long()) h += warn_text_h(tr("The 2708 gets pulses longer than 1 ms: EPROM.COM type 0"), avail);
+    if (e.loaded() && e.type != d->socket_type()) {
+        char b[128];
+        mismatch_text(d, b, sizeof(b));
+        h += warn_text_h(b, avail);
+        if (!cable_button_beside(b, tr("Change cable X2..."), avail)) h += th;   // the small button on its own line
+    }
+    // the buttons as flow() puts them
+    f = { avail, 0, 1 };
+    flow_sim(f, button_w(tr("Insert...")), sp);
+    flow_sim(f, button_w(tr("New 2708")), sp);
+    flow_sim(f, button_w(tr("New 2716")), sp);
+    flow_sim(f, button_w(tr("New 2732")), sp);
+    flow_sim(f, button_w(tr("Eject")) + button_w("...") + sp, sp);
+    flow_sim(f, button_w(tr("Save simulator RAM...")), sp);
+    h += f.rows * fh;
+    // the state line
+    float gap = 2.0f * sp;
+    char t[96];
+    snprintf(t, sizeof(t), "Vpp %d V", d->vpp_volts());
+    f = { avail, 0, 1 };
+    flow_sim(f, ImGui::CalcTextSize(t).x, gap, false);
+    flow_sim(f, ImGui::CalcTextSize(d->onla() || d->onld() ? "ON LINE (ONLA)" : "OFF LINE").x, gap, false);
+    pulse_text(d, t, sizeof(t));
+    flow_sim(f, ImGui::CalcTextSize(t).x, gap);
+    if (d->pulse_on()) flow_sim(f, ImGui::CalcTextSize(tr("pulse on")).x, gap, false);
+    if (d->run().active) {
+        snprintf(t, sizeof(t), "%s %u", tr("pulses while programming:"), d->run().pulses);
+        flow_sim(f, ImGui::CalcTextSize(t).x, gap);
+    }
+    return h + fh + (f.rows - 1) * th + 0.6f * fh;   // its first row and the room as before (button rows)
 }
 
 // A tooltip of the state line: what it says, and that the box itself shows only its LEDs.
@@ -744,7 +835,7 @@ static void draw_controls(UiState& ui, Dse1* d)
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(tr("EPROM in the socket:"));
     if (!has) {
-        ImGui::SameLine();
+        flow(ImGui::CalcTextSize(tr("(socket empty)")).x);
         ImGui::TextDisabled("%s", tr("(socket empty)"));
     } else {   // a long name on its own line, the type after it where it fits
         size_t sl = e.path.find_last_of("/\\");
@@ -763,7 +854,7 @@ static void draw_controls(UiState& ui, Dse1* d)
                              "the program also programs a 2732 in its 2716 mode). Answer A to the question \"2732? "
                              "A=ANO\": then it reads with 0 V on OE/Vpp. The real cable box says nothing: this is a "
                              "hint of the emulator.");
-        ImGui::TextColored(theme().warn, "%s", tr("The 2732 is read as a 2716: answer A to \"2732?\""));
+        warn_text(tr("The 2732 is read as a 2716: answer A to \"2732?\""));
         if (ImGui::IsItemHovered()) tip(why);
     }
     if (has && d->hint_2708_long()) {   // emulator hint: a 2708 programmed by a routine for a 2716
@@ -774,20 +865,22 @@ static void draw_controls(UiState& ui, Dse1* d)
                              "as type 0 (129 loops of 0.83 ms pulses at 2 MHz); the program of Tesla, SIMPROG and "
                              "DSE.COM do not know the 2708. The real cable box says nothing: this is a hint of the "
                              "emulator.");
-        ImGui::TextColored(theme().warn, "%s", tr("The 2708 gets pulses longer than 1 ms: EPROM.COM type 0"));
+        warn_text(tr("The 2708 gets pulses longer than 1 ms: EPROM.COM type 0"));
         if (ImGui::IsItemHovered()) tip(why);
     }
     if (has && e.type != wired) {   // one line, the change of the cable beside it, why in the tooltip
         char b[128];
-        snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d"), e.type, wired);
+        mismatch_text(d, b, sizeof(b));
         const char* why = e.type == Eprom27::T2708 || wired == Eprom27::T2708
             ? tr("It does not read or program as it should. A 2708 needs +12 V on pin 19 and -5 V on pin 21, pin 18 is its "
                  "PROGRAM input (25 V pulses) and pin 20 its CS/WE (12 V while programming). The cable X2 for a 2708 is "
                  "an adapter reconstructed after EPROM.COM of J. Biba: no document of it survives. A 2708 in the cable "
-                 "for a 2716 or a 2732 gets no supply voltages and reads FFh; 5 V or 25 V on its VBB pin could damage a "
-                 "real chip. A 2716 or a 2732 in the cable for a 2708 gets +12 V on A10 and -5 V on pin 21, which could "
-                 "damage a real chip. In the configurator choose the Programming cable X2 for the type of the EPROM "
-                 "and restart the machine (on the real board the cable is rewired).")
+                 "for a 2716 or a 2732 gets +5 V on VCC but neither +12 V nor -5 V and reads FFh; a real chip could be "
+                 "damaged by 0 V on its VBB pin (its data sheets want -5 V there before VCC) and by 5 V or 25 V there. "
+                 "A 2716 or a 2732 in the cable for a 2708 gets +12 V on A10, -5 V on pin 21, the programming voltage "
+                 "25 V on pin 18 (/CE) and a 2716 +12 V on /OE, which could damage a real chip. In the configurator "
+                 "choose the Programming cable X2 for the type of the EPROM and restart the machine (on the real board "
+                 "the cable is rewired).")
             : tr("It does not read or program as it should. The cable X2 is supplied wired for a 2716. "
                  "For a 2732 three wires are moved in its connector (DSE.DOC): pin 21 gets the address "
                  "A11, pin 20 the programming voltage (OE/Vpp), pin 18 /CE. A 2732 in the cable for a "
@@ -796,10 +889,10 @@ static void draw_controls(UiState& ui, Dse1* d)
                  "gets an address on its Vpp pin and the programming voltage on /OE. In the configurator "
                  "choose Programming cable X2: for a 2732, or two sockets, and restart the machine (on "
                  "the real board the cable is rewired).");
-        ImGui::TextColored(theme().warn, "%s", b);
+        warn_text(b);
         if (ImGui::IsItemHovered()) tip(why);
         const char* change = tr("Change cable X2...");
-        flow(button_w(change));
+        if (cable_button_beside(b, change, ImGui::GetContentRegionAvail().x)) ImGui::SameLine();   // else under it
         if (ImGui::SmallButton(change)) rack_show_card(ui, d->slot);   // the configurator at the card
         if (ImGui::IsItemHovered()) tip(why);
     }
@@ -842,8 +935,7 @@ static void draw_controls(UiState& ui, Dse1* d)
     else ImGui::TextDisabled("%s", line);
     info_tip(tr("ON LINE: the simulator RAM is given to the probe X3 (in the emulator it is not plugged in anywhere); "
                 "OFF LINE: the computer writes and reads it."));
-    if (d->last_pulse_ms() > 0) snprintf(t, sizeof(t), "%s %.2f ms", tr("Last programming pulse:"), d->last_pulse_ms());
-    else snprintf(t, sizeof(t), "%s", tr("No programming pulse yet"));
+    pulse_text(d, t, sizeof(t));
     ImGui::SameLine(0, gap);
     if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(t).x) ImGui::NewLine();
     if (d->last_pulse_ms() > 0) ImGui::TextUnformatted(t);

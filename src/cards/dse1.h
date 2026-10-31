@@ -150,6 +150,7 @@ private:
         W_2708_READ_5V = 21,            // a 2708 read with 5 V on PROGRAM (the data sheets: below VCC)
         W_2708_LONG = 22,               // a 2708 pulse longer than 1 ms
         W_2708_REPEAT = 23,             // pulses on one word of a 2708 with no other word in between
+        W_2708_NO_VBB = 24,             // a 2708 with VCC but 0 V on VBB (the cable for a 2716 / 2732)
     };
 
     Lines lines(void);

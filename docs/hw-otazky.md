@@ -275,11 +275,15 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
     a přísným (B) (bit se překlopí až po 100 ms). Emulace: (A).
 
 16. **Vpp pro 2708 potřebuje 25–27 V,** DSE-1 je nastavená na 24 V (návod) nebo 25 V (AR). Dá DSE-1B z nestabilizovaných
-    +30 V 26 V při odběru 40 mA vývodu PROGRAM a přestavoval se trimr P2?
+    +30 V 26 V při odběru 40 mA vývodu PROGRAM a přestavoval se trimr P2? A DSE-1A, jejíž měnič bere z +12 V nejvýš
+    100 mA (návod): utáhne při 25 V až 40 mA do vývodu PROGRAM (NTE2708) a asi 11 mA do R28 2k2? Emulace: Vpp má
+    25 V při jakémkoli odběru.
 
 17. **Tvar pulzu PROGRAM:** spád přes C18/R28 (τ ≈ 0,22 ms) proti 50–2000 ns katalogu a pasivní dolní úroveň (R28 2k2
-    při až 3 mA z vývodu dává až 6,6 V) proti ≤ 1 V a aktivnímu stažení, které katalog chce. Programovala a četla
-    2708 s DSE-1 spolehlivě? Emulace přepíná Vpp okamžitě.
+    při až 3 mA z vývodu dává až 6,6 V, víc než VCC) proti ≤ 1 V a aktivnímu stažení, které katalog chce. U 2716 drží
+    Vpp 25 V celé programování a pulz dává PC6, u 2708 je pulzem samo Vpp a každý začíná od 0 V (F4 30h → 33h, V1
+    otevírá MAA723): jak rychle Vpp naběhne na 25 V? Pomalý náběh by 0,83ms pulz EPROM.COM zkrátil. Programovala
+    a četla 2708 s DSE-1 spolehlivě? Emulace: dole 0 V, hrany okamžité.
 
 18. **Jaký takt měl J. Bíba?** Konstanty pro 2708 sedí na 2 MHz (0,83 ms, 106,7 ms na bajt), pulz 2716 je na 2 MHz
     98 ms a na 4 MHz 49 ms.
