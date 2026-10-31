@@ -5,7 +5,7 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-30) a co dál
+## Kde jsme skončili (2026-10-31) a co dál
 
 - **Stav 2026-10-30:** etapy 1–8 plánu vzhledu hotové a pushnuté (repo je zatím soukromé), README podle autorova
   článku na 8bity.cz. **Beta 0.7.0 zabalená** (autor: „připrav mi release pro kamarády a přeplácni ho i v
@@ -25,6 +25,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **2026-10-31, okno DSE-1: řádek stavu a velikost kresby** (autor: „…šlo by to dát na fix pozice… mění velikost
+  toho programovacího přípravku“; rozhodnutí 2026-10-31 – 2708 a DSE.COM, poslední bod): položky řádku stavu stojí
+  v pevných sloupcích, „Vpp 25 V“ a „pulz běží“ drží 0,25 s po posledním výskytu (počitadla karty `vpp_rises()`
+  a `pulse_starts()`, jen pro okno, mimo `state()`), kresba si vyhrazuje místo pro pomůcku, varování kabelu a celý
+  řádek stavu. **Všechno z 2026-10-31** (okno DSE-1, 2708, DSE.COM, sestava `cpm_dse1_fdc1`) je **pushnuté
+  2026-10-31** (autor: „zaktualizuj všechny soubory, commitni a pushni“), zip se nebalil.
 - **2026-10-31, sestava CP/M s programátorem EPROM DSE-1** (autor: „Udělej sestavu prosím a dej ji do Other…“;
   rozhodnutí 2026-10-31 – 2708 a DSE.COM, poslední bod): `machines/cpm_dse1_fdc1.sapi` v Ostatní → CP/M J. Bíby,
   `cpm_boot_fdc1` s DSE-1 na F0h v X7 (JP1 rozpojená, kabel se dvěma paticemi, prázdná 2716, okno programátoru
@@ -38,8 +44,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   v `Eprom27` (+12 V, −5 V, CS/WE 12 V), pravidlo (A): pulz od 0,1 ms programuje, nad 1 ms, opakování a součet pod
   100 ms jen varují; úseky dat kratší než programující pulz se nepočítají. Okno: TESLA 2708, Nová 2708, pomůcka
   u pulzů nad 1 ms, řádky pod kresbou si počítají místo. `media/dse-1/eprom_2708.bin`, MCP `new: 2708`. DSE.COM
-  J. Hlaváče: disketa `media/sapiman/knihovna/perina_dse.img`, běží v `zps/ZPS-3_CPM64K_IMA` s DSE-1 v X8 (návod
-  kap. 12, nutné `E 0`, po P 32 s pípání). Testy `test_dse1_eprom2708`, `test_dse1_dsecom`, unit části 2708.
+  J. Hlaváče: disketa `media/sapiman/knihovna/perina_dse.img`, běží v sestavě `cpm_dse1_fdc1` (bod výše; zkoušelo se
+  v kopii `zps/ZPS-3_CPM64K_IMA` s DSE-1 v X8), návod kap. 12, nutné `E 0`, po P 32 s pípání. Testy `test_dse1_eprom2708`, `test_dse1_dsecom`, unit části 2708.
   Nejasnosti 13–21, obrázek návodu `docs/img/navod-dse1.png` znovu (`tools/docs_images.py`, Nová 2708). Po revizi:
   varování 0 V na VBB 2708 v kabelu pro 2716 a 2732 (Oki: VBB první), úzké okno programátoru (řádky podle `flow()`,
   zalomené pomůcky, kresba nikdy širší než okno), upřesněné texty (jediný známý program, model podle katalogů Oki

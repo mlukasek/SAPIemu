@@ -116,6 +116,7 @@ s Liborovými deskami.
 | `cpm_boot_*_ss256.sapi`, `cpm_boot_mfc1a_rmd.sapi` | totéž ze systémových disket J. Bíby (A: programy, B: zdroje), C: ZRMD-1 nebo RMD-1 | naběhne CP/M (výzva `U0A>`) |
 | `cpm_boot_fdc1_rmd.sapi`, `cpm_boot_rpd1_rmd.sapi` | CP/M J. Bíby s RAM diskem RMD-1 (FDC-1, RPD-1) | `B:IRMD40`, odpověď `A`, pak C: |
 | `cpm_boot_fdc1_irmd.sapi` | CP/M J. Bíby, RAM disk RMD-1 si připraví BIOS sám (zjistí i velikost) | `SAVE 2 C:X.COM`, `B:STAT C:` |
+| `cpm_dse1_fdc1.sapi` | CP/M J. Bíby (FDC-1) s programátorem EPROM DSE-1: D: EPROM.COM J. Bíby (i 2708), E: DSE.COM J. Hlaváče | `D:EPROM`, nebo `E:DSE`, typ `2716` a hned `E 0` (návod DSE-1 kap. 11 a 12) |
 | `cpm_boot_rpd1_mfc256.sapi`, `_mfc512`, `cpm_boot_rpd1_fdc1_rmd.sapi` | CP/M J. Bíby z RPD-1 s RMD-1 a druhým řadičem pro D:, E: (MFC-1A s 8" FM 14 × 256 nebo 8 × 512, FDC-1 8") | `B:IRMD40`, `A`, pak `SAVE 2 D:X.COM`, `DIR D:` |
 | `cpm_boot_dlouhe_rpd1_fdc1.sapi` (`_35`: 3,5") | „dlouhé“ CP/M J. Bíby: A:, B: 8" (RPD-1), C: ZRMD-1, D:, E: 5,25" HD (FDC-1) | naběhne CP/M, zkuste `DIR B:`, `STAT D:` |
 | `cpm_pmd_fdc1.sapi` | CP/M J. Bíby: FDC-1 a PMD32-SD přes DPP-1 | `DIR C:` (Turbo Pascal), `DIR D:` (WordStar) |
@@ -416,7 +417,9 @@ Každá sestava Základu má průvodce (Nápověda → Průvodce sestavou). Pro 
      programátoru svítí červená LED PROG, Vpp je 25 V a pulz 50 ms, za 13 s `SHODNY OBSAH  0000 - 00FF`;
   4. `C` porovná, `T` přenese EPROM do RAM, `S` a `R` přenesou data do RAM simulátoru a zpět (ON LINE);
   5. EPROM v patici je pracovní kopie `work\dse-1\eprom_2716.bin`: UV lampa v okně programátoru ji smaže,
-     Nová 2716 a Nová 2732 vloží další prázdnou.
+     Nová 2716 a Nová 2732 vloží další prázdnou;
+  6. pod CP/M: sestava `cpm_dse1_fdc1.sapi` (Ostatní) má na D: EPROM.COM J. Bíby, který programuje i 2708 (Nová
+     2708, u upozornění Změnit kabel X2…), a na E: DSE.COM J. Hlaváče se soubory Intel HEX.
 
   Celý návod s výpisy obrazovky: `docs/navod-dse1.md`.
 
