@@ -1245,6 +1245,43 @@ static const CardParam k_and1z[] = {
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };
 
+// AND-30C
+static const ParamOption k_and30c_e0[] = {
+    { "\"roms/and-30c/AND-30C_IC9_EPROM0.bin\"", "AND 80 0: codes 00h-7Fh (lines, ASCII)", "AND 80 0: kódy 00h-7Fh (čáry, ASCII)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and30c_e1[] = {
+    { "\"roms/and-30c/AND-30C_IC10_EPROM1.bin\"", "AND 80 1: codes 80h-FFh (semigraphics, KOI-8 cs)",
+      "AND 80 1: kódy 80h-FFh (semigrafika, KOI-8 čs)" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and30c_ce1[] = {
+    { "\"gnd\"", "JP10 to GND: always enabled (assumed for SAPI-IPS)", "JP10 na GND: vždy povolená (předpoklad pro SAPI-IPS)" },
+    { "\"ref\"", "X1 pin 7 /REF as drawn: only in refresh cycles, the card does not answer",
+      "X1 špička 7 /REF podle schématu: jen v cyklech refreshe, karta neodpovídá" },
+    { nullptr, nullptr, nullptr },
+};
+static const ParamOption k_and30c_a7[] = {
+    { "\"gnd\"", "JP8 to GND: F800-FFFF always", "JP8 na GND: F800-FFFF vždy" },
+    { "\"map1\"", "JP8 to MAP1 (JP9): only with MAP1 = L", "JP8 na MAP1 (JP9): jen při MAP1 = L" },
+    { nullptr, nullptr, nullptr },
+};
+static const CardParam k_and30c[] = {
+    { "eprom0", PK_FILE, "IC9: character generator EPROM 2716, codes 00h-7Fh", "IC9: EPROM znakového generátoru 2716, kódy 00h-7Fh",
+      "\"roms/and-30c/AND-30C_IC9_EPROM0.bin\"", k_and30c_e0, 0, 0 },
+    { "eprom1", PK_FILE, "IC10: character generator EPROM 2716, codes 80h-FFh", "IC10: EPROM znakového generátoru 2716, kódy 80h-FFh",
+      "\"roms/and-30c/AND-30C_IC10_EPROM1.bin\"", k_and30c_e1, 0, 0 },
+    { "decoder", PK_FILE, "PROM IC2: address decoder (F800-FFFF, 6845 at FFE0h/FFF0h)",
+      "PROM IC2: dekodér adresy (F800-FFFF, 6845 na FFE0h/FFF0h)", "\"roms/and-30c/AND-30C_IC2_74S287.bin\"", k_none, 0, 0 },
+    { "ce1", PK_CHOICE, "PROM /CE1 (JP10)", "PROM /CE1 (JP10)", "\"gnd\"", k_and30c_ce1, 0, 0 },
+    { "prom_a7", PK_CHOICE, "PROM A7 (JP8)", "PROM A7 (JP8)", "\"gnd\"", k_and30c_a7, 0, 0 },
+    { "blank_on_access", PK_BOOL, "IC12: a CPU access blanks the picture for 4.5 us (as on the card)",
+      "IC12: přístup procesoru zatemní obraz na 4,5 us (jako na desce)", "true", nullptr, 0, 0 },
+    { "monitor", PK_CHOICE, "Monitor: phosphor colour (not on the card)", "Monitor: barva luminoforu (není na kartě)",
+      "\"white\"", k_monitor, 0, 0 },
+    { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
+};
+
 // ZRMD-1 / ZRD-1V
 static const ParamOption k_zrmd_images[] = {
     { "\"media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin\"", "CP/M (Martin 2019)", "CP/M (Martin 2019)" },
@@ -2055,7 +2092,8 @@ CARD(c_and1z, "AND-1Z", "AND", "Alphanumeric display \"Z\"", "Alfanumerický dis
      k_and1z)
 CARD(c_and1z89, "AND-1Z-89", "AND", "Alphanumeric display \"Z\" 1989", "Alfanumerický displej \"Z\" 1989",
      CC_DISPLAY, 1, true, k_and1z)
-CARD(c_and30c, "AND-30C", "AND", "Display with MC6845", "Displej s MC6845", CC_DISPLAY, 1, false, nullptr)
+CARD(c_and30c, "AND-30C", "AND", "Display 80x21 with MC6845 (SAPI-IPS, schematic by reverse engineering)",
+     "Displej 80x21 s MC6845 (SAPI-IPS, schéma ze zpětného inženýrství)", CC_DISPLAY, 1, true, k_and30c)
 CARD(c_dgd1, "DGD-1", "DGD", "Graphic display 320x240", "Grafický displej 320x240", CC_DISPLAY, 1, true, k_dgd1)
 CARD(c_dgd1v, "DGD-1V", "DGD", "Graphic display 320x240, VGA (V)", "Grafický displej 320x240, VGA (V)", CC_DISPLAY, 1,
      true, k_dgd1v)

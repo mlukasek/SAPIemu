@@ -337,6 +337,9 @@ a `DOCPMP` (`docs/desky/RTC-1.md`, `DSP-1.md`)
 („dlouhé“ CP/M s 3K BIOSem: RPD-1 8" a FDC-1 5,25" HD v jedné sestavě). `cpm_ec1045.sapi` je systém EC1045 s menu FDC8/FDC3/FDC5/HDD
 a disketami PC 3,5" a 5,25" HD na FDC-1 (volba 1 nebo 2), mechaniky zapojené jako u EC1045 (MOTOR ON z /HL,
 `motor_hl`).
+`cpm_and30c.sapi` (2026-10-31) je `cpm_zrmd` s displejem 80 × 21 AND-30C (MC6845, sestava SAPI-IPS) místo
+AND-1Z-89 a s ECMONem, kterému je ovladač obrazovky napsaný nově (`JPR-1ZI_ECMON_2k_AND-30C.bin`,
+`tools/ecmon_and30c.py`). Volba 3, pak třeba `DIR`; rozbor desky je v `docs/desky/AND-30C.md`.
 **Desky Libora Lasoty k původním sestavám** (2026-10-06): `machines/jpr1s_bgp1s.sapi` je JPR-1S s MIKROBIOSem 1.02,
 grafikou BGP-1S (PMD-85, Colorace) a klávesnicí ANK-1M2; hry z `media/jpr-1s` se nahrají přes Soubor → Nahrát
 program (Intel HEX) a spustí `JUMP 4400`, nebo příkazem BOOT po sériové lince redukce Redukce34KB01 (TCP 2325, raw,

@@ -65,7 +65,7 @@
             "name": "CP/M s ECMONem (RAM disk ZRMD-1)",
             "name_en": "CP/M with ECMON (RAM disk ZRMD-1)",
             "machines": [ "cpm_zrmd.sapi", "cpm_ide.sapi", "cpm_zrmd_fdc1.sapi", "cpm_zrmd_mfc1a.sapi",
-                          "cpm_zrmd_dpp1.sapi", "cpm_zrmd_rtc_dsp.sapi", "cpm_ec1045.sapi" ]
+                          "cpm_zrmd_dpp1.sapi", "cpm_zrmd_rtc_dsp.sapi", "cpm_ec1045.sapi", "cpm_and30c.sapi" ]
         },
         {
             "id": "biba",
@@ -256,6 +256,13 @@
             "name_en": "CP/M 2.2 with RTC-1 and DSP-1 (JPR-1ZI ECMON, DMR-1, AND-1Z-89, ZRMD-1, DPP-1, RTC-1, DSP-1)",
             "summary": "CP/M 2.2 z RAM disku ZRMD-1 s hodinami reálného času RTC-1, sériovou deskou DSP-1 a programy J. Bíby. Po zapnutí stiskněte 3; E:RTCZ ukáže hodiny (ESC konec), DOPCP SOUBOR pošle soubor XMODEMem do okna terminálu.",
             "summary_en": "CP/M 2.2 from the ZRMD-1 RAM disk with the RTC-1 real-time clock, the DSP-1 serial board and J. Bíba's programs. After power on press 3; E:RTCZ shows the clock (ESC ends), DOPCP FILE sends a file by XMODEM to the terminal window."
+        },
+        "cpm_and30c.sapi": {
+            "title": "CP/M s displejem 80 znaků AND-30C",
+            "title_en": "CP/M with the 80-column display AND-30C",
+            "name_en": "CP/M 2.2 with the 80-column display AND-30C (JPR-1ZI ECMON, DMR-1, AND-30C, ZRMD-1)",
+            "summary": "Displej AND-30C (MC6845, 80 × 21 znaků) ze sestavy SAPI-IPS, emulovaný podle schématu ze zpětného inženýrství (P. Všijanský). Software k němu se nedochoval, ovladač v ECMONu je napsaný nově. Po zapnutí stiskněte 3, pak DIR. Při zápisu do obrazovky deska obraz krátce zatemní, jako skutečná.",
+            "summary_en": "The display AND-30C (MC6845, 80 × 21 characters) of the set SAPI-IPS, emulated after the schematic redrawn by reverse engineering (P. Všijanský). No software for it survives, the driver in ECMON is new. After power on press 3, then DIR. When the screen is written the card blanks the picture for a moment, as the real one does."
         },
         "cpm_ec1045.sapi": {
             "title": "CP/M EC1045 s disketami 3,5\" a 5,25\" HD",

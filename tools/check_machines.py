@@ -67,6 +67,7 @@ MACHINES = {
     'cpm_zrmd': (ecmon('3') + t('SAVE 1 PCYC.COM\\r') + run(3000) + ['--power-cycle'] + ecmon('3') + cpm_dir() +
                  t('DIR PCYC.COM\\r') + run(3000), ['WM1Z', 'PCYC    .COM']),
     'cpm_ide': (ecmon('3') + cpm_dir('B:'), ['.COM']),
+    'cpm_and30c': (ecmon('3') + cpm_dir(), ['WM1Z', 'log-clean']),
     'cpm_zrmd_fdc1': (ecmon('0') + cpm_dir('B:'), ['.']),
     'cpm_zrmd_mfc1a': (ecmon('2') + cpm_dir('B:'), ['.']),
     'cpm_ec1045': (ecmon('1') + cpm_dir(), ['.COM']),

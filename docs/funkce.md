@@ -12,7 +12,8 @@ v [prvni-kroky.md](prvni-kroky.md).
 - **Obraz:** AND-1, AND-1A, AND-1Z, AND-1Z-89, AND-1V a AND-1B (VGA). Grafika DGD-1, DGD-1V, barevná CGA-1V
   (Bt476; kreslí se po řádcích s paprskem, takže přepnutí stránky nebo palety uprostřed snímku trhá obraz jako na
   monitoru; čekací stavy podle schématu, zpoždění změřená sondami a programem ZRDBENCH na skutečném SAPI-1 V) a BGP-1S (PMD-85, Colorace; běží na ní Manic Miner). Barevná semigrafika DBS-1A SAPI-1.5 (6845, znakový
-  generátor z dumpu EPROM od EC1045).
+  generátor z dumpu EPROM od EC1045). Displej 80 × 21 AND-30C ze sestavy SAPI-IPS (6845, podle schématu ze
+  zpětného inženýrství, i se zatemněním obrazu při přístupu procesoru) s nově napsaným ovladačem v ECMONu.
 - **Komunikace a disky:**
   - DSM-1 (sériový modem s magnetofonem: kazety WAV a MP3, program HEX/BIN se převede na kazetu MIKOS nebo
     MIKROBASIC a jde uložit jako WAV pro skutečné SAPI), DSM-1V;

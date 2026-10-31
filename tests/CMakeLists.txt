@@ -56,6 +56,10 @@ sapi_test(test_rtc1)
 sapi_test(test_dsp1)
 # DSE-1: the board through its ports, the program DSE of Tesla in ZPS-2_DSE-1, SIMPROG in ZPS-6, EPROM.COM of J. Biba
 # (2716 and 2708), DSE.COM of J. Hlavac in ZPS-3_CPM64K_IMA
+sapi_test(test_and30c)
+set_tests_properties(test_and30c PROPERTIES ENVIRONMENT "AND30C_PART=unit")
+add_test(NAME test_and30c_cpm COMMAND test_and30c)
+set_tests_properties(test_and30c_cpm PROPERTIES ENVIRONMENT "AND30C_PART=cpm" COST 300)
 sapi_test(test_dse1)
 set_tests_properties(test_dse1 PROPERTIES ENVIRONMENT "DSE_PART=unit")
 add_test(NAME test_dse1_tesla COMMAND test_dse1)

@@ -136,7 +136,7 @@ CGA-1V graphics.*
 
 ## Features
 
-- **Cards like the real ones:** 51 card types in the catalogue, 48 of them emulated. CPU cards with the 8080, 8085
+- **Cards like the real ones:** 51 card types in the catalogue, 49 of them emulated. CPU cards with the 8080, 8085
   and Z80 including the BOOT logic and wait states, memories and RAM disks, displays, graphics, controllers of
   floppies, of the cartridge disk and of the magnetic tape, serial, parallel and IDE boards, real-time clocks and the
   cards of instruments. Jumpers as on the boards, address decoders from PROM dumps, the buses ARB-1, ARB-1A/Au,

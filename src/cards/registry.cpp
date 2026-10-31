@@ -34,6 +34,7 @@
 #include "cards/adp1.h"
 #include "cards/dmt1.h"
 #include "cards/drv1a.h"
+#include "cards/and30c.h"
 #include "cards/dbs1a.h"
 #include "cards/pkt1.h"
 #include "cards/rsw1.h"
@@ -85,6 +86,7 @@ Card* card_create(const std::string& type)
     if (type == "DSE-1") return new Dse1();
     if (type == "RSW-1") return new Rsw1();
     if (type == "DBS-1A" || type == "DBS-1") return new Dbs1a();
+    if (type == "AND-30C") return new And30c();
     if (type == "MPH-1V") return new Mph1v();
     if (type == "DPI-1L") return new Dpi1l();
     if (type == "AND-1Z-89" || type == "AND-1Z") {

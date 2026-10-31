@@ -7,7 +7,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **261** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **269** v 51 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -69,6 +69,36 @@ Otevřených bodů: **261** v 50 sekcích. Desky jsou první, pak ostatní téma
 - AND-1Z: vstup A6 DA1 je vyřešený, nastavuje ho přepínač S1 (viz výše).
 
 - Zapojení neoznačených vstupů DD4 A7 a DA1 A6.
+
+
+## [AND-30C – alfanumerický displej 80 × 21 s MC6845 (SAPI-IPS)](desky/AND-30C.md) – Nejasnosti (k ověření na originálu, otázky pro Petra) (8)
+
+1. **/CE1 dekodéru (IC2 vývod 13)**
+   - Podle schématu je na X1 špičce 7 (/REF) a na pájecím bodu JP10.
+   - S JPR-1Z by se deska vybrala jen v cyklech refreshe. Je na desce spoj na špičku 7 přerušený, nebo je JP10
+     spojená se zemí? Jak to bylo na JPR-1Z v SAPI-IPS?
+   - Emulátor předpokládá /CE1 = L (`ce1: gnd`).
+
+2. **Propojky JP1–JP3, JP8, JP10:** čárkovaná čára ve schématu vede z JP8 (A7 PROM) k JP1 se zubem k JP2 (GND).
+   Které body jsou na desce spojené? Kam vede JP3 (spojený s JP1)? Obsah PROM platí jen pro A7 = 0.
+
+3. **MAP2:**
+   - Je výstup O3 (výběr desky) na MAP2 sběrnice úmysl, kvůli RAM-64 přes JP6–JP8? A je na RAM-64 opravdu
+     osazená propojka JP6–JP8?
+   - Které úrovně MAP2 RAM-64 vypínají? Obsah PROM 74188 RAM-64 je na sapi.cz.
+
+4. **JP17/JP18:** který výstup 74164 (QB, QC, QD) je na originálu spojený s JP18? Schéma kreslí QD.
+
+5. **Mezera ve spoji pod IC11:** DE 6845 → 74LS244 → JP6. Je na desce přerušený plošný spoj, nebo jen chyba
+   kresby? Je JP6 něčím propojená (RDY je na JP4)?
+
+6. **Rychlosti součástek:** změřit na originálu zpoždění od sestupné hrany hodin 6845 po data na vstupech 74165
+   (osciloskop nebo analyzátor). Ukáže, jak velká je rezerva řetězu MA → RAM → EPROM.
+
+7. **Software:** existoval k SAPI-IPS ovladač, monitor nebo systém, který AND-30C nastavoval? Hodnoty registrů
+   6845 by řekly, jaký formát se používal (21 řádků podle Petra).
+
+8. **Kmitočet oscilátoru:** 10,8 MHz uvádí Petr. Na kolik je cívka naladěná, a jak stabilní je?
 
 
 ## [APS-5 – měřicí jednotka (regulace osmi pecí)](desky/APS-5.md) – Nejasnosti k ověření na HW (6)

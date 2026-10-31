@@ -102,6 +102,30 @@ s originály bajt po bajtu**, kromě neinicializovaných oblastí DS:
   `build.py --image` ji zapíše do kopie obrazu RAM disku.
 - Starší česká CCP a BDOS ze sady 4XBOOT (2012) v tomto systému nejsou.
 
+## ECMON pro displej AND-30C (SAPIemu, 2026-10-31)
+
+Displej AND-30C (MC6845, 80 × 21, `docs/desky/AND-30C.md`) neměl dochovaný software, ovladač je proto napsaný nově
+(autor: „samozřejmě k tomu budeš asi muset upravit CP/M“).
+
+- **Kde:** `tools/ecmon_and30c.py` vezme `ECMONM.MAC` z `..\SAPI-karty\ZRMD-1\SRC`, nahradí v něm ovladač
+  AND-1Z (oddíl „OVLADAC DISPLEJE AND-1Z“) souborem `tools/ecmon_and30c.mac`, do CINIT přidá nastavení 6845 a
+  přeloží EPROM přes M80/L80 pod `cpmrun` (`roms/jpr-1zi/JPR-1ZI_ECMON_2k_AND-30C.bin`, pracovní soubory
+  `out/ecmon_and30c/`).
+- **CP/M na RAM disku se nemění:** CBIOS volá CONOUT monitoru (`MCONOU`), stačí jiný ECMON. Sestava
+  `cpm_and30c.sapi` používá tutéž pracovní kopii RAM disku jako `cpm_zrmd`.
+- **Ovladač:**
+  - řídicí kódy stejné jako u AND-1Z (tabulka nahoře);
+  - video RAM F800–FE8F, adresa = F800 + řádek × 80 + sloupec;
+  - kurzor kreslí a bliká 6845 (R14/R15), proto zmizelo softwarové blikání v CONST;
+  - rolování přenáší LDIR (Z80, zapsané jako DB).
+- **Proti AND-1Z navíc:** BS na začátku řádku jde na konec předchozího, kurzor vpravo (18h) na konci řádku na další.
+  Obojí drží číslo řádku, původní ovladač ho při tom neupravoval.
+- **Místo:**
+  - monitor má 07ADh bajtů (F000–F7AC), podpis AA 55 00 je na F7AFh;
+  - na zásobník pod F800h zbývá 78 bajtů (původně 107), skript hlídá aspoň 64;
+  - v EPROM je volných 61 bajtů.
+- **Registry 6845:** CRTTAB, 15,65 kHz a 50,1 Hz, rozepsané v `docs/desky/AND-30C.md`.
+
 ## ZZRMD – „přenos systému na RAM disk“
 
 Soubory `roms/jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin` a `_epr8k.bin`. **Nejde o zavaděč CP/M**:

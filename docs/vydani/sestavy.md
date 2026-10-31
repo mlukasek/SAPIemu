@@ -124,8 +124,9 @@ XY 4130 a plotter z AR 1990 přešly 2026-10-28 do Přístrojů a technologie. R
 
 ### 5b. CP/M s ECMONem (RAM disk ZRMD-1)
 
-`cpm_zrmd`, `cpm_ide`, `cpm_zrmd_fdc1`, `cpm_zrmd_mfc1a`, `cpm_zrmd_dpp1`, `cpm_zrmd_rtc_dsp`, `cpm_ec1045`
-(7 sestav). Souhrny pro výběr sestav (co sestava je a kterou volbu po zapnutí stisknout) jsou v
+`cpm_zrmd`, `cpm_ide`, `cpm_zrmd_fdc1`, `cpm_zrmd_mfc1a`, `cpm_zrmd_dpp1`, `cpm_zrmd_rtc_dsp`, `cpm_ec1045`,
+`cpm_and30c` (8 sestav; `cpm_and30c` přibyla 2026-10-31 s průzkumem displeje AND-30C, autor: „pojal bych to trochu
+jako průzkum“). Souhrny pro výběr sestav (co sestava je a kterou volbu po zapnutí stisknout) jsou v
 `machines/_vyber.json` od 2026-10-29. `cpm_zrmd` a `cpm_ide` nemají technický popis v souboru sestavy, doplnit.
 
 Krátké titulky (autor souhlasil 2026-10-29, ve stylu základních sestav; dlouhé jméno ze `.sapi` s kartami je ve
@@ -141,6 +142,7 @@ ECMONu, `DIR` disků):
 | `cpm_zrmd_dpp1` | CP/M s PMD32-SD přes DPP-1 | CP/M with PMD32-SD through DPP-1 |
 | `cpm_zrmd_rtc_dsp` | CP/M s hodinami RTC-1 a sériovou deskou DSP-1 | CP/M with the RTC-1 clock and the DSP-1 serial board |
 | `cpm_ec1045` | CP/M EC1045 s disketami 3,5" a 5,25" HD | CP/M EC1045 with 3.5" and 5.25" HD floppies |
+| `cpm_and30c` | CP/M s displejem 80 znaků AND-30C | CP/M with the 80-column display AND-30C |
 
 ### 5c. CP/M J. Bíby (SAPIMAN)
 

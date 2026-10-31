@@ -25,6 +25,12 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **2026-10-31 večer, průzkum displeje AND-30C** (autor: „pojal bych to trochu jako průzkum … jestli má cenu zkusit
+  udělat repliku“; rozhodnutí 2026-10-31 – průzkum displeje AND-30C): netlist z PDF schématu, emulace podle něj
+  (`src/cards/and30c.*`, 6845 na FFE0h/FFF0h, zatemnění při přístupu), ECMON s novým ovladačem 80 × 21
+  (`tools/ecmon_and30c.py`), sestava `cpm_and30c.sapi`, test `test_and30c`. Závěr pro repliku a otázky pro Petra
+  (/CE1 na /REF, propojky, MAP2, JP17) jsou v `docs/desky/AND-30C.md`. **Dál:** autor rozhodne o replice, otázky
+  případně pošle Petrovi.
 - **2026-10-31 večer, kontrolní kolo před 0.7.1** (autor: „jj, začni bodem 1“): `release full` 72/72 (ZEX
   doc i all), `check_machines.py --games` 62/62 sestav (s `cpm_dse1_fdc1`) a 12/12 her a dem, Linux ve WSL 68/68
   bez varování GCC (po `4fc3da8`). Do vydání zbývá: připomínky testerů, `k_issues_public = true` a texty

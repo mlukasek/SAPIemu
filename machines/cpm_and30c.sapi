@@ -1,0 +1,59 @@
+// CP/M 2.2 from the ZRMD-1 RAM disk with the 80-column display AND-30C (MC6845, 80 x 21) of the set SAPI-IPS.
+// The card is emulated after the schematic redrawn by reverse engineering (docs/desky/AND-30C.md); no software
+// for it survives, so the screen driver of the monitor ECMON is rewritten for it (tools/ecmon_and30c.py:
+// JPR-1ZI_ECMON_2k_AND-30C.bin). The CP/M on the RAM disk is the one of cpm_zrmd (same working copy in work/).
+{
+    "name": "CP/M 2.2 s displejem 80 znaků AND-30C (JPR-1ZI ECMON, DMR-1, AND-30C, ZRMD-1)",
+    "bus": { "type": "ARB-1C-8", "jp3": "2-3" },
+    "cards": [
+        {
+            "slot": 1,
+            "type": "JPR-1ZI",
+            "cpu_mhz": 2,
+            "bus_mhz": 2,
+            "rom": "roms/jpr-1zi/JPR-1ZI_ECMON_2k_AND-30C.bin",   // ECMON with the driver for the AND-30C
+            "decoder": "2k",
+            "keyboard": { "type": "EKL-1" },
+            "printer": {                    // X3: printer (Centronics cable), ECMON LST: (^P, LIST)
+                "output": "work/printer/tiskarna.prn",  // the bytes as received
+                "charset": "koi8cs",
+                "busy_us": 100
+            }
+        },
+        {
+            "slot": 2,
+            "type": "DMR-1",
+            "ram_config": 1,        // RAM 0000-F7FF (62 KB)
+            "battery": false,       // JP7: no battery, the RAM is cleared at power off (ECMON shows its menu)
+            "uart_base": "10h",
+            "baud": 9600,
+            "connected": false,     // no terminal on the line (DCD inactive): ECMON uses the screen and keyboard
+            // host side of the serial line (see docs/seriova-linka.md)
+            "serial": {
+                // TeraTerm: TCP/IP, host 127.0.0.1, port 2323, service Telnet or Other (raw).
+                // dcd_follows: DCD is active while a client is connected, so ECMON started
+                // after connecting TeraTerm uses the serial console.
+                "tcp": { "port": 2323, "bind": "127.0.0.1", "dcd_follows": true, "protocol": "telnet" },   // telnet | raw | auto
+                // "com": { "port": "COM5", "baud": 9600 },   // host serial port (or com0com pair)
+                "pacing": true          // do not send faster than SAPI reads (no overrun)
+            }
+        },
+        {
+            "slot": 3,
+            "type": "AND-30C",              // display 80 x 21 with the MC6845 (F800-FFDF, 6845 at FFE0h/FFF0h)
+            "ce1": "gnd",                   // PROM /CE1: JP10 to GND (assumed; the schematic has X1 pin 7 /REF)
+            "prom_a7": "gnd",               // PROM A7: JP8 to GND
+            "blank_on_access": true         // IC12: a CPU access blanks the picture for 4.5 us
+        },
+        {
+            "slot": 4,
+            "type": "ZRMD-1",
+            "image": "media/zrmd-1/SAPI_CPM_Martin_2019-10-07.bin",
+            "mode": "rw",           // rw | nosave (changes lost on exit) | readonly (like all S1-S4 off)
+            "write_enable": [true, true, true, true],   // DIP switches S1-S4, one per MB
+            "rtc": true,
+            "rtc_int": "none",      // JP3: none | int0 | int1
+            "map_jp2": false        // JP2: port 63h bits 6/7 drive MAP1/MAP2
+        }
+    ]
+}

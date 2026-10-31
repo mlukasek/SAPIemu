@@ -10,6 +10,7 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `jpr-1zi/JPR-1ZI_D6B.bin` | JPR-1ZI D6B (74S287) | I/O dekodér portů 00–03h. |
 | `jpr-1zi/JPR-1ZI_ECMON_2k_Martin.bin/.HEX` | EPROM JPR-1ZI | Monitor ECMON 2k „JPR-1Z 62K MON CZ“. |
 | `jpr-1zi/JPR-1ZI_ECMON_2k_IDE-1_Martin.bin` | EPROM JPR-1ZI | ECMON s podporou IDE-1 (porty 5C–5Fh). |
+| `jpr-1zi/JPR-1ZI_ECMON_2k_AND-30C.bin` | EPROM JPR-1ZI | ECMON Martin (`ECMONM.MAC`) s ovladačem obrazovky pro displej AND-30C (80 × 21, 6845) místo AND-1Z, **SAPIemu 2026**: vyrábí `tools/ecmon_and30c.py` z `..\SAPI-karty\ZRMD-1\SRC` a `tools/ecmon_and30c.mac`. Sestava `cpm_and30c.sapi`, `docs/software/ECMON.md`. |
 | `jpr-1zi/JPR-1ZI_ECMON_2k_EC1045.bin` | EPROM JPR-1ZI | ECMON EC1045 (`ECMON_cd.MAC`, menu FDC8, FDC3, FDC5, HDD, „Uzivatel: EC1045“), **přeloženo ze zdrojáku** (`..\SAPI-karty\ZRMD-1\SRC`, `build.py --set ec1045`), originální EPROM nemáme. Zbytek FFh. |
 | `jpr-1zi/JPR-1ZI_ZZRMD_epr2k.bin`, `_epr8k.bin` | EPROM JPR-1ZI | Zavaděč CP/M z RAM disku ZRMD-1. |
 | `jpr-1zi/JPR-1ZI_MON281211_JB_MFC.bin` | EPROM JPR-1ZI | Monitor J. Bíby „JPR-1Z 62K MON CZ 281211JB“ (2 KB BIOS v ROM), boot CP/M z 8" diskety přes MFC-1A. Z `mon281211.hex` (`..\SAPI_DOKU\SAPIMAN\CPM_SYSTÉMY\ZMENA_CPM\FUNKCNI\JEN 8 PALCU\MFC\MFC281211_ZRMD0`), zbytek FFh. Zdroják `mon281211.txt` se přeloží (`cpmrun`) na stejné bajty kromě proměnných (DS). |
@@ -56,6 +57,9 @@ Byly rozbaleny ze ZIP archivů. Emulátor používá PROM dumpy přímo jako dek
 | `pkt-1/PKT-1_DD8_74S287.bin`, `PKT-1_DD12_74S287.bin` | PKT-1 PROM DD8 (paměť), DD12 (I/O) | **Dumpy z desky** (INTELHEX na `SAPI.CZ\sapi\pkt-1.php`, Tesla 6XN 902 54 a 56): EPROM 0000–07FF při BOOT; porty 00–03 a 0E. |
 | `pkt-1/PKT-1_DD8_8k_replika.bin` | PKT-1 PROM DD8 | Upravený dekodér z doby replik (`DEK PKT-1 DD8.pdf`): EPROM 0000–1FFF. Vyrobený skriptem, ne dump. |
 | `rsw-1/RSW-1_DD1_74S571.bin`, `RSW-1_DD2_74S287.bin` | RSW-1 PROM DD1 (RAM, 512 × 4), DD2 (I/O) | **Dumpy z desky** (`SAPI.CZ\sapi\rsw-1.php`, 6XN 902 51 a 52). |
+| `and-30c/AND-30C_IC2_74S287.bin` | AND-30C IC2 (74S287) | Dekodér adresy: F800–FFFF (A0–A4 = AB11–AB15, A5 = /MW, A6 = /MR, A7 = JP8). Z [sapi.cz/sapi/and-30c.php](https://sapi.cz/sapi/and-30c.php) (P. Všijanský, Intel HEX z desky), MD5 62c409f4d58c3de0c95f5259f516ea93. `docs/desky/AND-30C.md` |
+| `and-30c/AND-30C_IC9_EPROM0.bin` | AND-30C IC9, MHB2716C „AND 80 0“ | Znakový generátor, kódy 00–7Fh (16 B na znak, řádek 0 nahoře). Tamtéž, MD5 34854d44f608b1798016388c61ff4b0e. Font AND-1Z s řádky v obvyklém pořadí. |
+| `and-30c/AND-30C_IC10_EPROM1.bin` | AND-30C IC10, MHB2716C „AND 80 1“ | Totéž, kódy 80–FFh (semigrafika, KOI-8 čs2), MD5 58e548ec85329e4a113aeb4ae05c5a75. Od AND-1Z se liší jen znaky C4h (ď) a EAh (ů), o jeden bod. |
 | `dbs-1a/DBS-1A_CharGen_59.bin` | DBS-1A EPROM M2732A „59“ (znakový generátor) | **Dump z desky** (EC1045, e-mail 2026-10-07, Intel HEX `eprom59.HEX`), MD5 ab4caccaaa204d3f467f02ddeecc36f6. Výchozí. Rámečky, ASCII, semigrafika 2 × 3, KOI-8 čs2 s řeckými písmeny. `docs/desky/DBS-1A.md` |
 | `dbs-1a/DBS-1A_CharGen_nahrada.bin` | DBS-1A EPROM 2732 (znakový generátor) | **NÁHRADA** z doby před nalezením dumpu, volba. Vyrábí `tools/make_dbs1a_font.py` z fontu AND-1Z ve stejném rozložení kódů (ASCII, semigrafika 2 × 3, KOI-8 čs2), adresování podle desky (A3 = bit 7 kódu, A11 = RA3). `docs/desky/DBS-1A.md` |
 | `jpr-1s/MIKROBIOS_1.0.bin` | JPR-1S EEPROM 28C64 | MIKROBIOS 1.0 (08/2021), první verze pro BGP-1S. Z `JPR-1S\BIOS\bios_jpr1s.hex`. |

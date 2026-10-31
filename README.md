@@ -130,7 +130,7 @@ z dokumentace IQ 151, sestava V s CP/M a obrázkem na grafice CGA-1V.*
 
 ## Co umí
 
-- **Karty jako skutečné:** 51 typů karet v katalogu, z nich 48 emulovaných. Procesorové karty s 8080, 8085 a Z80
+- **Karty jako skutečné:** 51 typů karet v katalogu, z nich 49 emulovaných. Procesorové karty s 8080, 8085 a Z80
   včetně BOOT logiky a čekacích stavů, paměti a RAM disky, displeje, grafiky, řadiče disket, kazetového disku
   a magnetické pásky, sériové, paralelní a IDE desky, hodiny reálného času a karty přístrojů. Propojky jako na
   deskách, dekodéry adres podle dumpů PROM, sběrnice ARB-1, ARB-1A/Au, ARB-1B, ARB-1C a ImBUS.

@@ -3663,3 +3663,34 @@ Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 n
   - výška kresby se počítá s místem pro jednu pomůcku (obě se nikdy neukážou zároveň), varování kabelu s tlačítkem
     a řádek stavu se všemi položkami. Když se hláška objeví, kresba se nezmění a jen se posunou ovládací prvky pod
     ní. Bez hlášek je pod řádkem stavu trochu volného místa.
+
+## 2026-10-31 – průzkum displeje AND-30C (SAPI-IPS)
+
+Autor: „zajímala ta 80-znaková karta, ale pojal bych to trochu jako průzkum, tak to naemuluj podle schématu
+a informací https://sapi.cz/sapi/and-30c.php co Petr překreslil, docela by mě zajímalo, jestli má cenu zkusit
+udělat repliku a rozjet to, nebo to nebude stejně fungovat … a samozřejmě k tomu budeš asi muset upravit CP/M“.
+Rozbor a výsledky jsou v `docs/desky/AND-30C.md`.
+
+- **Podklad:** schéma „AND-30Cu“ (P. Všijanský 2020, zpětné inženýrství) je jen jako vektorové PDF z EAGLE. Netlist
+  vznikl strojově z PDF (zelené spoje, tečky spojů, vývody a texty) a byl zkontrolovaný proti zapojení vývodů
+  obvodů v katalozích a na výřezech schématu. Dekodér PROM a obě EPROM jsou z Intel HEX na stránce
+  (`roms/and-30c/`).
+- **Emulace:** dekodér podle PROM, 6845 na FFE0h/FFF0h (7430 z A5–A10), 2 KB RAM se skrytými buňkami 7E0–7FF pod
+  6845, font ze dvou EPROM, kurzor jako plný blok. Zatemnění obrazu přístupem procesoru (IC12B, 4,5 µs od začátku
+  přístupu) se kreslí podle času přístupu a polohy paprsku. Je to skutečné chování desky, proto je výchozí
+  (`blank_on_access: true`), vypnutí je označené pohodlí.
+- **/CE1 dekodéru (předpoklad):** podle schématu je na X1 špičce 7 (/REF), s JPR-1Z by deska odpovídala jen v cyklech
+  refreshe. Emulátor má výchozí `ce1: gnd` (JP10 na GND, RAM-64 v SAPI-IPS je statická a /REF nepotřebuje) a volbu
+  `ref` podle schématu (karta mlčí). Otázka pro Petra (Nejasnost 1).
+- **Neemuluje se:** časování řetězu MA → RAM → EPROM a fáze JP17 (obraz je vždy správný; rozbor rychlostí je
+  v dokumentu), buzení MAP2 deskou (paměť sestavy nechává F800–FFFF volné jako u AND-1Z), prokládání, světelné
+  pero. Čtení zápisových registrů 6845 vrací FFh (předpoklad).
+- **Software:**
+  - Ovladač je v ECMONu místo ovladače AND-1Z, CP/M na RAM disku zůstává, protože CBIOS volá CONOUT monitoru.
+  - Nástroj `tools/ecmon_and30c.py` zdroják J. Bíby jen upraví, takže do repa jde vlastní ovladač a nástroj,
+    ne celý zdroják.
+  - Kurzor kreslí a bliká 6845. Softwarové blikání v CONST zmizelo, aby se monitor vešel pod zásobník:
+    zbývá 78 B, původně 107 B.
+  - Registry 6845 jsou zvolené pro televizor: 15,65 kHz, 50,1 Hz, 80 × 21, HS 4,4 µs, VS od řádku 23.
+- **Sestava** `cpm_and30c.sapi` v Ostatní → CP/M s ECMONem (karta ze sestavy, která se nevyráběla sériově), test
+  `test_and30c` (části `unit` a `cpm`), scénář v `check_machines.py`.
