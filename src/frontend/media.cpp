@@ -58,7 +58,7 @@ static const SDL_DialogFileFilter k_kzd_open_filter[] = { { "KZD-1 cassette (KZD
 
 static const SDL_DialogFileFilter k_rkd_filter[] = { { "RKD-1 cartridge (RKD)", "rkd" }, { "*", "*" } };
 static const SDL_DialogFileFilter k_tap_filter[] = { { "Magnetic tape (SIMH TAP)", "tap" }, { "*", "*" } };
-static const SDL_DialogFileFilter k_eprom_filter[] = { { "EPROM (BIN: 2 KB = 2716, 4 KB = 2732)", "bin" }, { "*", "*" } };
+static const SDL_DialogFileFilter k_eprom_filter[] = { { "EPROM (BIN: 1 KB = 2708, 2 KB = 2716, 4 KB = 2732)", "bin" }, { "*", "*" } };
 static const SDL_DialogFileFilter k_bin_filter[] = { { "Binary file (BIN)", "bin" } };
 
 // The filters with their names in the UI language. SDL reads them until the dialog closes: the names are strings of

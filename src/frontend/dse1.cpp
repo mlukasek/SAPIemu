@@ -1,9 +1,9 @@
 // Window "EPROM programmer DSE-1" (###dse1): the box at the end of the programming cable X2 of the DSE-1 card drawn
 // from above, with its green zero insertion force socket (in the manner of a 3M TEXTOOL), the EPROM in it and the LEDs
 // PROG and MAP of the cable, and the UV lamp beside it (Erase, an emulator comfort). Under the drawing the medium in
-// the socket (Insert..., New 2716 / 2732, Eject, Restore from the original), the simulator RAM into a file (an emulator
-// help) and the state of the card (Vpp, ON LINE, the last programming pulse: emulator information, the box has only
-// the LEDs).
+// the socket (Insert..., New 2708 / 2716 / 2732, Eject, Restore from the original), the simulator RAM into a file (an
+// emulator help) and the state of the card (Vpp, ON LINE, the last programming pulse: emulator information, the box
+// has only the LEDs).
 // The look of the Tesla box is not known (no photo): the drawing is a deliberate deviation like the rack of the
 // configurator (docs/desky/DSE-1.md). The lever of the socket is drawn open with the socket empty and closed with an
 // EPROM in it; it is not clicked. A programmed EPROM (a byte other than FFh) has a paper label over its window with
@@ -274,7 +274,8 @@ static void label_text(const Scene& S, float cx, float cy, float w, const std::s
 }
 
 // The EPROM: a ceramic DIP of 24 pins with the quartz window over the chip, the maker and the type in an illustrative
-// print (TESLA 2716; Tesla did not make the 2732: intel 2732; the author 2026-10-31: no exact type mark), a date code. labelled: a paper label over the window (programmed).
+// print (TESLA 2716, TESLA 2708 - Tesla made the MHB2708C and MHB2716C; it did not make the 2732: intel 2732; the
+// author 2026-10-31: no exact type mark), a date code. labelled: a paper label over the window (programmed).
 // glow 0..1: the UV light in the window (Erase).
 static void eprom(const Scene& S, float cx, float cy, int type, bool labelled, const std::string& path, float glow)
 {
@@ -330,11 +331,13 @@ static void eprom(const Scene& S, float cx, float cy, int type, bool labelled, c
     const float lw = 5.4f, lh = 5.7f;   // half the label
     float l0 = x0 + 1.8f, l1 = cx - lw - 1.0f, r0 = cx + lw + 1.0f, r1 = x1 - 0.6f;
     float lx = (l0 + l1) * 0.5f, rx = (r0 + r1) * 0.5f;
-    bool t2732 = type == Eprom27::T2732;
+    bool t2732 = type == Eprom27::T2732, t2708 = type == Eprom27::T2708;
     text_mm(S, lx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "intel" : "TESLA", 0, true, l1 - l0);
-    text_mm(S, lx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "8317" : "8541", 0, false, l1 - l0);
-    text_mm(S, rx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "2732" : "2716", 0, true, r1 - r0);
-    text_mm(S, rx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "4K x 8" : "2K x 8", 0, false, r1 - r0);
+    const char* date = t2732 ? "8317" : t2708 ? "8326" : "8541";
+    const char* size = t2732 ? "4K x 8" : t2708 ? "1K x 8" : "2K x 8";
+    text_mm(S, lx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), date, 0, false, l1 - l0);
+    text_mm(S, rx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "2732" : t2708 ? "2708" : "2716", 0, true, r1 - r0);
+    text_mm(S, rx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), size, 0, false, r1 - r0);
     if (labelled) {   // the paper label over the window, a little askew
         const float a = -2.0f * K_PI / 180.0f;
         ImVec2 q[4];
@@ -565,6 +568,8 @@ static void erase_question(UiState& ui)
 
 // ---------------------------------------------------------------- the drawing
 
+static float controls_rows(Dse1* d, float avail);
+
 // The box of the cable X2 with the socket, the EPROM and the LEDs, the UV lamp beside it; the picture of the machine
 // previews. Returns the bottom of the drawing (screen y).
 static float draw_box(UiState& ui, Dse1* d)
@@ -572,7 +577,7 @@ static float draw_box(UiState& ui, Dse1* d)
     float u = ImGui::GetFontSize();
     float avail = ImGui::GetContentRegionAvail().x;
     // as wide as the window, smaller when the controls under it would not fit its height
-    float below = 3.6f * ImGui::GetFrameHeightWithSpacing() + 0.3f * u;
+    float below = controls_rows(d, avail) * ImGui::GetFrameHeightWithSpacing() + 0.3f * u;
     float s = avail / SCENE_W, sh = (ImGui::GetContentRegionAvail().y - below) / SCENE_H;
     if (s > sh) s = sh;
     if (s > 0.62f * u) s = 0.62f * u;
@@ -630,6 +635,7 @@ static float draw_box(UiState& ui, Dse1* d)
         int c = d->cable();
         const char* wiring = c == Dse1::CABLE_DUAL ? tr("two sockets (replica): the EPROM sits in the socket of its type")
                            : c == Dse1::CABLE_2732 ? tr("wired for a 2732 (modified after DSE.DOC)")
+                           : c == Dse1::CABLE_2708 ? tr("wired for a 2708 (adapter after EPROM.COM of J. Biba, reconstructed)")
                                                    : tr("wired for a 2716 (as supplied)");
         std::string t = std::string(tr("Socket of the programming cable X2")) + ", " + wiring + ".";
         if (has) {
@@ -643,7 +649,7 @@ static float draw_box(UiState& ui, Dse1* d)
                 t += std::string("\n") + tr("Being programmed: the label with the name of its file goes on its window when "
                                             "the programming has ended.");
             else t += std::string("\n") + tr("Programmed: the label on its window has the name of its file.");
-        } else t += std::string("\n") + tr("Empty: Insert... or New 2716 / New 2732 below, or drop a .bin file here.");
+        } else t += std::string("\n") + tr("Empty: Insert... or New 2708 / 2716 / 2732 below, or drop a .bin file here.");
         tip(t.c_str());
     }
 
@@ -683,7 +689,7 @@ static float draw_box(UiState& ui, Dse1* d)
 
 // ---------------------------------------------------------------- the controls
 
-// New 2716 / New 2732: a blank EPROM (all FFh) in work/dse-1/ goes into the socket
+// New 2708 / New 2716 / New 2732: a blank EPROM (all FFh) in work/dse-1/ goes into the socket
 static void dse_new(UiState& ui, Dse1* d, int type)
 {
     std::string rel, err;
@@ -706,6 +712,22 @@ static void flow(float w)
 static float button_w(const char* label)
 {
     return ImGui::CalcTextSize(label, nullptr, true).x + 2.0f * ImGui::GetStyle().FramePadding.x;
+}
+
+// The rows of draw_controls under the drawing: the EPROM line, the hints and the cable warning, the buttons (two rows
+// when the window is too narrow for them), the state line, and some room
+static float controls_rows(Dse1* d, float avail)
+{
+    const Eprom27& e = d->eprom();
+    float rows = 2.6f;
+    if (e.loaded() && d->hint_2716_mode()) rows += 1;
+    if (e.loaded() && d->hint_2708_long()) rows += 1;
+    if (e.loaded() && e.type != d->socket_type()) rows += 1;
+    const char* const b[] = { tr("Insert..."), tr("New 2708"), tr("New 2716"), tr("New 2732"), tr("Eject"), "...",
+                              tr("Save simulator RAM...") };
+    float w = 0;
+    for (const char* t : b) w += button_w(t) + ImGui::GetStyle().ItemSpacing.x;
+    return rows + (w > avail ? 2.0f : 1.0f);
 }
 
 // A tooltip of the state line: what it says, and that the box itself shows only its LEDs.
@@ -733,7 +755,7 @@ static void draw_controls(UiState& ui, Dse1* d)
         flow(ImGui::CalcTextSize(t).x);
         ImGui::TextDisabled("%s", t);
     }
-    int wired = d->socket_wiring() == Dse1::CABLE_2732 ? Eprom27::T2732 : Eprom27::T2716;
+    int wired = d->socket_type();
     if (has && d->hint_2716_mode()) {   // emulator hint: "2732?" answered N, the check cannot read the 2732
         const char* why = tr("The program read the 2732 with 5 V on its OE/Vpp pin (its mode for a 2716: the "
                              "register 11h). With 5 V there the outputs of the 2732 are off and it reads FFh, so the "
@@ -744,17 +766,36 @@ static void draw_controls(UiState& ui, Dse1* d)
         ImGui::TextColored(theme().warn, "%s", tr("The 2732 is read as a 2716: answer A to \"2732?\""));
         if (ImGui::IsItemHovered()) tip(why);
     }
+    if (has && d->hint_2708_long()) {   // emulator hint: a 2708 programmed by a routine for a 2716
+        const char* why = tr("The 2708 got a programming pulse longer than 1 ms: the program treats it as a 2716 or a "
+                             "2732 (25 V held while it steps through the addresses). Its data sheets give pulses of "
+                             "0.1-1 ms on every word in turn, repeated in N loops over all the words (N x the pulse "
+                             "at least 100 ms). The emulator programs it anyway. EPROM.COM of J. Biba programs a 2708 "
+                             "as type 0 (129 loops of 0.83 ms pulses at 2 MHz); the program of Tesla, SIMPROG and "
+                             "DSE.COM do not know the 2708. The real cable box says nothing: this is a hint of the "
+                             "emulator.");
+        ImGui::TextColored(theme().warn, "%s", tr("The 2708 gets pulses longer than 1 ms: EPROM.COM type 0"));
+        if (ImGui::IsItemHovered()) tip(why);
+    }
     if (has && e.type != wired) {   // one line, the change of the cable beside it, why in the tooltip
         char b[128];
         snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d"), e.type, wired);
-        const char* why = tr("It does not read or program as it should. The cable X2 is supplied wired for a 2716. "
-                             "For a 2732 three wires are moved in its connector (DSE.DOC): pin 21 gets the address "
-                             "A11, pin 20 the programming voltage (OE/Vpp), pin 18 /CE. A 2732 in the cable for a "
-                             "2716 reads only its upper 2 KB (A11 is held at 1 by Vpp 5 V) and is never programmed: "
-                             "the 25 V go to A11, which could damage a real chip. A 2716 in the cable for a 2732 "
-                             "gets an address on its Vpp pin and the programming voltage on /OE. In the configurator "
-                             "choose Programming cable X2: for a 2732, or two sockets, and restart the machine (on "
-                             "the real board the cable is rewired).");
+        const char* why = e.type == Eprom27::T2708 || wired == Eprom27::T2708
+            ? tr("It does not read or program as it should. A 2708 needs +12 V on pin 19 and -5 V on pin 21, pin 18 is its "
+                 "PROGRAM input (25 V pulses) and pin 20 its CS/WE (12 V while programming). The cable X2 for a 2708 is "
+                 "an adapter reconstructed after EPROM.COM of J. Biba: no document of it survives. A 2708 in the cable "
+                 "for a 2716 or a 2732 gets no supply voltages and reads FFh; 5 V or 25 V on its VBB pin could damage a "
+                 "real chip. A 2716 or a 2732 in the cable for a 2708 gets +12 V on A10 and -5 V on pin 21, which could "
+                 "damage a real chip. In the configurator choose the Programming cable X2 for the type of the EPROM "
+                 "and restart the machine (on the real board the cable is rewired).")
+            : tr("It does not read or program as it should. The cable X2 is supplied wired for a 2716. "
+                 "For a 2732 three wires are moved in its connector (DSE.DOC): pin 21 gets the address "
+                 "A11, pin 20 the programming voltage (OE/Vpp), pin 18 /CE. A 2732 in the cable for a "
+                 "2716 reads only its upper 2 KB (A11 is held at 1 by Vpp 5 V) and is never programmed: "
+                 "the 25 V go to A11, which could damage a real chip. A 2716 in the cable for a 2732 "
+                 "gets an address on its Vpp pin and the programming voltage on /OE. In the configurator "
+                 "choose Programming cable X2: for a 2732, or two sockets, and restart the machine (on "
+                 "the real board the cable is rewired).");
         ImGui::TextColored(theme().warn, "%s", b);
         if (ImGui::IsItemHovered()) tip(why);
         const char* change = tr("Change cable X2...");
@@ -763,8 +804,14 @@ static void draw_controls(UiState& ui, Dse1* d)
         if (ImGui::IsItemHovered()) tip(why);
     }
     if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 16, d->name);
-    if (ImGui::IsItemHovered()) tip(tr("An EPROM image .bin into the socket: 2 KB = 2716, 4 KB = 2732. A file can also be dropped on this window."));
+    if (ImGui::IsItemHovered())
+        tip(tr("An EPROM image .bin into the socket: 1 KB = 2708, 2 KB = 2716, 4 KB = 2732. A file can also be dropped on "
+               "this window."));
     const char* blank = tr("A new blank EPROM (all bits 1, as erased by UV light) in work/dse-1/ goes into the socket.");
+    flow(button_w(tr("New 2708")));
+    if (ImGui::Button(tr("New 2708"))) dse_new(ui, d, Eprom27::T2708);
+    if (ImGui::IsItemHovered())
+        tipf("%s\n%s", blank, tr("The 2708 needs the programming cable X2 for a 2708 (the configurator)."));
     flow(button_w(tr("New 2716")));
     if (ImGui::Button(tr("New 2716"))) dse_new(ui, d, Eprom27::T2716);
     if (ImGui::IsItemHovered()) tip(blank);
@@ -801,8 +848,9 @@ static void draw_controls(UiState& ui, Dse1* d)
     if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(t).x) ImGui::NewLine();
     if (d->last_pulse_ms() > 0) ImGui::TextUnformatted(t);
     else ImGui::TextDisabled("%s", t);
-    info_tip(tr("The length of the last programming pulse, measured in the time of the machine (the data sheet asks for "
-                "50 ms; 1 ms or longer programs in the emulator, an assumption)."));
+    info_tip(tr("The length of the last programming pulse, measured in the time of the machine. 2716 and 2732: the data "
+                "sheet asks for 50 ms, 1 ms or longer programs in the emulator (an assumption). 2708: 0.1-1 ms on every "
+                "word in N loops, N x the pulse at least 100 ms."));
     if (d->pulse_on()) {
         ImGui::SameLine(0, gap);
         ImGui::TextColored(theme().error, "%s", tr("pulse on"));
@@ -813,7 +861,7 @@ static void draw_controls(UiState& ui, Dse1* d)
         ImGui::SameLine(0, gap);
         if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(t).x) ImGui::NewLine();
         ImGui::TextDisabled("%s", t);
-        info_tip(tr("The programming pulses of 1 ms or longer since the programming began."));
+        info_tip(tr("The programming pulses long enough to program (1 ms, a 2708 0.1 ms) since the programming began."));
     }
 }
 

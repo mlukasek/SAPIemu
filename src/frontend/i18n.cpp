@@ -452,8 +452,37 @@ static const Translation k_table[] = {
       "Nečte se ani neprogramuje, jak má. Kabel X2 je z výroby zapojený pro 2716. Pro 2732 se v jeho konektoru přepojí tři vodiče (DSE.DOC): vývod 21 dostane adresu A11, vývod 20 programovací napětí (OE/Vpp), vývod 18 /CE. 2732 v kabelu pro 2716 čte jen horní 2 KB (A11 drží v jedničce Vpp 5 V) a nenaprogramuje se: 25 V jde na A11, což by skutečný čip mohlo poškodit. 2716 v kabelu pro 2732 má na vývodu Vpp adresu a na /OE programovací napětí. V konfigurátoru zvolte Programovací kabel X2: pro 2732, nebo dvě patice, a sestavu restartujte (na skutečné desce se kabel přepojí)." },
     { "A new blank EPROM (all bits 1, as erased by UV light) in work/dse-1/ goes into the socket.",
       "Do patice se vloží nová prázdná EPROM (všechny bity 1 jako po smazání UV světlem) ve work/dse-1/." },
+    { "New 2708", "Nová 2708" },
     { "New 2716", "Nová 2716" },
     { "New 2732", "Nová 2732" },
+    { "The 2708 needs the programming cable X2 for a 2708 (the configurator).",
+      "2708 potřebuje programovací kabel X2 pro 2708 (konfigurátor)." },
+    { "wired for a 2708 (adapter after EPROM.COM of J. Biba, reconstructed)",
+      "zapojená pro 2708 (adaptér podle EPROM.COM J. Bíby, rekonstrukce)" },
+    { "The 2708 gets pulses longer than 1 ms: EPROM.COM type 0", "2708 dostává pulzy delší než 1 ms: EPROM.COM typ 0" },
+    { "The 2708 got a programming pulse longer than 1 ms: the program treats it as a 2716 or a 2732 (25 V held while it "
+      "steps through the addresses). Its data sheets give pulses of 0.1-1 ms on every word in turn, repeated in N loops "
+      "over all the words (N x the pulse at least 100 ms). The emulator programs it anyway. EPROM.COM of J. Biba programs "
+      "a 2708 as type 0 (129 loops of 0.83 ms pulses at 2 MHz); the program of Tesla, SIMPROG and DSE.COM do not know the "
+      "2708. The real cable box says nothing: this is a hint of the emulator.",
+      "2708 dostala programovací pulz delší než 1 ms: program s ní zachází jako s 2716 nebo 2732 (drží 25 V a přitom "
+      "prochází adresy). Podle katalogů dostává 2708 pulzy 0,1–1 ms postupně na každé slovo a celé se to opakuje v N "
+      "průchodech všemi slovy (N × pulz aspoň 100 ms). Emulátor ji naprogramuje i tak. EPROM.COM J. Bíby programuje 2708 "
+      "jako typ 0 (129 průchodů s pulzy 0,83 ms na 2 MHz), program Tesla, SIMPROG ani DSE.COM 2708 neznají. Skutečná "
+      "krabička kabelu nic takového neřekne, je to pomůcka emulátoru." },
+    { "It does not read or program as it should. A 2708 needs +12 V on pin 19 and -5 V on pin 21, pin 18 is its PROGRAM "
+      "input (25 V pulses) and pin 20 its CS/WE (12 V while programming). The cable X2 for a 2708 is an adapter "
+      "reconstructed after EPROM.COM of J. Biba: no document of it survives. A 2708 in the cable for a 2716 or a 2732 gets "
+      "no supply voltages and reads FFh; 5 V or 25 V on its VBB pin could damage a real chip. A 2716 or a 2732 in the "
+      "cable for a 2708 gets +12 V on A10 and -5 V on pin 21, which could damage a real chip. In the configurator choose "
+      "the Programming cable X2 for the type of the EPROM and restart the machine (on the real board the cable is "
+      "rewired).",
+      "Nečte se ani neprogramuje, jak má. 2708 potřebuje +12 V na vývodu 19 a −5 V na vývodu 21, vývod 18 je její vstup "
+      "PROGRAM (pulzy 25 V) a vývod 20 CS/WE (při programování 12 V). Kabel X2 pro 2708 je adaptér zrekonstruovaný podle "
+      "EPROM.COM J. Bíby, žádný jeho popis se nedochoval. 2708 v kabelu pro 2716 nebo 2732 nedostane napájení a čte FFh, "
+      "5 V nebo 25 V na jejím vývodu VBB by skutečný čip mohlo poškodit. 2716 nebo 2732 v kabelu pro 2708 dostane +12 V "
+      "na A10 a −5 V na vývod 21, což by skutečný čip mohlo poškodit. V konfigurátoru zvolte Programovací kabel X2 pro typ "
+      "EPROM a sestavu restartujte (na skutečné desce se kabel přepojí)." },
     { "LED1 PROG (\"indikace progr.\", register bit D4)", "LED1 PROG („indikace progr.“, bit D4 registru)" },
     { "LED2 MAP (\"indikace map.\", register bit D5, with JP1 also MAP1)",
       "LED2 MAP („indikace map.“, bit D5 registru, s JP1 i MAP1)" },
@@ -475,10 +504,11 @@ static const Translation k_table[] = {
       "soubor .bin přetažený na okno)." },
     { "Blank (all FFh): the chip is seen through its quartz window.",
       "Prázdná (celá FFh): křemenným okénkem je vidět čip." },
-    { "Empty: Insert... or New 2716 / New 2732 below, or drop a .bin file here.",
-      "Prázdná: Vložit… nebo Nová 2716 / Nová 2732 dole, nebo sem přetáhněte soubor .bin." },
-    { "An EPROM image .bin into the socket: 2 KB = 2716, 4 KB = 2732. A file can also be dropped on this window.",
-      "Obraz EPROM .bin do patice: 2 KB = 2716, 4 KB = 2732. Soubor jde také přetáhnout na toto okno." },
+    { "Empty: Insert... or New 2708 / 2716 / 2732 below, or drop a .bin file here.",
+      "Prázdná: Vložit… nebo Nová 2708 / 2716 / 2732 dole, nebo sem přetáhněte soubor .bin." },
+    { "An EPROM image .bin into the socket: 1 KB = 2708, 2 KB = 2716, 4 KB = 2732. A file can also be dropped on this "
+      "window.",
+      "Obraz EPROM .bin do patice: 1 KB = 2708, 2 KB = 2716, 4 KB = 2732. Soubor jde také přetáhnout na toto okno." },
     { "The UV lamp shines on the window of the EPROM...", "UV lampa svítí na okénko EPROM…" },
     { "Erase: the EPROM under the UV lamp, then all its bytes are FFh. An emulator comfort: a real EPROM goes out of "
       "the socket under a UV lamp for 15-20 minutes. Not while the socket is under voltage (Vpp).",
@@ -498,12 +528,13 @@ static const Translation k_table[] = {
     { "Erase", "Smazat" },
     { "Emulator information: the box of the cable has only the LEDs PROG and MAP.",
       "Údaj emulátoru: krabička kabelu má jen LED PROG a MAP." },
-    { "The length of the last programming pulse, measured in the time of the machine (the data sheet asks for 50 ms; "
-      "1 ms or longer programs in the emulator, an assumption).",
-      "Délka posledního programovacího pulzu v čase stroje (katalog chce 50 ms; v emulátoru programuje pulz od 1 ms, "
-      "předpoklad)." },
-    { "The programming pulses of 1 ms or longer since the programming began.",
-      "Programovací pulzy od 1 ms od začátku programování." },
+    { "The length of the last programming pulse, measured in the time of the machine. 2716 and 2732: the data sheet asks "
+      "for 50 ms, 1 ms or longer programs in the emulator (an assumption). 2708: 0.1-1 ms on every word in N loops, N x "
+      "the pulse at least 100 ms.",
+      "Délka posledního programovacího pulzu v čase stroje. 2716 a 2732: katalog chce 50 ms, v emulátoru programuje pulz "
+      "od 1 ms (předpoklad). 2708: 0,1–1 ms na každé slovo v N průchodech, N × pulz aspoň 100 ms." },
+    { "The programming pulses long enough to program (1 ms, a 2708 0.1 ms) since the programming began.",
+      "Programovací pulzy dost dlouhé na naprogramování (1 ms, u 2708 0,1 ms) od začátku programování." },
     { "This machine has no EPROM programmer DSE-1.", "Tato sestava nemá programátor EPROM DSE-1." },
     { "In the configurator: the card DSE-1 (EPROM simulator and programmer 2716/2732).",
       "V konfigurátoru: deska DSE-1 (simulátor a programátor EPROM 2716/2732)." },
@@ -1033,7 +1064,7 @@ static const Translation k_table[] = {
     { "KZD-1 cassette (KZD)", "Kazeta KZD-1 (KZD)" },
     { "RKD-1 cartridge (RKD)", "Kazeta RKD-1 (RKD)" },
     { "Magnetic tape (SIMH TAP)", "Magnetická páska (SIMH TAP)" },
-    { "EPROM (BIN: 2 KB = 2716, 4 KB = 2732)", "EPROM (BIN: 2 KB = 2716, 4 KB = 2732)" },
+    { "EPROM (BIN: 1 KB = 2708, 2 KB = 2716, 4 KB = 2732)", "EPROM (BIN: 1 KB = 2708, 2 KB = 2716, 4 KB = 2732)" },
     { "Binary file (BIN)", "Binární soubor (BIN)" },
     // the configurator (rack.cpp, before loc() with both texts)
     { "\n(not emulated yet)", "\n(zatím neemulováno)" },
@@ -1216,8 +1247,9 @@ static const Translation k_core[] = {
     // files, ROMs and media (the first pattern that fits is taken: the special ones before "cannot create %s"...)
     { "cannot create working copy %s: %s", "nelze vytvořit pracovní kopii %s: %s" },
     { "cannot create working copy %s", "nelze vytvořit pracovní kopii %s" },
-    { "%s: an EPROM image has 2048 B (2716) or 4096 B (2732), this one %s B",
-      "%s: obraz EPROM má 2048 B (2716) nebo 4096 B (2732), tento %s B" },
+    { "%s: an EPROM image has 1024 B (2708), 2048 B (2716) or 4096 B (2732), this one %s B",
+      "%s: obraz EPROM má 1024 B (2708), 2048 B (2716) nebo 4096 B (2732), tento %s B" },
+    { "a new EPROM is a 2708, a 2716 or a 2732", "nová EPROM je 2708, 2716 nebo 2732" },
     { "no free name eprom_N.bin in %s", "ve %s není volné jméno eprom_N.bin" },
     { "cannot open IDE image %s", "nelze otevřít obraz IDE %s" },
     { "cannot read %s", "nelze přečíst %s" },

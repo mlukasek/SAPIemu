@@ -7,7 +7,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **253** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **261** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -222,7 +222,7 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - **PROM D3D:** obsah z návodu je zjevně jen ukázka. Měl někdo skutečné kódy zpráv (UNL, DCL…)?
 
 
-## [DSE-1 – deska simulátoru a programátoru EPROM](desky/DSE-1.md) – Nejasnosti k ověření na HW (13)
+## [DSE-1 – deska simulátoru a programátoru EPROM](desky/DSE-1.md) – Nejasnosti k ověření na HW (21)
 
 1. **Pořadí a polarita S1:** S1/1 = A6, S1/2 = A7, S1/3 = A5, S1/4 = A4, sepnuto = bit 0 (podle schématu). Emilův
    komentář pro 20h potvrzuje jen polaritu a S1/3.
@@ -262,10 +262,37 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
     (MAP) zeleně (zvolil autor 2026-10-31). Petrovy repliky a Emilův program mají naopak bit 4 zelený („simulátor“)
     a bit 5 červený („programování“). Krabička je nakreslená volně.
 
-13. **Programovala DSE-1 i EPROM 2708?** Tesla vyráběla MHB2708C a MHB2716C, 2732 ne (autor). Kabel X2 je zapojený
-    pro 2716 nebo 2732 a program Tesla zná jen tyto dvě. 2708 potřebuje navíc +12 V a −5 V a jiný způsob
-    programování (katalog Intel: mnoho průchodů celou pamětí s krátkými pulzy). EPROM.COM J. Bíby typ 2708 nabízí,
-    s jakým programátorem, nevíme. Emulace 2708 neumí (soubor 1 KB se odmítne).
+13. **Jak byl zapojený adaptér pro 2708?** Tesla 2708 na DSE-1 neprogramovala (návod: jen 2716 a 2732), EPROM.COM
+    J. Bíby V130786 ano (typ 0: pulzy na Vpp, PC = 0 při programování, PC7 = 1 při čtení). Odkud bral CS/WE: z X2.12
+    (NOT PC7) přes převodník na 12 V, z X2.20 (NOR(PC6, PC7), PC6 je pořád 0), nebo přepínačem? Emulace: X2.12 přes
+    převodník, 18 = Vpp (rekonstrukce).
+
+14. **Odkud adaptér bral +12 V a −5 V** (X2 a X1 DSE-1B je nemají, sběrnice ano) a dalo se 2708 měnit s napájením
+    adaptéru zapnutým (Oki: VBB první zapnout a poslední vypnout)? Emulace: napětí jsou v kabelu pro 2708 pořád.
+
+15. **Data MHB2708C:** platí stejné pravidlo N × šířka pulzu ≥ 100 ms a kolik programování skutečná MHB2708C
+    opravdu potřebuje? Rozhoduje mezi pravidlem (A) (pulz od 0,1 ms programuje, pod 100 ms na bajt jen varování)
+    a přísným (B) (bit se překlopí až po 100 ms). Emulace: (A).
+
+16. **Vpp pro 2708 potřebuje 25–27 V,** DSE-1 je nastavená na 24 V (návod) nebo 25 V (AR). Dá DSE-1B z nestabilizovaných
+    +30 V 26 V při odběru 40 mA vývodu PROGRAM a přestavoval se trimr P2?
+
+17. **Tvar pulzu PROGRAM:** spád přes C18/R28 (τ ≈ 0,22 ms) proti 50–2000 ns katalogu a pasivní dolní úroveň (R28 2k2
+    při až 3 mA z vývodu dává až 6,6 V) proti ≤ 1 V a aktivnímu stažení, které katalog chce. Programovala a četla
+    2708 s DSE-1 spolehlivě? Emulace přepíná Vpp okamžitě.
+
+18. **Jaký takt měl J. Bíba?** Konstanty pro 2708 sedí na 2 MHz (0,83 ms, 106,7 ms na bajt), pulz 2716 je na 2 MHz
+    98 ms a na 4 MHz 49 ms.
+
+19. **Jak čte 2708 s 5 V na PROGRAM** (F4 = 11h: EPROM.COM typ 1, program Tesla)? Katalog chce při čtení „below
+    VCC“. Emulace čte a jednou varuje.
+
+20. **EPROM.COM, režim 2764:** F4 = 71h dává Vpp 5 V a linka LED1 slouží jako A12 (CPH0F 0590h). Odkud 2764 brala
+    21 V? (Emulace 2764 neumí.)
+
+21. **DSE.COM a 2732:** každé kontrolní čtení přijde asi 43 µs po přepnutí F4 z 11h (5 V) na 10h (0 V). S poklesem
+    τ ≈ 0,2 ms je OE/Vpp ještě asi 4 V, skutečná 2732 by četla FFh a DSE.COM by u každého bajtu hlásil `CHYBA`, i když
+    se naprogramoval (odhad). Emulace přepíná Vpp okamžitě a čte správně. 2716 se to netýká.
 
 
 ## [DSM-1 – sériové rozhraní s kazetou](desky/DSM-1.md) – Nejasnosti (7)

@@ -59,7 +59,7 @@
             "jp1_map": true,                // JP1: bit D5 drives MAP1 (pin 21 of X1; open for EPROM.COM of J. Biba, it lights a LED by D5)
             "vpp": "pin50",                 // Programming voltage Vpp (variant) - DSE-1B: +30 V from pin 50 (terminal N of ZDR-1A)
             "x2_cable": "2716",             // Programming cable X2 - for 2716, as supplied (18 = PC6, 20 = /PC7, 21 = Vpp)
-            "eprom": "media/dse-1/eprom_2716.bin",  // EPROM in the socket of X2 (.bin: 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, an assumption) - Blank 2716 (2 KB, all FFh)
+            "eprom": "media/dse-1/eprom_2716.bin",  // EPROM in the socket of X2 (.bin: 1024 B = 2708, 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, an assumption; a 2708 from 0.1 ms, a byte should get 100 ms in all) - Blank 2716 (2 KB, all FFh)
             "working_copy": true            // Work on copies in work/
         }
     ]

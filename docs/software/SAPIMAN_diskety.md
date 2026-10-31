@@ -6,8 +6,8 @@ a sestavy z nich jsou v `CPM_SAPIMAN.md`.
 
 ## Knihovna v repu (`media/sapiman/knihovna/`)
 
-Výběr podle autora (2026-10-06): překladače, editory a služební programy. Obrazy jsou beze změny (jen přejmenované,
-cesta v archivu je ve třetím sloupci). Vkládají se oknem Média do volné mechaniky (B:, D:…), emulátor pracuje
+Výběr podle autora (2026-10-06): překladače, editory a služební programy, od 2026-10-31 i disketa s DSE.COM pro
+DSE-1. Obrazy jsou beze změny (jen přejmenované, cesta v archivu je ve třetím sloupci). Vkládají se oknem Média do volné mechaniky (B:, D:…), emulátor pracuje
 s kopií ve `work/sapiman/knihovna/`.
 
 | Soubor | Obsah | Archiv |
@@ -28,6 +28,7 @@ s kopií ve `work/sapiman/knihovna/`.
 | `sysprog_a_sluzebni_CPM.img` | služební programy CP/M (DDUMP, DOCTOR, ED, EPROM, KDIR…) | `SYSPROG/a_sluzebni CPM.8sd` |
 | `sysprog_b_sluzebniCPM.img` | služební programy CP/M (DDT, DEC, DSED, LINK, MOVCPM…) | `SYSPROG/b_sluzebniCPM.8sd` |
 | `zdroj_stare_a_kermit.img` | Kermit pro CP/M se zdroji | `ZDROJ_STARE/a_kermit.8sd` |
+| `perina_dse.img` | DSE.COM J. Hlaváče (1988) pro programátor DSE-1 pod CP/M ZPS-3, DSE.DOC, DSECPM.DOC, D.COM, X80.COM; bez systému (nebootuje). Přidaná 2026-10-31 (autor: „DSE.COM klidně do media“), návod `docs/navod-dse1.md` kap. 12 | `PERINA/dse.8sd` |
 
 Dvojice `a_` a `b_` jsou dvě diskety jedné sady (program bývá rozdělený). Je v nich komerční software z 80. let
 (Turbo Pascal, dBase II, WordStar, Pascal/MT+…): **před zveřejněním repa** to probrat ([docs/SOUHRN.md](https://github.com/mlukasek/SAPIemu/blob/main/docs/SOUHRN.md), příprava
@@ -115,9 +116,9 @@ Soupis vznikl z adresářů CP/M (2 systémové stopy, bloky 1 KB, 64 položek).
 - `cpm64_003.8sd` (32 souborů, 239 KB): !CPM64K.003, BCDREALS.ERL, CALC.SRC, DBUGHELP.TXT, DEBUGGER.ERL, DIS8080.COM, FIBDEF.LIB, FORMAT.COM, FPREALS.ERL, FULLHEAP.ERL, IOCHK.BLD, IOERR.SRC, LIBMT.COM, LINKMT.COM, MTERRS.TXT, MTPLUS.000, MTPLUS.001, MTPLUS.002, MTPLUS.003, MTPLUS.004, MTPLUS.005, MTPLUS.006, MTPLUS.COM, PASLIB.ERL, PIP.COM, RANDOMIO.ERL, ROVLMGR.ERL, STAT.COM, SYSGEN.COM, TRANCEND.ERL, UTILMOD.ERL, XBDOS.SRC
 - `dokum_dbase_1.8sd` (2 souborů, 111 KB): DBASEHL.CMD, DBASEIII.CMD
 - `dokum_dbase_2.8sd` (6 souborů, 107 KB): DBASEII1.CMD, DBASEII2.CMD, DBASEII3.CMD, DBASEII4.CMD, DBASEII5.CMD, DBASEII6.CMD
-- `dse.8sd` (5 souborů, 39 KB): D.COM, DSE.COM, DSE.DOC, DSECPM.DOC, X80.COM
+- `dse.8sd` (5 souborů, 39 KB): D.COM, DSE.COM, DSE.DOC, DSECPM.DOC, X80.COM (v repu `knihovna/perina_dse.img`)
 - `fdc1.8sd` (5 souborů, 22 KB): BIO.COM, FORM6.COM, IN.SUB, PW.COM, S.COM
-- `prm80.8sd` (4 souborů, 64 KB): PRM.DOC, PRM.TXT, PRM3.COM, PRM80.COM
+- `prm80.8sd` (4 souborů, 64 KB): PRM.DOC, PRM.TXT, PRM3.COM, PRM80.COM (J. Hlaváč 1988: programátor PRM-80 Tesla Strašnice přes DPP-1, i MHB 8708/2708)
 
 ### PREKLADACE
 

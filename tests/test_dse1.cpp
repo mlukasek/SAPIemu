@@ -1,12 +1,16 @@
 // DSE-1: the 8255 and the register through io_write / io_read with the primitives of the Tesla program (WRSIM,
 // RDSIM, RDEPR, PRGBYTE): the simulator RAM, the programming pulse (length, sampled data, bits 1 -> 0 only), the
 // cables and EPROM types, Vpp, /RES, the ports and mirrors, MAP1 by JP1, Emil's copy EPROM -> RAM, the pulse
-// statistics (also DSE.COM of J. Hlavac: Vpp 5 V around every pulse), the socket as a medium (the same file again) and
-// the state. No ROM: the CPU card does not run (DSE_PART=unit).
+// statistics (also DSE.COM of J. Hlavac: Vpp 5 V around every pulse), the 2708 in the cable for it (the rule of its data
+// sheets, the wrong cables, a routine for a 2716), the socket as a medium (the same file again) and the state. No ROM:
+// the CPU card does not run (DSE_PART=unit).
 // The programs in their machines (the EPROM read from its original in media/, nothing written):
 // - DSE_PART=tesla: the program DSE of Tesla in machines/zps/ZPS-2_DSE-1.sapi (K, P, S, R);
 // - DSE_PART=simprog: SIMPROG of Melsoft (disk 7) in a copy of ZPS-6 with a DSE-1 (P, 98 ms pulses at 2 MHz);
-// - DSE_PART=eprom: EPROM.COM of J. Biba in a copy of cpm_boot_rpd1 with a DSE-1, JP1 open (P, 98 ms pulses).
+// - DSE_PART=eprom: EPROM.COM of J. Biba in a copy of cpm_boot_rpd1 with a DSE-1, JP1 open (P, 98 ms pulses);
+// - DSE_PART=eprom2708: the same with the cable for a 2708 and a blank 2708 (P, type 0: 129 loops of 0.83 ms pulses);
+// - DSE_PART=dsecom: DSE.COM of J. Hlavac (media/sapiman/knihovna/perina_dse.img in B:) in a copy of ZPS-3_CPM64K_IMA
+//   with a DSE-1 (W and R of a HEX file, T, P, V).
 #include <stdlib.h>
 #include <string.h>
 #include "cards/dse1.h"
@@ -20,19 +24,23 @@ using nlohmann::json;
 static const char* const F2716 = "work/test/dse1_2716.bin";   // 000-0FF blank, then i ^ 5Ah
 static const char* const F2732 = "work/test/dse1_2732.bin";   // lower 2 KB a ^ 0Fh, upper 2 KB a ^ F0h
 static const char* const FBAD = "work/test/dse1_bad.bin";     // 1000 B
+static const char* const F2708 = "work/test/dse1_2708.bin";   // 000-0FF blank, then a ^ C3h
 
 static uint8_t p16(int a) { return (uint8_t)((a & 0x7FF) ^ 0x5A); }   // the 2716 above 0FFh
 static uint8_t lo32(int a) { return (uint8_t)((a & 0x7FF) ^ 0x0F); }
 static uint8_t hi32(int a) { return (uint8_t)((a & 0x7FF) ^ 0xF0); }
+static uint8_t p08(int a) { return (uint8_t)((a & 0x3FF) ^ 0xC3); }   // the 2708 above 0FFh
 
 static void make_files(void)
 {
-    std::vector<uint8_t> a(2048), b(4096), c(1000, 0xFF);
+    std::vector<uint8_t> a(2048), b(4096), c(1000, 0xFF), e(1024);
     for (int i = 0; i < 2048; i++) a[i] = i < 0x100 ? 0xFF : p16(i);
     for (int i = 0; i < 4096; i++) b[i] = i < 2048 ? lo32(i) : hi32(i);
+    for (int i = 0; i < 1024; i++) e[i] = i < 0x100 ? 0xFF : p08(i);
     CHECK(file_write_all(data_path(F2716), a.data(), a.size()));
     CHECK(file_write_all(data_path(F2732), b.data(), b.size()));
     CHECK(file_write_all(data_path(FBAD), c.data(), c.size()));
+    CHECK(file_write_all(data_path(F2708), e.data(), e.size()));
 }
 
 static json machine(const json& dse)
@@ -72,6 +80,14 @@ static void idle_ms(Machine& m, double ms)
 {
     wait_ms(m, ms);
     m.bus.advance_all();
+}
+
+// A warning with `what` in it was logged
+static bool has_warning(Dse1* d, const char* what)
+{
+    for (const std::string& w : d->warnings())
+        if (w.find(what) != std::string::npos) return true;
+    return false;
 }
 
 // The only warning logged is the one of DSE.DOC: the simulator RAM used with a 2716 in the socket at Vpp 0 V
@@ -501,6 +517,192 @@ static void test_stats(void)
     CHECK(f->warnings().empty());
 }
 
+// EPROM.COM of J. Biba, type 0 (2708; PRG08, RAPRB, PULS08 in EPROM.MAC V130786): PERAP 30h (Vpp 0 V, LED1 + LED2) and
+// the control word 80h (PC = 0: PC7 = 0, CS/WE 12 V) before the loops
+static void e2708_start(Machine& m)
+{
+    out(m, 0xF4, 0x30);
+    out(m, 0xF3, 0x80);
+}
+
+// One word: RAPRB (PC = A8-A9, PB = A0-A7, PA = data), PULS08 (F4 = 33h written 8 times: 25 V on PROGRAM, then 30h),
+// the wait of 16 rounds after it
+static void e2708_pulse(Machine& m, uint16_t a, uint8_t d, double ms)
+{
+    out(m, 0xF2, (uint8_t)((a >> 8) & 0x0F));
+    out(m, 0xF1, (uint8_t)a);
+    out(m, 0xF0, d);
+    for (int i = 0; i < 8; i++) {
+        out(m, 0xF4, 0x33);
+        wait_ms(m, ms / 8);
+    }
+    out(m, 0xF4, 0x30);
+    wait_ms(m, 0.65);
+}
+
+// The 2708 in the cable for it (reconstructed after EPROM.COM: 18 PROGRAM = Vpp, 20 CS/WE = 12 V by NOT PC7, +12 V on
+// 19, -5 V on 21): reads, the rule of its data sheets (0.1-1 ms, N loops, N x pulse >= 100 ms)
+static void test_2708(void)
+{
+    Machine m;
+    if (!load(m, { { "x2_cable", "2708" }, { "eprom", F2708 } })) return;
+    Dse1* d = dse(m);
+    CHECK_EQ(d->eprom().type, 2708);
+    CHECK_EQ(d->socket_type(), 2708);
+    // read as EPROM.COM reads a 2708 (register 00h: 0 V on PROGRAM; PC7 = 1: CS/WE low); A10 is not on the chip
+    CHECK_EQ(eprom_read(m, 0xF0, 0x00, 0x123), p08(0x123));
+    CHECK_EQ(eprom_read(m, 0xF0, 0x00, 0x523), p08(0x123));
+    CHECK(d->warnings().empty());
+    // the simulator RAM: PC7 = 0 puts 12 V on CS/WE, the 2708 keeps off PD
+    sim_write(m, 0xF0, 0x456, 0x77);
+    CHECK_EQ(sim_read(m, 0xF0, 0x456), 0x77);
+    CHECK(d->warnings().empty());
+    // 129 loops of 0.83 ms over four words (EPROM.COM at 2 MHz): programmed, 107 ms per byte, no warning
+    e2708_start(m);
+    for (int n = 0; n < 129; n++)
+        for (int a = 0; a < 4; a++) e2708_pulse(m, (uint16_t)a, (uint8_t)(0x11 * (a + 1)), 0.83);
+    CHECK(d->run().active);
+    CHECK(d->led1() && d->led2());
+    CHECK_EQ(d->vpp_volts(), 0);   // between the pulses
+    idle_ms(m, 510);
+    const Dse1::Run& r = d->run();
+    CHECK(!r.active);
+    CHECK_EQ(r.pulses, 129 * 4);
+    CHECK_EQ(r.short_pulses, 0);
+    CHECK_EQ(r.bytes, 4);
+    CHECK(r.min_byte_ms > 106.5 && r.max_byte_ms < 107.2);   // 0.828 ms in whole cycles
+    CHECK(d->last_pulse_ms() > 0.82 && d->last_pulse_ms() < 0.84);
+    for (int a = 0; a < 4; a++) CHECK_EQ(d->eprom().data[a], 0x11 * (a + 1));
+    CHECK_EQ(eprom_read(m, 0xF0, 0x00, 0x002), 0x33);
+    CHECK(d->warnings().empty());
+    CHECK(!d->hint_2708_long());
+    // 100 loops: 83 ms per byte, under the 100 ms of the data sheets (programmed anyway, the log says so)
+    e2708_start(m);
+    for (int n = 0; n < 100; n++)
+        for (int a = 0x10; a < 0x12; a++) e2708_pulse(m, (uint16_t)a, 0x42, 0.83);
+    idle_ms(m, 510);
+    CHECK(!d->run().active);
+    CHECK(d->run().max_byte_ms < 100.0 && d->run().min_byte_ms > 82.0);
+    CHECK(d->eprom().data[0x10] == 0x42 && d->eprom().data[0x11] == 0x42);
+    // pulses of 0.05 ms do not program
+    e2708_start(m);
+    for (int n = 0; n < 10; n++) e2708_pulse(m, 0x20, 0x00, 0.05);
+    idle_ms(m, 510);
+    CHECK_EQ(d->run().pulses, 0);
+    CHECK_EQ(d->run().short_pulses, 10);
+    CHECK_EQ(d->eprom().data[0x20], 0xFF);
+    CHECK(d->warnings().empty());
+    // a pulse of 2 ms programs, outside the data sheets: a warning and the hint; a right one clears the hint
+    e2708_start(m);
+    e2708_pulse(m, 0x30, 0x5A, 2.0);
+    CHECK_EQ(d->eprom().data[0x30], 0x5A);
+    CHECK(d->hint_2708_long());
+    CHECK(has_warning(d, "longer than 1 ms"));
+    e2708_pulse(m, 0x31, 0xA5, 0.8);
+    CHECK(!d->hint_2708_long());
+    // two pulses on one word with no other word between them
+    CHECK(!has_warning(d, "one word"));
+    e2708_pulse(m, 0x40, 0x0F, 0.8);
+    e2708_pulse(m, 0x40, 0x0F, 0.8);
+    CHECK(has_warning(d, "one word"));
+    CHECK_EQ(d->eprom().data[0x40], 0x0F);
+    CHECK_EQ((int)d->warnings().size(), 2);
+    idle_ms(m, 510);
+}
+
+// The 2708 and the cables: a routine for a 2716 in the cable for a 2708, the wrong cables (one machine each)
+static void test_2708_cables(void)
+{
+    // the routine for a 2716 (the program of Tesla: 25 V for the whole run, PC6 pulses the 2708 does not see): 25 V on
+    // PROGRAM across the addresses, one long pulse per word; the data of the previous word for the microseconds before
+    // the new data do not count
+    {
+        Machine w;
+        if (!load(w, { { "x2_cable", "2708" }, { "eprom", F2708 } })) return;
+        eprom_program(w, 0xF0, 0x050, 0x0F, 50);
+        eprom_program(w, 0xF0, 0x051, 0xF0, 50);
+        eprom_program(w, 0xF0, 0x052, 0x3C, 50);
+        out(w, 0xF4, 0x00);
+        Dse1* e = dse(w);
+        CHECK(e->eprom().data[0x050] == 0x0F && e->eprom().data[0x051] == 0xF0 && e->eprom().data[0x052] == 0x3C);
+        CHECK_EQ(e->eprom().data[0x000], 0xFF);   // the address 0 of the control word: microseconds only
+        CHECK(e->hint_2708_long());
+        CHECK(has_warning(e, "longer than 1 ms") && has_warning(e, "CS/WE is not at 12 V"));
+        CHECK_EQ(eprom_read(w, 0xF0, 0x11, 0x451), 0xF0);   // 5 V on PROGRAM (register 11h): reads, outside the sheets
+        CHECK(has_warning(e, "5 V on PROGRAM"));
+    }
+    // a 2708 in the cable for a 2716: no +12 V and -5 V, it reads FFh; Vpp 5 V on its VBB could damage it
+    {
+        Machine w;
+        if (!load(w, { { "eprom", F2708 } })) return;
+        CHECK_EQ(eprom_read(w, 0xF0, 0x00, 0x123), 0xFF);
+        CHECK(dse(w)->warnings().empty());   // 0 V on VBB
+        CHECK_EQ(eprom_read(w, 0xF0, 0x11, 0x123), 0xFF);
+        std::vector<std::string> ww = dse(w)->warnings();
+        CHECK(ww.size() == 1 && ww[0].find("VBB") != std::string::npos);
+        eprom_program(w, 0xF0, 0x123, 0x00, 50);
+        CHECK_EQ(dse(w)->eprom().data[0x123], p08(0x123));
+    }
+    // a 2708 in the cable for a 2732: 25 V on CS/WE
+    {
+        Machine w;
+        if (!load(w, { { "x2_cable", "2732" }, { "eprom", F2708 } })) return;
+        eprom_program(w, 0xF0, 0x123, 0x00, 50);
+        CHECK_EQ(dse(w)->eprom().data[0x123], p08(0x123));
+        CHECK(has_warning(dse(w), "CS/WE of a 2708"));
+    }
+    // a 2716 in the cable for a 2708: +12 V on A10, -5 V on its Vpp pin; it reads FFh and is not programmed
+    {
+        Machine w;
+        if (!load(w, { { "x2_cable", "2708" } })) return;
+        CHECK_EQ(eprom_read(w, 0xF0, 0x00, 0x123), 0xFF);
+        e2708_start(w);
+        e2708_pulse(w, 0x010, 0x00, 0.8);
+        CHECK_EQ(dse(w)->eprom().data[0x010], 0xFF);
+        CHECK(has_warning(dse(w), "A10") && has_warning(dse(w), "-5 V") && has_warning(dse(w), "25 V on pin 18"));
+    }
+    // two sockets: the 2708 goes into the one for a 2716
+    {
+        Machine w;
+        if (!load(w, { { "x2_cable", "dual" }, { "eprom", F2708 } })) return;
+        CHECK_EQ(dse(w)->socket_type(), 2716);
+        CHECK_EQ(eprom_read(w, 0xF0, 0x00, 0x123), 0xFF);
+    }
+}
+
+// The state in the middle of a pulse of the 2708: the copy ends it the same
+static void test_2708_state(void)
+{
+    Machine s1;
+    if (!load(s1, { { "x2_cable", "2708" }, { "eprom", F2708 } })) return;
+    e2708_start(s1);
+    e2708_pulse(s1, 0x061, 0x12, 0.8);
+    out(s1, 0xF2, 0x00);
+    out(s1, 0xF1, 0x60);
+    out(s1, 0xF0, 0x5A);
+    out(s1, 0xF4, 0x33);
+    wait_ms(s1, 0.4);
+    CHECK(dse(s1)->pulse_on());
+    std::vector<uint8_t> st, b1, b2;
+    std::string err;
+    CHECK(s1.save_state(st, "", err));
+    Machine s2;
+    if (!load(s2, { { "x2_cable", "2708" }, { "eprom", F2708 } })) return;
+    CHECK(s2.load_state(st, err));
+    for (Machine* x : { &s1, &s2 }) {
+        wait_ms(*x, 0.4);
+        out(*x, 0xF4, 0x30);
+        e2708_pulse(*x, 0x061, 0x12, 0.8);   // the previous word again only after another one: no warning
+    }
+    CHECK_EQ(dse(s2)->eprom().data[0x060], 0x5A);
+    CHECK(dse(s1)->eprom().data == dse(s2)->eprom().data);
+    CHECK_EQ(dse(s2)->run().pulses, 3);
+    CHECK(dse(s2)->warnings().empty());
+    CHECK(s1.save_state(b1, "", err));
+    CHECK(s2.save_state(b2, "", err));
+    CHECK(b1 == b2);
+}
+
 // The socket as a medium: a wrong size is refused (the chip stays), a new blank one, the empty socket
 static void test_media(void)
 {
@@ -602,12 +804,17 @@ static void test_new_blank(void)
     CHECK(Dse1::new_blank(2716, dir, {}, r2, err) && r2 == r1);                   // blank, not in a socket
     CHECK(Dse1::new_blank(2716, dir, { data_path(r1) }, r3, err) && r3 != r1);    // in the socket: a new one
     CHECK(Dse1::new_blank(2732, dir, {}, r4, err) && r4 != r1 && r4 != r3);       // another size
+    std::string r6;
+    std::vector<uint8_t> b6;
+    CHECK(Dse1::new_blank(2708, dir, {}, r6, err) && r6 != r1 && r6 != r3 && r6 != r4);
+    CHECK(file_read_all(data_path(r6), b6) && b6.size() == 1024 && b6[0] == 0xFF && b6[1023] == 0xFF);
+    CHECK(!Dse1::new_blank(2764, dir, {}, r6, err));
     std::vector<uint8_t> d(2048, 0xFF);
     d[5] = 0x12;
     CHECK(file_write_all(data_path(r1), d.data(), d.size()));                    // programmed: not blank
     std::string r5;
     CHECK(Dse1::new_blank(2716, dir, {}, r5, err) && r5 == r3);
-    for (const std::string& r : { r1, r3, r4 }) file_remove(data_path(r));
+    for (const std::string& r : { r1, r3, r4, r6 }) file_remove(data_path(r));
 }
 
 static void test_state(void)
@@ -939,6 +1146,168 @@ static void test_eprom_com(void)
     CHECK_EQ(m.bus.map, 0);
 }
 
+// The same with the cable for a 2708 and its blank original (read from media/, nothing written): P, type 0, RAM 2000-203F
+// into the EPROM from 0000. PRG08 makes 129 loops over the 64 words with pulses of 0.83 ms on Vpp (PULS08, at 2 MHz),
+// then KPTES waits about 1.4 s and compares with 0 V on PROGRAM.
+static void cpm_jb_dse1_2708(json& cfg)
+{
+    cpm_jb_dse1(cfg);
+    json& c = cfg["cards"].back();
+    c["x2_cable"] = "2708";
+    c["eprom"] = "media/dse-1/eprom_2708.bin";
+}
+
+static void test_eprom_com_2708(void)
+{
+    Machine m;
+    if (!load_file(m, "machines/cpm_boot_rpd1.sapi", cpm_jb_dse1_2708)) return;
+    Dse1* d = find_dse(m);
+    CHECK(d && d->eprom().type == Eprom27::T2708 && d->socket_type() == Eprom27::T2708);
+    if (!d || !run_until_text(m, "\nA>", 30.0)) {
+        fprintf(stderr, "NO CP/M:\n%s\n", screen_text(m).c_str());
+        CHECK(false);
+        return;
+    }
+    m.run_seconds(0.3);
+    m.type_text("B:EPROM\r");
+    if (!answer(m, "STISKNI KL", "P", 20.0)) return;
+    for (int i = 0; i < 0x40; i++) m.bus.mem_write((uint16_t)(0x2000 + i), pattern(i));
+    answer(m, "2764 ... 3", "0");
+    answer(m, "adresa RAM", "2000\r");
+    answer(m, "Horn", "203F\r");
+    answer(m, "adresa EPROM", "0\r");
+    answer(m, "(A=ano)", "A");
+    bool ok = run_until_text(m, "PROGRAMUJI", 5.0);
+    m.run_seconds(1.0);
+    CHECK(ok && d->run().active);
+    CHECK(d->led1() && d->led2());   // PERAP 30h: both LEDs, Vpp 25 V only in the pulses
+    CHECK_EQ(m.bus.map, 0);           // JP1 open
+    ok = run_until_text(m, "OBSAH", 60.0);   // 129 x 64 x 1.9 ms, a pause, the comparison
+    if (!ok) fprintf(stderr, "EPROM.COM 2708:\n%s\n", screen_text(m).c_str());
+    CHECK(ok);
+    CHECK(screen_text(m).find("ROZD") == std::string::npos);
+    m.run_seconds(0.6);
+    const std::vector<uint8_t>& e = d->eprom().data;
+    int wrong = 0;
+    for (int i = 0; i < 1024; i++)
+        if (e[i] != (i < 0x40 ? pattern(i) : 0xFF)) wrong++;
+    CHECK_EQ(wrong, 0);
+    const Dse1::Run& r = d->run();
+    CHECK(!r.active);
+    CHECK_EQ(r.pulses, 129 * 64);
+    CHECK_EQ(r.bytes, 64);
+    CHECK_EQ(r.short_pulses, 0);
+    CHECK(d->last_pulse_ms() > 0.80 && d->last_pulse_ms() < 0.86);
+    CHECK(r.min_byte_ms > 100.0 && r.max_byte_ms < 112.0);   // 129 x 0.83 ms: the 100 ms of the data sheets
+    CHECK(d->warnings().empty());
+    CHECK_EQ(m.bus.map, 0);
+}
+
+// ZPS-3 CP/M 64K of Tesla IMA (8080, 2 MHz) with a copy of its disk 1 in A: (W writes the HEX file there), the disk of
+// DSE.COM in B: and a DSE-1 at F0h in X8 (RPD-1 takes X5 and X6)
+static const char* const IMA_A = "work/test/dse1_ima_a.img";
+
+static void zps3_dse1(json& cfg)
+{
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "RPD-1") {
+            c["drive_a"] = { { "image", IMA_A }, { "write_protect", false } };
+            c["drive_b"] = { { "image", "media/sapiman/knihovna/perina_dse.img" }, { "write_protect", true } };
+            c["working_copy"] = false;
+        }
+    cfg["cards"].push_back({ { "slot", 8 }, { "type", "DSE-1" } });
+}
+
+// The screen has `t` (else it is printed)
+static bool screen_has(Machine& m, const char* t)
+{
+    bool ok = screen_text(m).find(t) != std::string::npos;
+    if (!ok) fprintf(stderr, "NO '%s' ON THE SCREEN:\n%s\n", t, screen_text(m).c_str());
+    return ok;
+}
+
+// DSE.COM waits for a command: "00*" alone on the last line (the number of the chosen EPROM section and *; the line of
+// the previous command starts with it too)
+static bool dse_cmd(Machine& m, const char* keys, double timeout_s = 10.0)
+{
+    for (double t = 0; t < timeout_s; t += 0.05) {
+        if (last_line(m) == "00*") {
+            m.run_seconds(0.3);
+            m.type_text(keys);
+            for (double u = 0; u < 2.0 && last_line(m) == "00*"; u += 0.05) m.run_seconds(0.05);   // until it echoes
+            return true;
+        }
+        m.run_seconds(0.05);
+    }
+    fprintf(stderr, "NO PROMPT 00*:\n%s\n", screen_text(m).c_str());
+    CHECK(false);
+    return false;
+}
+
+// DSE.COM of J. Hlavac (1988, TESLA ELTOS DIZ, DSECPM.DOC): the type 2716, E 0 (after the start the chosen section
+// is 0000-0000, DSE.COM sets it before the length of the type), the buffer 2000-20FF (logical 0-FF) written into
+// A:T.HEX and read back, T (blank), P (a byte 20 ms, then 10 ms when right; FFh skipped), V.
+static void dsecom_run(void)
+{
+    Machine m;
+    if (!load_file(m, "machines/zps/ZPS-3_CPM64K_IMA.sapi", zps3_dse1)) return;
+    Dse1* d = find_dse(m);
+    CHECK(d && d->eprom().type == Eprom27::T2716);
+    if (!d || !answer(m, "A>", "B:DSE\r", 30.0)) return;
+    if (!answer(m, "ZADEJ TYP EPROM", "2716\r", 20.0)) return;
+    dse_cmd(m, "E 0\r", 30.0);   // the help first (about 10 s)
+    for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x2000 + i), pattern(i));
+    dse_cmd(m, "W 0 FF\r");
+    CHECK(screen_has(m, "PORADOVE CISLO ROM : 00 (0000 - 07FF)"));
+    answer(m, "ZADEJ JMENO SOUBORU", "A:T\r");
+    dse_cmd(m, "C\r");
+    answer(m, "(A/N)", "A");
+    dse_cmd(m, "R\r");
+    answer(m, "ZADEJ JMENO SOUBORU", "T\r");
+    dse_cmd(m, "T 0 FF 0\r");
+    CHECK(screen_has(m, "CTENI SKONCENO OK") && screen_has(m, "HEX 0000 - 00FF"));
+    int wrong = 0;
+    for (int i = 0; i < 0x100; i++)
+        if (m.peek((uint16_t)(0x2000 + i)) != pattern(i)) wrong++;
+    CHECK_EQ(wrong, 0);
+    dse_cmd(m, "P 0 FF 0\r");
+    CHECK(screen_has(m, "CISTA -"));
+    answer(m, "(A/N)", "A");
+    bool ok = run_until_text(m, "PROGRAMOVANI SKONCENO OK", 30.0);   // 255 x 32 ms
+    if (!ok) fprintf(stderr, "DSE.COM:\n%s\n", screen_text(m).c_str());
+    CHECK(ok);
+    m.run_seconds(1.0);   // the run ends 0.5 s after Vpp left 25 V (F4 = 01h)
+    const std::vector<uint8_t>& e = d->eprom().data;
+    wrong = 0;
+    for (int i = 0; i < 2048; i++)
+        if (e[i] != (i < 0x100 ? pattern(i) : 0xFF)) wrong++;
+    CHECK_EQ(wrong, 0);
+    const Dse1::Run& r = d->run();
+    CHECK(!r.active);
+    CHECK_EQ(r.bytes, 255);   // pattern(E4h) is FFh: skipped
+    CHECK_EQ(r.pulses, 510);
+    CHECK_EQ(r.short_pulses, 0);
+    CHECK(r.min_byte_ms > 30.0 && r.max_byte_ms < 30.7);
+    CHECK(d->last_pulse_ms() > 10.0 && d->last_pulse_ms() < 10.3);
+    // V after the 200 BEL of the end of P (about 32 s)
+    ok = dse_cmd(m, "V 0 FF 0\r", 60.0);
+    ok = ok && run_until_text(m, "SHODNY OBSAH", 10.0);
+    if (!ok) fprintf(stderr, "DSE.COM V:\n%s\n", screen_text(m).c_str());
+    CHECK(ok);
+    CHECK(screen_text(m).find("CHYBA") == std::string::npos);
+    CHECK(d->warnings().empty());
+    CHECK_EQ(m.bus.map, 0);
+}
+
+static void test_dsecom(void)
+{
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path("media/rpd-1/CPM64K_IMA_01.img"), img));
+    CHECK(file_write_all(data_path(IMA_A), img.data(), img.size()));
+    dsecom_run();   // the copy of the disk goes away on every way out
+    file_remove(data_path(IMA_A));
+}
+
 int main(void)
 {
     test_init();
@@ -953,6 +1322,9 @@ int main(void)
         test_ports();
         test_copy();
         test_stats();
+        test_2708();
+        test_2708_cables();
+        test_2708_state();
         test_media();
         test_erase();
         test_same_file();
@@ -961,9 +1333,12 @@ int main(void)
         file_remove(data_path(F2716));
         file_remove(data_path(F2732));
         file_remove(data_path(FBAD));
+        file_remove(data_path(F2708));
     }
     if (!part || !strcmp(part, "tesla")) test_tesla();
     if (!part || !strcmp(part, "simprog")) test_simprog();
     if (!part || !strcmp(part, "eprom")) test_eprom_com();
+    if (!part || !strcmp(part, "eprom2708")) test_eprom_com_2708();
+    if (!part || !strcmp(part, "dsecom")) test_dsecom();
     return TEST_RESULT();
 }

@@ -10,8 +10,11 @@
 
 using nlohmann::json;
 
-static const double MIN_PULSE_S = 0.001;           // shorter pulses do not program (assumption)
+static const double MIN_PULSE_S = 0.001;           // shorter pulses do not program a 2716 / 2732 (assumption)
 static const double BYTE_MIN_MS = 45, BYTE_MAX_MS = 55;   // 50 ms +-5 of the data sheets, per byte
+// 2708 (Oki MSM2708AS, NTE2708): pulses 0.1-1 ms, N loops over all words with N x width >= 100 ms
+static const double MIN_PULSE_2708_S = 0.0001, MAX_PULSE_2708_S = 0.001;
+static const double BYTE_MIN_2708_MS = 100;
 static const double RUN_GAP_S = 0.5;               // Vpp off 25 V this long ends a programming run
 
 Dse1::~Dse1()
@@ -37,7 +40,8 @@ bool Dse1::configure(const json& cfg, std::string& err)
     if (s == "2716") x2_cable = CABLE_2716;
     else if (s == "2732") x2_cable = CABLE_2732;
     else if (s == "dual") x2_cable = CABLE_DUAL;
-    else { err = "x2_cable must be 2716, 2732 or dual"; return false; }
+    else if (s == "2708") x2_cable = CABLE_2708;
+    else { err = "x2_cable must be 2716, 2732, dual or 2708"; return false; }
     if (!cfg_bool(cfg, "working_copy", work_copy, true, err)) return false;
     std::string img;
     if (cfg.contains("eprom") && cfg["eprom"].is_null()) img.clear();   // no EPROM in the socket
@@ -89,9 +93,9 @@ bool Dse1::read_image(const std::string& image, Eprom27& to, std::string& err)
 bool Dse1::new_blank(int type, const char* dir, const std::vector<std::string>& in_use, std::string& rel,
                      std::string& err)
 {
-    size_t n = type == Eprom27::T2716 ? 2048 : type == Eprom27::T2732 ? 4096 : 0;
+    size_t n = Eprom27::size_of_type(type);
     if (!n) {
-        err = "a new EPROM is a 2716 or a 2732";
+        err = "a new EPROM is a 2708, a 2716 or a 2732";
         return false;
     }
     for (int i = 1; i < 10000; i++) {
@@ -179,6 +183,7 @@ bool Dse1::insert(const std::string& image, std::string& err)
     if (pulse_active) pulse_end();
     run_end();
     read_2716_mode = false;
+    long_2708 = false;
     if (chip.loaded() && data_relative(chip.path) == data_relative(e.path)) {
         // the same file again: the chip as programmed so far, not the file as it was read (saved first)
         flush();
@@ -200,6 +205,7 @@ void Dse1::eject(void)
     if (pulse_active) pulse_end();
     run_end();
     read_2716_mode = false;
+    long_2708 = false;
     take_out();
     update();
 }
@@ -262,8 +268,25 @@ int Dse1::vpp_volts(void) const
 
 int Dse1::socket_wiring(void) const
 {
-    if (x2_cable == CABLE_DUAL) return chip.type == Eprom27::T2732 ? CABLE_2732 : CABLE_2716;
+    if (x2_cable == CABLE_DUAL) return chip.type == Eprom27::T2732 ? CABLE_2732 : CABLE_2716;   // a 2708: the 2716 one
     return x2_cable;
+}
+
+int Dse1::socket_type(void) const
+{
+    int w = socket_wiring();
+    return w == CABLE_2732 ? Eprom27::T2732 : w == CABLE_2708 ? Eprom27::T2708 : Eprom27::T2716;
+}
+
+double Dse1::min_pulse_s(void) const
+{
+    return chip.type == Eprom27::T2708 ? MIN_PULSE_2708_S : MIN_PULSE_S;
+}
+
+void Dse1::byte_limits(double& lo, double& hi) const
+{
+    lo = chip.type == Eprom27::T2708 ? BYTE_MIN_2708_MS : BYTE_MIN_MS;
+    hi = chip.type == Eprom27::T2708 ? 0 : BYTE_MAX_MS;
 }
 
 Dse1::Lines Dse1::lines(void)
@@ -281,11 +304,18 @@ Dse1::Lines Dse1::lines(void)
     // the socket, wired by the cable
     uint8_t vpp = vpp_level();
     bool pc6 = (l.pc & 0x40) != 0, pc7 = (l.pc & 0x80) != 0;
-    l.pins.a = l.addr & 0x7FF;
-    if (socket_wiring() == CABLE_2716) {   // 18 = X2.18 PC6, 20 = X2.12 NOT PC7, 21 = X2.26 Vpp
+    l.pins.a = l.addr & 0x3FF;
+    l.pins.p19 = (l.addr & 0x400) ? EPL_H : EPL_L;   // PA10 (2716, 2732)
+    int w = socket_wiring();
+    if (w == CABLE_2716) {                 // 18 = X2.18 PC6, 20 = X2.12 NOT PC7, 21 = X2.26 Vpp
         l.pins.p18 = pc6 ? EPL_H : EPL_L;
         l.pins.p20 = pc7 ? EPL_L : EPL_H;
         l.pins.p21 = vpp;
+    } else if (w == CABLE_2708) {          // reconstructed: 18 = Vpp, 20 = X2.12 shifted to 12 V, 19 +12 V, 21 -5 V
+        l.pins.p18 = vpp;
+        l.pins.p19 = EPL_12;
+        l.pins.p20 = pc7 ? EPL_L : EPL_12;
+        l.pins.p21 = EPL_M5;
     } else {                               // 21 = X2.11 PA11, 18 = X2.20 NOR(PC6, PC7), 20 = X2.25 Vpp
         l.pins.p21 = (l.addr & 0x800) ? EPL_H : EPL_L;
         l.pins.p18 = pc6 || pc7 ? EPL_L : EPL_H;
@@ -356,12 +386,29 @@ void Dse1::update(void)
         warn_once(W_PD_CLASH + l.drivers, "%s drive PD at once (taken as wired AND)", driver_names(l.drivers));
     if (onla() && l.addr_driven)
         warn_once(W_ONLA, "ON LINE (ONLA) while the 8255 drives the address (PB or PC0-3 outputs)");
-    switch (chip.overvoltage(l.pins)) {
-    case 18: warn_once(W_25V_P18, "25 V on pin 18 of the EPROM: on a real chip this could damage it"); break;
-    case 20: warn_once(W_25V_P20, "25 V on /OE (pin 20) of the 2716 in the socket wired for a 2732: on a real chip this could damage it"); break;
-    case 21: warn_once(W_25V_P21, "25 V on A11 (pin 21) of the 2732 in the socket wired for a 2716: on a real chip this could damage it"); break;
-    default: break;
-    }
+    unsigned ov = chip.overvoltage(l.pins);
+    if (ov & EPO_25V_P18) warn_once(W_25V_P18, "25 V on pin 18 of the EPROM: on a real chip this could damage it");
+    if (ov & EPO_25V_OE)
+        warn_once(W_25V_P20, "25 V on /OE (pin 20) of the 2716 in the socket wired for a 2732: on a real chip this could damage it");
+    if (ov & EPO_25V_A11)
+        warn_once(W_25V_P21, "25 V on A11 (pin 21) of the 2732 in the socket wired for a 2716: on a real chip this could damage it");
+    if (ov & EPO_12V_A10)
+        warn_once(W_12V_A10, "+12 V (VDD of a 2708) on A10 (pin 19) of the %d in the socket wired for a 2708: on a real chip "
+                  "this could damage it", chip.type);
+    if (ov & EPO_12V_OE)
+        warn_once(W_12V_OE, "+12 V on /OE (pin 20) of the 2716 in the socket wired for a 2708: on a real chip this could damage it");
+    if (ov & EPO_M5V_P21)
+        warn_once(W_M5V_P21, "-5 V (VBB of a 2708) on pin 21 of the %d in the socket wired for a 2708: on a real chip this "
+                  "could damage it", chip.type);
+    if (ov & EPO_VBB_PLUS)
+        warn_once(W_VBB_PLUS, "%d V on VBB (pin 21) of the 2708 in the socket wired for a %d, it needs -5 V: on a real chip this "
+                  "could damage it (it does not read)", l.pins.p21 == EPL_VPP ? 25 : 5, socket_type());
+    if (ov & EPO_25V_CSWE)
+        warn_once(W_25V_CSWE, "25 V on CS/WE (pin 20) of the 2708 in the socket wired for a 2732: on a real chip this could "
+                  "damage it");
+    if (chip.type == Eprom27::T2708 && l.pins.p18 == EPL_VPP && l.pins.p20 != EPL_12 && chip.mode(l.pins) != EPM_NO_SUPPLY)
+        warn_once(W_2708_PROG_CS, "25 V on PROGRAM (pin 18) of the 2708 while CS/WE is not at 12 V: not a mode of the data "
+                  "sheets, nothing is programmed (assumption)");
     // DSE.DOC: during S and R the programming socket must be empty (a 2716 with 0 V on Vpp and /CE low probably
     // loads PD, Nejasnost 3); the emulator reads the RAM right, the log says it once
     if ((l.pc & 0x30) && l.pins.p18 == EPL_L && chip.mode(l.pins) == EPM_NO_VPP)
@@ -375,18 +422,32 @@ void Dse1::update(void)
         pulse_end();   // with PD sampled before this write
     }
     if (prog) {
+        uint64_t now = bus ? bus->now : 0;
         if (!pulse_active) {
             pulse_active = true;
-            pulse_start = bus ? bus->now : 0;
+            pulse_start = now;
             pulse_addr = c;
-            pulse_data = l.pd;
-        } else {
-            pulse_data &= l.pd;
+            pulse_data = 0xFF;
+            seg_start = now;
+            seg_pd = l.pd;
+        } else if (l.pd != seg_pd) {   // PD changed: the stretch before counts when it was long enough
+            segment_end(now);
+            seg_start = now;
+            seg_pd = l.pd;
         }
     }
     uint8_t v = vpp_level();
     if (last_vpp == EPL_VPP && v != EPL_VPP) vpp_off = bus ? bus->now : 0;   // the run ends later (advance)
     last_vpp = v;
+}
+
+// The data on PD program a cell only when they stay long enough (a real cell takes its charge over time): a stretch
+// shorter than the shortest pulse that programs does not count (the previous data for the microseconds between the
+// new address and the new data, when a 2708 gets 25 V across addresses from a routine for a 2716).
+void Dse1::segment_end(uint64_t now)
+{
+    double s = bus && bus->cpu_hz && now > seg_start ? (double)(now - seg_start) / bus->cpu_hz : 0;
+    if (s >= min_pulse_s()) pulse_data &= seg_pd;
 }
 
 void Dse1::pulse_end(void)
@@ -395,16 +456,28 @@ void Dse1::pulse_end(void)
     uint64_t len = now > pulse_start ? now - pulse_start : 0;
     pulse_active = false;
     last_pulse = len;
+    segment_end(now);   // with PD before the write that ends the pulse
     if (!runs.active) {
         runs = Run();
         runs.active = true;
         run_us.assign(4096, 0);
+        prev_cell = -1;
     }
     double s = bus && bus->cpu_hz ? (double)len / bus->cpu_hz : 0;
-    if (s < MIN_PULSE_S) {
+    if (s < min_pulse_s()) {
         runs.short_pulses++;
         return;
     }
+    if (chip.type == Eprom27::T2708) {
+        long_2708 = s > MAX_PULSE_2708_S;
+        if (long_2708)
+            warn_once(W_2708_LONG, "a programming pulse of %.2f ms on the 2708: its data sheets give 0.1-1 ms (programmed "
+                      "anyway; a routine for a 2716? EPROM.COM of J. Biba programs a 2708 as type 0)", s * 1000.0);
+        if (prev_cell == (int32_t)pulse_addr)
+            warn_once(W_2708_REPEAT, "programming pulses on one word of the 2708 with no other word in between: its data "
+                      "sheets give one pulse to every word in each of N loops (programmed anyway)");
+    }
+    prev_cell = pulse_addr;
     if (chip.program(pulse_addr, pulse_data)) media_written();
     if (!runs.pulses || len < runs.min_t) runs.min_t = len;
     if (len > runs.max_t) runs.max_t = len;
@@ -430,9 +503,10 @@ void Dse1::run_end(void)
     runs.max_byte_ms = hi / 1000.0;
     double hz = bus && bus->cpu_hz ? (double)bus->cpu_hz : 1.0;
     char shorts[96] = "";
+    bool t2708 = chip.type == Eprom27::T2708;
     if (runs.short_pulses)
-        snprintf(shorts, sizeof(shorts), ", %u pulse%s shorter than 1 ms did not program (assumption)", runs.short_pulses,
-                 runs.short_pulses == 1 ? "" : "s");
+        snprintf(shorts, sizeof(shorts), ", %u pulse%s shorter than %s ms did not program%s", runs.short_pulses,
+                 runs.short_pulses == 1 ? "" : "s", t2708 ? "0.1" : "1", t2708 ? "" : " (assumption)");
     if (!runs.pulses) {
         LOGI("%s: programming: nothing programmed%s", name.c_str(), shorts);
         return;
@@ -440,7 +514,12 @@ void Dse1::run_end(void)
     LOGI("%s: programming: %u byte%s, %.2f pulses per byte, pulses %.2f-%.2f ms%s", name.c_str(), runs.bytes,
          runs.bytes == 1 ? "" : "s", (double)runs.pulses / runs.bytes, runs.min_t * 1000.0 / hz, runs.max_t * 1000.0 / hz,
          shorts);
-    if (runs.min_byte_ms < BYTE_MIN_MS || runs.max_byte_ms > BYTE_MAX_MS)
+    double blo, bhi;
+    byte_limits(blo, bhi);
+    if (t2708 && runs.min_byte_ms < blo)
+        LOGW("%s: the pulses of a byte add up to %.2f-%.2f ms, the data sheets of the 2708 ask for N x pulse width >= 100 ms "
+             "(programmed anyway)", name.c_str(), runs.min_byte_ms, runs.max_byte_ms);
+    else if (!t2708 && (runs.min_byte_ms < blo || runs.max_byte_ms > bhi))
         LOGW("%s: the pulses of a byte add up to %.2f-%.2f ms, the data sheet asks for 50 ms +-5 (programmed anyway)",
              name.c_str(), runs.min_byte_ms, runs.max_byte_ms);
 }
@@ -455,6 +534,12 @@ bool Dse1::io_read(uint8_t port, uint8_t& data)
     if ((port & 0xF0) != base || (port & 0x08)) return false;
     // base+3 (the control word) and the register: nothing drives the inner bus, the 8286 reads FFh (assumption)
     data = (port & 0x04) ? 0xFF : ppi.read(port & 3);
+    if ((port & 0x07) == 0 && chip.type == Eprom27::T2708) {   // the program reads the 2708 (PA as input)
+        Lines l = lines();
+        if (!(l.drivers & DRV_PPI) && (l.drivers & DRV_EPROM) && l.pins.p18 == EPL_H)
+            warn_once(W_2708_READ_5V, "a 2708 read with 5 V on PROGRAM (pin 18): its data sheets want it below VCC in the "
+                      "read mode (read anyway; EPROM.COM of J. Biba reads a 2708 as type 0 with 0 V)");
+    }
     if ((port & 0x07) == 0 && chip.type == Eprom27::T2732) {   // the program reads the EPROM (PA as input)
         Lines l = lines();
         if (!(l.drivers & DRV_PPI) && l.pins.p18 == EPL_L) {
@@ -507,6 +592,15 @@ std::vector<std::string> Dse1::warnings(void) const
     if (warned & (1u << W_SIM_EPROM))
         w.push_back("simulator RAM used with a 2716 in the socket (DSE.DOC: empty for S and R)");
     if (warned & (1u << W_2732_AS_2716)) w.push_back("a 2732 read as a 2716 (5 V on OE/Vpp): answer A to \"2732?\"");
+    if (warned & (1u << W_12V_A10)) w.push_back("+12 V on A10 of a 2716 / 2732 (socket wired for a 2708)");
+    if (warned & (1u << W_12V_OE)) w.push_back("+12 V on /OE of a 2716 (socket wired for a 2708)");
+    if (warned & (1u << W_M5V_P21)) w.push_back("-5 V on pin 21 of a 2716 / 2732 (socket wired for a 2708)");
+    if (warned & (1u << W_VBB_PLUS)) w.push_back("5 V or 25 V on VBB of a 2708 (socket wired for a 2716 / 2732)");
+    if (warned & (1u << W_25V_CSWE)) w.push_back("25 V on CS/WE of a 2708 (socket wired for a 2732)");
+    if (warned & (1u << W_2708_PROG_CS)) w.push_back("25 V on PROGRAM of a 2708 while CS/WE is not at 12 V");
+    if (warned & (1u << W_2708_READ_5V)) w.push_back("a 2708 read with 5 V on PROGRAM");
+    if (warned & (1u << W_2708_LONG)) w.push_back("a programming pulse longer than 1 ms on a 2708");
+    if (warned & (1u << W_2708_REPEAT)) w.push_back("programming pulses on one word of a 2708 with no other word in between");
     return w;
 }
 
@@ -529,9 +623,9 @@ void Dse1::describe(json& out)
     e["path"] = chip.path;
     e["type"] = chip.loaded() ? json(chip.type) : json(nullptr);
     e["dirty"] = chip.dirty;
-    e["socket"] = socket_wiring() == CABLE_2732 ? "2732" : "2716";
+    e["socket"] = std::to_string(socket_type());
     out["eprom"] = e;
-    out["x2_cable"] = x2_cable == CABLE_DUAL ? "dual" : x2_cable == CABLE_2732 ? "2732" : "2716";
+    out["x2_cable"] = x2_cable == CABLE_DUAL ? "dual" : x2_cable == CABLE_2708 ? "2708" : x2_cable == CABLE_2732 ? "2732" : "2716";
     out["pulse_on"] = pulse_active;
     out["last_pulse_ms"] = round(last_pulse_ms() * 1000.0) / 1000.0;
     double hz = bus && bus->cpu_hz ? (double)bus->cpu_hz : 1.0;
@@ -553,7 +647,8 @@ void Dse1::describe(json& out)
 std::string Dse1::live_status()
 {
     char b[96];
-    const char* t = chip.type == Eprom27::T2732 ? "2732" : chip.type == Eprom27::T2716 ? "2716" : "no EPROM";
+    const char* t = chip.type == Eprom27::T2732 ? "2732" : chip.type == Eprom27::T2716 ? "2716"
+                  : chip.type == Eprom27::T2708 ? "2708" : "no EPROM";
     snprintf(b, sizeof(b), "Vpp %d V, %s, %s%s%s", vpp_volts(), onla() && onld() ? "ON LINE" : "OFF LINE", t,
              led1() ? ", LED1" : "", led2() ? ", LED2" : "");
     std::string s = b;
@@ -605,6 +700,9 @@ void Dse1::state(StateIO& io)
     io.v(pulse_start);
     io.v(pulse_addr);
     io.v(pulse_data);
+    io.v(seg_start);
+    io.v(seg_pd);
+    io.v(prev_cell);
     io.v(last_pulse);
     io.v(last_vpp);
     io.v(vpp_off);
@@ -627,4 +725,6 @@ void Dse1::state(StateIO& io)
     }
     for (uint32_t& t : run_us) io.v(t);
     io.v(warned);
+    io.v(read_2716_mode);   // the hints of the window go on after a loaded state
+    io.v(long_2708);
 }

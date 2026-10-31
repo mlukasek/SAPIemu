@@ -115,7 +115,7 @@ z EPROM `roms/jpr-1zi/JPR-1ZI_MON*_JB_*.bin`, C: je RAM disk ZRMD-1 se souborov�
 | `f1_zrmd4_130711.img` | CP/M pro FDC-1, „BIOS-1K V130711JB“. (`FDC\f1_zrmd4_130711.8sd`) |
 | `r1_zrmd4m_271111.img` | CP/M pro RPD-1, „BIOS-1K V271111JB“. (`RPD\r1_zrmd4m_271111.8sd`) |
 | `m1_281211_rmd.img`, `f1_rmd1m_130711.img`, `r1_rmd1m_271111.img` | Totéž s RAM diskem RMD-1 1 MB na 40h jako C: (`MFC\`, `FDC\`, `RPD\` `*.8sd`). Sestavy `cpm_boot_fdc1_rmd`, `cpm_boot_rpd1_rmd` (RMD-1 inicializuje `B:IRMD40` z diskety Z6). |
-| `knihovna/*.img` | Výběr 16 datových disket J. Bíby (překladače, editory, služební programy, Kermit) ze `SAPIMAN\PMD32-SD_IMAGE8`, soupis a obsah v `docs/software/SAPIMAN_diskety.md`. |
+| `knihovna/*.img` | Výběr 17 datových disket ze sbírky SAPIMAN J. Bíby (překladače, editory, služební programy, Kermit, DSE.COM J. Hlaváče pro DSE-1: `perina_dse.img`) ze `SAPIMAN\PMD32-SD_IMAGE8`, soupis a obsah v `docs/software/SAPIMAN_diskety.md`. |
 | `r2_mfc256x14_261211.img`, `r3_mfc512x8_261211.img`, `r2_rmd1m_fdc_261211.img` | CP/M J. Bíby bootované z RPD-1 s RMD-1 jako C: a druhým řadičem pro D:, E: (MFC-1A 8" FM 14 × 256 nebo 8 × 512, FDC-1 8"), `RPD\*.8sd`. Sestavy `cpm_boot_rpd1_mfc256`, `_mfc512`, `cpm_boot_rpd1_fdc1_rmd`. |
 | `f2_irmd1m_130711.img` | CP/M pro FDC-1 s BIOSem BIRMD, který RAM disk RMD-1 sám najde, změří (256 KB / 1 MB) a připraví (`FDC\f2_irmd1m_130711.8sd`). Sestava `cpm_boot_fdc1_irmd`. |
 | `prazdna_8_FM_14x256.imd`, `prazdna_8_FM_8x512.imd` | Prázdné 8" diskety FM 77 × 14 × 256 a 77 × 8 × 512 (ImageDisk, E5h) pro ty sestavy. |
@@ -246,9 +246,12 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 |---|---|
 | `eprom_2716.bin` | Prázdná (smazaná) EPROM 2716: 2048 B, všechny bajty FFh. Výchozí EPROM v patici kabelu X2 desky DSE-1 (sestava `zps/ZPS-2_DSE-1.sapi`). Emulátor programuje její pracovní kopii `work/dse-1/eprom_2716.bin`. V okně Programátor EPROM DSE-1 ji smaže UV lampa, „…“ → Obnovit z originálu přepíše pracovní kopii originálem (u prázdné EPROM to vyjde nastejno). |
 | `eprom_2732.bin` | Prázdná EPROM 2732: 4096 B, všechny bajty FFh. Pro kabel X2 upravený pro 2732 nebo dvě patice (`x2_cable`). |
+| `eprom_2708.bin` | Prázdná EPROM 2708: 1024 B, všechny bajty FFh. Pro kabel X2 pro 2708 (adaptér zrekonstruovaný podle EPROM.COM J. Bíby, 2026-10-31). |
 
-Vytvořené pro SAPIemu (2026-10-30), nejsou to dumpy. Nová 2716 a Nová 2732 v okně Programátor EPROM DSE-1 vytvoří
-další prázdnou EPROM `work/dse-1/eprom_N.bin`. Návod `docs/navod-dse1.md`, deska `docs/desky/DSE-1.md`.
+Vytvořené pro SAPIemu (2026-10-30, 2708 2026-10-31), nejsou to dumpy. Nová 2708, Nová 2716 a Nová 2732 v okně
+Programátor EPROM DSE-1 vytvoří další prázdnou EPROM `work/dse-1/eprom_N.bin`. Návod `docs/navod-dse1.md`, deska
+`docs/desky/DSE-1.md`. Programy pro DSE-1 pod CP/M: EPROM.COM J. Bíby na `sapiman/knihovna/sysprog_a_sluzebni_CPM.img`,
+DSE.COM J. Hlaváče na `sapiman/knihovna/perina_dse.img`.
 
 ## `ar1990/` – povely pro plotter z AR 1990
 

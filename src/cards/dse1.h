@@ -16,16 +16,20 @@
 //   LINE is a state shown by the window of the programmer, src/frontend/dse1.cpp, and MCP).
 // - Programming cable X2 with the socket (Eprom27, evaluated from its pins): wired for a 2716 as supplied
 //   (18 = PC6, 20 = NOT PC7, 21 = Vpp), for a 2732 after DSE.DOC (21 = PA11, 18 = NOR(PC6, PC7), 20 =
-//   Vpp), or two sockets (the replicas: the type of the chip picks its socket).
+//   Vpp), two sockets (the replicas: the type of the chip picks its socket; a 2708 goes into the one for a
+//   2716), or for a 2708 (reconstructed from EPROM.COM of J. Biba, no document of it survives: 18 PROGRAM =
+//   Vpp, 20 CS/WE = 12 V while NOT PC7 is H else 0 V, 19 VDD +12 V and 21 VBB -5 V always there, assumption).
 // - Pin levels: an 8255 pin set as input leaves the line floating; lines with an LS-TTL input (PA10, PA11,
 //   PC4-7, PD0-7) are H, PA0-9 go only to MOS inputs and are taken as H too (assumption). Several drivers on
 //   PD: wired AND, a warning in the log once per kind. A RAM write with PA0-9 floating (after /RES until the
 //   first control word) is not modelled: the address is not determined.
-// - Programming pulse: measured in bus time; PD is sampled while it lasts (AND), the write that ends it does
-//   not count. A pulse of 1 ms or longer programs (cell AND data), a shorter one not (assumption: the
-//   threshold of a real chip is unknown). One summary per programming run in the log: the run ends when Vpp has
-//   been off 25 V for 0.5 s of bus time (DSE.COM drops it around every pulse to verify the byte), on /RES or when
-//   the EPROM changes.
+// - Programming pulse: measured in bus time; PD is sampled while it lasts (AND of the stretches of PD at least
+//   as long as the shortest pulse that programs), the write that ends it does not count. A pulse of 1 ms or
+//   longer programs a 2716 / 2732 (cell AND data), a shorter one not (assumption: the threshold of a real chip
+//   is unknown); a 2708 from 0.1 ms (its data sheets: 0.1-1 ms in N loops, N x width >= 100 ms; longer pulses
+//   and repeated pulses on one word program too, with a warning). One summary per programming run in the log:
+//   the run ends when Vpp has been off 25 V for 0.5 s of bus time (DSE.COM drops it around every pulse to verify
+//   the byte), on /RES or when the EPROM changes.
 // - DSE.DOC wants the programming socket empty during S and R: a 2716 with 0 V on Vpp and /CE low while the RAM is
 //   used gives a warning in the log once (the emulator reads the RAM right, the real board may not).
 #include <stdint.h>
@@ -62,15 +66,15 @@ public:
     uint8_t pins_b() override;
     uint8_t pins_c() override;
 
-    enum { CABLE_2716 = 0, CABLE_2732 = 1, CABLE_DUAL = 2 };   // x2_cable
+    enum { CABLE_2716 = 0, CABLE_2732 = 1, CABLE_DUAL = 2, CABLE_2708 = 3 };   // x2_cable
     enum { VPP_PIN50 = 0, VPP_CONVERTER = 1, VPP_NONE = 2 };    // vpp
 
     // The window of the programmer, MCP: put an EPROM image into the socket (a file of media/ through its working copy, a dump
     // of roms/ through a copy in work/dse-1/roms/), take it out. The same file again keeps what was programmed.
     bool insert(const std::string& image, std::string& err);
     void eject(void);
-    // A new blank EPROM (all FFh, 2716 or 2732) for insert(): a blank `dir`/eprom_N.bin of that size not in a socket
-    // (in_use: the full paths of the EPROMs in the sockets), else a new file; rel = its path
+    // A new blank EPROM (all FFh, 2708, 2716 or 2732) for insert(): a blank `dir`/eprom_N.bin of that size not in a
+    // socket (in_use: the full paths of the EPROMs in the sockets), else a new file; rel = its path
     static bool new_blank(int type, const char* dir, const std::vector<std::string>& in_use, std::string& rel,
                           std::string& err);
     // The copy a dump of roms/ is used through, work/dse-1/roms/<its path in roms/> (the full path; "" for other
@@ -93,7 +97,8 @@ public:
     bool onla(void) const { return (regv & 0x04) != 0; }
     bool onld(void) const { return (regv & 0x08) != 0; }
     int cable(void) const { return x2_cable; }
-    int socket_wiring(void) const;      // CABLE_2716 or CABLE_2732: how the chip in the socket is wired
+    int socket_wiring(void) const;      // CABLE_2716, CABLE_2732 or CABLE_2708: how the chip in the socket is wired
+    int socket_type(void) const;        // the EPROM type the socket is wired for (Eprom27::T2716...)
     double last_pulse_ms(void) const;   // the last programming pulse (0 = none yet)
     bool pulse_on(void) const { return pulse_active; }
 
@@ -101,7 +106,7 @@ public:
     // when it ends)
     struct Run {
         bool active = false;
-        uint32_t pulses = 0;            // 1 ms or longer: programmed
+        uint32_t pulses = 0;            // 1 ms or longer (2708: 0.1 ms): programmed
         uint32_t short_pulses = 0;      // shorter: did not program
         uint64_t min_t = 0, max_t = 0;  // the shortest / longest programming pulse (bus time)
         uint32_t bytes = 0;             // cells that got a programming pulse
@@ -112,6 +117,13 @@ public:
     // emulator hint: the program read the 2732 in its 2716 mode (5 V on OE/Vpp, the outputs off, FFh) - "2732?"
     // answered N; cleared by a right read and by another EPROM
     bool hint_2716_mode(void) const { return read_2716_mode; }
+    // emulator hint: a 2708 got a programming pulse longer than 1 ms (a routine for a 2716: EPROM.COM wants type 0);
+    // cleared by a pulse of 1 ms or shorter and by another EPROM
+    bool hint_2708_long(void) const { return long_2708; }
+    // the shortest pulse that programs the EPROM in the socket (s), the pulses of a byte added up should be in
+    // byte_min..byte_max ms (0 = no upper limit)
+    double min_pulse_s(void) const;
+    void byte_limits(double& lo, double& hi) const;
 
 private:
     // the levels of the inner buses and the socket after the last write
@@ -132,6 +144,12 @@ private:
         W_PULSE_ADDR = 12,              // the address changed during a pulse
         W_SIM_EPROM = 13,               // the RAM used with a 2716 at Vpp 0 V and /CE low in the socket (DSE.DOC)
         W_2732_AS_2716 = 14,            // a 2732 read with 5 V on OE/Vpp: the program in its 2716 mode
+        W_12V_A10 = 15, W_12V_OE = 16, W_M5V_P21 = 17,   // a 2716 / 2732 in the cable for a 2708
+        W_VBB_PLUS = 18, W_25V_CSWE = 19,                // a 2708 in the cable for a 2716 / 2732
+        W_2708_PROG_CS = 20,            // 25 V on PROGRAM of a 2708 while CS/WE is not at 12 V
+        W_2708_READ_5V = 21,            // a 2708 read with 5 V on PROGRAM (the data sheets: below VCC)
+        W_2708_LONG = 22,               // a 2708 pulse longer than 1 ms
+        W_2708_REPEAT = 23,             // pulses on one word of a 2708 with no other word in between
     };
 
     Lines lines(void);
@@ -139,6 +157,7 @@ private:
     void update(void);                  // after every write and reset: RAM write, pulses, warnings
     void warn_once(int bit, const char* fmt, ...);
     void pulse_end(void);
+    void segment_end(uint64_t now);     // the stretch of PD in a pulse ends: AND it when long enough
     void run_end(void);
     void take_out(void);                // the chip leaves the socket (written back when programmed)
     bool read_image(const std::string& image, Eprom27& to, std::string& err);
@@ -157,7 +176,10 @@ private:
     bool pulse_active = false;
     uint64_t pulse_start = 0;
     uint16_t pulse_addr = 0;
-    uint8_t pulse_data = 0xFF;          // PD while it lasts (AND)
+    uint8_t pulse_data = 0xFF;          // PD while it lasts (AND of the stretches long enough)
+    uint64_t seg_start = 0;             // the stretch of PD in the pulse: since when, which
+    uint8_t seg_pd = 0xFF;
+    int32_t prev_cell = -1;             // the cell of the previous programming pulse of the run (2708: repeats)
     uint64_t last_pulse = 0;            // length of the last one (bus time)
     uint8_t last_vpp = EPL_L;
     uint64_t vpp_off = 0;               // when Vpp left 25 V (bus time): the run ends 0.5 s later
@@ -165,4 +187,5 @@ private:
     std::vector<uint32_t> run_us;       // per cell: the programming pulses of this run added up (us)
     uint32_t warned = 0;
     bool read_2716_mode = false;        // the last read of a 2732 found 5 V on OE/Vpp (hint_2716_mode)
+    bool long_2708 = false;             // the last programming pulse of a 2708 was longer than 1 ms (hint_2708_long)
 };

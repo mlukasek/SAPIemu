@@ -1811,11 +1811,14 @@ static const ParamOption k_dse1_cable[] = {
       "pro 2732, upravený podle DSE.DOC (21 = PA11, 18 = /CE, 20 = OE/Vpp)" },
     { "\"dual\"", "two sockets 2716 + 2732 (replica; the EPROM picks its socket)",
       "dvě patice 2716 + 2732 (replika; EPROM si vybere svou patici)" },
+    { "\"2708\"", "for 2708, adapter after EPROM.COM of J. Biba (reconstructed: 18 = Vpp, 20 = 12 V / 0 V, +12 V, -5 V)",
+      "pro 2708, adaptér podle EPROM.COM J. Bíby (rekonstrukce: 18 = Vpp, 20 = 12 V / 0 V, +12 V, −5 V)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_dse1_eproms[] = {
     { "\"media/dse-1/eprom_2716.bin\"", "Blank 2716 (2 KB, all FFh)", "Prázdná 2716 (2 KB, celá FFh)" },
     { "\"media/dse-1/eprom_2732.bin\"", "Blank 2732 (4 KB, all FFh)", "Prázdná 2732 (4 KB, celá FFh)" },
+    { "\"media/dse-1/eprom_2708.bin\"", "Blank 2708 (1 KB, all FFh; cable for 2708)", "Prázdná 2708 (1 KB, celá FFh; kabel pro 2708)" },
     { "\"\"", "socket empty", "patice prázdná" },
     { nullptr, nullptr, nullptr },
 };
@@ -1828,8 +1831,10 @@ static const CardParam k_dse1[] = {
     { "vpp", PK_CHOICE, "Programming voltage Vpp (variant)", "Programovací napětí Vpp (provedení)", "\"pin50\"", k_dse1_vpp, 0, 0 },
     { "x2_cable", PK_CHOICE, "Programming cable X2", "Programovací kabel X2", "\"2716\"", k_dse1_cable, 0, 0 },
     { "eprom", PK_FILE,
-      "EPROM in the socket of X2 (.bin: 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, an assumption)",
-      "EPROM v patici X2 (.bin: 2048 B = 2716, 4096 B = 2732; programuje pulz od 1 ms, předpoklad)",
+      "EPROM in the socket of X2 (.bin: 1024 B = 2708, 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, "
+      "an assumption; a 2708 from 0.1 ms, a byte should get 100 ms in all)",
+      "EPROM v patici X2 (.bin: 1024 B = 2708, 2048 B = 2716, 4096 B = 2732; programuje pulz od 1 ms, předpoklad; 2708 "
+      "od 0,1 ms, bajt má dostat celkem 100 ms)",
       "\"media/dse-1/eprom_2716.bin\"", k_dse1_eproms, 0, 0 },
     { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },

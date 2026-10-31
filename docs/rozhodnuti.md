@@ -3579,3 +3579,49 @@ nevím jestli tenhle programátor uměl. LED prog udělej červenou a MAP třeba
   2716: na otázku „2732?“ odpovězte A“ (pomůcka emulátoru, krabička nic neřekne; zmizí po správném čtení).
 - **Nová 2716 / Nová 2732 použijí znovu prázdný `eprom_N.bin`** téže velikosti, který není v patici (autor souhlasil;
   ve `work/dse-1/` jich po zkoušení bylo 44). Nový soubor vznikne, jen když žádný prázdný není.
+- **2708 a DSE.COM:** od 2026-10-31 emulované, viz další záznam.
+
+## 2026-10-31 – 2708 a DSE.COM
+
+Autor (2026-10-31) k návrhům po rozboru: „DSE.COM klidně do media, je to 40 let a SAPI nikdo neřeší, natož pak
+v bývalém Československu, kde se software kopíroval úplně volně v té době, 2708 je dobrý nápad, pojď to přidat.“
+Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 nevím, jestli tenhle programátor uměl.“
+
+- **Kdo 2708 na DSE-1 programoval:** Tesla ne (návod: „Typy simulovaných a programovaných EPROM: 2716, 2732“, program
+  Tesla se ptá jen `2732?`, SIMPROG a DSE.COM znají jen 2716 a 2732). Umí to **EPROM.COM J. Bíby V130786** (typ 0,
+  ve starší verzi „NAP170386“ ještě není), zdroják `SAPIMAN\SAPI1_ARCHIV\ze SAPI\ZDRMOJE\EPROM.txt` se přeloží bajt
+  po bajtu na EPROM.COM ze služební diskety. Pulz dává na lince Vpp (F4 = 33h → 30h), PC6 nepoužívá, při programování
+  PC = 0, při čtení PC7 = 1 a F4 = 00h.
+- **Kabel X2 pro 2708 je rekonstrukce** (žádný dokument se nenašel, repliky Petra 2708 nemají): vývod 18 PROGRAM = Vpp,
+  20 CS/WE = X2.12 (NOT PC7) přes převodník na 12 V / 0 V, 19 VDD +12 V a 21 VBB −5 V zvenku, v emulaci pořád
+  zapnuté (předpoklad). Nový parametr `x2_cable: "2708"` vedle `2716`, `2732` a `dual` (dvě patice 2716 + 2732 zůstaly,
+  2708 v nich jde do patice pro 2716). Otázky na HW (zapojení CS/WE, odkud +12 V a −5 V, Vpp 26 V, tvar pulzu, takt
+  J. Bíby) jsou Nejasnosti 13–20 v `docs/desky/DSE-1.md`.
+- **Pravidlo programování 2708 (A), bez přísného režimu** jako u 2716 (2026-10-30): pulz od 0,1 ms programuje (buňka
+  AND data), kratší ne. Pulz nad 1 ms naprogramuje a jednou varuje (mimo katalog), okno ukáže pomůcku „2708 dostává
+  pulzy delší než 1 ms: EPROM.COM typ 0“. Pulzy na jedno slovo bez jiného mezi nimi varují jednou. Shrnutí varuje,
+  když bajt dostal méně než 100 ms (N × šířka ≥ 100 ms z katalogů Oki MSM2708AS a NTE2708). Přísné pravidlo (B, bit se
+  překlopí až po 100 ms) zamítnuté: potřebovalo by počitadla pro každý bit, EPROM.COM na 4 MHz (53 ms) by nenaprogramoval
+  nic a PGM-2 té doby dával jen 52,5 ms na bajt. Skutečnou výdrž MHB2708C neznáme (Nejasnost 15).
+- **Úseky dat v pulzu** (kvůli 2708, platí pro všechny typy): data na PD kratší než nejkratší programující pulz (1 ms,
+  2708 0,1 ms) se do buňky nepočítají. Program pro 2716 drží 25 V na PROGRAM 2708 přes adresy a mezi novou adresou
+  a novými daty jsou na pár µs data předchozího bajtu; AND přes celý pulz by je zapsal, skutečná buňka se nabíjí
+  postupně. Na 2716 a 2732 se tím nic nezměnilo (testy beze změny).
+- **Čip 2708** (`Eprom27::T2708`, soubor 1024 B, buňka A0–A9): bez +12 V nebo −5 V výstupy vypnuté; CS/WE 12 V
+  programování nebo zákaz; čtení i s 5 V na PROGRAM (mimo katalog, jednou varování); 25 V na PROGRAM při CS/WE dole nic
+  (předpoklad). Varování „could damage a real chip“ pro +12 V a −5 V na 2716 a 2732 v kabelu pro 2708 a pro 5 V nebo
+  25 V na VBB a 25 V na CS/WE 2708 v kabelech pro 2716 a 2732.
+- **Okno programátoru:** EPROM „TESLA 2708“ a „1K x 8“ (Tesla vyráběla MHB2708C, potisk ilustrační), Nová 2708,
+  upozornění na nesedící kabel s vlastní bublinou pro 2708, pomůcka u pulzů nad 1 ms. Řádky pod kresbou si teď místo
+  počítají (dvě řady tlačítek v češtině, upozornění), kresba se podle nich zmenší. Prázdný originál
+  `media/dse-1/eprom_2708.bin` (1024 B FFh), MCP `dse1` `new: 2708`. Kresbu napájení +12 V / −5 V do krabičky jsem
+  nepřidal (nevíme, jak adaptér vypadal).
+- **DSE.COM J. Hlaváče do `media/`** (rozhodnutí autora výše): disketa SAPIMAN `PERINA\dse.8sd` beze změny jako
+  `media/sapiman/knihovna/perina_dse.img` (jméno podle knihovny, `docs/software/SAPIMAN_diskety.md`), s DSE.DOC,
+  DSECPM.DOC, D.COM (DIRF V2.2) a X80.COM (X-FILE R. Peřiny). V `docs/vydani/souhlasy.md` jako historický software
+  bez souhlasu autorů. Spouští se v **`zps/ZPS-3_CPM64K_IMA` s DSE-1 přidanou v X8** a disketou v B: (návod kap. 12,
+  test `test_dse1_dsecom`). Novou sestavu jsem nedělal: DSE.COM běží v emulátoru bez změn, sestava ZPS-2_DSE-1 už
+  okno programátoru ukazuje a další sestava by znamenala náhled, průvodce a kategorii navíc. Když ji autor bude chtít,
+  stačí kopie `ZPS-3_CPM64K_IMA` s DSE-1 v X8 a disketou DSE v B:.
+- **Oprava popisu DSE.COM:** pulzy jsou 20 + 10 ms, a když bajt po 20 ms nesedí, 20 + 40 ms; bajty FFh přeskočí. Po
+  startu je nutné `E 0` (pracovní úsek `0000 - 0000`), po `P` pípá asi 32 s.

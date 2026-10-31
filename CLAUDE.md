@@ -49,7 +49,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     **každá karta musí mít `state()`**);
   - `cpu/`: implementace z80.h (8080 je vendorované v `third_party/i8080`, upravené o režim 8085 pro JPR-1X,
     `docs/8085.md`);
-  - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421, EPROM 2716/2732 `eprom27` pro DSE-1…)
+  - `chips/`: obvody (MHB1012, 8251, 8253, 8255, 8272, RTC 72421, EPROM 2708/2716/2732 `eprom27` pro DSE-1…)
     a přístroje (magnetofon, záznamník dat KZD-1 `kzd1`, zapisovače se společnou mechanikou `plotter`:
     Minigraf 0507 `minigraf` a XY 4130 `xy4130`, plotter z AR 1990 `ar1990` na portech JPR-1);
   - `cards/`: desky a `registry.cpp`, kde se registrují nové typy karet;
