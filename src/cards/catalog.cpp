@@ -1814,8 +1814,8 @@ static const ParamOption k_dse1_cable[] = {
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_dse1_eproms[] = {
-    { "\"media/dse-1/prazdna_2716.bin\"", "Blank 2716 (2 KB, all FFh)", "Prázdná 2716 (2 KB, celá FFh)" },
-    { "\"media/dse-1/prazdna_2732.bin\"", "Blank 2732 (4 KB, all FFh)", "Prázdná 2732 (4 KB, celá FFh)" },
+    { "\"media/dse-1/eprom_2716.bin\"", "Blank 2716 (2 KB, all FFh)", "Prázdná 2716 (2 KB, celá FFh)" },
+    { "\"media/dse-1/eprom_2732.bin\"", "Blank 2732 (4 KB, all FFh)", "Prázdná 2732 (4 KB, celá FFh)" },
     { "\"\"", "socket empty", "patice prázdná" },
     { nullptr, nullptr, nullptr },
 };
@@ -1830,7 +1830,7 @@ static const CardParam k_dse1[] = {
     { "eprom", PK_FILE,
       "EPROM in the socket of X2 (.bin: 2048 B = 2716, 4096 B = 2732; a pulse of 1 ms or longer programs, an assumption)",
       "EPROM v patici X2 (.bin: 2048 B = 2716, 4096 B = 2732; programuje pulz od 1 ms, předpoklad)",
-      "\"media/dse-1/prazdna_2716.bin\"", k_dse1_eproms, 0, 0 },
+      "\"media/dse-1/eprom_2716.bin\"", k_dse1_eproms, 0, 0 },
     { "working_copy", PK_BOOL, "Work on copies in work/", "Pracovat s kopiemi ve work/", "true", nullptr, 0, 0 },
     { nullptr, 0, nullptr, nullptr, nullptr, nullptr, 0, 0 },
 };

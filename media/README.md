@@ -244,8 +244,8 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 
 | Soubor | Obsah |
 |---|---|
-| `prazdna_2716.bin` | Prázdná (smazaná) EPROM 2716: 2048 B, všechny bajty FFh. Výchozí EPROM v patici kabelu X2 desky DSE-1 (sestava `zps/ZPS-2_DSE-1.sapi`). Emulátor programuje její pracovní kopii `work/dse-1/prazdna_2716.bin`. V okně Programátor EPROM DSE-1 ji smaže UV lampa, „…“ → Obnovit z originálu přepíše pracovní kopii originálem (u prázdné EPROM to vyjde nastejno). |
-| `prazdna_2732.bin` | Prázdná EPROM 2732: 4096 B, všechny bajty FFh. Pro kabel X2 upravený pro 2732 nebo dvě patice (`x2_cable`). |
+| `eprom_2716.bin` | Prázdná (smazaná) EPROM 2716: 2048 B, všechny bajty FFh. Výchozí EPROM v patici kabelu X2 desky DSE-1 (sestava `zps/ZPS-2_DSE-1.sapi`). Emulátor programuje její pracovní kopii `work/dse-1/eprom_2716.bin`. V okně Programátor EPROM DSE-1 ji smaže UV lampa, „…“ → Obnovit z originálu přepíše pracovní kopii originálem (u prázdné EPROM to vyjde nastejno). |
+| `eprom_2732.bin` | Prázdná EPROM 2732: 4096 B, všechny bajty FFh. Pro kabel X2 upravený pro 2732 nebo dvě patice (`x2_cable`). |
 
 Vytvořené pro SAPIemu (2026-10-30), nejsou to dumpy. Nová 2716 a Nová 2732 v okně Programátor EPROM DSE-1 vytvoří
 další prázdnou EPROM `work/dse-1/eprom_N.bin`. Návod `docs/navod-dse1.md`, deska `docs/desky/DSE-1.md`.

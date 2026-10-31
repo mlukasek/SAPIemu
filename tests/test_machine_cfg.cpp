@@ -411,7 +411,7 @@ static void test_parts(void)
         if (has_device(m, "Zapisovač XY 4130")) plotter = true;
     CHECK(plotter);
     p = parts_of("machines/zps/ZPS-2_DSE-1.sapi", false);
-    CHECK(p.size() == 6 && p[5].type == "DSE-1" && has_device(p[5], "EPROM programmer socket: prazdna_2716.bin"));
+    CHECK(p.size() == 6 && p[5].type == "DSE-1" && has_device(p[5], "EPROM programmer socket: eprom_2716.bin"));
 }
 
 static bool has_line(const std::vector<std::string>& l, const std::string& s)

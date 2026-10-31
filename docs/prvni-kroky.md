@@ -415,7 +415,7 @@ Každá sestava Základu má průvodce (Nápověda → Průvodce sestavou). Pro 
   3. `F` a `5000,50FF,55` naplní RAM, `P` (`5000`, `50FF`, `0`, klávesa, `N`) ji naprogramuje do 2716. V okně
      programátoru svítí červená LED PROG, Vpp je 25 V a pulz 50 ms, za 13 s `SHODNY OBSAH  0000 - 00FF`;
   4. `C` porovná, `T` přenese EPROM do RAM, `S` a `R` přenesou data do RAM simulátoru a zpět (ON LINE);
-  5. EPROM v patici je pracovní kopie `work\dse-1\prazdna_2716.bin`: UV lampa v okně programátoru ji smaže,
+  5. EPROM v patici je pracovní kopie `work\dse-1\eprom_2716.bin`: UV lampa v okně programátoru ji smaže,
      Nová 2716 a Nová 2732 vloží další prázdnou.
 
   Celý návod s výpisy obrazovky: `docs/navod-dse1.md`.

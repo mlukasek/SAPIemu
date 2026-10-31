@@ -204,7 +204,7 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     (Vpp vždy 0 V);
   - `x2_cable`: `2716` z výroby (výchozí), `2732` upravený podle DSE.DOC, `dual` dvě patice jako repliky (typ
     EPROM podle velikosti souboru vybere patici);
-  - `eprom`: EPROM v patici X2 jako médium (platí hned), výchozí `media/dse-1/prazdna_2716.bin`; `working_copy`.
+  - `eprom`: EPROM v patici X2 jako médium (platí hned), výchozí `media/dse-1/eprom_2716.bin`; `working_copy`.
 - **Model na úrovni signálů:** po každém zápisu do 8255 nebo registru a po resetu se z úrovní vývodů spočítá
   vnitřní sběrnice. Tak zvládne všechny programy i s jejich zvláštnostmi bez zvláštních případů.
   - Vývod 8255 v režimu vstupu plave. PA10, PA11, PC4–PC7 a PD jsou v H (vstupy LS-TTL), **PA0–PA9 také v H
@@ -268,7 +268,7 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     ostatní média (dočasný soubor a přejmenování);
   - vložení téhož souboru znovu (Vložit…, MCP `insert`) ponechá, co se do EPROM naprogramovalo: obsah se nejdřív
     uloží a v patici zůstane;
-  - prázdné originály `media/dse-1/prazdna_2716.bin` a `prazdna_2732.bin` (celé FFh). V okně programátoru Vložit…
+  - prázdné originály `media/dse-1/eprom_2716.bin` a `eprom_2732.bin` (celé FFh). V okně programátoru Vložit…
     (nebo soubor `.bin` přetažený na okno), Vysunout, Nová 2716, Nová 2732 (`work/dse-1/eprom_N.bin`), „…“ → Obnovit
     z originálu a smazání UV lampou. Ochrana proti zápisu není potřeba, bez 25 V EPROM nic nezmění;
   - výměna EPROM při Vpp ≠ 0 V zapíše do logu varování (skutečnou EPROM by to mohlo zničit).

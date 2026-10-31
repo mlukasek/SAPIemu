@@ -80,9 +80,9 @@ nevíme (fotka chybí), kresba je volná. Pod kresbou jsou tlačítka a stav des
 
 Vpp, ON LINE a délka pulzu jsou údaje emulátoru, krabička sama má jen dvě LED.
 
-V sestavě je prázdná 2716. Emulátor pracuje s její pracovní kopií `work\dse-1\prazdna_2716.bin`, originál
+V sestavě je prázdná 2716. Emulátor pracuje s její pracovní kopií `work\dse-1\eprom_2716.bin`, originál
 v `media\dse-1` se nemění. Naprogramované bajty se do kopie ukládají průběžně, jako u ostatních médií. Štítek
-naprogramované EPROM proto nese jméno `prazdna_2716`: je to jméno souboru, ne obsahu.
+naprogramované EPROM nese jméno souboru (`eprom_2716`, u Nové 2716 `eprom_1` a dál).
 
 ## 3. Kontrola smazání: K
 

@@ -41,7 +41,7 @@ bool Dse1::configure(const json& cfg, std::string& err)
     if (!cfg_bool(cfg, "working_copy", work_copy, true, err)) return false;
     std::string img;
     if (cfg.contains("eprom") && cfg["eprom"].is_null()) img.clear();   // no EPROM in the socket
-    else if (!cfg_string(cfg, "eprom", img, "media/dse-1/prazdna_2716.bin", err)) return false;
+    else if (!cfg_string(cfg, "eprom", img, "media/dse-1/eprom_2716.bin", err)) return false;
     ppi.dev = this;
     power_on_fill(ram, sizeof(ram), 0);
     chip.unload();

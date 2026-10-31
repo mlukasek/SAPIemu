@@ -415,7 +415,7 @@ pracoviště na kabelu X2: voltmetr Metra M1T 330 a zdroj Tesla BS 525.
 F0h ve slotu X6 (místo BDK-1). REM-1 má spojený soubor `roms/dse-1/MIKOS_V4.0F_DSE_1000.bin`: Monitor V4.0F
 s MIKOSem a od 1000h program DSE Ing. P. Navrátila (`G1000`). Parametry DSE-1: `base` (S1), `jp1_map` (osazená),
 `vpp` (`pin50`), `x2_cable` (`2716`, `2732`, `dual`) a `eprom`, v patici prázdná 2716 (pracovní kopie
-`work/dse-1/prazdna_2716.bin`). Okno Programátor EPROM DSE-1 se otevře samo (od 2026-10-31, dřív blok v okně
+`work/dse-1/eprom_2716.bin`). Okno Programátor EPROM DSE-1 se otevře samo (od 2026-10-31, dřív blok v okně
 Média). `docs/desky/DSE-1.md`, `docs/navod-dse1.md`.
 
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
