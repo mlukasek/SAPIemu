@@ -1202,7 +1202,12 @@ json t_dse1(EmuHost& h, const json& a)
         else if (v.is_string() && !parse_number(v.get<std::string>(), type)) type = 0;
         std::string rel;
         if (type != Eprom27::T2716 && type != Eprom27::T2732) return error_result("new must be 2716 or 2732");
-        if (!Dse1::new_blank((int)type, "work/dse-1", rel, err) || !m.set_live_param(d, "eprom", json(rel), err))
+        std::vector<std::string> in_use;   // the EPROMs in the sockets are not taken as the blank one
+        for (auto& c : m.cards)
+            if (Dse1* x = dynamic_cast<Dse1*>(c.get()))
+                if (x->eprom().loaded()) in_use.push_back(x->eprom().path);
+        if (!Dse1::new_blank((int)type, "work/dse-1", in_use, rel, err) ||
+            !m.set_live_param(d, "eprom", json(rel), err))
             return error_result(err);
     }
     if (a.contains("insert")) {   // relative to the data root: media/ and roms/ go through their working copies

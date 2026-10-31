@@ -86,7 +86,8 @@ bool Dse1::read_image(const std::string& image, Eprom27& to, std::string& err)
     return true;
 }
 
-bool Dse1::new_blank(int type, const char* dir, std::string& rel, std::string& err)
+bool Dse1::new_blank(int type, const char* dir, const std::vector<std::string>& in_use, std::string& rel,
+                     std::string& err)
 {
     size_t n = type == Eprom27::T2716 ? 2048 : type == Eprom27::T2732 ? 4096 : 0;
     if (!n) {
@@ -98,7 +99,17 @@ bool Dse1::new_blank(int type, const char* dir, std::string& rel, std::string& e
         snprintf(b, sizeof(b), "/eprom_%d.bin", i);
         std::string r = std::string(dir) + b;
         std::string p = data_path(r);
-        if (file_exists(p)) continue;
+        if (file_exists(p)) {   // a blank one of that size not in a socket is used again (not a new file each time)
+            bool used = false;
+            for (const std::string& u : in_use) used = used || data_relative(u) == data_relative(p);
+            std::vector<uint8_t> old;
+            if (used || !file_read_all(p, old) || old.size() != n) continue;
+            bool blank = true;
+            for (uint8_t x : old) blank = blank && x == 0xFF;
+            if (!blank) continue;
+            rel = r;
+            return true;
+        }
         std::vector<uint8_t> d(n, 0xFF);   // erased: all bits 1
         make_dirs(path_dir(p));
         if (!file_write_safe(p, d.data(), d.size())) {
@@ -167,6 +178,7 @@ bool Dse1::insert(const std::string& image, std::string& err)
         LOGW("%s: the EPROM in the socket changed with Vpp %d V (a real chip could be damaged)", name.c_str(), vpp_volts());
     if (pulse_active) pulse_end();
     run_end();
+    read_2716_mode = false;
     if (chip.loaded() && data_relative(chip.path) == data_relative(e.path)) {
         // the same file again: the chip as programmed so far, not the file as it was read (saved first)
         flush();
@@ -187,6 +199,7 @@ void Dse1::eject(void)
         LOGW("%s: the EPROM taken out of the socket with Vpp %d V (a real chip could be damaged)", name.c_str(), vpp_volts());
     if (pulse_active) pulse_end();
     run_end();
+    read_2716_mode = false;
     take_out();
     update();
 }
@@ -442,6 +455,19 @@ bool Dse1::io_read(uint8_t port, uint8_t& data)
     if ((port & 0xF0) != base || (port & 0x08)) return false;
     // base+3 (the control word) and the register: nothing drives the inner bus, the 8286 reads FFh (assumption)
     data = (port & 0x04) ? 0xFF : ppi.read(port & 3);
+    if ((port & 0x07) == 0 && chip.type == Eprom27::T2732) {   // the program reads the EPROM (PA as input)
+        Lines l = lines();
+        if (!(l.drivers & DRV_PPI) && l.pins.p18 == EPL_L) {
+            int md = chip.mode(l.pins);
+            if (md == EPM_OUTPUT_OFF && l.pins.p20 == EPL_H) {   // 5 V on OE/Vpp: its 2716 mode (11h)
+                read_2716_mode = true;
+                warn_once(W_2732_AS_2716, "a 2732 read with 5 V on OE/Vpp (pin 20): its outputs are off, it reads FFh. "
+                          "The program reads it as a 2716: answer A to \"2732?\" (an emulator hint)");
+            } else if (md == EPM_READ) {
+                read_2716_mode = false;
+            }
+        }
+    }
     return true;
 }
 
@@ -480,6 +506,7 @@ std::vector<std::string> Dse1::warnings(void) const
     if (warned & (1u << W_PULSE_ADDR)) w.push_back("the address changed during a programming pulse");
     if (warned & (1u << W_SIM_EPROM))
         w.push_back("simulator RAM used with a 2716 in the socket (DSE.DOC: empty for S and R)");
+    if (warned & (1u << W_2732_AS_2716)) w.push_back("a 2732 read as a 2716 (5 V on OE/Vpp): answer A to \"2732?\"");
     return w;
 }
 

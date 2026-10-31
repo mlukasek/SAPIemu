@@ -3573,3 +3573,9 @@ nevím jestli tenhle programátor uměl. LED prog udělej červenou a MAP třeba
   Štítek nese jméno souboru, takže výchozí EPROM sestavy má teď na štítku `eprom_2716`, Nová 2716 dál `eprom_1`.
 - **Potisk EPROM jen „TESLA 2716“ a „intel 2732“** (dřív „MHB2716C“ a „D2732“). Autor: přesné označení je na kresbě
   malinké a skutečné MHB2716C se kresba stejně nepodobá, když je ilustrační, stačí „2716“.
+- **2732 a odpověď N na „2732?“** (autor: „2732 mi nejde naprogramovat, ani správným kabelem“): program v režimu pro
+  2716 2732 v kabelu pro 2732 naprogramuje, kontrola ale čte s 5 V na OE/Vpp a dostane FFh, takže hlásí ROZDILNY.
+  Je to chování podle vývodů, emulátor ho nemění. Okno programátoru a jednou i log teď upozorní „2732 se čte jako
+  2716: na otázku „2732?“ odpovězte A“ (pomůcka emulátoru, krabička nic neřekne; zmizí po správném čtení).
+- **Nová 2716 / Nová 2732 použijí znovu prázdný `eprom_N.bin`** téže velikosti, který není v patici (autor souhlasil;
+  ve `work/dse-1/` jich po zkoušení bylo 44). Nový soubor vznikne, jen když žádný prázdný není.

@@ -69,8 +69,10 @@ public:
     // of roms/ through a copy in work/dse-1/roms/), take it out. The same file again keeps what was programmed.
     bool insert(const std::string& image, std::string& err);
     void eject(void);
-    // A new blank EPROM (all FFh, 2716 or 2732) as a new file `dir`/eprom_N.bin; rel = its path for insert()
-    static bool new_blank(int type, const char* dir, std::string& rel, std::string& err);
+    // A new blank EPROM (all FFh, 2716 or 2732) for insert(): a blank `dir`/eprom_N.bin of that size not in a socket
+    // (in_use: the full paths of the EPROMs in the sockets), else a new file; rel = its path
+    static bool new_blank(int type, const char* dir, const std::vector<std::string>& in_use, std::string& rel,
+                          std::string& err);
     // The copy a dump of roms/ is used through, work/dse-1/roms/<its path in roms/> (the full path; "" for other
     // images): "..." -> Restore from the original in the window of the programmer restores it as the working copies
     // of media/
@@ -107,6 +109,9 @@ public:
     };
     const Run& run(void) const { return runs; }
     std::vector<std::string> warnings(void) const;   // the warnings logged so far (once each)
+    // emulator hint: the program read the 2732 in its 2716 mode (5 V on OE/Vpp, the outputs off, FFh) - "2732?"
+    // answered N; cleared by a right read and by another EPROM
+    bool hint_2716_mode(void) const { return read_2716_mode; }
 
 private:
     // the levels of the inner buses and the socket after the last write
@@ -126,6 +131,7 @@ private:
         W_25V_P18 = 9, W_25V_P20 = 10, W_25V_P21 = 11,
         W_PULSE_ADDR = 12,              // the address changed during a pulse
         W_SIM_EPROM = 13,               // the RAM used with a 2716 at Vpp 0 V and /CE low in the socket (DSE.DOC)
+        W_2732_AS_2716 = 14,            // a 2732 read with 5 V on OE/Vpp: the program in its 2716 mode
     };
 
     Lines lines(void);
@@ -158,4 +164,5 @@ private:
     Run runs;
     std::vector<uint32_t> run_us;       // per cell: the programming pulses of this run added up (us)
     uint32_t warned = 0;
+    bool read_2716_mode = false;        // the last read of a 2732 found 5 V on OE/Vpp (hint_2716_mode)
 };

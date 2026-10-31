@@ -687,7 +687,12 @@ static float draw_box(UiState& ui, Dse1* d)
 static void dse_new(UiState& ui, Dse1* d, int type)
 {
     std::string rel, err;
-    if (Dse1::new_blank(type, "work/dse-1", rel, err)) media_set(ui, d, 0, rel);
+    std::vector<std::string> in_use;   // the EPROMs in the sockets are not taken as the blank one
+    if (Machine* m = ui.host->machine())
+        for (auto& c : m->cards)
+            if (Dse1* x = dynamic_cast<Dse1*>(c.get()))
+                if (x->eprom().loaded()) in_use.push_back(x->eprom().path);
+    if (Dse1::new_blank(type, "work/dse-1", in_use, rel, err)) media_set(ui, d, 0, rel);
     else ui_notice(ui, false, tr_core(err));
 }
 
@@ -729,6 +734,16 @@ static void draw_controls(UiState& ui, Dse1* d)
         ImGui::TextDisabled("%s", t);
     }
     int wired = d->socket_wiring() == Dse1::CABLE_2732 ? Eprom27::T2732 : Eprom27::T2716;
+    if (has && d->hint_2716_mode()) {   // emulator hint: "2732?" answered N, the check cannot read the 2732
+        const char* why = tr("The program read the 2732 with 5 V on its OE/Vpp pin (its mode for a 2716: the "
+                             "register 11h). With 5 V there the outputs of the 2732 are off and it reads FFh, so the "
+                             "check says ROZDILNY although the EPROM was programmed right (in the cable for a 2732 "
+                             "the program also programs a 2732 in its 2716 mode). Answer A to the question \"2732? "
+                             "A=ANO\": then it reads with 0 V on OE/Vpp. The real cable box says nothing: this is a "
+                             "hint of the emulator.");
+        ImGui::TextColored(theme().warn, "%s", tr("The 2732 is read as a 2716: answer A to \"2732?\""));
+        if (ImGui::IsItemHovered()) tip(why);
+    }
     if (has && e.type != wired) {   // one line, the change of the cable beside it, why in the tooltip
         char b[128];
         snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d"), e.type, wired);

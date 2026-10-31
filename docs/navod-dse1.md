@@ -70,7 +70,7 @@ nevíme (fotka chybí), kresba je volná. Pod kresbou jsou tlačítka a stav des
 | Karta | Jen v sestavě s víc deskami DSE-1: vybere desku, jejíž kabel okno ukazuje (i pro soubor přetažený na okno). |
 | EPROM v patici | Soubor EPROM v patici a její typ (2716, 2732). |
 | Vložit… | Vloží jinou EPROM: soubor `.bin` s 2048 B (2716) nebo 4096 B (2732). Soubor jde také přetáhnout myší na okno. |
-| Nová 2716, Nová 2732 | Vloží novou prázdnou EPROM (všechny bity 1, jako po smazání UV světlem) `work\dse-1\eprom_N.bin`. |
+| Nová 2716, Nová 2732 | Vloží novou prázdnou EPROM (všechny bity 1, jako po smazání UV světlem) `work\dse-1\eprom_N.bin`. Prázdný soubor téže velikosti, který není v patici, se použije znovu, nový vznikne, jen když žádný není. |
 | Vysunout | EPROM vytáhne z patice. |
 | … → Obnovit z originálu | Pracovní kopii přepíše originálem. |
 | Uložit RAM simulátoru… | 4 KB RAM simulátoru do souboru `.bin`. Pomoc emulátoru, skutečná deska to neumí. |
@@ -296,6 +296,11 @@ zvedne).
 
    SHODNY OBSAH  0900 - 09FF
    ```
+
+**Na otázku `2732?` odpovězte A.** S odpovědí N program 2732 naprogramuje (v kabelu pro 2732 jde PC6 na /CE a 25 V
+na OE/Vpp), ale kontrola čte s 5 V na OE/Vpp: výstupy 2732 jsou vypnuté, čte se FFh a vyjde `ROZDILNY OBSAH`, i když
+data v EPROM jsou. Okno programátoru pak žlutě upozorní „2732 se čte jako 2716: na otázku „2732?“ odpovězte A“
+(pomůcka emulátoru, skutečná krabička nic neřekne).
 
 V logu je u 2732 navíc `1 pulse shorter than 1 ms did not program`. To je krátký pulz s daty FFh těsně před
 programováním (program Tesla zapne 25 V dřív než řídicí slovo), nic nezmění.

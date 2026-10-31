@@ -237,11 +237,15 @@ static void test_2732(void)
         CHECK_EQ(d->eprom().type, 2732);
         CHECK_EQ(eprom_read(m, 0xF0, 0x10, 0x123), lo32(0x123));
         CHECK_EQ(eprom_read(m, 0xF0, 0x10, 0x923), hi32(0x123));
+        CHECK(!d->hint_2716_mode());
         CHECK_EQ(eprom_read(m, 0xF0, 0x11, 0x123), 0xFF);
+        CHECK(d->hint_2716_mode());                        // read in the 2716 mode of the program ("2732?" N)
         eprom_program(m, 0xF0, 0x900, 0x3C, 50);           // F0h AND 3Ch
         CHECK_EQ(d->eprom().data[0x900], 0x30);
         CHECK_EQ(eprom_read(m, 0xF0, 0x10, 0x900), 0x30);
-        CHECK(d->warnings().empty());
+        CHECK(!d->hint_2716_mode());                       // a right read clears it
+        std::vector<std::string> w = d->warnings();         // in the log once
+        CHECK(w.size() == 1 && w[0].find("as a 2716") != std::string::npos);
     }
     // a 2732 in the cable as supplied (for 2716): A11 = Vpp, so 11h reads the upper 2 KB, 00h the lower one;
     // it never programs (OE/Vpp gets only logic levels) and 25 V goes to A11
@@ -508,7 +512,7 @@ static void test_media(void)
     CHECK(err.find("2048") != std::string::npos);
     CHECK_EQ(d->eprom().type, 2716);
     std::string rel;
-    CHECK(Dse1::new_blank(2732, "work/test", rel, err));
+    CHECK(Dse1::new_blank(2732, "work/test", {}, rel, err));
     CHECK(m.set_live_param(d, "eprom", json(rel), err));
     CHECK_EQ(d->eprom().type, 2732);
     CHECK_EQ(d->eprom().data.size(), 4096);
@@ -588,6 +592,24 @@ static void test_same_file(void)
 }
 
 // The state in the middle of a pulse: the copy runs on and programs the same
+// New 2716 / New 2732: a blank eprom_N.bin of that size not in a socket is used again, else a new file
+static void test_new_blank(void)
+{
+    const char* dir = "work/test/dse1_new";
+    std::string r1, r2, r3, r4, err;
+    CHECK(Dse1::new_blank(2716, dir, {}, r1, err));
+    CHECK(r1 == std::string(dir) + "/eprom_1.bin");
+    CHECK(Dse1::new_blank(2716, dir, {}, r2, err) && r2 == r1);                   // blank, not in a socket
+    CHECK(Dse1::new_blank(2716, dir, { data_path(r1) }, r3, err) && r3 != r1);    // in the socket: a new one
+    CHECK(Dse1::new_blank(2732, dir, {}, r4, err) && r4 != r1 && r4 != r3);       // another size
+    std::vector<uint8_t> d(2048, 0xFF);
+    d[5] = 0x12;
+    CHECK(file_write_all(data_path(r1), d.data(), d.size()));                    // programmed: not blank
+    std::string r5;
+    CHECK(Dse1::new_blank(2716, dir, {}, r5, err) && r5 == r3);
+    for (const std::string& r : { r1, r3, r4 }) file_remove(data_path(r));
+}
+
 static void test_state(void)
 {
     Machine m1;
@@ -934,6 +956,7 @@ int main(void)
         test_media();
         test_erase();
         test_same_file();
+        test_new_blank();
         test_state();
         file_remove(data_path(F2716));
         file_remove(data_path(F2732));

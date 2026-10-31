@@ -269,7 +269,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   - vložení téhož souboru znovu (Vložit…, MCP `insert`) ponechá, co se do EPROM naprogramovalo: obsah se nejdřív
     uloží a v patici zůstane;
   - prázdné originály `media/dse-1/eprom_2716.bin` a `eprom_2732.bin` (celé FFh). V okně programátoru Vložit…
-    (nebo soubor `.bin` přetažený na okno), Vysunout, Nová 2716, Nová 2732 (`work/dse-1/eprom_N.bin`), „…“ → Obnovit
+    (nebo soubor `.bin` přetažený na okno), Vysunout, Nová 2716, Nová 2732 (`work/dse-1/eprom_N.bin`: znovu se použije
+    prázdný soubor téže velikosti, který není v patici, nový vznikne, jen když žádný není), „…“ → Obnovit
     z originálu a smazání UV lampou. Ochrana proti zápisu není potřeba, bez 25 V EPROM nic nezmění;
   - výměna EPROM při Vpp ≠ 0 V zapíše do logu varování (skutečnou EPROM by to mohlo zničit).
 - **Stav** (`state()`): 8255, registr, 4 KB RAM, rozběhnutý pulz (začátek, adresa, data), statistika programování
@@ -298,7 +299,9 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     „UV · SMAZAT“, vypnutá nemá paprsky (pod myší slabé, jde na ni kliknout);
   - **víc desek DSE-1** v sestavě (katalog počet neomezuje, základ portů je na přepínači): nahoře v okně je výběr
     karty, okno a soubor přetažený na okno patří vybrané;
-  - pod kresbou: EPROM v patici (soubor a typ), varování, když typ nesedí se zapojením kabelu, Vložit…, Nová 2716,
+  - pod kresbou: EPROM v patici (soubor a typ), varování, když typ nesedí se zapojením kabelu (tlačítko **Změnit
+    kabel X2…** otevře konfigurátor na kartě), **pomůcka emulátoru**, když program čte 2732 v režimu pro 2716 (5 V na
+    OE/Vpp, výstupy vypnuté, čte se FFh: na otázku „2732?“ odpovědět A; zapíše se i jednou do logu), Vložit…, Nová 2716,
     Nová 2732, Vysunout, „…“ → Obnovit z originálu a **Uložit RAM simulátoru…** (4 KB do `.bin`, pomoc emulátoru,
     skutečná deska to neumí); řádek stavu: Vpp 0 / 5 / 25 V, ON LINE / OFF LINE, poslední programovací pulz v ms,
     „pulz běží“ a počet pulzů během programování. Jsou to **údaje emulátoru** (bublina to říká), krabička má jen LED;
