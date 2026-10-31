@@ -25,6 +25,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **2026-10-31 večer, kontrolní kolo před 0.7.1** (autor: „jj, začni bodem 1“): `release full` 72/72 (ZEX
+  doc i all), `check_machines.py --games` 62/62 sestav (s `cpm_dse1_fdc1`) a 12/12 her a dem, Linux ve WSL 68/68
+  bez varování GCC (po `4fc3da8`). Do vydání zbývá: připomínky testerů, `k_issues_public = true` a texty
+  „do zveřejnění“ v den vydání, zip na pokyn autora.
 - **2026-10-31, okno DSE-1: řádek stavu a velikost kresby** (autor: „…šlo by to dát na fix pozice… mění velikost
   toho programovacího přípravku“; rozhodnutí 2026-10-31 – 2708 a DSE.COM, poslední bod): položky řádku stavu stojí
   v pevných sloupcích, „Vpp 25 V“ a „pulz běží“ drží 0,25 s po posledním výskytu (počitadla karty `vpp_rises()`
