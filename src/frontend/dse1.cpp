@@ -729,13 +729,23 @@ static void draw_controls(UiState& ui, Dse1* d)
         ImGui::TextDisabled("%s", t);
     }
     int wired = d->socket_wiring() == Dse1::CABLE_2732 ? Eprom27::T2732 : Eprom27::T2716;
-    if (has && e.type != wired) {
-        char b[256];
-        snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d (cable X2): it does not read or program as it should."),
-                 e.type, wired);
-        ImGui::PushStyleColor(ImGuiCol_Text, theme().warn);
-        ImGui::TextWrapped("%s", b);
-        ImGui::PopStyleColor();
+    if (has && e.type != wired) {   // one line, the change of the cable beside it, why in the tooltip
+        char b[128];
+        snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d"), e.type, wired);
+        const char* why = tr("It does not read or program as it should. The cable X2 is supplied wired for a 2716. "
+                             "For a 2732 three wires are moved in its connector (DSE.DOC): pin 21 gets the address "
+                             "A11, pin 20 the programming voltage (OE/Vpp), pin 18 /CE. A 2732 in the cable for a "
+                             "2716 reads only its upper 2 KB (A11 is held at 1 by Vpp 5 V) and is never programmed: "
+                             "the 25 V go to A11, which could damage a real chip. A 2716 in the cable for a 2732 "
+                             "gets an address on its Vpp pin and the programming voltage on /OE. In the configurator "
+                             "choose Programming cable X2: for a 2732, or two sockets, and restart the machine (on "
+                             "the real board the cable is rewired).");
+        ImGui::TextColored(theme().warn, "%s", b);
+        if (ImGui::IsItemHovered()) tip(why);
+        const char* change = tr("Change cable X2...");
+        flow(button_w(change));
+        if (ImGui::SmallButton(change)) rack_show_card(ui, d->slot);   // the configurator at the card
+        if (ImGui::IsItemHovered()) tip(why);
     }
     if (ImGui::Button(tr("Insert..."))) tape_dialog(ui, 16, d->name);
     if (ImGui::IsItemHovered()) tip(tr("An EPROM image .bin into the socket: 2 KB = 2716, 4 KB = 2732. A file can also be dropped on this window."));

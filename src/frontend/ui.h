@@ -582,6 +582,7 @@ bool rack_set_keyboard(UiState& ui, const char* preset, std::string& err);
 nlohmann::json rack_keyboard_cfg(const nlohmann::json& old, const char* preset);
 // Open a machine description in the configurator without starting it (asks first about unsaved changes there).
 void rack_open_in_editor(UiState& ui, const std::string& path);
+void rack_show_card(UiState& ui, int slot);   // the configurator at a card of the running machine
 // Keyboard input for the focused terminal; returns true if consumed.
 bool terminal_key(UiState& ui, int sapi_code);
 bool terminal_text(UiState& ui, const char* utf8);

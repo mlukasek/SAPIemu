@@ -443,8 +443,10 @@ static const Translation k_table[] = {
     // the window of the EPROM programmer DSE-1 (dse1.cpp)
     { "EPROM in the socket:", "EPROM v patici:" },
     { "(socket empty)", "(patice prázdná)" },
-    { "A %d in the socket wired for a %d (cable X2): it does not read or program as it should.",
-      "%d v patici zapojené pro %d (kabel X2): nečte se ani neprogramuje, jak má." },
+    { "A %d in the socket wired for a %d", "%d v patici zapojené pro %d" },
+    { "Change cable X2...", "Změnit kabel X2…" },
+    { "It does not read or program as it should. The cable X2 is supplied wired for a 2716. For a 2732 three wires are moved in its connector (DSE.DOC): pin 21 gets the address A11, pin 20 the programming voltage (OE/Vpp), pin 18 /CE. A 2732 in the cable for a 2716 reads only its upper 2 KB (A11 is held at 1 by Vpp 5 V) and is never programmed: the 25 V go to A11, which could damage a real chip. A 2716 in the cable for a 2732 gets an address on its Vpp pin and the programming voltage on /OE. In the configurator choose Programming cable X2: for a 2732, or two sockets, and restart the machine (on the real board the cable is rewired).",
+      "Nečte se ani neprogramuje, jak má. Kabel X2 je z výroby zapojený pro 2716. Pro 2732 se v jeho konektoru přepojí tři vodiče (DSE.DOC): vývod 21 dostane adresu A11, vývod 20 programovací napětí (OE/Vpp), vývod 18 /CE. 2732 v kabelu pro 2716 čte jen horní 2 KB (A11 drží v jedničce Vpp 5 V) a nenaprogramuje se: 25 V jde na A11, což by skutečný čip mohlo poškodit. 2716 v kabelu pro 2732 má na vývodu Vpp adresu a na /OE programovací napětí. V konfigurátoru zvolte Programovací kabel X2: pro 2732, nebo dvě patice, a sestavu restartujte (na skutečné desce se kabel přepojí)." },
     { "A new blank EPROM (all bits 1, as erased by UV light) in work/dse-1/ goes into the socket.",
       "Do patice se vloží nová prázdná EPROM (všechny bity 1 jako po smazání UV světlem) ve work/dse-1/." },
     { "New 2716", "Nová 2716" },

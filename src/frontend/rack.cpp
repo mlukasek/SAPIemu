@@ -2451,6 +2451,19 @@ void rack_power_switch(UiState& ui)
     }
 }
 
+// A window of a device (the DSE-1 programmer): the configurator with the card of the running machine in `slot`
+// selected and its tab shown (only when the configurator shows the running machine; else just the configurator).
+void rack_show_card(UiState& ui, int slot)
+{
+    RackEditor& r = ui.rack;
+    if (editor_on_running(ui)) {
+        r.sel = slot;
+        r.tab_select = RackEditor::TAB_CARD;
+    }
+    ui.show_rack = true;
+    ui.rack_by_layout = false;   // the user's window now
+}
+
 // The browser's "Open in the configurator", --ui-open: asks first when the configurator holds unsaved changes.
 void rack_open_in_editor(UiState& ui, const std::string& path)
 {

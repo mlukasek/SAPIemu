@@ -269,7 +269,8 @@ zvedne).
 
 **Kabel X2 se dodával zapojený pro 2716.** Pro 2732 se v jeho konektoru přepojovaly tři vodiče (DSE.DOC). V emulátoru:
 
-1. Zobrazení → Konfigurátor sestavy…, karta DSE-1 ve slotu X6, **Programovací kabel X2** → „pro 2732, upravený
+1. Zobrazení → Konfigurátor sestavy…, karta DSE-1 ve slotu X6 (s 2732 v patici rovnou tlačítko **Změnit kabel X2…**
+   v okně programátoru), **Programovací kabel X2** → „pro 2732, upravený
    podle DSE.DOC“. Pohodlnější je „dvě patice 2716 + 2732 (replika)“: EPROM si podle typu vybere svou patici.
 2. **Restartovat s touto sestavou.** Obsah RAM se ztratí, pracovní kopie EPROM zůstanou.
 3. V okně programátoru **Nová 2732** (na pouzdře je Intel 2732).
@@ -299,8 +300,9 @@ zvedne).
 V logu je u 2732 navíc `1 pulse shorter than 1 ms did not program`. To je krátký pulz s daty FFh těsně před
 programováním (program Tesla zapne 25 V dřív než řídicí slovo), nic nezmění.
 
-**Pozor na 2732 v kabelu pro 2716.** Okno programátoru upozorní „2732 v patici zapojené pro 2716 (kabel X2): nečte
-se ani neprogramuje, jak má“. `K` sice vypíše `CISTA`, ale `P` nic nenaprogramuje a kontrola vypíše samé rozdíly
+**Pozor na 2732 v kabelu pro 2716.** Okno programátoru upozorní žlutě „2732 v patici zapojené pro 2716“, bublina
+vysvětlí proč a tlačítko **Změnit kabel X2…** vedle otevře konfigurátor na kartě DSE-1. Taková EPROM se nečte ani
+neprogramuje, jak má. `K` sice vypíše `CISTA`, ale `P` nic nenaprogramuje a kontrola vypíše samé rozdíly
 a `ROZDILNY OBSAH`. Na vývod A11 přitom jde 25 V. Log to hlásí („25 V on A11 (pin 21) of the 2732…“), skutečnou EPROM
 by to mohlo poškodit.
 
