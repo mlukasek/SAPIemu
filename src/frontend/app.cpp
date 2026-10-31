@@ -131,6 +131,7 @@ struct App {
     uint64_t title_gen = ~0ull;   // machine generation shown in the window title
     std::string title_file;       // and its file (the configurator's Save of a supplied machine: the copy in My machines)
     std::vector<std::string> drops;   // files dropped on the window, one taken in each frame (drop_frame)
+    std::vector<ImVec2> drop_at;      // where each was dropped (points of the window)
     bool integer_scale = true;
     bool tv_aspect = false;
     bool smooth = false;          // linear filtering of the screen texture
@@ -238,7 +239,8 @@ nlohmann::json settings_json(App& app)
                      { "io_log", ui.show_iolog }, { "log", ui.show_log }, { "media", ui.show_media },
                      { "printer", ui.show_printer }, { "configuration", ui.show_rack },
                      { "configuration_auto", ui.show_rack && ui.rack_by_layout }, { "diag", ui.show_diag },
-                     { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter }, { "ims2", ui.show_ims2 } };
+                     { "aps5", ui.show_aps5 }, { "minigraf", ui.show_plotter }, { "ims2", ui.show_ims2 },
+                     { "dse1", ui.show_dse1 } };
     j["screen"] = { { "integer_scale", app.integer_scale },
                     { "tv_aspect", app.tv_aspect }, { "smooth", app.smooth }, { "card_types", ui.rack.show_types },
                     { "rack_black", ui.rack.black } };
@@ -314,6 +316,7 @@ void settings_apply(App& app, const nlohmann::json& j)
     get_opt(w, "aps5", ui.show_aps5);
     get_opt(w, "minigraf", ui.show_plotter);
     get_opt(w, "ims2", ui.show_ims2);
+    get_opt(w, "dse1", ui.show_dse1);
     get_opt(w, "configuration", ui.show_rack);
     get_opt(w, "configuration_auto", ui.rack_by_layout);   // opened by the layout (ui.h)
     if (!ui.show_rack) ui.rack_by_layout = false;
@@ -956,7 +959,7 @@ static int graphic_displays(Machine* m, DisplayDevice** out)
     return n;
 }
 
-// The widest window the machine opens beside its output (APS-5, IMS-2, a plotter, Media of "windows"), 0 = none.
+// The widest window the machine opens beside its output (APS-5, IMS-2, a plotter, DSE-1, Media of "windows"), 0 = none.
 static float machine_side_width(App& app, Machine* m)
 {
     UiState& ui = app.ui;
@@ -975,6 +978,7 @@ static float machine_side_width(App& app, Machine* m)
     take(ui.show_aps5 || plant == "APS-5", LW_APS5);
     take(ui.show_ims2 || plant == "IMS-2", LW_IMS2);
     take(plotter, LW_PLOTTER);
+    take(ui.show_dse1 || dse1_in_machine(ui), LW_DSE1);
     take(ui.show_media, LW_MEDIA);
     return w;
 }
@@ -1130,7 +1134,7 @@ static int machine_main_window(Machine* m)
         const char* key;
         int which;
     } k_main[] = { { "minigraf", LW_PLOTTER }, { "terminal", LW_TERMINAL }, { "aps5", LW_APS5 }, { "ims2", LW_IMS2 },
-                   { "diag", LW_DIAG }, { "printer", LW_PRINTER }, { "media", LW_MEDIA } };
+                   { "diag", LW_DIAG }, { "printer", LW_PRINTER }, { "media", LW_MEDIA }, { "dse1", LW_DSE1 } };
     for (const nlohmann::json& k : m->config["windows"]) {
         if (!k.is_string()) continue;
         for (const auto& e : k_main)
@@ -1172,7 +1176,7 @@ static void plan_layout(App& app)
     float fixed = display_zoom(app, main).fixed;
     float key[5] = { w, h, gap, ImGui::GetIO().DisplayFramebufferScale.x, fixed };
     unsigned flags = (ui.show_aps5 ? 1u : 0u) | (ui.show_ims2 ? 2u : 0u) | (ui.show_plotter ? 4u : 0u) |
-                     (ui.show_media ? 8u : 0u) | (app.tv_aspect ? 16u : 0u);
+                     (ui.show_media ? 8u : 0u) | (app.tv_aspect ? 16u : 0u) | (ui.show_dse1 ? 32u : 0u);
     uint64_t gen = app.host.machine_generation();
     if (gen == app.plan_gen && flags == app.plan_flags && !memcmp(key, app.plan_key, sizeof(key))) return;
     app.plan_gen = gen;
@@ -1316,6 +1320,7 @@ static const MachineWindow k_machine_windows[] = {
     { "media", "Media", "Media", "Média" },
     { "minigraf", "Minigraf", "Plotter (Minigraf, XY 4130)", "Zapisovač (Minigraf, XY 4130)" },
     { "ims2", "IMS-2 measuring bench", "IMS-2 measuring bench", "Měřicí pracoviště IMS-2" },
+    { "dse1", "dse1", "EPROM programmer DSE-1", "Programátor EPROM DSE-1" },
     { "aps5", "APS-5: panel and furnaces", "APS-5: panel and furnaces", "APS-5: panel a pece" },
     { "diag", "Diagnostic board (K3)", "Diagnostic board (K3)", "Deska diagnostiky (K3)" },
     { "printer", "Printer", "Printer", "Tiskárna" },
@@ -1328,6 +1333,7 @@ static bool* machine_window_flag(UiState& ui, const char* key)
     if (!strcmp(key, "media")) return &ui.show_media;
     if (!strcmp(key, "minigraf")) return &ui.show_plotter;
     if (!strcmp(key, "ims2")) return &ui.show_ims2;
+    if (!strcmp(key, "dse1")) return &ui.show_dse1;
     if (!strcmp(key, "aps5")) return &ui.show_aps5;
     if (!strcmp(key, "diag")) return &ui.show_diag;
     if (!strcmp(key, "printer")) return &ui.show_printer;
@@ -2055,6 +2061,7 @@ static bool* menu_window_open(App& app, const std::string& key)
     } k[] = {
         { "rack", &ui.show_rack }, { "Serial terminal", &ui.show_terminal }, { "Media", &ui.show_media },
         { "Printer", &ui.show_printer }, { "Minigraf", &ui.show_plotter }, { "IMS-2 measuring bench", &ui.show_ims2 },
+        { "dse1", &ui.show_dse1 },
         { "Diagnostic board (K3)", &ui.show_diag }, { "APS-5: panel and furnaces", &ui.show_aps5 },
         { "Debugger", &ui.show_debugger }, { "Memory", &ui.show_memory }, { "I/O log", &ui.show_iolog },
         { "Log", &ui.show_log },
@@ -2300,6 +2307,7 @@ void draw_menu(App& app)
         device_item(app, tr("Printer"), "Printer", "printer");
         device_item(app, tr("Plotter (Minigraf, XY 4130)"), "Minigraf", "minigraf");
         device_item(app, tr("IMS-2 measuring bench"), "IMS-2 measuring bench", "ims2");
+        device_item(app, tr("EPROM programmer DSE-1"), "dse1", "dse1");
         device_item(app, tr("Diagnostic board (K3)"), "Diagnostic board (K3)", "diag");
         device_item(app, tr("APS-5: panel and furnaces"), "APS-5: panel and furnaces", "aps5");
         displays_menu(app, m);
@@ -3009,13 +3017,14 @@ const MachineWindow* machine_windows(int* count)
 }
 
 // the devices of machine_has_device remembered for a switched off machine (UiState::devices_last: bit i = k_devices[i])
-static const char* const k_devices[] = { "aps5", "ims2", "diag", "terminal", "printer", "minigraf" };
+static const char* const k_devices[] = { "aps5", "ims2", "diag", "terminal", "printer", "minigraf", "dse1" };
 static const int k_device_count = (int)(sizeof(k_devices) / sizeof(k_devices[0]));
 
 static bool running_has_device(UiState& ui, Machine* m, const char* key)
 {
     if (!strcmp(key, "aps5")) return aps5_in_machine(ui);
     if (!strcmp(key, "ims2")) return ims2_in_machine(ui);
+    if (!strcmp(key, "dse1")) return dse1_in_machine(ui);
     if (!strcmp(key, "diag")) return m->cpu && m->cpu->k3_diag();
     if (!strcmp(key, "terminal")) return !m->serials.empty();
     for (auto& c : m->cards) {
@@ -3079,6 +3088,8 @@ std::string device_missing(UiState& ui, const char* key)
     } k[] = {
         { "aps5", "This machine has no APS-5 measuring unit.", "machines/aps5.sapi", true, nullptr },
         { "ims2", "This machine has no IMS-2 measuring bench.", "machines/zps/ZPS-2_DPS-1_IMS-2.sapi", true, nullptr },
+        { "dse1", "This machine has no EPROM programmer DSE-1.", "machines/zps/ZPS-2_DSE-1.sapi", true,
+          "In the configurator: the card DSE-1 (EPROM simulator and programmer 2716/2732)." },
         { "minigraf", "This machine has no plotter.", "machines/zps/ZPS-2_MIKOS_V5_Minigraf.sapi", false,
           "In the configurator: DPP-1 (Minigraf 0507, XY 4130) or JPR-1 (XY 4130 on X3)." },
         { "diag", "This machine has no diagnostic board.", "machines/jpr1s_bgp1s.sapi", true,
@@ -3165,13 +3176,15 @@ static void drop_frame(App& app)
     // a modal window opens in this frame (a question of the file before, an Error not shown yet): the next frame decides
     if (ui.hex_ask || ui.bin_ask || ui.tprog_ask || ui.rack.ask_unsaved || app.show_error || ui.notice_error) return;
     std::string path = app.drops.front();
+    ImVec2 at = app.drop_at.empty() ? ImVec2(-1, -1) : app.drop_at.front();
     app.drops.erase(app.drops.begin());
+    if (!app.drop_at.empty()) app.drop_at.erase(app.drop_at.begin());
     if (ImGui::GetTopMostPopupModal()) {
         ui_notice(ui, true, std::string(tr("Close the open dialog first, then drop the file again")) + ": " + path);
         return;
     }
     LOGI("file dropped on the window: %s", path.c_str());
-    file_drop(ui, path);
+    file_drop(ui, path, dse1_drop_target(at.x, at.y));
     ui.focus_display = 2;
 }
 
@@ -3433,6 +3446,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         app.ui.show_printer = snap->printer;
         app.ui.show_plotter = snap->plotter;
         app.ui.show_ims2 = snap->ims2;
+        app.ui.show_dse1 = snap->dse1;
         app.ui.show_diag = snap->diag;
         app.ui.show_aps5 = snap->aps5 || snap->aps5_demo;
         app.ui.aps5_demo_autostart = snap->aps5_demo;
@@ -3480,7 +3494,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
             else if (ev.type == SDL_EVENT_WINDOW_LEAVE_FULLSCREEN && app.fullscreen != FS_OFF && !app.snapshot)
                 fullscreen_set(app, FS_OFF);   // the system took the full screen away
             else if (ev.type == SDL_EVENT_TEXT_INPUT) handle_text(app, ev.text.text);
-            else if (ev.type == SDL_EVENT_DROP_FILE && ev.drop.data) app.drops.push_back(ev.drop.data);   // drop_frame
+            else if (ev.type == SDL_EVENT_DROP_FILE && ev.drop.data) {   // drop_frame
+                app.drops.push_back(ev.drop.data);
+                app.drop_at.push_back(ImVec2(ev.drop.x, ev.drop.y));
+            }
             else if (ev.type == SDL_EVENT_GAMEPAD_ADDED || ev.type == SDL_EVENT_GAMEPAD_REMOVED) joystick_event(app.joy, ev);
             else if (ev.type == SDL_EVENT_SYSTEM_THEME_CHANGED) app.restyle = true;   // Windows light / dark
             else if (ev.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED || ev.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
@@ -3597,6 +3614,7 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
         video_poll(app.ui);
         draw_plotter(app.ui);
         draw_ims2(app.ui);
+        draw_dse1(app.ui);
         draw_diag(app.ui);
         draw_aps5(app.ui);
         draw_media(app.ui);
@@ -3713,6 +3731,10 @@ int app_run(const std::string& machine_file, int mcp_port, const UiSnapshot* sna
                 ev.drop.windowID = SDL_GetWindowID(app.window);
                 ev.drop.timestamp = SDL_GetTicksNS();
                 if (t == SDL_EVENT_DROP_FILE) ev.drop.data = snap->drops[(size_t)(snap_frames - 9) / 2].c_str();   // kept
+                if (t != SDL_EVENT_DROP_BEGIN) {   // --ui-drop-at
+                    ev.drop.x = snap->drop_x;
+                    ev.drop.y = snap->drop_y;
+                }
                 SDL_PushEvent(&ev);
             }
         }

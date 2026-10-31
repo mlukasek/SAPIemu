@@ -52,7 +52,7 @@ static void print_help(void)
            "                     layout: its default places, imgui.ini neither read nor written)\n"
            "  --ui-snapshot FILE GUI: render into a hidden window, save it as PNG and exit\n"
            "                     (--ui-open MACHINE: in the configurator, --ui-rack SLOT: select a slot,\n"
-           "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2: those windows (--ui-aps5-demo: and its DEMO),\n"
+           "                     --ui-map: the port and memory map, --ui-media, --ui-printer, --ui-diag, --ui-aps5, --ui-plotter, --ui-ims2, --ui-dse1: those windows (--ui-aps5-demo: and its DEMO),\n"
            "                     --ui-browser: Choose a machine, --ui-guide: the guide of the machine,\n"
            "                     --ui-about, --ui-settings, --ui-shortcuts: About, Settings, Keyboard shortcuts,\n"
            "                     --ui-crop KEY: only the window with the id ###KEY (Media, Minigraf...),\n"
@@ -98,7 +98,8 @@ static void print_help(void)
            "                     --ui-exit: File -> Exit before the picture (the question about unsaved changes;\n"
            "                     without changes the program ends with no picture),\n"
            "                     --ui-drop FILE: the file dropped on the window (as from Explorer; repeated: one after\n"
-           "                     another), --ui-click X,Y: a left click there (points; repeated: one after another),\n"
+           "                     another; --ui-drop-at X,Y: dropped there, points of the window, default 0,0),\n"
+           "                     --ui-click X,Y: a left click there (points; repeated: one after another),\n"
            "                     --ui-save: Save in the configurator before the picture (after --ui-set),\n"
            "                     --ui-save-copy: Save of this run as a release build does it (a supplied machine as\n"
            "                     a copy in My machines, work/machines; also in a debug build; with --ui-save: saved))\n"
@@ -303,6 +304,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-rack-new") { snap.rack_new = true; snap.rack = true; }
         else if (a == "--ui-exit") snap.exit = true;
         else if (a == "--ui-drop" && i + 1 < argc) snap.drops.push_back(argv[++i]);
+        else if (a == "--ui-drop-at" && i + 1 < argc) sscanf(argv[++i].c_str(), "%f,%f", &snap.drop_x, &snap.drop_y);
         else if (a == "--ui-click" && i + 1 < argc) {
             float x = 0, y = 0;
             if (sscanf(argv[++i].c_str(), "%f,%f", &x, &y) != 2) {
@@ -320,6 +322,7 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-crop" && i + 1 < argc) snap.crop = argv[++i];
         else if (a == "--ui-picture") snap.picture = true;
         else if (a == "--ui-ims2") snap.ims2 = true;
+        else if (a == "--ui-dse1") snap.dse1 = true;
         else if (a == "--ui-aps5-demo") snap.aps5_demo = true;
         else if (a == "--ui-drag" && i + 1 < argc) {
             char drop[8] = "";

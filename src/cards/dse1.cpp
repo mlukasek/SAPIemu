@@ -121,6 +121,35 @@ bool Dse1::save_sim_ram(const std::string& path, std::string& err) const
     return true;
 }
 
+bool Dse1::erase(std::string& err)
+{
+    if (!chip.loaded()) {
+        err = "no EPROM in the socket";
+        return false;
+    }
+    if (vpp_level() != EPL_L) {   // as taking it out under voltage: a real chip could be damaged
+        char b[96];
+        snprintf(b, sizeof(b), "the socket is under voltage (Vpp %d V): the EPROM cannot be taken out to erase it",
+                 vpp_volts());
+        err = b;
+        return false;
+    }
+    run_end();   // Vpp is 0 V: no pulse is on, a run still waiting for its end ends here
+    bool changed = false;
+    for (uint8_t& b : chip.data)
+        if (b != 0xFF) {
+            b = 0xFF;
+            changed = true;
+        }
+    if (changed) {   // saved to its file like any programming
+        chip.dirty = true;
+        media_written();
+    }
+    LOGI("%s: EPROM %d erased by UV light (emulator comfort)%s", name.c_str(), chip.type, changed ? "" : ", it was blank");
+    update();
+    return true;
+}
+
 // The chip leaves the socket: written back when programmed.
 void Dse1::take_out(void)
 {

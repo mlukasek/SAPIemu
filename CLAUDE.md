@@ -61,7 +61,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
     průvodci `machines/guides`, `docs/sestavy.md`; `help` = okno Nápověda (prohlížeč `.md`: První kroky,
     Slovníček, návody a odkazované dokumenty s obrázky a historií Zpět/Vpřed), Nahlásit chybu,
     O programu; `markdown` = parser Markdownu bez ImGui a `mdview` = jeho kreslení pro průvodce a okno Nápověda;
-    `layout` = rozmístění oken; bubliny jen přes `tip()` z `theme.h`);
+    `layout` = rozmístění oken; `dse1` = okno programátoru EPROM DSE-1 (krabička kabelu X2 s paticí, UV lampa);
+    bubliny jen přes `tip()` z `theme.h`);
   - `mcp/`: MCP server a nástroje (popis v `docs/mcp.md`);
   - `serial/`: připojení sériových kanálů k PC (TCP server, COM port; návod `docs/seriova-linka.md`);
   - `plant/`: technologie mimo počítač (`core/plant.h`, `Bus::plant`): pece a termočlánky APS-5

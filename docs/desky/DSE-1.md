@@ -3,7 +3,8 @@
 Stav: **emulovaná** od 2026-10-30:
 - karta `DSE-1` (`src/cards/dse1.*`) a čip EPROM 2716/2732 vyhodnocovaný z vývodů (`src/chips/eprom27.*`);
 - sestava `machines/zps/ZPS-2_DSE-1.sapi` (ZPS-2 s MIKOSem V4.0F a programem DSE Tesla Elstroj od 1000h);
-- blok v okně Média (patice, LED, Vpp, ON LINE, délka pulzu), nástroj MCP `dse1`;
+- okno **Programátor EPROM DSE-1** (`src/frontend/dse1.cpp`, od 2026-10-31): krabička kabelu X2 se zelenou paticí,
+  EPROM v ní, LED PROG a MAP, UV lampa na smazání, pod tím médium a stav desky; nástroj MCP `dse1`;
 - testy `test_dse1` (primitivy na portech), `test_dse1_tesla` (program Tesla v ZPS-2), `test_dse1_simprog`
   (SIMPROG Melsoft z diskety 7 v kopii ZPS-6) a `test_dse1_eprom` (EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`);
 - **návod k obsluze: `docs/navod-dse1.md`**.
@@ -136,6 +137,10 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 - **Úprava pro 2732** (DSE.DOC, DSECPM.DOC): v konektoru FRB-30 kabelu se přepojí tři vodiče 26 → 11, 18 → 20
   a 12 → 25.
 - **Repliky Petra Všijanského:** dvě patice (2716 a 2732), nebo jedna patice s propojkami.
+- **Krabička kabelu:** podle návodu má patici („packový konektor“, tedy patici s pákou) a LED1 a LED2. Jak vypadala,
+  nevíme (fotka chybí).
+- **EPROM, které Tesla vyráběla:** MHB2708C a MHB2716C, 2732 ne (autor 2026-10-31). Kabel X2 a program Tesla počítají
+  s 2716 a 2732. Jestli DSE-1 programovala i 2708, nevíme (Nejasnost 13).
 - **2716:** čte při /CE = 0 a /OE = 0 (PC6 = 0, PC7 = 1) a Vpp 5 V nebo 25 V (při 25 V je to Program Verify).
   Programuje pulz PGM = PC6 do H při Vpp 25 V a /OE = 1 (PC7 = 0).
 - **2732:** čte při /CE = 0 (PC6 nebo PC7 = 1) a OE/Vpp = 0 V. Programuje /CE dole při OE/Vpp 25 V, stav PC7 nehraje
@@ -214,8 +219,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   programování, Program Verify, zákaz programování. Úrovně 0 V = L, 5 V = H, 25 V = H a „programovací napětí“.
   Patici zapojí kabel podle `x2_cable`. Špatná kombinace se chová podle vývodů: 2732 v kabelu pro 2716 čte horní
   2 KB a nenaprogramuje se. 25 V na vývodu, který není Vpp (A11 2732 v kabelu pro 2716, /OE 2716 v kabelu pro 2732),
-  zapíše jednou varování „na skutečném čipu by ho to mohlo poškodit“. Okno Média upozorní, když typ EPROM nesedí
-  se zapojením patice.
+  zapíše jednou varování „na skutečném čipu by ho to mohlo poškodit“. Okno programátoru upozorní, když typ EPROM
+  nesedí se zapojením patice.
 - **2716 při Vpp 0 V** (bez +30 V nebo F4 = 00h) PD nebudí a čte se FFh (předpoklad podle DSE.DOC, Nejasnost 3).
 - **EPROM v patici při S a R:** DSE.DOC chce mít při přenosu mezi RAM počítače a RAM simulátoru (příkazy S a R)
   patici programátoru prázdnou. Když se RAM simulátoru zapisuje nebo čte (W nebo R) a v patici je 2716 s Vpp 0 V
@@ -250,7 +255,7 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   RAM se nedělá, dokud PA0–PA9 plavou (Nejasnost 6).
 - **RAM simulátoru** po zapnutí plní `power_on_fill` (nuly, nebo náhodně podle `power_on_memory` sestavy). Zálohu
   nemá.
-- **Sonda X3 není nikam zapojená.** ON LINE je jen stav, který ukáže okno Média a MCP. ONLA při PB nebo PC0–3
+- **Sonda X3 není nikam zapojená.** ON LINE je jen stav, který ukáže okno programátoru a MCP. ONLA při PB nebo PC0–3
   v režimu výstupu zapíše jednou varování o srážce. Sonda v patici jiné karty téže sestavy (REM-1, JPR-1) je
   další krok, pak bude potřeba i parametr simulačního kabelu (2716 / 2732).
 - **MAP1** (`map_lines()`) dává MAP_1 při D5 = 1 a osazené JP1. Sběrnice linky MAP sčítá (OR), takže nevidí, když
@@ -263,19 +268,49 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     ostatní média (dočasný soubor a přejmenování);
   - vložení téhož souboru znovu (Vložit…, MCP `insert`) ponechá, co se do EPROM naprogramovalo: obsah se nejdřív
     uloží a v patici zůstane;
-  - prázdné originály `media/dse-1/prazdna_2716.bin` a `prazdna_2732.bin` (celé FFh). V okně Média Vložit…,
-    Vysunout, Nová 2716, Nová 2732 (`work/dse-1/eprom_N.bin`) a „…“ → Obnovit z originálu (u prázdné EPROM jako
-    smazání UV světlem). Ochrana proti zápisu není potřeba, bez 25 V EPROM nic nezmění;
+  - prázdné originály `media/dse-1/prazdna_2716.bin` a `prazdna_2732.bin` (celé FFh). V okně programátoru Vložit…
+    (nebo soubor `.bin` přetažený na okno), Vysunout, Nová 2716, Nová 2732 (`work/dse-1/eprom_N.bin`), „…“ → Obnovit
+    z originálu a smazání UV lampou. Ochrana proti zápisu není potřeba, bez 25 V EPROM nic nezmění;
   - výměna EPROM při Vpp ≠ 0 V zapíše do logu varování (skutečnou EPROM by to mohlo zničit).
 - **Stav** (`state()`): 8255, registr, 4 KB RAM, rozběhnutý pulz (začátek, adresa, data), statistika programování
   (i kdy Vpp kleslo z 25 V), zalogovaná varování, obsah EPROM a její obraz. Po načtení stavu se obsah EPROM zapíše
   i do pracovní kopie. Když soubor EPROM ze stavu nejde přečíst, dostane patice obsah ze stavu bez souboru (nic se
   neukládá, v logu je varování).
-- **Okno Média:** blok DSE-1 s paticí, LED1, LED2, Vpp, ON LINE / OFF LINE, posledním pulzem v ms (a počtem pulzů
-  během programování) a tlačítkem **Uložit RAM simulátoru…** (4 KB do `.bin`, pomoc emulátoru, skutečná deska to
-  neumí).
+- **Okno Programátor EPROM DSE-1** (`###dse1`, `src/frontend/dse1.cpp`; přání autora 2026-10-31, rozhodnutí
+  téhož dne). Otevře se samo se sestavou, která má DSE-1 (jako přístroje APS-5, IMS-2 a zapisovač), sestava
+  `zps/ZPS-2_DSE-1.sapi` ho má v `windows`. Zobrazení → Programátor EPROM DSE-1. Kreslí krabičku na konci kabelu X2
+  shora:
+  - **vzhled krabičky Tesla neznáme** (fotka chybí), kresba je **záměrná odchylka** jako rack v konfigurátoru: šedá
+    plastová krabička s plochým kabelem, zelená patice s nulovou zasouvací silou v duchu 3M TEXTOOL (24 vývodů, páka
+    s kulatou koncovkou), LED a nápis „DSE-1 X2“;
+  - **páka** je nakreslená zvednutá s prázdnou paticí a sklopená s EPROM v patici. Neovládá se (autor: uživatele
+    nenutit páku mačkat);
+  - **EPROM:** keramické pouzdro DIP 24 s křemenným okénkem a čipem pod ním, potisk „TESLA MHB2716C“ u 2716 a „intel
+    D2732“ u 2732 (Tesla 2732 nevyráběla), kód data. Jak skutečná MHB2716C vypadá, nemáme ověřené, potisk je
+    ilustrační;
+  - **štítek:** naprogramovaná EPROM (aspoň jeden bajt jiný než FFh) má přes okénko bílý papírový štítek se jménem
+    souboru bez `.bin` (dlouhé jméno na víc řádků a zkrácené), jak se lepil na vypálené EPROM. Prázdná ukazuje okénko;
+  - **LED1 „PROG“ červená, LED2 „MAP“ zelená** (barvy vybral autor 2026-10-31, aby nebyly stejné; skutečné nejsou
+    známé, Nejasnost 12). Kulaté, se září, zhasnuté tmavé;
+  - **UV lampa** („horské sluníčko“) vedle krabičky smaže EPROM v patici, viz níže;
+  - pod kresbou: EPROM v patici (soubor a typ), varování, když typ nesedí se zapojením kabelu, Vložit…, Nová 2716,
+    Nová 2732, Vysunout, „…“ → Obnovit z originálu a **Uložit RAM simulátoru…** (4 KB do `.bin`, pomoc emulátoru,
+    skutečná deska to neumí); řádek stavu: Vpp 0 / 5 / 25 V, ON LINE / OFF LINE, poslední programovací pulz v ms,
+    „pulz běží“ a počet pulzů během programování. Jsou to **údaje emulátoru** (bublina to říká), krabička má jen LED;
+  - soubor `.bin` přetažený myší na okno jde do patice (jako Vložit…), jinam přetažený se nahraje do paměti jako dřív;
+  - UI snímek `--ui-dse1`, `--ui-crop dse1`; náhled sestavy ukazuje kresbu okna.
+- **Smazání UV lampou** (pohodlí emulátoru, skutečná EPROM jde z patice pod UV lampu na 15–20 minut): klik na lampu,
+  u naprogramované EPROM nejdřív otázka (obsah se ztratí, Enter nic nedělá, Esc zruší). Štítek zmizí, okénko asi
+  1,5 s skutečného času svítí fialově a lampa na něj svítí, pak je EPROM celá FFh. Zapíše se do pracovní kopie jako
+  programování (`dirty`, médium se uloží s ostatními), do logu jde „EPROM … erased by UV light (emulator comfort)“.
+  **Při Vpp jiném než 0 V** se smazání odmítne s hláškou, jako se varuje před výměnou média pod napětím (vyndat EPROM
+  pod napětím by ji mohlo zničit). Rozběhnuté programování (čekání 0,5 s na jeho konec) smazání ukončí. MCP `dse1`
+  `erase` dělá totéž bez animace.
 - **MCP `dse1`:** stav (rozepsaný registr, Vpp, ON LINE, LED, patice, programování, varování), `insert`, `new`,
-  `eject`, `flush`, `sim_read`, `sim_save` (`docs/mcp.md`).
+  `eject`, `erase`, `flush`, `sim_read`, `sim_save` (`docs/mcp.md`).
+- **Panel v konfigurátoru:** dva konektory FRB-30 jako DSM-1 a jiné karty s FRB, nahoře K3 = X2 programovací kabel
+  (poznámka „PRG“), dole K2 = X3 sonda simulátoru („SIM“). Pořadí podle výkresu desky (X2 nad X3), fotka desky ukazuje
+  oba konektory TY 513 30 11 na předním okraji.
 - **Kolize portů:** F0–F7h se ZDP-1 (neemulujeme) a s RTC-1 na F0h v sestavě `aps5`. Emilův základ 20h koliduje
   s RPD-1A 20–25h. V ZPS-2, ZPS-3, ZPS-6 a v sestavách CP/M s JPR-1ZI je F0h volné (PKT-1, RSW-1 a DBS-1A
   dekódují celých 8 bitů).
@@ -322,5 +357,10 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 9. **Vpp 24, nebo 25 V** (návod a DSECPM.DOC 24 V, AR 25 V), jak nastavit P2 pro 2732A (21 V).
 10. **Doba programování 2 KB:** návod „cca 2,5 min“, program a Navrátilův článek asi 100 s.
 11. **Co je SP1 „spínač TS 501 4141“** z rozpisky a kde je na desce?
-12. **Barva LED1 a LED2** v krabičce kabelu Tesla. Okno Média kreslí obě červeně, Petrovy repliky mají zelenou
-    a červenou.
+12. **Barva LED1 a LED2 a vzhled krabičky** kabelu X2 Tesla. Okno programátoru kreslí LED1 (PROG) červeně a LED2
+    (MAP) zeleně (zvolil autor 2026-10-31). Petrovy repliky a Emilův program mají naopak bit 4 zelený („simulátor“)
+    a bit 5 červený („programování“). Krabička je nakreslená volně.
+13. **Programovala DSE-1 i EPROM 2708?** Tesla vyráběla MHB2708C a MHB2716C, 2732 ne (autor). Kabel X2 je zapojený
+    pro 2716 nebo 2732 a program Tesla zná jen tyto dvě. 2708 potřebuje navíc +12 V a −5 V a jiný způsob
+    programování (katalog Intel: mnoho průchodů celou pamětí s krátkými pulzy). EPROM.COM J. Bíby typ 2708 nabízí,
+    s jakým programátorem, nevíme. Emulace 2708 neumí (soubor 1 KB se odmítne).

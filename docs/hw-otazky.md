@@ -7,7 +7,7 @@
 otázky se doplňují a odškrtávají v dokumentech desek a skript se spustí znovu). Vyřešené body (přeškrtnuté
 nebo „vyřešeno“) jsou vynechané. Podklad pro společné dávkové ověřování na skutečném SAPI-1.
 
-Otevřených bodů: **252** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
+Otevřených bodů: **253** v 50 sekcích. Desky jsou první, pak ostatní témata (SOUHRN, software, tiskárna…).
 
 ## [ADP-1 – deska A/D převodníku](desky/ADP-1.md) – Nejasnosti (1)
 
@@ -222,7 +222,7 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 - **PROM D3D:** obsah z návodu je zjevně jen ukázka. Měl někdo skutečné kódy zpráv (UNL, DCL…)?
 
 
-## [DSE-1 – deska simulátoru a programátoru EPROM](desky/DSE-1.md) – Nejasnosti k ověření na HW (12)
+## [DSE-1 – deska simulátoru a programátoru EPROM](desky/DSE-1.md) – Nejasnosti k ověření na HW (13)
 
 1. **Pořadí a polarita S1:** S1/1 = A6, S1/2 = A7, S1/3 = A5, S1/4 = A4, sepnuto = bit 0 (podle schématu). Emilův
    komentář pro 20h potvrzuje jen polaritu a S1/3.
@@ -258,8 +258,14 @@ Autor desku nemá, ověření je možné jen na cizím kusu.
 
 11. **Co je SP1 „spínač TS 501 4141“** z rozpisky a kde je na desce?
 
-12. **Barva LED1 a LED2** v krabičce kabelu Tesla. Okno Média kreslí obě červeně, Petrovy repliky mají zelenou
-    a červenou.
+12. **Barva LED1 a LED2 a vzhled krabičky** kabelu X2 Tesla. Okno programátoru kreslí LED1 (PROG) červeně a LED2
+    (MAP) zeleně (zvolil autor 2026-10-31). Petrovy repliky a Emilův program mají naopak bit 4 zelený („simulátor“)
+    a bit 5 červený („programování“). Krabička je nakreslená volně.
+
+13. **Programovala DSE-1 i EPROM 2708?** Tesla vyráběla MHB2708C a MHB2716C, 2732 ne (autor). Kabel X2 je zapojený
+    pro 2716 nebo 2732 a program Tesla zná jen tyto dvě. 2708 potřebuje navíc +12 V a −5 V a jiný způsob
+    programování (katalog Intel: mnoho průchodů celou pamětí s krátkými pulzy). EPROM.COM J. Bíby typ 2708 nabízí,
+    s jakým programátorem, nevíme. Emulace 2708 neumí (soubor 1 KB se odmítne).
 
 
 ## [DSM-1 – sériové rozhraní s kazetou](desky/DSM-1.md) – Nejasnosti (7)

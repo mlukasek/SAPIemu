@@ -770,7 +770,7 @@ std::string comment_for(const Writer& w, const std::string& path, const json& v)
     }
     if (!w.ci) {
         if (path == "windows")
-            return "Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2";
+            return "Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2, dse1";
         if (path == "main_display")
             return "Main output: the display window with the big place at the top left (else the console screen)";
         if (path == "based_on") return "My machines: the supplied machine this copy was saved from";

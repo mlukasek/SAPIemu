@@ -49,6 +49,7 @@ const WinDef k_wins[LW_COUNT] = {
     { "###Minigraf", ROLE_INSTRUMENT, 30, 42, 24, 20, 0, 0 },
     { "###APS-5: panel and furnaces", ROLE_INSTRUMENT, 62, 50, 40, 24, 0, 0 },
     { "###IMS-2 measuring bench", ROLE_INSTRUMENT, 40, 56, 30, 24, 0, 0 },
+    { "###dse1", ROLE_INSTRUMENT, 40, 31, 30, 24, 0, 0 },   // the box of the cable X2, its socket and the UV lamp
     { "###Diagnostic board (K3)", ROLE_INSTRUMENT, 17, 16, 17, 16, 0, 1 },
     { "###Debugger", ROLE_TOOL, 35, 45, 26, 20, 0, 0 },
     { "###Memory", ROLE_TOOL, 46, 30, 30, 12, 0, 1 },   // a whole row of 16 bytes with their text (mono font)
@@ -986,7 +987,7 @@ void layout_dock(unsigned dockspace, const DockPlan& p)
     float dw = minf(40.0f * u, W), dh = minf(30.0f * u, size.y);
     for (int i = 0; i < p.n_displays; i++)
         dock_window(p.displays[i], i == 0 ? center : (i % 2 ? d1 : d2), dw, dh);
-    static const int k_side[] = { LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG, LW_TERMINAL, LW_PRINTER };
+    static const int k_side[] = { LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DSE1, LW_DIAG, LW_TERMINAL, LW_PRINTER };
     static const int k_tools[] = { LW_GUIDE, LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_LOG };
     for (int which : k_side)   // not the main output of a machine without a display (in the middle)
         if (p.n_displays == 0 || strcmp(k_wins[which].id, p.displays[0]) != 0)

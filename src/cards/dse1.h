@@ -76,6 +76,9 @@ public:
     static std::string rom_work_copy(const std::string& image);
     // emulator help (not the hardware): the simulator RAM into a .bin of 4 KB
     bool save_sim_ram(const std::string& path, std::string& err) const;
+    // Erase (emulator comfort: a real EPROM goes out of the socket under a UV lamp for 15-20 min): the EPROM in the
+    // socket all FFh, saved into its file like programming. Refused without an EPROM and with Vpp other than 0 V.
+    bool erase(std::string& err);
 
     // what the Media window and MCP show
     const Eprom27& eprom(void) const { return chip; }

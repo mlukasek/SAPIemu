@@ -28,6 +28,7 @@ struct UiSnapshot {
     std::string crop;        // the picture of one window only: its key ("Media", "Minigraf"; the part after ###)
     bool picture = false;    // with crop: only the drawn hardware the window marks (picture_mark), not its controls
     bool ims2 = false;       // show the IMS-2 measuring bench window
+    bool dse1 = false;       // show the window of the EPROM programmer DSE-1
     bool aps5_demo = false;  // and start its DEMO
     int drag_from = 0, drag_to = 0;   // drag the card in slot drag_from to drag_to in the configurator
     bool drag_drop = false;           // and drop it (else the picture shows it still dragged)
@@ -76,6 +77,7 @@ struct UiSnapshot {
     // files dropped on the window one after another (SDL_EVENT_DROP_FILE, whole paths as Explorer gives them), 2 frames
     // apart from the ninth; the picture 3 frames after the last
     std::vector<std::string> drops;
+    float drop_x = 0, drop_y = 0;   // where they are dropped (points of the window; --ui-drop-at)
     // left clicks one after another at these points (x, y in points), 3 frames apart from the ninth (the mouse there, down,
     // up); the picture 3 frames after the last
     std::vector<float> click_xy;

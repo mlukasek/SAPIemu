@@ -3,7 +3,7 @@
 {
     "name": "APS-5 měřicí jednotka (regulace osmi pecí)",
     "description": "Měřicí jednotka Tesla Liberec APS-5 (6XV 122 89) podle návodu na sapi.cz/sapi/doku/aps-5.php: JPR-1 (8080), REM-1/00K s původním firmwarem (7x 2716: 0000-1FFF, 6000-77FF), AND-1, zálohovaná CRM-1 (E000-EFFF), RTC-1 na F0h (DD5 tiká z DD6 kabelem XC2: 50 Hz a 1 Hz), DMT-1 na 80h, ADP-1 na 00h, DRV-1A na 77h (topení pecí). Na X2/X3 JPR-1 je panel HRK-1 (klávesnice 0-9, <-, M, ->, R, zámek, watchdog). Pece, termočlánky a izotermickou svorkovnici simuluje technologie (okno Stroj -> APS-5). docs/desky/APS-5.md.",
-    "windows": [ "aps5" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
+    "windows": [ "aps5" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2, dse1
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },

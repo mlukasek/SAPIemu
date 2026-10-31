@@ -997,6 +997,13 @@ const PanelItem k_pl_dpp1[] = {
     { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" },
     { PI_END, 0, 0, nullptr },
 };
+// DSE-1: two FRB 30 (TY 513 30 11, photo of the board), X2 at the top = the programming cable with the EPROM socket,
+// X3 at the bottom = the probe of the simulator (drawing of the board)
+const PanelItem k_pl_dse1[] = {
+    { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_NOTE, 41.0f, 56.4f, "PRG" }, { PI_FRB, 23.85f, 146.7f, nullptr },
+    { PI_FRB, 23.85f, 345.1f, nullptr }, { PI_TEXT, 17.2f, 437.8f, "K2" }, { PI_NOTE, 41.0f, 437.8f, "SIM" },
+    { PI_END, 0, 0, nullptr },
+};
 // MFC-1A: one connector to the floppy drives (XP2)
 const PanelItem k_pl_mfc1a[] = {
     { PI_TEXT, 17.2f, 56.4f, "K3" }, { PI_FRB, 23.85f, 146.7f, nullptr }, { PI_NOTE, 41.0f, 56.4f, "FDD" },
@@ -1037,6 +1044,7 @@ const PanelItem* panel_layout(const CardInfo* ci, int board = 0)
     if (!strcmp(ci->type, "RMP-1")) return k_pl_rmp1;
     if (!strcmp(ci->type, "DPS-1")) return k_pl_dps1;
     if (!strcmp(ci->type, "DPP-1")) return k_pl_dpp1;
+    if (!strcmp(ci->type, "DSE-1")) return k_pl_dse1;
     if (!strcmp(ci->type, "MFC-1A")) return k_pl_mfc1a;
     if (!strcmp(ci->type, "IDE-1")) return k_pl_ide1;
     if (!strcmp(ci->type, "PKT-1")) return k_pl_jpr_frb;   // XP3 printer, the BOOT LED, XP2 keyboard

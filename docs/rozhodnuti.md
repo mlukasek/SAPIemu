@@ -3468,7 +3468,7 @@ cokoli změnit, doporučení je vždy první možnost. Popis desky `docs/desky/D
 - **Vpp přepíná okamžitě** (zjednodušení, skutečný pokles s τ ≈ 0,2 ms). Nejasnost, jestli Tesla P s 2732 čte první
   bajt kontroly správně.
 - **Vlastní okno ne,** deska nemá ovládání. Blok DSE-1 v okně Média a nástroj MCP `dse1`; výměna EPROM se zapíše do
-  popisu sestavy jako u `kzd1`.
+  popisu sestavy jako u `kzd1`. **Změněno 2026-10-31:** vlastní okno programátoru (níže).
 - **Sestavy:**
   - `zps/ZPS-2_DSE-1.sapi`: ZPS-2 s MIKOSem V4.0F a DSE-1 na F0h místo BDK-1 (jako sestava DPS-1). REM-1 má jeden
     spojený soubor 6 KB `roms/dse-1/MIKOS_V4.0F_DSE_1000.bin` (MIKOS 4 KB a program DSE 2 KB, bez výplně, MD5 částí
@@ -3485,7 +3485,8 @@ cokoli změnit, doporučení je vždy první možnost. Popis desky `docs/desky/D
   pracovní kopie ve `work/dse-1/` je netknutá.
 - **Vedlejší nález k ZPS-6:** SIMPROG na disketě 7 je build pro 4 MHz (konstanta 07CEh, 98 ms na 2 MHz). Mohl by to
   být doklad, že Melsoft jel na 4 MHz (XT5 23-24). Jen Nejasnost v `docs/desky/PKT-1.md`, takt ZPS-6 zůstává 2 MHz.
-- **Barva LED** v okně Média je u obou červená, skutečná barva Tesla není známá (Nejasnost).
+- **Barva LED** v okně Média je u obou červená, skutečná barva Tesla není známá (Nejasnost). **Změněno 2026-10-31:**
+  PROG červená, MAP zelená (autor).
 
 ## 2026-10-30 – kontrola kódu před zveřejněním (rozhodnuto za autora)
 
@@ -3512,3 +3513,47 @@ stejná disketa podruhé). Rozhodnutí, která šla za opravu:
   přepisovalo každé 3 s.
 - **Ručně upravené soubory** (sestavy, `_vyber.json`, nastavení) program neshodí: texty se čtou s kontrolou typu,
   výběr sestav chybu jen zapíše do logu.
+
+## 2026-10-31 – okno programátoru DSE-1
+
+Autor k bloku DSE-1 v okně Média (2026-10-31): „To okno programátoru bych nedělal do Média, ale udělal bych vlastní.
+Když už je to emulátor, programátor, tak se vyplatí nakreslit něco vlastního, s hezkou zelenou ZIF paticí (nějaká
+obdoba 3M TEXTOOL) a do ní vložit nebo nevložit nějakou skicu EPROM, ideálně TESLA MHB2716C, a ty LED hezky kulaté, ať
+je to prostě hezké jako další věci, cos už nakreslil.“ K návrhu (štítek přes okénko naprogramované EPROM): „Super,
+dobrý nápad i s tím štítkem, jdi do toho. Ještě poznámka pro kartu v racku. DSE-1 má dva 30-pinové FRB konektory
+stejně, jako třeba DSM-1 a další, tak to napodob, prosím. Z okna média to asi úplně vydělej. Výběr souboru apod. dej do
+panelu s paticí. Páčku bych uživatele asi nenutil mačkat, ale můžeš ji nakreslit jako otevřenou s prázdnou paticí
+a zavřenou s obsazenou paticí. Pokud budeš přelepovat okénko štítkem, tak by tam mělo být nějaké horské sluníčko na
+Erase a ten štítek oddělat, když už ladíme detaily ;-) Tesla podle mně 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708
+nevím jestli tenhle programátor uměl. LED prog udělej červenou a MAP třeba zelenou, ať nejsou stejné.“
+
+- **Vlastní okno** „Programátor EPROM DSE-1“ (`###dse1`, `src/frontend/dse1.cpp`) jako ostatní kreslené přístroje:
+  pevné barvy hardwaru (stejné ve všech vzhledech), písmo panelů, místo podle `layout.cpp` mezi přístroji, pamatuje si
+  ho `imgui.ini`. Otevře se samo se sestavou, která má DSE-1 (jako APS-5, IMS-2, zapisovač), sestava
+  `zps/ZPS-2_DSE-1.sapi` ho má ve `windows` místo Média. Zobrazení → Programátor EPROM DSE-1 (zakázané se sestavou bez
+  DSE-1, bublina řekne, kde je). Z okna Média je DSE-1 pryč celá, napojení médií (Vložit, Obnovit z originálu, jeden
+  obraz ve dvou jednotkách) zůstalo společné.
+- **Kresba:** šedá plastová krabička na konci plochého kabelu X2, zelená patice s nulovou zasouvací silou pro 24
+  vývodů (řada kontaktů, páka s kulatou koncovkou), dvě kulaté LED se září a nápis „DSE-1 X2“. **Vzhled krabičky
+  Tesla neznáme (fotka chybí): kresba je záměrná odchylka jako rack v konfigurátoru** (`docs/desky/DSE-1.md`).
+- **Páka** se neovládá: zvednutá s prázdnou paticí, sklopená s EPROM.
+- **EPROM:** keramický DIP 24 s křemenným okénkem a čipem pod ním. 2716 s potiskem „TESLA MHB2716C“, 2732 „intel
+  D2732“ (Tesla 2732 nevyráběla), kód data. Potisk je ilustrační, skutečný vzhled MHB2716C nemáme ověřený.
+- **Štítek:** EPROM s aspoň jedním bajtem jiným než FFh má přes okénko papírový štítek se jménem souboru (bez `.bin`,
+  dlouhé na víc řádků, nakonec zkrácené). Prázdná ukazuje okénko. Štítek pracovní kopie prázdné EPROM proto nese
+  `prazdna_2716`: je to jméno souboru.
+- **Smazání UV lampou** („horské sluníčko“ vedle krabičky, autor): pohodlí emulátoru, skutečná EPROM jde z patice pod
+  lampu na 15–20 minut (bublina a `DSE-1.md` to říkají). Štítek zmizí, okénko asi 1,5 s skutečného času svítí fialově,
+  pak je EPROM celá FFh a zapíše se do souboru jako programování. Při Vpp jiném než 0 V se smazání odmítne s hláškou
+  (jako varování při výměně média pod napětím). **Naprogramovaná EPROM se nejdřív zeptá** (obsah, ve vlastním souboru
+  i originál, se ztratí; Enter nic nedělá, Esc zruší), prázdná se maže hned. Otázka je navíc oproti zadání: smazání nejde
+  vrátit. MCP `dse1` dostal `erase` (bez animace).
+- **Barvy LED:** LED1 PROG červená, LED2 MAP zelená (autor). Skutečné barvy Tesla zůstávají Nejasností 12.
+- **Pod kresbou** tlačítka média (Vložit…, Nová 2716, Nová 2732, Vysunout, „…“ → Obnovit z originálu), Uložit RAM
+  simulátoru… (pomoc emulátoru), varování, když typ EPROM nesedí s kabelem, a řádek stavu (Vpp, ON LINE, poslední pulz,
+  počet pulzů). Stav je údaj emulátoru, krabička má jen LED (říká to bublina).
+- **Přetažení:** soubor `.bin` přetažený na okno programátoru jde do patice, jinam přetažený se dál nahrává do paměti.
+- **Panel v konfigurátoru:** dva konektory FRB-30 jako DSM-1, nahoře K3 = X2 programovací kabel („PRG“), dole K2 = X3
+  sonda simulátoru („SIM“), podle výkresu desky. „PROG“ se na panel vedle K3 nevešlo.
+- **2708:** jestli DSE-1 programovala MHB2708C, nevíme, je to Nejasnost 13. Emulace 2708 neumí jako dřív.
+- **UI snímky** `--ui-dse1` a `--ui-crop dse1`, k přetažení na místo `--ui-drop-at X,Y`.

@@ -52,6 +52,7 @@ STATES = {
     'cpm': ('machines/cpm_zrmd.sapi', cm.MACHINES['cpm_zrmd'][0]),
     'xy4130': ('machines/zps/ZPS-2_MIKOS_V5_XY4130.sapi', cm.MACHINES['zps_ZPS-2_MIKOS_V5_XY4130'][0]),
     'rmp1': ('machines/rmp1_jb_izot.sapi', cm.MACHINES['rmp1_jb_izot'][0]),
+    'dse1': ('machines/zps/ZPS-2_DSE-1.sapi', mp.INSTRUMENTS['zps_ZPS-2_DSE-1'][0]),
 }
 DEBUG_WINDOWS = {'windows': {'debugger': True, 'memory': True}}
 # name, machine, state, options, size, first start (no settings), more settings, what it shows
@@ -77,6 +78,8 @@ SCREENS = [
     ('21_ims2', 'machines/zps/ZPS-2_DPS-1_IMS-2.sapi', 'ims2', ['--ui-ims2'], '1600x900', False, None, 'měřicí pracoviště IMS-2'),
     ('22_minigraf', 'machines/zps/ZPS-2_MIKOS_V5_Minigraf.sapi', 'minigraf', ['--ui-plotter'], '1600x900', False, None,
      'zapisovač Minigraf po kreslení'),
+    ('23_dse1', 'machines/zps/ZPS-2_DSE-1.sapi', 'dse1', ['--ui-dse1'], '1600x900', False, None,
+     'programátor EPROM DSE-1 při programování (svítí PROG, štítek na EPROM)'),
     ('25_cpm_printer_debug', 'machines/cpm_zrmd.sapi', 'cpm', ['--ui-printer'], '1600x900', False, DEBUG_WINDOWS,
      'CP/M s tiskárnou, debugger a paměť'),
 ]

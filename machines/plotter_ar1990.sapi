@@ -3,7 +3,7 @@
 {
     "name": "Plotter z AR 1990 (JPR-1 řídí Minigraf 0507)",
     "description": "Souřadnicový zapisovač řízený mikroprocesorem podle Amatérského radia 1990 (V. Julius OK1IVJ): samotná deska JPR-1 s programem z přílohy AR v EPROM (0000-0F72) a RAM 2114 na 2000h je řadič plotteru Minigraf 0507 na P0-OUT. Povely tiskárny-plotteru SHARP MZ-1P16 přicházejí z řídicího počítače (v emulátoru: okno Minigraf, Poslat soubor nebo text). Tlačítka STOP, TEST, READY a přepínače panelu jsou v okně Minigraf. Ukázky: media/ar1990/. docs/desky/AR1990.md, docs/navod-ar1990.md.",
-    "windows": [ "minigraf" ],              // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
+    "windows": [ "minigraf" ],              // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2, dse1
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },

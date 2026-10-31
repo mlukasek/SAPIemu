@@ -178,10 +178,11 @@ PICTURES = {
     'navod-dps1': dict(
         machine='machines/zps/ZPS-2_DPS-1_IMS-2.sapi',
         cli=[BASIMS + lines(*LOOP) + t('LIST\\r') + run(4000) + t('RUN\\r') + run(1500)], gui=FRONT, size='1180x960'),
-    # docs/navod-dse1.md: P programs the blank 2716, the Media window shows LED1, Vpp 25 V and the 50 ms pulse
+    # docs/navod-dse1.md: P programs the blank 2716, the window of the programmer shows the LED PROG lit, the label on
+    # the EPROM, Vpp 25 V and the 50 ms pulse
     'navod-dse1': dict(
-        machine='machines/zps/ZPS-2_DSE-1.sapi', cli=[DSE_P], gui=['--ui-media'] + FRONT, size='1170x640',
-        ini={'Media': (528, 34, 634, 372)}),
+        machine='machines/zps/ZPS-2_DSE-1.sapi', cli=[DSE_P], gui=['--ui-dse1'] + FRONT, size='1170x640',
+        ini={'dse1': (528, 34, 634, 500)}),
     # docs/navod-kzd1.md: a new cassette moje.kzd, chapters 1 to 4
     'navod-kzd1': dict(
         machine='machines/zps/_docs_kzd1.sapi',

@@ -524,6 +524,37 @@ static void test_media(void)
     file_remove(data_path("work/test/dse1_sim.bin"));
 }
 
+// Erase (the UV lamp of the window, MCP erase): not under voltage, then all FFh like a programming (dirty, saved with
+// the media); not without an EPROM
+static void test_erase(void)
+{
+    Machine m;
+    if (!load(m, json::object())) return;
+    Dse1* d = dse(m);
+    std::string err;
+    uint64_t writes = media_writes();
+    out(m, 0xF4, 0x13);   // Vpp 25 V: a real chip could be damaged when taken out
+    CHECK(!d->erase(err));
+    CHECK(err.find("Vpp 25 V") != std::string::npos);
+    out(m, 0xF4, 0x11);   // 5 V for reading: neither
+    CHECK(!d->erase(err));
+    CHECK_EQ(d->eprom().data[0x123], p16(0x123));
+    CHECK(!d->eprom().dirty);
+    out(m, 0xF4, 0x00);
+    CHECK(d->erase(err));
+    bool blank = true;
+    for (uint8_t b : d->eprom().data) blank = blank && b == 0xFF;
+    CHECK(blank);
+    CHECK(d->eprom().dirty);
+    CHECK(media_writes() > writes);
+    CHECK_EQ(eprom_read(m, 0xF0, 0x11, 0x123), 0xFF);
+    out(m, 0xF4, 0x00);
+    CHECK(d->erase(err));   // a blank one again: nothing changes
+    CHECK(m.set_live_param(d, "eprom", json(""), err));
+    CHECK(!d->erase(err));
+    CHECK(err.find("no EPROM") != std::string::npos);
+}
+
 // The same file put in again while what was programmed is not saved yet: the chip keeps it (and the file gets it
 // with the media written, as in the program)
 static void test_same_file(void)
@@ -897,6 +928,7 @@ int main(void)
         test_copy();
         test_stats();
         test_media();
+        test_erase();
         test_same_file();
         test_state();
         file_remove(data_path(F2716));

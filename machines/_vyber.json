@@ -181,8 +181,8 @@
         "zps/ZPS-2_DSE-1.sapi": {
             "title": "Programátor EPROM DSE-1",
             "title_en": "DSE-1 EPROM programmer",
-            "summary": "Deska DSE-1 Tesla Elstroj programuje a simuluje EPROM 2716 a 2732. Program DSE (z monitoru G1000) zkontroluje prázdnou EPROM, naprogramuje ji z RAM a porovná. Patice, LED a Vpp jsou v okně Média.",
-            "summary_en": "The Tesla Elstroj DSE-1 board programs and simulates 2716 and 2732 EPROMs. The DSE program (G1000 in the monitor) checks a blank EPROM, programs it from RAM and compares it. The socket, the LEDs and Vpp are in the Media window."
+            "summary": "Deska DSE-1 Tesla Elstroj programuje a simuluje EPROM 2716 a 2732. Program DSE (z monitoru G1000) zkontroluje prázdnou EPROM, naprogramuje ji z RAM a porovná. Krabička programovacího kabelu se zelenou paticí, EPROM a LED je nakreslená ve vlastním okně, EPROM tam smaže i UV lampa.",
+            "summary_en": "The Tesla Elstroj DSE-1 board programs and simulates 2716 and 2732 EPROMs. The DSE program (G1000 in the monitor) checks a blank EPROM, programs it from RAM and compares it. The box of the programming cable with its green socket, the EPROM and the LEDs is drawn in a window of its own, where a UV lamp also erases the EPROM."
         },
         "zps/ZPS-2_MIKOS_V5_Minigraf.sapi": {
             "title": "Zapisovač Minigraf 0507",

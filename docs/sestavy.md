@@ -415,7 +415,8 @@ pracoviště na kabelu X2: voltmetr Metra M1T 330 a zdroj Tesla BS 525.
 F0h ve slotu X6 (místo BDK-1). REM-1 má spojený soubor `roms/dse-1/MIKOS_V4.0F_DSE_1000.bin`: Monitor V4.0F
 s MIKOSem a od 1000h program DSE Ing. P. Navrátila (`G1000`). Parametry DSE-1: `base` (S1), `jp1_map` (osazená),
 `vpp` (`pin50`), `x2_cable` (`2716`, `2732`, `dual`) a `eprom`, v patici prázdná 2716 (pracovní kopie
-`work/dse-1/prazdna_2716.bin`). Okno Média se otevře samo. `docs/desky/DSE-1.md`, `docs/navod-dse1.md`.
+`work/dse-1/prazdna_2716.bin`). Okno Programátor EPROM DSE-1 se otevře samo (od 2026-10-31, dřív blok v okně
+Média). `docs/desky/DSE-1.md`, `docs/navod-dse1.md`.
 
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
@@ -455,10 +456,11 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 - **Okna nahoře po spuštění** (`windows`, v konfigurátoru řádek zaškrtávátek „Okna nahoře po spuštění“): okna,
   která sestava potřebuje, se při spuštění otevřou a dají nad ostatní okna, i nad konfigurátor. Klávesnice
   zůstane obrazovce. Jména: `media` (Média), `minigraf` (zapisovač: Minigraf, XY 4130), `aps5` (panel APS-5), `diag`
-  (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2). Okno v doku dostane vybranou
+  (deska diagnostiky), `printer` (tiskárna), `terminal` (sériový terminál), `ims2` (měřicí pracoviště IMS-2), `dse1`
+  (programátor EPROM DSE-1). Okno v doku dostane vybranou
   záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `cpm_term64k_fdc1` terminál, `aps5` panel,
   `zps/ZPS-2_DPS-1_IMS-2` měřicí pracoviště, `rmp1_jb_izot`,
-  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky), `zps/ZPS-2_DSE-1` Média (patice programátoru EPROM).
+  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky), `zps/ZPS-2_DSE-1` programátor EPROM.
   - **Sestava bez displeje** (od 2026-10-29: `plotter_ar1990`, `cpm_term64k_fdc1`) nemá okno obrazovky; první okno
     z `windows` je její hlavní výstup a dostane velké místo vlevo nahoře (zapisovač na celou výšku plochy, tak široký,
     aby se vešel celý list A4; jiné okno ve své velikosti). Bez `windows` by po startu nebylo vidět nic.
@@ -503,7 +505,8 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
 `sapiemu --ui-snapshot soubor.png [--machine …] [--ui-open sestava.sapi] [--ui-rack SLOT] [--ui-map] [--ui-media] [--ui-printer]`
 vykreslí GUI do skrytého okna, uloží obrázek a skončí. `--ui-media` otevře okno Média, `--ui-printer` okno Tiskárna,
 `--ui-aps5` okno APS-5 (panel a pece; s `--ui-state` i se žhavými pecemi a grafem), `--ui-aps5-demo` totéž
-se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou),
+se spuštěným DEMEM, `--ui-plotter` okno Minigraf (s `--ui-state` i s kresbou), `--ui-dse1` okno programátoru
+EPROM DSE-1,
 `--ui-browser` okno Vybrat sestavu, `--ui-guide` Průvodce sestavou, `--ui-about`, `--ui-settings`, `--ui-shortcuts`
 okna O programu, Nastavení a Klávesové zkratky, `--ui-crop KLÍČ` uloží jen okno s ID `###KLÍČ` (náhledy přístrojů),
 s `--ui-picture` jen nakreslený přístroj v něm (bez ovládacích prvků emulátoru, okno ho označí `picture_mark()`),
@@ -536,7 +539,8 @@ na řádku pod myší), `--ui-click X,Y` tam klikne levým tlačítkem (víc jic
 `--ui-help first|glossary|SOUBOR.md` otevře okno Nápověda s Prvními kroky, Slovníčkem nebo dokumentem `.md` z dat
 (`docs/navod-kzd1.md`; `--ui-help-open all|none`
 všechny kapitoly otevřené nebo sbalené, `--ui-help-scroll 0..1` posun), `--ui-second` ukáže varování druhého okna
-„Už běží jiné SAPIemu“, `--ui-drop SOUBOR` přetáhne soubor na okno jako z Průzkumníka (víc jich po sobě),
+„Už běží jiné SAPIemu“, `--ui-drop SOUBOR` přetáhne soubor na okno jako z Průzkumníka (víc jich po sobě;
+`--ui-drop-at X,Y` na to místo okna, třeba na okno programátoru DSE-1),
 `--ui-save` stiskne Uložit v konfigurátoru (po `--ui-set`), `--ui-save-copy` uloží jako build pro vydání i v ladicím
 buildu (dodaná sestava jako kopie do `work/machines`, Moje sestavy),
 `--ui-video SEKUNDY` nahraje video (Ctrl+Alt+F5) do `work/videa` a obrázek uloží až po jeho dokončení,

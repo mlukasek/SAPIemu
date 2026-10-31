@@ -46,7 +46,7 @@ byly přístroje v Hrách a demech a v Ostatních. XY 4130 a plotter z AR 1990 d
 | 6 | `zps/ZPS-2_MIKOS_K.sapi` | kazetopáskový záznamník dat KZD-1, MIKOS/K | Média (mechanika) |
 | 7 | `rkd1_tesla_cpm.sapi` | kazetový disk RKD-1, CP/M Tesla Elstroj 1987 | Média (kazetový disk) |
 | 8 | `rmp1_jb_izot.sapi` | magnetická páska RMP-1 a IZOT SM 5300 | Média (páskové jednotky) |
-| 9 | `zps/ZPS-2_DSE-1.sapi` | simulátor a programátor EPROM DSE-1, program DSE Tesla Elstroj (`G1000`), prázdná 2716 v patici (od 2026-10-30, průvodce česky i anglicky) | Média (patice, LED, Vpp) |
+| 9 | `zps/ZPS-2_DSE-1.sapi` | simulátor a programátor EPROM DSE-1, program DSE Tesla Elstroj (`G1000`), prázdná 2716 v patici (od 2026-10-30, průvodce česky i anglicky) | Programátor EPROM DSE-1 (krabička kabelu s paticí, LED, UV lampa) |
 
 ## 3. Desky Libora Lasoty (moderní)
 

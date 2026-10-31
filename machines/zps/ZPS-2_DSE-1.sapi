@@ -2,8 +2,8 @@
 // Paths are relative to the emulator data folder (roms/, media/, work/).
 {
     "name": "ZPS-2 MIKOS V4.0F s deskou DSE-1 (simulátor a programátor EPROM 2716/2732)",
-    "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou DSE-1 Tesla Elstroj na portech F0h-F7h (8255 F0h-F3h, registr F4h). V paticích 5 a 6 desky REM-1 (1000-17FF) je program DSE od Ing. P. Navrátila (NAP051186), spouští se z monitoru G1000 a nabídne menu: K kontrola smazání EPROM, P programování z RAM, C porovnání, T přenos EPROM do RAM, S a R simulátor (RAM desky) tam a zpět. V patici programovacího kabelu X2 je prázdná 2716 (pracovní kopie ve work/dse-1/); okno Média ukazuje patici, LED kabelu, Vpp, ON LINE a délku programovacího pulzu a vloží jinou EPROM nebo novou prázdnou 2716/2732. Sonda simulátoru X3 není nikam zasunutá. docs/desky/DSE-1.md, docs/navod-dse1.md.",
-    "windows": [ "media" ],                 // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
+    "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou DSE-1 Tesla Elstroj na portech F0h-F7h (8255 F0h-F3h, registr F4h). V paticích 5 a 6 desky REM-1 (1000-17FF) je program DSE od Ing. P. Navrátila (NAP051186), spouští se z monitoru G1000 a nabídne menu: K kontrola smazání EPROM, P programování z RAM, C porovnání, T přenos EPROM do RAM, S a R simulátor (RAM desky) tam a zpět. V patici programovacího kabelu X2 je prázdná 2716 (pracovní kopie ve work/dse-1/); okno Programátor EPROM DSE-1 ukazuje krabičku kabelu s paticí, EPROM v ní a LED PROG a MAP, Vpp, ON LINE a délku programovacího pulzu, vloží jinou EPROM nebo novou prázdnou 2716/2732 a smaže EPROM UV lampou. Sonda simulátoru X3 není nikam zasunutá. docs/desky/DSE-1.md, docs/navod-dse1.md.",
+    "windows": [ "dse1" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2, dse1
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },

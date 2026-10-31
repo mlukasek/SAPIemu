@@ -121,6 +121,8 @@ struct UiState {
     bool show_aps5 = false;        // APS-5: the front panel and the furnaces
     bool show_ims2 = false;        // the measuring bench on the IMS-2 bus of DPS-1
     uint64_t ims2_gen = 0;         // machine generation the bench window opened itself for
+    bool show_dse1 = false;        // the EPROM programmer DSE-1: the box of its cable X2 with the socket
+    uint64_t dse1_gen = 0;         // machine generation the programmer window opened itself for
     uint64_t aps5_gen = 0;         // machine generation the APS-5 window opened itself for
     int aps5_span = 1;             // plot: 0 = 10 min, 1 = 1 h, 2 = 4 h
     float aps5_outage_s = 60.0f;   // length of an outage from the window
@@ -334,6 +336,13 @@ void terminal_paste(UiState& ui);
 // A file of a medium or an output as the windows show it (Media, Printer): its name, the whole path in a wrapped tooltip
 // (a relative one from the data root). disabled: in the colour of the secondary text.
 void file_name_text(const std::string& path, bool disabled = false);
+// The media plumbing of the Media window (media.cpp), also for the window of the DSE-1 programmer: a native file
+// dialog of `kind` (TapeDialog::kind) for the unit `drive` of the card `card` (its answer is taken by draw_media every
+// frame); the medium of unit `u` changed through the machine description ("" = taken out; the Error window says why
+// not: a bad image, the same image in another unit); the "..." button after Eject (Restore from the original).
+void tape_dialog(UiState& ui, int kind, const std::string& card, int drive = 0);
+void media_set(UiState& ui, Card* c, int u, const std::string& image);
+void media_more(UiState& ui, Card* c, int u);
 void draw_debugger(UiState& ui);
 void draw_memory(UiState& ui);
 void draw_iolog(UiState& ui);
@@ -383,7 +392,7 @@ void open_folder(const std::string& dir);
 // of a window (ImGuiCond_FirstUseEver: a place saved in imgui.ini wins, View -> Default window layout takes them again).
 // A dialog opening at a place partly outside the work area comes back inside it.
 enum LayoutWin {
-    LW_GUIDE, LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DIAG,
+    LW_GUIDE, LW_MEDIA, LW_PLOTTER, LW_APS5, LW_IMS2, LW_DSE1, LW_DIAG,
     LW_DEBUGGER, LW_MEMORY, LW_IOLOG, LW_TERMINAL, LW_PRINTER, LW_LOG, LW_RACK,
     LW_BROWSER, LW_SETTINGS, LW_SHORTCUTS, LW_ABOUT, LW_REPORT, LW_HELP,
     LW_COUNT
@@ -473,6 +482,7 @@ void layout_dock_main(unsigned dockspace, const char* main_id);
 // takes the keyboard, and with it its tab would come in front).
 void layout_dock_frame(void);
 void draw_ims2(UiState& ui);
+void draw_dse1(UiState& ui);
 void draw_diag(UiState& ui);
 void draw_aps5(UiState& ui);
 // Reset from the GUI (F12, Machine -> Reset, RESET on the ZDR panel, the debugger): at once, or on the APS-5 unit
@@ -490,7 +500,8 @@ void bin_load_dialog(UiState& ui);
 // cartridge (.rkd) and an RMP-1 tape (.tap) go into the first empty unit of the running machine (none: the Error window
 // says so), a cassette (.wav, .mp3; .kzd for KZD-1) into the first recorder (an empty one first). Anything else, a
 // switched off machine or a file dialog waiting: the status bar says so. The caller checks the modal windows.
-void file_drop(UiState& ui, const std::string& path);
+// on_dse1: dropped on the window of the DSE-1 programmer (dse1_drop_target), a .bin goes into its socket.
+void file_drop(UiState& ui, const std::string& path, bool on_dse1 = false);
 // File -> Save state / Load state (.sapistate, native dialog); quick slot of the machine
 // (Ctrl+F2 / Ctrl+F3, work/state/).
 void state_save_dialog(UiState& ui);
@@ -522,6 +533,10 @@ void machine_devices_seen(UiState& ui);
 bool device_window_off(UiState& ui);
 bool aps5_in_machine(UiState& ui);   // the plant of APS-5 or its panel HRK-1 (aps5.cpp)
 bool ims2_in_machine(UiState& ui);   // the measuring bench on the IMS-2 bus (ims2.cpp)
+bool dse1_in_machine(UiState& ui);   // a DSE-1 card (dse1.cpp)
+// A file dropped at (x, y) of the main window lands on the window of the DSE-1 programmer (dse1.cpp; a .bin goes into
+// its socket, file_drop).
+bool dse1_drop_target(float x, float y);
 // File -> Open: native dialog, the chosen machine is started.
 void rack_open_and_run(UiState& ui);
 // File -> Open machine: start a machine file; asks first when the configurator holds

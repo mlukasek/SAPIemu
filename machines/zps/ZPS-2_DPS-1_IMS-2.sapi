@@ -3,7 +3,7 @@
 {
     "name": "ZPS-2 MIKOS V4.0F s DPS-1 a měřicím pracovištěm IMS-2 (voltmetr M1T 330, zdroj BS 525)",
     "description": "ZPS-2 (Monitor V4.0F + MIKOS 4.0F na REM-1, RAM-1/48K, AND-1, DSM-1, ANK-1) s deskou přístrojové sběrnice DPS-1 (porty 30h-37h). Kabel IMS-2 z X2 vede k číslicovému voltmetru Metra M1T 330 (adresa 3), na jeho svorkách H a L je výstup I laboratorního zdroje Tesla BS 525. V magnetofonu je kazeta s BASIMS V4.0 (BASIC EX V4.0 s příkazy IMS# pro DPS-1): .K_L BASIMS, pak .J. Za ním jsou na kazetě programy BASIC PRIKLAD (příklad z návodu) a SMYCKA (měření ve smyčce): LOAD, jméno, Y, RUN. Příklad: 10 IMS# N, 20 IMS# O3;\"R4D0E\", 30 IMS# T3, 40 IMS# I A$, 50 PRINT A$. Okno Měřicí pracoviště ukazuje přístroje a sběrnici. docs/desky/DPS-1.md, docs/navod-dps1.md.",
-    "windows": [ "ims2" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2
+    "windows": [ "ims2" ],                  // Windows opened on top at the start: media, minigraf, aps5, diag, printer, terminal, ims2, dse1
     "bus": {
         "type": "ARB-1"                     // ARB-1 (original, 8 positions)
     },

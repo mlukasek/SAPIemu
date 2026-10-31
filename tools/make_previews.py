@@ -41,7 +41,6 @@ PREVIEWS = {
     'zps_ZPS-6': (cm.CPM + cm.t('SETDBS1\\r') + cm.run(5000) + sum([cm.t('F') + cm.run(500) for _ in range(7)], []) +
                   cm.t('B') + cm.run(1000), None),
     'jpr1s_bgp1s': (cm.MANIC, 'BGP-1S'),
-    'zps_ZPS-2_DSE-1': (cm.DSE + cm.run(1000), None),   # the menu of the program DSE
 }
 
 # machines with an instrument: the picture of its window in the GUI (sapiemu --ui-snapshot --ui-crop) after the
@@ -69,6 +68,14 @@ INSTRUMENTS = {
     'plotter_ar1990': (cm.run(1000) + cm.plotter('ready') + cm.run(6000) + cm.plotter('demo') + cm.run(170000) +
                        cm.plotter('send', '\\x02M680,520') + cm.run(5000), '--ui-plotter', 'Minigraf'),
     'rmp1_jb_izot': (cm.MACHINES['rmp1_jb_izot'][0], '--ui-media', 'Media'),
+    # the program DSE programs 5000-50FF into the blank 2716 (docs/navod-dse1.md, chapter 4), 5 s into it: the LED PROG
+    # lit, the label on the EPROM
+    'zps_ZPS-2_DSE-1': (cm.DSE + cm.t('F') + cm.w('OBSAH:', 5000) + cm.run(500) + cm.t('5000,50FF,55\\r') +
+                        cm.run(1500) + cm.t('P') + cm.w('DOLNI ADRESA RAM=', 5000) + cm.run(500) + cm.t('5000\\r') +
+                        cm.w('HORNI ADRESA RAM=', 5000) + cm.run(500) + cm.t('50FF\\r') +
+                        cm.w('DOLNI ADRESA EPROM=', 5000) + cm.run(500) + cm.t('0\\r') + cm.w('VLOZ EPROM', 5000) +
+                        cm.run(500) + cm.t(' ') + cm.w('2732?', 5000) + cm.run(500) + cm.t('N') + cm.run(5000),
+                        '--ui-dse1', 'dse1'),
 }
 
 # the size of the window (pixels at its scale) where its default one cuts the content: put into the imgui.ini of the run
@@ -78,6 +85,7 @@ WINDOW_SIZE = {
     'zps_ZPS-2_DPS-1_IMS-2': (968, 1400),   # the instruments as wide as the window, just under 2 x 480, all in sight
     'zps_ZPS-2_MIKOS_K': (1100, 900),       # the cassette of KZD-1 under the tape of DSM-1
     'rmp1_jb_izot': (1300, 1000),           # the RPD-1 drives above the RMP-1 drive
+    'zps_ZPS-2_DSE-1': (968, 760),          # the drawing just under 2 x 480 wide (dse1.cpp: as wide as the window)
     # the picture is the drawing with a margin (plotter.cpp): the character set of the test, about 115 x 80 mm with
     # the margin, is just under 480 points wide on a sheet 230 mm wide when the window is this wide
     'zps_ZPS-2_MIKOS_V5_XY4130': (1000, 1500),

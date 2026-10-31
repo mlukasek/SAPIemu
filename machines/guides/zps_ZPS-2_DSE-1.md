@@ -1,8 +1,9 @@
 # Programátor EPROM DSE-1
 
 Deska DSE-1 (Tesla Elstroj) programuje EPROM 2716 a 2732 a ve 4 KB své RAM je umí simulovat. Program DSE od
-Ing. P. Navrátila je v EPROM desky REM-1 od 1000h. V patici programátoru je prázdná 2716. Okno Média ukazuje patici,
-LED kabelu, programovací napětí Vpp a délku pulzu.
+Ing. P. Navrátila je v EPROM desky REM-1 od 1000h. V patici programátoru je prázdná 2716. Okno Programátor EPROM
+DSE-1 ukazuje krabičku kabelu se zelenou paticí, EPROM v ní a LED PROG a MAP, pod tím programovací napětí Vpp a délku
+pulzu.
 
 ## Vyzkoušejte
 
@@ -11,10 +12,10 @@ LED kabelu, programovací napětí Vpp a délku pulzu.
    a `7FF` Enter. Program vypíše `CISTA  0000 - 07FF`.
 3. Data do RAM: `F` a `5000,50FF,55` Enter vyplní 5000–50FF bajtem 55h.
 4. Programování: `P`, `5000` Enter, `50FF` Enter, adresa v EPROM `0` Enter, libovolná klávesa a `N`. Během
-   `PROGRAMUJI` svítí v okně Média LED1, Vpp je 25 V a pulz trvá 50 ms. Asi za 13 s program vypíše
-   `SHODNY OBSAH  0000 - 00FF`.
-5. Naprogramovaná EPROM je pracovní kopie `work\dse-1\prazdna_2716.bin`. V okně Média ji tlačítko `...` → Obnovit
-   z originálu smaže jako UV světlo, Nová 2716 vloží další prázdnou.
+   `PROGRAMUJI` svítí v okně programátoru červená LED PROG, Vpp je 25 V a pulz trvá 50 ms. Na okénko EPROM se
+   přilepí štítek se jménem souboru. Asi za 13 s program vypíše `SHODNY OBSAH  0000 - 00FF`.
+5. Naprogramovaná EPROM je pracovní kopie `work\dse-1\prazdna_2716.bin`. UV lampa vpravo v okně programátoru ji
+   smaže (štítek zmizí, okénko chvíli svítí fialově), Nová 2716 vloží další prázdnou.
 
 ## Dál
 

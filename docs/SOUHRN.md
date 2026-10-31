@@ -25,13 +25,21 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **2026-10-31, vlastní okno programátoru DSE-1** (přání autora, rozhodnutí 2026-10-31 – okno programátoru DSE-1):
+  `src/frontend/dse1.cpp`, okno `###dse1` místo bloku v okně Média: krabička kabelu X2 se zelenou paticí v duchu
+  3M TEXTOOL (páka zvednutá s prázdnou, sklopená s EPROM), EPROM TESLA MHB2716C / Intel D2732 s okénkem, štítek se
+  jménem souboru na naprogramované, LED PROG červená a MAP zelená, UV lampa na smazání (pohodlí emulátoru, otázka
+  u naprogramované, ne pod napětím; `Dse1::erase`, MCP `erase`), soubor `.bin` přetažený na okno jde do patice.
+  Panel v konfigurátoru se dvěma FRB-30 (K3 „PRG“, K2 „SIM“). UI snímek `--ui-dse1`, `--ui-drop-at`. Nejasnost 13
+  (2708). **Dál:** autor se podívá na kresbu (vzhled krabičky Tesla neznáme).
 - **2026-10-30 večer, DSE-1 hotová** (autor byl pryč, „rozhoduj se sám“; rozhodnutí 2026-10-30 – DSE-1):
   simulátor a programátor EPROM 2716/2732 Tesla (`src/cards/dse1.*`, čip `src/chips/eprom27.*` vyhodnocovaný
   z vývodů), model na úrovni signálů, pulz v čase sběrnice (od 1 ms programuje, předpoklad), kabel X2 pro 2716,
-  2732 nebo dvě patice, EPROM jako médium s pracovní kopií ve `work/dse-1/`. Blok v okně Média, MCP `dse1`, sestava
+  2732 nebo dvě patice, EPROM jako médium s pracovní kopií ve `work/dse-1/`. Blok v okně Média (od 2026-10-31 vlastní
+  okno), MCP `dse1`, sestava
   `zps/ZPS-2_DSE-1.sapi` s programem DSE Ing. P. Navrátila (`G1000`), průvodce, náhled, testy `test_dse1`,
   `test_dse1_tesla`, `test_dse1_simprog` (SIMPROG z diskety 7 v kopii ZPS-6: 98 ms na 2 MHz) a `test_dse1_eprom`
-  (EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`, JP1 rozpojená). Dokumentace `docs/desky/DSE-1.md` (12 Nejasností)
+  (EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`, JP1 rozpojená). Dokumentace `docs/desky/DSE-1.md` (13 Nejasností)
   a návod `docs/navod-dse1.md` s výpisy z emulátoru. Po kontrole: programování končí až 0,5 s po poklesu Vpp
   (DSE.COM), varování DSE.DOC u S a R s 2716 v patici, tentýž soubor znovu v patici nic neztratí. **Dál:** sonda X3
   do patice jiné karty (REM-1, JPR-1), DSE.COM J. Hlaváče (`dse.8sd`) do `media/` až s autorem, 2708, 2764

@@ -44,9 +44,10 @@ v [prvni-kroky.md](prvni-kroky.md).
     a `SMYCKA` (`LOAD`) ([docs/desky/DPS-1.md](desky/DPS-1.md), návod [docs/navod-dps1.md](navod-dps1.md));
   - simulátor a programátor EPROM DSE-1 (Tesla) s původním programem DSE Ing. P. Navrátila pro MONITOR V4: kontrola
     smazání, programování 2716 a 2732 z RAM, porovnání, přenos do RAM simulátoru a zpět. EPROM v patici je soubor
-    (pracovní kopie, Nová 2716 a 2732, Obnovit z originálu jako smazání UV), čip se vyhodnocuje z vývodů podle
-    zapojení kabelu X2 (pro 2716 z výroby, upravený pro 2732, dvě patice). Programovací pulz se měří v čase
-    emulovaného počítače, okno Média ukazuje LED kabelu, Vpp, ON LINE a délku pulzu. Testem jsou ověřené
+    (pracovní kopie, Nová 2716 a 2732, Obnovit z originálu), čip se vyhodnocuje z vývodů podle zapojení kabelu X2
+    (pro 2716 z výroby, upravený pro 2732, dvě patice). Programovací pulz se měří v čase emulovaného počítače. Vlastní
+    okno kreslí krabičku kabelu se zelenou paticí s pákou, EPROM s okénkem (naprogramovaná se štítkem), LED PROG
+    a MAP a UV lampu, která EPROM smaže; pod kresbou Vpp, ON LINE a délka pulzu. Testem jsou ověřené
     i SIMPROG Melsoft z CP/M SAPI-1.5 a EPROM.COM J. Bíby ([docs/desky/DSE-1.md](desky/DSE-1.md), návod
     [docs/navod-dse1.md](navod-dse1.md));
   - plotter z Amatérského radia 1990: deska JPR-1 jako řadič zapisovače Minigraf s programem přepsaným z výpisu
