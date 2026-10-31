@@ -756,20 +756,77 @@ struct FlowSim {
     int rows;
 };
 
-static void flow_sim(FlowSim& f, float w, float gap, bool wraps = true)
+static void flow_sim(FlowSim& f, float w, float gap)
 {
     if (f.x <= 0) {
         f.x = w;
         return;
     }
-    if (wraps && f.avail - (f.x + gap) < w) {
+    if (f.avail - (f.x + gap) < w) {
         f.rows++;
         f.x = w;
     } else f.x += gap + w;
 }
 
-// The height of draw_controls under the drawing, laid out as it draws them in a window `avail` wide: the EPROM line,
-// the hints and the cable warning (wrapped when narrow), the rows of buttons, the state line, and some room
+// The state line: Vpp, ON LINE, the last pulse, pulse on and the pulses of the run, each in a column as wide as the
+// widest text of its item, so that nothing moves while the values change (a 2708 gets Vpp 0 / 25 V many times
+// a second); an item that does not fit goes on the next row
+enum { ST_VPP, ST_LINE, ST_PULSE, ST_ON, ST_RUN, ST_N };
+
+static float wider(float a, const char* t)
+{
+    float w = ImGui::CalcTextSize(t).x;
+    return w > a ? w : a;
+}
+
+static void state_widths(Dse1* d, float* w)
+{
+    char t[96];
+    w[ST_VPP] = wider(0, "Vpp 25 V");
+    w[ST_LINE] = wider(wider(wider(0, "ON LINE (ONLA)"), "ON LINE (ONLD)"), "OFF LINE");
+    snprintf(t, sizeof(t), "%s 999.99 ms", tr("Last programming pulse:"));
+    w[ST_PULSE] = wider(ImGui::CalcTextSize(t).x, tr("No programming pulse yet"));
+    pulse_text(d, t, sizeof(t));
+    w[ST_PULSE] = wider(w[ST_PULSE], t);   // a pulse of a second or longer
+    w[ST_ON] = wider(0, tr("pulse on"));
+    snprintf(t, sizeof(t), "%s 99999", tr("pulses while programming:"));
+    w[ST_RUN] = wider(0, t);
+    snprintf(t, sizeof(t), "%s %u", tr("pulses while programming:"), d->run().pulses);
+    w[ST_RUN] = wider(w[ST_RUN], t);
+}
+
+// The columns of the state line as state_col places them in a window `avail` wide: how many rows
+static int state_rows(const float* w, float avail, float gap)
+{
+    int rows = 1;
+    float end = w[0];
+    for (int i = 1; i < ST_N; i++) {
+        if (end + gap + w[i] <= avail) end += gap + w[i];
+        else {
+            rows++;
+            end = w[i];
+        }
+    }
+    return rows;
+}
+
+struct StateCols {
+    float left, avail, gap;
+    float end;   // the end of the column before (from left), < 0 = none yet
+};
+
+// Before an item of the state line in a column `w` wide: beside the column before, or first on the next row
+static void state_col(StateCols& c, float w)
+{
+    if (c.end >= 0 && c.end + c.gap + w <= c.avail) {
+        ImGui::SameLine(c.left + c.end + c.gap);
+        c.end += c.gap + w;
+    } else c.end = w;   // ImGui is at the start of the next row after the last item
+}
+
+// The height of draw_controls under the drawing in a window `avail` wide, with room for what may appear while the
+// window is open, so that the drawing keeps its size: the EPROM line, a hint and the cable warning (wrapped when
+// narrow; the two hints never come together), the rows of buttons, the state line with all its items, some room
 static float controls_h(Dse1* d, float avail)
 {
     const ImGuiStyle& st = ImGui::GetStyle();
@@ -787,14 +844,14 @@ static float controls_h(Dse1* d, float avail)
         flow_sim(f, ImGui::CalcTextSize(t).x, sp);
     }
     float h = fh + (f.rows - 1) * th;
-    if (e.loaded() && d->hint_2716_mode()) h += warn_text_h(tr("The 2732 is read as a 2716: answer A to \"2732?\""), avail);
-    if (e.loaded() && d->hint_2708_long()) h += warn_text_h(tr("The 2708 gets pulses longer than 1 ms: EPROM.COM type 0"), avail);
-    if (e.loaded() && e.type != d->socket_type()) {
-        char b[128];
-        mismatch_text(d, b, sizeof(b));
-        h += warn_text_h(b, avail);
-        if (!cable_button_beside(b, tr("Change cable X2..."), avail)) h += th;   // the small button on its own line
-    }
+    float h1 = warn_text_h(tr("The 2732 is read as a 2716: answer A to \"2732?\""), avail);
+    float h2 = warn_text_h(tr("The 2708 gets pulses longer than 1 ms: EPROM.COM type 0"), avail);
+    h += h1 > h2 ? h1 : h2;
+    char b[128];
+    if (e.loaded() && e.type != d->socket_type()) mismatch_text(d, b, sizeof(b));
+    else snprintf(b, sizeof(b), tr("A %d in the socket wired for a %d"), 2732, 2716);
+    h += warn_text_h(b, avail);
+    if (!cable_button_beside(b, tr("Change cable X2..."), avail)) h += th;   // the small button on its own line
     // the buttons as flow() puts them
     f = { avail, 0, 1 };
     flow_sim(f, button_w(tr("Insert...")), sp);
@@ -805,20 +862,38 @@ static float controls_h(Dse1* d, float avail)
     flow_sim(f, button_w(tr("Save simulator RAM...")), sp);
     h += f.rows * fh;
     // the state line
-    float gap = 2.0f * sp;
-    char t[96];
-    snprintf(t, sizeof(t), "Vpp %d V", d->vpp_volts());
-    f = { avail, 0, 1 };
-    flow_sim(f, ImGui::CalcTextSize(t).x, gap, false);
-    flow_sim(f, ImGui::CalcTextSize(d->onla() || d->onld() ? "ON LINE (ONLA)" : "OFF LINE").x, gap, false);
-    pulse_text(d, t, sizeof(t));
-    flow_sim(f, ImGui::CalcTextSize(t).x, gap);
-    if (d->pulse_on()) flow_sim(f, ImGui::CalcTextSize(tr("pulse on")).x, gap, false);
-    if (d->run().active) {
-        snprintf(t, sizeof(t), "%s %u", tr("pulses while programming:"), d->run().pulses);
-        flow_sim(f, ImGui::CalcTextSize(t).x, gap);
+    float w[ST_N];
+    state_widths(d, w);
+    int rows = state_rows(w, avail, 2.0f * sp);
+    return h + fh + (rows - 1) * th + 0.6f * fh;   // its first row and the room as before (button rows)
+}
+
+// The readout of Vpp and of the pulse keeps 25 V and pulse on for HOLD_S after they were last there: a 2708 gets
+// pulses of 0.1-1 ms, much shorter than a frame of the window, and the line would blink at random
+static const double HOLD_S = 0.25;
+
+struct StateHold {
+    const Dse1* card = nullptr;
+    uint32_t vpp_rises = 0, pulse_starts = 0;   // the counters of the card at the frame before
+    double vpp_t = -1e9, pulse_t = -1e9;        // ImGui::GetTime() when 25 V / a pulse was last there
+};
+static StateHold s_hold;
+
+static void hold_poll(Dse1* d, bool* vpp25, bool* pulse)
+{
+    double now = ImGui::GetTime();
+    if (s_hold.card != d) {   // another card (or machine): from its counters now on
+        s_hold = StateHold();
+        s_hold.card = d;
+        s_hold.vpp_rises = d->vpp_rises();
+        s_hold.pulse_starts = d->pulse_starts();
     }
-    return h + fh + (f.rows - 1) * th + 0.6f * fh;   // its first row and the room as before (button rows)
+    if (d->vpp_volts() == 25 || d->vpp_rises() != s_hold.vpp_rises) s_hold.vpp_t = now;
+    if (d->pulse_on() || d->pulse_starts() != s_hold.pulse_starts) s_hold.pulse_t = now;
+    s_hold.vpp_rises = d->vpp_rises();
+    s_hold.pulse_starts = d->pulse_starts();
+    *vpp25 = now - s_hold.vpp_t < HOLD_S;
+    *pulse = now - s_hold.pulse_t < HOLD_S;
 }
 
 // A tooltip of the state line: what it says, and that the box itself shows only its LEDs.
@@ -921,37 +996,45 @@ static void draw_controls(UiState& ui, Dse1* d)
     if (ImGui::IsItemHovered())
         tip(tr("Emulator help, not on the real board: the 4 KB of the simulator RAM into a .bin file."));
 
-    // the state of the card
-    float gap = 2.0f * ImGui::GetStyle().ItemSpacing.x;
-    int v = d->vpp_volts();
+    // the state of the card, in fixed columns (state_widths)
+    float w[ST_N];
+    state_widths(d, w);
+    StateCols c = { ImGui::GetCursorPosX(), ImGui::GetContentRegionAvail().x, 2.0f * ImGui::GetStyle().ItemSpacing.x, -1 };
+    bool vpp25, pulse;
+    hold_poll(d, &vpp25, &pulse);
     char t[96];
-    snprintf(t, sizeof(t), "Vpp %d V", v);
-    if (v == 25) ImGui::TextColored(theme().error, "%s", t);
-    else ImGui::TextUnformatted(t);
-    info_tip(tr("The voltage on the Vpp pin of the socket: 0 V, 5 V for reading, 25 V for programming."));
+    state_col(c, w[ST_VPP]);
+    if (vpp25) ImGui::TextColored(theme().error, "%s", "Vpp 25 V");
+    else {
+        snprintf(t, sizeof(t), "Vpp %d V", d->vpp_volts());
+        ImGui::TextUnformatted(t);
+    }
+    info_tip(tr("The voltage on the Vpp pin of the socket: 0 V, 5 V for reading, 25 V for programming. 25 V stays shown "
+                "for a quarter of a second after it was last there: the pulses for a 2708 (0.1-1 ms) are much shorter "
+                "than a frame of the window."));
     const char* line = d->onla() && d->onld() ? "ON LINE" : d->onla() ? "ON LINE (ONLA)" : d->onld() ? "ON LINE (ONLD)" : "OFF LINE";
-    ImGui::SameLine(0, gap);
+    state_col(c, w[ST_LINE]);
     if (d->onla() || d->onld()) ImGui::TextColored(theme().ok, "%s", line);
     else ImGui::TextDisabled("%s", line);
     info_tip(tr("ON LINE: the simulator RAM is given to the probe X3 (in the emulator it is not plugged in anywhere); "
                 "OFF LINE: the computer writes and reads it."));
     pulse_text(d, t, sizeof(t));
-    ImGui::SameLine(0, gap);
-    if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(t).x) ImGui::NewLine();
+    state_col(c, w[ST_PULSE]);
     if (d->last_pulse_ms() > 0) ImGui::TextUnformatted(t);
     else ImGui::TextDisabled("%s", t);
     info_tip(tr("The length of the last programming pulse, measured in the time of the machine. 2716 and 2732: the data "
                 "sheet asks for 50 ms, 1 ms or longer programs in the emulator (an assumption). 2708: 0.1-1 ms on every "
                 "word in N loops, N x the pulse at least 100 ms."));
-    if (d->pulse_on()) {
-        ImGui::SameLine(0, gap);
+    state_col(c, w[ST_ON]);   // its place stays when no pulse is on
+    if (pulse) {
         ImGui::TextColored(theme().error, "%s", tr("pulse on"));
-    }
+        info_tip(tr("The EPROM in the socket is in its programming mode. It stays shown for a quarter of a second after "
+                    "the last pulse: the pulses for a 2708 (0.1-1 ms) are much shorter than a frame of the window."));
+    } else ImGui::Dummy(ImVec2(w[ST_ON], ImGui::GetTextLineHeight()));
     const Dse1::Run& r = d->run();
     if (r.active) {
         snprintf(t, sizeof(t), "%s %u", tr("pulses while programming:"), r.pulses);
-        ImGui::SameLine(0, gap);
-        if (ImGui::GetContentRegionAvail().x < ImGui::CalcTextSize(t).x) ImGui::NewLine();
+        state_col(c, w[ST_RUN]);
         ImGui::TextDisabled("%s", t);
         info_tip(tr("The programming pulses long enough to program (1 ms, a 2708 0.1 ms) since the programming began."));
     }

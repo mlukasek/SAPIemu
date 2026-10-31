@@ -101,6 +101,10 @@ public:
     int socket_type(void) const;        // the EPROM type the socket is wired for (Eprom27::T2716...)
     double last_pulse_ms(void) const;   // the last programming pulse (0 = none yet)
     bool pulse_on(void) const { return pulse_active; }
+    // for the readout of the window only (not in state()): how many times Vpp went up to 25 V and a programming
+    // pulse began (a 2708 gets pulses much shorter than a frame of the window)
+    uint32_t vpp_rises(void) const { return n_vpp_rises; }
+    uint32_t pulse_starts(void) const { return n_pulse_starts; }
 
     // A programming run: the pulses until Vpp has been off 25 V for 0.5 s, /RES or another EPROM (summary in the log
     // when it ends)
@@ -189,4 +193,5 @@ private:
     uint32_t warned = 0;
     bool read_2716_mode = false;        // the last read of a 2732 found 5 V on OE/Vpp (hint_2716_mode)
     bool long_2708 = false;             // the last programming pulse of a 2708 was longer than 1 ms (hint_2708_long)
+    uint32_t n_vpp_rises = 0, n_pulse_starts = 0;   // vpp_rises / pulse_starts (the window, not in state())
 };

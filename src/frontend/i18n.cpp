@@ -541,13 +541,20 @@ static const Translation k_table[] = {
     { "This machine has no EPROM programmer DSE-1.", "Tato sestava nemá programátor EPROM DSE-1." },
     { "In the configurator: the card DSE-1 (EPROM simulator and programmer 2716/2732).",
       "V konfigurátoru: deska DSE-1 (simulátor a programátor EPROM 2716/2732)." },
-    { "The voltage on the Vpp pin of the socket: 0 V, 5 V for reading, 25 V for programming.",
-      "Napětí na vývodu Vpp patice: 0 V, 5 V pro čtení, 25 V pro programování." },
+    { "The voltage on the Vpp pin of the socket: 0 V, 5 V for reading, 25 V for programming. 25 V stays shown for a "
+      "quarter of a second after it was last there: the pulses for a 2708 (0.1-1 ms) are much shorter than a frame of "
+      "the window.",
+      "Napětí na vývodu Vpp patice: 0 V, 5 V pro čtení, 25 V pro programování. Údaj 25 V zůstává vidět ještě čtvrt "
+      "sekundy poté, co tam napětí bylo naposledy: pulzy pro 2708 (0,1–1 ms) jsou mnohem kratší než jeden snímek okna." },
     { "ON LINE: the simulator RAM is given to the probe X3 (in the emulator it is not plugged in anywhere); OFF LINE: "
       "the computer writes and reads it.",
       "ON LINE: RAM simulátoru patří sondě X3 (v emulátoru není nikam zasunutá); OFF LINE: zapisuje a čte ji "
       "počítač." },
     { "pulse on", "pulz běží" },
+    { "The EPROM in the socket is in its programming mode. It stays shown for a quarter of a second after the last "
+      "pulse: the pulses for a 2708 (0.1-1 ms) are much shorter than a frame of the window.",
+      "EPROM v patici je v režimu programování. Nápis zůstává vidět ještě čtvrt sekundy po posledním pulzu: pulzy pro "
+      "2708 (0,1–1 ms) jsou mnohem kratší než jeden snímek okna." },
     { "Last programming pulse:", "Poslední programovací pulz:" },
     { "No programming pulse yet", "Zatím žádný programovací pulz" },
     { "pulses while programming:", "pulzů při programování:" },

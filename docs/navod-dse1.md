@@ -80,7 +80,9 @@ nevíme (fotka chybí), kresba je volná. Pod kresbou jsou tlačítka a stav des
 | ON LINE / OFF LINE | ON LINE: RAM simulátoru patří sondě X3. OFF LINE: zapisuje a čte ji počítač. |
 | Poslední programovací pulz | Délka posledního pulzu v ms. Během programování „pulz běží“ a počet pulzů. |
 
-Vpp, ON LINE a délka pulzu jsou údaje emulátoru, krabička sama má jen dvě LED.
+Vpp, ON LINE a délka pulzu jsou údaje emulátoru, krabička sama má jen dvě LED. Položky mají pevné místo, aby
+neposkakovaly. 2708 dostává pulzy kratší než jeden snímek okna (0,83 ms), proto „Vpp 25 V“ a „pulz běží“ zůstávají
+vidět ještě čtvrt sekundy po posledním pulzu a během programování svítí trvale.
 
 V sestavě je prázdná 2716. Emulátor pracuje s její pracovní kopií `work\dse-1\eprom_2716.bin`, originál
 v `media\dse-1` se nemění. Naprogramované bajty se do kopie ukládají průběžně, jako u ostatních médií. Štítek

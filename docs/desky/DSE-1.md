@@ -393,7 +393,11 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     Vložit…, Nová 2708, Nová 2716, Nová 2732, Vysunout, „…“ → Obnovit z originálu a **Uložit RAM simulátoru…** (4 KB
     do `.bin`, pomoc emulátoru,
     skutečná deska to neumí); řádek stavu: Vpp 0 / 5 / 25 V, ON LINE / OFF LINE, poslední programovací pulz v ms,
-    „pulz běží“ a počet pulzů během programování. Jsou to **údaje emulátoru** (bublina to říká), krabička má jen LED;
+    „pulz běží“ a počet pulzů během programování. Jsou to **údaje emulátoru** (bublina to říká), krabička má jen LED.
+    Položky stojí v pevných sloupcích (šířka podle nejdelšího textu). „Vpp 25 V“ a „pulz běží“ drží 0,25 s po
+    posledním výskytu (počitadla `vpp_rises()` a `pulse_starts()` karty, mimo `state()`): pulzy 2708 jsou kratší
+    než snímek okna a řádek by náhodně blikal. Kresba si pod sebou vyhrazuje místo pro jednu pomůcku, varování
+    kabelu a celý řádek stavu, takže se při jejich objevení nezmenší;
   - soubor `.bin` přetažený myší na okno jde do patice (jako Vložit…), jinam přetažený se nahraje do paměti jako dřív;
   - UI snímek `--ui-dse1`, `--ui-crop dse1`; náhled sestavy ukazuje kresbu okna.
 - **Smazání UV lampou** (pohodlí emulátoru, skutečná EPROM jde z patice pod UV lampu na 15–20 minut): klik na lampu,

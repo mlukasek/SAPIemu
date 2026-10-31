@@ -3651,3 +3651,15 @@ Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 n
   `_eprom2708` a `_dsecom` teď běží v této sestavě (mechaniky s ochranou, DSE.COM píše soubor HEX na RAM disk C:
   jen v paměti), kopie disket už nepotřebují. Průvodce `zps/ZPS-2_DSE-1` (česky i anglicky) na sestavu odkazuje,
   návod kap. 11 a 12 s ní počítá.
+- **Řádek stavu a velikost kresby** (autor 2026-10-31: „jak se programuje 2708 tak dost zuřivě přepíná 0V a 25V, což
+  mění délku řádku a text tak jako nečitelně bliká, šlo by to dát na fix pozice … když není okno dost velké a objeví se
+  ty žluté hlášky, tak to mění velikost toho programovacího přípravku“):
+  - položky řádku stavu (Vpp, ON LINE, poslední pulz, „pulz běží“, počet pulzů) stojí v pevných sloupcích, každý
+    široký podle nejdelšího textu své položky; místo pro „pulz běží“ zůstává i bez pulzu;
+  - „Vpp 25 V“ a „pulz běží“ zůstávají vidět ještě 0,25 s po posledním výskytu. Pulzy 2708 (0,83 ms) jsou mnohem
+    kratší než snímek okna, takže by stav vzorkovaný jednou za snímek náhodně blikal. Karta k tomu počítá nástupy
+    Vpp 25 V a začátky pulzů (jen pro okno, mimo `state()`), takže zachytí i pulz mezi dvěma snímky. Je to údaj
+    emulátoru jako celý řádek, bubliny to říkají; LED PROG a MAP na kresbě zůstávají okamžitým stavem registru;
+  - výška kresby se počítá s místem pro jednu pomůcku (obě se nikdy neukážou zároveň), varování kabelu s tlačítkem
+    a řádek stavu se všemi položkami. Když se hláška objeví, kresba se nezmění a jen se posunou ovládací prvky pod
+    ní. Bez hlášek je pod řádkem stavu trochu volného místa.

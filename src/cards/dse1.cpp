@@ -428,6 +428,7 @@ void Dse1::update(void)
         uint64_t now = bus ? bus->now : 0;
         if (!pulse_active) {
             pulse_active = true;
+            n_pulse_starts++;
             pulse_start = now;
             pulse_addr = c;
             pulse_data = 0xFF;
@@ -441,6 +442,7 @@ void Dse1::update(void)
     }
     uint8_t v = vpp_level();
     if (last_vpp == EPL_VPP && v != EPL_VPP) vpp_off = bus ? bus->now : 0;   // the run ends later (advance)
+    if (last_vpp != EPL_VPP && v == EPL_VPP) n_vpp_rises++;
     last_vpp = v;
 }
 
