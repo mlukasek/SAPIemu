@@ -94,6 +94,8 @@ MACHINES = {
     'cpm_pmd_fdc1': (UCPM + cpm_dir('C:'), ['TURBO']),
     'cpm_pmd_rpd1': (UCPM + cpm_dir('C:'), ['TURBO']),
     'cpm_term64k_fdc1': (run(8000) + ['--serial-send', 'DIR\\r'] + run(3000) + ['--print-serial'], ['serial: COM']),
+    # the DSE-1 with the two disks of its programs on the FDC-1 drives C and D (the BIOS: D:, E:)
+    'cpm_dse1_fdc1': (CPM + cpm_dir('D:') + cpm_dir('E:'), ['EPROM    COM', 'DSECPM   DOC', 'log-clean']),
     'rkd1_tesla_cpm': (w('(1-15)', 30000) + run(2000) + t('1\\r') + w('oblasti:', 20000) + run(1000) +
                        t('MARTIN\\r') + w('b1$', 30000) + t('DIR A:\\r') + run(8000), ['MARTIN', 'b1$', ' COM']),
     'rkd1_jb_cm5400': (CPM + cpm_dir('B:'), ['FORMRKD']),

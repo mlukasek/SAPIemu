@@ -251,7 +251,7 @@ Formát obrazu `.rkd` je vlastní (bajty zapsané do každého sektoru), popsan�
 Vytvořené pro SAPIemu (2026-10-30, 2708 2026-10-31), nejsou to dumpy. Nová 2708, Nová 2716 a Nová 2732 v okně
 Programátor EPROM DSE-1 vytvoří další prázdnou EPROM `work/dse-1/eprom_N.bin`. Návod `docs/navod-dse1.md`, deska
 `docs/desky/DSE-1.md`. Programy pro DSE-1 pod CP/M: EPROM.COM J. Bíby na `sapiman/knihovna/sysprog_a_sluzebni_CPM.img`,
-DSE.COM J. Hlaváče na `sapiman/knihovna/perina_dse.img`.
+DSE.COM J. Hlaváče na `sapiman/knihovna/perina_dse.img` (v sestavě `machines/cpm_dse1_fdc1.sapi` jako D: a E:).
 
 ## `ar1990/` – povely pro plotter z AR 1990
 

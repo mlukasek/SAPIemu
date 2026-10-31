@@ -18,3 +18,12 @@ the LEDs PROG and MAP, under them the programming voltage Vpp and the length of 
 5. The programmed EPROM is the working copy `work\dse-1\eprom_2716.bin`. The UV lamp "UV · ERASE" on the right of
    the window of the programmer erases it (the label goes, the window glows violet for a moment), New 2716 puts in
    another blank one.
+
+## More
+
+- Step by step, also the simulator (S and R): [DSE-1 manual](../../docs/navod-dse1.md), the board:
+  [DSE-1](../../docs/desky/DSE-1.md) (both Czech).
+- **Under CP/M:** Other → CP/M of J. Bíba (SAPIMAN) → **CP/M with the DSE-1 EPROM programmer**. The disk E: has
+  DSE.COM of J. Hlaváč for 2716 and 2732, D: EPROM.COM of J. Bíba, which also programs the 2708 EPROM (with the
+  cable for a 2708: the button Change cable X2... at the warning in the programmer window switches it), chapters 11
+  and 12 of the [DSE-1 manual](../../docs/navod-dse1.md).

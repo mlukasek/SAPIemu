@@ -7,10 +7,10 @@
 // The programs in their machines (the EPROM read from its original in media/, nothing written):
 // - DSE_PART=tesla: the program DSE of Tesla in machines/zps/ZPS-2_DSE-1.sapi (K, P, S, R);
 // - DSE_PART=simprog: SIMPROG of Melsoft (disk 7) in a copy of ZPS-6 with a DSE-1 (P, 98 ms pulses at 2 MHz);
-// - DSE_PART=eprom: EPROM.COM of J. Biba in a copy of cpm_boot_rpd1 with a DSE-1, JP1 open (P, 98 ms pulses);
+// - DSE_PART=eprom: EPROM.COM of J. Biba (D:) in machines/cpm_dse1_fdc1.sapi, JP1 open (P, 98 ms pulses);
 // - DSE_PART=eprom2708: the same with the cable for a 2708 and a blank 2708 (P, type 0: 129 loops of 0.83 ms pulses);
-// - DSE_PART=dsecom: DSE.COM of J. Hlavac (media/sapiman/knihovna/perina_dse.img in B:) in a copy of ZPS-3_CPM64K_IMA
-//   with a DSE-1 (W and R of a HEX file, T, P, V).
+// - DSE_PART=dsecom: DSE.COM of J. Hlavac (E:) in machines/cpm_dse1_fdc1.sapi (W and R of a HEX file on the RAM disk
+//   C:, T, P, V).
 #include <stdlib.h>
 #include <string.h>
 #include "cards/dse1.h"
@@ -1082,10 +1082,13 @@ static void test_simprog(void)
     file_remove(data_path(ZPS6_A));
 }
 
-// CP/M 2.2 of J. Biba (cpm_boot_rpd1: JPR-1ZI Z80, DMR-1) with his service disk in B: and a DSE-1 at F0h. JP1 open:
-// EPROM.COM lights the LED of bit 5 while programming (PERAP 33h), with JP1 fitted MAP1 would switch the RAM of DMR-1
-// under CP/M.
-static void cpm_jb_dse1(json& cfg)
+// CP/M 2.2 of J. Biba with the DSE-1 (machines/cpm_dse1_fdc1.sapi: JPR-1ZI Z80 2 MHz, DMR-1, FDC-1 with his service
+// disk in D: and the disk of DSE.COM in E:, the DSE-1 at F0h in X7 with two sockets on X2). JP1 open: EPROM.COM lights
+// the LED of bit 5 while programming (PERAP 33h), with JP1 fitted MAP1 would switch the RAM of DMR-1 under CP/M.
+// Nothing written: the drives write protected and read from their originals, the RAM disk C: only in memory.
+static const char* const CPM_DSE1 = "machines/cpm_dse1_fdc1.sapi";
+
+static void cpm_dse1_media(json& cfg)
 {
     for (json& c : cfg["cards"]) {
         std::string ty = c.value("type", std::string());
@@ -1093,14 +1096,25 @@ static void cpm_jb_dse1(json& cfg)
             c["mode"] = "nosave";
             c["working_copy"] = false;
         }
-        if (ty == "RPD-1") {
-            c["drive_a"] = { { "image", "media/sapiman/r1_zrmd4m_271111.img" }, { "write_protect", true } };
-            c["drive_b"] = { { "image", "media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img" },
-                             { "write_protect", true } };
+        if (ty == "FDC-1") {
+            for (const char* k : { "drive_a", "drive_b", "drive_c", "drive_d" }) c[k]["write_protect"] = true;
             c["working_copy"] = false;
         }
     }
-    cfg["cards"].push_back({ { "slot", 7 }, { "type", "DSE-1" }, { "jp1_map", false } });   // RPD-1 takes X5 and X6
+}
+
+// CP/M up, the DSE-1 of the machine as supplied (JP1 open, the cable with the sockets for 2716 and 2732)
+static Dse1* cpm_dse1_boot(Machine& m, int type)
+{
+    Dse1* d = find_dse(m);
+    CHECK(d && d->eprom().type == type && d->socket_type() == type);
+    if (!d || !run_until_text(m, "\nA>", 30.0)) {
+        fprintf(stderr, "NO CP/M:\n%s\n", screen_text(m).c_str());
+        CHECK(false);
+        return nullptr;
+    }
+    m.run_seconds(0.3);
+    return d;
 }
 
 // EPROM.COM of J. Biba ("V130786", Z80, cpm/biba/EPROM_mac.txt): P, type 1 (2716), RAM 2000-20FF into the EPROM from
@@ -1108,16 +1122,11 @@ static void cpm_jb_dse1(json& cfg)
 static void test_eprom_com(void)
 {
     Machine m;
-    if (!load_file(m, "machines/cpm_boot_rpd1.sapi", cpm_jb_dse1)) return;
-    Dse1* d = find_dse(m);
-    CHECK(d && d->eprom().type == Eprom27::T2716);
-    if (!d || !run_until_text(m, "\nA>", 30.0)) {
-        fprintf(stderr, "NO CP/M:\n%s\n", screen_text(m).c_str());
-        CHECK(false);
-        return;
-    }
-    m.run_seconds(0.3);
-    m.type_text("B:EPROM\r");
+    if (!load_file(m, CPM_DSE1, cpm_dse1_media)) return;
+    Dse1* d = cpm_dse1_boot(m, Eprom27::T2716);
+    if (!d) return;
+    CHECK((*m.card_config(d))["x2_cable"] == "dual" && (*m.card_config(d))["jp1_map"] == false);
+    m.type_text("D:EPROM\r");
     if (!answer(m, "STISKNI KL", "P", 20.0)) return;
     for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x2000 + i), pattern(i));
     answer(m, "2764 ... 3", "1");
@@ -1150,30 +1159,27 @@ static void test_eprom_com(void)
     CHECK_EQ(m.bus.map, 0);
 }
 
-// The same with the cable for a 2708 and its blank original (read from media/, nothing written): P, type 0, RAM 2000-203F
-// into the EPROM from 0000. PRG08 makes 129 loops over the 64 words with pulses of 0.83 ms on Vpp (PULS08, at 2 MHz),
-// then KPTES waits about 1.4 s and compares with 0 V on PROGRAM.
-static void cpm_jb_dse1_2708(json& cfg)
+// The same with the cable for a 2708 and its blank original (read from media/, nothing written; in the GUI the warning
+// of the window changes the cable): P, type 0, RAM 2000-203F into the EPROM from 0000. PRG08 makes 129 loops over the
+// 64 words with pulses of 0.83 ms on Vpp (PULS08, at 2 MHz), then KPTES waits about 1.4 s and compares with 0 V on
+// PROGRAM.
+static void cpm_dse1_2708(json& cfg)
 {
-    cpm_jb_dse1(cfg);
-    json& c = cfg["cards"].back();
-    c["x2_cable"] = "2708";
-    c["eprom"] = "media/dse-1/eprom_2708.bin";
+    cpm_dse1_media(cfg);
+    for (json& c : cfg["cards"])
+        if (c.value("type", std::string()) == "DSE-1") {
+            c["x2_cable"] = "2708";
+            c["eprom"] = "media/dse-1/eprom_2708.bin";
+        }
 }
 
 static void test_eprom_com_2708(void)
 {
     Machine m;
-    if (!load_file(m, "machines/cpm_boot_rpd1.sapi", cpm_jb_dse1_2708)) return;
-    Dse1* d = find_dse(m);
-    CHECK(d && d->eprom().type == Eprom27::T2708 && d->socket_type() == Eprom27::T2708);
-    if (!d || !run_until_text(m, "\nA>", 30.0)) {
-        fprintf(stderr, "NO CP/M:\n%s\n", screen_text(m).c_str());
-        CHECK(false);
-        return;
-    }
-    m.run_seconds(0.3);
-    m.type_text("B:EPROM\r");
+    if (!load_file(m, CPM_DSE1, cpm_dse1_2708)) return;
+    Dse1* d = cpm_dse1_boot(m, Eprom27::T2708);
+    if (!d) return;
+    m.type_text("D:EPROM\r");
     if (!answer(m, "STISKNI KL", "P", 20.0)) return;
     for (int i = 0; i < 0x40; i++) m.bus.mem_write((uint16_t)(0x2000 + i), pattern(i));
     answer(m, "2764 ... 3", "0");
@@ -1207,21 +1213,6 @@ static void test_eprom_com_2708(void)
     CHECK_EQ(m.bus.map, 0);
 }
 
-// ZPS-3 CP/M 64K of Tesla IMA (8080, 2 MHz) with a copy of its disk 1 in A: (W writes the HEX file there), the disk of
-// DSE.COM in B: and a DSE-1 at F0h in X8 (RPD-1 takes X5 and X6)
-static const char* const IMA_A = "work/test/dse1_ima_a.img";
-
-static void zps3_dse1(json& cfg)
-{
-    for (json& c : cfg["cards"])
-        if (c.value("type", std::string()) == "RPD-1") {
-            c["drive_a"] = { { "image", IMA_A }, { "write_protect", false } };
-            c["drive_b"] = { { "image", "media/sapiman/knihovna/perina_dse.img" }, { "write_protect", true } };
-            c["working_copy"] = false;
-        }
-    cfg["cards"].push_back({ { "slot", 8 }, { "type", "DSE-1" } });
-}
-
 // The screen has `t` (else it is printed)
 static bool screen_has(Machine& m, const char* t)
 {
@@ -1248,36 +1239,38 @@ static bool dse_cmd(Machine& m, const char* keys, double timeout_s = 10.0)
     return false;
 }
 
-// DSE.COM of J. Hlavac (1988, TESLA ELTOS DIZ, DSECPM.DOC): the type 2716, E 0 (after the start the chosen section
-// is 0000-0000, DSE.COM sets it before the length of the type), the buffer 2000-20FF (logical 0-FF) written into
-// A:T.HEX and read back, T (blank), P (a byte 20 ms, then 10 ms when right; FFh skipped), V.
-static void dsecom_run(void)
+// DSE.COM of J. Hlavac (1988, TESLA ELTOS DIZ, DSECPM.DOC) from E: (written for the 8080 of ZPS-3, the AND-1Z-89 shows
+// its lower case letters): the type 2716, E 0 (after the start the chosen section is 0000-0000, DSE.COM sets it before
+// the length of the type), the buffer 2000-20FF (logical 0-FF) written into C:T.HEX on the RAM disk and read back, T
+// (blank), P (a byte 20 ms, then 10 ms when right; FFh skipped; its loops count the cycles of the 8080, on the Z80 the
+// pulses are 19 and 9.5 ms), V.
+static void test_dsecom(void)
 {
     Machine m;
-    if (!load_file(m, "machines/zps/ZPS-3_CPM64K_IMA.sapi", zps3_dse1)) return;
-    Dse1* d = find_dse(m);
-    CHECK(d && d->eprom().type == Eprom27::T2716);
-    if (!d || !answer(m, "A>", "B:DSE\r", 30.0)) return;
-    if (!answer(m, "ZADEJ TYP EPROM", "2716\r", 20.0)) return;
-    dse_cmd(m, "E 0\r", 30.0);   // the help first (about 10 s)
+    if (!load_file(m, CPM_DSE1, cpm_dse1_media)) return;
+    Dse1* d = cpm_dse1_boot(m, Eprom27::T2716);
+    if (!d) return;
+    m.type_text("E:DSE\r");
+    if (!answer(m, "Zadej typ EPROM", "2716\r", 20.0)) return;
+    dse_cmd(m, "E 0\r", 30.0);   // the help first (about 2 s)
     for (int i = 0; i < 0x100; i++) m.bus.mem_write((uint16_t)(0x2000 + i), pattern(i));
     dse_cmd(m, "W 0 FF\r");
-    CHECK(screen_has(m, "PORADOVE CISLO ROM : 00 (0000 - 07FF)"));
-    answer(m, "ZADEJ JMENO SOUBORU", "A:T\r");
+    CHECK(screen_has(m, "poradove cislo ROM : 00 (0000 - 07FF)"));
+    answer(m, "Zadej jmeno souboru", "C:T\r");
     dse_cmd(m, "C\r");
     answer(m, "(A/N)", "A");
     dse_cmd(m, "R\r");
-    answer(m, "ZADEJ JMENO SOUBORU", "T\r");
+    answer(m, "Zadej jmeno souboru", "C:T\r");
     dse_cmd(m, "T 0 FF 0\r");
-    CHECK(screen_has(m, "CTENI SKONCENO OK") && screen_has(m, "HEX 0000 - 00FF"));
+    CHECK(screen_has(m, "Cteni skonceno OK") && screen_has(m, "HEX 0000 - 00FF"));
     int wrong = 0;
     for (int i = 0; i < 0x100; i++)
         if (m.peek((uint16_t)(0x2000 + i)) != pattern(i)) wrong++;
     CHECK_EQ(wrong, 0);
     dse_cmd(m, "P 0 FF 0\r");
-    CHECK(screen_has(m, "CISTA -"));
+    CHECK(screen_has(m, "cista -"));
     answer(m, "(A/N)", "A");
-    bool ok = run_until_text(m, "PROGRAMOVANI SKONCENO OK", 30.0);   // 255 x 32 ms
+    bool ok = run_until_text(m, "Programovani skonceno OK", 30.0);   // 255 x 30 ms
     if (!ok) fprintf(stderr, "DSE.COM:\n%s\n", screen_text(m).c_str());
     CHECK(ok);
     m.run_seconds(1.0);   // the run ends 0.5 s after Vpp left 25 V (F4 = 01h)
@@ -1291,25 +1284,16 @@ static void dsecom_run(void)
     CHECK_EQ(r.bytes, 255);   // pattern(E4h) is FFh: skipped
     CHECK_EQ(r.pulses, 510);
     CHECK_EQ(r.short_pulses, 0);
-    CHECK(r.min_byte_ms > 30.0 && r.max_byte_ms < 30.7);
-    CHECK(d->last_pulse_ms() > 10.0 && d->last_pulse_ms() < 10.3);
-    // V after the 200 BEL of the end of P (about 32 s)
-    ok = dse_cmd(m, "V 0 FF 0\r", 60.0);
-    ok = ok && run_until_text(m, "SHODNY OBSAH", 10.0);
+    CHECK(r.min_byte_ms > 28.0 && r.max_byte_ms < 28.8);
+    CHECK(d->last_pulse_ms() > 9.3 && d->last_pulse_ms() < 9.7);
+    // V after the 200 BEL of the end of P (about 45 s)
+    ok = dse_cmd(m, "V 0 FF 0\r", 70.0);
+    ok = ok && run_until_text(m, "Shodny obsah", 10.0);
     if (!ok) fprintf(stderr, "DSE.COM V:\n%s\n", screen_text(m).c_str());
     CHECK(ok);
-    CHECK(screen_text(m).find("CHYBA") == std::string::npos);
+    CHECK(screen_text(m).find("Chyb") == std::string::npos);
     CHECK(d->warnings().empty());
     CHECK_EQ(m.bus.map, 0);
-}
-
-static void test_dsecom(void)
-{
-    std::vector<uint8_t> img;
-    CHECK(file_read_all(data_path("media/rpd-1/CPM64K_IMA_01.img"), img));
-    CHECK(file_write_all(data_path(IMA_A), img.data(), img.size()));
-    dsecom_run();   // the copy of the disk goes away on every way out
-    file_remove(data_path(IMA_A));
 }
 
 int main(void)

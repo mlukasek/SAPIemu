@@ -8,7 +8,8 @@ Deska **DSE-1** (Tesla, popsaná v AR B 6/1985) udělá ze SAPI-1 vývojový sys
 Ovládá ji program **DSE** od Ing. Petra Navrátila (Tesla Elstroj, „NAP051186“). Je v EPROM od 1000h a potřebuje
 MONITOR V4. Všechny kroky jsou vyzkoušené v emulátoru (2026-10-30), výpisy obrazovky jsou opsané z něj. Jak deska
 funguje a co je v emulaci odhad, je v `docs/desky/DSE-1.md`. Pod CP/M desku ovládá **EPROM.COM J. Bíby**, který umí
-i EPROM 2708 (kapitola 11), a **DSE.COM J. Hlaváče** pro ZPS-3 (kapitola 12).
+i EPROM 2708 (kapitola 11), a **DSE.COM J. Hlaváče** (kapitola 12). Oba jsou na disketách sestavy
+**CP/M s programátorem EPROM DSE-1** v kategorii Ostatní.
 
 ![Program DSE programuje prázdnou 2716, vpravo okno Programátor EPROM DSE-1: svítí PROG, Vpp 25 V, pulz 50 ms](img/navod-dse1.png)
 
@@ -323,26 +324,49 @@ by to mohlo poškodit.
 MCP nabízí totéž bez okna: nástroj `dse1` (stav, `insert`, `new` 2708, 2716 nebo 2732, `eject`, `erase`, `sim_read`,
 `sim_save`; `docs/mcp.md`).
 
-## 11. EPROM 2708: EPROM.COM J. Bíby
+## 11. EPROM.COM J. Bíby a EPROM 2708 (sestava v Ostatní)
 
 Tesla 2708 na DSE-1 neprogramovala: návod desky i program DSE znají jen 2716 a 2732. Umí to **EPROM.COM J. Bíby**
 (verze V130786, CP/M se Z80) jako typ `0`, s adaptérem, který 2708 dodá +12 V a −5 V a na vývod 18 přivede
 programovací napětí. Žádný popis adaptéru se nedochoval, emulátor ho má zrekonstruovaný z toho, co EPROM.COM dělá
-(`docs/desky/DSE-1.md`, oddíl Programovací kabel X2). EPROM.COM je na služební disketě J. Bíby. Vyzkoušeno
-v emulátoru 2026-10-31, výpisy jsou opsané z něj.
+(`docs/desky/DSE-1.md`, oddíl Programovací kabel X2). EPROM.COM programuje i 2716 (typ `1`) a 2732 (typ `2`).
+Vyzkoušeno v emulátoru 2026-10-31, výpisy jsou opsané z něj.
 
-1. Soubor → Vybrat sestavu… → Ostatní → CP/M J. Bíby (SAPIMAN) → **CP/M 2.2 z 8" diskety: RPD-1, BIOS V271111JB**
-   (`cpm_boot_rpd1.sapi`).
-2. Zobrazení → Konfigurátor sestavy…, klik na volný slot **X7**, karta **DSE-1**. U ní:
-   - **JP1** rozpojit (zrušit zaškrtnutí). EPROM.COM svítí bitem D5 na LED a s JP1 by signál MAP1 pod CP/M
-     přepnul paměť DMR-1;
-   - **Programovací kabel X2** → „pro 2708, adaptér podle EPROM.COM J. Bíby“;
-   - **EPROM v patici X2** → „Prázdná 2708“ (nebo později v okně programátoru **Nová 2708**).
+1. Soubor → Vybrat sestavu… → Ostatní → CP/M J. Bíby (SAPIMAN) → **CP/M s programátorem EPROM DSE-1**
+   (`cpm_dse1_fdc1.sapi`). CP/M J. Bíby naběhne z 8" diskety A: na řadiči FDC-1 a vedle obrazovky se otevře okno
+   Programátor EPROM DSE-1. Na **D:** je služební disketa J. Bíby s EPROM.COM, na **E:** disketa s DSE.COM
+   (kapitola 12), C: je RAM disk ZRMD-1. Deska DSE-1 je v X7 na portech F0h a má rozpojenou **JP1**: EPROM.COM svítí
+   bitem D5 na LED a s JP1 by signál MAP1 pod CP/M přepnul paměť DMR-1. Kabel X2 má dvě patice (2716 a 2732),
+   v nich je prázdná 2716.
+2. 2716 a 2732 jdou programovat hned (typ `1` a `2`, konec kapitoly). Pro **2708** klikněte v okně programátoru
+   na **Nová 2708**. Okno žlutě upozorní `2708 v patici zapojené pro 2716` a vedle je tlačítko **Změnit kabel X2…**.
+   Otevře konfigurátor u karty DSE-1: **Programovací kabel X2** → „pro 2708, adaptér podle EPROM.COM J. Bíby“, pak
+   **Restartovat s touto sestavou**. CP/M naběhne znovu a nová 2708 zůstane v patici. Uložit zapíše vaši kopii
+   sestavy (Moje sestavy).
+3. `D:EPROM` a Enter. EPROM.COM vypíše nabídku:
 
-   Pak **Restartovat s touto sestavou**. Uložit zapíše vaši kopii sestavy (Moje sestavy).
-3. Zobrazení → Média, mechanika **B:** → Vložit… → `media\sapiman\knihovna\sysprog_a_sluzebni_CPM.img`.
-4. `B:EPROM` a Enter. EPROM.COM vypíše nabídku a `STISKNI KLÁVESU (? = nabídka):`.
-5. `F` vyplní úsek RAM: `2000` Enter, `203F` Enter, `55` Enter:
+   ```
+        ****  D S E  ****  V130786 program 100-1000 hex
+
+         NABÍZÍM TYTO VARIANTY:
+   Z ... Zkouška desky
+   B ... Nastavení bázové adresy desky
+   S ... Simulate  RAM --> DSE
+   R ... Recall  DSE --> RAM
+   K ... Kontrola EPROM
+   T ... Transfer  Objímka --> RAM
+   P ... Program  RAM --> Objímka
+   C ... Compare  RAM  x  Objímka
+   D ... Dump  Výpis RAM + Hlavička
+   A ... Alternate Změna RAM
+   F ... Fill  Konstanta do úseku RAM
+   M ... Move  Přesun úseku v RAM
+   Q ... Operace s diskem
+   E ... Exit  Návrat do monitoru
+
+       STISKNI KLÁVESU (? = nabídka):
+   ```
+4. `F` vyplní úsek RAM: `2000` Enter, `203F` Enter, `55` Enter:
 
    ```
        STISKNI KLÁVESU (? = nabídka): F
@@ -354,7 +378,7 @@ v emulátoru 2026-10-31, výpisy jsou opsané z něj.
 
    OK
    ```
-6. `K` zkontroluje, že je EPROM prázdná: typ `0`, `0` Enter, `3FF` Enter, `A`:
+5. `K` zkontroluje, že je EPROM prázdná: typ `0`, `0` Enter, `3FF` Enter, `A`:
 
    ```
        STISKNI KLÁVESU (? = nabídka): K
@@ -370,7 +394,7 @@ v emulátoru 2026-10-31, výpisy jsou opsané z něj.
    Vlož EPROM - údaje jsou spravné ?  (A=ano)A
    ČISTÁ  0000 - 03FF
    ```
-7. `P` naprogramuje RAM 2000–203F do EPROM od 0: typ `0`, `2000`, `203F`, `0` (každé s Enter), `A`. Program dělá 129
+6. `P` naprogramuje RAM 2000–203F do EPROM od 0: typ `0`, `2000`, `203F`, `0` (každé s Enter), `A`. Program dělá 129
    průchodů celým úsekem a za každým kromě posledního napíše hvězdičku. 64 bajtů trvá asi 16 s:
 
    ```
@@ -407,56 +431,68 @@ trvá asi 4 minuty času stroje.
   2708 i tak naprogramuje, ale log varuje (pulz nad 1 ms, změna adresy během pulzu, součet) a okno programátoru žlutě
   napíše „2708 dostává pulzy delší než 1 ms: EPROM.COM typ 0“. Totéž udělá program Tesla v sestavě
   `zps/ZPS-2_DSE-1` s kabelem pro 2708. Jak by to snesla skutečná MHB2708C, nevíme.
-- **2708 v kabelu pro 2716 nebo 2732** dostane +5 V na VCC, ale ani +12 V, ani −5 V, a čte FFh. Okno programátoru
-  upozorní „2708 v patici zapojené pro 2716“. Log varuje, že skutečný čip by mohlo poškodit 0 V na jejím vývodu VBB
-  (katalog Oki chce −5 V na VBB dřív než VCC) i 5 V nebo 25 V na něm. Obráceně 2716 v kabelu pro 2708 dostane +12 V
-  na A10, −5 V na vývod 21, při programování 25 V na vývod 18 (/CE/PGM) a +12 V na /OE.
-- Typ 1 (2716) a 2 (2732) EPROM.COM fungují s kabelem pro 2716 (2732), stejně jako v testu `test_dse1_eprom`
-  (pulzy 98 ms na 2 MHz, log varuje mimo 45–55 ms).
+- **2708 v kabelu pro 2716, pro 2732 nebo se dvěma paticemi** (tak je sestava dodaná) dostane +5 V na VCC, ale ani
+  +12 V, ani −5 V, a čte FFh. Okno programátoru upozorní „2708 v patici zapojené pro 2716“ a nabídne tlačítko Změnit
+  kabel X2…. Log varuje, že skutečný čip by mohlo poškodit 0 V na jejím vývodu VBB (katalog Oki chce −5 V na VBB
+  dřív než VCC) i 5 V nebo 25 V na něm. Obráceně 2716 v kabelu pro 2708 dostane +12 V na A10, −5 V na vývod 21, při
+  programování 25 V na vývod 18 (/CE/PGM) a +12 V na /OE. Pro 2716 a 2732 proto kabel zase přepněte na dvě patice.
+- **Typ 1 (2716) a 2 (2732)** jdou v sestavě, jak je dodaná (kabel se dvěma paticemi, 2732 vložte tlačítkem Nová
+  2732). Pulz je 98 ms na 2 MHz, 64 bajtů trvá asi 6 s, log varuje, že 98,30 ms na bajt je mimo 50 ms ± 5
+  (naprogramuje se stejně; test `test_dse1_eprom`). `P` s typem `1` a stejnými adresami jako v bodě 6:
 
-## 12. DSE.COM pod CP/M (ZPS-3)
+  ```
+  Dolní adresa EPROM=0
+
+  Vlož EPROM - údaje jsou spravné ?  (A=ano)A
+
+      PROGRAMUJI
+
+  SHODNÝ OBSAH  0000 - 003F
+  ```
+
+  2732 s typem `2` a EPROM od `FC0` skončí `SHODNÝ OBSAH  0FC0 - 0FFF`.
+
+## 12. DSE.COM J. Hlaváče pod CP/M
 
 **DSE.COM** napsal J. Hlaváč (1988) pro ZPS-3 s CP/M, návod DSECPM.DOC je od TESLA ELTOS DIZ (15. 3. 1989). Pracuje
 s bufferem v RAM počítače a se soubory Intel HEX, umí 2716 a 2732. Disketa `media\sapiman\knihovna\perina_dse.img`
 (ze sbírky SAPIMAN, složka PERINA) má i DSE.DOC (DSE-1 pod MONITOREM V5), DSECPM.DOC (návod k DSE.COM, vypíše ho
-`TYPE B:DSECPM.DOC`), výpis adresáře D.COM a souborový správce X80.COM (pro 80 sloupců, na AND-1A s 64 sloupci možná
-vypadá špatně, nezkoušeno). Vyzkoušeno v emulátoru 2026-10-31, výpisy jsou opsané z něj.
+`TYPE E:DSECPM.DOC`), výpis adresáře D.COM a souborový správce X80.COM (pro 80 sloupců, na displeji s 64 sloupci
+možná vypadá špatně, nezkoušeno). Vyzkoušeno v emulátoru 2026-10-31, výpisy jsou opsané z něj.
 
-1. Soubor → Vybrat sestavu… → Základ: historické sestavy Tesla → **ZPS-3 s CP/M 64K Tesla IMA** (původní CP/M
-   Tesly, pro kterou DSECPM.DOC píše).
-2. Zobrazení → Konfigurátor sestavy…, klik na volný slot **X8**, karta **DSE-1** (výchozí nastavení: porty F0h, kabel
-   pro 2716, prázdná 2716), **Restartovat s touto sestavou**. JP1 nevadí, DSE.COM bit MAP nepoužívá.
-3. Zobrazení → Média, mechanika **B:** → Vložit… → `media\sapiman\knihovna\perina_dse.img` (místo diskety 2 IMA).
-   Na B: DSE.COM nepíše. **A: musí zůstat zapisovatelná:** příkazy R a W bez jednotky pracují s A:, i když DSE běží
-   z B:.
-4. `B:DSE` a Enter, na otázku typu `2716` a Enter:
+1. Sestava **CP/M s programátorem EPROM DSE-1** z kapitoly 11 (Ostatní → CP/M J. Bíby (SAPIMAN)), jak je dodaná:
+   kabel X2 se dvěma paticemi, v nich prázdná 2716. Disketa s DSE.COM je v **E:**, DSE.COM na ni nepíše. Příkazy `R`
+   a `W` bez jednotky pracují s **A:** (bootovací disketa, pracovní kopie ve `work\`), i když DSE běží z E:.
+   Program je psaný pro 8080 a ZPS-3, v CP/M J. Bíby se Z80 běží také (pulzy jsou kratší, konec kapitoly).
+   Displej AND-1Z-89 ukazuje malá písmena tak, jak je program píše (znakový generátor MHB 2501 v ZPS-3 má jen velká).
+2. `E:DSE` a Enter, na otázku typu `2716` a Enter:
 
    ```
    **************************************
-   *      PROGRAMATOR PAMETI EPROM      *
-   *         PRO ZPS-3 S DESKOU         *
+   *      Programator pameti EPROM      *
+   *         pro ZPS-3 s deskou         *
    *                                    *
    *             D S P - 1              *
    *                                    *
    **************************************
 
-   PRIPOJITELNE EPROM : 2716, 2732
+   Pripojitelne EPROM : 2716, 2732
 
-   ZADEJ TYP EPROM (2716,2732) :
-   VYBRANY TYP PAMETI :  2716
-   PORADOVE CISLO ROM : 00
-   PRACOVNI CAST BUFFERU : 0000 - 0000
+   Zadej typ EPROM (2716,2732) :2716
+   Vybrany typ pameti :  2716
+   poradove cislo ROM : 00
+   pracovni cast bufferu : 0000 - 0000
    ```
 
-   („D S P - 1“ je v programu chybou místo DSE-1.) Pak asi 10 s vypisuje nápovědu a čeká s `00*`.
-5. **Hned po startu `E 0` a Enter.** Pracovní část bufferu je po startu `0000 - 0000` (program ji spočítá dřív, než
+   („D S P - 1“ je v programu chybou místo DSE-1.) Pak asi 2 s vypisuje nápovědu a čeká s `00*`.
+3. **Hned po startu `E 0` a Enter.** Pracovní část bufferu je po startu `0000 - 0000` (program ji spočítá dřív, než
    nastaví délku typu), `E 0` ji nastaví na celou EPROM:
 
    ```
    00*E 0
-   PORADOVE CISLO ROM : 00 (0000 - 07FF)
+   poradove cislo ROM : 00 (0000 - 07FF)
    ```
-6. Data do bufferu, výpis a test, že EPROM data snese (`CISTA -`: všude FFh):
+4. Data do bufferu, výpis a test, že EPROM data snese (`cista -`: všude FFh):
 
    ```
    00*F 0 3F 55
@@ -470,40 +506,40 @@ vypadá špatně, nezkoušeno). Vyzkoušeno v emulátoru 2026-10-31, výpisy jso
    0028 55 55 55 55 55 55 55 55
    0030 55 55 55 55 55 55 55 55
    0038 55 55 55 55 55 55 55 55
-   KONTROLNI SOUCET RAM (0000 - 003F) = 90
+   Kontrolni soucet RAM (0000 - 003F) = 90
    00*T 0 3F 0
-   TESTOVANI  2716
-   CISTA -
+   Testovani  2716
+   cista -
    ```
-7. `P 0 3F 0` naprogramuje buffer 0–3F do EPROM od 0, na otázku `A`:
+5. `P 0 3F 0` naprogramuje buffer 0–3F do EPROM od 0, na otázku `A`:
 
    ```
    00*P 0 3F 0
-   PROGRAMOVANI  2716
-   URCITE PROGRAMOVAT ? (A/N)ANO
-   PROGRAMOVANI SKONCENO OK
-   KONTROLNI SOUCET ROM (0000 - 003F) =90
+   Programovani  2716
+   Urcite programovat ? (A/N)Ano
+   Programovani skonceno OK
+   Kontrolni soucet ROM (0000 - 003F) =90
    ```
 
-   **Pak počítač asi 32 s pípá** (program pošle 200 znaků BEL), teprve potom se vrátí `00*`.
-8. `V 0 3F 0` porovná buffer s EPROM, `W 0 3F` zapíše buffer do souboru HEX (`A:PROG` → `A:PROG.HEX`), `R` ho
+   **Pak počítač asi 45 s pípá** (program pošle 200 znaků BEL), teprve potom se vrátí `00*`.
+6. `V 0 3F 0` porovná buffer s EPROM, `W 0 3F` zapíše buffer do souboru HEX (`A:PROG` → `A:PROG.HEX`), `R` ho
    načte zpět:
 
    ```
    00*V 0 3F 0
-   VERIFIKACE  2716
-   SHODNY OBSAH
-   KONTROLNI SOUCET ROM (0000 - 003F) =90
+   Verifikace  2716
+   Shodny obsah
+   Kontrolni soucet ROM (0000 - 003F) =90
    00*W 0 3F
-   ZAPIS DAT DO SOUBORU TYPU HEX
-   ZADEJ JMENO SOUBORU : A:PROG
+   Zapis dat do souboru typu HEX
+   Zadej jmeno souboru : A:PROG
    00*R
-   CTENI DAT ZE SOUBORU TYPU HEX
-   ZADEJ JMENO SOUBORU : PROG
-   CTENI SKONCENO OK
+   Cteni dat ze souboru typu HEX
+   Zadej jmeno souboru : PROG
+   Cteni skonceno OK
    HEX 0000 - 003F
    ```
-9. `Q`, na `KONEC ? (A/N)` `A`: návrat do CP/M.
+7. `Q`, na `Konec ? (A/N)` `A`: návrat do CP/M. `DIR PROG.HEX` vypíše `A> PROG     HEX`.
 
 | Příkaz | Význam (parametry šestnáctkově) |
 |---|---|
@@ -519,7 +555,12 @@ vypadá špatně, nezkoušeno). Vyzkoušeno v emulátoru 2026-10-31, výpisy jso
 | `^P`, `^B`, `Q`, `^C` | tisk zároveň na tiskárnu, přerušení, konec, reset disků |
 
 Program přizpůsobuje pulzy: bajt FFh přeskočí, bajt, který už sedí, dostane 5 ms, jiný 20 ms a podle kontroly ještě
-10 ms (40 ms, když po 20 ms nesedí). V logu je `programming: 64 bytes, 2.00 pulses per byte, pulses 10.12-20.22 ms`
-a varování, že 30,35 ms na bajt je mimo katalogových 50 ms ± 5 (naprogramuje se stejně). Program assemblovaný
-na disketě 1 (`ASM PROG` dá `PROG.HEX`) jde do bufferu příkazem `R`, program pro jinou adresu posune `B` nebo posun
-u `R`. Pro 2732 kabel X2 pro 2732 (kapitola 9) a typ `2732`.
+10 ms (40 ms, když po 20 ms nesedí). Délky odměřuje smyčkami spočítanými na takty 8080, se Z80 jsou pulzy kratší:
+v logu je `programming: 64 bytes, 2.00 pulses per byte, pulses 9.47-18.91 ms` a varování, že 28,39 ms na bajt je
+mimo katalogových 50 ms ± 5 (naprogramuje se stejně). Soubor Intel HEX z assembleru jde do bufferu příkazem `R`,
+program pro jinou adresu posune `B` nebo posun u `R`. Pro 2732 vložte v okně programátoru **Nová 2732** (kabel se
+dvěma paticemi ji vezme) a zadejte typ `2732`: `E 0` pak dá `poradove cislo ROM : 00 (0000 - 0FFF)`.
+
+DSE.COM běží i v sestavě **ZPS-3 s CP/M 64K Tesla IMA** (Základ), pro kterou je psaný: v konfigurátoru karta DSE-1
+do volného slotu X8 (výchozí nastavení), v okně Média disketa `perina_dse.img` do B: místo diskety 2. Tam vypisuje
+velkými písmeny, nápověda trvá asi 10 s, pípání po `P` asi 32 s a pulzy jsou 10,12–20,22 ms (30,35 ms na bajt).

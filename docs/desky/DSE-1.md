@@ -3,12 +3,14 @@
 Stav: **emulovaná** od 2026-10-30:
 - karta `DSE-1` (`src/cards/dse1.*`) a čip EPROM 2708/2716/2732 vyhodnocovaný z vývodů (`src/chips/eprom27.*`);
   2708 od 2026-10-31 v kabelu X2 zrekonstruovaném podle EPROM.COM J. Bíby;
-- sestava `machines/zps/ZPS-2_DSE-1.sapi` (ZPS-2 s MIKOSem V4.0F a programem DSE Tesla Elstroj od 1000h);
+- sestava `machines/zps/ZPS-2_DSE-1.sapi` (ZPS-2 s MIKOSem V4.0F a programem DSE Tesla Elstroj od 1000h) a od
+  2026-10-31 `machines/cpm_dse1_fdc1.sapi` v Ostatní (CP/M J. Bíby s FDC-1: D: EPROM.COM J. Bíby, E: DSE.COM
+  J. Hlaváče);
 - okno **Programátor EPROM DSE-1** (`src/frontend/dse1.cpp`, od 2026-10-31): krabička kabelu X2 se zelenou paticí,
   EPROM v ní, LED PROG a MAP, UV lampa na smazání, pod tím médium a stav desky; nástroj MCP `dse1`;
 - testy `test_dse1` (primitivy na portech, 2708), `test_dse1_tesla` (program Tesla v ZPS-2), `test_dse1_simprog`
-  (SIMPROG Melsoft z diskety 7 v kopii ZPS-6), `test_dse1_eprom` a `test_dse1_eprom2708` (EPROM.COM J. Bíby v kopii
-  `cpm_boot_rpd1`, 2716 a 2708) a `test_dse1_dsecom` (DSE.COM J. Hlaváče v kopii `zps/ZPS-3_CPM64K_IMA`);
+  (SIMPROG Melsoft z diskety 7 v kopii ZPS-6), `test_dse1_eprom` a `test_dse1_eprom2708` (EPROM.COM J. Bíby v sestavě
+  `cpm_dse1_fdc1`, 2716 a 2708) a `test_dse1_dsecom` (DSE.COM J. Hlaváče v téže sestavě);
 - disketa s DSE.COM `media/sapiman/knihovna/perina_dse.img` (od 2026-10-31);
 - **návod k obsluze: `docs/navod-dse1.md`**.
 
@@ -206,8 +208,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
 | DSE od 7000h | MONITOR V4 v RAM | sapi.cz `dse_7000_hex.php`, SAPI_DOKU `MIKOS_PGM\DSE-RAM.HEX` | ne (jen přemístěná kopie) |
 | DSE pro MIKOS V5 (1800h v EPROM, 4400h z kazety) | MONITOR V5 | popis v DSE.DOC, nenašel se | ne |
 | SIMPROG (Melsoft, převod programu Tesla) | CP/M 2.2, 8080 | disketa 7 SAPI-1.5 (`media/sapi15/SAPI15_7.sp2`), upravená kopie `SimProg_opr` | test `test_dse1_simprog` v kopii ZPS-6 |
-| DSE.COM (J. Hlaváč 1988, Intel HEX, asi 20 příkazů, pulzy se přizpůsobují, jen 2716 a 2732) | CP/M ZPS-3, 8080 (jen BDOS) | SAPIMAN `PERINA\dse.8sd` = `media/sapiman/knihovna/perina_dse.img` (s DSE.DOC, DSECPM.DOC, D.COM, X80.COM) | test `test_dse1_dsecom` v kopii `zps/ZPS-3_CPM64K_IMA` s DSE-1 v X8, návod kap. 12 |
-| EPROM.COM (J. Bíba, „V130786“, 2708–2764, základ portů nastaví příkaz `B`) | CP/M, Z80 | `media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img` | testy `test_dse1_eprom` (2716) a `test_dse1_eprom2708` (2708 v kabelu pro 2708) v kopii `cpm_boot_rpd1` (JP1 rozpojená), návod kap. 11 |
+| DSE.COM (J. Hlaváč 1988, Intel HEX, asi 20 příkazů, pulzy se přizpůsobují, jen 2716 a 2732) | CP/M ZPS-3, 8080 (jen BDOS) | SAPIMAN `PERINA\dse.8sd` = `media/sapiman/knihovna/perina_dse.img` (s DSE.DOC, DSECPM.DOC, D.COM, X80.COM) | sestava `cpm_dse1_fdc1` (E:), test `test_dse1_dsecom` v ní, návod kap. 12; běží i v `zps/ZPS-3_CPM64K_IMA` s DSE-1 v X8 |
+| EPROM.COM (J. Bíba, „V130786“, 2708–2764, základ portů nastaví příkaz `B`) | CP/M, Z80 | `media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img` | sestava `cpm_dse1_fdc1` (D:, JP1 rozpojená), testy `test_dse1_eprom` (2716) a `test_dse1_eprom2708` (2708 v kabelu pro 2708) v ní, návod kap. 11 |
 | PRM80.COM, PRM3.COM (J. Hlaváč 1988, programátor PRM-80 Tesla Strašnice přes DPP-1 na 28–2Bh: MHB 8708/2708, MHB 2716, PROM 74188, 74S287, 74287, 74S571) | CP/M ZPS-3 | SAPIMAN `PERINA\prm80.8sd` (s PRM.DOC) | ne, s DSE-1 nesouvisí (jiný programátor) |
 | DSE4 a MON1 (Emil, OK2KOJ 2007, základ 20h) | vlastní monitor | SAPI_DOKU `SW_SAPI_Petr` | ne, jen pro poučení |
 
@@ -421,20 +423,30 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   podle DSE.DOC u S a R (prázdná 2716 zůstala v patici).
 - **SIMPROG z diskety 7 v kopii ZPS-6** s mechanikou B a DSE-1 (`test_dse1_simprog`): `B:SIMPROG A:X.BIN`
   naprogramuje 256 bajtů ze souboru pulzy 98,15 ms, v logu je varování mimo 45–55 ms.
-- **EPROM.COM J. Bíby v kopii `cpm_boot_rpd1`** (CP/M J. Bíby na JPR-1ZI s DMR-1, služební disketa
-  `sysprog_a_sluzebni_CPM.img` v B:, DSE-1 na F0h s rozpojenou JP1; `test_dse1_eprom`): `B:EPROM`, `P`, typ `1`,
+- **EPROM.COM J. Bíby v sestavě `cpm_dse1_fdc1`** (CP/M J. Bíby na JPR-1ZI s DMR-1 a FDC-1, služební disketa
+  `sysprog_a_sluzebni_CPM.img` v D:, DSE-1 na F0h v X7 s rozpojenou JP1 a kabelem se dvěma paticemi;
+  `test_dse1_eprom`; do 2026-10-31 v kopii `cpm_boot_rpd1` s RPD-1 se stejným výsledkem): `D:EPROM`, `P`, typ `1`,
   RAM 2000–20FF do EPROM od 0 naprogramuje 256 bajtů pulzy 98,3 ms a ohlásí `SHODNÝ OBSAH`. Při programování svítí
-  LED1 i LED2, MAP1 zůstane v L. V logu je varování mimo 45–55 ms.
-- **EPROM.COM s 2708** (totéž s kabelem pro 2708 a prázdnou `eprom_2708.bin`; `test_dse1_eprom2708`): typ `0`, RAM
+  LED1 i LED2, MAP1 zůstane v L. V logu je varování mimo 45–55 ms. Typ `2` s 2732 v kabelu se dvěma paticemi
+  od FC0h: `SHODNÝ OBSAH  0FC0 - 0FFF`.
+- **EPROM.COM s 2708** (totéž s kabelem pro 2708 a prázdnou `eprom_2708.bin`; `test_dse1_eprom2708`; v GUI: Nová
+  2708 v okně, upozornění `2708 v patici zapojené pro 2716`, jeho tlačítko Změnit kabel X2… otevře konfigurátor
+  u karty, kabel pro 2708 a Restartovat s touto sestavou, 2708 zůstane v patici): typ `0`, RAM
   2000–203F do EPROM od 0, 129 průchodů (hvězdička za každým kromě posledního), `SHODNÝ OBSAH  0000 - 003F`, v logu
   `64 bytes, 129.00 pulses per byte, pulses 0.83-0.83 ms` bez varování, 106,8 ms na bajt, asi 16 s času stroje.
   Svítí LED1 i LED2, MAP1 v L. `K` s typem 0 vypíše `ČISTÁ  0000 - 03FF`.
-- **DSE.COM J. Hlaváče v kopii `zps/ZPS-3_CPM64K_IMA`** (8080 2 MHz, MON64C3, A: kopie diskety 1, B: `perina_dse.img`
-  s ochranou, DSE-1 na F0h v X8; `test_dse1_dsecom`): `B:DSE`, `2716`, `E 0`, `W 0 FF` do `A:T.HEX`, `C`, `R T`
-  (`CTENI SKONCENO OK`, `HEX 0000 - 00FF`), `T` (`CISTA -`), `P 0 FF 0` (`PROGRAMOVANI SKONCENO OK`, 255 bajtů, bajt
-  E4h je FFh a přeskočí se, pulzy 20,22 + 10,12 ms, součet 30,35 ms s varováním), po 32 s pípání `V` (`SHODNY OBSAH`).
-  Varování desky žádná, MAP1 v L. Výzkum ověřil i 2732 (kabel pro 2732, `32 pulses shorter than 1 ms` jako u programu
-  Tesla) a simulaci `A` (`SPUSTENA SIMULACE !`, konec ^B).
+- **DSE.COM J. Hlaváče v sestavě `cpm_dse1_fdc1`** (Z80 2 MHz, CP/M J. Bíby, `perina_dse.img` v E: s ochranou,
+  RAM disk C: jen v paměti; `test_dse1_dsecom`): `E:DSE`, `2716`, `E 0`, `W 0 FF` do `C:T.HEX`, `C`, `R C:T`
+  (`Cteni skonceno OK`, `HEX 0000 - 00FF`), `T` (`cista -`), `P 0 FF 0` (`Programovani skonceno OK`, 255 bajtů,
+  pulzy 18,91 + 9,47 ms, součet 28,39 ms s varováním: smyčky programu jsou spočítané na takty 8080), po asi 45 s
+  pípání `V` (`Shodny obsah`). Displej AND-1Z-89 ukazuje malá písmena. 2732 s typem `2732` v kabelu se dvěma
+  paticemi od FC0h: `Programovani skonceno OK`. Varování desky žádná, MAP1 v L.
+- **DSE.COM J. Hlaváče v kopii `zps/ZPS-3_CPM64K_IMA`** (`test_dse1_dsecom` do 2026-10-31; 8080 2 MHz, MON64C3,
+  A: kopie diskety 1, B: `perina_dse.img` s ochranou, DSE-1 na F0h v X8): `B:DSE`, `2716`, `E 0`, `W 0 FF`
+  do `A:T.HEX`, `C`, `R T` (`CTENI SKONCENO OK`, `HEX 0000 - 00FF`), `T` (`CISTA -`), `P 0 FF 0`
+  (`PROGRAMOVANI SKONCENO OK`, 255 bajtů, bajt E4h je FFh a přeskočí se, pulzy 20,22 + 10,12 ms, součet 30,35 ms
+  s varováním), po 32 s pípání `V` (`SHODNY OBSAH`). Varování desky žádná, MAP1 v L. Výzkum ověřil i 2732 (kabel
+  pro 2732, `32 pulses shorter than 1 ms` jako u programu Tesla) a simulaci `A` (`SPUSTENA SIMULACE !`, konec ^B).
 - **Primitivy** (`test_dse1`): zápis a čtení RAM, řídicí slovo nuluje PC, pulz 50 ms programuje jen 1 → 0, pulz
   0,5 ms ne, PD vzorkované během pulzu, 2732 v obou kabelech, bez +30 V nic, reset, základ 20h a zrcadla, MAP1,
   Emilova kopie EPROM → RAM, statistika (i pulzy po způsobu DSE.COM s 2716 a 2732), varování DSE.DOC u RAM

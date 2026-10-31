@@ -77,7 +77,8 @@
                           "cpm_boot_rpd1.sapi", "cpm_boot_rpd1_rmd.sapi", "cpm_boot_rpd1_ss256.sapi",
                           "cpm_boot_rpd1_fdc1_rmd.sapi", "cpm_boot_rpd1_mfc256.sapi", "cpm_boot_rpd1_mfc512.sapi",
                           "cpm_boot_dlouhe_rpd1_fdc1.sapi", "cpm_boot_dlouhe_rpd1_fdc1_35.sapi", "cpm_pmd_fdc1.sapi",
-                          "cpm_pmd_rpd1.sapi", "cpm_term64k_fdc1.sapi", "rkd1_jb_cm5400.sapi" ]
+                          "cpm_pmd_rpd1.sapi", "cpm_term64k_fdc1.sapi", "rkd1_jb_cm5400.sapi",
+                          "cpm_dse1_fdc1.sapi" ]
         },
         {
             "id": "libor_dalsi",
@@ -333,6 +334,13 @@
         },
         "cpm_term64k_fdc1.sapi": {
             "title_en": "CP/M 2.2 64K with a terminal only: FDC-1, RMD-1 (J. Bíba, MON 151111)"
+        },
+        "cpm_dse1_fdc1.sapi": {
+            "title": "CP/M s programátorem EPROM DSE-1",
+            "title_en": "CP/M with the DSE-1 EPROM programmer",
+            "name_en": "CP/M with the DSE-1 EPROM programmer: FDC-1, DSE.COM and EPROM.COM (J. Bíba)",
+            "summary": "CP/M J. Bíby s deskou DSE-1: E:DSE (DSE.COM J. Hlaváče) programuje EPROM 2716 a 2732, D:EPROM (EPROM.COM J. Bíby) i 2708. Krabička kabelu s EPROM je nakreslená v okně programátoru.",
+            "summary_en": "J. Bíba's CP/M with the DSE-1 board: E:DSE (DSE.COM of J. Hlaváč) programs 2716 and 2732 EPROMs, D:EPROM (EPROM.COM of J. Bíba) also the 2708. The box of the cable with the EPROM is drawn in the programmer window."
         },
         "rkd1_jb_cm5400.sapi": {
             "title_en": "J. Bíba's CP/M with the RKD-1 cartridge disk and the Bulgarian CM 5400 drive (D: to G:, BIOS from SAPIemu)"

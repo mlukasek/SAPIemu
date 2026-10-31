@@ -21,3 +21,7 @@ pulzu.
 
 - Návod krok za krokem i se simulátorem (S a R): [návod DSE-1](../../docs/navod-dse1.md), deska:
   [DSE-1](../../docs/desky/DSE-1.md).
+- **Pod CP/M:** Ostatní → CP/M J. Bíby (SAPIMAN) → **CP/M s programátorem EPROM DSE-1**. Na disketě E: je DSE.COM
+  J. Hlaváče pro 2716 a 2732, na D: EPROM.COM J. Bíby, který programuje i EPROM 2708 (s kabelem pro 2708, přepne ho
+  tlačítko Změnit kabel X2… u upozornění v okně programátoru): [návod DSE-1](../../docs/navod-dse1.md), kapitoly 11
+  a 12.

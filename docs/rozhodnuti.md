@@ -3623,7 +3623,7 @@ Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 n
   jako historický software bez souhlasu autorů. Spouští se v **`zps/ZPS-3_CPM64K_IMA` s DSE-1 přidanou v X8** a disketou v B: (návod kap. 12,
   test `test_dse1_dsecom`). Novou sestavu jsem nedělal: DSE.COM běží v emulátoru bez změn, sestava ZPS-2_DSE-1 už
   okno programátoru ukazuje a další sestava by znamenala náhled, průvodce a kategorii navíc. Když ji autor bude chtít,
-  stačí kopie `ZPS-3_CPM64K_IMA` s DSE-1 v X8 a disketou DSE v B:.
+  stačí kopie `ZPS-3_CPM64K_IMA` s DSE-1 v X8 a disketou DSE v B:. (Autor ji pak chtěl, viz poslední bod.)
 - **Oprava popisu DSE.COM:** pulzy jsou 20 + 10 ms, a když bajt po 20 ms nesedí, 20 + 40 ms; bajty FFh přeskočí. Po
   startu je nutné `E 0` (pracovní úsek `0000 - 0000`), po `P` pípá asi 32 s.
 - **Po revizi (2026-10-31):**
@@ -3638,3 +3638,16 @@ Předtím: „Tesla podle mě 2732 nedělala. MHB2708C a MHB2716C jo, ale 2708 n
   - **Okno programátoru v úzkém okně:** řádky pod kresbou se počítají tak, jak je `flow()` skládá (tlačítka ve třech
     řadách, tlačítko Změnit kabel X2… pod upozorněním), pomůcky a upozornění se v úzkém okně zalomí (v obvyklé šířce
     zůstávají na jednom řádku) a kresba není nikdy širší než okno (v nízkém okně se rolují ovládací prvky).
+- **Sestava v Ostatní** (autor 2026-10-31: „Udělej sestavu prosím a dej ji do Other. A do návodu k té základní
+  sestavě napiš poznámku, že CP/M sestava je v Other a že umí i 2708.“): `cpm_dse1_fdc1.sapi` „CP/M s programátorem
+  EPROM DSE-1“ v kategorii CP/M J. Bíby (SAPIMAN). Je to `cpm_boot_fdc1` (FDC-1 v X5–X6) s DSE-1 na F0h v X7
+  (JP1 rozpojená, kabel se dvěma paticemi, prázdná 2716, okno programátoru při startu). Mechaniky FDC-1 C a D jsou
+  podle BIOSu V130711JB („A,B,D,E: FDC1“) disky D: (služební disketa s EPROM.COM) a E: (DSE.COM): jedna sestava pro
+  oba programy místo ruční kopie `cpm_boot_rpd1` a `ZPS-3_CPM64K_IMA`. DSE.COM v ní běží pod CP/M J. Bíby se Z80,
+  pulzy má kratší (18,91 + 9,47 ms místo 20,22 + 10,12 ms, smyčky jsou spočítané na takty 8080) a AND-1Z-89 ukazuje
+  malá písmena. Kabel pro 2708 jsem jako výchozí nedal: 2716 a 2732 by v něm nefungovaly a DSE.COM 2708 nezná.
+  2708 se vloží tlačítkem Nová 2708 a kabel přepne tlačítko Změnit kabel X2… u upozornění (ověřeno v GUI: otevře
+  konfigurátor u karty, po Restartovat s touto sestavou zůstane nová 2708 v patici). Testy `test_dse1_eprom`,
+  `_eprom2708` a `_dsecom` teď běží v této sestavě (mechaniky s ochranou, DSE.COM píše soubor HEX na RAM disk C:
+  jen v paměti), kopie disket už nepotřebují. Průvodce `zps/ZPS-2_DSE-1` (česky i anglicky) na sestavu odkazuje,
+  návod kap. 11 a 12 s ní počítá.

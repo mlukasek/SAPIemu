@@ -25,6 +25,13 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
   `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
   vyzkouší později.
+- **2026-10-31, sestava CP/M s programátorem EPROM DSE-1** (autor: „Udělej sestavu prosím a dej ji do Other…“;
+  rozhodnutí 2026-10-31 – 2708 a DSE.COM, poslední bod): `machines/cpm_dse1_fdc1.sapi` v Ostatní → CP/M J. Bíby,
+  `cpm_boot_fdc1` s DSE-1 na F0h v X7 (JP1 rozpojená, kabel se dvěma paticemi, prázdná 2716, okno programátoru
+  při startu); FDC-1 C a D jsou podle BIOSu D: (EPROM.COM J. Bíby, i 2708) a E: (DSE.COM J. Hlaváče). 2708: Nová
+  2708, tlačítko Změnit kabel X2… u upozornění, kabel pro 2708, Restartovat (ověřeno v GUI). Testy
+  `test_dse1_eprom`, `_eprom2708`, `_dsecom` v ní (bez kopií disket), scénář v `check_machines.py`, náhled, souhrn
+  v `_vyber.json`, poznámka v průvodci `zps/ZPS-2_DSE-1` (cs, en), návod kap. 11 a 12 s výpisy z ní.
 - **2026-10-31, DSE-1: EPROM 2708 a DSE.COM** (autor: „DSE.COM klidně do media… 2708 je dobrý nápad, pojď to
   přidat“; rozhodnutí 2026-10-31 – 2708 a DSE.COM): kabel X2 `2708` zrekonstruovaný podle EPROM.COM J. Bíby
   V130786 (jediný známý program, který 2708 na DSE-1 programuje: pulz na Vpp, 129 × 0,83 ms na 2 MHz), čip 2708
@@ -37,7 +44,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   varování 0 V na VBB 2708 v kabelu pro 2716 a 2732 (Oki: VBB první), úzké okno programátoru (řádky podle `flow()`,
   zalomené pomůcky, kresba nikdy širší než okno), upřesněné texty (jediný známý program, model podle katalogů Oki
   a NTE, X80.COM jen podle řetězce v souboru), Nejasnosti 16 (DSE-1A) a 17 (náběh pulzu). **Dál:**
-  autor zváží vlastní sestavu ZPS-3 s DSE-1 (zatím kapitola 12 návodu) a podívá se na pravidlo programování 2708.
+  autor se podívá na pravidlo programování 2708 (sestavu s DSE.COM chtěl v Ostatní, bod výše).
 - **2026-10-31, vlastní okno programátoru DSE-1** (přání autora, rozhodnutí 2026-10-31 – okno programátoru DSE-1):
   `src/frontend/dse1.cpp`, okno `###dse1` místo bloku v okně Média: krabička kabelu X2 se zelenou paticí v duchu
   3M TEXTOOL (páka zvednutá s prázdnou, sklopená s EPROM), EPROM TESLA 2716 / Intel 2732 s okénkem, štítek se

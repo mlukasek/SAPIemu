@@ -418,6 +418,16 @@ s MIKOSem a od 1000h program DSE Ing. P. Navrátila (`G1000`). Parametry DSE-1: 
 `work/dse-1/eprom_2716.bin`). Okno Programátor EPROM DSE-1 se otevře samo (od 2026-10-31, dřív blok v okně
 Média). `docs/desky/DSE-1.md`, `docs/navod-dse1.md`.
 
+**CP/M s programátorem EPROM DSE-1** (`machines/cpm_dse1_fdc1.sapi`, 2026-10-31, v Ostatní mezi CP/M J. Bíby):
+`cpm_boot_fdc1` (JPR-1ZI s MON 130711, DMR-1, AND-1Z-89, ZRMD-1 = C:, FDC-1 v X5–X6) s deskou DSE-1 na F0h v X7.
+Mechaniky FDC-1 C a D jsou podle BIOSu V130711JB („A,B,D,E: FDC1“) disky **D:** (služební disketa J. Bíby
+`media/sapiman/knihovna/sysprog_a_sluzebni_CPM.img` s EPROM.COM V130786: 2708, 2716, 2732) a **E:**
+(`media/sapiman/knihovna/perina_dse.img` s DSE.COM J. Hlaváče: 2716, 2732). DSE-1: `jp1_map` rozpojená (EPROM.COM
+svítí bitem D5 na LED, MAP1 by pod CP/M přepnul paměť DMR-1), `vpp` `pin50`, `x2_cable` `dual`, v patici prázdná
+2716. 2708 potřebuje kabel pro 2708: Nová 2708 v okně programátoru, tlačítko Změnit kabel X2… u upozornění otevře
+konfigurátor u karty. Okno programátoru se otevře při startu. Testy `test_dse1_eprom`, `_eprom2708`, `_dsecom`,
+`docs/navod-dse1.md` kapitoly 11 a 12.
+
 **APS-5** (`machines/aps5.sapi`, 2026-10-08): měřicí jednotka Tesla Liberec s původním firmwarem (7 × 2716
 na REM-1). Desky: JPR-1, RTC-1 (F0h, kabel XC2), DRV-1A (77h), REM-1, AND-1, ADP-1 (00h), CRM-1, DMT-1 (80h).
 - Na X2/X3 JPR-1 je panel HRK-1, zapsaný jako klávesnice `HRK-1`.
@@ -460,7 +470,7 @@ AND-1, ANK-1). Popis v `docs/software/MIKROBASIC.md`.
   (programátor EPROM DSE-1). Okno v doku dostane vybranou
   záložku. Sestavy v repu: `plotter_ar1990` Minigraf (tlačítko READY), `cpm_term64k_fdc1` terminál, `aps5` panel,
   `zps/ZPS-2_DPS-1_IMS-2` měřicí pracoviště, `rmp1_jb_izot`,
-  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky), `zps/ZPS-2_DSE-1` programátor EPROM.
+  `rkd1_tesla_cpm` a `rkd1_jb_cm5400` Média (mechaniky), `zps/ZPS-2_DSE-1` a `cpm_dse1_fdc1` programátor EPROM.
   - **Sestava bez displeje** (od 2026-10-29: `plotter_ar1990`, `cpm_term64k_fdc1`) nemá okno obrazovky; první okno
     z `windows` je její hlavní výstup a dostane velké místo vlevo nahoře (zapisovač na celou výšku plochy, tak široký,
     aby se vešel celý list A4; jiné okno ve své velikosti). Bez `windows` by po startu nebylo vidět nic.

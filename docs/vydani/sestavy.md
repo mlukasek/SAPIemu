@@ -147,8 +147,11 @@ ECMONu, `DIR` disků):
 `cpm_boot_fdc1`, `cpm_boot_fdc1_irmd`, `cpm_boot_fdc1_rmd`, `cpm_boot_fdc1_ss256`, `cpm_boot_mfc1a`,
 `cpm_boot_mfc1a_rmd`, `cpm_boot_rpd1`, `cpm_boot_rpd1_rmd`, `cpm_boot_rpd1_ss256`, `cpm_boot_rpd1_fdc1_rmd`,
 `cpm_boot_rpd1_mfc256`, `cpm_boot_rpd1_mfc512`, `cpm_boot_dlouhe_rpd1_fdc1`, `cpm_boot_dlouhe_rpd1_fdc1_35`,
-`cpm_pmd_fdc1`, `cpm_pmd_rpd1`, `cpm_term64k_fdc1` a `rkd1_jb_cm5400` (RKD-1 s mechanikou CM 5400, BIOS dodělaný
-v emulátoru) (18 sestav).
+`cpm_pmd_fdc1`, `cpm_pmd_rpd1`, `cpm_term64k_fdc1`, `rkd1_jb_cm5400` (RKD-1 s mechanikou CM 5400, BIOS dodělaný
+v emulátoru) a `cpm_dse1_fdc1` (19 sestav). `cpm_dse1_fdc1` přibyla 2026-10-31 na přání autora: titulek „CP/M
+s programátorem EPROM DSE-1“ (anglicky „CP/M with the DSE-1 EPROM programmer“), `cpm_boot_fdc1` s deskou DSE-1
+v X7, D: = EPROM.COM J. Bíby (i 2708), E: = DSE.COM J. Hlaváče (2716, 2732), okno programátoru při startu.
+Průvodce `zps/ZPS-2_DSE-1` na ni odkazuje.
 
 ### 5d. Další sestavy s Liborovými deskami
 

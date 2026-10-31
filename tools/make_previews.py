@@ -41,6 +41,7 @@ PREVIEWS = {
     'zps_ZPS-6': (cm.CPM + cm.t('SETDBS1\\r') + cm.run(5000) + sum([cm.t('F') + cm.run(500) for _ in range(7)], []) +
                   cm.t('B') + cm.run(1000), None),
     'jpr1s_bgp1s': (cm.MANIC, 'BGP-1S'),
+    'cpm_dse1_fdc1': (cm.CPM + cm.t('D:EPROM\\r') + cm.w('STISKNI KL', 20000) + cm.run(500), None),   # EPROM.COM's menu
 }
 
 # machines with an instrument: the picture of its window in the GUI (sapiemu --ui-snapshot --ui-crop) after the

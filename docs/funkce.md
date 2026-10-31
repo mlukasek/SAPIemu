@@ -50,7 +50,8 @@ v [prvni-kroky.md](prvni-kroky.md).
     okno kreslí krabičku kabelu se zelenou paticí s pákou, EPROM s okénkem (naprogramovaná se štítkem), LED PROG
     a MAP a UV lampu, která EPROM smaže; pod kresbou Vpp, ON LINE a délka pulzu. Testem jsou ověřené
     i SIMPROG Melsoft z CP/M SAPI-1.5, EPROM.COM J. Bíby (i s 2708) a DSE.COM J. Hlaváče pro ZPS-3 se soubory Intel
-    HEX (disketa v `media/sapiman/knihovna/perina_dse.img`; [docs/desky/DSE-1.md](desky/DSE-1.md), návod
+    HEX (disketa v `media/sapiman/knihovna/perina_dse.img`). EPROM.COM a DSE.COM jsou na disketách sestavy CP/M
+    s programátorem EPROM DSE-1 v Ostatní ([docs/desky/DSE-1.md](desky/DSE-1.md), návod
     [docs/navod-dse1.md](navod-dse1.md));
   - plotter z Amatérského radia 1990: deska JPR-1 jako řadič zapisovače Minigraf s programem přepsaným z výpisu
     v AR, povely Sharp MZ-1P16 posílané z okna Minigraf (soubor, řádek povelů, ukázka), tlačítka STOP, TEST,
