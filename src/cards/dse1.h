@@ -13,7 +13,7 @@
 //   X3 on PA0-11 through 74LS257), D3 ONLD (data to the probe), D4 LED1 "progr.", D5 LED2 "map." and MAP1
 //   (pin 21 of X1) through JP1. /RES clears it.
 // - Simulator RAM 4 KB (8x 2114), only behind the 8255. The probe X3 is not connected in the emulator (ON
-//   LINE is a state shown by the Media window and MCP).
+//   LINE is a state shown by the window of the programmer, src/frontend/dse1.cpp, and MCP).
 // - Programming cable X2 with the socket (Eprom27, evaluated from its pins): wired for a 2716 as supplied
 //   (18 = PC6, 20 = NOT PC7, 21 = Vpp), for a 2732 after DSE.DOC (21 = PA11, 18 = NOR(PC6, PC7), 20 =
 //   Vpp), or two sockets (the replicas: the type of the chip picks its socket).
@@ -65,14 +65,15 @@ public:
     enum { CABLE_2716 = 0, CABLE_2732 = 1, CABLE_DUAL = 2 };   // x2_cable
     enum { VPP_PIN50 = 0, VPP_CONVERTER = 1, VPP_NONE = 2 };    // vpp
 
-    // Media window, MCP: put an EPROM image into the socket (a file of media/ through its working copy, a dump
+    // The window of the programmer, MCP: put an EPROM image into the socket (a file of media/ through its working copy, a dump
     // of roms/ through a copy in work/dse-1/roms/), take it out. The same file again keeps what was programmed.
     bool insert(const std::string& image, std::string& err);
     void eject(void);
     // A new blank EPROM (all FFh, 2716 or 2732) as a new file `dir`/eprom_N.bin; rel = its path for insert()
     static bool new_blank(int type, const char* dir, std::string& rel, std::string& err);
     // The copy a dump of roms/ is used through, work/dse-1/roms/<its path in roms/> (the full path; "" for other
-    // images): the Media window restores it from the original as the working copies of media/
+    // images): "..." -> Restore from the original in the window of the programmer restores it as the working copies
+    // of media/
     static std::string rom_work_copy(const std::string& image);
     // emulator help (not the hardware): the simulator RAM into a .bin of 4 KB
     bool save_sim_ram(const std::string& path, std::string& err) const;
@@ -80,7 +81,7 @@ public:
     // socket all FFh, saved into its file like programming. Refused without an EPROM and with Vpp other than 0 V.
     bool erase(std::string& err);
 
-    // what the Media window and MCP show
+    // what the window of the programmer and MCP show
     const Eprom27& eprom(void) const { return chip; }
     const uint8_t* sim_ram(void) const { return ram; }
     uint8_t reg(void) const { return regv; }

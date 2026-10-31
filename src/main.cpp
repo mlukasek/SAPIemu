@@ -98,8 +98,9 @@ static void print_help(void)
            "                     --ui-exit: File -> Exit before the picture (the question about unsaved changes;\n"
            "                     without changes the program ends with no picture),\n"
            "                     --ui-drop FILE: the file dropped on the window (as from Explorer; repeated: one after\n"
-           "                     another; --ui-drop-at X,Y: dropped there, points of the window, default 0,0),\n"
-           "                     --ui-click X,Y: a left click there (points; repeated: one after another),\n"
+           "                     another; --ui-drop-at X,Y: dropped there, ImGui coordinates as --ui-click, default 0,0),\n"
+           "                     --ui-click X,Y: a left click there (ImGui coordinates, on Windows pixels of the\n"
+           "                     window at its --ui-scale; repeated: one after another),\n"
            "                     --ui-save: Save in the configurator before the picture (after --ui-set),\n"
            "                     --ui-save-copy: Save of this run as a release build does it (a supplied machine as\n"
            "                     a copy in My machines, work/machines; also in a debug build; with --ui-save: saved))\n"
@@ -304,7 +305,12 @@ int main(int argc_ansi, char** argv_ansi)
         else if (a == "--ui-rack-new") { snap.rack_new = true; snap.rack = true; }
         else if (a == "--ui-exit") snap.exit = true;
         else if (a == "--ui-drop" && i + 1 < argc) snap.drops.push_back(argv[++i]);
-        else if (a == "--ui-drop-at" && i + 1 < argc) sscanf(argv[++i].c_str(), "%f,%f", &snap.drop_x, &snap.drop_y);
+        else if (a == "--ui-drop-at" && i + 1 < argc) {
+            if (sscanf(argv[++i].c_str(), "%f,%f", &snap.drop_x, &snap.drop_y) != 2) {
+                fprintf(stderr, "--ui-drop-at X,Y\n");
+                return 2;
+            }
+        }
         else if (a == "--ui-click" && i + 1 < argc) {
             float x = 0, y = 0;
             if (sscanf(argv[++i].c_str(), "%f,%f", &x, &y) != 2) {

@@ -69,7 +69,7 @@ INSTRUMENTS = {
                        cm.plotter('send', '\\x02M680,520') + cm.run(5000), '--ui-plotter', 'Minigraf'),
     'rmp1_jb_izot': (cm.MACHINES['rmp1_jb_izot'][0], '--ui-media', 'Media'),
     # the program DSE programs 5000-50FF into the blank 2716 (docs/navod-dse1.md, chapter 4), 5 s into it: the LED PROG
-    # lit, the label on the EPROM
+    # lit, the chip in the window of the EPROM (the label goes on when the programming has ended)
     'zps_ZPS-2_DSE-1': (cm.DSE + cm.t('F') + cm.w('OBSAH:', 5000) + cm.run(500) + cm.t('5000,50FF,55\\r') +
                         cm.run(1500) + cm.t('P') + cm.w('DOLNI ADRESA RAM=', 5000) + cm.run(500) + cm.t('5000\\r') +
                         cm.w('HORNI ADRESA RAM=', 5000) + cm.run(500) + cm.t('50FF\\r') +

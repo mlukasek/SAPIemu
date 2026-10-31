@@ -31,7 +31,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   jménem souboru na naprogramované, LED PROG červená a MAP zelená, UV lampa na smazání (pohodlí emulátoru, otázka
   u naprogramované, ne pod napětím; `Dse1::erase`, MCP `erase`), soubor `.bin` přetažený na okno jde do patice.
   Panel v konfigurátoru se dvěma FRB-30 (K3 „PRG“, K2 „SIM“). UI snímek `--ui-dse1`, `--ui-drop-at`. Nejasnost 13
-  (2708). **Dál:** autor se podívá na kresbu (vzhled krabičky Tesla neznáme).
+  (2708). Po kontrole: štítek až po skončení programování, smazání hned (naráz s kontrolou Vpp), nápis „UV · SMAZAT“,
+  výběr karty při víc DSE-1. **Dál:** autor se podívá na kresbu (vzhled krabičky Tesla neznáme).
 - **2026-10-30 večer, DSE-1 hotová** (autor byl pryč, „rozhoduj se sám“; rozhodnutí 2026-10-30 – DSE-1):
   simulátor a programátor EPROM 2716/2732 Tesla (`src/cards/dse1.*`, čip `src/chips/eprom27.*` vyhodnocovaný
   z vývodů), model na úrovni signálů, pulz v čase sběrnice (od 1 ms programuje, předpoklad), kabel X2 pro 2716,

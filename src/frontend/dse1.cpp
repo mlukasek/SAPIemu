@@ -7,7 +7,9 @@
 // The look of the Tesla box is not known (no photo): the drawing is a deliberate deviation like the rack of the
 // configurator (docs/desky/DSE-1.md). The lever of the socket is drawn open with the socket empty and closed with an
 // EPROM in it; it is not clicked. A programmed EPROM (a byte other than FFh) has a paper label over its window with
-// the name of its file, as people stuck one on a programmed EPROM; a blank one shows its window and the chip in it.
+// the name of its file, as people stuck one on a programmed EPROM (not while it is being programmed: the label goes on
+// when the programming has ended); a blank one shows its window and the chip in it. More DSE-1 cards in a machine: the
+// window shows the one chosen in its list.
 #include "frontend/ui.h"
 #include "frontend/i18n.h"
 #include "frontend/theme.h"
@@ -23,6 +25,7 @@
 #include "cards/dse1.h"
 #include "core/host.h"
 #include "core/machine.h"
+#include "core/util.h"
 
 static const float K_PI = 3.14159265f;
 static const float SCENE_W = 106.0f, SCENE_H = 60.0f;   // the drawing in millimetres
@@ -154,8 +157,8 @@ static void zif_socket(const Scene& S, float x0, float y0, float x1, float y1, f
             dl->AddCircleFilled(c, S.k(2.1f), mix(COL_ZIF_DARK, COL_ZIF, 0.5f), 24);
             dl->AddCircleFilled(c, S.k(1.2f), COL_HOLE, 24);
         }
-        text_mm(S, px0, cy + 7.62f + 2.3f, 1.5f, with_alpha(COL_ZIF_HI, 220), "1");
-        text_mm(S, px0, cy - 7.62f - 2.3f, 1.5f, with_alpha(COL_ZIF_HI, 220), "24");
+        text_mm(S, px0, cy + 7.62f + 2.25f, 2.1f, COL_ZIF_LINE, "1", 0, true);
+        text_mm(S, px0, cy - 7.62f - 2.25f, 2.1f, COL_ZIF_LINE, "24", 0, true);
     }
     // the contact holes, a gold spring in each
     for (int row = -1; row <= 1; row += 2)
@@ -323,14 +326,15 @@ static void eprom(const Scene& S, float cx, float cy, int type, bool labelled, c
     // the light on the quartz
     dl->AddQuadFilled(S.p(cx - qw + 0.6f, cy - qw + 2.4f), S.p(cx - qw + 2.4f, cy - qw + 0.6f), S.p(cx - qw + 3.6f, cy - qw + 0.6f),
                       S.p(cx - qw + 0.6f, cy - qw + 3.6f), IM_COL32(255, 255, 255, 34));
-    // the print on both sides of the window, clear of a label over it
-    const float lw = 5.9f, lh = 5.7f;   // half the label
-    float lx = (x0 + 1.2f + cx - lw) * 0.5f, rx = (cx + lw + x1 - 0.6f) * 0.5f, sw = cx - lw - x0 - 1.6f;
+    // the print on both sides of the window, a millimetre clear of a label over it (the notch at the left)
+    const float lw = 5.4f, lh = 5.7f;   // half the label
+    float l0 = x0 + 1.8f, l1 = cx - lw - 1.0f, r0 = cx + lw + 1.0f, r1 = x1 - 0.6f;
+    float lx = (l0 + l1) * 0.5f, rx = (r0 + r1) * 0.5f;
     bool t2732 = type == Eprom27::T2732;
-    text_mm(S, lx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "intel" : "TESLA", 0, true, sw);
-    text_mm(S, lx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "8317" : "8541", 0, false, sw);
-    text_mm(S, rx, cy - 1.6f, 2.2f, COL_CHIP_PRINT, t2732 ? "D2732" : "MHB2716C", 0, false, sw);
-    text_mm(S, rx, cy + 2.2f, 1.6f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "4K x 8" : "2K x 8", 0, false, sw);
+    text_mm(S, lx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "intel" : "TESLA", 0, true, l1 - l0);
+    text_mm(S, lx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "8317" : "8541", 0, false, l1 - l0);
+    text_mm(S, rx, cy - 1.6f, 2.4f, COL_CHIP_PRINT, t2732 ? "D2732" : "MHB2716C", 0, false, r1 - r0);
+    text_mm(S, rx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "4K x 8" : "2K x 8", 0, false, r1 - r0);
     if (labelled) {   // the paper label over the window, a little askew
         const float a = -2.0f * K_PI / 180.0f;
         ImVec2 q[4];
@@ -350,8 +354,9 @@ static void eprom(const Scene& S, float cx, float cy, int type, bool labelled, c
 
 // The lamp ("horské sluníčko") seen from the side: the hood of its reflector on a stand, turned towards the window of
 // the EPROM at tx, ty; the bulb shows in its opening. lit 0..1: it shines (the bulb violet, its light on the window);
-// hover: under the mouse; dim: it cannot be used now (no EPROM).
-static void uv_lamp(const Scene& S, float cx, float cy, float tx, float ty, float lit, bool hover, bool dim)
+// hover: under the mouse (faint rays: it can be clicked); dim: it cannot be used now (no EPROM). caption: on its base.
+static void uv_lamp(const Scene& S, float cx, float cy, float tx, float ty, float lit, bool hover, bool dim,
+                    const char* caption)
 {
     float aim = atan2f(ty - cy, tx - cx);
     ImDrawList* dl = S.dl;
@@ -360,10 +365,12 @@ static void uv_lamp(const Scene& S, float cx, float cy, float tx, float ty, floa
     ImVec2 f(cosf(aim), sinf(aim)), n(-f.y, f.x);   // where it shines, across it
     // the stand from the joint under the hood down to the base
     float jx = cx + R * 0.42f, jy = cy + R * 0.86f, by = cy + 28.5f;
-    dl->AddRectFilled(S.p(jx - 7.0f + 0.4f, by + 0.6f), S.p(jx + 7.0f + 0.6f, by + 6.1f), IM_COL32(0, 0, 0, 60), S.k(2.0f));
-    dl->AddRectFilled(S.p(jx - 7.0f, by), S.p(jx + 7.0f, by + 5.5f), with_alpha(IM_COL32(58, 60, 66, 255), al), S.k(2.0f));
-    dl->AddRectFilled(S.p(jx - 6.4f, by + 0.4f), S.p(jx + 6.4f, by + 1.2f), with_alpha(IM_COL32(112, 114, 122, 255), al), S.k(0.4f));
-    text_mm(S, jx, by + 3.3f, 2.6f, with_alpha(IM_COL32(228, 214, 255, 255), al), "UV", 0, true);
+    const float bw = 9.0f;   // half the base
+    dl->AddRectFilled(S.p(jx - bw + 0.4f, by + 0.6f), S.p(jx + bw + 0.6f, by + 6.1f), IM_COL32(0, 0, 0, 60), S.k(2.0f));
+    dl->AddRectFilled(S.p(jx - bw, by), S.p(jx + bw, by + 5.5f), with_alpha(IM_COL32(58, 60, 66, 255), al), S.k(2.0f));
+    dl->AddRectFilled(S.p(jx - bw + 0.6f, by + 0.4f), S.p(jx + bw - 0.6f, by + 1.2f), with_alpha(IM_COL32(112, 114, 122, 255), al),
+                      S.k(0.4f));
+    text_mm(S, jx, by + 3.3f, 2.5f, with_alpha(IM_COL32(228, 214, 255, 255), al), caption, 0, true, 2.0f * bw - 1.6f);
     dl->AddRectFilled(S.p(jx - 0.8f, jy), S.p(jx + 0.8f, by), with_alpha(COL_METAL_LINE, al));
     dl->AddRectFilled(S.p(jx - 0.45f, jy), S.p(jx - 0.05f, by), with_alpha(COL_METAL, al));
     // the light: a beam from the opening onto the window, rays
@@ -374,15 +381,15 @@ static void uv_lamp(const Scene& S, float cx, float cy, float tx, float ty, floa
             dl->AddQuadFilled(S.p(a0.x, a0.y), S.p(tx, ty - h), S.p(tx, ty + h), S.p(a1.x, a1.y),
                               with_alpha(COL_UV, (int)((k ? 30 : 22) * lit)));
         }
-    for (int i = -2; i <= 2; i++) {
-        float a = aim + i * 0.32f;
-        ImVec2 st(cx + f.x * 1.2f + n.x * i * 1.4f, cy + f.y * 1.2f + n.y * i * 1.4f);
-        float r0 = 2.2f, r1 = lit > 0 ? 7.5f : 4.6f;
-        ImU32 rc = lit > 0 ? with_alpha(COL_UV, (int)(150 + 105 * lit))
-                           : with_alpha(IM_COL32(150, 116, 210, 255), dim ? 45 : hover ? 240 : 140);
-        dl->AddLine(S.p(st.x + cosf(a) * r0, st.y + sinf(a) * r0), S.p(st.x + cosf(a) * r1, st.y + sinf(a) * r1), rc,
-                    S.k(0.6f) > 1.5f ? S.k(0.6f) : 1.5f);
-    }
+    if (lit > 0 || (hover && !dim))   // switched off: no rays (under the mouse faint ones, it can be clicked)
+        for (int i = -2; i <= 2; i++) {
+            float a = aim + i * 0.32f;
+            ImVec2 st(cx + f.x * 1.2f + n.x * i * 1.4f, cy + f.y * 1.2f + n.y * i * 1.4f);
+            float r0 = 2.2f, r1 = lit > 0 ? 7.5f : 4.6f;
+            ImU32 rc = lit > 0 ? with_alpha(COL_UV, (int)(150 + 105 * lit)) : with_alpha(IM_COL32(150, 116, 210, 255), 170);
+            dl->AddLine(S.p(st.x + cosf(a) * r0, st.y + sinf(a) * r0), S.p(st.x + cosf(a) * r1, st.y + sinf(a) * r1), rc,
+                        S.k(0.6f) > 1.5f ? S.k(0.6f) : 1.5f);
+        }
     // the hood: a half bowl, its back away from the socket, a light along it
     ImVec2 c = S.p(cx, cy);
     dl->PathArcTo(ImVec2(c.x + S.k(0.5f), c.y + S.k(0.8f)), S.k(R), aim + K_PI * 0.5f, aim + K_PI * 1.5f, 32);
@@ -412,15 +419,40 @@ static void uv_lamp(const Scene& S, float cx, float cy, float tx, float ty, floa
 
 // ---------------------------------------------------------------- Erase
 
+// The EPROM is erased at once (atomic with the check of Vpp, so nothing the program does meanwhile is lost or erased
+// later); the lamp then shines on its window for ERASE_S: the picture only.
 struct EraseRun {
     std::string card;    // the DSE-1 whose EPROM is under the lamp, "" = none
-    std::string path;    // that EPROM (another one put in meanwhile is not erased)
-    uint64_t gen = 0;    // of this machine
+    std::string path;    // that EPROM (another one put in meanwhile does not glow)
+    uint64_t gen = 0;    // of this machine (after a switch of the machine or a loaded state nothing glows)
     uint64_t t0 = 0;     // the lamp went on (SDL_GetTicksNS)
 };
 static EraseRun s_erase;
 static std::string s_ask_card;   // Erase a programmed EPROM? asked in a modal window
 static bool s_ask_open = false;
+static std::string s_card;       // the DSE-1 chosen in the list of the window (more than one in the machine)
+
+// The DSE-1 the window shows: the one chosen in its list, else the first one of the machine; count = how many.
+static Dse1* dse1_pick(UiState& ui, int* count)
+{
+    Machine* m = ui.host->machine();
+    Dse1 *first = nullptr, *chosen = nullptr;
+    int n = 0;
+    if (m)
+        for (auto& c : m->cards)
+            if (Dse1* d = dynamic_cast<Dse1*>(c.get())) {
+                if (!first) first = d;
+                if (d->name == s_card) chosen = d;
+                n++;
+            }
+    if (count) *count = n;
+    return chosen ? chosen : first;
+}
+
+Card* dse1_card(UiState& ui)
+{
+    return dse1_pick(ui, nullptr);
+}
 
 static bool eprom_blank(const Eprom27& e)
 {
@@ -439,8 +471,30 @@ static float erase_glow(void)
     return g;
 }
 
+// Erase refused: under voltage (Vpp other than 0 V, as changing the medium under voltage), else the reason of the card.
+static void erase_refused(UiState& ui, Dse1* d, const std::string& err)
+{
+    int v = d->vpp_volts();
+    std::string why = tr_core(err);
+    if (v != 0) {
+        char b[256];
+        snprintf(b, sizeof(b), tr("The socket is under voltage (Vpp %d V): the EPROM cannot be taken out to erase it. "
+                                  "Wait until the program has finished."), v);
+        why = b;
+    }
+    ui_notice(ui, false, d->name + ": " + tr("Cannot erase the EPROM") + ":\n" + why);
+}
+
+// Erase now (the card checks Vpp again: the question may have stood open while the program raised it), the lamp
+// shines on the window.
 static void erase_start(UiState& ui, Dse1* d)
 {
+    std::string err;
+    if (!d->erase(err)) {
+        erase_refused(ui, d, err);
+        return;
+    }
+    ui_notice(ui, true, d->name + ": " + tr("The EPROM is erased (all bytes FFh)."));
     s_erase.card = d->name;
     s_erase.path = d->eprom().path;
     s_erase.gen = ui.host->machine_generation();
@@ -450,38 +504,25 @@ static void erase_start(UiState& ui, Dse1* d)
 // The lamp clicked: not under voltage; a programmed EPROM asks first (its content is lost), a blank one goes at once.
 static void erase_click(UiState& ui, Dse1* d)
 {
-    int v = d->vpp_volts();
-    if (v != 0) {
-        char b[256];
-        snprintf(b, sizeof(b), tr("The socket is under voltage (Vpp %d V): the EPROM cannot be taken out to erase it. "
-                                  "Wait until the program has finished."), v);
-        ui_notice(ui, false, d->name + ": " + tr("Cannot erase the EPROM") + ":\n" + b);
-        return;
-    }
-    if (eprom_blank(d->eprom())) erase_start(ui, d);
+    if (d->vpp_volts() != 0) erase_refused(ui, d, std::string());
+    else if (eprom_blank(d->eprom())) erase_start(ui, d);
     else {
         s_ask_card = d->name;
         s_ask_open = true;
     }
 }
 
-// Every frame (also with the window closed): the lamp has shone long enough, the EPROM is erased.
-static void erase_poll(UiState& ui)
+// Every frame (also with the window closed): the lamp has shone long enough.
+static void erase_poll(void)
 {
-    if (s_erase.card.empty() || (double)(SDL_GetTicksNS() - s_erase.t0) / 1e9 < ERASE_S) return;
-    EraseRun r = s_erase;
-    s_erase = EraseRun();
-    Machine* m = ui.host->machine();
-    Dse1* d = m && ui.host->machine_generation() == r.gen ? dynamic_cast<Dse1*>(m->find_card(r.card)) : nullptr;
-    if (!d || !d->eprom().loaded() || d->eprom().path != r.path) return;   // the EPROM went out meanwhile
-    std::string err;
-    if (d->erase(err)) ui_notice(ui, true, d->name + ": " + tr("The EPROM is erased (all bytes FFh)."));
-    else {
-        char b[256];
-        snprintf(b, sizeof(b), tr("The socket is under voltage (Vpp %d V): the EPROM cannot be taken out to erase it. "
-                                  "Wait until the program has finished."), d->vpp_volts());
-        ui_notice(ui, false, d->name + ": " + tr("Cannot erase the EPROM") + ":\n" + (d->vpp_volts() ? b : tr_core(err)));
-    }
+    if (!s_erase.card.empty() && (double)(SDL_GetTicksNS() - s_erase.t0) / 1e9 >= ERASE_S) s_erase = EraseRun();
+}
+
+// The lamp shines on the EPROM in the socket of `d` now: the same machine, the same EPROM.
+static bool erasing_now(UiState& ui, Dse1* d)
+{
+    return !s_erase.card.empty() && s_erase.card == d->name && s_erase.gen == ui.host->machine_generation() &&
+           d->eprom().loaded() && s_erase.path == d->eprom().path;
 }
 
 static void erase_question(UiState& ui)
@@ -494,15 +535,20 @@ static void erase_question(UiState& ui)
     Machine* m = ui.host->machine();
     Dse1* d = m ? dynamic_cast<Dse1*>(m->find_card(s_ask_card)) : nullptr;
     bool can = d && d->eprom().loaded();
+    // the lines broken at about 34 characters' width: a long path does not make the window wider than the screen
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 34.0f * ImGui::GetFontSize());
     if (can) {
-        ImGui::TextUnformatted(tr("The EPROM in the socket goes under the UV lamp. All its content is lost: the file"));
-        std::string p = d->eprom().path;
+        ImGui::TextWrapped("%s", tr("The EPROM in the socket goes under the UV lamp. All its content is lost: the file"));
+        std::string p = data_relative(d->eprom().path);
 #ifdef _WIN32
         for (char& c : p) if (c == '/') c = '\\';
 #endif
-        ImGui::TextDisabled("%s", p.c_str());
-        ImGui::TextUnformatted(tr("becomes all FFh, as a new blank EPROM."));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("%s", p.c_str());
+        ImGui::PopStyleColor();
+        ImGui::TextWrapped("%s", tr("becomes all FFh, as a new blank EPROM."));
     } else ImGui::TextUnformatted(tr("The socket is empty."));
+    ImGui::PopTextWrapPos();
     ImGui::BeginDisabled(!can);
     if (ImGui::Button(tr("Erase"))) {
         erase_start(ui, d);
@@ -537,8 +583,11 @@ static float draw_box(UiState& ui, Dse1* d)
     ImDrawList* dl = S.dl;
     const Eprom27& e = d->eprom();
     bool has = e.loaded();
-    bool erasing = !s_erase.card.empty() && s_erase.card == d->name;
+    bool erasing = erasing_now(ui, d);
     float glow = erasing ? erase_glow() : 0.0f;
+    // the label goes on a programmed EPROM when the programming has ended (not during a run, not at 25 V)
+    bool programming = d->run().active || d->vpp_volts() == 25;
+    bool blank = has && eprom_blank(e);
 
     // the cable X2 from the card: a grey ribbon with its red wire 1 coming from the left, fading out
     const float bx0 = 10.0f, by0 = 8.0f, bx1 = 84.0f, by1 = 56.0f;   // the box
@@ -575,7 +624,7 @@ static float draw_box(UiState& ui, Dse1* d)
     // the socket, its lever, the EPROM
     const float zx0 = 16.0f, zx1 = 62.0f, zy0 = 23.0f, zy1 = 45.0f, cx = 42.5f, cy = 34.0f;
     zif_socket(S, zx0, zy0, zx1, zy1, cy, cx - 13.97f, !has);
-    if (has) eprom(S, cx, cy, e.type, !erasing && !eprom_blank(e), e.path, glow);
+    if (has) eprom(S, cx, cy, e.type, !erasing && !blank && !programming, e.path, glow);
     zif_lever(S, ImVec2(zx0 + 3.5f, zy0 - 1.2f), zx1 - zx0 - 4.5f, !has);
     if (ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(S.p(zx0, zy0), S.p(zx1, zy1))) {
         int c = d->cable();
@@ -589,8 +638,11 @@ static float draw_box(UiState& ui, Dse1* d)
             std::string n = e.path;
             size_t sl = n.find_last_of("/\\");
             t += b + (sl == std::string::npos ? n : n.substr(sl + 1));
-            if (!eprom_blank(e)) t += std::string("\n") + tr("Programmed: the label on its window has the name of its file.");
-            else t += std::string("\n") + tr("Blank (all FFh): the chip is seen through its quartz window.");
+            if (blank) t += std::string("\n") + tr("Blank (all FFh): the chip is seen through its quartz window.");
+            else if (programming)
+                t += std::string("\n") + tr("Being programmed: the label with the name of its file goes on its window when "
+                                            "the programming has ended.");
+            else t += std::string("\n") + tr("Programmed: the label on its window has the name of its file.");
         } else t += std::string("\n") + tr("Empty: Insert... or New 2716 / New 2732 below, or drop a .bin file here.");
         tip(t.c_str());
     }
@@ -612,7 +664,8 @@ static float draw_box(UiState& ui, Dse1* d)
     bool clicked = ImGui::InvisibleButton("##uv", ImVec2(b1.x - b0.x, b1.y - b0.y));
     ImGui::EndDisabled();
     bool hover = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
-    uv_lamp(S, ux, uy, cx, cy, glow, hover && usable, !usable && !erasing);
+    std::string cap = std::string("UV \xC2\xB7 ") + tr("ERASE");
+    uv_lamp(S, ux, uy, cx, cy, glow, hover && usable, !usable && !erasing, cap.c_str());
     if (usable && hover) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     if (hover)
         tip(erasing ? tr("The UV lamp shines on the window of the EPROM...")
@@ -663,12 +716,17 @@ static void draw_controls(UiState& ui, Dse1* d)
     bool has = e.loaded();
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(tr("EPROM in the socket:"));
-    ImGui::SameLine();
-    if (!has) ImGui::TextDisabled("%s", tr("(socket empty)"));
-    else {
-        file_name_text(e.path);
+    if (!has) {
         ImGui::SameLine();
-        ImGui::TextDisabled("(%d)", e.type);
+        ImGui::TextDisabled("%s", tr("(socket empty)"));
+    } else {   // a long name on its own line, the type after it where it fits
+        size_t sl = e.path.find_last_of("/\\");
+        flow(ImGui::CalcTextSize(e.path.c_str() + (sl == std::string::npos ? 0 : sl + 1)).x);
+        file_name_text(e.path);
+        char t[16];
+        snprintf(t, sizeof(t), "(%d)", e.type);
+        flow(ImGui::CalcTextSize(t).x);
+        ImGui::TextDisabled("%s", t);
     }
     int wired = d->socket_wiring() == Dse1::CABLE_2732 ? Eprom27::T2732 : Eprom27::T2716;
     if (has && e.type != wired) {
@@ -755,15 +813,41 @@ bool dse1_drop_target(float x, float y)
     return hovered && hovered->RootWindow == w;
 }
 
+// More DSE-1 cards in the machine: the list of them, the window (and a file dropped on it) is for the chosen one.
+static void card_choice(UiState& ui, Dse1* d)
+{
+    Machine* m = ui.host->machine();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("Card"));
+    ImGui::SameLine();
+    float w = 0;
+    for (auto& c : m->cards)
+        if (dynamic_cast<Dse1*>(c.get())) {
+            float cw = ImGui::CalcTextSize(c->name.c_str()).x;
+            if (cw > w) w = cw;
+        }
+    ImGui::SetNextItemWidth(w + ImGui::GetFrameHeight() + 2.0f * ImGui::GetStyle().FramePadding.x);
+    if (ImGui::BeginCombo("##card", d->name.c_str())) {
+        for (auto& c : m->cards)
+            if (dynamic_cast<Dse1*>(c.get())) {
+                ImGui::PushID(c.get());
+                if (ImGui::Selectable(c->name.c_str(), c.get() == d)) s_card = c->name;
+                ImGui::PopID();
+            }
+        ImGui::EndCombo();
+    }
+    if (ImGui::IsItemHovered())
+        tip(tr("This machine has more DSE-1 cards: the window shows the programming cable of the one chosen here (a "
+               ".bin dropped on the window goes into its socket too)."));
+}
+
 void draw_dse1(UiState& ui)
 {
-    erase_poll(ui);
+    erase_poll();
     erase_question(ui);
     Machine* m = ui.host->machine();
-    Dse1* d = nullptr;
-    if (m)
-        for (auto& c : m->cards)
-            if (!d) d = dynamic_cast<Dse1*>(c.get());
+    int cards = 0;
+    Dse1* d = dse1_pick(ui, &cards);
     if (m && ui.dse1_gen != ui.host->machine_generation()) {   // a machine with the programmer opens it
         ui.dse1_gen = ui.host->machine_generation();
         if (d) ui.show_dse1 = true;
@@ -782,6 +866,7 @@ void draw_dse1(UiState& ui)
         return;
     }
     ImGui::PushID(d);
+    if (cards > 1) card_choice(ui, d);
     draw_box(ui, d);
     draw_controls(ui, d);
     ImGui::PopID();

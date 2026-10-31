@@ -534,6 +534,8 @@ bool device_window_off(UiState& ui);
 bool aps5_in_machine(UiState& ui);   // the plant of APS-5 or its panel HRK-1 (aps5.cpp)
 bool ims2_in_machine(UiState& ui);   // the measuring bench on the IMS-2 bus (ims2.cpp)
 bool dse1_in_machine(UiState& ui);   // a DSE-1 card (dse1.cpp)
+// The DSE-1 the window of the programmer shows (chosen in its list with more cards, else the first), nullptr = none.
+Card* dse1_card(UiState& ui);
 // A file dropped at (x, y) of the main window lands on the window of the DSE-1 programmer (dse1.cpp; a .bin goes into
 // its socket, file_drop).
 bool dse1_drop_target(float x, float y);

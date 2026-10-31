@@ -3541,13 +3541,24 @@ nevím jestli tenhle programátor uměl. LED prog udělej červenou a MAP třeba
   D2732“ (Tesla 2732 nevyráběla), kód data. Potisk je ilustrační, skutečný vzhled MHB2716C nemáme ověřený.
 - **Štítek:** EPROM s aspoň jedním bajtem jiným než FFh má přes okénko papírový štítek se jménem souboru (bez `.bin`,
   dlouhé na víc řádků, nakonec zkrácené). Prázdná ukazuje okénko. Štítek pracovní kopie prázdné EPROM proto nese
-  `prazdna_2716`: je to jméno souboru.
+  `prazdna_2716`: je to jméno souboru. **Přilepí se, až programování skončí** (po kontrole okna): během běhu
+  programování a při Vpp 25 V je okénko s čipem vidět. Štítek nad svítící PROG působil jako rozpor, lepil se po
+  vypálení.
 - **Smazání UV lampou** („horské sluníčko“ vedle krabičky, autor): pohodlí emulátoru, skutečná EPROM jde z patice pod
-  lampu na 15–20 minut (bublina a `DSE-1.md` to říkají). Štítek zmizí, okénko asi 1,5 s skutečného času svítí fialově,
-  pak je EPROM celá FFh a zapíše se do souboru jako programování. Při Vpp jiném než 0 V se smazání odmítne s hláškou
-  (jako varování při výměně média pod napětím). **Naprogramovaná EPROM se nejdřív zeptá** (obsah, ve vlastním souboru
-  i originál, se ztratí; Enter nic nedělá, Esc zruší), prázdná se maže hned. Otázka je navíc oproti zadání: smazání nejde
-  vrátit. MCP `dse1` dostal `erase` (bez animace).
+  lampu na 15–20 minut (bublina a `DSE-1.md` to říkají). EPROM je hned celá FFh a zapíše se do souboru jako
+  programování, štítek zmizí a okénko pak asi 1,5 s skutečného času svítí fialově. Smaže se naráz s kontrolou Vpp (po
+  kontrole okna; dřív až po 1,5 s, kdy mohl program mezitím zvednout Vpp nebo naprogramovaný bajt by se smazal). Při Vpp
+  jiném než 0 V se smazání odmítne s hláškou (jako varování při výměně média pod napětím), i když Vpp vzroste, zatímco
+  je otevřená otázka. **Naprogramovaná EPROM se nejdřív zeptá** (ztratí se pracovní kopie, u vlastního souboru mimo
+  `media/` a `roms/` ten soubor; originál v `media/` nebo `roms/` zůstane a Obnovit z originálu ho vrátí; Enter nic
+  nedělá, Esc zruší), prázdná se maže hned. Otázka je navíc oproti zadání: smazání nejde vrátit. MCP `dse1` dostal
+  `erase` (bez animace).
+- **Po kontrole okna** (2026-10-31) ještě: nápis „UV · SMAZAT“ na podstavci lampy (dřív jen „UV“, smazání nebylo nikde
+  napsané), vypnutá lampa bez paprsků (pod myší slabé; dřív vypadala jako zapnutá), otázka ukazuje cestu relativně
+  k datům a zalomenou, potisk EPROM s odstupem od štítku a čitelnější čísla vývodů prázdné patice. **Víc desek DSE-1**
+  v jedné sestavě (katalog je nezakazuje, základ portů je na přepínači): okno má nahoře výběr karty, k přetaženému
+  souboru patří vybraná. Omezit DSE-1 na jednu jako zapisovače nebylo potřeba, protože okno je jen pohled na jednu
+  kartu.
 - **Barvy LED:** LED1 PROG červená, LED2 MAP zelená (autor). Skutečné barvy Tesla zůstávají Nejasností 12.
 - **Pod kresbou** tlačítka média (Vložit…, Nová 2716, Nová 2732, Vysunout, „…“ → Obnovit z originálu), Uložit RAM
   simulátoru… (pomoc emulátoru), varování, když typ EPROM nesedí s kabelem, a řádek stavu (Vpp, ON LINE, poslední pulz,

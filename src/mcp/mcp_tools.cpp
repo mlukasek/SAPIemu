@@ -1192,7 +1192,8 @@ json t_dse1(EmuHost& h, const json& a)
     }
     if (!d) return error_result("no DSE-1 in this machine");
     std::string err;
-    // the EPROM in the socket through the machine description (the configurator follows, as with the Media window)
+    // the EPROM in the socket through the machine description (the configurator follows, as with the window of the
+    // programmer)
     if (arg_bool(a, "eject", false) && !m.set_live_param(d, "eprom", json(""), err)) return error_result(err);
     if (a.contains("new")) {   // the type as a number, also as a decimal string ("2716")
         const json& v = a["new"];

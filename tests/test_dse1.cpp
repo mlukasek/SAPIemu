@@ -549,7 +549,11 @@ static void test_erase(void)
     CHECK(media_writes() > writes);
     CHECK_EQ(eprom_read(m, 0xF0, 0x11, 0x123), 0xFF);
     out(m, 0xF4, 0x00);
-    CHECK(d->erase(err));   // a blank one again: nothing changes
+    d->media_discard(0);    // as saved: a blank one again changes nothing, writes nothing
+    writes = media_writes();
+    CHECK(d->erase(err));
+    CHECK(!d->eprom().dirty);
+    CHECK_EQ(media_writes(), writes);
     CHECK(m.set_live_param(d, "eprom", json(""), err));
     CHECK(!d->erase(err));
     CHECK(err.find("no EPROM") != std::string::npos);

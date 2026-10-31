@@ -461,6 +461,13 @@ static const Translation k_table[] = {
     { "wired for a 2716 (as supplied)", "zapojená pro 2716 (z výroby)" },
     { "Programmed: the label on its window has the name of its file.",
       "Naprogramovaná: štítek na okénku má jméno jejího souboru." },
+    { "Being programmed: the label with the name of its file goes on its window when the programming has ended.",
+      "Programuje se: štítek se jménem jejího souboru se na okénko přilepí, až programování skončí." },
+    { "ERASE", "SMAZAT" },
+    { "This machine has more DSE-1 cards: the window shows the programming cable of the one chosen here (a .bin "
+      "dropped on the window goes into its socket too).",
+      "Sestava má víc desek DSE-1: okno ukazuje programovací kabel té, která je vybraná tady (do její patice jde i "
+      "soubor .bin přetažený na okno)." },
     { "Blank (all FFh): the chip is seen through its quartz window.",
       "Prázdná (celá FFh): křemenným okénkem je vidět čip." },
     { "Empty: Insert... or New 2716 / New 2732 below, or drop a .bin file here.",

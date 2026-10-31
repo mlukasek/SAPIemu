@@ -289,10 +289,15 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     D2732“ u 2732 (Tesla 2732 nevyráběla), kód data. Jak skutečná MHB2716C vypadá, nemáme ověřené, potisk je
     ilustrační;
   - **štítek:** naprogramovaná EPROM (aspoň jeden bajt jiný než FFh) má přes okénko bílý papírový štítek se jménem
-    souboru bez `.bin` (dlouhé jméno na víc řádků a zkrácené), jak se lepil na vypálené EPROM. Prázdná ukazuje okénko;
+    souboru bez `.bin` (dlouhé jméno na víc řádků a zkrácené), jak se lepil na vypálené EPROM. Přilepí se, až
+    programování skončí: během běhu programování (`Dse1::run()`) a při Vpp 25 V je okénko vidět. Prázdná ukazuje
+    okénko;
   - **LED1 „PROG“ červená, LED2 „MAP“ zelená** (barvy vybral autor 2026-10-31, aby nebyly stejné; skutečné nejsou
     známé, Nejasnost 12). Kulaté, se září, zhasnuté tmavé;
-  - **UV lampa** („horské sluníčko“) vedle krabičky smaže EPROM v patici, viz níže;
+  - **UV lampa** („horské sluníčko“) vedle krabičky smaže EPROM v patici, viz níže. Na podstavci má nápis
+    „UV · SMAZAT“, vypnutá nemá paprsky (pod myší slabé, jde na ni kliknout);
+  - **víc desek DSE-1** v sestavě (katalog počet neomezuje, základ portů je na přepínači): nahoře v okně je výběr
+    karty, okno a soubor přetažený na okno patří vybrané;
   - pod kresbou: EPROM v patici (soubor a typ), varování, když typ nesedí se zapojením kabelu, Vložit…, Nová 2716,
     Nová 2732, Vysunout, „…“ → Obnovit z originálu a **Uložit RAM simulátoru…** (4 KB do `.bin`, pomoc emulátoru,
     skutečná deska to neumí); řádek stavu: Vpp 0 / 5 / 25 V, ON LINE / OFF LINE, poslední programovací pulz v ms,
@@ -300,9 +305,12 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
   - soubor `.bin` přetažený myší na okno jde do patice (jako Vložit…), jinam přetažený se nahraje do paměti jako dřív;
   - UI snímek `--ui-dse1`, `--ui-crop dse1`; náhled sestavy ukazuje kresbu okna.
 - **Smazání UV lampou** (pohodlí emulátoru, skutečná EPROM jde z patice pod UV lampu na 15–20 minut): klik na lampu,
-  u naprogramované EPROM nejdřív otázka (obsah se ztratí, Enter nic nedělá, Esc zruší). Štítek zmizí, okénko asi
-  1,5 s skutečného času svítí fialově a lampa na něj svítí, pak je EPROM celá FFh. Zapíše se do pracovní kopie jako
-  programování (`dirty`, médium se uloží s ostatními), do logu jde „EPROM … erased by UV light (emulator comfort)“.
+  u naprogramované EPROM nejdřív otázka (obsah se ztratí, Enter nic nedělá, Esc zruší). EPROM je **hned** celá FFh
+  (smazání a kontrola Vpp naráz, i po potvrzení otázky, takže se nic, co program mezitím udělá, neztratí ani nesmaže
+  později), štítek zmizí a okénko pak asi 1,5 s skutečného času svítí fialově a lampa na něj svítí (jen obrázek; po
+  výměně sestavy nebo nahraném stavu nesvítí). Zapíše se do souboru EPROM jako programování (`dirty`, médium se uloží
+  s ostatními): u EPROM z `media/` nebo `roms/` do pracovní kopie, originál zůstane a „…“ → Obnovit z originálu ho
+  vrátí; vlastní soubor mimo ně se smaže přímo. Do logu jde „EPROM … erased by UV light (emulator comfort)“.
   **Při Vpp jiném než 0 V** se smazání odmítne s hláškou, jako se varuje před výměnou média pod napětím (vyndat EPROM
   pod napětím by ji mohlo zničit). Rozběhnuté programování (čekání 0,5 s na jeho konec) smazání ukončí. MCP `dse1`
   `erase` dělá totéž bez animace.

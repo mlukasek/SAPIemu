@@ -1725,15 +1725,14 @@ void file_drop(UiState& ui, const std::string& path, bool on_dse1)
                                 path);
         return;
     }
-    if (kind == 6 && on_dse1)   // a .bin on the window of the programmer: an EPROM into its socket, as Insert...
-        for (auto& c : m->cards)
-            if (dynamic_cast<Dse1*>(c.get())) {
-                uint64_t said = ui.notice_ns;
-                file_chosen(ui, m, 16, path, c->name, 0);
-                if (ui.notice_ns == said)   // nothing said on the way (a bad image: the Error window)
-                    ui_notice(ui, true, std::string(tr("Inserted into")) + " " + c->name + ": " + path);
-                return;
-            }
+    // a .bin on the window of the programmer: an EPROM into its socket (the card the window shows), as Insert...
+    if (Card* c = kind == 6 && on_dse1 ? dse1_card(ui) : nullptr) {
+        uint64_t said = ui.notice_ns;
+        file_chosen(ui, m, 16, path, c->name, 0);
+        if (ui.notice_ns == said)   // nothing said on the way (a bad image: the Error window)
+            ui_notice(ui, true, std::string(tr("Inserted into")) + " " + c->name + ": " + path);
+        return;
+    }
     if (kind == 3 || kind == 6) {   // a program: the question with its addresses, as File -> Load program
         file_chosen(ui, m, kind, path, std::string(), 0);
         return;

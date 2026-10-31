@@ -64,9 +64,10 @@ nevíme (fotka chybí), kresba je volná. Pod kresbou jsou tlačítka a stav des
 | Prvek | Význam |
 |---|---|
 | Patice s pákou | Prázdná patice má páku zvednutou, s EPROM je páka sklopená. Páka se neovládá, EPROM se vkládá tlačítky pod kresbou. Bublina nad paticí řekne, jak je kabel zapojený (pro 2716, pro 2732, dvě patice). |
-| EPROM | Keramické pouzdro s křemenným okénkem: 2716 je TESLA MHB2716C, 2732 Intel D2732 (Tesla 2732 nevyráběla). Prázdná EPROM (všechny bajty FFh) ukáže okénkem čip. Naprogramovaná má přes okénko papírový štítek s názvem souboru, jak se lepil na vypálené EPROM. |
+| EPROM | Keramické pouzdro s křemenným okénkem: 2716 je TESLA MHB2716C, 2732 Intel D2732 (Tesla 2732 nevyráběla). Prázdná EPROM (všechny bajty FFh) ukáže okénkem čip. Naprogramovaná má přes okénko papírový štítek s názvem souboru, jak se lepil na vypálené EPROM. Štítek se přilepí, až programování skončí; během něj je okénko vidět. |
 | LED PROG (červená), MAP (zelená) | LED1 „indikace progr.“ a LED2 „indikace map.“ v krabičce kabelu. Program DSE rozsvítí PROG při programování. Barvy vybral autor, skutečné nejsou známé. |
-| UV lampa | Smaže EPROM v patici (kapitola 4). Pohodlí emulátoru: skutečná EPROM jde z patice pod UV lampu na 15–20 minut. |
+| UV lampa (na podstavci „UV · SMAZAT“) | Smaže EPROM v patici (kapitola 4). Pohodlí emulátoru: skutečná EPROM jde z patice pod UV lampu na 15–20 minut. Vypnutá lampa nemá paprsky, pod myší ukáže slabé (jde na ni kliknout). |
+| Karta | Jen v sestavě s víc deskami DSE-1: vybere desku, jejíž kabel okno ukazuje (i pro soubor přetažený na okno). |
 | EPROM v patici | Soubor EPROM v patici a její typ (2716, 2732). |
 | Vložit… | Vloží jinou EPROM: soubor `.bin` s 2048 B (2716) nebo 4096 B (2732). Soubor jde také přetáhnout myší na okno. |
 | Nová 2716, Nová 2732 | Vloží novou prázdnou EPROM (všechny bity 1, jako po smazání UV světlem) `work\dse-1\eprom_N.bin`. |
@@ -141,8 +142,8 @@ Program DSE programuje z RAM počítače. Na zkoušku naplníme 256 bajtů hodno
    libovolná klávesa a `N`. Program vypíše `PROGRAMUJI`:
    - v okně programátoru svítí červená **PROG**, Vpp je **25 V**, poslední pulz **49.97 ms** (obrázek nahoře);
    - každý bajt dostane jeden pulz 50 ms, 256 bajtů tedy trvá asi 13 s;
-   - na okénko EPROM se přilepí štítek se jménem souboru (EPROM už není prázdná);
-   - pak program celý rozsah porovná:
+   - okénkem EPROM je během programování vidět čip;
+   - pak program celý rozsah porovná a na okénko se přilepí štítek se jménem souboru (EPROM už není prázdná):
 
    ```
           STISKNI KLAVESU:P
@@ -171,9 +172,10 @@ V okně Log (Ladění → Log) je shrnutí programování:
 - **Programování mění bity jen z 1 na 0.** Do naprogramovaného bajtu jde dopsat jen to, co z něj ubírá jedničky.
   Jinak je potřeba EPROM smazat (UV lampa níže) nebo vzít novou.
 
-**Smazání UV lampou:** klik na lampu vpravo v okně programátoru. Naprogramovaná EPROM se nejdřív zeptá (celý obsah se
-ztratí), prázdná se maže hned. Štítek zmizí, okénko asi 1,5 s svítí fialově a pak jsou všechny bajty FFh. Smazaný obsah
-se uloží do souboru EPROM jako programování. `K` pak vypíše `CISTA`. Skutečná EPROM by šla z patice pod UV lampu na
+**Smazání UV lampou:** klik na lampu „UV · SMAZAT“ vpravo v okně programátoru. Naprogramovaná EPROM se nejdřív zeptá
+(celý obsah se ztratí), prázdná se maže hned. Všechny bajty jsou hned FFh, štítek zmizí a okénko asi 1,5 s svítí
+fialově. Smazaný obsah se uloží do souboru EPROM jako programování (u EPROM z `media\` nebo `roms\` do pracovní kopie,
+originál zůstane a „…“ → Obnovit z originálu ho vrátí). `K` pak vypíše `CISTA`. Skutečná EPROM by šla z patice pod UV lampu na
 15–20 minut, v emulátoru je to pohodlí. Když je na patici napětí (Vpp 5 nebo 25 V, program právě čte nebo programuje),
 lampa nesvítí a okno řekne, ať program nejdřív skončí.
 
