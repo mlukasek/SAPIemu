@@ -37,6 +37,9 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
 - **Desky Libora Lasoty** (`..\SAPI-karty\<deska>`) mají víc revizí: vycházet z poslední, schémata v obrázcích,
   PDF a EAGLE se mohou lišit. Binární `.sch` převede offline na netlist `"C:\EAGLE 9.5.1\eaglecon.exe" -C "EXPORT
   NETLIST n.txt; EXPORT PARTLIST p.txt; WRITE x.sch; QUIT;" kopie.sch` (na kopii, `eagle.exe` chce přihlášení).
+  **Pozor:** starší `.sch`, který EAGLE 9 nepřevede do XML (např. replika DSE-1 v SAPI_DOKU s pinem
+  `S6_(+15V;+30V)`), otevře na ploše autora okno „EAGLE update report“ a `eaglecon` čeká, až ho zavře. U takových
+  souborů použít PDF/PNG schématu, zkusit převod jen jednou a v zadání agentům na to upozornit.
   Názvy: ANK-1M5 = ANK-1M2 (předchůdce), BGP-1 = BGP-1S.
 - **Původní zadání:** `docs/vznik.md`.
 - **Zdrojový kód** (`src/`):
