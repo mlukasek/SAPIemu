@@ -64,7 +64,7 @@ nevíme (fotka chybí), kresba je volná. Pod kresbou jsou tlačítka a stav des
 | Prvek | Význam |
 |---|---|
 | Patice s pákou | Prázdná patice má páku zvednutou, s EPROM je páka sklopená. Páka se neovládá, EPROM se vkládá tlačítky pod kresbou. Bublina nad paticí řekne, jak je kabel zapojený (pro 2716, pro 2732, dvě patice). |
-| EPROM | Keramické pouzdro s křemenným okénkem: 2716 je TESLA MHB2716C, 2732 Intel D2732 (Tesla 2732 nevyráběla). Prázdná EPROM (všechny bajty FFh) ukáže okénkem čip. Naprogramovaná má přes okénko papírový štítek s názvem souboru, jak se lepil na vypálené EPROM. Štítek se přilepí, až programování skončí; během něj je okénko vidět. |
+| EPROM | Keramické pouzdro s křemenným okénkem: 2716 má potisk TESLA 2716, 2732 Intel 2732 (Tesla 2732 nevyráběla), oba jen ilustrační. Prázdná EPROM (všechny bajty FFh) ukáže okénkem čip. Naprogramovaná má přes okénko papírový štítek s názvem souboru, jak se lepil na vypálené EPROM. Štítek se přilepí, až programování skončí; během něj je okénko vidět. |
 | LED PROG (červená), MAP (zelená) | LED1 „indikace progr.“ a LED2 „indikace map.“ v krabičce kabelu. Program DSE rozsvítí PROG při programování. Barvy vybral autor, skutečné nejsou známé. |
 | UV lampa (na podstavci „UV · SMAZAT“) | Smaže EPROM v patici (kapitola 4). Pohodlí emulátoru: skutečná EPROM jde z patice pod UV lampu na 15–20 minut. Vypnutá lampa nemá paprsky, pod myší ukáže slabé (jde na ni kliknout). |
 | Karta | Jen v sestavě s víc deskami DSE-1: vybere desku, jejíž kabel okno ukazuje (i pro soubor přetažený na okno). |
@@ -272,7 +272,7 @@ zvedne).
 1. Zobrazení → Konfigurátor sestavy…, karta DSE-1 ve slotu X6, **Programovací kabel X2** → „pro 2732, upravený
    podle DSE.DOC“. Pohodlnější je „dvě patice 2716 + 2732 (replika)“: EPROM si podle typu vybere svou patici.
 2. **Restartovat s touto sestavou.** Obsah RAM se ztratí, pracovní kopie EPROM zůstanou.
-3. V okně programátoru **Nová 2732** (na pouzdře je Intel D2732).
+3. V okně programátoru **Nová 2732** (na pouzdře je Intel 2732).
 4. `G1000`, `K`, klávesa, `A` (2732), `0` a `FFF`:
 
    ```

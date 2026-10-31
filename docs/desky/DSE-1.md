@@ -285,8 +285,8 @@ Konektor FRB-30 (TY 513 3011). Kabel se dodával **zapojený pro 2716** (DSE.DOC
     s kulatou koncovkou), LED a nápis „DSE-1 X2“;
   - **páka** je nakreslená zvednutá s prázdnou paticí a sklopená s EPROM v patici. Neovládá se (autor: uživatele
     nenutit páku mačkat);
-  - **EPROM:** keramické pouzdro DIP 24 s křemenným okénkem a čipem pod ním, potisk „TESLA MHB2716C“ u 2716 a „intel
-    D2732“ u 2732 (Tesla 2732 nevyráběla), kód data. Jak skutečná MHB2716C vypadá, nemáme ověřené, potisk je
+  - **EPROM:** keramické pouzdro DIP 24 s křemenným okénkem a čipem pod ním, potisk „TESLA 2716“ u 2716 a „intel 2732“
+    u 2732 (Tesla 2732 nevyráběla), kód data. Jak skutečná MHB2716C vypadá, nemáme ověřené, potisk je
     ilustrační;
   - **štítek:** naprogramovaná EPROM (aspoň jeden bajt jiný než FFh) má přes okénko bílý papírový štítek se jménem
     souboru bez `.bin` (dlouhé jméno na víc řádků a zkrácené), jak se lepil na vypálené EPROM. Přilepí se, až

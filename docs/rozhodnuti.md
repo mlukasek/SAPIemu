@@ -3571,3 +3571,5 @@ nevím jestli tenhle programátor uměl. LED prog udělej červenou a MAP třeba
 - **Prázdné originály přejmenované** na `media/dse-1/eprom_2716.bin` a `eprom_2732.bin` (dřív `prazdna_27xx.bin`).
   Autor: štítek „prazdna_2716“ na naprogramované EPROM je divný, „ať je tam new nebo obecně eprom, ale ne prázdná“.
   Štítek nese jméno souboru, takže výchozí EPROM sestavy má teď na štítku `eprom_2716`, Nová 2716 dál `eprom_1`.
+- **Potisk EPROM jen „TESLA 2716“ a „intel 2732“** (dřív „MHB2716C“ a „D2732“). Autor: přesné označení je na kresbě
+  malinké a skutečné MHB2716C se kresba stejně nepodobá, když je ilustrační, stačí „2716“.

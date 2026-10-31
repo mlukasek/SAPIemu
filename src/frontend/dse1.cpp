@@ -273,8 +273,8 @@ static void label_text(const Scene& S, float cx, float cy, float w, const std::s
     }
 }
 
-// The EPROM: a ceramic DIP of 24 pins with the quartz window over the chip, the print of its maker (TESLA MHB2716C;
-// Tesla did not make the 2732: Intel D2732), a date code. labelled: a paper label over the window (programmed).
+// The EPROM: a ceramic DIP of 24 pins with the quartz window over the chip, the maker and the type in an illustrative
+// print (TESLA 2716; Tesla did not make the 2732: intel 2732; the author 2026-10-31: no exact type mark), a date code. labelled: a paper label over the window (programmed).
 // glow 0..1: the UV light in the window (Erase).
 static void eprom(const Scene& S, float cx, float cy, int type, bool labelled, const std::string& path, float glow)
 {
@@ -333,7 +333,7 @@ static void eprom(const Scene& S, float cx, float cy, int type, bool labelled, c
     bool t2732 = type == Eprom27::T2732;
     text_mm(S, lx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "intel" : "TESLA", 0, true, l1 - l0);
     text_mm(S, lx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "8317" : "8541", 0, false, l1 - l0);
-    text_mm(S, rx, cy - 1.6f, 2.4f, COL_CHIP_PRINT, t2732 ? "D2732" : "MHB2716C", 0, false, r1 - r0);
+    text_mm(S, rx, cy - 1.6f, 2.6f, COL_CHIP_PRINT, t2732 ? "2732" : "2716", 0, true, r1 - r0);
     text_mm(S, rx, cy + 2.2f, 1.7f, with_alpha(COL_CHIP_PRINT, 200), t2732 ? "4K x 8" : "2K x 8", 0, false, r1 - r0);
     if (labelled) {   // the paper label over the window, a little askew
         const float a = -2.0f * K_PI / 180.0f;

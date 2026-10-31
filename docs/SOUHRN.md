@@ -27,7 +27,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   vyzkouší později.
 - **2026-10-31, vlastní okno programátoru DSE-1** (přání autora, rozhodnutí 2026-10-31 – okno programátoru DSE-1):
   `src/frontend/dse1.cpp`, okno `###dse1` místo bloku v okně Média: krabička kabelu X2 se zelenou paticí v duchu
-  3M TEXTOOL (páka zvednutá s prázdnou, sklopená s EPROM), EPROM TESLA MHB2716C / Intel D2732 s okénkem, štítek se
+  3M TEXTOOL (páka zvednutá s prázdnou, sklopená s EPROM), EPROM TESLA 2716 / Intel 2732 s okénkem, štítek se
   jménem souboru na naprogramované, LED PROG červená a MAP zelená, UV lampa na smazání (pohodlí emulátoru, otázka
   u naprogramované, ne pod napětím; `Dse1::erase`, MCP `erase`), soubor `.bin` přetažený na okno jde do patice.
   Panel v konfigurátoru se dvěma FRB-30 (K3 „PRG“, K2 „SIM“). UI snímek `--ui-dse1`, `--ui-drop-at`. Nejasnost 13
