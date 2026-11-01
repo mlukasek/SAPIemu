@@ -31,9 +31,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   podpisu autora. Ověřeno: `release full` 74/74, `check_machines.py --games` 63/63 sestav a 12/12 her a dem, WSL
   70/70 bez varování, rozbalený zip (GUI, O programu 0.7.1-beta, CP/M s AND-30C). Zip
   `out\package\SAPIemu-0.7.1-beta-win64.zip` (`package.py --public`, 576 souborů, 36,2 MB), SHA-256
-  `18c276092e5744c5025908fc1d933932752c06f481a33977c98a711e75a6bba2`. Na GitHubu je vydání `v0.7.1-beta` jako
-  **koncept** (draft) se zipem a `.sha256`. **Dál (autor):** koncept zkontrolovat a publikovat, repozitář přepnout
-  na veřejný, oznámení na 8bity.cz a OldComp.cz.
+  `18c276092e5744c5025908fc1d933932752c06f481a33977c98a711e75a6bba2`. Autor zip vyzkoušel a rozbalil do `..\SAPIemu-release`. Vydání `v0.7.1-beta`
+  (předběžná verze, se zipem a `.sha256`) **publikované 2026-11-01** na pokyn autora, značka na `6effd02`. **Dál (autor):**
+  repozitář přepnout na veřejný (do té doby vydání vidí jen on), oznámení na 8bity.cz a OldComp.cz.
 - **2026-10-31 večer, průzkum displeje AND-30C** (autor: „pojal bych to trochu jako průzkum … jestli má cenu zkusit
   udělat repliku“; rozhodnutí 2026-10-31 – průzkum displeje AND-30C): netlist z PDF schématu, emulace podle něj
   (`src/cards/and30c.*`, 6845 na FFE0h/FFF0h, zatemnění při přístupu), ECMON s novým ovladačem 80 × 21
