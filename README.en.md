@@ -50,8 +50,6 @@ dig up real hardware somewhere, you have the software here to bring it back to l
 Paradoxically, the most work went into polishing the emulator: the menus and the controls, so that anyone can work
 with it. It is still as complicated as a threshing machine, but that is SAPI-1 for you. Try it yourself.
 
-*Martin Lukášek, [8bity.cz](https://www.8bity.cz/)*
-
 ## How it is developed: AI and measurements on a real SAPI-1 V
 
 **With an AI assistant.** Without Claude Code (Anthropic), this emulator would not exist. Claude wrote most of the

@@ -49,8 +49,6 @@ oživíte.
 Největší práce byla paradoxně emulátor vyleštit: menu a ovládání, aby s ním mohl pracovat kdokoli. Složité je to
 pořád jako mlátička, ale to je vlastně SAPI. Zkuste sami.
 
-*Martin Lukášek, [8bity.cz](https://www.8bity.cz/)*
-
 ## Jak se vyvíjí: AI a měření na skutečném SAPI-1 V
 
 **S AI asistentem.** Nebýt Claude Code (Anthropic), tenhle emulátor by nevznikl. Většinu kódu napsal Claude a nestydím
