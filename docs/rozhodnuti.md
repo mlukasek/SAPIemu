@@ -3694,3 +3694,21 @@ Rozbor a výsledky jsou v `docs/desky/AND-30C.md`.
   - Registry 6845 jsou zvolené pro televizor: 15,65 kHz, 50,1 Hz, 80 × 21, HS 4,4 µs, VS od řádku 23.
 - **Sestava** `cpm_and30c.sapi` v Ostatní → CP/M s ECMONem (karta ze sestavy, která se nevyráběla sériově), test
   `test_and30c` (části `unit` a `cpm`), scénář v `check_machines.py`.
+
+## 2026-11-01 – vydání 0.7.1-beta
+
+Autor: „žádná rozumná zpětná vazba mi nepřišla, tak jdeme udělat ten beta release. Co mám udělat já.“
+
+- **Bez dalších úprav podle testerů:** 0.7.1-beta je 0.7.0-beta s tím, co přibylo od 2026-10-30 (DSE-1 se 2708
+  a DSE.COM, AND-30C, opravy z kontroly kódu). Liborův souhlas v plném rozsahu platí, Petrův vydání nepodmiňuje.
+- **Hlášení chyb:** Nahlásit chybu… ukazuje odkaz na GitHub Issues. Přepínač `k_issues_public` i texty „do zveřejnění“
+  zmizely (okno, První kroky, `GETTING-STARTED.md`, README).
+- **Kdo co dělá:**
+  - Claude: ověření, zip `package.py --public` a vydání na GitHubu jako koncept (draft) se zipem
+    a kontrolním součtem;
+  - autor: koncept zkontroluje a publikuje, přepne repozitář na veřejný (Settings → General → Change visibility),
+    napíše oznámení.
+
+  Zveřejnění je nevratné a mluví za autora, proto ho dělá on.
+- **README** je bez podpisu pod úvodním textem (autor: text je jeho, podpis vypadal jako citace). Odkaz na 8bity.cz
+  zůstává v okně O programu a v průvodci PoP.
