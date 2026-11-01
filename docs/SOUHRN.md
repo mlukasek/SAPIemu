@@ -5,8 +5,20 @@
 
 Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nové konverzaci. Udržovat ho aktuální.
 
-## Kde jsme skončili (2026-10-31) a co dál
+## Kde jsme skončili (2026-11-01) a co dál
 
+- **Stav 2026-11-01: SAPIemu je veřejné.**
+  - Vydání `v0.7.1-beta` je na GitHubu (Releases, předběžná verze, zip a `.sha256`).
+  - Repozitář je veřejný s Issues, článek „Emulátor SAPI-1: postavte si vlastní sestavu“ na 8bity.cz je v README
+    a v poli Website.
+  - **Dál:** oznámení na OldComp.cz (autor), sledovat Issues; opravy jdou do další verze, poznámky se sbírají
+    v novém `docs/release-notes/`.
+  - Otevřené věci, které se nabízejí:
+    - DSE-1: sonda X3 do patice jiné karty, 2764 a 2732A;
+    - otázky pro Petra: AND-30C v `docs/desky/AND-30C.md`, další várka k EC1045;
+    - měření na pracovišti: BGP-1S, IDE-1, JPR-1ZI, JPR-1X, DMR-1;
+    - drobnosti ze „Na promyšlení“;
+    - video.
 - **Stav 2026-10-30:** etapy 1–8 plánu vzhledu hotové a pushnuté (repo je zatím soukromé), README podle autorova
   článku na 8bity.cz. **Beta 0.7.0 zabalená** (autor: „připrav mi release pro kamarády a přeplácni ho i v
   SAPIemu-release“): `out\package\SAPIemu-0.7.0-beta-win64.zip` (`package.py --public`) po `release full` 66/66
@@ -23,7 +35,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   potřebuješ“, `docs/vydani/souhlasy.md`); Petrův souhlas vydání nepodmiňuje (autor: jeho věci jsou převážně
   z historických zdrojů). Libor emulátor vyzkouší asi o víkendu, až přejde z Windows 7. **Dál:** počkat na
   zpětnou vazbu testerů (a případně novější verze Liborova softwaru), pak úprava a `0.7.1-beta` (release na GitHubu, repo veřejně s Issues), pak článek na 8bity.cz a OldComp.cz. Těsně před 0.7.1
-  `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL. Notebook s vyšším rozlišením autor
+  `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9), WSL (vše hotovo 2026-11-01, bod výše). Notebook s vyšším rozlišením autor
   vyzkouší později.
 - **2026-11-01, beta 0.7.1 zabalená** (autor: „žádná rozumná zpětná vazba mi nepřišla, tak jdeme udělat ten beta
   release“; rozhodnutí 2026-11-01 – vydání 0.7.1-beta): verze 0.7.1-beta, Nahlásit chybu… odkazuje na GitHub Issues
@@ -43,8 +55,8 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   případně pošle Petrovi.
 - **2026-10-31 večer, kontrolní kolo před 0.7.1** (autor: „jj, začni bodem 1“): `release full` 72/72 (ZEX
   doc i all), `check_machines.py --games` 62/62 sestav (s `cpm_dse1_fdc1`) a 12/12 her a dem, Linux ve WSL 68/68
-  bez varování GCC (po `4fc3da8`). Do vydání zbývá: připomínky testerů, `k_issues_public = true` a texty
-  „do zveřejnění“ v den vydání, zip na pokyn autora.
+  bez varování GCC (po `4fc3da8`). Do vydání zbývalo: připomínky testerů, `k_issues_public = true` a texty
+  „do zveřejnění“ v den vydání, zip na pokyn autora (hotovo 2026-11-01).
 - **2026-10-31, okno DSE-1: řádek stavu a velikost kresby** (autor: „…šlo by to dát na fix pozice… mění velikost
   toho programovacího přípravku“; rozhodnutí 2026-10-31 – 2708 a DSE.COM, poslední bod): položky řádku stavu stojí
   v pevných sloupcích, „Vpp 25 V“ a „pulz běží“ drží 0,25 s po posledním výskytu (počitadla karty `vpp_rises()`
@@ -115,7 +127,7 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   RKD-1 jen jméno souboru). Odkazy do autorova archivu na `H:` nahrazené odkazy na sapi.cz a archiv SAPI_DOKU
   (rozhodnutí 2026-10-30), `out/` uklizené. Beta přebalená znovu jako 0.7.0-beta (stejná verze, nikdo ji ještě
   nemá). Video zatím ne. **Těsně před 0.7.1:** `k_issues_public = true` a texty „do zveřejnění“ (plán etapy 9),
-  WSL; jméno serveru se starým archivem zůstává ve staré historii gitu (historie se nepřepisuje).
+  WSL (hotovo 2026-11-01); jméno serveru se starým archivem zůstává ve staré historii gitu (historie se nepřepisuje).
 - **2026-10-28 večer, plán nového vzhledu a použitelnosti GUI:** `docs/vydani/plan-vzhled.md` (schválený autorem,
   podle hodnocení `docs/vydani/ux-hodnoceni.md` a autorových poznámek). Etapy: 1 mechanismus vzhledu, tři varianty
   (Windows 11, Windows klasický, SAPI průmyslový; světlá i tmavá) a galerie ke srovnání → 2 výběr sestav a texty

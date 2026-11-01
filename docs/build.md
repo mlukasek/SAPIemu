@@ -424,7 +424,8 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
 Výsledek 2026-10-06: všech 37 testů prošlo, včetně skutečných nahrávek kazet (TOOL 48, TOOL 80, BASIC EX),
-`test_tapegen` a `test_jpr1x`. Naposledy 2026-10-31 po DSE-1: 68 testů, překlad bez varování GCC. Předtím 2026-10-30
+`test_tapegen` a `test_jpr1x`. Naposledy 2026-11-01 před vydáním 0.7.1-beta: 70 testů, překlad bez varování GCC. 2026-10-31 po DSE-1 68 testů,
+předtím 2026-10-30
 po betě 0.7.0: 62 testů, překlad 248 souborů od nuly; sedm nových
 varování GCC ve vlastním kódu opravených (`snprintf` do malých bufferů, `|` dvou typů enum ImGui, nepoužitá
 proměnná). Dřív 2026-10-17: 58 testů (2026-10-16 před 0.6.0: 55, 2026-10-14 před 0.5.0: 53, 2026-10-09 před 0.4.0: 44; čisté

@@ -566,6 +566,10 @@ upravený: proč vznikl, AI a měření s fotkami a třemi výsledky měření),
 krátké „Co umí“ (celé přesunuté do `docs/funkce.md`), pro vývojáře, anglický souhrn s odstavcem o AI. Fotky
 a snímky autora v `docs/img/readme/`. Čeká na autorovu kontrolu; GIF, video, `README.en.md` a úklid repa zbývají.
 
+**Stav 2026-11-01: zveřejněno.** 0.7.1-beta je v Releases na GitHubu, repozitář je veřejný, Issues zapnuté, článek na
+8bity.cz je v README. Ověření před zveřejněním proběhlo celé (release full, WSL, `check_machines.py` 63/63 a `--games`,
+rozbalený zip, autor ho zkoušel sám). Video zatím ne.
+
 **Stav 2026-10-30:** README autor upravil a schválil (pushnuto), beta 0.7.0 zabalená. Pak hotové: GIF nahoře
 v README česky i anglicky (`tools/readme_gif.py`), `README.en.md`, obrázky v `docs/img` v novém vzhledu
 (`tools/docs_images.py`, `minigraf-ukazka.png` zmenšený), úklid repa a šablony issue, odkazy na `docs/SOUHRN.md`

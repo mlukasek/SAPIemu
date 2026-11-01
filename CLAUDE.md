@@ -91,7 +91,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   okno Vybrat sestavu), `make_hry_disk.py` a `cpmdisk.py` (RAM disk sestavy `sapi1v_hry` z her a dem v repozitářích
   vedle SAPIemu, `--bombernet` RAM disk sestavy `sapi1v_BomberNet`, `docs/vydani/sestavy.md`), `third_party_notices.py` (`THIRD-PARTY-NOTICES.txt`), `make_icon.py`
   (ikona `src/res/sapiemu.ico` a logo `docs/img/logo.png` pro README a O programu; VERSIONINFO z `src/res/sapiemu.rc.in`).
-- **Vydání:** plán a rozhodnutí v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy,
+- **Vydání:** od 2026-11-01 je repo veřejné (0.7.1-beta v Releases, chyby přes GitHub Issues). Plán a rozhodnutí
+  v `docs/vydani/` (`sestavy.md` rozřazení sestav, `souhlasy.md` software a souhlasy,
   `plan-vzhled.md` plán vzhledu a použitelnosti GUI, `beta-testeri.md` dopis a úkoly pro testery bety).
   Anglický úvod pro uživatele je `docs/getting-started.md` (v zipu `GETTING-STARTED.md`). README je krátké (text
   autora, AI, měření, stažení), anglicky `README.en.md` (obě v zipu, změny dělat v obou), úplný seznam funkcí je
