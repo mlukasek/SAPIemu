@@ -32,8 +32,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
   70/70 bez varování, rozbalený zip (GUI, O programu 0.7.1-beta, CP/M s AND-30C). Zip
   `out\package\SAPIemu-0.7.1-beta-win64.zip` (`package.py --public`, 576 souborů, 36,2 MB), SHA-256
   `18c276092e5744c5025908fc1d933932752c06f481a33977c98a711e75a6bba2`. Autor zip vyzkoušel a rozbalil do `..\SAPIemu-release`. Vydání `v0.7.1-beta`
-  (předběžná verze, se zipem a `.sha256`) **publikované 2026-11-01** na pokyn autora, značka na `6effd02`. **Dál (autor):**
-  repozitář přepnout na veřejný (do té doby vydání vidí jen on), oznámení na 8bity.cz a OldComp.cz.
+  (předběžná verze, se zipem a `.sha256`) **publikované 2026-11-01** na pokyn autora, značka na `6effd02`. Repozitář je **veřejný od 2026-11-01** (přepnul autor),
+  článek na blogu „Emulátor SAPI-1: postavte si vlastní sestavu“ (https://www.8bity.cz/2026/sapiemu-emulator-tesla-sapi-1/)
+  je v úvodu README (cs, en) a v poli Website repozitáře. **Dál (autor):** oznámení na OldComp.cz, hlášení v Issues.
 - **2026-10-31 večer, průzkum displeje AND-30C** (autor: „pojal bych to trochu jako průzkum … jestli má cenu zkusit
   udělat repliku“; rozhodnutí 2026-10-31 – průzkum displeje AND-30C): netlist z PDF schématu, emulace podle něj
   (`src/cards/and30c.*`, 6845 na FFE0h/FFF0h, zatemnění při přístupu), ECMON s novým ovladačem 80 × 21

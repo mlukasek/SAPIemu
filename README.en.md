@@ -7,6 +7,7 @@ like the real one, set the jumpers and run MIKROBASIC, MIKOS or CP/M. Then there
 with in industry, and the new boards of Libor Lasota with graphics and sound. SAPI-1 was an industrial control
 computer designed by Ing. Eduard Smutný and made by Tesla Liberec: cards with an 8080, 8085 or Z80 in a rack on the
 ARB-1 bus. SAPIemu is for Windows 10/11, it builds on Linux too, and the user interface is in Czech and English.
+Article on the author's blog (in Czech): [Emulátor SAPI-1: postavte si vlastní sestavu](https://www.8bity.cz/2026/sapiemu-emulator-tesla-sapi-1/).
 *Česky: [README.md](README.md).*
 
 <a href="docs/img/readme/sapiemu-demo-en.gif"><img src="docs/img/readme/sapiemu-demo-en.gif" width="90%" alt="A short demonstration of SAPIemu: choosing a machine, starting it and a program on the SAPI-1 screen"></a>

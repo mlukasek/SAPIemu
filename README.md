@@ -5,7 +5,8 @@
 **Emulátor československého modulárního počítače Tesla SAPI-1 (1983–1990).** Sestavíte ho z karet v rámu jako
 skutečný, nastavíte propojky a spustíte MIKROBASIC, MIKOS nebo CP/M. K tomu přístroje, se kterými SAPI-1 pracoval
 v průmyslu, a nové desky Libora Lasoty s grafikou a zvukem. Pro Windows 10/11, sestaví se i na Linuxu, rozhraní je
-česky i anglicky. *In English: [README.en.md](README.en.md).*
+česky i anglicky. Článek na blogu: [Emulátor SAPI-1: postavte si vlastní sestavu](https://www.8bity.cz/2026/sapiemu-emulator-tesla-sapi-1/).
+*In English: [README.en.md](README.en.md).*
 
 <a href="docs/img/readme/sapiemu-ukazka.gif"><img src="docs/img/readme/sapiemu-ukazka.gif" width="90%" alt="Krátká ukázka SAPIemu: výběr sestavy, spuštění a program na obrazovce SAPI-1"></a>
 
