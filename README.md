@@ -95,7 +95,7 @@ Jádra procesorů jsou [floooh/chips](https://github.com/floooh/chips) (Z80) a [
    spustit“.
 3. Otevře se okno **Vybrat sestavu**. Vyberte sestavu a stiskněte Spustit, průvodce sestavou ukáže, co vyzkoušet.
 
-Jde o **betaverzi** 0.7.0-beta (novinky v [docs/release-notes/v0.7.0-beta.md](docs/release-notes/v0.7.0-beta.md)).
+Jde o **betaverzi** 0.7.1-beta (novinky v [docs/release-notes/v0.7.1-beta.md](docs/release-notes/v0.7.1-beta.md)).
 Hlavní věci fungují, ale chyby čekejte. Hlaste je přes Nápověda → Nahlásit chybu… (zkopíruje diagnostiku a konec
 logu) do [Issues](https://github.com/mlukasek/SAPIemu/issues). Na Linuxu se emulátor sestaví ze zdrojů
 ([docs/build.md](docs/build.md)). Podrobně: [docs/prvni-kroky.md](docs/prvni-kroky.md).

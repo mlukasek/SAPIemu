@@ -98,7 +98,7 @@ ZEXALL, 8080EXM and 8085EXM (with the checksum of a real 8085 chip) and by a che
 2. Run `sapiemu.exe`. For an unsigned program Windows shows SmartScreen: "More info" → "Run anyway".
 3. The window **Choose a machine** opens. Pick a machine and press Start; the machine guide shows what to try.
 
-This is a **beta version**, 0.7.0-beta (what is new: [docs/release-notes/v0.7.0-beta.md](docs/release-notes/v0.7.0-beta.md),
+This is a **beta version**, 0.7.1-beta (what is new: [docs/release-notes/v0.7.1-beta.md](docs/release-notes/v0.7.1-beta.md),
 in Czech). The main things work, but expect bugs. Please report them through Help → Report a bug... (it copies the
 diagnostics and the end of the log) in [Issues](https://github.com/mlukasek/SAPIemu/issues). On Linux the emulator is
 built from source ([docs/build.md](docs/build.md), in Czech). In detail: [docs/getting-started.md](docs/getting-started.md).

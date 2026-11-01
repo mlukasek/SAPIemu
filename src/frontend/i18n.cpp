@@ -1021,10 +1021,6 @@ static const Translation k_table[] = {
       "Popište, co jste dělali (sestava, kroky), co jste čekali a co se stalo místo toho. Hodně pomůže snímek obrazovky "
       "(Ctrl+F5), stav uložený těsně před chybou (Soubor → Uložit stav…) a u upravené sestavy i její soubor." },
     { "Send the report to the author through GitHub Issues:", "Hlášení pošlete autorovi přes GitHub Issues:" },
-    { "Send the report to the author: until SAPIemu is public, reply the way you got the program. After that, use "
-      "GitHub Issues (github.com/mlukasek/SAPIemu/issues).",
-      "Hlášení pošlete autorovi: do zveřejnění SAPIemu cestou, kterou jste program dostali, potom přes GitHub Issues "
-      "(github.com/mlukasek/SAPIemu/issues)." },
     { "Diagnostics", "Diagnostika" },
     { "Version", "Verze" },
     { "Running machine", "Sestava" },

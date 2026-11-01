@@ -584,7 +584,8 @@ před 0.7.1.
 - Obrázky v `docs/img` v novém vzhledu, zmenšit `minigraf-ukazka.png`.
 - Úklid repa, šablona issue.
 
-**Texty „do zveřejnění“** (přidáno 2026-10-29)
+**Texty „do zveřejnění“** (přidáno 2026-10-29, **hotovo 2026-11-01** s verzí 0.7.1-beta: odkaz na Issues v Nahlásit
+chybu, přepínač `k_issues_public` zrušený, texty v Prvních krocích, `GETTING-STARTED.md` a README)
 - `k_issues_public = true` v `src/frontend/help.cpp`: Nahlásit chybu ukáže odkaz na Issues místo adresy v závorce.
 - Zjednodušit „do zveřejnění … potom přes GitHub Issues“ v Nahlásit chybu (`i18n.cpp`), Prvních krocích,
   `GETTING-STARTED.md` a README; „Testovací verze“ v Prvních krocích podle vydané verze.

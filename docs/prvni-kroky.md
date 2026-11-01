@@ -3,9 +3,9 @@
 Emulátor počítače Tesla SAPI-1. SAPI-1 (1983–1990) byl průmyslový řídicí počítač do racku.
 Začněte základní sestavou ZPS-1, pak zkuste přístroje. Hry a dema jsou novodobý doplněk na nových deskách.
 
-Betaverze (testovací verze): hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co nefunguje: Nápověda →
-Nahlásit chybu… (do zveřejnění cestou, kterou jste program dostali, potom přes GitHub Issues:
-https://github.com/mlukasek/SAPIemu/issues). Anglicky: `GETTING-STARTED.md` (`docs/getting-started.md`).
+Betaverze 0.7.1 (testovací verze): hodně věcí funguje, ale počítejte s chybami. Budeme rádi za každou zprávu, co
+nefunguje: Nápověda → Nahlásit chybu… a pak přes GitHub Issues: https://github.com/mlukasek/SAPIemu/issues.
+Anglicky: `GETTING-STARTED.md` (`docs/getting-started.md`).
 V programu je tento text v Nápověda → První kroky, slova SAPI a emulátoru vysvětluje Nápověda → Slovníček
 (`docs/slovnicek.md`).
 
@@ -265,9 +265,8 @@ s Liborovými deskami.
   v českém rozhraní česky (jen vzácné technické podrobnosti zůstávají anglicky). Upozornění
   ve stavovém řádku svítí 7 s a zůstanou v Logu. Červené **✖ Chyby: N** ve stavovém řádku znamená chyby zapsané do
   Logu od jeho posledního otevření; kliknutím se Log otevře (chyby červeně, varování žlutě).
-- **Nahlásit chybu:** Nápověda → Nahlásit chybu… řekne, co do hlášení napsat a kam ho poslat (do zveřejnění
-  cestou, kterou jste program dostali, potom přes GitHub Issues). Ukáže verzi, běžící sestavu, složky dat a práce,
-  soubory nastavení a logu a systém. **Kopírovat diagnostiku** dá tohle a posledních 200 řádků logu do schránky
+- **Nahlásit chybu:** Nápověda → Nahlásit chybu… řekne, co do hlášení napsat a kam ho poslat (GitHub
+  Issues, odkaz v okně). Ukáže verzi, běžící sestavu, složky dat a práce, soubory nastavení a logu a systém. **Kopírovat diagnostiku** dá tohle a posledních 200 řádků logu do schránky
   (jsou v tom cesty na vašem PC), **Otevřít složku logu** ukáže `sapiemu.log`. **Po pádu** program spusťte znovu
   a pošlete i `sapiemu.prev.log` z téže složky: je to log spuštění, které spadlo (další spuštění ho přepíše).
 - **Software z disket J. Bíby:** překladače a editory jsou v `media/sapiman/knihovna/` (Turbo Pascal, MBASIC,

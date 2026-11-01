@@ -155,8 +155,8 @@ Alt+Right) return to the page before.
 
 **Help → Report a bug...** says what to describe and shows the version, the machine and the folders. **Copy
 diagnostics** puts all of that and the end of the log into the clipboard; paste it into your report. A screenshot
-(Ctrl+F5) and a state saved just before the bug help a lot. Until SAPIemu is public, send the report the way you
-got the program; after that, use GitHub Issues.
+(Ctrl+F5) and a state saved just before the bug help a lot. Send the report through GitHub Issues
+(https://github.com/mlukasek/SAPIemu/issues, the link is in the window).
 
 **After a crash**, start SAPIemu again and send `sapiemu.prev.log` too (Report a bug → Open the log folder): it is
 the log of the run that crashed. The start after that replaces it, so send it right away.

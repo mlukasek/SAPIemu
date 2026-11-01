@@ -581,9 +581,6 @@ void draw_about(UiState& ui)
 // ---------------------------------------------------------------- report a bug
 
 static const char* k_issues_url = "https://github.com/mlukasek/SAPIemu/issues";
-// The repository is private until the publication (plan-vzhled.md, stage 9): the address as plain text, a link
-// would end on a GitHub 404. At the publication: true, and the texts "until SAPIemu is public" go.
-static const bool k_issues_public = false;
 static const int k_report_log_lines = 200;
 
 // The values of the report: English in the copied text (like the log), translated in the window.
@@ -690,9 +687,8 @@ std::string report_diagnostics(UiState& ui, int log_lines)
     return s;
 }
 
-// Help -> Report a bug: what to describe, where to send it, the diagnostics of this run to copy into the report.
-// No contact of the author here: the beta testers send it the way they got the program, after the publication it
-// goes to GitHub Issues.
+// Help -> Report a bug: what to describe, where to send it (GitHub Issues, public since 0.7.1-beta), the diagnostics
+// of this run to copy into the report. No other contact of the author here.
 void draw_report(UiState& ui)
 {
     if (!ui.show_report) return;
@@ -708,14 +704,9 @@ void draw_report(UiState& ui)
                                 "instead. A screenshot (Ctrl+F5), a state saved just before the bug (File -> Save "
                                 "state...) and, if you changed the machine, its file help a lot."));
     ImGui::Spacing();
-    if (k_issues_public) {
-        ImGui::TextWrapped("%s", tr("Send the report to the author through GitHub Issues:"));
-        ImGui::TextLinkOpenURL("github.com/mlukasek/SAPIemu/issues", k_issues_url);
-        if (ImGui::IsItemHovered()) tip(k_issues_url);
-    } else {
-        ImGui::TextWrapped("%s", tr("Send the report to the author: until SAPIemu is public, reply the way you got the "
-                                    "program. After that, use GitHub Issues (github.com/mlukasek/SAPIemu/issues)."));
-    }
+    ImGui::TextWrapped("%s", tr("Send the report to the author through GitHub Issues:"));
+    ImGui::TextLinkOpenURL("github.com/mlukasek/SAPIemu/issues", k_issues_url);
+    if (ImGui::IsItemHovered()) tip(k_issues_url);
     theme_section(tr("Diagnostics"));
     std::vector<ReportRow> rows;
     report_rows(ui, rows, tr);
