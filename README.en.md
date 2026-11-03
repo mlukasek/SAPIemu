@@ -175,8 +175,9 @@ The full list by cards and instruments: [docs/funkce.md](docs/funkce.md) (in Cze
 
 - **Visual Studio 2022:** File → Open → Folder, the preset `Windows x64 Debug` or `Release`.
 - **Command line:** `tools\build.cmd release test` (finds VS, builds and runs the tests).
-- **Linux:** `cmake --preset linux-release && cmake --build --preset linux-release` (checked in WSL, details in
-  [docs/build.md](docs/build.md), in Czech).
+- **Linux:** `cmake --preset linux-release && cmake --build --preset linux-release`, then run
+  `out/build/linux-release/sapiemu` (checked in WSL, details in [docs/build.md](docs/build.md), in Czech). The tests
+  are not needed to use it; the debug suite takes over 10 minutes on a slower PC.
 - **Release package:** `python tools\package.py` (the zip and its SHA-256 next to it).
 - SDL3 is downloaded at the first configure (CMake FetchContent), the other libraries are in `third_party/`.
 

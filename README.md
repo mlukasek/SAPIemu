@@ -167,8 +167,9 @@ z dokumentace IQ 151, sestava V s CP/M a obrázkem na grafice CGA-1V.*
 
 - **Visual Studio 2022:** Soubor → Otevřít → Složka, preset `Windows x64 Debug` nebo `Release`.
 - **Příkazová řádka:** `tools\build.cmd release test` (najde VS, sestaví a spustí testy).
-- **Linux:** `cmake --preset linux-release && cmake --build --preset linux-release` (ověřeno ve WSL, podrobnosti
-  v [docs/build.md](docs/build.md)).
+- **Linux:** `cmake --preset linux-release && cmake --build --preset linux-release`, spustí se
+  `out/build/linux-release/sapiemu` (ověřeno ve WSL, podrobnosti v [docs/build.md](docs/build.md)). Testy pro
+  používání potřeba nejsou, ladicí sada na pomalejším PC trvá i přes 10 minut.
 - **Balík pro vydání:** `python tools\package.py` (zip a vedle něj jeho SHA-256).
 - SDL3 se stáhne při prvním configure (CMake FetchContent), ostatní knihovny jsou v `third_party/`.
 

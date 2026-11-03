@@ -19,18 +19,24 @@ tools\build.cmd release full        # release se všemi testy včetně ZEXDOC/ZE
 tools\build.cmd local-debug test    # lokální preset (výstup mimo repo)
 ```
 
-### Kdy které testy (2026-10-06)
+### Kdy které testy (2026-10-06, časy 2026-11-03)
 
-Testy běží paralelně (8 najednou, `execution.jobs` v `CMakePresets.json`). Časy na autorově PC:
+Testy běží paralelně (8 najednou, `execution.jobs` v `CMakePresets.json`). Časy na autorově PC (Core Ultra 9 285K,
+24 vláken):
 
 | Kdy | Příkaz | Trvá |
 |---|---|---|
 | během práce, po každé úpravě | `tools\build.cmd debug test "<testy dotčené změnou>"` | sekundy |
-| před každým commitem | `tools\build.cmd debug test` (všech 33) | asi 25 s |
-| před pushem, po změně časování nebo výkonu | navíc `tools\build.cmd release test` | asi 10 s + překlad |
-| změna jader CPU (`src/cpu`, `third_party/i8080`, `z80.h`), před vydáním zipu | `tools\build.cmd release full` | asi 3 min |
-| změna kódu závislého na platformě (`#ifdef _WIN32`, soubory, sériová linka, CMake, nové knihovny), před vydáním | Linux ve WSL (níže) | asi 1 min + překlad |
+| před každým commitem | `tools\build.cmd debug test` (všech 70) | asi 45 s |
+| před pushem, po změně časování nebo výkonu | navíc `tools\build.cmd release test` | asi 15 s + překlad |
+| změna jader CPU (`src/cpu`, `third_party/i8080`, `z80.h`), před vydáním zipu | `tools\build.cmd release full` | asi 2,5 min |
+| změna kódu závislého na platformě (`#ifdef _WIN32`, soubory, sériová linka, CMake, nové knihovny), před vydáním | Linux ve WSL (níže) | asi 30 s + překlad |
 | před vydáním zipu (po `release test`) | `python tools\check_machines.py --games` | asi 5 min |
+
+**Na pomalejším PC trvají testy násobně déle.** Debug build je bez optimalizací a testy emulují desítky sekund
+běhu SAPI (boot CP/M, programování EPROM, RKD-1, APS-5). Na autorově PC běží dohromady asi 250 s procesorového času
+(nejdelší test asi 24 s), díky osmi najednou je to asi 30 s. Na notebooku s Core i5 8. generace (4 jádra, Lubuntu)
+trvala debug sada 830 s (hlášení uživatele 2026-11-02, všech 70 prošlo). Pro běžné používání testy potřeba nejsou.
 
 **Kontrola všech sestav** (`tools/check_machines.py`, od 2026-10-14): v každé sestavě z `machines/` spustí něco
 konkrétního (`DIR` na různé disky, `PRINT 6*7` v MIKROBASICu, `D0 7` v MIKOSu, přihlášení v shellu RKD-1, `DIRMT`
@@ -417,9 +423,13 @@ Primární je Windows build. Linux se zatím zkouší ve WSL 2 s Ubuntu 24.04 (W
    `git clone /mnt/e/SAPI_GIT/SAPIemu ~/SAPIemu`. Podklady vedle repa jako u autora: `ln -s
    /mnt/e/SAPI_GIT/SAPI-karty ~/SAPI-karty` a `ln -s /mnt/e/SAPI_GIT/SAPI_DOKU ~/SAPI_DOKU` (testy MPH-1V hledají
    `../SAPI-karty`, testy kazet nahrávky v `../SAPI_DOKU/Kazetopáskové vybavení AUDIO WAV`).
-3. `cmake --preset linux-debug && cmake --build --preset linux-debug`, testy `ctest --preset linux-debug`
-   (paralelně jako na Windows, asi 16 s).
-4. GUI: `out/build/linux-debug/sapiemu` (ve WSL se okno ukáže na ploše Windows). Nastavení se ukládá vedle exe,
+3. **Pro používání:** `cmake --preset linux-release && cmake --build --preset linux-release` (optimalizovaný
+   build), spustit `out/build/linux-release/sapiemu`. Testy k tomu nejsou potřeba.
+   **Pro vývoj:** `cmake --preset linux-debug && cmake --build --preset linux-debug`, testy `ctest --preset
+   linux-debug` (8 najednou jako na Windows). Ladicí build je bez optimalizací: na autorově PC (Core Ultra 9 285K)
+   testy trvají asi 30 s, na notebooku s Core i5 8. generace 830 s (oddíl Kdy které testy). `ctest --preset
+   linux-release` je rychlejší a vynechá pomalé testy ZEX.
+4. GUI: `out/build/linux-release/sapiemu` nebo `out/build/linux-debug/sapiemu` (ve WSL se okno ukáže na ploše Windows). Nastavení se ukládá vedle exe,
    jinak do `~/.local/share/SAPIemu/SAPIemu`. COM port je na Linuxu zařízení (`/dev/ttyUSB0`), ve WSL fyzické porty
    nejsou. Jazyk GUI podle `LANG` (`cs_*`, `sk_*` = čeština).
 
