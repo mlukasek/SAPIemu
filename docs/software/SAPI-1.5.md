@@ -111,8 +111,20 @@ se nic takového nenašlo, porovnat ale šly jen soubory s kopií jinde (ne nap�
 **Opravené kopie** `media/sapi15/SAPI15_{2,3,4}_opr.sp2` vyrábí `tools/sapi15_oprava.py` (potřebuje archivy
 `..\SAPI_DOKU_FTP` a `..\SAPI_DOKU`). Vadný sektor nahradí obsahem, na kterém se shodne většina kopií souboru, a výsledek
 musí být shodný s některou skutečnou kopií. Originály zůstávají vedle, v katalogu MFC-1A se nabízejí opravené. Beze změny
-zůstal SYSGEN (vlastní verze Melsoftu) a velikost obrazovky ve WM. Ověřeno v ZPS-6: M80 s L80 a Pascal MT+ přeloží
-a spustí program (z originálů selžou), běží WM, MBASIC a PIP s ověřením. BASCOM, COBOL, F80, SORT a LIB se nespouštěly.
+zůstal SYSGEN (vlastní verze Melsoftu) a velikost obrazovky ve WM.
+
+**Vyzkoušené programy** (ZPS-6, 2026-11-08, u každého základní použití, z originálů selžou M80, Pascal MT+ a WM):
+
+| Disketa | Co běželo a dalo správný výsledek |
+|---|---|
+| 2 | ASM + LOAD, M80 + CREF80 + LIB + L80, F80 s FORLIB, ED, WM i s nápovědou, SDT, DDUMP (čtení), DUMP, GENHEX, GENMOD, SORT (SAMPLE.DAT, 645 záznamů), SUBMIT + XSUB, FORMAT a SYSGEN na B:, STAT, PIP s ověřením |
+| 3 | MBASIC se soubory, BASCOM s BASLIB, COBOL s překryvy a COBLIB, přilinkovaný CRTDRV, STAT, PIP s ověřením |
+| 4 | Pascal MT+ (překryvy .000–.006) a LINKMT s PASLIB, FPREALS, BCDREALS, TRANCEND (ukázka CALC.SRC), RANDOMIO, FULLHEAP, DEBUGGER; DIS8080, LIBMT, STAT, PIP s ověřením |
+
+FORMAT a SYSGEN jsou na všech třech disketách stejné. Nevyzkoušené zůstaly opravy sektorů přes DDUMP, ROVLMGR (překryvy
+Pascalu) a IOERR.SRC, který čeká soubor v cestě `80rtp/`. Návod k SORT V1.50 se nedochoval, zadání funguje takto:
+`SORT SAMPLE.DAT`, `INPUT 100 CR-DELIMITED`, `OUTPUT X.DAT`, `KEY 1 40`, `GO`. V souboru `.BLD` pro LIBMT je na prvním
+řádku výstupní knihovna.
 
 **Proč WM (WordMaster V1.07A-A1) z originálu diskety 2 hlásí `BDOS ERR ON P: SELECT`:** poškozené jsou adresy 0245–02FF,
 122E–12FF, 21E9–21FF a 223A–22FF, od neporušené kopie se liší jinak jen velikost obrazovky na 01B9h a 01BAh (14h, 40h =
