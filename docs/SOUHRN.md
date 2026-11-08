@@ -10,8 +10,9 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 - **2026-11-08: EPROM PKT-1 pro AND-1Z a AND-1V** (autor: pro majitele PKT-1 a RSW-1 bez DBS-1): `tools/pkt1_and.py`,
   `roms/pkt-1/PKT-1_ROMBIOS_AND.bin`, sestavy `sapi15_and1z` a `sapi15_and1v`, rozhodnutí 2026-11-08. CP/M z disket
   Melsoft beze změny. **Dál:** ověřit na skutečném HW (Nejasnosti v `docs/desky/RSW-1.md`).
-- **2026-11-08: opravené kopie disket Melsoft 2, 3 a 4** (`tools/sapi15_oprava.py`, `media/sapi15/SAPI15_{2,3,4}_opr.sp2`):
-  dochované obrazy mají poškozené sektory, opravené z kopií v archivech. Rozbor v `docs/software/SAPI-1.5.md`.
+- **2026-11-08: opravené diskety Melsoft 2, 3 a 4** (`tools/sapi15_oprava.py`, `media/sapi15/SAPI15_{2,3,4}.sp2`): dochované
+  obrazy mají poškozené sektory, opravené z kopií v archivech, všechny programy vyzkoušené. Původní poškozené obrazy jsou
+  v `media/sapi15/puvodni_poskozene/`. Rozbor v `docs/software/SAPI-1.5.md`.
 
 - **Stav 2026-11-01: SAPIemu je veřejné.**
   - Vydání `v0.7.1-beta` je na GitHubu (Releases, předběžná verze, zip a `.sha256`).

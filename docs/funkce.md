@@ -98,7 +98,8 @@ v [prvni-kroky.md](prvni-kroky.md).
   disku ZRMD-1, z 8" diskety (RPD-1, FDC-1, MFC-1A), z disket PC HD, z PMD32-SD a z IDE disku. MIKROBIOS
   a Falcon Monitor pro JPR-1S s BGP-1S a hry z PMD-85 (Manic Miner), nahrávané i příkazem BOOT po sériové lince. Knihovna disket J. Bíby (Turbo Pascal, MBASIC, FORTH,
   Pascal/MT+, C, dBase II, WordStar…) a soupis celé jeho sbírky. CP/M 2.2 62K pro SAPI-1.5 (ZPS-6, ROM PKT-1
-  MON-V100690, diskety Melsoft 5,25" s M80, MBASIC, COBOL, Pascal MT+; [docs/software/SAPI-1.5.md](software/SAPI-1.5.md)).
+  MON-V100690, diskety Melsoft 5,25" s M80, MBASIC, COBOL, Pascal MT+, diskety 2 až 4 opravené z kopií v archivech; varianta bez DBS-1 s AND-1Z nebo AND-1V a novou EPROM;
+  [docs/software/SAPI-1.5.md](software/SAPI-1.5.md)).
 - **Zdrojáky systému ECMON + CP/M** se dají přeložit na PC: nástroj `cpmrun` spouští programy pro CP/M (M80,
   L80) nad Z80 jádrem emulátoru a překlad souhlasí s originální EPROM i RAM diskem
   ([docs/software/ECMON.md](software/ECMON.md)).

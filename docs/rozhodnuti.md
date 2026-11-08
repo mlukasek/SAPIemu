@@ -3732,6 +3732,7 @@ Autor: „žádná rozumná zpětná vazba mi nepřišla, tak jdeme udělat ten 
   disket 2, 3 a 4“).
 - **Jak:** `tools/sapi15_oprava.py` nahradí vadné sektory obsahem z neporušených kopií týchž souborů z jiných disket
   v archivech. Soubor po opravě musí být shodný s některou skutečnou kopií, aby nevznikla směs verzí.
-- **Originály zůstávají** v `media/sapi15` vedle oprav, stejně jako dřív u diskety 3. `SAPI15_3_opr.sp2` je rozšířená
-  o 6 sektorů souborů. V katalogu MFC-1A se nabízejí opravené kopie, protože s originály programy padají.
+- **Pod běžnými názvy je opravený obsah** (`SAPI15_{2,3,4}.sp2`), názvy `_opr` zanikly, i dřívější `SAPI15_3_opr.sp2`.
+  Původní obrazy jsou samostatně v `media/sapi15/puvodni_poskozene/` s názvem `SAPI15_n_puvodni_poskozena.sp2` (autor:
+  „původní diskety drž prosím samostatně s označením, že jsou původní, poškozené“).
 - **Zůstává podle Melsoftu:** SYSGEN a velikost obrazovky ve WM.

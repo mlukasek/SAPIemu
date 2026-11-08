@@ -25,6 +25,8 @@ Stav: **emulovaná** (typ `PKT-1`, `src/cards/pkt1.*`) od 2026-10-07. Sestava `m
   zemi. **Dump z desky: EPROM jen 0000–07FF.** Čtení zůstane na desce, **zápisy jdou vždy na sběrnici**
   (v okně s vypnutým datovým bufferem, RAM pod EPROM dostane nebuzenou sběrnici, emulace FFh). Po resetu je
   BOOT = L a Z80 startuje v EPROM na 0000h. ROM BIOS se zkopíruje na F000h a EPROM vypne.
+- **EPROM bez DBS-1:** `roms/pkt-1/PKT-1_ROMBIOS_AND.bin` je ROM BIOS Melsoft s ovladačem pro AND-1Z a AND-1V na F800h
+  (`docs/software/SAPI-1.5.md`, sestavy `sapi15_and1z` a `sapi15_and1v`), na skutečné desce zatím nevyzkoušený.
 - **XT3:** 6-7 = BOOT z registru (standard), 5-6 = EPROM trvale vypnutá.
 - **Registr DD7, port 0Eh** (jen zápis, nuluje /RES): D0 = **BOOT** (0 = EPROM zapnutá, kolík 47, LED HL1
   svítí), D1 = **MAP2** (kolík 22), D2 = **MAP1** (kolík 21), přes XT1 na sběrnici. ROM BIOS píše 03h kolem

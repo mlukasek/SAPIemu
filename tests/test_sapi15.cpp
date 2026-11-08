@@ -238,14 +238,15 @@ static std::string control_codes(const char* file, const char* rom)
     return s;
 }
 
-// The repaired copies of the Melsoft disks (tools/sapi15_oprava.py): only the damaged sectors differ from the originals.
-// WM.COM of the original disk 2 has a damaged start (BDOS ERR ON P: SELECT), the repaired one clears the screen and runs.
+// The repaired Melsoft disks (tools/sapi15_oprava.py): only the damaged sectors differ from the surviving images kept in
+// media/sapi15/puvodni_poskozene. WM.COM of the surviving disk 2 has a damaged start (BDOS ERR ON P: SELECT), the repaired
+// one clears the screen and runs.
 static void test_repaired_disks(void)
 {
     static const struct { const char* orig; const char* opr; int sectors; } disks[] = {
-        { "media/sapi15/SAPI15_2.sp2", "media/sapi15/SAPI15_2_opr.sp2", 41 },
-        { "media/sapi15/SAPI15_3.sp2", "media/sapi15/SAPI15_3_opr.sp2", 7 },
-        { "media/sapi15/SAPI15_4.sp2", "media/sapi15/SAPI15_4_opr.sp2", 27 },
+        { "media/sapi15/puvodni_poskozene/SAPI15_2_puvodni_poskozena.sp2", "media/sapi15/SAPI15_2.sp2", 41 },
+        { "media/sapi15/puvodni_poskozene/SAPI15_3_puvodni_poskozena.sp2", "media/sapi15/SAPI15_3.sp2", 7 },
+        { "media/sapi15/puvodni_poskozene/SAPI15_4_puvodni_poskozena.sp2", "media/sapi15/SAPI15_4.sp2", 27 },
     };
     for (const auto& d : disks) {
         std::vector<uint8_t> a, b;
@@ -259,7 +260,7 @@ static void test_repaired_disks(void)
     }
     Machine m;
     std::string err;
-    CHECK(m.load_json(zps6(nullptr, false, "media/sapi15/SAPI15_2_opr.sp2"), err));
+    CHECK(m.load_json(zps6(nullptr, false, "media/sapi15/SAPI15_2.sp2"), err));
     CHECK(boot(m));
     m.type_text("WM NOVY.TXT\r");
     m.run_seconds(8.0);

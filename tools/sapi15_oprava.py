@@ -1,13 +1,13 @@
-"""Repaired copies of the Melsoft disks 2, 3 and 4 of the SAPI-1.5: media/sapi15/SAPI15_{2,3,4}_opr.sp2.
+"""The repaired Melsoft disks 2, 3 and 4 of the SAPI-1.5: media/sapi15/SAPI15_{2,3,4}.sp2.
 
     python tools/sapi15_oprava.py [--archive DIR ...] [--list]
 
-The surviving images of these disks have damaged sectors (docs/software/SAPI-1.5.md): a sector is right up to some byte
+The surviving images of these disks, kept in media/sapi15/puvodni_poskozene, have damaged sectors (docs/software/SAPI-1.5.md): a sector is right up to some byte
 and garbage from there to its end, or has a few wrong bytes, nearly always on the same sector numbers of neighbouring
 cylinders. Every file of the disks exists elsewhere in the archives (..\\SAPI_DOKU_FTP, ..\\SAPI_DOKU), so a damaged
 sector is replaced by the content most copies of the file agree on. The sector must then give a file equal to a real
 copy, otherwise the script stops. Kept as Melsoft has them: SYSGEN.COM (its own version) and the screen size in WM.COM.
-The disk 3 also gets its damaged BDOS sector (C0 H0 R14) from the disk 1. The originals stay untouched.
+The disk 3 also gets its damaged BDOS sector (C0 H0 R14) from the disk 1. The surviving images stay untouched.
 """
 import collections
 import hashlib
@@ -16,6 +16,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA = os.path.join(ROOT, 'media', 'sapi15')
+DAMAGED = os.path.join(MEDIA, 'puvodni_poskozene')
 BLOCK = 2048            # BLS of the .sp2 format, DSM = 155: one byte per block in a directory entry
 RPB = BLOCK // 128
 DISKS = (1, 2, 3, 4, 7, 8)
@@ -129,7 +130,8 @@ def main():
     dirs = [d for d in dirs if os.path.isdir(d)]
     if not dirs:
         sys.exit('archive not found (..\\SAPI_DOKU_FTP), give --archive')
-    imgs = {n: open(os.path.join(MEDIA, 'SAPI15_%d.sp2' % n), 'rb').read() for n in DISKS}
+    imgs = {n: open(os.path.join(DAMAGED, 'SAPI15_%d_puvodni_poskozena.sp2' % n) if n in REPAIR else
+                    os.path.join(MEDIA, 'SAPI15_%d.sp2' % n), 'rb').read() for n in DISKS}
     files = {n: {k: file_records(v) for k, v in read_dir(imgs[n]).items()} for n in DISKS}
     index = walk_archives(dirs)
     for n in REPAIR:
@@ -141,7 +143,7 @@ def main():
             if imgs[3][o:o + 256] == imgs[1][o:o + 256]:
                 sys.exit('disk 3: the BDOS sector is not damaged?')
             out[o:o + 256] = imgs[1][o:o + 256]
-        path = os.path.join(MEDIA, 'SAPI15_%d_opr.sp2' % n)
+        path = os.path.join(MEDIA, 'SAPI15_%d.sp2' % n)
         open(path, 'wb').write(out)
         print('%s: %d sectors in %d files (%s)%s, md5 %s' % (os.path.relpath(path, ROOT), done, len(names), ' '.join(names),
                                                             ' + BDOS' if n == 3 else '', hashlib.md5(out).hexdigest()))

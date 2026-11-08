@@ -86,7 +86,7 @@ Nový ROM BIOS pro ty, kdo mají PKT-1 a RSW-1, ale ne DBS-1 (2026-11-08): `roms
 |---|---|
 | 1 (CPM62-5.001) | systém, CPM62-5.TXT, FORMAT, PIP, SDT40, SETDBS1, STAT, SYSGEN |
 | 2 (CPM62-5.002) | ASM, ED, M80, L80, LIB, CREF80, F80 + FORLIB, WM, SORT, DDUMP, SUBMIT, XSUB |
-| 3 (CPM62-5.003) | MBASIC, BASCOM + BASLIB, COBOL + OVR + COBLIB; **poškozený sektor BDOS** (C0 H0 R14) a sektory souborů, opravená kopie `SAPI15_3_opr.sp2` |
+| 3 (CPM62-5.003) | MBASIC, BASCOM + BASLIB, COBOL + OVR + COBLIB; původní obraz má **poškozený sektor BDOS** (C0 H0 R14) a sektory souborů, v `media/sapi15` je opravený |
 | 4 (CPM62-5.004) | Pascal MT+, DIS8080 |
 | 7 | zdrojáky a aplikace: ROMBIOS.MAC, SYSTEM.MAC, CONNECT, INTER, SAPI (RSW-1), SIMPROG (programátor DSE-1, build pro 4 MHz, `docs/desky/DSE-1.md`), TAPEREC, DOCTOR, TABULKA |
 | 8 | ROMBIOS.MAC/PRN/REL, TAPEREC, ASM, LOAD, DUMP, FORMAT |
@@ -108,12 +108,13 @@ disketách 2 a 4, R2 a R12 na disketě 4, R14 na disketě 3). Vypadá to na fyzi
 Všechny soubory těchto tří disket mají kopii jinde v archivech, takže se daly zkontrolovat celé. Na disketách 1, 7 a 8
 se nic takového nenašlo, porovnat ale šly jen soubory s kopií jinde (ne např. SETDBS1 a většina zdrojáků na disketě 7).
 
-**Opravené kopie** `media/sapi15/SAPI15_{2,3,4}_opr.sp2` vyrábí `tools/sapi15_oprava.py` (potřebuje archivy
+**Opravené diskety** `media/sapi15/SAPI15_{2,3,4}.sp2` vyrábí `tools/sapi15_oprava.py` (potřebuje archivy
 `..\SAPI_DOKU_FTP` a `..\SAPI_DOKU`). Vadný sektor nahradí obsahem, na kterém se shodne většina kopií souboru, a výsledek
-musí být shodný s některou skutečnou kopií. Originály zůstávají vedle, v katalogu MFC-1A se nabízejí opravené. Beze změny
+musí být shodný s některou skutečnou kopií. Původní poškozené obrazy jsou samostatně v `media/sapi15/puvodni_poskozene/`
+(`SAPI15_n_puvodni_poskozena.sp2`), emulátor je nepoužívá. Beze změny
 zůstal SYSGEN (vlastní verze Melsoftu) a velikost obrazovky ve WM.
 
-**Vyzkoušené programy** (ZPS-6, 2026-11-08, u každého základní použití, z originálů selžou M80, Pascal MT+ a WM):
+**Vyzkoušené programy** (ZPS-6, 2026-11-08, u každého základní použití, z původních obrazů selžou M80, Pascal MT+ a WM):
 
 | Disketa | Co běželo a dalo správný výsledek |
 |---|---|
@@ -126,7 +127,7 @@ Pascalu) a IOERR.SRC, který čeká soubor v cestě `80rtp/`. Návod k SORT V1.5
 `SORT SAMPLE.DAT`, `INPUT 100 CR-DELIMITED`, `OUTPUT X.DAT`, `KEY 1 40`, `GO`. V souboru `.BLD` pro LIBMT je na prvním
 řádku výstupní knihovna.
 
-**Proč WM (WordMaster V1.07A-A1) z originálu diskety 2 hlásí `BDOS ERR ON P: SELECT`:** poškozené jsou adresy 0245–02FF,
+**Proč WM (WordMaster V1.07A-A1) z původního obrazu diskety 2 hlásí `BDOS ERR ON P: SELECT`:** poškozené jsou adresy 0245–02FF,
 122E–12FF, 21E9–21FF a 223A–22FF, od neporušené kopie se liší jinak jen velikost obrazovky na 01B9h a 01BAh (14h, 40h =
 20 × 64). Vstup 0269h leží v poškozeném místě, z 0297h se zavolá 9579h, běh pak projde prázdnou RAM až do CCP s registrem
 C = FFh. CCP to bere jako uživatele 15 a mechaniku P:. Emulátor za to nemůže.

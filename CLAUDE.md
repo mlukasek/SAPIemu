@@ -83,7 +83,7 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `docs/software/ECMON.md`),
   `pkt1_and.py` (ROM BIOS PKT-1 s ovladačem `pkt1_and.mac` pro AND-1Z a AND-1V místo DBS-1, z `..\SAPI-karty\PKT-1\System`,
   `docs/software/SAPI-1.5.md`),
-  `sapi15_oprava.py` (opravené kopie disket Melsoft 2, 3 a 4 z neporušených kopií souborů v archivech, `docs/software/SAPI-1.5.md`),
+  `sapi15_oprava.py` (opravené diskety Melsoft 2, 3 a 4 z původních obrazů v `media/sapi15/puvodni_poskozene` a kopií souborů v archivech, `docs/software/SAPI-1.5.md`),
   `dps1_kazeta.py` (kazeta BASIMS s programy BASIC nahraná v emulátoru přes MCP, `docs/navod-dps1.md`),
   `ui_gallery.py` (galerie obrazovek GUI ve všech vzhledech `--ui-theme`, s `--layouts` plovoucí a zadokovaná
   okna, `docs/vydani/plan-vzhled.md`), `docs_images.py` (snímky GUI v `docs/img` pro návody, desky a README podle
