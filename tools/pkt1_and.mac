@@ -1,0 +1,227 @@
+;------------------------------------------------------------------------------
+; vystup znaku na konzolu - doska AND-1Z nebo AND-1V
+;------------------------------------------------------------------------------
+; SAPIemu 2026 misto ovladace DBS-1 (tools/pkt1_and.py vlozi do pkt1-rombios.asm).
+; Video RAM F800-FCFF, 64 x 20 znaku, adresa = F800 + radek*64 + sloupec, bez
+; atributu a bez kurzoru v HW. Kurzor je znak 127 ve video RAM jako v ECMONu
+; (znak pod nim je v CHSAV), blika z CONS0. Rolovani prenasi LDIR (Z80, zde jako DB).
+;
+; CTRL kody jsou stejne jako u DBS-1
+; 01h | zapis CTRL znaku do VRAM - 01h znak
+; 04h | povolenie scrollovania obrazu
+; 05h | zakazanie scrollovania obrazu
+; 08h | kurzor do lava
+; 09h | presun kurzora na dalsiu tabelacnu poziciu (kazdych 8 znakov)
+; 0Ah | kurzor dolu, pri opusteni obrazovky sa prevedie scroll hore
+; 0Dh | kurzor na zaciatok riadku
+; 1Bh | nastavenie pozicie kurzora - 1Bh riadok+20h stlpec+20h
+; 1Dh | kurzor do laveho horneho rohu
+; 1Eh | vymaz do konca riadku
+; 1Fh | zmazanie obrazovky + kurzor do laveho horneho rohu
+;------------------------------------------------------------------------------
+VRAM	EQU	0F800H		; zaciatok video RAM
+CURCH	EQU	127		; znak kurzora
+; I: A=zobrazovany znak
+; O: -
+; M: vsetky
+CONO0:	MOV	E,A		; zobrazovany znak odloz do E
+	CALL	CURX0		; zmaz kurzor (vrat znak pod nim)
+	CALL	CONO9		; spracuj znak
+	LHLD	CADDR		; nakresli kurzor na novej pozicii
+	CALL	CONA0
+	MOV	A,M		; odloz znak pod kurzorom
+	STA	CHSAV
+	MVI	M,CURCH
+	RET
+
+; vrati do VRAM znak pod kurzorom, M: AF, HL
+CURX0:	LHLD	CADDR
+	CALL	CONA0
+	LDA	CHSAV
+	MOV	M,A
+	RET
+
+CONO9:	LHLD	CADDR		; pozicia kurzora do HL
+	LDA	TESCS		; spracuva sa ESC sekvencia ?
+	DCR	A
+	JP	CESC0		; ano, skoc dopredu
+	LDA	C0405		; je povoleny zapis CTRL znaku do VRAM ?
+	ORA	A
+	JZ	CONO1		; nie, skoc dalej
+	XRA	A		; zrus toto povolenie
+	STA	C0405
+	JMP	CONO2		; a skoc zobrazit znak z E
+
+CONO1:	MOV	A,E		; zobrazovany znak nazad do A
+	CPI	20H		; je to CTRL znak ?
+	JC	CCTL0		; ano, skoc dopredu
+CONO2:	CALL	CONA0		; vypocitaj adresu VRAM
+	MOV	M,E		; uloz znak do VRAM
+	LHLD	CADDR		; pozicia kurzora do HL
+	INX	H		; posun na nasledujuci znak
+	MOV	A,L		; test na prechod na zaciatok
+	ANI	3FH		; nasledujuceho riadku
+	JNZ	SETC0		; sme stale v riadku, skoc ulozit poziciu kurzora
+	LDA	TROLL		; je povolene scrolovanie obrazovky ?
+	ORA	A
+	JNZ	CONE0		; ano, skoc odrolovat obrazovku, ak je to treba
+	RET			; inak sa vrat bez rolovania
+
+; ulozenie novej pozicie kurzora
+SETC0:	SHLD	CADDR
+	RET
+
+; spracovanie ESC sekvencie - nastavenie pozicie kurzora
+; 01Bh riadok+20h stlpec+20h
+CESC0:	STA	TESCS		; uloz flag ESC sekvencie
+	JZ	CESC1		; ak to je stlpec, skoc dalej
+	MOV	A,E		; riadok+20h
+	SUI	20H		; odpocitaj posun
+	STA	ESCAD		; odpamataj riadok
+	RET
+
+CESC1:	LDA	ESCAD		; riadok do HL
+	MVI	H,00H
+	MOV	D,H
+	MOV	L,A
+	DAD	H		; * 64
+	DAD	H
+	DAD	H
+	DAD	H
+	DAD	H
+	DAD	H
+	MOV	A,E		; stlpec+20h do DE
+	SUI	20H		; odpocitaj posun
+	MOV	E,A
+	DAD	D		; HL = nova pozicia kurzora
+	JMP	SETC0		; skoc ulozit novu poziciu kurzora
+
+CCTL0:	CPI	01H		; je to "povolenie zapisu CTRL znaku do VRAM"
+	JNZ	CCTL1		; nie, skoc dalej
+	STA	C0405		; uloz flag
+CCTL1:	CPI	08H		; je to "kurzor vlavo" ? (BS)
+	JNZ	CCTL2		; nie, skoc dalej
+	DCX	H		; zniz poziciu kurzora
+	MOV	A,H		; test na lavy horny roh
+	ORA	A
+	JP	SETC0		; je to OK, skoc zapisat novu hodnotu
+	RET			; vrat sa bez zmeny
+
+CCTL2:	CPI	09H		; je to "tabulator" ? (HT)
+	JNZ	CCTL3		; nie, skoc dalej
+	MOV	A,L		; tabelacne pozicie kazdych 8 znakov
+	ADI	08H		; pripocitaj 8
+	ANI	0F8H		; a zarovnaj poziciu na modulo 8
+	MOV	L,A
+	ANI	3FH		; test na opustenie riadku
+	JNZ	SETC0		; je to OK, skoc zapisat novu hodnotu
+	RET			; vrat sa bez zmeny
+
+CCTL3:	CPI	0AH		; je to "kurzor dole" ? (LF)
+	JNZ	CCTL4
+	LXI	D,0040H		; offset na dalsi riadok
+	DAD	D		; posun pozicie kurzora
+CONE0:	MOV	A,H		; test na opustenie obrazovky
+	CPI	05H		; je potreby scroll ?
+	JZ	CONR0		; ano, skoc previest scroll
+	JMP	SETC0		; nie, skoc zapisat novu poziciu kurzora
+
+CCTL4:	CPI	0DH		; je to "kurzor na zaciatok riadku" ? (CR)
+	JNZ	CCTL5		; nie, skoc dalej
+	MOV	A,L		; nizsi byte pozicie kurzora
+	ANI	0C0H		; odmaskuj poziciu v ramci riadku
+	MOV	L,A		; kurzor je teraz v 0. stlpci
+	JMP	SETC0		; skoc zapisat novu poziciu
+
+CCTL5:	CPI	1DH		; je to "kurzor do laveho horneho rohu" ?
+	JZ	CHOM0		; ano, skoc nastavit
+	CPI	1BH		; je to "nastavenie pozicie kurzora" ? (ESC)
+	JNZ	CCTL6		; nie, skoc dalej
+	MVI	A,02H		; nastav flag pre ESC sekvenciu
+	STA	TESCS
+	RET
+
+CCTL6:	CPI	1EH		; je to "vymaz do konca riadku" ?
+	JNZ	CCTL7		; nie, skoc dalej
+	MOV	A,L		; nizsi byte pozicie kurzora
+	ANI	3FH		; odmaskuj poziciu kurzora v riadku
+	CMA			; zneguj hodnotu
+	INR	A
+	ADI	40H		; a pripocitaj sirku riadku
+	MOV	E,A		; E = pocet znakov do konca riadku
+	JMP	CONR1		; skoc urobit vymaz
+
+CCTL7:	CPI	1FH		; je to "zmazanie obrazovky" ?
+	JNZ	CCTL8		; nie, skoc dalej
+	LXI	H,VRAM		; adresa VRAM
+CCLS1:	MVI	M,20H		; vymazavaci znak je medzera
+	INX	H
+	MOV	A,H
+	CPI	0FDH		; za 20 riadkami (FD00h)
+	JNZ	CCLS1
+CHOM0:	LXI	H,0000H		; nastav poziciu kurzora do laveho horneho rohu
+	JMP	SETC0		; uloz novu poziciu
+
+CCTL8:	CPI	04H		; je to "povolenie scrollovania obrazu"
+	JNZ	CTTL9		; nie, skoc dalej
+	MVI	A,01H		; povol scrollovanie
+	STA	TROLL
+	RET
+
+CTTL9:	CPI	05H		; je to "zakazanie scrollovania obrazu"
+	RNZ
+	XRA	A		; zakaz scrollovanie
+	STA	TROLL
+	RET
+
+; Rutina vypocita adresu VRAM podla aktualnej pozicie kurzora
+; (maskovanie: ani ESC s prilis velkym riadkom nevyskoci z VRAM)
+; I: HL=pozicia kurzora
+; O: HL=adresa vo VRAM
+; M: HL, AF
+CONA0:	MOV	A,H
+	ANI	07H
+	ORI	0F8H
+	MOV	H,A
+	RET
+
+; scroll o riadok hore
+CONR0:	LXI	H,VRAM+40H	; odkial
+	LXI	D,VRAM		; kam
+	LXI	B,04C0H		; 19 riadkov po 64 znakov
+	DB	0EDH,0B0H	; LDIR
+	LXI	H,04C0H		; nova pozicia kurzora bude na zaciatku
+	SHLD	CADDR		; posledneho riadku
+	MVI	E,40H		; 64 znakov na riadku - vymaz posledneho riadku
+; vymaz v ridku
+; I: HL=pozicia kurzora, E=pocet znakov na zmazanie
+CONR1:	CALL	CONA0		; vypocitaj adresu VRAM
+CONR2:	MVI	M,20H		; vymazavaci znak je medzera
+	INX	H
+	DCR	E
+	JNZ	CONR2
+	RET
+
+; Blikanie kurzora, vola CONS0 kazdych 4096 volani (ako v ECMONu). M: AF
+BLIK0:	PUSH	H
+	LHLD	CADDR
+	CALL	CONA0
+	LDA	CHSAV
+	CMP	M		; je na obrazovke znak ?
+	JZ	BLIK1		; ano, nakresli kurzor
+	MOV	M,A		; nie, vrat znak
+	POP	H
+	RET
+BLIK1:	MVI	M,CURCH
+	POP	H
+	RET
+
+; AND-1Z a AND-1V nemaju farby: vektor F02Ah zostava, nic nerobi
+CSAT0:	RET
+
+TESCS:	DB	00H		; flag ECS sekvencie
+CADDR:	DW	0000H		; pozicia kurzora
+ESCAD:	DB	00H		; odpamatanie riadku pri ESC sekvencii
+TROLL:	DB	01H		; flag povolenia scrolovania
+C0405:	DB	00H		; povolenie zapisu CTRL znaku do VRAM
+CHSAV:	DB	20H		; znak pod kurzorom

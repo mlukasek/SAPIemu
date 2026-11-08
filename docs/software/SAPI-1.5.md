@@ -50,6 +50,26 @@ RSW-1, SBK-1, ZDR-1A, ZPS-8 a systémovým parametrům: `..\SAPI_DOKU\SAPI-1.5_d
   EC1045, ne jako schéma Tesla (`docs/desky/MFC-1A.md`). Sestava ZPS-6 má `wiring = ec1045`.
 - RSW-1 (porty 18h–1Fh) ROM BIOS ani CBIOS nepoužívají.
 
+## EPROM pro sestavu bez DBS-1 (AND-1Z, AND-1V)
+
+Nový ROM BIOS pro ty, kdo mají PKT-1 a RSW-1, ale ne DBS-1 (2026-11-08): `roms/pkt-1/PKT-1_ROMBIOS_AND.bin`, skript
+`tools/pkt1_and.py`, ovladač `tools/pkt1_and.mac`, sestavy `machines/sapi15_and1z.sapi` a `sapi15_and1v.sapi`, test
+`test_sapi15`. Na skutečném HW zatím neběžel (Nejasnosti v `docs/desky/RSW-1.md`).
+
+- **Z čeho vychází:** verze Melsoft (`pkt1-rombios.asm`), vyměněný je jen ovladač konzoly. Diskety Melsoft zůstávají
+  beze změny, CBIOS volá jen vektory F000–F02Ah.
+- **Video RAM** F800–FCFF, adresa = F800h + řádek · 64 + sloupec, bez atributů a bez stránkování MAP. Zápis do portu
+  0Eh zůstal jen na startu (BOOT).
+- **Řídicí kódy** jsou stejné jako u DBS-1. Test posílá stejnou sekvenci přes vektor F009h do ZPS-6 a do obou nových
+  sestav a porovnává obrazovky.
+- **Kurzor** je znak 127 ve video RAM jako v ECMONu, bliká z CONS0 (po 4096 voláních). **Rolování** kopíruje 19 řádků
+  instrukcí LDIR, asi 15 ms na AND-1Z při 2 MHz. DBS-1 měnila jen začátek obrazu v 6845.
+- **CSAT0 (F02Ah)** nedělá nic. SETDBS1 běží bez chyby, ale barvy se nezmění. Semigrafika DBS-1 v AND není.
+- **RSW-1:** XT1 A6 = H, A7 = L, A8 = L nebo MAP2 (obojí dá podle dumpu DD1 RAM 0000–F7FF), nad ní je video RAM.
+  Kód a proměnné ROM BIOSu jsou v F000–F7FF, CP/M 62K se proto nemění.
+- **Karty:** AND-1Z bez MAP1 (S1), AND-1V s propojkou MAP1OFF (vždy aktivní, nezávisí na polaritě MAP1). Obě na
+  F800h. Řadič MFC-1A zůstává.
+
 ## CP/M 2.2 62K (CBIOS V050690*LCH, Melsoft)
 
 - **Diskety** `media/sapi15/SAPI15_{1,2,3,4,7,8}.sp2` (jen v kopii `..\SAPI_DOKU_FTP\SAPI15\MELSOFT_DISKETY`,

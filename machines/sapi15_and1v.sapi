@@ -1,0 +1,46 @@
+// SAPI-1 machine description, written by the SAPIemu configurator.
+// Paths are relative to the emulator data folder (roms/, media/, work/).
+{
+    "name": "SAPI-1.5 s AND-1V: PKT-1, RSW-1, MFC-1A, AND-1V, CP/M 2.2 62K",
+    "description": "SAPI-1.5 bez DBS-1: procesorová deska PKT-1, RSW-1 (64 KB RAM), řadič MFC-1A a VGA displej AND-1V (64x20) na F800h. EPROM PKT-1_ROMBIOS_AND.bin je ROM BIOS Melsoft s ovladačem displeje přepsaným pro AND (tools/pkt1_and.py), CP/M z disket Melsoft je beze změny. RSW-1 má propojky XT1 A6 = H, A7 = L, A8 = L (RAM 0000-F7FF), nad ní je video RAM. AND-1V má osazenou propojku MAP1OFF (vždy aktivní). docs/desky/PKT-1.md, RSW-1.md.",
+    "bus": {
+        "type": "ARB-1C-8",                 // ARB-1C 8 positions (ZPC)
+        "jp3": "1-2"                        // JP3: 2-3 = CPU card in X1, 1-2 = address buffers off (PKT-1)
+    },
+    "cards": [
+        {
+            "slot": 2,                      // position X2
+            "type": "PKT-1",                // SAPI-1.5 CPU card Z80: keyboard, printer, BOOT, MAP (any slot: ARB-1C JP3 = 1-2)
+            "rom": "roms/pkt-1/PKT-1_ROMBIOS_AND.bin",  // EPROM (DD9)
+            "keyboard": { "type": "Consul 262.3", "latch_mod": false }  // Keyboard (connector XP2, 8255 port B)
+        },
+        {
+            "slot": 3,                      // position X3
+            "type": "RSW-1",                // SAPI-1.5: 64 KB RAM, serial port 8251, watchdog
+            "xt1_a6": "H",                  // XT1: DD1 input A6
+            "xt1_a7": "L",                  // XT1: DD1 input A7
+            "xt1_a8": "L"                   // XT1: DD1 input A8 (group 001 = RAM 0000-F7FF)
+        },
+        {
+            "slot": 4,                      // position X4
+            "type": "MFC-1A",               // Mini floppy controller 8272 + DMA
+            "drive_a": {                    // Drive 0
+                "image": "media/sapi15/SAPI15_1.sp2",  // Disk image
+                "write_protect": false,     // Write protected
+                "cpm": "A"                  // CP/M letter of the drive (Media window; empty = seen while running)
+            },
+            "rdy_ground": true,             // X2-19 RDY grounded (8" Consul 7113 have no READY); else READY from the drive (disk in)
+            "motor_line": true,             // Drives turn only with MOTOR ON (MO0n-MO3n, register 0FH D3 D2: 5.25" drives); else always (8"
+            "wiring": "ec1045",             // Wiring of the drive register 0FH - Tesla board as made (No. 0124) = redraw EC1045
+            "reset_mode": "level"           // Register 0FH: the reset bit of the 8272 - 1 holds the reset
+        },
+        {
+            "slot": 5,                      // position X5
+            "type": "AND-1V",               // VGA display 64x20 (V)
+            "base": "F800h",                // S2 /A11-/A15: VRAM base (2 KB steps)
+            "map": "always",                // S2 MAP1OFF, H/L - MAP1OFF fitted: always
+            "color": "amber",               // S1: ink colour
+            "font": "roms/and-1v/font_and1v22_1024.bin"  // Character generator 27C256 - 10x24 type 1
+        }
+    ]
+}

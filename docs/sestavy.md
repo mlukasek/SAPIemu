@@ -360,6 +360,10 @@ semigrafika DBS-1A (64x20, znakový generátor z dumpu EPROM „59“). Místo s
 `docs/software/SAPI-1.5.md`, `docs/desky/PKT-1.md`, `RSW-1.md`, `DBS-1A.md`. ZPS-5 (dvojitá vana, dlouhá sběrnice,
 bez MFC-1A a DBS-1) nemá dochovaný firmware.
 
+**SAPI-1.5 bez DBS-1** (2026-11-08): `machines/sapi15_and1z.sapi` a `sapi15_and1v.sapi` jsou ZPS-6 s AND-1Z nebo AND-1V
+na F800h místo DBS-1A, s novou EPROM `PKT-1_ROMBIOS_AND.bin` a s RSW-1 s propojkami XT1 A6 = H, A7 = L, A8 = L (RAM
+0000–F7FF). CP/M z disket Melsoft je beze změny. `docs/software/SAPI-1.5.md`.
+
 **Sestava V** (`machines/sapi1v.sapi`): Liborovy desky JPR-1V, RAM-1V, AND-1V, DSM-1V, ZRD-1V, IDE-1, CGA-1V
 a MPH-1V s ECMON a CP/M z RAM disku. Propojky jsou jako na autorových deskách. CGA-1V (C000h při MAP1 = MAP2 = H) má
 vlastní okno „CGA-1V“. Zvuková karta MPH-1V (50h) hraje přes zvuk PC při rychlosti 100 % (Stroj → Zvuk, joystick a myš,

@@ -7,6 +7,10 @@ Tento soubor je vstupní bod pro pokračování na jiném počítači nebo v nov
 
 ## Kde jsme skončili (2026-11-01) a co dál
 
+- **2026-11-08: EPROM PKT-1 pro AND-1Z a AND-1V** (autor: pro majitele PKT-1 a RSW-1 bez DBS-1): `tools/pkt1_and.py`,
+  `roms/pkt-1/PKT-1_ROMBIOS_AND.bin`, sestavy `sapi15_and1z` a `sapi15_and1v`, rozhodnutí 2026-11-08. CP/M z disket
+  Melsoft beze změny. **Dál:** ověřit na skutečném HW (Nejasnosti v `docs/desky/RSW-1.md`).
+
 - **Stav 2026-11-01: SAPIemu je veřejné.**
   - Vydání `v0.7.1-beta` je na GitHubu (Releases, předběžná verze, zip a `.sha256`).
   - Repozitář je veřejný s Issues, článek „Emulátor SAPI-1: postavte si vlastní sestavu“ na 8bity.cz je v README

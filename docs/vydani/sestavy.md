@@ -120,7 +120,8 @@ XY 4130 a plotter z AR 1990 přešly 2026-10-28 do Přístrojů a technologie. R
 
 `zps/MIKROBASIC_AR1983`, `zps/ZPS-1_JPR-1S_AND-1B`, `zps/ZPS-1_JPR-1X`, `zps/ZPS-2_MIKOS_D`,
 `zps/ZPS-2_MIKOS_V5_DGD-1V`, `zps/ZPS-3`, `zps/ZPS-3_CPM48K`, `zps/ZPS-3_CPM48K_FDC-1`, `zps/ZPS-3_CPM48K_IMA`,
-`zps/ZPS-3_CPM62K`, `zps/ZPS-3_CPM62K_FDC-1`, `zps/ZPS-4_ELIS`, `zps/ZPS-4_FDC-1` (13 sestav).
+`zps/ZPS-3_CPM62K`, `zps/ZPS-3_CPM62K_FDC-1`, `zps/ZPS-4_ELIS`, `zps/ZPS-4_FDC-1`, `sapi15_and1z`, `sapi15_and1v` (15 sestav; poslední dvě přibyly 2026-11-08 pro
+majitele PKT-1 a RSW-1 bez DBS-1).
 
 ### 5b. CP/M s ECMONem (RAM disk ZRMD-1)
 

@@ -56,6 +56,7 @@ Původní základní počítačové sestavy (ZPS) v pořadí, jak šly po sobě.
 | `zps/ZPS-3_CPM64K_IMA.sapi` | ZPS-3: originální CP/M 2.2 64K Tesla IMA z 8" diskety (B: MBASIC, COBOL) | `B:`, `MBASIC` |
 | `zps/ZPS-4.sapi` | ZPS-4 se Z80: CP/M 2.2/P 62K R. Peřiny z 8" diskety, RAM disk RMD-1 | `DIR`, `TYPE CPM.DOC` |
 | `zps/ZPS-6.sapi` | SAPI-1.5 (1990): PKT-1, RSW-1, MFC-1A, barevná DBS-1A, CP/M 2.2 62K z 5,25" diskety | `DIR`, `SETDBS1` (barvy a celá znaková sada), další diskety Melsoft `media/sapi15` v okně Média |
+| `sapi15_and1z.sapi`, `sapi15_and1v.sapi` | SAPI-1.5 bez DBS-1: PKT-1, RSW-1, MFC-1A a AND-1Z nebo AND-1V, nová EPROM s ovladačem pro AND, CP/M z disket Melsoft beze změny | `DIR`, `TYPE CPM62-5.TXT` |
 
 ### Přístroje a technologie
 

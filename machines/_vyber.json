@@ -57,7 +57,7 @@
                           "zps/ZPS-2_MIKOS_D.sapi", "zps/ZPS-2_MIKOS_V5_DGD-1V.sapi", "zps/ZPS-3.sapi",
                           "zps/ZPS-3_CPM48K.sapi", "zps/ZPS-3_CPM48K_FDC-1.sapi", "zps/ZPS-3_CPM48K_IMA.sapi",
                           "zps/ZPS-3_CPM62K.sapi", "zps/ZPS-3_CPM62K_FDC-1.sapi", "zps/ZPS-4_ELIS.sapi",
-                          "zps/ZPS-4_FDC-1.sapi" ]
+                          "zps/ZPS-4_FDC-1.sapi", "sapi15_and1z.sapi", "sapi15_and1v.sapi" ]
         },
         {
             "id": "ecmon",
@@ -287,6 +287,20 @@
         },
         "zps/ZPS-2_MIKOS_V5_DGD-1V.sapi": {
             "title_en": "ZPS-2 MIKOS V5.0 with DGD-1V (JPR-1, REM-1, RAM-1/48K, AND-1, DSM-1, BDK-1, DGD-1V, Consul 262.3)"
+        },
+        "sapi15_and1z.sapi": {
+            "title": "SAPI-1.5 s displejem AND-1Z (bez DBS-1)",
+            "title_en": "SAPI-1.5 with the display AND-1Z (without DBS-1)",
+            "name_en": "SAPI-1.5 with AND-1Z: PKT-1, RSW-1, MFC-1A, AND-1Z-89, CP/M 2.2 62K",
+            "summary": "Pro majitele PKT-1 a RSW-1 bez karty DBS-1: nová EPROM s ovladačem pro AND-1Z na F800h. CP/M z disket Melsoft je beze změny, chybí jen barvy a semigrafika DBS-1.",
+            "summary_en": "For owners of PKT-1 and RSW-1 without the DBS-1 card: a new EPROM with a driver for the AND-1Z at F800h. The CP/M of the Melsoft disks is unchanged, only the colours and semigraphics of the DBS-1 are missing."
+        },
+        "sapi15_and1v.sapi": {
+            "title": "SAPI-1.5 s displejem AND-1V (bez DBS-1)",
+            "title_en": "SAPI-1.5 with the display AND-1V (without DBS-1)",
+            "name_en": "SAPI-1.5 with AND-1V: PKT-1, RSW-1, MFC-1A, AND-1V, CP/M 2.2 62K",
+            "summary": "Totéž s VGA displejem AND-1V Libora Lasoty: EPROM s ovladačem pro AND na F800h, propojka MAP1OFF osazená. CP/M z disket Melsoft je beze změny.",
+            "summary_en": "The same with the VGA display AND-1V by Libor Lasota: the EPROM with the AND driver at F800h, the jumper MAP1OFF fitted. The CP/M of the Melsoft disks is unchanged."
         },
         "zps/ZPS-4_FDC-1.sapi": {
             "title_en": "ZPS-4 with FDC-1 (JPR-1Z, RAM-1Z, AND-1Z, DSM-1, FDC-1, RMD-1, Consul 262.3)"

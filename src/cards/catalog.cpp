@@ -1466,6 +1466,8 @@ static const ParamOption k_pkt1_roms[] = {
       "MON-V100690 (dump EPROM, ZPS-6/7: DBS-1, MFC-1A, Consul 262.3)" },
     { "\"roms/pkt-1/PKT-1_ROMBIOS_MELSOFT.bin\"", "MON-V100690 revised (Melsoft ROMBIOS.MAC: printer status, timeout)",
       "MON-V100690 opravený (Melsoft ROMBIOS.MAC: stav tiskárny, časový limit)" },
+    { "\"roms/pkt-1/PKT-1_ROMBIOS_AND.bin\"", "Melsoft ROMBIOS for AND-1Z / AND-1V at F800h, without DBS-1 (new, tools/pkt1_and.py)",
+      "Melsoft ROMBIOS pro AND-1Z / AND-1V na F800h, bez DBS-1 (nový, tools/pkt1_and.py)" },
     { nullptr, nullptr, nullptr },
 };
 static const ParamOption k_pkt1_eprom[] = {

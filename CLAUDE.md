@@ -81,6 +81,8 @@ Autor: Martin Lukášek (mlukasek, 8bity.cz). Komunikace s autorem probíhá **�
   `ar1990_rom.py` (EPROM plotteru z AR 1990 z výpisu `roms/ar1990/PLOTTER.MAC`, `docs/desky/AR1990.md`),
   `ecmon_and30c.py` (ECMON s ovladačem `ecmon_and30c.mac` pro displej AND-30C z `..\SAPI-karty\ZRMD-1\SRC`,
   `docs/software/ECMON.md`),
+  `pkt1_and.py` (ROM BIOS PKT-1 s ovladačem `pkt1_and.mac` pro AND-1Z a AND-1V místo DBS-1, z `..\SAPI-karty\PKT-1\System`,
+  `docs/software/SAPI-1.5.md`),
   `dps1_kazeta.py` (kazeta BASIMS s programy BASIC nahraná v emulátoru přes MCP, `docs/navod-dps1.md`),
   `ui_gallery.py` (galerie obrazovek GUI ve všech vzhledech `--ui-theme`, s `--layouts` plovoucí a zadokovaná
   okna, `docs/vydani/plan-vzhled.md`), `docs_images.py` (snímky GUI v `docs/img` pro návody, desky a README podle

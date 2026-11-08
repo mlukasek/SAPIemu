@@ -6,7 +6,9 @@
 // - PKT-1 port 0Eh: MAP2 switches RSW-1 off at B000-BFFF and the DBS-1A video RAM on (write only);
 // - RSW-1 8251 at 9600 Bd (8253 counter 0 = 8) sends and receives through the host channel;
 // - the watchdog (counters 1 and 2) resets the system through /RTL when XT2 is fitted;
-// - the image formats .sp2 (40 x 2 x 16 x 256 B) and .sp1 (one side) are known by their size.
+// - the image formats .sp2 (40 x 2 x 16 x 256 B) and .sp1 (one side) are known by their size;
+// - the EPROM for AND-1Z/AND-1V (machines/sapi15_and1z.sapi, sapi15_and1v.sapi) answers the control codes like the DBS-1 one.
+#include "core/charset.h"
 #include "chips/floppy.h"
 #include "core/headless.h"
 #include "core/machine.h"
@@ -162,6 +164,93 @@ static void watchdog(bool fitted)
     }
 }
 
+// The EPROM for the displays AND-1Z and AND-1V (tools/pkt1_and.py) against the original for the DBS-1: the same
+// control codes through the vector F009h give the same screen. The program is left in JMP $, so the cursor stays drawn
+// (row 18, column 0, a cleared row: the character 127 of the AND driver is taken out of the text).
+static std::string control_codes(const char* file, const char* rom)
+{
+    std::string text;
+    CHECK(file_read_text(data_path(file), text));
+    json cfg = json::parse(text, nullptr, false, true);
+    std::vector<uint8_t> img;
+    CHECK(file_read_all(data_path("media/sapi15/SAPI15_1.sp2"), img));
+    CHECK(file_write_all(data_path("work/test/sapi15_a.sp2"), img.data(), img.size()));
+    for (json& c : cfg["cards"]) {
+        std::string ty = c.value("type", std::string());
+        if (ty == "MFC-1A") {
+            c["drive_a"] = { { "image", "work/test/sapi15_a.sp2" }, { "write_protect", false } };
+            c["working_copy"] = false;
+        }
+    }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(cfg, err));
+    bool up = run_until_text(m, "\nA>", 30.0);
+    CHECK(up);
+    if (!up) return std::string();
+    CHECK(screen_contains(m, rom));
+    m.run_seconds(0.3);
+
+    static const uint8_t prog[] = {
+        0x21, 0x20, 0x01,   // LXI H,0120h
+        0x7E,               // MOV A,M
+        0xFE, 0xFF,         // CPI 0FFh
+        0xCA, 0x13, 0x01,   // JZ 0113h
+        0xE5,               // PUSH H
+        0xCD, 0x09, 0xF0,   // CALL 0F009h
+        0xE1,               // POP H
+        0x23,               // INX H
+        0xC3, 0x03, 0x01,   // JMP 0103h
+        0x00,
+        0xC3, 0x13, 0x01,   // JMP 0113h
+    };
+    std::string d;
+    auto at = [&d](int row, int col) { d += '\x1B'; d += (char)(0x20 + row); d += (char)(0x20 + col); };
+    d += '\x1F';                           // clear the screen
+    d += "Hello\rJ";                       // CR: Jello
+    d += "\n\rA\tB\tC";                    // LF, CR, tabs every 8
+    at(3, 62); d += "ab\tZ";               // the second character wraps to the next row, the tab stays in it
+    at(5, 10); d += "XY\b\bQ";             // BS
+    at(6, 0); d += "\b";                   // BS from column 0 goes to the end of the previous row
+    d += "W";
+    at(7, 2); d += "ABCDEFGH"; at(7, 5); d += '\x1E';  // clear to the end of the row
+    at(8, 0); d += '\x01'; d += '\r'; d += "after";    // 01h: the next code is a character
+    d += '\x1D'; d += "Home";              // 1Dh
+    at(10, 0); d += std::string(70, 'L');  // wraps
+    at(19, 0); d += "last"; d += '\n';     // LF on the last row scrolls and goes to column 0
+    d += "next";
+    at(19, 63); d += 'x';                  // the last cell scrolls
+    d += "corner";
+    d += '\x05';                           // no scrolling: the end of a row keeps the position
+    at(19, 63); d += "yz";
+    d += '\x04';
+    d += '\x1B'; d += (char)(0x20 + 18); d += ' '; d += '\x1E';  // rows 18 clear, cursor at its start
+    CHECK(sizeof(prog) <= 0x20 && d.size() < 0x1E0);
+    for (size_t i = 0; i < sizeof(prog); i++) m.bus.mem_write((uint16_t)(0x0100 + i), prog[i]);
+    for (size_t i = 0; i < d.size(); i++) m.bus.mem_write((uint16_t)(0x0120 + i), (uint8_t)d[i]);
+    m.bus.mem_write((uint16_t)(0x0120 + d.size()), 0xFF);
+    m.type_text("SAVE 2 T.COM\r");
+    m.run_seconds(3.0);
+    m.type_text("T\r");
+    m.run_seconds(3.0);
+    std::string s = screen_text(m), cur = sapi_code_to_utf8(127);
+    for (size_t p; (p = s.find(cur)) != std::string::npos;) s.erase(p, cur.size());
+    return s;
+}
+
+static void test_and_eprom(void)
+{
+    static const char* DBS_ROM = "PKT-1 62K MON-V100690*LCH";
+    static const char* AND_ROM = "PKT-1 62K MON-V100690*LCH/AND";
+    std::string dbs = control_codes("machines/zps/ZPS-6.sapi", DBS_ROM);
+    std::string z = control_codes("machines/sapi15_and1z.sapi", AND_ROM);
+    std::string v = control_codes("machines/sapi15_and1v.sapi", AND_ROM);
+    printf("--- DBS-1\n%s--- AND-1Z\n%s", dbs.c_str(), z.c_str());
+    CHECK(!dbs.empty());
+    CHECK(z == dbs);
+    CHECK(v == dbs);
+}
+
 int main(int argc, char** argv)
 {
     test_init();
@@ -196,5 +285,6 @@ int main(int argc, char** argv)
     test_map_and_serial();
     watchdog(false);
     watchdog(true);
+    test_and_eprom();
     return TEST_RESULT();
 }

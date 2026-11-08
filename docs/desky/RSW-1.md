@@ -60,3 +60,5 @@ Stav: **emulovaná** (typ `RSW-1`, `src/cards/rsw1.*`, USART `src/chips/i8251.*`
 1. Skutečné propojky XT1 na deskách ZPS-7/8 a polarita MAP (schéma Tesla píše /MAP1, /MAP2).
 2. Analogová zem (kolíky 53/54) proti GND (na replice nespojené).
 3. Obnovení watchdogu: stačí zápis 0 a 1 do 1Fh (předpoklad z návodu „H→L→H na hradle“)?
+4. Sestava bez DBS-1 (EPROM `PKT-1_ROMBIOS_AND.bin`, AND-1Z nebo AND-1V na F800h, `docs/software/SAPI-1.5.md`): XT1
+   A6 = H, A7 = L dává RAM 0000–F7FF zatím jen podle dumpu DD1, na skutečné RSW-1 a PKT-1 se to nezkoušelo.

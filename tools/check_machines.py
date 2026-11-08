@@ -138,6 +138,8 @@ MACHINES = {
     'zps_ZPS-4_ELIS': (CPM + cpm_dir(), [' COM']),
     'zps_ZPS-4_FDC-1': (CPM + cpm_dir(), [' COM']),
     'zps_ZPS-6': (CPM + cpm_dir(), ['SETDBS1']),
+    'sapi15_and1z': (CPM + cpm_dir(), ['SETDBS1', 'log-clean']),
+    'sapi15_and1v': (CPM + cpm_dir(), ['SETDBS1', 'log-clean']),
 }
 
 

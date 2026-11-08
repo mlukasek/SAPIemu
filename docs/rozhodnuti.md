@@ -3712,3 +3712,16 @@ Autor: „žádná rozumná zpětná vazba mi nepřišla, tak jdeme udělat ten 
   Zveřejnění je nevratné a mluví za autora, proto ho dělá on.
 - **README** je bez podpisu pod úvodním textem (autor: text je jeho, podpis vypadal jako citace). Odkaz na 8bity.cz
   zůstává v okně O programu a v průvodci PoP.
+
+## 2026-11-08 – EPROM PKT-1 pro AND-1Z a AND-1V
+
+- **Proč:** někteří mají desky PKT-1 a RSW-1, ale ne DBS-1 (autor: „udělej tu EPROM pro PKT-1 s AND-1Z a AND-1V“).
+- **Co se mění:** jen ovladač konzoly v ROM BIOSu (`tools/pkt1_and.py`, `pkt1_and.mac`). Základem je verze Melsoft,
+  protože má skutečný test BUSY a časový limit tisku. CP/M z disket se nemění, CBIOS volá jen vektory na F000h.
+- **Jedna EPROM pro obě karty:** AND-1Z i AND-1V mají na F800h stejnou video RAM 64 × 20.
+- **Chování jako u DBS-1:** stejné řídicí kódy, i zvláštnosti (LF na posledním řádku skočí na sloupec 0, při vypnutém
+  rolování se na konci řádku kurzor nepohne). Software napsaný pro DBS-1 tak dostane stejnou obrazovku. Hlídá to
+  `test_sapi15` porovnáním se sestavou ZPS-6.
+- **Kurzor softwarově** (znak 127, blikání z CONS0) jako v ECMONu, karty AND kurzor nemají.
+- **Propojky:** RSW-1 XT1 podle dumpu DD1, AND-1V s MAP1OFF, aby nezáleželo na neověřené polaritě MAP1 na PKT-1.
+- **Nejisté:** na skutečném HW to neběželo. Předpoklad je řadič MFC-1A, autor o jiném neví.
