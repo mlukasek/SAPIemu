@@ -86,31 +86,38 @@ Nový ROM BIOS pro ty, kdo mají PKT-1 a RSW-1, ale ne DBS-1 (2026-11-08): `roms
 |---|---|
 | 1 (CPM62-5.001) | systém, CPM62-5.TXT, FORMAT, PIP, SDT40, SETDBS1, STAT, SYSGEN |
 | 2 (CPM62-5.002) | ASM, ED, M80, L80, LIB, CREF80, F80 + FORLIB, WM, SORT, DDUMP, SUBMIT, XSUB |
-| 3 (CPM62-5.003) | MBASIC, BASCOM + BASLIB, COBOL + OVR + COBLIB; **jeden sektor BDOS poškozený** (C0 H0 R14), proto `SAPI15_3_opr.sp2` se systémovou stopou z diskety 1 |
+| 3 (CPM62-5.003) | MBASIC, BASCOM + BASLIB, COBOL + OVR + COBLIB; **poškozený sektor BDOS** (C0 H0 R14) a sektory souborů, opravená kopie `SAPI15_3_opr.sp2` |
 | 4 (CPM62-5.004) | Pascal MT+, DIS8080 |
 | 7 | zdrojáky a aplikace: ROMBIOS.MAC, SYSTEM.MAC, CONNECT, INTER, SAPI (RSW-1), SIMPROG (programátor DSE-1, build pro 4 MHz, `docs/desky/DSE-1.md`), TAPEREC, DOCTOR, TABULKA |
 | 8 | ROMBIOS.MAC/PRN/REL, TAPEREC, ASM, LOAD, DUMP, FORMAT |
 
 Diskety 5 a 6 se nedochovaly. Všechny soubory mají atribut R/O.
 
-**Poškozené sektory na disketách 2, 3 a 4** (nalezeno 2026-11-08 porovnáním se stejně dlouhými kopiemi souborů v archivu
-SAPI_DOKU): sektor sedí s kopií do některého bajtu a odtud do konce je nesmyslný.
+**Poškozené sektory na disketách 2, 3 a 4** (nalezeno 2026-11-08). Dochované obrazy mají vadná místa: sektor sedí
+s neporušenou kopií souboru do některého bajtu a odtud do konce je nesmyslný, nebo má jeden až několik chybných bajtů
+(většinou překlopený bit). Vadná místa leží skoro vždy na stejných číslech sektoru na sousedních válcích (R3 a R4 na
+disketách 2 a 4, R2 a R12 na disketě 4, R14 na disketě 3). Vypadá to na fyzickou vadu médií nebo chybu při čtení, ne na
+úpravu programů.
 
 | Disketa | Sektorů | Soubory |
 |---|---|---|
-| 2 | 30 | FORLIB.REL, GENHEX, L80, LIB, LOAD, M80, SAMPLE.DAT, SDT, SORT, STAT, WM |
-| 3 | 4 (a známý sektor BDOS) | BASLIB.REL, COBOL3.OVR, PIP, STAT |
-| 4 | 14 | MTPLUS.002, MTPLUS.COM, PASLIB.ERL, PIP, RANDOMIO.ERL, STAT |
+| 2 | 41 | FORLIB.REL, GENHEX, L80, LIB, LOAD, M80, PIP, SAMPLE.DAT, SDT, SORT, STAT, SUBMIT, WM, WM.HLP |
+| 3 | 6 a sektor BDOS | BASLIB.REL, COBOL3.OVR, MBASIC, PIP, STAT |
+| 4 | 27 | MTPLUS.000, .001, .002, .003, .004, .006, MTPLUS.COM, PASLIB.ERL, PIP, RANDOMIO.ERL, STAT |
 
-Diskety 1, 7 a 8 takové sektory nemají. Porovnat šlo jen soubory, které mají kopii jinde. Vadná místa leží většinou na
-stejných číslech sektoru na sousedních válcích (R3 a R4 na disketách 2 a 4, R14 na disketě 3, kde je i vadný sektor BDOS).
-Vypadá to na fyzickou vadu médií nebo chybu při čtení, ne na úpravu programů.
+Všechny soubory těchto tří disket mají kopii jinde v archivech, takže se daly zkontrolovat celé. Na disketách 1, 7 a 8
+se nic takového nenašlo, porovnat ale šly jen soubory s kopií jinde (ne např. SETDBS1 a většina zdrojáků na disketě 7).
 
-**WM (WordMaster V1.07A-A1) z diskety 2 proto nejde spustit.** Poškozené jsou adresy 0245–02FF, 122E–12FF, 21E9–21FF
-a 223A–22FF, od neporušené kopie se liší jinak jen velikost obrazovky na 01B9h a 01BAh (14h, 40h = 20 × 64). Vstup 0269h
-leží v poškozeném místě, z 0297h se zavolá 9579h, běh pak projde prázdnou RAM až do CCP s registrem C = FFh. CCP to bere
-jako uživatele 15 a mechaniku P:, odtud `BDOS ERR ON P: SELECT`. Emulátor za to nemůže. Kopie se čtyřmi sektory
-z neporušeného WM.COM běží na ZPS-6 i na sestavě s AND-1Z a obrazovky včetně video módu jsou stejné.
+**Opravené kopie** `media/sapi15/SAPI15_{2,3,4}_opr.sp2` vyrábí `tools/sapi15_oprava.py` (potřebuje archivy
+`..\SAPI_DOKU_FTP` a `..\SAPI_DOKU`). Vadný sektor nahradí obsahem, na kterém se shodne většina kopií souboru, a výsledek
+musí být shodný s některou skutečnou kopií. Originály zůstávají vedle, v katalogu MFC-1A se nabízejí opravené. Beze změny
+zůstal SYSGEN (vlastní verze Melsoftu) a velikost obrazovky ve WM. Ověřeno v ZPS-6: M80 s L80 a Pascal MT+ přeloží
+a spustí program (z originálů selžou), běží WM, MBASIC a PIP s ověřením. BASCOM, COBOL, F80, SORT a LIB se nespouštěly.
+
+**Proč WM (WordMaster V1.07A-A1) z originálu diskety 2 hlásí `BDOS ERR ON P: SELECT`:** poškozené jsou adresy 0245–02FF,
+122E–12FF, 21E9–21FF a 223A–22FF, od neporušené kopie se liší jinak jen velikost obrazovky na 01B9h a 01BAh (14h, 40h =
+20 × 64). Vstup 0269h leží v poškozeném místě, z 0297h se zavolá 9579h, běh pak projde prázdnou RAM až do CCP s registrem
+C = FFh. CCP to bere jako uživatele 15 a mechaniku P:. Emulátor za to nemůže.
 
 - **Systémová stopa** (válec 0) = `system1.bin`: boot sektor (EF00h, „JPR-1Z 62K CP/M VERS. 2.2“, čte 26 sektorů do
   D400h a skočí na EA00h), CCP D400h, BDOS DC00h (DRI 2.2 s mírnými úpravami „(C)-JBPG“/„(C)-PGJB“), CBIOS EA00h.

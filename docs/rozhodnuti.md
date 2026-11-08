@@ -3725,3 +3725,13 @@ Autor: „žádná rozumná zpětná vazba mi nepřišla, tak jdeme udělat ten 
 - **Kurzor softwarově** (znak 127, blikání z CONS0) jako v ECMONu, karty AND kurzor nemají.
 - **Propojky:** RSW-1 XT1 podle dumpu DD1, AND-1V s MAP1OFF, aby nezáleželo na neověřené polaritě MAP1 na PKT-1.
 - **Nejisté:** na skutečném HW to neběželo. Předpoklad je řadič MFC-1A, autor o jiném neví.
+
+## 2026-11-08 – Opravené kopie disket Melsoft 2, 3 a 4
+
+- **Proč:** dochované obrazy mají poškozené sektory, nejde spustit WM, M80 ani Pascal MT+ (autor: „udělej opravené kopie
+  disket 2, 3 a 4“).
+- **Jak:** `tools/sapi15_oprava.py` nahradí vadné sektory obsahem z neporušených kopií týchž souborů z jiných disket
+  v archivech. Soubor po opravě musí být shodný s některou skutečnou kopií, aby nevznikla směs verzí.
+- **Originály zůstávají** v `media/sapi15` vedle oprav, stejně jako dřív u diskety 3. `SAPI15_3_opr.sp2` je rozšířená
+  o 6 sektorů souborů. V katalogu MFC-1A se nabízejí opravené kopie, protože s originály programy padají.
+- **Zůstává podle Melsoftu:** SYSGEN a velikost obrazovky ve WM.

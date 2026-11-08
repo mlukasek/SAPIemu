@@ -20,13 +20,13 @@
 using nlohmann::json;
 
 // ZPS-6 with a copy of a Melsoft disk in drive A (no working copy, the test file is written)
-static json zps6(const char* rom = nullptr, bool watchdog = false)
+static json zps6(const char* rom = nullptr, bool watchdog = false, const char* disk = "media/sapi15/SAPI15_1.sp2")
 {
     std::string text;
     CHECK(file_read_text(data_path("machines/zps/ZPS-6.sapi"), text));
     json cfg = json::parse(text, nullptr, false, true);
     std::vector<uint8_t> img;
-    CHECK(file_read_all(data_path("media/sapi15/SAPI15_1.sp2"), img));
+    CHECK(file_read_all(data_path(disk), img));
     CHECK(file_write_all(data_path("work/test/sapi15_a.sp2"), img.data(), img.size()));
     for (json& c : cfg["cards"]) {
         std::string ty = c.value("type", std::string());
@@ -238,6 +238,36 @@ static std::string control_codes(const char* file, const char* rom)
     return s;
 }
 
+// The repaired copies of the Melsoft disks (tools/sapi15_oprava.py): only the damaged sectors differ from the originals.
+// WM.COM of the original disk 2 has a damaged start (BDOS ERR ON P: SELECT), the repaired one clears the screen and runs.
+static void test_repaired_disks(void)
+{
+    static const struct { const char* orig; const char* opr; int sectors; } disks[] = {
+        { "media/sapi15/SAPI15_2.sp2", "media/sapi15/SAPI15_2_opr.sp2", 41 },
+        { "media/sapi15/SAPI15_3.sp2", "media/sapi15/SAPI15_3_opr.sp2", 7 },
+        { "media/sapi15/SAPI15_4.sp2", "media/sapi15/SAPI15_4_opr.sp2", 27 },
+    };
+    for (const auto& d : disks) {
+        std::vector<uint8_t> a, b;
+        CHECK(file_read_all(data_path(d.orig), a));
+        CHECK(file_read_all(data_path(d.opr), b));
+        CHECK(a.size() == 327680 && b.size() == 327680);
+        int n = 0;
+        for (size_t i = 0; i + 256 <= a.size() && i + 256 <= b.size(); i += 256)
+            if (memcmp(&a[i], &b[i], 256)) n++;
+        CHECK(n == d.sectors);
+    }
+    Machine m;
+    std::string err;
+    CHECK(m.load_json(zps6(nullptr, false, "media/sapi15/SAPI15_2_opr.sp2"), err));
+    CHECK(boot(m));
+    m.type_text("WM NOVY.TXT\r");
+    m.run_seconds(8.0);
+    std::string s = screen_text(m);
+    CHECK(s.find("BDOS ERR") == std::string::npos);
+    CHECK(s.find("CBIOS") == std::string::npos);
+}
+
 static void test_and_eprom(void)
 {
     static const char* DBS_ROM = "PKT-1 62K MON-V100690*LCH";
@@ -286,5 +316,6 @@ int main(int argc, char** argv)
     watchdog(false);
     watchdog(true);
     test_and_eprom();
+    test_repaired_disks();
     return TEST_RESULT();
 }

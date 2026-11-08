@@ -157,9 +157,11 @@ Sestava `machines/zps/ZPS-6.sapi`, popis `docs/software/SAPI-1.5.md`.
 |---|---|
 | `SAPI15_1.sp2` | systém (boot, CCP, BDOS, CBIOS V050690), CPM62-5.TXT, FORMAT, PIP, SDT40, SETDBS1, STAT, SYSGEN |
 | `SAPI15_2.sp2` | ASM, ED, M80, L80, LIB, CREF80, F80, WM, SORT, DDUMP, SUBMIT, XSUB |
+| `SAPI15_2_opr.sp2` | opravená kopie (`tools/sapi15_oprava.py`): 41 poškozených sektorů souborů z neporušených kopií |
 | `SAPI15_3.sp2` | MBASIC, BASCOM, COBOL; originál s poškozeným sektorem BDOS (C0 H0 R14) |
-| `SAPI15_3_opr.sp2` | totéž se systémovou stopou z diskety 1 (bootuje) |
+| `SAPI15_3_opr.sp2` | opravená kopie (`tools/sapi15_oprava.py`): sektor BDOS z diskety 1 a 6 sektorů souborů z neporušených kopií |
 | `SAPI15_4.sp2` | Pascal MT+, DIS8080 |
+| `SAPI15_4_opr.sp2` | opravená kopie (`tools/sapi15_oprava.py`): 27 poškozených sektorů souborů z neporušených kopií |
 | `SAPI15_7.sp2` | zdrojáky ROMBIOS.MAC, SYSTEM.MAC, programy pro RSW-1 (CONNECT, INTER, SAPI), SIMPROG, TAPEREC, DOCTOR |
 | `SAPI15_8.sp2` | ROMBIOS.MAC/PRN/REL, TAPEREC, ASM, LOAD, DUMP, FORMAT |
 
